@@ -197,7 +197,8 @@ const Select = ({
   const Anchor = (
     <Pressable
       accessibilityLabel={selectedOption}
-      accessibilityRole="listbox"
+      accessibilityRole={Platform.OS === "web" ? "listbox" : "none"}
+      accessibilityState={{ selected: value }}
       disabled={disabled}
       onPress={() => setVisible(true)}
       style={[styles.selectContainer, getSelectGlowStyles(visible)]}
@@ -284,7 +285,7 @@ const Select = ({
                 }}
                 disabled={disabled}
                 accessibilityLabel={option.label}
-                accessibilityRole="option"
+                accessibilityRole={Platform.OS === "web" ? "option" : "none"}
                 accessibilityState={{ selected: value === option.value }}
                 style={({ hovered, pressed }) => [
                   styles.optionItem,

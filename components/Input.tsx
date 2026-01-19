@@ -189,7 +189,7 @@ const Input = ({
 
           <TextInput
             accessibilityLabel={label}
-            accessibilityRole="textbox"
+            accessibilityRole={Platform.OS === "web" ? "textbox" : "none"}
             accessibilityState={{ isFocused }}
             accessibilityValue={{ value }}
             accessibilityHint={placeholder}
@@ -197,6 +197,7 @@ const Input = ({
             numberOfLines={numberOfLines}
             readOnly={readonly}
             disabled={disabled}
+            accessible={!disabled}
             maxLength={maxLength}
             style={[
               styles.textInput,

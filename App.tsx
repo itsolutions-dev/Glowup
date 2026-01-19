@@ -1,16 +1,20 @@
 import { Loading } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { Text } from "react-native";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProviderWrapper, AlertProvider } from "providers/AlertProvider";
 import { ThemeProvider } from "providers/ThemeProvider";
-import { WorkOrderProvider } from "./store/workorder-context";
+import { NavigationContainer } from "@react-navigation/native";
+import DrawerNavigation from "components/Navigation/DrawerNavigation";
 import { useTheme } from "providers/ThemeProvider";
 import { useTranslation } from "react-i18next";
+import StatusBar from "components/StatusBar";
+/* 
+import { WorkOrderProvider } from "./store/workorder-context";
 import "./i18n";
 import StackNavigation from "components/Navigation/StackNavigation";
-import DrawerNavigation from "components/Navigation/DrawerNavigation";
-import StatusBar from "components/StatusBar";
-import { Alert } from "providers/AlertProvider";
+
+
+import { Alert } from "providers/AlertProvider"; */
 
 import Start from "screens/Start";
 
@@ -20,9 +24,7 @@ export default function App() {
       <SafeAreaProvider>
         <AlertProvider>
           <AlertProviderWrapper>
-            <WorkOrderProvider>
-              <InternalApp />
-            </WorkOrderProvider>
+            <InternalApp />
           </AlertProviderWrapper>
         </AlertProvider>
       </SafeAreaProvider>

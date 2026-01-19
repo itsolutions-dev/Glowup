@@ -101,7 +101,7 @@ const Spinner = ({
         <View style={styles.inputWrapper}>
           <TextInput
             accessibilityLabel={label}
-            accessibilityRole="textbox"
+            accessibilityRole={Platform.OS === "web" ? "textbox" : "none"}
             accessibilityState={{ isFocused, disabled }}
             accessibilityValue={{ value: String(value) }}
             keyboardType="numeric"

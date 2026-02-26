@@ -50,16 +50,14 @@ const Popover = ({
     }
   }, []);
 
-  setTimeout(() => {
-    updatePosition();
-  }, 0);
-
   useEffect(() => {
     if (visible) {
       // Small delay ensures the keyboard or scroll position is final
+      const timer = setTimeout(updatePosition, 0);
       requestAnimationFrame(updatePosition);
+      return () => clearTimeout(timer);
     }
-  }, [visible]);
+  }, [visible, updatePosition]);
 
   useEffect(() => {
     if (visible) updatePosition();

@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+
 import * as Localization from "expo-localization";
 import { format, isToday, isYesterday, isTomorrow } from "date-fns";
 
@@ -67,23 +68,7 @@ const DateTimePicker = ({
   }, [value, mode, locale]);
 
   return (
-    <View>
-      <Button title="Show Date Picker" onPress={() => setPickerVisible(true)} />
-      <DateTimePickerModal
-        isVisible={pickerVisible}
-        date={value}
-        mode={mode}
-        onConfirm={handleConfirm}
-        onCancel={() => setPickerVisible(false)}
-        locale={locale}
-        accentColor={theme.colors.primary}
-        buttonTextColorIOS={theme.colors.primary}
-      />
-    </View>
-  );
-
-  {
-    /* <View style={styles.wrapper}>
+    <View style={styles.wrapper}>
       {label && (
         <Text
           style={[
@@ -103,20 +88,7 @@ const DateTimePicker = ({
       <Pressable
         onPress={() => setPickerVisible(true)}
         disabled={disabled}
-        style={[
-          styles.container,
-          {
-            borderColor: pickerVisible
-              ? theme.colors.primary
-              : theme.colors.outlineVariant,
-            backgroundColor: theme.colors.surface,
-            // Glow effect logic...
-            ...(pickerVisible &&
-              Platform.OS === "web" && {
-                boxShadow: `0 0 0 4px ${theme.colors.primary}25`,
-              }),
-          },
-        ]}
+        style={[styles.container, getGlowStyles(theme, pickerVisible)]}
       >
         <View style={styles.content}>
           <Text
@@ -145,8 +117,8 @@ const DateTimePicker = ({
         accentColor={theme.colors.primary}
         buttonTextColorIOS={theme.colors.primary}
       />
-    </View>); */
-  }
+    </View>
+  );
 };
 export default DateTimePicker;
 

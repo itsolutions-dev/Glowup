@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, Text, View, StyleSheet } from "react-native";
-import { useTheme } from "../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 const LanguageSelector = ({ currentLang, onToggle }) => {
   const { theme } = useTheme();
@@ -17,13 +17,14 @@ const LanguageSelector = ({ currentLang, onToggle }) => {
   return (
     <Pressable
       onPress={onToggle}
-      style={({ pressed }) => [
+      style={({ hovered, pressed }: any) => [
         styles.container,
         {
           backgroundColor: pressed
             ? theme.colors.surfaceVariant
             : "transparent",
         },
+        (hovered || pressed) && getGlowStyles(theme, true),
       ]}
     >
       <Text style={styles.flag}>{active.flag}</Text>

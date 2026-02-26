@@ -1,9 +1,9 @@
-import React, { use, useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, TextInput, StyleSheet, Platform } from "react-native";
 import Icons, {
   MaterialCommunityIconsGlyphs,
 } from "@expo/vector-icons/MaterialCommunityIcons";
-import { Theme, useTheme } from "../providers/ThemeProvider";
+import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface InputProps {
   label?: string;
@@ -79,62 +79,10 @@ const Input = ({
     [type, precision, onChangeText],
   );
 
-  const getGlowStyles = useCallback(
-    (isFocused: boolean) => {
-      if (!isFocused) {
-        return {
-          borderColor: theme.colors.outlineVariant, // A softer, lighter grey
-          backgroundColor: theme.colors.surface,
-          borderWidth: 1,
-        };
-      }
-
-      return {
-        borderColor: theme.colors.primary,
-        borderWidth: 1, // Keep the border thin
-        backgroundColor: theme.colors.surface,
-        ...Platform.select({
-          web: {
-            boxShadow: `0 0 0 4px ${theme.colors.primary}33`,
-            transition: "all 0.2s ease-in-out",
-          },
-          ios: {
-            shadowColor: theme.colors.primary,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.25,
-            shadowRadius: 8,
-          },
-          android: {
-            elevation: 4,
-          },
-        }),
-      };
-    },
-    [theme],
-  );
-
   const dynamicStyles = useMemo(
-    () => getGlowStyles(isFocused),
-    [isFocused, theme],
+    () => getGlowStyles(theme, isFocused, error),
+    [isFocused, theme, error],
   );
-
-  const containerStyles = [
-    styles.inputContainer,
-    variant === "filled" ? styles.filled : styles.outlined,
-    {
-      borderColor: isFocused ? activeColor : idleColor,
-      borderWidth: isFocused || !!error ? 2 : 1,
-      backgroundColor:
-        variant === "filled"
-          ? theme.colors.surfaceContainerHighest
-          : "transparent",
-      opacity: disabled ? 0.38 : 1,
-      paddingRight: trailingIcon ? 12 : 0,
-      minHeight: multiline ? numberOfLines * 24 + 20 : minHeight,
-      alignItems: multiline ? "flex-start" : "center", // Align icons to top for multiline
-      paddingTop: multiline ? 8 : 0,
-    },
-  ];
 
   return (
     <View style={styles.wrapper}>
@@ -282,7 +230,9 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       paddingHorizontal: 16,
       flexDirection: "row",
       alignItems: "center",
+      backgroundColor: theme.colors.surface,
     },
+
     textInput: {
       flex: 1,
       paddingVertical: 8,

@@ -2,13 +2,17 @@ import { useMemo } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import { useTheme, Theme } from "providers/ThemeProvider";
-import { getStateColor } from "../providers/ThemeProvider";
+import {
+  useTheme,
+  Theme,
+  getStateColor,
+  getGlowStyles,
+} from "../providers/ThemeProvider";
 
 interface ChipProps {
   label: string;
-  onPress: () => void;
-  onClose: () => void;
+  onPress?: () => void;
+  onClose?: () => void;
   icon?: string;
   disabled?: boolean;
   selected?: boolean;
@@ -88,13 +92,20 @@ const Chip = ({
           );
         }
 
+        const glow =
+          (hovered || pressed) && !disabled
+            ? getGlowStyles(theme, true)
+            : {
+                borderWidth: mode === "outlined" ? 1 : 0,
+                borderColor: border || theme.colors.outlineVariant,
+              };
+
         return [
           styles.container,
           style, // Apply root style prop
           {
             backgroundColor: currentBg,
-            borderColor: border || theme.colors.outlineVariant, // Default border for outlined or if undefined
-            borderWidth: mode === "outlined" ? 1 : 0,
+            ...glow,
             opacity: disabled ? 0.38 : 1, // Standard Material disabled opacity
           },
         ];

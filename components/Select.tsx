@@ -11,7 +11,8 @@ import {
 import Icons, {
   MaterialCommunityIconsGlyphs,
 } from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "../providers/ThemeProvider";
+import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
+
 import Popover from "./Popover";
 import Checkbox from "./Checkbox";
 import Chip from "./Chip";
@@ -61,6 +62,7 @@ const Select = ({
   const [visible, setVisible] = useState(false);
   const [layout, setLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const variantStyles = useMemo(() => {
     return getVariantStyles(variant, theme, visible, !!error);
@@ -80,40 +82,6 @@ const Select = ({
     }
   };
 
-  const getSelectGlowStyles = useCallback(
-    (isFocused: boolean) => {
-      if (!visible) {
-        return {
-          borderColor: theme.colors.outlineVariant,
-          backgroundColor: theme.colors.surface,
-          borderWidth: 1,
-        };
-      }
-
-      return {
-        borderColor: theme.colors.primary,
-        borderWidth: 1,
-        backgroundColor: theme.colors.surface,
-        ...Platform.select({
-          web: {
-            boxShadow: `0 0 0 4px ${theme.colors.primary}33`,
-            transition: "all 0.2s ease-in-out",
-          },
-          ios: {
-            shadowColor: theme.colors.primary,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.2,
-            shadowRadius: 8,
-          },
-          android: {
-            elevation: 4,
-          },
-        }),
-      };
-    },
-    [theme.colors],
-  );
-
   const getDisplayContent = useCallback(() => {
     if (showAsChips && multiSelect && selectedValues.length > 0) {
       return options
@@ -122,7 +90,7 @@ const Select = ({
           <Chip
             label={opt.label}
             key={opt.id}
-            onClose={internalToggleOption.bind(this, opt.value)}
+            onClose={() => internalToggleOption(opt.value)}
           />
         ));
     }
@@ -196,12 +164,13 @@ const Select = ({
 
   const Anchor = (
     <Pressable
-      accessibilityLabel={selectedOption}
-      accessibilityRole={Platform.OS === "web" ? "listbox" : "none"}
+      accessibilityLabel={selectedOption?.label}
+      accessibilityRole={(Platform.OS === "web" ? "listbox" : "none") as any}
       accessibilityState={{ selected: value }}
       disabled={disabled}
       onPress={() => setVisible(true)}
-      style={[styles.selectContainer, getSelectGlowStyles(visible)]}
+      style={[styles.selectContainer, getGlowStyles(theme, visible, error)]}
+
       /*       style={[
         styles.selectBox,
         {
@@ -285,9 +254,11 @@ const Select = ({
                 }}
                 disabled={disabled}
                 accessibilityLabel={option.label}
-                accessibilityRole={Platform.OS === "web" ? "option" : "none"}
+                accessibilityRole={
+                  (Platform.OS === "web" ? "option" : "none") as any
+                }
                 accessibilityState={{ selected: value === option.value }}
-                style={({ hovered, pressed }) => [
+                style={({ hovered, pressed }: any) => [
                   styles.optionItem,
                   multiSelect && { paddingVertical: 0 },
                   optionStyle,
@@ -308,10 +279,7 @@ const Select = ({
                     <Checkbox
                       label={option.label}
                       checked={selectedValues.includes(option.value)}
-                      onValueChange={internalToggleOption.bind(
-                        this,
-                        option.value,
-                      )}
+                      onValueChange={() => internalToggleOption(option.value)}
                     />
                   )}
                   {!multiSelect && (
@@ -319,7 +287,7 @@ const Select = ({
                       {variant === "filled" && label && option.value && (
                         <Text
                           style={[
-                            theme.colors.labelSmall,
+                            theme.typography.labelSmall,
                             { color: variantStyles.labelColor },
                           ]}
                         >
@@ -385,76 +353,82 @@ const Select = ({
 
 export default Select;
 
-const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 20,
-    width: "100%",
-  },
-  staticLabel: {
-    marginBottom: 8,
-    marginLeft: 4,
-    fontWeight: "500",
-  },
-  selectContainer: {
-    minHeight: 52,
-    height: "100%",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  leftSlot: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  leadingIcon: {
-    marginRight: 12,
-  },
-  selectBox: {
-    minHeight: 56,
-    width: "99%",
-    height: "auto",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    ...Platform.select({
-      web: {
-        transitionProperty: "border-color, background-color, box-shadow",
-        transitionDuration: "0.2s",
-        outlineStyle: "none",
-      },
-    }),
-  },
-  innerContent: {
-    flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
-    height: "100%",
-  },
-  menuContent: {
-    minWidth: 150,
-  },
-  optionItem: {
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    transitionProperty: "background-color",
-    transitionDuration: "150ms",
-  },
-  optionLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-});
+const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
+  theme: Theme,
+) =>
+  StyleSheet.create({
+    wrapper: {
+      marginBottom: 20,
+      width: "100%",
+    },
+    staticLabel: {
+      marginBottom: 8,
+      marginLeft: 4,
+      fontWeight: "500",
+    },
+    selectContainer: {
+      minHeight: 52,
+      height: "100%",
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.colors.surface,
+    },
+    content: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    leftSlot: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+    },
+    leadingIcon: {
+      marginRight: 12,
+    },
+    selectBox: {
+      minHeight: 56,
+      width: "99%",
+      height: "auto",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      ...Platform.select({
+        web: {
+          transitionProperty:
+            "border-color, background-color, box-shadow" as any,
+          transitionDuration: "0.2s" as any,
+          outlineStyle: "none" as any,
+        },
+      }),
+    },
+    innerContent: {
+      flex: 1,
+      flexDirection: "column",
+      justifyContent: "center",
+      height: "100%",
+    },
+    menuContent: {
+      minWidth: 150,
+    },
+    optionItem: {
+      paddingHorizontal: 8,
+      paddingVertical: 12,
+      marginHorizontal: 4,
+      borderRadius: 8,
+      transitionProperty: "background-color" as any,
+      transitionDuration: "150ms" as any,
+    },
+
+    optionLabelRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+  } as any);
 
 const getVariantStyles = (
   variant: SelectVariant,

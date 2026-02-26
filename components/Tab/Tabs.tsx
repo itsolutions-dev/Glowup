@@ -8,7 +8,7 @@ import {
   Platform,
 } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 
 interface BaseTabItem {
   label: string;
@@ -77,16 +77,13 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
             onPress={() => onChange(index)}
             style={({ hovered, pressed }) => [
               styles.tabItem,
+              (hovered || pressed) && getGlowStyles(theme, true),
               // Use theme-defined state layer colors for consistency
               hovered && {
-                backgroundColor:
-                  theme.colors.primaryContainerHover ||
-                  `${theme.colors.primary}08`,
+                backgroundColor: `${theme.colors.primary}08`,
               },
               pressed && {
-                backgroundColor:
-                  theme.colors.primaryContainerPressed ||
-                  `${theme.colors.primary}12`,
+                backgroundColor: `${theme.colors.primary}12`,
               },
             ]}
             accessibilityRole="tab"

@@ -12,6 +12,9 @@ const StatusBar = () => {
 
   useEffect(() => {
     if (Platform.OS === "web") {
+      // Store the original styles to restore them on cleanup
+      const originalBodyBg = document.body.style.backgroundColor;
+
       // 1. Find or create the theme-color meta tag
       let metaTag = document.querySelector('meta[name="theme-color"]');
 
@@ -23,6 +26,10 @@ const StatusBar = () => {
 
       metaTag.setAttribute("content", theme.colors.surface);
       document.body.style.backgroundColor = theme.colors.background;
+
+      return () => {
+        document.body.style.backgroundColor = originalBodyBg;
+      };
     }
   }, [theme.colors.surface, theme.colors.background]);
 

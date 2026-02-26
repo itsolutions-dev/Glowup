@@ -7,7 +7,8 @@ import {
   Pressable,
   ImageSourcePropType,
 } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 
 interface AvatarProps {
@@ -30,7 +31,7 @@ const Avatar = ({
   backgroundColor,
   textColor,
   status,
-}) => {
+}: AvatarProps) => {
   const getInitials = (fullName: string | undefined | null) => {
     if (!fullName || typeof fullName !== "string" || fullName.trim() === "")
       return null;
@@ -75,7 +76,7 @@ const Avatar = ({
           disabled={!onPress}
           accessibilityRole={onPress ? "button" : undefined}
           accessibilityLabel={name ? `${name} Avatar` : "User Avatar"}
-          style={[
+          style={({ hovered, pressed }: any) => [
             styles.container,
             {
               width: size,
@@ -83,6 +84,7 @@ const Avatar = ({
               borderRadius: size / 2,
               backgroundColor: backgroundColor || theme.colors.primaryContainer,
             },
+            onPress && (hovered || pressed) && getGlowStyles(theme, true),
           ]}
         >
           {source ? (

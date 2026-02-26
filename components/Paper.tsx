@@ -1,12 +1,13 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, Platform, StyleProp, ViewStyle } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface PaperProps {
   children: React.ReactNode;
   elevation?: number;
   style?: StyleProp<ViewStyle>;
   outline?: boolean;
+  glow?: boolean;
 }
 
 const Paper = ({
@@ -14,6 +15,7 @@ const Paper = ({
   elevation = 1, // 0 to 5 (M3 standards)
   style,
   outline = false,
+  glow = false,
 }: PaperProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -38,7 +40,8 @@ const Paper = ({
         styles.paper,
         { backgroundColor: backgroundColor },
         outline && styles.outlined,
-        elev > 0 && styles[`elevation${elev}`],
+        elev > 0 && !glow && styles[`elevation${elev}`],
+        glow && getGlowStyles(theme, true),
         style,
       ]}
     >

@@ -17,6 +17,7 @@ import StackNavigation from "components/Navigation/StackNavigation";
 import { Alert } from "providers/AlertProvider"; */
 
 import Start from "screens/Start";
+import Playground from "screens/Playground";
 
 export default function App() {
   return (
@@ -38,6 +39,12 @@ const APP_ROUTES = [
     component: Start,
     icon: "home",
     options: { title: "Start page" },
+  },
+  {
+    name: "Playground",
+    component: Playground,
+    icon: "view-dashboard-outline",
+    options: { title: "Component Playground" },
   },
 ];
 

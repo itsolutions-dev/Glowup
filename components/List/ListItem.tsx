@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
-import { getStateColor } from "./utils/stateHelper";
+import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 
 interface ListItemProps {
   children: React.ReactNode;
@@ -31,6 +30,7 @@ function ListItem({
           style={({ hovered, pressed }) => [
             styles.itemContainer,
             itemContainerStyle,
+            (hovered || pressed) && getGlowStyles(theme, true),
             hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
             pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
           ]}

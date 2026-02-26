@@ -9,7 +9,7 @@ import {
   UIManager,
 } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 // Enable LayoutAnimation for Android
 if (
@@ -64,7 +64,7 @@ const Accordion = ({
         aria-expanded={expanded} // For web platforms
         style={({ hovered }) => [
           styles.header,
-          hovered && { backgroundColor: theme.colors.surfaceHover },
+          hovered && getGlowStyles(theme, true),
         ]}
       >
         <Text

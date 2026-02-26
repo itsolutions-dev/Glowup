@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { useTheme, Theme } from "providers/ThemeProvider"; // Assuming this is a custom ThemeProvider
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider"; // Assuming this is a custom ThemeProvider
 
 interface ToggleProps {
   value: boolean;
@@ -154,7 +154,7 @@ const Toggle = ({
       style={({ hovered }) => [
         styles.container,
         containerStyle,
-        hovered && styles.hovered,
+        hovered && getGlowStyles(theme, true),
       ]}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
@@ -196,14 +196,14 @@ const Toggle = ({
 // makeStyles now accepts dynamic dimensions
 const makeStyles: (
   theme: Theme,
-  TRACK_WIDTH: Number,
-  TRACK_HEIGHT: Number,
-  TRACK_BORDER_WIDTH: Number,
+  TRACK_WIDTH: number,
+  TRACK_HEIGHT: number,
+  TRACK_BORDER_WIDTH: number,
 ) => StyleSheet.NamedStyles<any> = (
   theme: Theme,
-  TRACK_WIDTH: Number,
-  TRACK_HEIGHT: Number,
-  TRACK_BORDER_WIDTH: Number,
+  TRACK_WIDTH: number,
+  TRACK_HEIGHT: number,
+  TRACK_BORDER_WIDTH: number,
 ) =>
   StyleSheet.create({
     container: {
@@ -224,15 +224,6 @@ const makeStyles: (
       position: "absolute",
       justifyContent: "center",
       alignItems: "center",
-    },
-    hovered: {
-      ...Platform.select({
-        web: {
-          outlineWidth: 2,
-          outlineColor: "rgba(103, 80, 164, 0.08)",
-          outlineStyle: "solid",
-        },
-      }),
     },
   });
 

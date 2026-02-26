@@ -1,26 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { useColorScheme, Platform, TextStyle } from "react-native";
+
 import { mix } from "polished";
 import themeConfig from "./theme.json";
 
 export interface Theme {
-  colors: {
-    primary: string;
-    secondary: string;
+  colors: typeof themeConfig.colors.light & {
     accent: string;
-    background: string;
-    surface: string;
-    surfaceContainer: string;
     text: string;
-    onPrimary: string;
-    onSecondary: string;
     onAccent: string;
-    onBackground: string;
-    onSurface: string;
     onSurfaceContainer: string;
-    shadow: string;
   };
-  typography: typeof themeConfig.typography;
+  typography: {
+    [key in keyof typeof themeConfig.typography]: TextStyle;
+  };
   spacing: typeof themeConfig.spacing;
   shape: typeof themeConfig.shape;
   isDark: boolean;
@@ -31,10 +24,17 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext({
+const ThemeContext = createContext<ThemeContextType>({
   theme: {
-    colors: themeConfig.colors.dark,
-    typography: themeConfig.typography,
+    colors: {
+      ...themeConfig.colors.dark,
+      accent: themeConfig.colors.dark.primary,
+      text: themeConfig.colors.dark.onSurface,
+      onAccent: themeConfig.colors.dark.onPrimary,
+      onSurfaceContainer: themeConfig.colors.dark.onSurface,
+    },
+    typography: themeConfig.typography as any,
+
     spacing: themeConfig.spacing,
     shape: themeConfig.shape,
     isDark: true,
@@ -54,10 +54,19 @@ export const ThemeProvider = ({ children }) => {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  const theme = {
-    colors:
-      mode === "dark" ? themeConfig.colors.dark : themeConfig.colors.light,
-    typography: themeConfig.typography,
+  const currentColors =
+    mode === "dark" ? themeConfig.colors.dark : themeConfig.colors.light;
+
+  const theme: Theme = {
+    colors: {
+      ...currentColors,
+      accent: currentColors.primary,
+      text: currentColors.onSurface,
+      onAccent: currentColors.onPrimary,
+      onSurfaceContainer: currentColors.onSurface,
+    },
+    typography: themeConfig.typography as any,
+
     spacing: themeConfig.spacing,
     shape: themeConfig.shape,
     isDark: mode === "dark",
@@ -84,7 +93,11 @@ export default ThemeContext;
  * @param stateColor - The text/icon color (e.g., colors.onPrimary)
  * @param state - 'hover' | 'press' | 'focus'
  */
-export const getStateColor = (baseColor, stateColor, state) => {
+export const getStateColor = (
+  baseColor: string,
+  stateColor: string,
+  state: "hover" | "press" | "focus",
+) => {
   const opacities = {
     hover: 0.08,
     focus: 0.1,
@@ -92,4 +105,39 @@ export const getStateColor = (baseColor, stateColor, state) => {
   };
   const weight = opacities[state] || 0;
   return mix(weight, stateColor, baseColor);
+};
+
+export const getGlowStyles = (
+  theme: Theme,
+  isActive: boolean,
+  error?: string,
+) => {
+  if (!isActive && !error) {
+    return {
+      borderColor: theme.colors.outlineVariant,
+      borderWidth: 1,
+    };
+  }
+
+  const glowColor = error ? theme.colors.error : theme.colors.primary;
+
+  return {
+    borderColor: glowColor,
+    borderWidth: 1.5,
+    ...Platform.select({
+      web: {
+        boxShadow: `0 0 0 4px ${glowColor}33`,
+        transition: "all 0.2s ease-in-out" as any,
+      },
+      ios: {
+        shadowColor: glowColor,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  };
 };

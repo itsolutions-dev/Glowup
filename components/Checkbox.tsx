@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface CheckboxProps {
   label?: string;
@@ -88,6 +88,8 @@ const Checkbox = ({
                   backgroundColor: checked ? checkboxColor : "transparent",
                   borderWidth: checked ? 0 : 2,
                 },
+                (hovered || pressed) &&
+                  getGlowStyles(theme, true, error ? "error" : undefined),
               ]}
             >
               {checked && (

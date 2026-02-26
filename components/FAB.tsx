@@ -12,7 +12,7 @@ import Icons, {
   MaterialCommunityIconsGlyphs,
 } from "@expo/vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 type FABSize = "small" | "regular" | "large" | "extended";
 
@@ -76,21 +76,8 @@ const FAB = ({
           backgroundColor: hovered
             ? theme.colors.primaryContainer + "CC"
             : theme.colors.primaryContainer,
-          ...Platform.select({
-            ios: {
-              shadowColor: theme.colors.shadow,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 4,
-            },
-            android: { elevation: pressed ? 8 : 6 },
-            web: {
-              boxShadow: hovered
-                ? `0px 8px 12px ${theme.colors.shadow}`
-                : `0px 4px 8px ${theme.colors.shadow}`,
-            },
-          }),
         },
+        (hovered || pressed) && getGlowStyles(theme, true),
         customStyle,
       ]}
     >

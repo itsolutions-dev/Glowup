@@ -2,7 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 
-const StatusBadge = ({ label, icon, type = "success" }) => {
+interface StatusBadgeProps {
+  label: string;
+  icon?: string;
+  type?: "success" | "error" | "warning";
+}
+
+const StatusBadge = ({ label, icon, type = "success" }: StatusBadgeProps) => {
   const themes = {
     success: { bg: "#ECFDF5", text: "#065F46", icon: "check-circle" },
     error: { bg: "#FEF2F2", text: "#991B1B", icon: "alert-circle" },

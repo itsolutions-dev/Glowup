@@ -11,7 +11,7 @@ import {
 import Icons, {
   MaterialCommunityIconsGlyphs,
 } from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "../../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 
 interface ToggleButtonProps {
   icon?: MaterialCommunityIconsGlyphs;
@@ -60,6 +60,7 @@ const ToggleButton = ({
           borderTopRightRadius: isLast ? 20 : 0,
           borderBottomRightRadius: isLast ? 20 : 0,
         },
+        (hovered || pressed) && getGlowStyles(theme, true),
       ]}
       {...(Platform.OS === "android" && {
         android_ripple: { color: theme.colors.onPrimary },

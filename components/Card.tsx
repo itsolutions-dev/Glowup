@@ -7,11 +7,11 @@ import {
   View,
   Platform,
 } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface CardProps {
   children: React.ReactNode;
-  variant?: "elevated" | "filled" | "outlined";
+  variant?: "elevated" | "filled" | "outlined" | "glow";
   onPress?: () => void;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -33,9 +33,13 @@ const Card = ({
       disabled={!onPress}
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={accessibilityLabel}
-      style={({ hovered, pressed }) => [
+      style={({ hovered, pressed }: any) => [
         styles.base,
         styles[variant],
+        (hovered || pressed) &&
+          !(styles[variant] as any).boxShadow &&
+          getGlowStyles(theme, true),
+
         hovered && styles.hovered,
         pressed && styles.pressed,
         onPress && Platform.OS === "web" && { cursor: "pointer" },
@@ -81,6 +85,10 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant, //"#CAC4D0", // Outline variant
     },
+    glow: {
+      ...getGlowStyles(theme, true),
+    },
+
     // Interaction States
     hovered: {
       ...Platform.select({

@@ -6,7 +6,8 @@ import {
   Pressable,
   View,
 } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "providers/ThemeProvider";
+
 import Button from "../Button";
 import Title from "components/Typography";
 
@@ -44,7 +45,7 @@ function Modal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, getGlowStyles(theme, true)]}>
           {title && (
             <View style={styles.modalTitleContainer}>
               {" "}

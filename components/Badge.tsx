@@ -3,7 +3,19 @@ import { View, Text, StyleSheet } from "react-native";
 
 import { useTheme, Theme } from "providers/ThemeProvider";
 
-const Badge = ({ count, size = "large", visible = true, style }) => {
+interface BadgeProps {
+  count?: number;
+  size?: "small" | "large";
+  visible?: boolean;
+  style?: any;
+}
+
+const Badge = ({
+  count,
+  size = "large",
+  visible = true,
+  style,
+}: BadgeProps) => {
   if (!visible) return null;
 
   // Determine if it's a small dot or a label badge

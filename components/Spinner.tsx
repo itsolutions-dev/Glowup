@@ -6,9 +6,12 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  ViewStyle,
+  TextStyle,
 } from "react-native";
+
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, Theme } from "../providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface SpinnerProps {
   label?: string;
@@ -59,20 +62,7 @@ const Spinner = ({
         </Text>
       )}
 
-      <View
-        style={[
-          styles.container,
-          {
-            borderColor: isFocused
-              ? theme.colors.primary
-              : theme.colors.outlineVariant,
-            ...(isFocused &&
-              Platform.OS === "web" && {
-                boxShadow: `0 0 0 4px ${theme.colors.primary}25`,
-              }),
-          },
-        ]}
-      >
+      <View style={[styles.container, getGlowStyles(theme, isFocused)]}>
         <Pressable
           onPress={handleDecrement}
           accessibilityRole="button"

@@ -9,7 +9,7 @@ interface ToggleButtonGroupProps {
   multiSelect?: boolean;
 }
 
-export const ToggleButtonGroup: ToggleButtonGroupProps = ({
+export const ToggleButtonGroup = ({
   options,
   value,
   onValueChange,

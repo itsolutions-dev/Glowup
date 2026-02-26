@@ -1,10 +1,14 @@
 import { useMemo } from "react";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import {
+  useTheme,
+  Theme,
+  getStateColor,
+  getGlowStyles,
+} from "../providers/ThemeProvider";
+
 import { Pressable, Text, View, StyleSheet, Platform } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import CircularProgress from "./Progress/CircularProgress";
-
-import { getStateColor } from "../providers/ThemeProvider";
 
 interface ButtonProps {
   onPress: () => void;
@@ -78,12 +82,19 @@ const Button = ({
           );
         }
 
+        const glow =
+          (hovered || pressed) && !disabled
+            ? getGlowStyles(theme, true)
+            : {
+                borderWidth: mode === "outlined" ? 1 : 0,
+                borderColor: border || "transparent",
+              };
+
         return [
           styles.buttonContainer,
           {
             backgroundColor: currentBg,
-            borderColor: border || "transparent",
-            borderWidth: mode === "outlined" ? 1 : 0,
+            ...glow,
           },
           style,
         ];

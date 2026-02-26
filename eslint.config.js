@@ -8,7 +8,9 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*"],
   },
-  rules: {
-    "linebreak-style": ["error", "windows"]
-  }
+  {
+    rules: {
+      "linebreak-style": ["error", "windows"],
+    },
+  },
 ]);

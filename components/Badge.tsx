@@ -16,16 +16,16 @@ const Badge = ({
   visible = true,
   style,
 }: BadgeProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   if (!visible) return null;
 
   // Determine if it's a small dot or a label badge
   const isDot = size === "small" || count === undefined;
 
   // Format count (e.g., 102 becomes 99+)
-  const displayCount = count > 99 ? "99+" : count;
-
-  const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const displayCount = count !== undefined && count > 99 ? "99+" : count;
 
   return (
     <View style={[styles.badge, isDot ? styles.dot : styles.large, style]}>

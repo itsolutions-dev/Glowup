@@ -19,7 +19,7 @@ interface AvatarProps {
   icon?: string;
   backgroundColor?: string;
   textColor?: string;
-  status?: "online" | "offline" | null;
+  status?: "online" | "offline" | "busy" | "away" | null;
 }
 
 const Avatar = ({
@@ -50,8 +50,10 @@ const Avatar = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const statusColor = useMemo(() => {
-    if (status === "online") return theme.colors.success || "#4CAF50";
-    if (status === "offline") return theme.colors.onSurfaceVariant || "#9E9E9E"; // Fallback
+    if (status === "online") return "#4CAF50";
+    if (status === "busy") return theme.colors.error || "#F44336";
+    if (status === "away") return "#FFB300";
+    if (status === "offline") return theme.colors.outline || "#9E9E9E";
     return null;
   }, [status, theme.colors]);
 
@@ -130,9 +132,24 @@ const Avatar = ({
               width: dotSize,
               height: dotSize,
               backgroundColor: statusColor,
+              justifyContent: "center",
+              alignItems: "center",
             },
           ]}
-        />
+        >
+          {status === "busy" && dotSize > 12 && (
+            <View
+              style={{
+                width: dotSize * 0.6,
+                height: 2,
+                backgroundColor: "white",
+              }}
+            />
+          )}
+          {status === "away" && dotSize > 12 && (
+            <Icons name="clock-outline" size={dotSize * 0.8} color="white" />
+          )}
+        </View>
       )}
     </View>
   );

@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import { ScrollView, View, StyleSheet, SafeAreaView } from "react-native";
+import React, { useState, useMemo } from "react";
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Platform,
+} from "react-native";
 import { useTheme } from "../providers/ThemeProvider";
 
 // Components
@@ -11,182 +17,289 @@ import Checkbox from "../components/Checkbox";
 import Toggle from "../components/Toggle";
 import Chip from "../components/Chip";
 import Badge from "../components/Badge";
-import IconBadge from "../components/IconBadge";
-import StatusBadge from "../components/StatusBadge";
 import Avatar from "../components/Avatar";
 import Card from "../components/Card";
-import Paper from "../components/Paper";
 import Divider from "../components/Divider";
-import Accordion from "../components/Accordion";
-import Tabs from "../components/Tab/Tabs";
-import FAB from "../components/FAB";
 import Spinner from "../components/Spinner";
 import NumericInput from "../components/NumericInput";
-import DateTimePicker from "../components/DateTimePicker";
-import LinearProgress from "../components/Progress/LinearProgress";
-import CircularProgress from "../components/Progress/CircularProgress";
-import Modal from "../components/Modal/Modal";
-import ConfirmDialog from "../components/Modal/ConfirmDialog";
-import Snackbar from "../components/Snackbar";
-import ToggleButtonGroup from "../components/ToggleButton/ToogleButtonGroup";
 import AppBar from "../components/AppBar";
-import Stepper from "../components/Stepper";
-import DataGrid, { ColumnDefinition } from "../components/DataGrid";
+import DataGrid from "../components/DataGrid";
 
-import ListItem from "../components/List/ListItem";
+// Types for Registry
+type PropType = "text" | "number" | "boolean" | "select" | "node";
 
-import Popover from "../components/Popover";
+interface PropDefinition {
+  type: PropType;
+  default: any;
+  options?: { label: string; value: any }[];
+  label: string;
+}
 
-import SpeedDial from "../components/SpeedDial";
+interface ComponentMetadata {
+  name: string;
+  Component: any;
+  props: Record<string, PropDefinition>;
+  isContainer?: boolean;
+}
+
+const ComponentRegistry: Record<string, ComponentMetadata> = {
+  Button: {
+    name: "Button",
+    Component: Button,
+    props: {
+      children: { type: "text", default: "Click Me", label: "Label" },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      iconName: { type: "text", default: "plus", label: "Icon Name" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      loading: { type: "boolean", default: false, label: "Loading" },
+    },
+  },
+  Input: {
+    name: "Input",
+    Component: Input,
+    props: {
+      label: { type: "text", default: "User Name", label: "Label" },
+      placeholder: {
+        type: "text",
+        default: "Enter name...",
+        label: "Placeholder",
+      },
+      value: { type: "text", default: "", label: "Value" },
+      error: { type: "text", default: "", label: "Error Message" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Chip: {
+    name: "Chip",
+    Component: Chip,
+    props: {
+      label: { type: "text", default: "React Native", label: "Label" },
+      selected: { type: "boolean", default: false, label: "Selected" },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+    },
+  },
+  Avatar: {
+    name: "Avatar",
+    Component: Avatar,
+    props: {
+      name: { type: "text", default: "Glowup User", label: "Name" },
+      size: { type: "number", default: 48, label: "Size" },
+      status: {
+        type: "select",
+        default: undefined,
+        label: "Status",
+        options: [
+          { label: "None", value: undefined },
+          { label: "Online", value: "online" },
+          { label: "Offline", value: "offline" },
+          { label: "Busy", value: "busy" },
+          { label: "Away", value: "away" },
+        ],
+      },
+      icon: { type: "text", default: "", label: "Icon Override" },
+    },
+  },
+  Badge: {
+    name: "Badge",
+    Component: Badge,
+    props: {
+      count: { type: "number", default: 5, label: "Count" },
+      maxCount: { type: "number", default: 99, label: "Max Count" },
+      showZero: { type: "boolean", default: false, label: "Show Zero" },
+      dot: { type: "boolean", default: false, label: "Dot Mode" },
+    },
+  },
+  Card: {
+    name: "Card",
+    Component: Card,
+    isContainer: true,
+    props: {
+      variant: {
+        type: "select",
+        default: "filled",
+        label: "Variant",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Glow", value: "glow" },
+        ],
+      },
+      children: {
+        type: "text",
+        default: "This is a card content",
+        label: "Content",
+      },
+    },
+  },
+  Spinner: {
+    name: "Spinner",
+    Component: Spinner,
+    props: {
+      label: { type: "text", default: "Loading...", label: "Label" },
+      value: { type: "number", default: 10, label: "Value" },
+      min: { type: "number", default: 0, label: "Min" },
+      max: { type: "number", default: 100, label: "Max" },
+    },
+  },
+  DataGrid: {
+    name: "DataGrid",
+    Component: DataGrid,
+    props: {
+      density: {
+        type: "select",
+        default: "normal",
+        label: "Density",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Dense", value: "dense" },
+        ],
+      },
+      loading: { type: "boolean", default: false, label: "Loading" },
+    },
+  },
+};
 
 const Playground = () => {
   const { theme, toggleTheme } = useTheme();
+  const [selectedComponentName, setSelectedComponentName] =
+    useState<string>("Button");
 
-  // State for interactive components
-  const [inputValue, setInputValue] = useState("");
-  const [selectValue, setSelectValue] = useState("opt1");
-  const [checkboxValue, setCheckboxValue] = useState(false);
-  const [toggleValue, setToggleValue] = useState(false);
-  const [numericValue, setNumericValue] = useState("10");
-  const [spinnerValue, setSpinnerValue] = useState(10);
-  const [dateValue, setDateValue] = useState(new Date());
-  const [activeTab, setActiveTab] = useState(0);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [toggleGroupValue, setToggleGroupValue] = useState("left");
-  const [activeStep, setActiveStep] = useState(1);
-
-  // DataGrid State
-  const [gridDensity, setGridDensity] = useState<"normal" | "dense">("normal");
-  const [gridData, setGridData] = useState([
-    {
-      id: 1,
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      role: "Admin",
-      status: "Active",
+  // Dynamically initialize state for the selected component's props
+  const [componentProps, setComponentProps] = useState<Record<string, any>>(
+    () => {
+      const meta = ComponentRegistry["Button"];
+      const initial: Record<string, any> = {};
+      Object.keys(meta.props).forEach((key) => {
+        initial[key] = meta.props[key].default;
+      });
+      return initial;
     },
-    {
-      id: 2,
-      name: "Bob Smith",
-      email: "bob@example.com",
-      role: "User",
-      status: "Inactive",
-    },
-    {
-      id: 3,
-      name: "Charlie Brown",
-      email: "charlie@example.com",
-      role: "Editor",
-      status: "Active",
-    },
-    {
-      id: 4,
-      name: "Diana Prince",
-      email: "diana@example.com",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Edward Norton",
-      email: "edward@example.com",
-      role: "User",
-      status: "Active",
-    },
-    {
-      id: 6,
-      name: "Fiona Apple",
-      email: "fiona@example.com",
-      role: "User",
-      status: "Inactive",
-    },
-    {
-      id: 7,
-      name: "George Clooney",
-      email: "george@example.com",
-      role: "Editor",
-      status: "Active",
-    },
-    {
-      id: 8,
-      name: "Hannah Abbott",
-      email: "hannah@example.com",
-      role: "User",
-      status: "Active",
-    },
-    {
-      id: 9,
-      name: "Ian McKellen",
-      email: "ian@example.com",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      id: 10,
-      name: "Jane Doe",
-      email: "jane@example.com",
-      role: "User",
-      status: "Active",
-    },
-  ]);
-  const [gridColumns, setGridColumns] = useState<ColumnDefinition[]>([
-    { id: "name", label: "Name", width: 180, sortable: true },
-    { id: "email", label: "Email", width: 220, sortable: true },
-    { id: "role", label: "Role", width: 120, sortable: true },
-    { id: "status", label: "Status", width: 100, sortable: true },
-  ]);
-  const [sortCol, setSortCol] = useState<string>("name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [gridLoading, setGridLoading] = useState(false);
-
-  const handleSort = (columnId: string, direction: "asc" | "desc") => {
-    setSortCol(columnId);
-    setSortDir(direction);
-
-    const sortedData = [...gridData].sort((a, b) => {
-      const valA = a[columnId];
-      const valB = b[columnId];
-      if (valA < valB) return direction === "asc" ? -1 : 1;
-      if (valA > valB) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-    setGridData(sortedData);
-  };
-
-  const loadMoreGridData = () => {
-    if (gridLoading) return;
-    setGridLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      const newItems = Array.from({ length: 10 }).map((_, i) => ({
-        id: gridData.length + i + 1,
-        name: `User ${gridData.length + i + 1}`,
-        email: `user${gridData.length + i + 1}@example.com`,
-        role: i % 2 === 0 ? "User" : "Editor",
-        status: "Active",
-      }));
-      setGridData([...gridData, ...newItems]);
-      setGridLoading(false);
-    }, 1500);
-  };
-
-  const Section = ({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <View style={styles.section}>
-      <Typography variant="titleLarge" style={styles.sectionTitle}>
-        {title}
-      </Typography>
-      <Divider style={styles.divider} />
-      {children}
-    </View>
   );
+
+  const activeMeta = ComponentRegistry[selectedComponentName];
+
+  const handleComponentChange = (name: any) => {
+    setSelectedComponentName(name);
+    const meta = ComponentRegistry[name];
+    const initial: Record<string, any> = {};
+    Object.keys(meta.props).forEach((key) => {
+      initial[key] = meta.props[key].default;
+    });
+    setComponentProps(initial);
+  };
+
+  const updateProp = (key: string, value: any) => {
+    setComponentProps((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const renderPropEditor = (key: string, def: PropDefinition) => {
+    const val = componentProps[key];
+
+    switch (def.type) {
+      case "text":
+        return (
+          <Input
+            key={key}
+            label={def.label}
+            value={val?.toString() || ""}
+            onChangeText={(t) => updateProp(key, t)}
+            style={styles.propInput}
+          />
+        );
+      case "number":
+        return (
+          <NumericInput
+            key={key}
+            label={def.label}
+            value={val?.toString() || "0"}
+            onChangeText={(t) => updateProp(key, t)}
+            style={styles.propInput}
+          />
+        );
+      case "boolean":
+        return (
+          <View key={key} style={styles.propRow}>
+            <Typography variant="bodyMedium">{def.label}</Typography>
+            <Toggle value={!!val} onValueChange={(v) => updateProp(key, v)} />
+          </View>
+        );
+      case "select":
+        return (
+          <Select
+            key={key}
+            label={def.label}
+            options={
+              def.options?.map((o, i) => ({ id: i.toString(), ...o })) || []
+            }
+            value={val}
+            onSelect={(v) => updateProp(key, v)}
+            style={styles.propInput}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Mock data for DataGrid if needed
+  const gridData = useMemo(
+    () => [
+      { id: 1, name: "Item 1", value: "Val 1" },
+      { id: 2, name: "Item 2", value: "Val 2" },
+    ],
+    [],
+  );
+  const gridCols = useMemo(
+    () => [
+      { id: "name", label: "Name", width: 150 },
+      { id: "value", label: "Value", width: 150 },
+    ],
+    [],
+  );
+
+  const renderPreview = () => {
+    const { Component, isContainer } = activeMeta;
+    let props = { ...componentProps };
+
+    // Special handling for some components
+    if (selectedComponentName === "DataGrid") {
+      props.data = gridData;
+      props.columns = gridCols;
+    }
+
+    if (isContainer) {
+      const { children, ...otherProps } = props;
+      return (
+        <Component {...otherProps}>
+          {typeof children === "string" ? (
+            <Typography variant="bodyMedium">{children}</Typography>
+          ) : (
+            children
+          )}
+        </Component>
+      );
+    }
+
+    return <Component {...props} onPress={() => console.log("Pressed")} />;
+  };
 
   return (
     <SafeAreaView
@@ -198,7 +311,7 @@ const Playground = () => {
         back={false}
         options={
           {
-            headerTitle: "Component Playground",
+            headerTitle: "Live Playground",
             headerRight: () => (
               <View style={{ marginRight: 8 }}>
                 <Button
@@ -219,349 +332,94 @@ const Playground = () => {
           } as any
         }
       />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Section title="Typography">
-          <Typography variant="displayLarge">Display Large</Typography>
-          <Typography variant="headlineMedium">Headline Medium</Typography>
-          <Typography variant="titleLarge">Title Large</Typography>
-          <Typography variant="titleMedium">
-            Title Medium (Body Substitute)
-          </Typography>
-          <Typography variant="labelSmall">Label Small</Typography>
-        </Section>
 
-        <Section title="Buttons">
-          <View style={styles.row}>
-            <Button onPress={() => {}} mode="filled">
-              Filled
-            </Button>
-            <Button onPress={() => {}} mode="tonal">
-              Tonal
-            </Button>
-            <Button onPress={() => {}} mode="outlined">
-              Outlined
-            </Button>
-          </View>
-          <View style={styles.row}>
-            <Button onPress={() => {}} mode="filled" iconName="plus">
-              With Icon
-            </Button>
-            <Button onPress={() => {}} mode="filled" loading>
-              Loading
-            </Button>
-            <Button onPress={() => {}} mode="filled" disabled>
-              Disabled
-            </Button>
-          </View>
-        </Section>
-
-        <Section title="Inputs & Selection">
-          <Input
-            label="Standard Input"
-            placeholder="Type something..."
-            value={inputValue}
-            onChangeText={setInputValue}
-          />
-          <Input
-            label="Input with Error"
-            placeholder="Error state"
-            error="This field is required"
-            value=""
-            onChangeText={() => {}}
-          />
+      <View style={styles.container}>
+        {/* Component Selector */}
+        <View style={styles.selectorSection}>
           <Select
-            label="Select (Single)"
-            options={[
-              { id: "1", label: "Option 1", value: "opt1" },
-              { id: "2", label: "Option 2", value: "opt2" },
-              { id: "3", label: "Option 3", value: "opt3" },
-            ]}
-            value={selectValue}
-            onSelect={setSelectValue}
+            label="Select Component"
+            value={selectedComponentName}
+            onSelect={handleComponentChange}
+            options={Object.keys(ComponentRegistry).map((name) => ({
+              id: name,
+              label: name,
+              value: name,
+            }))}
           />
-          <NumericInput
-            label="Numeric Input"
-            value={numericValue}
-            onChangeText={setNumericValue}
-          />
-          <Spinner
-            label="Spinner Control"
-            value={spinnerValue}
-            onChange={setSpinnerValue}
-            min={0}
-            max={20}
-          />
-          <DateTimePicker
-            label="Date Picker"
-            value={dateValue}
-            onChange={setDateValue}
-          />
-          <View style={styles.row}>
-            <Checkbox
-              label="Checkbox"
-              checked={checkboxValue}
-              onValueChange={setCheckboxValue}
-            />
-            <Toggle value={toggleValue} onValueChange={setToggleValue} />
-          </View>
-          <View style={styles.mt}>
-            <ToggleButtonGroup
-              options={[
-                { label: "Left", value: "left", icon: "format-align-left" },
-                {
-                  label: "Center",
-                  value: "center",
-                  icon: "format-align-center",
-                },
-                { label: "Right", value: "right", icon: "format-align-right" },
-              ]}
-              value={toggleGroupValue}
-              onValueChange={setToggleGroupValue}
-            />
-          </View>
-        </Section>
+        </View>
 
-        <Section title="Chips & Badges">
-          <View style={styles.row}>
-            <Chip label="Filled Chip" mode="filled" />
-            <Chip label="Tonal Chip" mode="tonal" selected />
-            <Chip label="Outlined" mode="outlined" onClose={() => {}} />
-          </View>
-          <View style={styles.row}>
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                backgroundColor: theme.colors.surfaceVariant,
-                borderRadius: 8,
-              }}
-            >
-              <Badge count={5} />
-            </View>
-            <IconBadge iconName="bell" badgeCount={12} />
-            <StatusBadge type="success" label="Online" />
-            <StatusBadge type="error" label="Busy" />
-          </View>
-        </Section>
-
-        <Section title="Avatars">
-          <View style={styles.row}>
-            <Avatar name="John Doe" size={40} />
-            <Avatar name="Jane Smith" size={56} status="online" />
-            <Avatar
-              icon="account-group"
-              size={48}
-              backgroundColor={theme.colors.secondaryContainer}
-            />
-          </View>
-        </Section>
-
-        <Section title="Containers">
-          <Card variant="filled" style={styles.card}>
-            <Typography variant="titleMedium">Filled Card</Typography>
-            <Typography variant="titleSmall">
-              This is a standard filled card container.
-            </Typography>
-          </Card>
-          <Card variant="outlined" style={styles.card}>
-            <Typography variant="titleMedium">Outlined Card</Typography>
-          </Card>
-          <Card variant="glow" style={styles.card}>
-            <Typography variant="titleMedium">Glow Card</Typography>
-            <Typography variant="titleSmall">
-              Interactive-style glow applied permanent.
-            </Typography>
-          </Card>
-          <Paper elevation={2} style={styles.card}>
-            <Typography variant="titleMedium">
-              Paper with elevation 2
-            </Typography>
-          </Paper>
-        </Section>
-
-        <Section title="Navigation & Disclosure">
-          <Stepper
-            steps={["Step 1", "Step 2", "Step 3"]}
-            activeStep={activeStep}
-            onStepPress={setActiveStep}
-            style={{ marginBottom: 24 }}
-          />
-          <Tabs
-            tabs={["Tab 1", "Tab 2", "Tab 3"]}
-            activeTab={activeTab}
-            onChange={setActiveTab}
-          />
-          <Accordion title="Expansion Panel">
-            <Typography variant="titleSmall">
-              This is the hidden content inside the accordion. It supports any
-              React component.
-            </Typography>
-          </Accordion>
-        </Section>
-
-        <Section title="Lists & Popovers">
-          <Card style={styles.card}>
-            <ListItem onPress={() => {}}>List Item 1</ListItem>
-            <Divider />
-            <ListItem onPress={() => {}}>List Item 2</ListItem>
-          </Card>
-
-          <View style={styles.row}>
-            <Popover
-              visible={modalVisible} // Reuse for demo
-              onDismiss={() => setModalVisible(false)}
-              anchor={
-                <Button onPress={() => setModalVisible(true)}>
-                  Show Popover
-                </Button>
-              }
-            >
-              <View style={{ padding: 16 }}>
-                <Typography variant="titleSmall">Popover Content</Typography>
-                <Typography variant="labelSmall">
-                  Floating above the anchor
-                </Typography>
-              </View>
-            </Popover>
-          </View>
-        </Section>
-
-        <SpeedDial
-          mainIcon="plus"
-          actions={[
-            { id: "1", label: "Action 1", icon: "pencil", onPress: () => {} },
-            { id: "2", label: "Action 2", icon: "share", onPress: () => {} },
-          ]}
-        />
-
-        <Section title="Progress & Feedback">
-          <Typography variant="labelMedium">Linear Progress</Typography>
-          <LinearProgress progress={0.6} />
-          <View style={[styles.row, styles.mt]}>
-            <CircularProgress size={40} />
-            <Button onPress={() => setModalVisible(true)}>Open Modal</Button>
-            <Button onPress={() => setConfirmVisible(true)} mode="outlined">
-              Confirm Dialog
-            </Button>
-          </View>
-          <Button
-            onPress={() => setSnackbarVisible(true)}
-            mode="tonal"
-            style={styles.mt}
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View
+            style={
+              Platform.OS === "web" ? styles.webLayout : styles.mobileLayout
+            }
           >
-            Show Snackbar
-          </Button>
-        </Section>
+            {/* Prop Editors */}
+            <View style={styles.editorSection}>
+              <Typography variant="titleMedium" style={styles.sectionTitle}>
+                Properties
+              </Typography>
+              <Divider style={styles.divider} />
+              {Object.keys(activeMeta.props).map((key) =>
+                renderPropEditor(key, activeMeta.props[key]),
+              )}
+            </View>
 
-        <Section title="Data Grid">
-          <View style={styles.row}>
-            <Button
-              onPress={() =>
-                setGridDensity(gridDensity === "normal" ? "dense" : "normal")
-              }
-              mode="outlined"
-              iconName={
-                gridDensity === "normal" ? "view-headline" : "view-sequential"
-              }
-            >
-              Toggle Density ({gridDensity})
-            </Button>
-            <Typography variant="labelSmall">
-              Scroll horizontally and vertically. Move columns using buttons in
-              header.
-            </Typography>
+            {/* Preview Area */}
+            <View style={styles.previewSection}>
+              <Typography variant="titleMedium" style={styles.sectionTitle}>
+                Preview
+              </Typography>
+              <Divider style={styles.divider} />
+              <View style={styles.previewBox}>{renderPreview()}</View>
+            </View>
           </View>
-          <View style={{ height: 400 }}>
-            <DataGrid
-              data={gridData}
-              columns={gridColumns}
-              density={gridDensity}
-              sortColumn={sortCol}
-              sortDirection={sortDir}
-              onSort={handleSort}
-              onEndReached={loadMoreGridData}
-              loading={gridLoading}
-              onColumnReorder={setGridColumns}
-            />
-          </View>
-        </Section>
-
-        <View style={styles.footer} />
-      </ScrollView>
-
-      {/* Overlays */}
-      <Modal
-        visible={modalVisible}
-        title="Example Modal"
-        onClose={() => setModalVisible(false)}
-      >
-        <Typography variant="titleSmall">
-          This is a beautiful modal following the Glowup design language.
-        </Typography>
-      </Modal>
-
-      <ConfirmDialog
-        visible={confirmVisible}
-        title="Are you sure?"
-        message="This action cannot be undone. Do you wish to continue?"
-        onConfirm={() => setConfirmVisible(false)}
-        onCancel={() => setConfirmVisible(false)}
-      />
-
-      <Snackbar
-        visible={snackbarVisible}
-        message="Action completed successfully!"
-        type="success"
-        onDismiss={() => setSnackbarVisible(false)}
-        action={{
-          label: "Undo",
-          onPress: () => console.log("Undo"),
-        }}
-      />
-
-      <FAB
-        icon="plus"
-        onPress={() => setSnackbarVisible(true)}
-        label="Quick Action"
-        size="extended"
-      />
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-    opacity: 0.7,
-  },
-  divider: {
-    marginBottom: 16,
-  },
-  row: {
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
+  selectorSection: { padding: 16, zIndex: 100 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
+  webLayout: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    gap: 32,
+  },
+  mobileLayout: {
+    flexDirection: "column",
+  },
+  editorSection: {
+    flex: 1,
+    minWidth: 300,
+    marginBottom: 24,
+  },
+  previewSection: {
+    flex: 1.5,
+    minWidth: 300,
+  },
+  sectionTitle: { marginBottom: 8, opacity: 0.7 },
+  divider: { marginBottom: 16 },
+  propInput: { marginBottom: 16 },
+  propRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 12,
     marginBottom: 16,
+    paddingHorizontal: 4,
   },
-  card: {
-    marginBottom: 12,
-  },
-  mt: {
-    marginTop: 12,
-  },
-  footer: {
-    height: 40,
+  previewBox: {
+    padding: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "rgba(128,128,128,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 200,
   },
 });
 

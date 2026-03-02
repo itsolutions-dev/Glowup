@@ -7,8 +7,9 @@ interface StatusBarProps {
   backgroundColor?: string;
 }
 
-const StatusBar = () => {
-  const { theme, isDark } = useTheme();
+const StatusBar: StatusBarProps = () => {
+  const { theme } = useTheme();
+  const isDark = theme.isDark;
 
   useEffect(() => {
     if (Platform.OS === "web") {
@@ -16,10 +17,12 @@ const StatusBar = () => {
       const originalBodyBg = document.body.style.backgroundColor;
 
       // 1. Find or create the theme-color meta tag
-      let metaTag = document.querySelector('meta[name="theme-color"]');
+      let metaTag = document.querySelector(
+        'meta[name="theme-color"]',
+      ) as HTMLMetaElement | null;
 
       if (!metaTag) {
-        metaTag = document.createElement("meta");
+        metaTag = document.createElement("meta") as HTMLMetaElement;
         metaTag.name = "theme-color";
         document.getElementsByTagName("head")[0].appendChild(metaTag);
       }

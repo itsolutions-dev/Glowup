@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import {
   Pressable,
   Animated,
   StyleSheet,
   Platform,
-  View,
   StyleProp,
   ViewStyle,
 } from "react-native";

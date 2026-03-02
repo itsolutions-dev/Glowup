@@ -1,18 +1,11 @@
 import React, { useCallback, useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Platform,
-  Button,
-} from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 import * as Localization from "expo-localization";
-import { format, isToday, isYesterday, isTomorrow } from "date-fns";
+import { isToday, isYesterday, isTomorrow } from "date-fns";
 
 interface DateTimePickerProps {
   label?: string;

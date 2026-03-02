@@ -1,13 +1,6 @@
-import React, { useState, useRef, useMemo, useEffect } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-  Platform,
-} from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 
 interface BaseTabItem {

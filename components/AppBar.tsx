@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
 
 interface AppBarProps {
@@ -12,7 +12,13 @@ interface AppBarProps {
   isPinned?: boolean;
 }
 
-const AppBar = ({ navigation, route, options, back, isPinned = false }) => {
+const AppBar = ({
+  navigation,
+  route,
+  options,
+  back,
+  isPinned = false,
+}: AppBarProps) => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
 

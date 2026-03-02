@@ -7,7 +7,7 @@ import {
 } from "../providers/ThemeProvider";
 
 import { Pressable, Text, View, StyleSheet, Platform } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import CircularProgress from "./Progress/CircularProgress";
 
 interface ButtonProps {

@@ -9,7 +9,7 @@ interface ToggleButtonGroupProps {
   multiSelect?: boolean;
 }
 
-export const ToggleButtonGroup = ({
+const ToggleButtonGroup = ({
   options,
   value,
   onValueChange,
@@ -50,6 +50,8 @@ export const ToggleButtonGroup = ({
   );
 };
 
+export default ToggleButtonGroup;
+
 const styles = StyleSheet.create({
   groupContainer: {
     flexDirection: "row",
@@ -57,5 +59,3 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
 });
-
-export default ToggleButtonGroup;

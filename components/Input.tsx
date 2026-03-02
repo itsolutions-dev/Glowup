@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, TextInput, StyleSheet, Platform } from "react-native";
 import Icons, {
   MaterialCommunityIconsGlyphs,
-} from "@expo/vector-icons/MaterialCommunityIcons";
+} from "expo-vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 interface InputProps {

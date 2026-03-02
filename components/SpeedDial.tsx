@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
-import { MaterialCommunityIconsGlyphs } from "@expo/vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIconsGlyphs } from "expo-vector-icons/MaterialCommunityIcons";
 
 type SpeedDialPosition =
   | "bottom-right"
@@ -29,9 +29,14 @@ interface SpeedDialAction {
 interface SpeedDialProps {
   actions: SpeedDialAction[];
   mainIcon: MaterialCommunityIconsGlyphs;
+  posirtion?: SpeedDialPosition;
 }
 
-const SpeedDial = ({ actions, mainIcon, position = "bottom-right" }) => {
+const SpeedDial = ({
+  actions,
+  mainIcon,
+  position = "bottom-right",
+}: SpeedDialProps) => {
   const [open, setOpen] = useState(false);
   const insets = useSafeAreaInsets();
 

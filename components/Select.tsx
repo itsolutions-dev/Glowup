@@ -1,16 +1,15 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View,
   Text,
   Pressable,
-  Modal,
   ScrollView,
   StyleSheet,
   Platform,
 } from "react-native";
 import Icons, {
   MaterialCommunityIconsGlyphs,
-} from "@expo/vector-icons/MaterialCommunityIcons";
+} from "expo-vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 import Popover from "./Popover";

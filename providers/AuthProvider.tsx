@@ -3,19 +3,38 @@ import React, {
   useState,
   useEffect,
   useContext,
-  Platform,
+  ReactNode,
 } from "react";
+import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 
-const AuthContext = createContext<AuthContextType | undefined>({});
+const TOKEN_KEY = "userToken";
+
+interface User {
+  id: string;
+  email: string;
+  token: string;
+}
+
+interface AuthContextType {
+  login: (token: string, userData: Omit<User, "token">) => Promise<void>;
+  logout: () => Promise<void>;
+  userToken: string | null;
+  user: User | null;
+  isLoading: boolean;
+  authAxios: ReturnType<typeof axios.create>;
+}
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [userToken, setUserToken] = useState(null);
+  const [userToken, setUserToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const authAxios = axios.create({
@@ -39,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             `${process.env.API_URL}/refresh-token`,
           );
 
-          await SecureStore.setItemAsync("userToken", data.token);
+          await SecureStore.setItemAsync(TOKEN_KEY, data.token);
           authAxios.defaults.headers.common["Authorization"] =
             `Bearer ${data.token}`;
 
@@ -59,11 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       try {
         const token = await SecureStore.getItemAsync(TOKEN_KEY);
         if (token) {
-          // OPTIONAL: Verify token validity with your backend here
-          // const userData = await api.getUser(token);
-          // setUser({ token, ...userData });
-
-          // For now, we simulate restoring a user session
+          setUserToken(token);
           setUser({ token, id: "1", email: "restored@example.com" });
         }
       } catch (e) {
@@ -78,10 +93,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (token: string, userData: Omit<User, "token">) => {
     try {
-      // 1. Store token securely
       await SecureStore.setItemAsync(TOKEN_KEY, token);
-
-      // 2. Update state
+      setUserToken(token);
       setUser({ token, ...userData });
     } catch (e) {
       console.error("Sign in failed", e);
@@ -90,10 +103,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
-      // 1. Remove token from storage
       await SecureStore.deleteItemAsync(TOKEN_KEY);
-
-      // 2. Reset state
+      setUserToken(null);
       setUser(null);
     } catch (e) {
       console.error("Sign out failed", e);
@@ -102,7 +113,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider
-      value={{ login, logout, userToken, isLoading, authAxios }}
+      value={{ login, logout, userToken, user, isLoading, authAxios }}
     >
       {children}
     </AuthContext.Provider>

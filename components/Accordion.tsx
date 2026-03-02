@@ -8,7 +8,7 @@ import {
   Platform,
   UIManager,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 // Enable LayoutAnimation for Android

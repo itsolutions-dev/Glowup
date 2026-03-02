@@ -1,5 +1,5 @@
 export default interface Route {
-  name: String;
+  name: string;
   component: React.ComponentType<any>;
   icon?: string;
   options?: object;

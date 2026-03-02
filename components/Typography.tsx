@@ -4,7 +4,7 @@ import { useTheme, Theme } from "providers/ThemeProvider";
 
 interface TypographyProps {
   children: React.ReactNode;
-  variant:
+  variant?:
     | "displayLarge"
     | "displayMedium"
     | "displaySmall"
@@ -14,6 +14,9 @@ interface TypographyProps {
     | "titleLarge"
     | "titleMedium"
     | "titleSmall"
+    | "bodyLarge"
+    | "bodyMedium"
+    | "bodySmall"
     | "labelLarge"
     | "labelMedium"
     | "labelSmall";

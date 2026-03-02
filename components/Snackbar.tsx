@@ -1,16 +1,8 @@
 import React, { useEffect, useRef, useMemo } from "react";
-import {
-  Animated,
-  StyleSheet,
-  View,
-  Text,
-  Platform,
-  Dimensions,
-} from "react-native";
+import { Animated, StyleSheet, View, Text, Platform } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Button from "./Button";
-import Typography from "./Typography";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 
 export interface SnackbarProps {
   visible: boolean;

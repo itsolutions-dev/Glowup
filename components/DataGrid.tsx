@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, ReactNode } from "react";
+import React, { useState, useCallback, ReactNode } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,11 @@ import {
   Pressable,
   ScrollView,
   ActivityIndicator,
-  Platform,
   ViewStyle,
   TextStyle,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 // --- Sub-components ---
 

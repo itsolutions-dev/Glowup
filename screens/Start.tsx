@@ -1,12 +1,5 @@
-import { useMemo, useEffect, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-} from "react-native";
+import { useMemo, useState } from "react";
+import { StyleSheet, View, ScrollView } from "react-native";
 import { useTheme } from "providers/ThemeProvider";
 import Title from "components/Typography";
 import Button from "components/Button";
@@ -18,10 +11,9 @@ import ToggleButton from "components/ToggleButton/ToggleButton";
 import Input from "components/Input";
 import Divider from "components/Divider";
 import Chip from "components/Chip";
-import ToggleButtonGroup from "components/ToggleButton/ToogleButtonGroup";
 import NumericInput from "components/NumericInput";
-import Select from "components/Select";
 import Checkbox from "components/Checkbox";
+//import ToggleButtonGroup from "components/ToggleButton/ToggleButtonGroup";
 
 import Card from "components/Card";
 import Paper from "components/Paper";
@@ -65,8 +57,6 @@ function Start() {
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [number, setNumber] = useState(0);
-  const [selectedValues, setSelectedValues] = useState([]);
-  const [selectedValue, setSelectedValue] = useState();
   const [checked, setChecked] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [activeTab2, setActiveTab2] = useState(0);
@@ -161,7 +151,6 @@ function Start() {
               label="Numero"
               placeholder="Inserisci l'importo..."
               value={number}
-              variant="outlined"
               onChangeText={setNumber}
               error={number > 100 ? "numero troppo grande" : ""}
             />
@@ -292,7 +281,7 @@ function Start() {
             isLast={true}
           />
 
-          <ToggleButtonGroup
+          {/*           <ToggleButtonGroup
             value={lang}
             onValueChange={setLang}
             multiSelect={true}
@@ -301,7 +290,7 @@ function Start() {
               { label: "IT", value: "it", icon: "translate" },
               { label: "ES", value: "es", icon: "translate" },
             ]}
-          />
+          /> */}
         </View>
         <Divider>
           <Chip

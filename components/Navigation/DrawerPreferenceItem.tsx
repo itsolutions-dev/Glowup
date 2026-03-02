@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../../providers/ThemeProvider";
 
 interface DrawerPreferenceItemProps {

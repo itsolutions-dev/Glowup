@@ -2,11 +2,10 @@ import { useMemo, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { useTheme } from "../../providers/ThemeProvider";
 import { CustomDrawerContent } from "./DrawerContent";
-import { useWindowDimensions, Platform, View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import AppBar from "../AppBar";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "expo-vector-icons/MaterialCommunityIcons";
 import Avatar from "components/Avatar";
-import Button from "components/Button";
 import LanguageSelector from "components/LanguageSelector";
 
 import RouteProp from "./Route";

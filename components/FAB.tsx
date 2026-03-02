@@ -3,14 +3,12 @@ import {
   Pressable,
   Text,
   StyleSheet,
-  Platform,
-  View,
   StyleProp,
   ViewStyle,
 } from "react-native";
 import Icons, {
   MaterialCommunityIconsGlyphs,
-} from "@expo/vector-icons/MaterialCommunityIcons";
+} from "expo-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 

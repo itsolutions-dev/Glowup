@@ -4,13 +4,12 @@ import {
   Text,
   StyleSheet,
   Platform,
-  View,
   ViewStyle,
   StyleProp,
 } from "react-native";
 import Icons, {
   MaterialCommunityIconsGlyphs,
-} from "@expo/vector-icons/MaterialCommunityIcons";
+} from "expo-vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 
 interface ToggleButtonProps {

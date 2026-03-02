@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { useTheme } from "../providers/ThemeProvider";
 
 interface DividerProps {

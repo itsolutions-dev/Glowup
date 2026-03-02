@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, Easing, View, StyleSheet } from "react-native";
+import { Animated, Easing, StyleSheet } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "providers/ThemeProvider";
 
-interface CircularProgress {
+interface CircularProgressProps {
   size?: number;
   strokeWidth?: number;
   color?: string;
@@ -15,7 +15,7 @@ const CircularProgress = ({
   strokeWidth = 4,
   color,
   duration = 1000,
-}: CircularProgress) => {
+}: CircularProgressProps) => {
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const { theme } = useTheme();
 

@@ -3,9 +3,10 @@ import { View, StyleSheet, Text } from "react-native";
 
 import { useTheme, Theme } from "providers/ThemeProvider";
 import Button from "./Button";
+import { MaterialCommunityIconsGlyphs } from "./types";
 
 interface IconBadgeProps {
-  iconName: string;
+  iconName: MaterialCommunityIconsGlyphs;
   badgeCount: number;
   badgeColor?: string;
   color?: string;
@@ -89,7 +90,7 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 2,
-      borderColor: theme.colors.onError, // M3 white "cutout" for clarity
+      borderColor: theme.colors.surface, // M3 "cutout" ring against the background
     },
     badgeText: {
       color: theme.colors.onError,

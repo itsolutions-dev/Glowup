@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { useColorScheme, Platform, TextStyle } from "react-native";
 
 import { mix } from "polished";
@@ -42,16 +42,14 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
-export const ThemeProvider = ({ children }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const systemScheme = useColorScheme(); // Hook to listen to system changes
-  const [mode, setMode] = useState(systemScheme || "light");
-
-  useEffect(() => {
-    setMode(systemScheme || "light");
-  }, [systemScheme]);
+  // null = follow the OS color scheme; "light"/"dark" = manual override
+  const [override, setOverride] = useState<"light" | "dark" | null>(null);
+  const mode = override ?? systemScheme ?? "light";
 
   const toggleTheme = () => {
-    setMode((prev) => (prev === "light" ? "dark" : "light"));
+    setOverride(mode === "light" ? "dark" : "light");
   };
 
   const currentColors =

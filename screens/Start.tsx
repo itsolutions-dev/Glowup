@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, View, ScrollView } from "react-native";
-import { useTheme } from "providers/ThemeProvider";
+import { useTheme, Theme } from "providers/ThemeProvider";
 import Title from "components/Typography";
 import Button from "components/Button";
 import FAB from "components/FAB";
-import SpeedDial from "components/SpeedDial";
+import SpeedDial, { SpeedDialAction } from "components/SpeedDial";
 import { Alert } from "providers/AlertProvider";
 import Spinner from "components/Spinner";
 import ToggleButton from "components/ToggleButton/ToggleButton";
@@ -56,7 +56,7 @@ function Start() {
   const [lang, setLang] = useState("en");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [number, setNumber] = useState(0);
+  const [number, setNumber] = useState("0");
   const [checked, setChecked] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [activeTab2, setActiveTab2] = useState(0);
@@ -88,7 +88,7 @@ function Start() {
     load();
   }, []); */
 
-  const actions = [
+  const actions: SpeedDialAction[] = [
     {
       id: 1,
       icon: "camera",
@@ -152,7 +152,7 @@ function Start() {
               placeholder="Inserisci l'importo..."
               value={number}
               onChangeText={setNumber}
-              error={number > 100 ? "numero troppo grande" : ""}
+              error={Number(number) > 100 ? "numero troppo grande" : ""}
             />
           </View>
         </Accordion>
@@ -177,7 +177,7 @@ function Start() {
               onValueChange={() => setSelected(!selected)}
             />
             <Badge count={2}></Badge>
-            <StatusBadge />
+            <StatusBadge label="Online" type="success" />
             <IconBadge
               iconName="information"
               badgeCount={99}

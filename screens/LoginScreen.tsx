@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Platform,
   Animated,
   useWindowDimensions,
   KeyboardAvoidingView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Input from "../components/Input";
@@ -295,9 +295,13 @@ const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
         },
       ]}
     >
+      {/* Android resizes the window natively (adjustResize); running the
+          "height" behavior on top of that double-resizes every keyboard
+          frame and makes the screen flicker — so KAV is iOS-only. */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        enabled={Platform.OS === "ios"}
       >
         {/* Theme toggle – always top-right of the full viewport */}
         <Pressable onPress={toggleTheme} style={styles.themeToggle}>

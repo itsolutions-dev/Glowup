@@ -8,6 +8,7 @@ import {
   Platform,
 } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 interface CardProps {
   children: React.ReactNode;
@@ -29,11 +30,11 @@ const Card = ({
 
   return (
     <Pressable
-      onPress={onPress ? () => onPress() : undefined}
+      onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? "button" : undefined}
       accessibilityLabel={accessibilityLabel}
-      style={({ hovered, pressed }: any) => [
+      style={({ hovered, pressed }: PressableState) => [
         styles.base,
         styles[variant],
         (hovered || pressed) &&

@@ -1,23 +1,41 @@
 import React from "react";
-import { Pressable, Text, View, StyleSheet } from "react-native";
+import { Pressable, Text, StyleSheet } from "react-native";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
-const LanguageSelector = ({ currentLang, onToggle }) => {
+const LANGUAGES: Record<string, { flag: string; label: string }> = {
+  en: { flag: "🇺🇸", label: "EN" },
+  es: { flag: "🇪🇸", label: "ES" },
+  it: { flag: "🇮🇹", label: "IT" },
+  fr: { flag: "🇫🇷", label: "FR" },
+};
+
+const LANGUAGE_CODES = Object.keys(LANGUAGES);
+
+interface LanguageSelectorProps {
+  currentLang: string;
+  /** Called with the next language code when the selector is pressed. */
+  onChange: (lang: string) => void;
+}
+
+const LanguageSelector = ({ currentLang, onChange }: LanguageSelectorProps) => {
   const { theme } = useTheme();
 
-  const languages = {
-    en: { flag: "🇺🇸", label: "EN" },
-    es: { flag: "🇪🇸", label: "ES" },
-    it: { flag: "🇮🇹", label: "IT" },
-    fr: { flag: "🇫🇷", label: "FR" },
-  };
+  const activeCode = LANGUAGES[currentLang] ? currentLang : "it";
+  const active = LANGUAGES[activeCode];
 
-  const active = languages[currentLang] || languages.it;
+  const handlePress = () => {
+    const currentIndex = LANGUAGE_CODES.indexOf(activeCode);
+    const nextCode = LANGUAGE_CODES[(currentIndex + 1) % LANGUAGE_CODES.length];
+    onChange(nextCode);
+  };
 
   return (
     <Pressable
-      onPress={onToggle}
-      style={({ hovered, pressed }: any) => [
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={`Change language, current: ${active.label}`}
+      style={({ hovered, pressed }: PressableState) => [
         styles.container,
         {
           backgroundColor: pressed

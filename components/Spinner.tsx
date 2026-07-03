@@ -10,8 +10,9 @@ import {
   TextStyle,
 } from "react-native";
 
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 interface SpinnerProps {
   label?: string;
@@ -33,8 +34,24 @@ const Spinner = ({
   disabled,
 }: SpinnerProps) => {
   const [isFocused, setIsFocused] = useState(false);
+  const [text, setText] = useState(String(value));
+  const [prevValue, setPrevValue] = useState(value);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  // Keep the editable text in sync with external value changes
+  // (render-time adjustment instead of an effect)
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setText(String(value));
+  }
+
+  const commitText = useCallback(() => {
+    const num = parseInt(text, 10);
+    const clamped = isNaN(num) ? min : Math.min(max, Math.max(min, num));
+    setText(String(clamped));
+    if (clamped !== value) onChange(clamped);
+  }, [text, min, max, value, onChange]);
 
   const handleIncrement = useCallback(() => {
     if (value + step <= max) onChange(value + step);
@@ -68,7 +85,7 @@ const Spinner = ({
           accessibilityRole="button"
           accessibilityLabel={`Decrement ${label || "value"}`}
           disabled={disabled || value - step < min}
-          style={({ hovered }) => [
+          style={({ hovered }: PressableState) => [
             styles.button,
             {
               backgroundColor: hovered
@@ -91,20 +108,20 @@ const Spinner = ({
         <View style={styles.inputWrapper}>
           <TextInput
             accessibilityLabel={label}
-            accessibilityRole={Platform.OS === "web" ? "textbox" : "none"}
-            accessibilityState={{ isFocused, disabled }}
-            accessibilityValue={{ value: String(value) }}
+            accessibilityState={{ disabled }}
+            accessibilityValue={{ text: String(value) }}
             keyboardType="numeric"
-            value={String(value)}
+            value={text}
             onChangeText={(txt) => {
-              const num = parseInt(txt, 10);
-              if (isNaN(num)) onChange(0);
-              else if (num > max) onChange(max);
-              else if (num < min) onChange(min);
-              else onChange(num);
+              // Allow intermediate states like "" or "-" while typing
+              if (/^-?\d*$/.test(txt)) setText(txt);
             }}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onBlur={() => {
+              setIsFocused(false);
+              commitText();
+            }}
+            onSubmitEditing={commitText}
             style={[
               theme.typography.bodyLarge,
               styles.input,
@@ -123,7 +140,7 @@ const Spinner = ({
           accessibilityRole="button"
           accessibilityLabel={`Increment ${label || "value"}`}
           disabled={disabled || value + step > max}
-          style={({ hovered }) => [
+          style={({ hovered }: PressableState) => [
             styles.button,
             {
               backgroundColor: hovered

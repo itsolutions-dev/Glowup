@@ -23,7 +23,7 @@ const Paper = ({
   const elev = elevation < 0 ? 0 : elevation > 5 ? 5 : elevation;
 
   const backgroundColor = useMemo(() => {
-    const levels = {
+    const levels: Record<number, string> = {
       0: theme.colors.surface,
       1: theme.colors.surfaceContainerLow,
       2: theme.colors.surfaceContainer,

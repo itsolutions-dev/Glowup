@@ -7,10 +7,9 @@ import {
   ViewStyle,
   StyleProp,
 } from "react-native";
-import Icons, {
-  MaterialCommunityIconsGlyphs,
-} from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
 interface ToggleButtonProps {
   icon?: MaterialCommunityIconsGlyphs;
@@ -40,7 +39,8 @@ const ToggleButton = ({
         label || (icon ? `${icon} toggle button` : "Toggle Button")
       }
       accessibilityRole="button"
-      style={({ hovered, pressed }) => [
+      accessibilityState={{ selected: active }}
+      style={({ hovered, pressed }: PressableState) => [
         styles.button,
         style,
         {

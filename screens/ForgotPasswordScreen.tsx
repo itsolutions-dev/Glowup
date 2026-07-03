@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { View, StyleSheet, Pressable, SafeAreaView } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import { View, StyleSheet, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Input from "../components/Input";
 import Button from "../components/Button";

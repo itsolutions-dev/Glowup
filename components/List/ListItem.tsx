@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
+import { PressableState } from "../types";
 
 interface ListItemProps {
   children: React.ReactNode;
@@ -24,33 +25,24 @@ function ListItem({
 
   return (
     <View style={styles.outerContainer}>
-      <View style={[styles.itemContainer, itemContainerStyle]}>
-        <Pressable
-          onPress={onPress}
-          style={({ hovered, pressed }) => [
-            styles.itemContainer,
-            itemContainerStyle,
-            (hovered || pressed) && getGlowStyles(theme, true),
-            hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
-            pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
-          ]}
-        >
-          {({ hovered }) => (
-            <View style={styles.content}>
-              <Text
-                style={[
-                  styles.itemText,
-                  itemTextStyle,
-                  hovered && { ...styles.itemHovered, ...itemHoveredStyle },
-                ]}
-                numberOfLines={1}
-              >
-                {children}
-              </Text>
-            </View>
-          )}
-        </Pressable>
-      </View>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? "button" : undefined}
+        style={({ hovered, pressed }: PressableState) => [
+          styles.itemContainer,
+          itemContainerStyle,
+          (hovered || pressed) && getGlowStyles(theme, true),
+          hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
+          pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
+        ]}
+      >
+        <View style={styles.content}>
+          <Text style={[styles.itemText, itemTextStyle]} numberOfLines={1}>
+            {children}
+          </Text>
+        </View>
+      </Pressable>
     </View>
   );
 }

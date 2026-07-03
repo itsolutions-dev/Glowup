@@ -1,25 +1,52 @@
+interface ThemeTypographyToken {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+  letterSpacing: number;
+  fontWeight: "400" | "500" | "600" | "700";
+}
+
 interface Theme {
   colors: {
     primary: string;
+    onPrimary: string;
+    primaryContainer: string;
+    onPrimaryContainer: string;
     secondary: string;
+    onSecondary: string;
+    secondaryContainer: string;
+    onSecondaryContainer: string;
+    tertiary: string;
+    onTertiary: string;
+    tertiaryContainer: string;
+    onTertiaryContainer: string;
+    error: string;
+    onError: string;
+    errorContainer: string;
+    onErrorContainer: string;
     background: string;
-    text: string;
-    accent: string;
-    shadow: string;
+    onBackground: string;
     surface: string;
+    onSurface: string;
+    surfaceVariant: string;
+    onSurfaceVariant: string;
+    outline: string;
+    outlineVariant: string;
+    surfaceContainerLowest: string;
+    surfaceContainerLow: string;
+    surfaceContainer: string;
+    surfaceContainerHigh: string;
+    surfaceContainerHighest: string;
   };
-  fonts: {
-    regular: string;
-    bold: string;
-    heading: string;
-    subheading: string;
-    body: string;
-    monospace: string;
-  };
-  fontSizes: {
-    small: number;
-    medium: number;
-    large: number;
+  typography: {
+    displayLarge: ThemeTypographyToken;
+    headlineMedium: ThemeTypographyToken;
+    titleLarge: ThemeTypographyToken;
+    titleMedium: ThemeTypographyToken;
+    bodyLarge: ThemeTypographyToken;
+    bodyMedium: ThemeTypographyToken;
+    labelLarge: ThemeTypographyToken;
+    labelSmall: ThemeTypographyToken;
   };
 }
 

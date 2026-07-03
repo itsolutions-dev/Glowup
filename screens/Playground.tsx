@@ -1,11 +1,6 @@
 import React, { useState, useMemo } from "react";
-import {
-  ScrollView,
-  View,
-  StyleSheet,
-  SafeAreaView,
-  Platform,
-} from "react-native";
+import { ScrollView, View, StyleSheet, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../providers/ThemeProvider";
 
 // Components

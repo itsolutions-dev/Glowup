@@ -20,28 +20,19 @@ const CircularProgress = ({
   const { theme } = useTheme();
 
   useEffect(() => {
-    let isMounted = true;
-
-    const startAnimation = () => {
-      rotateAnim.setValue(0);
+    rotateAnim.setValue(0);
+    const animation = Animated.loop(
       Animated.timing(rotateAnim, {
         toValue: 1,
-        duration: 1000,
+        duration,
         easing: Easing.linear,
         useNativeDriver: true,
-      }).start(({ finished }) => {
-        // Recursively restart if the animation finished and component is still mounted
-        if (finished && isMounted) {
-          startAnimation();
-        }
-      });
-    };
-
-    startAnimation();
+      }),
+    );
+    animation.start();
 
     return () => {
-      isMounted = false;
-      rotateAnim.stopAnimation();
+      animation.stop();
     };
   }, [rotateAnim, duration]);
 

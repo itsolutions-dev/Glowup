@@ -1,9 +1,14 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import ToggleButton from "./ToggleButton";
+import { MaterialCommunityIconsGlyphs } from "../types";
 
 interface ToggleButtonGroupProps {
-  options: { label?: string; icon?: string; value: string }[];
+  options: {
+    label?: string;
+    icon?: MaterialCommunityIconsGlyphs;
+    value: string;
+  }[];
   value: string | string[]; // Single string or array of strings
   onValueChange: (val: any) => void;
   multiSelect?: boolean;

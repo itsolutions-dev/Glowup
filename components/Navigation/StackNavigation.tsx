@@ -1,4 +1,4 @@
-import React, { use } from "react";
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useTheme } from "../../providers/ThemeProvider";
 import RouteProp from "./Route";
@@ -19,6 +19,7 @@ const StackNavigation = ({
 
   return (
     <Stack.Navigator
+      id={undefined}
       initialRouteName={initialRouteName}
       screenOptions={{
         header: (props) => <AppBar {...props} />,

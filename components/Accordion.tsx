@@ -1,30 +1,25 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
   Pressable,
   StyleSheet,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
-
-// Enable LayoutAnimation for Android
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+import { PressableState } from "./types";
 
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
   startExpanded?: boolean;
-  style?: Object;
-  titleStyle?: Object;
+  onPress?: (expanded: boolean) => void;
+  style?: StyleProp<ViewStyle>;
+  titleStyle?: StyleProp<TextStyle>;
 }
 
 const Accordion = ({
@@ -33,19 +28,24 @@ const Accordion = ({
   style = {},
   titleStyle = {},
   startExpanded = false,
+  onPress,
 }: AccordionProps) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(startExpanded);
+  const [prevStartExpanded, setPrevStartExpanded] = useState(startExpanded);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  useEffect(() => {
+  // Sync with the prop when it changes (render-time adjustment)
+  if (prevStartExpanded !== startExpanded) {
+    setPrevStartExpanded(startExpanded);
     setExpanded(startExpanded);
-  }, [startExpanded]);
+  }
 
   const toggleExpand = () => {
     // Standard M3 easing is roughly 300ms
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
+    onPress?.(!expanded);
   };
 
   return (
@@ -62,7 +62,7 @@ const Accordion = ({
         accessibilityLabel={title}
         accessibilityState={{ expanded: expanded }} // For native platforms
         aria-expanded={expanded} // For web platforms
-        style={({ hovered }) => [
+        style={({ hovered }: PressableState) => [
           styles.header,
           hovered && getGlowStyles(theme, true),
         ]}

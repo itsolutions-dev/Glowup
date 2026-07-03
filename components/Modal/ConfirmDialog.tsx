@@ -27,11 +27,11 @@ function ConfirmDialog({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <Modal visible={visible} title={title}>
+    <Modal visible={visible} title={title} onDismiss={onCancel}>
       <View style={styles.container}>
         {message && <Text style={styles.message}>{message}</Text>}
         <View style={styles.buttonRow}>
-          <Button onPress={onCancel} variant="text" style={styles.cancelButton}>
+          <Button onPress={onCancel} mode="text" style={styles.cancelButton}>
             {cancelText}
           </Button>
           <Button onPress={onConfirm}>{confirmText}</Button>

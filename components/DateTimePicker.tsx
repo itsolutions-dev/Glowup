@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 import * as Localization from "expo-localization";
@@ -32,9 +32,9 @@ const DateTimePicker = ({
 
   const getDeviceLocale = useCallback(() => {
     if (Platform.OS === "web") {
-      return navigator.language || "it-IT"; // Note: changed from it-US to it-IT
+      return navigator.language || "it-IT";
     }
-    return Localization.getLocales()[0].languageTag;
+    return Localization.getLocales()[0]?.languageTag || "it-IT";
   }, []);
 
   const getRelativeLabel = useCallback(
@@ -58,7 +58,7 @@ const DateTimePicker = ({
     };
     const formatted = new Intl.DateTimeFormat(locale, options).format(value);
     return relative ? `${relative}, ${formatted}` : formatted;
-  }, [value, mode, locale]);
+  }, [value, mode, locale, getRelativeLabel]);
 
   return (
     <View style={styles.wrapper}>
@@ -81,7 +81,15 @@ const DateTimePicker = ({
       <Pressable
         onPress={() => setPickerVisible(true)}
         disabled={disabled}
-        style={[styles.container, getGlowStyles(theme, pickerVisible)]}
+        accessibilityRole="button"
+        accessibilityLabel={label || "Select date"}
+        accessibilityValue={{ text: displayValue }}
+        accessibilityState={{ disabled }}
+        style={[
+          styles.container,
+          getGlowStyles(theme, pickerVisible),
+          disabled && { opacity: 0.38 },
+        ]}
       >
         <View style={styles.content}>
           <Text

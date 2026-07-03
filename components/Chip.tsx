@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import {
   useTheme,
@@ -8,12 +8,13 @@ import {
   getStateColor,
   getGlowStyles,
 } from "../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 interface ChipProps {
   label: string;
   onPress?: () => void;
   onClose?: () => void;
-  icon?: string;
+  icon?: MaterialCommunityIconsGlyphs;
   disabled?: boolean;
   selected?: boolean;
   mode?: "filled" | "tonal" | "outlined";
@@ -69,52 +70,61 @@ const Chip = ({
     };
   }, [mode, selected, theme.colors]);
 
+  const [bodyHovered, setBodyHovered] = useState(false);
+  const [bodyPressed, setBodyPressed] = useState(false);
+
+  let currentBg = bg;
+  if (bodyPressed) {
+    currentBg = getStateColor(
+      bg === "transparent" ? theme.colors.surface : bg,
+      on,
+      "press",
+    );
+  } else if (bodyHovered) {
+    currentBg = getStateColor(
+      bg === "transparent" ? theme.colors.surface : bg,
+      on,
+      "hover",
+    );
+  }
+
+  const glow =
+    (bodyHovered || bodyPressed) && !disabled
+      ? getGlowStyles(theme, true)
+      : {
+          borderWidth: mode === "outlined" ? 1 : 0,
+          borderColor: border || theme.colors.outlineVariant,
+        };
+
   return (
-    <Pressable
-      onPress={() => !disabled && onPress && onPress()}
-      disabled={disabled}
-      accessibilityRole="button" // Clarify role for accessibility
-      accessibilityLabel={label} // Provide label for screen readers
-      style={({ hovered, pressed }) => {
-        let currentBg = bg;
-
-        if (pressed) {
-          currentBg = getStateColor(
-            bg === "transparent" ? theme.colors.surface : bg,
-            on,
-            "press",
-          );
-        } else if (hovered) {
-          currentBg = getStateColor(
-            bg === "transparent" ? theme.colors.surface : bg,
-            on,
-            "hover",
-          );
-        }
-
-        const glow =
-          (hovered || pressed) && !disabled
-            ? getGlowStyles(theme, true)
-            : {
-                borderWidth: mode === "outlined" ? 1 : 0,
-                borderColor: border || theme.colors.outlineVariant,
-              };
-
-        return [
-          styles.container,
-          style, // Apply root style prop
-          {
-            backgroundColor: currentBg,
-            ...glow,
-            opacity: disabled ? 0.38 : 1, // Standard Material disabled opacity
-          },
-        ];
-      }}
-      {...(Platform.OS === "android" && {
-        android_ripple: { color: rippleColor },
-      })}
+    // Plain container: keeps the close icon a SIBLING of the body press target
+    // instead of a descendant, so react-native-web never nests <button> in <button>.
+    <View
+      style={[
+        styles.container,
+        style,
+        {
+          backgroundColor: currentBg,
+          ...glow,
+          opacity: disabled ? 0.38 : 1,
+        },
+      ]}
     >
-      <View style={styles.content}>
+      <Pressable
+        onPress={() => !disabled && onPress && onPress()}
+        onHoverIn={() => setBodyHovered(true)}
+        onHoverOut={() => setBodyHovered(false)}
+        onPressIn={() => setBodyPressed(true)}
+        onPressOut={() => setBodyPressed(false)}
+        disabled={disabled}
+        accessibilityRole={onPress ? "button" : undefined}
+        accessibilityLabel={label}
+        accessibilityState={{ disabled, selected }}
+        style={styles.content}
+        {...(Platform.OS === "android" && {
+          android_ripple: { color: rippleColor },
+        })}
+      >
         {icon && (
           <Icons
             name={icon}
@@ -134,27 +144,27 @@ const Chip = ({
             style={[styles.checkIcon, disabled && styles.disabledText]}
           />
         )}
-        {onClose && (
-          <Pressable
-            onPress={() => (!disabled && onClose ? onClose() : null)}
-            disabled={disabled}
-            accessibilityRole="button"
-            accessibilityLabel={`Close ${label}`}
-            style={({ hovered, pressed }) => [
-              styles.closeButton, // Add a style for the close button
-              { opacity: disabled ? 0.38 : pressed ? 0.7 : hovered ? 0.5 : 1 }, // Visual feedback for close button
-            ]}
-          >
-            <Icons
-              name="close"
-              size={theme.shape.large}
-              color={on} // Use 'on' color for close icon
-              style={[styles.closeIcon, disabled && styles.disabledText]}
-            />
-          </Pressable>
-        )}
-      </View>
-    </Pressable>
+      </Pressable>
+      {onClose && (
+        <Pressable
+          onPress={() => (!disabled && onClose ? onClose() : null)}
+          disabled={disabled}
+          accessibilityRole="button"
+          accessibilityLabel={`Close ${label}`}
+          style={({ hovered, pressed }: PressableState) => [
+            styles.closeButton,
+            { opacity: disabled ? 0.38 : pressed ? 0.7 : hovered ? 0.5 : 1 },
+          ]}
+        >
+          <Icons
+            name="close"
+            size={theme.shape.large}
+            color={on}
+            style={[styles.closeIcon, disabled && styles.disabledText]}
+          />
+        </Pressable>
+      )}
+    </View>
   );
 };
 

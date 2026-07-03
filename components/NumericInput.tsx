@@ -1,3 +1,4 @@
+import { StyleProp, ViewStyle } from "react-native";
 import Input from "./Input";
 
 interface NumericInputProps {
@@ -13,6 +14,7 @@ interface NumericInputProps {
   disabled?: boolean;
   readonly?: boolean;
   minHeight?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 const NumericInput = ({

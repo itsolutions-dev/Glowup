@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useMemo } from "react";
-import { Animated, StyleSheet, View, Text, Platform } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  View,
+  Text,
+  Platform,
+} from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Button from "./Button";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export interface SnackbarProps {
   visible: boolean;
@@ -31,9 +37,19 @@ const Snackbar = ({
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(100)).current;
 
+  // Keep latest onDismiss without restarting the auto-hide timer on re-renders
+  const onDismissRef = useRef(onDismiss);
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  }, [onDismiss]);
+
+  // Mount the snackbar as soon as it becomes visible (render-time adjustment)
+  if (visible && !shouldRender) {
+    setShouldRender(true);
+  }
+
   useEffect(() => {
     if (visible) {
-      setShouldRender(true);
       // Show animation
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -51,7 +67,7 @@ const Snackbar = ({
 
       if (duration > 0) {
         const timer = setTimeout(() => {
-          onDismiss();
+          onDismissRef.current();
         }, duration);
         return () => clearTimeout(timer);
       }
@@ -72,7 +88,7 @@ const Snackbar = ({
         setShouldRender(false);
       });
     }
-  }, [visible, duration, onDismiss, fadeAnim, translateYAnim]);
+  }, [visible, duration, fadeAnim, translateYAnim]);
 
   const { styles, iconColor } = useMemo(
     () => makeStyles(theme, type),
@@ -89,6 +105,8 @@ const Snackbar = ({
 
   return (
     <Animated.View
+      accessibilityLiveRegion="polite"
+      accessibilityRole="alert"
       style={[
         styles.container,
         {

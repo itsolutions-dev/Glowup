@@ -1,7 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Animated,
+} from "react-native";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
 interface BaseTabItem {
   label: string;
@@ -9,7 +16,6 @@ interface BaseTabItem {
 interface IconTabItem extends BaseTabItem {
   icon: string;
 }
-interface StringTabItem extends BaseTabItem {}
 
 interface TabProps {
   tabs: IconTabItem[] | string[];
@@ -68,7 +74,7 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
           <Pressable
             key={index}
             onPress={() => onChange(index)}
-            style={({ hovered, pressed }) => [
+            style={({ hovered, pressed }: PressableState) => [
               styles.tabItem,
               (hovered || pressed) && getGlowStyles(theme, true),
               // Use theme-defined state layer colors for consistency
@@ -95,7 +101,7 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
                   />
                 )}
                 <Icons
-                  name={iconName}
+                  name={iconName as MaterialCommunityIconsGlyphs}
                   size={24}
                   color={
                     isActive

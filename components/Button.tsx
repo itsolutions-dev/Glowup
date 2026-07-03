@@ -7,20 +7,21 @@ import {
 } from "../providers/ThemeProvider";
 
 import { Pressable, Text, View, StyleSheet, Platform } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import CircularProgress from "./Progress/CircularProgress";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 interface ButtonProps {
-  onPress: () => void;
-  iconName?: string;
+  onPress?: () => void;
+  iconName?: MaterialCommunityIconsGlyphs;
   size?: number;
-  mode?: "filled" | "tonal" | "outlined";
+  mode?: "filled" | "tonal" | "outlined" | "text";
   style?: object;
   iconStyle?: object;
   disabled?: boolean;
   loading?: boolean;
   accessibilityLabel?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const Button = ({
@@ -32,7 +33,7 @@ const Button = ({
   style = {},
   iconStyle = {},
   loading = false,
-  accessibilityLabel = "",
+  accessibilityLabel,
   children,
 }: ButtonProps) => {
   const { theme } = useTheme();
@@ -40,12 +41,11 @@ const Button = ({
 
   const { bg, on, border } = useMemo(() => {
     switch (mode) {
-      case "filled":
-        return { bg: theme.colors.primary, on: theme.colors.onPrimary };
       case "tonal":
         return {
           bg: theme.colors.secondaryContainer,
           on: theme.colors.onSecondaryContainer,
+          border: undefined,
         };
       case "outlined":
         return {
@@ -53,28 +53,44 @@ const Button = ({
           on: theme.colors.primary,
           border: theme.colors.outline,
         };
+      case "text":
+        return {
+          bg: "transparent",
+          on: theme.colors.primary,
+          border: undefined,
+        };
+      case "filled":
       default:
-        return { bg: theme.colors.primary, on: theme.colors.onPrimary };
+        return {
+          bg: theme.colors.primary,
+          on: theme.colors.onPrimary,
+          border: undefined,
+        };
     }
   }, [mode, theme.colors]);
 
+  const isInteractive = !disabled && !loading;
+
   return (
     <Pressable
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={
+        accessibilityLabel ||
+        (typeof children === "string" ? children : undefined)
+      }
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      onPress={!disabled && !loading && onPress ? onPress : null}
-      disabled={disabled}
-      style={({ hovered, pressed }) => {
+      accessibilityState={{ disabled, busy: loading }}
+      onPress={isInteractive && onPress ? onPress : undefined}
+      disabled={disabled || loading}
+      style={({ hovered, pressed }: PressableState) => {
         let currentBg = bg;
 
-        if (pressed) {
+        if (isInteractive && pressed) {
           currentBg = getStateColor(
             bg === "transparent" ? theme.colors.surface : bg,
             on,
             "press",
           );
-        } else if (hovered) {
+        } else if (isInteractive && hovered) {
           currentBg = getStateColor(
             bg === "transparent" ? theme.colors.surface : bg,
             on,
@@ -83,7 +99,7 @@ const Button = ({
         }
 
         const glow =
-          (hovered || pressed) && !disabled
+          (hovered || pressed) && isInteractive
             ? getGlowStyles(theme, true)
             : {
                 borderWidth: mode === "outlined" ? 1 : 0,
@@ -95,22 +111,19 @@ const Button = ({
           {
             backgroundColor: currentBg,
             ...glow,
+            opacity: disabled ? 0.38 : 1,
           },
           style,
         ];
       }}
       {...(Platform.OS === "android" && {
-        android_ripple: { color: theme.colors.onPrimary },
+        android_ripple: { color: getStateColor(bg, on, "press") },
       })}
     >
       <View style={styles.itemsContainer}>
         {loading ? (
           // We use a smaller size to fit inside the button height
-          <CircularProgress
-            size={20}
-            strokeWidth={2.5}
-            color={theme.colors.onPrimary}
-          />
+          <CircularProgress size={20} strokeWidth={2.5} color={on} />
         ) : (
           <>
             {iconName && (
@@ -120,7 +133,7 @@ const Button = ({
                 style={[styles.icon, { color: on }, iconStyle]}
               />
             )}
-            {children && (
+            {children != null && children !== "" && (
               <Text style={[styles.buttonText, { color: on }]}>{children}</Text>
             )}
           </>
@@ -146,6 +159,9 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: theme.colors.primary,
+      ...Platform.select({
+        web: { cursor: "pointer" },
+      }),
     },
     buttonText: {
       color: theme.colors.onPrimary,

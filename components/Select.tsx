@@ -6,15 +6,15 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
+  LayoutChangeEvent,
 } from "react-native";
-import Icons, {
-  MaterialCommunityIconsGlyphs,
-} from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 import Popover from "./Popover";
 import Checkbox from "./Checkbox";
 import Chip from "./Chip";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface Option {
   id: string;
@@ -59,7 +59,6 @@ const Select = ({
   toggleOptions,
 }: SelectProps) => {
   const [visible, setVisible] = useState(false);
-  const [layout, setLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -72,14 +71,22 @@ const Select = ({
     [options, value],
   );
 
-  const internalToggleOption = (value) => {
-    const isAlreadySelected = selectedValues.includes(value);
-    if (isAlreadySelected) {
-      toggleOptions(selectedValues.filter((item) => item !== value));
-    } else {
-      toggleOptions([...selectedValues, value]);
-    }
-  };
+  const internalToggleOption = useCallback(
+    (optionValue: any) => {
+      if (!toggleOptions) return;
+      const isAlreadySelected = selectedValues.includes(optionValue);
+      if (isAlreadySelected) {
+        toggleOptions(selectedValues.filter((item) => item !== optionValue));
+      } else {
+        toggleOptions([...selectedValues, optionValue]);
+      }
+    },
+    [toggleOptions, selectedValues],
+  );
+
+  const placeholderColor = selectedOption
+    ? theme.colors.onSurface
+    : theme.colors.onSurfaceVariant;
 
   const getDisplayContent = useCallback(() => {
     if (showAsChips && multiSelect && selectedValues.length > 0) {
@@ -94,104 +101,82 @@ const Select = ({
         ));
     }
     if (multiSelect) {
-      if (selectedValues.length === 0) return placeholder || "Select options";
-      const concatOptions = options
+      const selectedLabels = options
         .filter((opt) => selectedValues.includes(opt.value))
-        .map((opt) => opt.label)
-        .filter((_, i) => i < 2)
-        .join(", ");
-      if (selectedValues.length <= 2) {
-        return concatOptions;
-      }
+        .map((opt) => opt.label);
+      const concatOptions = selectedLabels.slice(0, 2).join(", ");
+      const text =
+        selectedValues.length === 0
+          ? placeholder || "Select options"
+          : selectedValues.length <= 2
+            ? concatOptions
+            : `${concatOptions} (+${selectedValues.length - 2})`;
       return (
         <Text
           style={[
             theme.typography.bodyLarge,
             {
-              color: selectedOption
-                ? theme.colors.onSurface
-                : theme.colors.onSurfaceVariant,
-            },
-          ]}
-        >
-          {`${concatOptions} (+${selectedValues.length - 2})`}
-        </Text>
-      );
-    } else {
-      return (
-        <View style={styles.leftSlot}>
-          {selectedOption && selectedOption.icon && (
-            <Icons
-              name={selectedOption.icon}
-              size={20}
-              color={
-                value === selectedOption.value
-                  ? theme.colors.primary
-                  : theme.colors.onSurfaceVariant
-              }
-              style={styles.leadingIcon}
-            />
-          )}
-          <Text
-            style={[
-              theme.typography.bodyLarge,
-              {
-                color: selectedOption
+              color:
+                selectedValues.length > 0
                   ? theme.colors.onSurface
                   : theme.colors.onSurfaceVariant,
-              },
-            ]}
-          >
-            {selectedOption ? selectedOption.label : placeholder}
-          </Text>
-        </View>
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {text}
+        </Text>
       );
     }
-  }, [multiSelect, selectedValues, options, selectedOption, placeholder]);
-
-  const handleSelect = (val) => {
-    onSelect(val);
-    setVisible(false);
-  };
+    return (
+      <View style={styles.leftSlot}>
+        {selectedOption && selectedOption.icon && (
+          <Icons
+            name={selectedOption.icon}
+            size={20}
+            color={theme.colors.primary}
+            style={styles.leadingIcon}
+          />
+        )}
+        <Text
+          style={[theme.typography.bodyLarge, { color: placeholderColor }]}
+          numberOfLines={1}
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+        </Text>
+      </View>
+    );
+  }, [
+    showAsChips,
+    multiSelect,
+    selectedValues,
+    options,
+    selectedOption,
+    placeholder,
+    theme,
+    styles,
+    internalToggleOption,
+    placeholderColor,
+  ]);
 
   const [containerWidth, setContainerWidth] = useState(0);
 
-  const onLayout = (event) => {
+  const onLayout = (event: LayoutChangeEvent) => {
     const { width } = event.nativeEvent.layout;
     setContainerWidth(width);
   };
 
   const Anchor = (
     <Pressable
-      accessibilityLabel={selectedOption?.label}
+      accessibilityLabel={selectedOption?.label || label || placeholder}
       accessibilityRole={(Platform.OS === "web" ? "listbox" : "none") as any}
-      accessibilityState={{ selected: value }}
+      accessibilityState={{ expanded: visible, disabled }}
       disabled={disabled}
       onPress={() => setVisible(true)}
       style={[styles.selectContainer, getGlowStyles(theme, visible, error)]}
-
-      /*       style={[
-        styles.selectBox,
-        {
-          borderColor: theme.colors.outline,
-          backgroundColor: theme.colors.surface,
-        },
-        variantStyles.container,
-      ]} */
     >
       {(!showAsChips || !multiSelect || selectedValues.length === 0) && (
-        <Text
-          style={[
-            theme.typography.bodyLarge,
-            {
-              color: selectedOption
-                ? theme.colors.onSurface
-                : theme.colors.onSurfaceVariant,
-            },
-          ]}
-        >
-          {getDisplayContent()}
-        </Text>
+        <View style={styles.content}>{getDisplayContent()}</View>
       )}
       <View
         onLayout={onLayout}
@@ -248,16 +233,25 @@ const Select = ({
               <Pressable
                 key={option.id}
                 onPress={() => {
-                  onSelect(option.value);
-                  setVisible(false);
+                  if (multiSelect) {
+                    // Keep the menu open while toggling multiple options
+                    internalToggleOption(option.value);
+                  } else {
+                    onSelect(option.value);
+                    setVisible(false);
+                  }
                 }}
                 disabled={disabled}
                 accessibilityLabel={option.label}
                 accessibilityRole={
                   (Platform.OS === "web" ? "option" : "none") as any
                 }
-                accessibilityState={{ selected: value === option.value }}
-                style={({ hovered, pressed }: any) => [
+                accessibilityState={{
+                  selected: multiSelect
+                    ? selectedValues.includes(option.value)
+                    : value === option.value,
+                }}
+                style={({ hovered, pressed }: PressableState) => [
                   styles.optionItem,
                   multiSelect && { paddingVertical: 0 },
                   optionStyle,

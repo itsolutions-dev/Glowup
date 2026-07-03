@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   Pressable,
   Animated,
@@ -8,7 +8,8 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider"; // Assuming this is a custom ThemeProvider
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 interface ToggleProps {
   value: boolean;
@@ -150,7 +151,7 @@ const Toggle = ({
     <Pressable
       disabled={disabled}
       onPress={() => onValueChange(!value)}
-      style={({ hovered }) => [
+      style={({ hovered }: PressableState) => [
         styles.container,
         containerStyle,
         hovered && getGlowStyles(theme, true),

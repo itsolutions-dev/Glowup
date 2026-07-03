@@ -3,16 +3,18 @@ import {
   DrawerContentScrollView,
   DrawerItemList,
   DrawerItem,
+  DrawerContentComponentProps,
 } from "@react-navigation/drawer";
+import UserProps from "./User";
 import { View, Text, StyleSheet } from "react-native";
 import Avatar from "../Avatar"; // Using the avatar we built earlier
 import { useTheme, Theme } from "../../providers/ThemeProvider";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import DrawerPreferenceItem from "./DrawerPreferenceItem";
 import Toggle from "../Toggle";
 import Typography from "components/Typography";
 
-interface CustomDrawerContentProps {
+interface CustomDrawerContentProps extends DrawerContentComponentProps {
   isPinned: boolean;
   onTogglePin: () => void;
   user: UserProps;

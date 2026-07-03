@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 interface CheckboxProps {
   label?: string;
@@ -54,12 +55,9 @@ const Checkbox = ({
       accessibilityRole="checkbox"
       accessibilityState={{ checked, disabled }}
       disabled={disabled}
-      style={({ hovered, pressed }) => [
-        styles.wrapper,
-        { opacity: disabled ? 0.38 : 1 },
-      ]}
+      style={[styles.wrapper, { opacity: disabled ? 0.38 : 1 }]}
     >
-      {({ hovered, pressed }) => (
+      {({ hovered, pressed }: PressableState) => (
         <>
           {labelPosition === "left" && labelComponent}
 

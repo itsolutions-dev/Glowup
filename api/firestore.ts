@@ -118,7 +118,7 @@ export function parseFirestoreValue(firestoreValue: FirestoreValue): any {
     return firestoreValue.geoPointValue;
   }
   if ("mapValue" in firestoreValue) {
-    return flattenFirestoreFields(firestoreValue.mapValue.fields);
+    return flattenFields(firestoreValue.mapValue.fields);
   }
   if ("arrayValue" in firestoreValue) {
     return (firestoreValue.arrayValue.values || []).map(parseFirestoreValue);
@@ -126,16 +126,21 @@ export function parseFirestoreValue(firestoreValue: FirestoreValue): any {
   return undefined; // Should not happen with exhaustive type checking
 }
 
-export function flattenFirestoreFields(
-  name: string,
-  fields: FirestoreFields,
-): FlattenedDocument {
+function flattenFields(fields: FirestoreFields): FlattenedDocument {
   const flattened: FlattenedDocument = {};
-  flattened["id"] = name.split("/").pop(); // Extract document ID from the full name
   for (const key in fields) {
     if (Object.prototype.hasOwnProperty.call(fields, key)) {
       flattened[key] = parseFirestoreValue(fields[key]);
     }
   }
+  return flattened;
+}
+
+export function flattenFirestoreFields(
+  name: string,
+  fields: FirestoreFields,
+): FlattenedDocument {
+  const flattened = flattenFields(fields);
+  flattened["id"] = name.split("/").pop(); // Extract document ID from the full name
   return flattened;
 }

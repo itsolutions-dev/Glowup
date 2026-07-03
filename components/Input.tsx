@@ -1,9 +1,16 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Platform } from "react-native";
-import Icons, {
-  MaterialCommunityIconsGlyphs,
-} from "expo-vector-icons/MaterialCommunityIcons";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Platform,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs } from "./types";
 
 interface InputProps {
   label?: string;
@@ -26,6 +33,7 @@ interface InputProps {
   multiline?: boolean;
   numberOfLines?: number;
   minHeight?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 const Input = ({
@@ -49,17 +57,18 @@ const Input = ({
   multiline = false,
   numberOfLines = 4,
   minHeight = 56,
+  style,
 }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const activeColor = !!error ? theme.colors.error : theme.colors.primary;
-  const idleColor = !!error ? theme.colors.error : theme.colors.outline;
+  const activeColor = error ? theme.colors.error : theme.colors.primary;
 
   const handleTextChange = useCallback(
     (text: string) => {
       if (type === "number") {
-        // Allow only numbers and one decimal point
+        // Allow digits, one leading minus and one decimal point
+        const sign = text.trimStart().startsWith("-") ? "-" : "";
         let cleaned = text.replace(/[^0-9.]/g, "");
         const parts = cleaned.split(".");
 
@@ -71,7 +80,7 @@ const Input = ({
         if (precision !== undefined && parts[1]?.length > precision) {
           cleaned = `${parts[0]}.${parts[1].substring(0, precision)}`;
         }
-        onChangeText(cleaned);
+        onChangeText(sign + cleaned);
       } else {
         onChangeText(text);
       }
@@ -79,13 +88,14 @@ const Input = ({
     [type, precision, onChangeText],
   );
 
+  // BISECT-TEST: glow disabled
   const dynamicStyles = useMemo(
-    () => getGlowStyles(theme, isFocused, error),
-    [isFocused, theme, error],
+    () => ({ borderWidth: 1, borderColor: theme.colors.outlineVariant }),
+    [theme],
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       {label && variant === "outlined" && (
         <Text
           style={[
@@ -101,7 +111,7 @@ const Input = ({
         </Text>
       )}
 
-      <View style={[styles.inputContainer, dynamicStyles]}>
+      <View style={[styles.inputContainer, { minHeight }, dynamicStyles]}>
         {prefix ? (
           <Text
             style={[styles.affix, { color: theme.colors.onSurfaceVariant }]}
@@ -110,12 +120,13 @@ const Input = ({
           </Text>
         ) : (
           leadingIcon && (
-            <Icons
-              name={leadingIcon}
-              size={20}
-              color={theme.colors.onSurfaceVariant}
-              style={styles.iconLeft}
-            />
+            <View style={styles.iconLeft}>
+              <Icons
+                name={leadingIcon}
+                size={20}
+                color={theme.colors.onSurfaceVariant}
+              />
+            </View>
           )
         )}
 
@@ -137,15 +148,12 @@ const Input = ({
 
           <TextInput
             accessibilityLabel={label}
-            accessibilityRole={Platform.OS === "web" ? "textbox" : "none"}
-            accessibilityState={{ isFocused }}
-            accessibilityValue={{ value }}
+            accessibilityState={{ disabled }}
+            accessibilityValue={{ text: value }}
             accessibilityHint={placeholder}
             multiline={multiline}
             numberOfLines={numberOfLines}
             readOnly={readonly}
-            disabled={disabled}
-            accessible={!disabled}
             maxLength={maxLength}
             style={[
               styles.textInput,
@@ -176,33 +184,32 @@ const Input = ({
           </Text>
         ) : (
           trailingIcon && (
-            <Icons
-              name={trailingIcon}
-              size={20}
-              color={
-                !!error ? theme.colors.error : theme.colors.onSurfaceVariant
-              }
-              onPress={onTrailingIconPress}
-              style={styles.iconRight}
-            />
+            <View style={styles.iconRight}>
+              <Icons
+                name={trailingIcon}
+                size={20}
+                color={
+                  !!error ? theme.colors.error : theme.colors.onSurfaceVariant
+                }
+                onPress={onTrailingIconPress}
+              />
+            </View>
           )
         )}
       </View>
 
-      {(error || placeholder) && (
+      {!!error && (
         <Text
           style={[
             theme.typography.bodySmall,
             {
-              color: !!error
-                ? theme.colors.error
-                : theme.colors.onSurfaceVariant,
+              color: theme.colors.error,
               marginTop: 4,
               marginLeft: 16,
             },
           ]}
         >
-          {error || ""}
+          {error}
         </Text>
       )}
     </View>
@@ -255,9 +262,8 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     iconLeft: {
       marginRight: 12,
       borderRightWidth: 1,
-      height: "100%",
+      alignSelf: "stretch",
       borderColor: theme.colors.outlineVariant,
-      display: "flex",
       justifyContent: "center",
       alignItems: "center",
       paddingRight: 12,
@@ -265,9 +271,8 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     iconRight: {
       marginLeft: 12,
       borderLeftWidth: 1,
-      height: "100%",
+      alignSelf: "stretch",
       borderColor: theme.colors.outlineVariant,
-      display: "flex",
       justifyContent: "center",
       alignItems: "center",
       paddingLeft: 12,

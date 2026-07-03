@@ -1,14 +1,15 @@
 import React from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
 
 interface AppBarProps {
   navigation: any;
   route: any;
   options: any;
-  back?: boolean;
+  /** Truthy when a back destination exists (native-stack passes { title, href }) */
+  back?: { title?: string; href?: string } | boolean;
   isPinned?: boolean;
 }
 
@@ -54,7 +55,12 @@ const AppBar = ({
           ]}
         >
           {back ? (
-            <Pressable onPress={navigation.goBack} style={styles.iconButton}>
+            <Pressable
+              onPress={navigation.goBack}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              style={styles.iconButton}
+            >
               <Icons
                 name="arrow-left"
                 size={24}
@@ -66,6 +72,8 @@ const AppBar = ({
             navigation.openDrawer && (
               <Pressable
                 onPress={navigation.openDrawer}
+                accessibilityRole="button"
+                accessibilityLabel="Open navigation menu"
                 style={styles.iconButton}
               >
                 <Icons name="menu" size={24} color={theme.colors.onSurface} />

@@ -9,14 +9,15 @@ import {
 } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 interface AvatarProps {
   source?: ImageSourcePropType;
   name?: string;
   size?: number;
   onPress?: () => void;
-  icon?: string;
+  icon?: MaterialCommunityIconsGlyphs;
   backgroundColor?: string;
   textColor?: string;
   status?: "online" | "offline" | "busy" | "away" | null;
@@ -35,7 +36,7 @@ const Avatar = ({
   const getInitials = (fullName: string | undefined | null) => {
     if (!fullName || typeof fullName !== "string" || fullName.trim() === "")
       return null;
-    const parts = fullName.split(" ");
+    const parts = fullName.trim().split(/\s+/);
     return parts
       .map((n) => n[0])
       .join("")
@@ -62,8 +63,12 @@ const Avatar = ({
 
   return (
     <View style={{ width: size, height: size }}>
-      <View
-        style={[
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? "button" : "image"}
+        accessibilityLabel={name ? `${name} Avatar` : "User Avatar"}
+        style={({ hovered, pressed }: PressableState) => [
           styles.container,
           {
             width: size,
@@ -71,57 +76,38 @@ const Avatar = ({
             borderRadius: size / 2,
             backgroundColor: backgroundColor || theme.colors.primaryContainer,
           },
+          onPress && (hovered || pressed) && getGlowStyles(theme, true),
         ]}
       >
-        <Pressable
-          onPress={onPress}
-          disabled={!onPress}
-          accessibilityRole={onPress ? "button" : undefined}
-          accessibilityLabel={name ? `${name} Avatar` : "User Avatar"}
-          style={({ hovered, pressed }: any) => [
-            styles.container,
-            {
+        {source ? (
+          <Image
+            source={source}
+            style={{
               width: size,
               height: size,
               borderRadius: size / 2,
-              backgroundColor: backgroundColor || theme.colors.primaryContainer,
-            },
-            onPress && (hovered || pressed) && getGlowStyles(theme, true),
-          ]}
-        >
-          {source ? (
-            <Image
-              source={source}
-              style={[
-                styles.image,
-                {
-                  width: size,
-                  height: size,
-                  borderRadius: size / 2,
-                },
-              ]}
-            />
-          ) : name ? (
-            <Text
-              style={[
-                styles.initials,
-                {
-                  fontSize,
-                  color: textColor || theme.colors.onPrimaryContainer,
-                },
-              ]}
-            >
-              {initials}
-            </Text>
-          ) : (
-            <Icons
-              name={icon}
-              size={size * 0.6}
-              color={textColor || theme.colors.onPrimaryContainer}
-            />
-          )}
-        </Pressable>
-      </View>
+            }}
+          />
+        ) : name ? (
+          <Text
+            style={[
+              styles.initials,
+              {
+                fontSize,
+                color: textColor || theme.colors.onPrimaryContainer,
+              },
+            ]}
+          >
+            {initials}
+          </Text>
+        ) : (
+          <Icons
+            name={icon}
+            size={size * 0.6}
+            color={textColor || theme.colors.onPrimaryContainer}
+          />
+        )}
+      </Pressable>
       {status && statusColor && (
         <View
           style={[
@@ -164,9 +150,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       alignItems: "center",
       overflow: "hidden",
     },
-    image: {
-      flex: 1,
-    },
     initials: {
       fontWeight: "500",
       letterSpacing: 0.1,
@@ -174,7 +157,7 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     statusDot: {
       position: "absolute",
       borderWidth: 2,
-      borderColor: theme.colors.outline,
+      borderColor: theme.colors.surface, // "cutout" ring against the background
       borderRadius: 999,
     },
   });

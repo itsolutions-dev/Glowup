@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs } from "../types";
 
 interface DrawerPreferenceItemProps {
-  icon: string;
+  icon: MaterialCommunityIconsGlyphs;
   label: string;
   children?: React.ReactNode;
 }

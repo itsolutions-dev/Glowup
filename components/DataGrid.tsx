@@ -10,8 +10,9 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 // --- Sub-components ---
 
@@ -58,14 +59,6 @@ const Thead = ({ children, style }: TheadProps) => {
     </View>
   );
 };
-
-interface TbodyProps {
-  children: ReactNode;
-  style?: ViewStyle;
-}
-const Tbody = ({ children, style }: TbodyProps) => (
-  <View style={[styles.tbody, style]}>{children}</View>
-);
 
 interface TfootProps {
   children: ReactNode;
@@ -126,7 +119,7 @@ const Th = ({
       <Pressable
         onPress={onPress}
         disabled={!onPress || !sortable}
-        style={({ hovered, pressed }: any) => [
+        style={({ hovered, pressed }: PressableState) => [
           styles.thContent,
           (hovered || pressed) && sortable && getGlowStyles(theme, true),
           (hovered || pressed) &&
@@ -259,10 +252,13 @@ const DataGrid = ({
 }: DataGridProps) => {
   const { theme } = useTheme();
   const [orderedColumns, setOrderedColumns] = useState(columns);
+  const [prevColumns, setPrevColumns] = useState(columns);
 
-  React.useEffect(() => {
+  // Reset ordering when the columns prop changes (render-time adjustment)
+  if (prevColumns !== columns) {
+    setPrevColumns(columns);
     setOrderedColumns(columns);
-  }, [columns]);
+  }
 
   const handleSort = useCallback(
     (columnId: string) => {
@@ -388,9 +384,6 @@ const styles = StyleSheet.create({
   thead: {
     borderBottomWidth: 1,
     zIndex: 10,
-  },
-  tbody: {
-    flex: 1,
   },
   tfoot: {
     paddingVertical: 16,

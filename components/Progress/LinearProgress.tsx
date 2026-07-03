@@ -1,5 +1,11 @@
-import React, { useEffect, useRef } from "react";
-import { View, Animated, Easing, StyleSheet, Dimensions } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  View,
+  Animated,
+  Easing,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { useTheme } from "providers/ThemeProvider";
 
 interface LinearProgressProps {
@@ -23,32 +29,37 @@ const LinearProgress = ({
 }: LinearProgressProps) => {
   const { theme } = useTheme();
   const animatedValue = useRef(new Animated.Value(0)).current;
-  const trackWidth = useRef(Dimensions.get("window").width);
+  const [trackWidth, setTrackWidth] = useState(Dimensions.get("window").width);
+
+  const clampedProgress = Math.min(1, Math.max(0, progress));
 
   useEffect(() => {
     if (indeterminate) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(animatedValue, {
-            toValue: 1,
-            duration: 1500,
-            useNativeDriver: false,
-          }),
-          Animated.timing(animatedValue, {
-            toValue: 0,
-            duration: 0,
-            useNativeDriver: false,
-          }),
-        ]),
-      ).start();
-    } else {
-      Animated.timing(animatedValue, {
-        toValue: progress,
-        duration: 500,
-        useNativeDriver: false,
-      }).start();
+      animatedValue.setValue(0);
+      const animation = Animated.loop(
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: indeterminateDuration,
+          easing: Easing.linear,
+          useNativeDriver: false,
+        }),
+      );
+      animation.start();
+      return () => animation.stop();
     }
-  }, [progress, indeterminate]);
+
+    Animated.timing(animatedValue, {
+      toValue: clampedProgress,
+      duration,
+      useNativeDriver: false,
+    }).start();
+  }, [
+    clampedProgress,
+    indeterminate,
+    duration,
+    indeterminateDuration,
+    animatedValue,
+  ]);
 
   const barColor = color || theme.colors.primary;
   const actualTrackColor = trackColor || theme.colors.surfaceContainerHighest;
@@ -56,10 +67,7 @@ const LinearProgress = ({
   const indeterminateBarWidthRatio = 0.4;
   const translateXIndeterminate = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [
-      -trackWidth.current * indeterminateBarWidthRatio,
-      trackWidth.current,
-    ],
+    outputRange: [-trackWidth * indeterminateBarWidthRatio, trackWidth],
   });
 
   return (
@@ -71,29 +79,17 @@ const LinearProgress = ({
           backgroundColor: actualTrackColor,
         },
       ]}
-      onLayout={(event) => {
-        if (indeterminate) {
-          trackWidth.current = event.nativeEvent.layout.width;
-          animatedValue.stopAnimation();
-          animatedValue.setValue(0);
-          Animated.loop(
-            Animated.timing(animatedValue, {
-              toValue: 1,
-              duration: indeterminateDuration,
-              easing: Easing.linear,
-              useNativeDriver: false,
-            }),
-          ).start();
-        }
-      }}
+      onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
       accessibilityRole="progressbar"
       accessible={true}
       accessibilityLabel={
-        indeterminate ? "Loading" : `Progress: ${Math.round(progress * 100)}%`
+        indeterminate
+          ? "Loading"
+          : `Progress: ${Math.round(clampedProgress * 100)}%`
       }
       aria-valuemin={0}
       aria-valuemax={1}
-      aria-valuenow={indeterminate ? undefined : progress} // Undefined for indeterminate
+      aria-valuenow={indeterminate ? undefined : clampedProgress} // Undefined for indeterminate
     >
       <Animated.View
         style={[

@@ -18,7 +18,6 @@ const initI18n = async () => {
   const systemLocale = Localization.getLocales()[0].languageCode ?? "en";
 
   await i18n.use(initReactI18next).init({
-    compatibilityJSON: "v3",
     resources,
     lng: savedLanguage || systemLocale,
     fallbackLng: "en",

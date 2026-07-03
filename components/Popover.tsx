@@ -37,7 +37,7 @@ const Popover = ({
     height: 0,
   });
   const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
-  const anchorRef = useRef(null);
+  const anchorRef = useRef<View>(null);
   const window = useWindowDimensions();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -61,7 +61,7 @@ const Popover = ({
 
   useEffect(() => {
     if (visible) updatePosition();
-  }, [window.width, window.height]);
+  }, [visible, window.width, window.height, updatePosition]);
 
   const handleOpen = useCallback(() => {
     if (anchorRef.current) {

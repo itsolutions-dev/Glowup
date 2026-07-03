@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -10,26 +10,22 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
-import { MaterialCommunityIconsGlyphs } from "expo-vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIconsGlyphs } from "./types";
 
 type SpeedDialPosition =
-  | "bottom-right"
-  | "bottom-left"
-  | "top-right"
-  | "top-left";
+  "bottom-right" | "bottom-left" | "top-right" | "top-left";
 
-interface SpeedDialAction {
-  id: string;
+export interface SpeedDialAction {
+  id: string | number;
   label: string;
   icon: MaterialCommunityIconsGlyphs;
-  position?: SpeedDialPosition;
   onPress: () => void;
 }
 
 interface SpeedDialProps {
   actions: SpeedDialAction[];
   mainIcon: MaterialCommunityIconsGlyphs;
-  posirtion?: SpeedDialPosition;
+  position?: SpeedDialPosition;
 }
 
 const SpeedDial = ({
@@ -41,7 +37,7 @@ const SpeedDial = ({
   const insets = useSafeAreaInsets();
 
   const { theme } = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -162,7 +158,11 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
 ) =>
   StyleSheet.create({
     container: {
-      ...StyleSheet.absoluteFillObject,
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       pointerEvents: "box-none",
       zIndex: 1000,
     },

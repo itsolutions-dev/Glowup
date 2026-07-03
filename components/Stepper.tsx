@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { PressableState } from "./types";
 
 export interface Step {
   label: string;
@@ -41,7 +42,10 @@ const Stepper = ({ steps, activeStep, onStepPress, style }: StepperProps) => {
           <Pressable
             onPress={() => onStepPress?.(index)}
             disabled={!onStepPress}
-            style={({ hovered, pressed }: any) => [
+            accessibilityRole="button"
+            accessibilityLabel={`Step ${index + 1}: ${label}`}
+            accessibilityState={{ selected: isActive, disabled: !onStepPress }}
+            style={({ hovered, pressed }: PressableState) => [
               styles.stepCircle,
               {
                 borderColor: stepColor,
@@ -66,7 +70,19 @@ const Stepper = ({ steps, activeStep, onStepPress, style }: StepperProps) => {
                   },
                 ]}
               >
-                {icon ? <Icons name={icon as any} size={16} /> : index + 1}
+                {icon ? (
+                  <Icons
+                    name={icon as any}
+                    size={16}
+                    color={
+                      isActive
+                        ? theme.colors.primary
+                        : theme.colors.onSurfaceVariant
+                    }
+                  />
+                ) : (
+                  index + 1
+                )}
               </Text>
             )}
           </Pressable>

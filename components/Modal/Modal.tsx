@@ -1,11 +1,5 @@
-import React, { useState, useMemo } from "react";
-import {
-  Modal as NativeModal,
-  StyleSheet,
-  Text,
-  Pressable,
-  View,
-} from "react-native";
+import React, { useMemo } from "react";
+import { Modal as NativeModal, StyleSheet, Text, View } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "providers/ThemeProvider";
 
 import Button from "../Button";
@@ -18,6 +12,9 @@ interface ModalProps {
   transparent?: boolean;
   visible?: boolean;
   onClose?: () => void;
+  /** Called on Android back / ESC without rendering the close button. Falls back to onClose. */
+  onDismiss?: () => void;
+  closeText?: string;
 }
 
 function Modal({
@@ -27,6 +24,8 @@ function Modal({
   animationType = "fade",
   transparent = true,
   onClose,
+  onDismiss,
+  closeText = "Close",
 }: ModalProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -39,17 +38,15 @@ function Modal({
 
   return (
     <NativeModal
-      animationType={animationType || "fade"}
-      transparent={transparent || true}
+      animationType={animationType}
+      transparent={transparent}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={onDismiss || onClose}
     >
       <View style={styles.overlay}>
         <View style={[styles.modalContent, getGlowStyles(theme, true)]}>
           {title && (
             <View style={styles.modalTitleContainer}>
-              {" "}
-              {/* Container for title and border */}
               <Title
                 variant="headlineMedium"
                 style={styles.modalTitleText} // Specific style for the Title component's text
@@ -61,7 +58,7 @@ function Modal({
           {/* Fix: Applied 'body' style to the container holding the content */}
           <View style={styles.bodyContainer}>{component}</View>
 
-          {onClose && <Button onPress={onClose}>Chiudi</Button>}
+          {onClose && <Button onPress={onClose}>{closeText}</Button>}
         </View>
       </View>
     </NativeModal>

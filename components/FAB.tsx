@@ -6,11 +6,10 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import Icons, {
-  MaterialCommunityIconsGlyphs,
-} from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 type FABSize = "small" | "regular" | "large" | "extended";
 
@@ -66,7 +65,7 @@ const FAB = ({
       disabled={disabled}
       accessibilityState={{ disabled }}
       onPress={onPress}
-      style={({ hovered, pressed }) => [
+      style={({ hovered, pressed }: PressableState) => [
         styles.fabBase,
         styles[size],
         getSafeStyle(),
@@ -105,8 +104,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: 16,
-    right: 16,
     zIndex: 99,
     elevation: 6,
   },

@@ -1,15 +1,19 @@
 import { useMemo, useState } from "react";
-import { createDrawerNavigator } from "@react-navigation/drawer";
+import {
+  createDrawerNavigator,
+  DrawerNavigationOptions,
+} from "@react-navigation/drawer";
 import { useTheme } from "../../providers/ThemeProvider";
 import { CustomDrawerContent } from "./DrawerContent";
 import { useWindowDimensions, View } from "react-native";
 import AppBar from "../AppBar";
-import Icons from "expo-vector-icons/MaterialCommunityIcons";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import Avatar from "components/Avatar";
 import LanguageSelector from "components/LanguageSelector";
 
 import RouteProp from "./Route";
 import UserProps from "./User";
+import { MaterialCommunityIconsGlyphs } from "../types";
 
 const Drawer = createDrawerNavigator();
 
@@ -32,10 +36,13 @@ const DrawerNavigation = ({
 }: DrawerNavigationProps) => {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
-  const [isPinned, setIsPinned] = useState(width >= 840);
+  // null = follow the responsive default; true/false = user override via pin toggle
+  const [pinOverride, setPinOverride] = useState<boolean | null>(null);
   const [lang, setLang] = useState("it");
 
-  const screenOptions = useMemo(() => {
+  const isPinned = pinOverride ?? width >= 840;
+
+  const screenOptions = useMemo((): DrawerNavigationOptions => {
     return {
       drawerType: isPinned ? "permanent" : "front",
       //headerShown: !isPinned,
@@ -53,6 +60,7 @@ const DrawerNavigation = ({
 
   return (
     <Drawer.Navigator
+      id={undefined}
       initialRouteName={initialRouteName}
       drawerContent={(props) => (
         <CustomDrawerContent
@@ -60,7 +68,7 @@ const DrawerNavigation = ({
           logoutText={logoutText}
           onProfilePress={onProfilePress}
           onLogout={onLogout}
-          onTogglePin={() => setIsPinned(!isPinned)}
+          onTogglePin={() => setPinOverride(!isPinned)}
           isPinned={isPinned}
           {...props}
         />
@@ -72,7 +80,7 @@ const DrawerNavigation = ({
             {...props}
             isPinned={isPinned}
             options={{
-              headerRight: (props) => (
+              headerRight: () => (
                 <View
                   style={{
                     flexDirection: "row",
@@ -80,7 +88,7 @@ const DrawerNavigation = ({
                     paddingRight: 8,
                   }}
                 >
-                  <LanguageSelector currentLang={lang} onSetLang={setLang} />
+                  <LanguageSelector currentLang={lang} onChange={setLang} />
                   {user && (
                     <Avatar
                       name={user.name}
@@ -118,19 +126,24 @@ const DrawerNavigation = ({
           key={route.name}
           name={route.name}
           component={route.component}
-          options={
-            {
-              title: route.name,
-              drawerIcon: ({ focused, color, size }) => (
-                <Icons
-                  name={focused ? route.icon : route.icon + "-outline"}
-                  size={size}
-                  color={color}
-                />
-              ),
-              ...route.options,
-            } || {}
-          }
+          options={{
+            title: route.name,
+            drawerIcon: route.icon
+              ? ({ focused, color, size }) => (
+                  <Icons
+                    name={
+                      (focused
+                        ? route.icon
+                        : route.icon +
+                          "-outline") as MaterialCommunityIconsGlyphs
+                    }
+                    size={size}
+                    color={color}
+                  />
+                )
+              : undefined,
+            ...route.options,
+          }}
         />
       ))}
     </Drawer.Navigator>

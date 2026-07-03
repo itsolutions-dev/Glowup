@@ -7,9 +7,10 @@ interface StatusBarProps {
   backgroundColor?: string;
 }
 
-const StatusBar: StatusBarProps = () => {
+const StatusBar = ({ backgroundColor }: StatusBarProps) => {
   const { theme } = useTheme();
   const isDark = theme.isDark;
+  const barColor = backgroundColor || theme.colors.surface;
 
   useEffect(() => {
     if (Platform.OS === "web") {
@@ -27,22 +28,18 @@ const StatusBar: StatusBarProps = () => {
         document.getElementsByTagName("head")[0].appendChild(metaTag);
       }
 
-      metaTag.setAttribute("content", theme.colors.surface);
+      metaTag.setAttribute("content", barColor);
       document.body.style.backgroundColor = theme.colors.background;
 
       return () => {
         document.body.style.backgroundColor = originalBodyBg;
       };
     }
-  }, [theme.colors.surface, theme.colors.background]);
+  }, [barColor, theme.colors.background]);
 
-  return (
-    <ExpoStatusBar
-      style={isDark ? "light" : "dark"}
-      backgroundColor={theme.colors.surface} // Only works on Android
-      translucent={true}
-    />
-  );
+  // backgroundColor/translucent props were removed in expo-status-bar (SDK 54+):
+  // Android is always edge-to-edge, bar color comes from the app background.
+  return <ExpoStatusBar style={isDark ? "light" : "dark"} />;
 };
 
 export default StatusBar;

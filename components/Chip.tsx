@@ -131,7 +131,7 @@ const Chip = ({
           android_ripple: { color: rippleColor },
         })}
       >
-        {icon && (
+        {!!icon && (
           <Icons
             name={icon}
             size={iconSize}

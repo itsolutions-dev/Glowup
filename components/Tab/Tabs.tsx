@@ -90,7 +90,7 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
             aria-selected={isActive}
             accessibilityLabel={label}
           >
-            {hasIcons && iconName && (
+            {hasIcons && !!iconName && (
               <View style={styles.iconWrapper}>
                 {isActive && (
                   <View

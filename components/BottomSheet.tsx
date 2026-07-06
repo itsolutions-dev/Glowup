@@ -161,7 +161,7 @@ const BottomSheet = ({
             </View>
           )}
 
-          {title && (
+          {!!title && (
             <Typography variant="titleLarge" style={styles.title}>
               {title}
             </Typography>

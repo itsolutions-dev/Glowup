@@ -65,7 +65,7 @@ const ToggleButton = ({
         android_ripple: { color: theme.colors.onPrimary },
       })}
     >
-      {icon && (
+      {!!icon && (
         <Icons
           name={icon}
           size={18}
@@ -76,7 +76,7 @@ const ToggleButton = ({
           }
         />
       )}
-      {label && (
+      {!!label && (
         <Text
           style={[
             theme.typography.labelLarge,

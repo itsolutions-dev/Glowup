@@ -62,7 +62,7 @@ const DateTimePicker = ({
 
   return (
     <View style={styles.wrapper}>
-      {label && (
+      {!!label && (
         <Text
           style={[
             theme.typography.labelMedium,

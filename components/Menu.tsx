@@ -91,7 +91,7 @@ const Menu = ({
                   })}
                 >
                   <View style={styles.itemRow}>
-                    {item.icon && (
+                    {!!item.icon && (
                       <Icons
                         name={item.icon}
                         size={20}

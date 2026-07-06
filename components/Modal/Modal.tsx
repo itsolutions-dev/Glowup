@@ -45,7 +45,7 @@ function Modal({
     >
       <View style={styles.overlay}>
         <View style={[styles.modalContent, getGlowStyles(theme, true)]}>
-          {title && (
+          {!!title && (
             <View style={styles.modalTitleContainer}>
               <Title
                 variant="headlineMedium"

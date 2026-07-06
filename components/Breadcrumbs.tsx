@@ -59,7 +59,7 @@ const Breadcrumbs = ({
             >
               {({ hovered }: PressableState) => (
                 <>
-                  {item.icon && (
+                  {!!item.icon && (
                     <Icons
                       name={item.icon}
                       size={16}

@@ -29,7 +29,7 @@ function ConfirmDialog({
   return (
     <Modal visible={visible} title={title} onDismiss={onCancel}>
       <View style={styles.container}>
-        {message && <Text style={styles.message}>{message}</Text>}
+        {!!message && <Text style={styles.message}>{message}</Text>}
         <View style={styles.buttonRow}>
           <Button onPress={onCancel} mode="text" style={styles.cancelButton}>
             {cancelText}

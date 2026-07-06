@@ -38,7 +38,7 @@ const EmptyState = ({
         {title}
       </Typography>
 
-      {description && (
+      {!!description && (
         <Typography variant="bodyMedium" style={styles.description}>
           {description}
         </Typography>

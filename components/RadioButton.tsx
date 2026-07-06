@@ -132,7 +132,7 @@ export const RadioGroup = ({
     <View
       accessibilityRole={(Platform.OS === "web" ? "radiogroup" : "none") as any}
     >
-      {label && (
+      {!!label && (
         <Text
           style={[
             theme.typography.bodySmall,
@@ -158,7 +158,7 @@ export const RadioGroup = ({
           </View>
         ))}
       </View>
-      {error && (
+      {!!error && (
         <Text
           style={[
             theme.typography.bodySmall,

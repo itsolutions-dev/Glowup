@@ -133,7 +133,7 @@ const Button = ({
           <CircularProgress size={20} strokeWidth={2.5} color={on} />
         ) : (
           <>
-            {iconName && iconPosition === "left" && (
+            {!!iconName && iconPosition === "left" && (
               <Icons
                 name={iconName}
                 size={size || theme.shape.medium}
@@ -143,7 +143,7 @@ const Button = ({
             {children != null && children !== "" && (
               <Text style={[styles.buttonText, { color: on }]}>{children}</Text>
             )}
-            {iconName && iconPosition === "right" && (
+            {!!iconName && iconPosition === "right" && (
               <Icons
                 name={iconName}
                 size={size || theme.shape.medium}

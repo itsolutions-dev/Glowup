@@ -117,7 +117,7 @@ const Snackbar = ({
     >
       <View style={[styles.content, glowStyles]}>
         <View style={styles.messageRow}>
-          {icon && (
+          {!!icon && (
             <Icons
               name={icon as any}
               size={20}

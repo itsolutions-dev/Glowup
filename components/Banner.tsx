@@ -57,7 +57,7 @@ const Banner = ({
       accessibilityLiveRegion="polite"
     >
       <View style={styles.messageRow}>
-        {iconName && (
+        {!!iconName && (
           <Icons
             name={iconName}
             size={24}

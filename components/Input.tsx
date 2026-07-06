@@ -106,7 +106,7 @@ const Input = ({
 
   return (
     <View style={[styles.wrapper, style]}>
-      {label && variant === "outlined" && (
+      {!!label && variant === "outlined" && (
         <Text
           style={[
             theme.typography.bodySmall,
@@ -141,7 +141,7 @@ const Input = ({
         )}
 
         <View style={styles.textInputWrapper}>
-          {label && variant === "filled" && (
+          {!!label && variant === "filled" && (
             <Text
               style={[
                 theme.typography.labelSmall,

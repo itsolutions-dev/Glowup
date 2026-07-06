@@ -210,7 +210,7 @@ const Select = ({
 
   return (
     <View style={[styles.wrapper, style, disabled && { opacity: 0.38 }]}>
-      {label && variant === "outlined" && (
+      {!!label && variant === "outlined" && (
         <Text
           style={[
             theme.typography.bodySmall,
@@ -289,7 +289,7 @@ const Select = ({
                       )}
 
                       <View style={styles.leftSlot}>
-                        {option.icon && (
+                        {!!option.icon && (
                           <Icons
                             name={option.icon}
                             size={20}
@@ -330,7 +330,7 @@ const Select = ({
           </ScrollView>
         </View>
       </Popover>
-      {error && (
+      {!!error && (
         <Text
           style={[
             theme.typography.bodySmall,

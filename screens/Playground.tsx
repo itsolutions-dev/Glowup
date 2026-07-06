@@ -1,6 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { ScrollView, View, StyleSheet, Platform } from "react-native";
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  Animated,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
 
 // Components
@@ -17,7 +25,6 @@ import Card from "../components/Card";
 import Divider from "../components/Divider";
 import Spinner from "../components/Spinner";
 import NumericInput from "../components/NumericInput";
-import AppBar from "../components/AppBar";
 import DataGrid from "../components/DataGrid";
 import { RadioGroup } from "../components/RadioButton";
 import Slider from "../components/Slider";
@@ -33,6 +40,23 @@ import Pagination from "../components/Pagination";
 import Rating from "../components/Rating";
 import EmptyState from "../components/EmptyState";
 import Carousel from "../components/Carousel";
+import Accordion from "../components/Accordion";
+import DateTimePicker from "../components/DateTimePicker";
+import FAB from "../components/FAB";
+import IconBadge from "../components/IconBadge";
+import Paper from "../components/Paper";
+import Stepper from "../components/Stepper";
+import StatusBadge from "../components/StatusBadge";
+import Snackbar from "../components/Snackbar";
+import SpeedDial from "../components/SpeedDial";
+import CircularProgress from "../components/Progress/CircularProgress";
+import LinearProgress from "../components/Progress/LinearProgress";
+import Tabs from "../components/Tab/Tabs";
+import ToggleButtonGroup from "../components/ToggleButton/ToggleButtonGroup";
+import ListItem from "../components/List/ListItem";
+import Modal from "../components/Modal/Modal";
+import ConfirmDialog from "../components/Modal/ConfirmDialog";
+import Popover from "../components/Popover";
 
 // Types for Registry
 type PropType = "text" | "number" | "boolean" | "select" | "node";
@@ -468,12 +492,442 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       },
     },
   },
+  Accordion: {
+    name: "Accordion",
+    Component: Accordion,
+    isContainer: true,
+    props: {
+      title: { type: "text", default: "Accordion Title", label: "Title" },
+      startExpanded: {
+        type: "boolean",
+        default: false,
+        label: "Start Expanded",
+      },
+      children: {
+        type: "text",
+        default: "Hidden content revealed when expanded.",
+        label: "Content",
+      },
+    },
+  },
+  DateTimePicker: {
+    name: "DateTimePicker",
+    Component: DateTimePicker,
+    props: {
+      label: { type: "text", default: "Pick a date", label: "Label" },
+      mode: {
+        type: "select",
+        default: "date",
+        label: "Mode",
+        options: [
+          { label: "Date", value: "date" },
+          { label: "Date & Time", value: "datetime" },
+          { label: "Time", value: "time" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  FAB: {
+    name: "FAB",
+    Component: FAB,
+    props: {
+      icon: { type: "text", default: "plus", label: "Icon" },
+      label: { type: "text", default: "Create", label: "Label (extended)" },
+      size: {
+        type: "select",
+        default: "regular",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Regular", value: "regular" },
+          { label: "Large", value: "large" },
+          { label: "Extended", value: "extended" },
+        ],
+      },
+      position: {
+        type: "select",
+        default: "bottom-right",
+        label: "Position",
+        options: [
+          { label: "Bottom Right", value: "bottom-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Top Left", value: "top-left" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  IconBadge: {
+    name: "IconBadge",
+    Component: IconBadge,
+    props: {
+      iconName: { type: "text", default: "bell-outline", label: "Icon Name" },
+      badgeCount: { type: "number", default: 3, label: "Badge Count" },
+      size: { type: "number", default: 40, label: "Size" },
+      badgeColor: { type: "text", default: "", label: "Badge Color" },
+      color: { type: "text", default: "", label: "Icon Color" },
+    },
+  },
+  NumericInput: {
+    name: "NumericInput",
+    Component: NumericInput,
+    props: {
+      label: { type: "text", default: "Amount", label: "Label" },
+      placeholder: { type: "text", default: "0.00", label: "Placeholder" },
+      value: { type: "text", default: "42", label: "Value" },
+      prefix: { type: "text", default: "$", label: "Prefix" },
+      suffix: { type: "text", default: "", label: "Suffix" },
+      precision: { type: "number", default: 2, label: "Precision" },
+      variant: {
+        type: "select",
+        default: "outlined",
+        label: "Variant",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Toggle: {
+    name: "Toggle",
+    Component: Toggle,
+    props: {
+      value: { type: "boolean", default: true, label: "Value" },
+      width: { type: "number", default: 48, label: "Width" },
+      height: { type: "number", default: 28, label: "Height" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Select: {
+    name: "Select",
+    Component: Select,
+    props: {
+      label: { type: "text", default: "Country", label: "Label" },
+      value: { type: "text", default: "it", label: "Value" },
+      placeholder: { type: "text", default: "Select…", label: "Placeholder" },
+      variant: {
+        type: "select",
+        default: "outlined",
+        label: "Variant",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
+      error: { type: "text", default: "", label: "Error Message" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Divider: {
+    name: "Divider",
+    Component: Divider,
+    isContainer: true,
+    props: {
+      orientation: {
+        type: "select",
+        default: "horizontal",
+        label: "Orientation",
+        options: [
+          { label: "Horizontal", value: "horizontal" },
+          { label: "Vertical", value: "vertical" },
+        ],
+      },
+      thickness: { type: "number", default: 1, label: "Thickness" },
+      inset: { type: "number", default: 0, label: "Inset" },
+      children: { type: "text", default: "OR", label: "Label" },
+    },
+  },
+  Typography: {
+    name: "Typography",
+    Component: Typography,
+    props: {
+      children: {
+        type: "text",
+        default: "The quick brown fox",
+        label: "Text",
+      },
+      variant: {
+        type: "select",
+        default: "bodyLarge",
+        label: "Variant",
+        options: [
+          { label: "Display Large", value: "displayLarge" },
+          { label: "Display Medium", value: "displayMedium" },
+          { label: "Display Small", value: "displaySmall" },
+          { label: "Headline Large", value: "headlineLarge" },
+          { label: "Headline Medium", value: "headlineMedium" },
+          { label: "Headline Small", value: "headlineSmall" },
+          { label: "Title Large", value: "titleLarge" },
+          { label: "Title Medium", value: "titleMedium" },
+          { label: "Title Small", value: "titleSmall" },
+          { label: "Body Large", value: "bodyLarge" },
+          { label: "Body Medium", value: "bodyMedium" },
+          { label: "Body Small", value: "bodySmall" },
+          { label: "Label Large", value: "labelLarge" },
+          { label: "Label Medium", value: "labelMedium" },
+          { label: "Label Small", value: "labelSmall" },
+        ],
+      },
+    },
+  },
+  Paper: {
+    name: "Paper",
+    Component: Paper,
+    isContainer: true,
+    props: {
+      elevation: { type: "number", default: 1, label: "Elevation (0-5)" },
+      outline: { type: "boolean", default: false, label: "Outline" },
+      glow: { type: "boolean", default: false, label: "Glow" },
+      children: {
+        type: "text",
+        default: "Elevated surface content",
+        label: "Content",
+      },
+    },
+  },
+  ListItem: {
+    name: "ListItem",
+    Component: ListItem,
+    props: {
+      children: { type: "text", default: "List item label", label: "Label" },
+    },
+  },
+  Stepper: {
+    name: "Stepper",
+    Component: Stepper,
+    props: {
+      activeStep: { type: "number", default: 1, label: "Active Step" },
+    },
+  },
+  StatusBadge: {
+    name: "StatusBadge",
+    Component: StatusBadge,
+    props: {
+      label: { type: "text", default: "Active", label: "Label" },
+      type: {
+        type: "select",
+        default: "success",
+        label: "Type",
+        options: [
+          { label: "Success", value: "success" },
+          { label: "Error", value: "error" },
+          { label: "Warning", value: "warning" },
+        ],
+      },
+      icon: { type: "text", default: "", label: "Icon Override" },
+    },
+  },
+  Tabs: {
+    name: "Tabs",
+    Component: Tabs,
+    props: {
+      activeTab: { type: "number", default: 0, label: "Active Tab" },
+    },
+  },
+  ToggleButtonGroup: {
+    name: "ToggleButtonGroup",
+    Component: ToggleButtonGroup,
+    props: {
+      value: { type: "text", default: "list", label: "Value" },
+    },
+  },
+  CircularProgress: {
+    name: "CircularProgress",
+    Component: CircularProgress,
+    props: {
+      size: { type: "number", default: 48, label: "Size" },
+      strokeWidth: { type: "number", default: 4, label: "Stroke Width" },
+      duration: { type: "number", default: 1000, label: "Duration (ms)" },
+      color: { type: "text", default: "", label: "Color" },
+    },
+  },
+  LinearProgress: {
+    name: "LinearProgress",
+    Component: LinearProgress,
+    props: {
+      progress: { type: "number", default: 0.6, label: "Progress (0-1)" },
+      indeterminate: {
+        type: "boolean",
+        default: false,
+        label: "Indeterminate",
+      },
+      height: { type: "number", default: 4, label: "Height" },
+      color: { type: "text", default: "", label: "Color" },
+    },
+  },
+  Snackbar: {
+    name: "Snackbar",
+    Component: Snackbar,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      message: {
+        type: "text",
+        default: "Changes saved.",
+        label: "Message",
+      },
+      type: {
+        type: "select",
+        default: "default",
+        label: "Type",
+        options: [
+          { label: "Default", value: "default" },
+          { label: "Success", value: "success" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      duration: { type: "number", default: 4000, label: "Duration (ms)" },
+      icon: { type: "text", default: "", label: "Icon Override" },
+    },
+  },
+  SpeedDial: {
+    name: "SpeedDial",
+    Component: SpeedDial,
+    props: {
+      mainIcon: { type: "text", default: "plus", label: "Main Icon" },
+      position: {
+        type: "select",
+        default: "bottom-right",
+        label: "Position",
+        options: [
+          { label: "Bottom Right", value: "bottom-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Top Left", value: "top-left" },
+        ],
+      },
+    },
+  },
+  Modal: {
+    name: "Modal",
+    Component: Modal,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Dialog Title", label: "Title" },
+      children: {
+        type: "text",
+        default: "This is the modal body content.",
+        label: "Content",
+      },
+      closeText: { type: "text", default: "Close", label: "Close Text" },
+    },
+  },
+  ConfirmDialog: {
+    name: "ConfirmDialog",
+    Component: ConfirmDialog,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Delete item?", label: "Title" },
+      message: {
+        type: "text",
+        default: "This action cannot be undone.",
+        label: "Message",
+      },
+      confirmText: { type: "text", default: "Delete", label: "Confirm Text" },
+      cancelText: { type: "text", default: "Cancel", label: "Cancel Text" },
+    },
+  },
+  Popover: {
+    name: "Popover",
+    Component: Popover,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+    },
+  },
 };
+
+// Grouped catalog for the navigator. Every registry key lives in exactly one group.
+interface Category {
+  label: string;
+  icon: string;
+  items: string[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    label: "Foundations",
+    icon: "cube-outline",
+    items: ["Typography", "Divider", "Paper", "Card"],
+  },
+  {
+    label: "Actions",
+    icon: "cursor-default-click-outline",
+    items: ["Button", "Chip", "FAB", "SpeedDial", "ToggleButtonGroup"],
+  },
+  {
+    label: "Inputs",
+    icon: "form-textbox",
+    items: [
+      "Input",
+      "NumericInput",
+      "Select",
+      "Checkbox",
+      "RadioGroup",
+      "Toggle",
+      "Slider",
+      "Spinner",
+      "SearchBar",
+      "DateTimePicker",
+      "Rating",
+    ],
+  },
+  {
+    label: "Data Display",
+    icon: "view-grid-outline",
+    items: [
+      "Avatar",
+      "Badge",
+      "IconBadge",
+      "StatusBadge",
+      "DataGrid",
+      "ListItem",
+      "Tooltip",
+      "Accordion",
+      "Carousel",
+    ],
+  },
+  {
+    label: "Feedback",
+    icon: "message-alert-outline",
+    items: [
+      "Snackbar",
+      "Banner",
+      "Modal",
+      "ConfirmDialog",
+      "Popover",
+      "BottomSheet",
+      "Menu",
+      "Skeleton",
+      "CircularProgress",
+      "LinearProgress",
+      "EmptyState",
+    ],
+  },
+  {
+    label: "Navigation",
+    icon: "compass-outline",
+    items: ["NavigationBar", "Tabs", "Breadcrumbs", "Pagination", "Stepper"],
+  },
+];
+
+// Flat ordered list + reverse lookup, derived once.
+const FLAT_ORDER: string[] = CATEGORIES.flatMap((c) => c.items);
+const TOTAL_COUNT = FLAT_ORDER.length;
+const CATEGORY_OF: Record<string, string> = {};
+CATEGORIES.forEach((c) => c.items.forEach((i) => (CATEGORY_OF[i] = c.label)));
 
 const Playground = () => {
   const { theme, toggleTheme } = useTheme();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 960;
+  const [query, setQuery] = useState("");
+  const [enterAnim] = useState(() => new Animated.Value(1));
   const [selectedComponentName, setSelectedComponentName] =
     useState<string>("Button");
+  const [dateValue, setDateValue] = useState(() => new Date());
 
   // Dynamically initialize state for the selected component's props
   const [componentProps, setComponentProps] = useState<Record<string, any>>(
@@ -490,6 +944,7 @@ const Playground = () => {
   const activeMeta = ComponentRegistry[selectedComponentName];
 
   const handleComponentChange = (name: any) => {
+    if (name === selectedComponentName) return;
     setSelectedComponentName(name);
     const meta = ComponentRegistry[name];
     const initial: Record<string, any> = {};
@@ -497,6 +952,15 @@ const Playground = () => {
       initial[key] = meta.props[key].default;
     });
     setComponentProps(initial);
+
+    // Re-play the stage entrance on every switch.
+    enterAnim.setValue(0);
+    Animated.spring(enterAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 60,
+      friction: 11,
+    }).start();
   };
 
   const updateProp = (key: string, value: any) => {
@@ -763,6 +1227,210 @@ const Playground = () => {
       );
     }
 
+    if (selectedComponentName === "DateTimePicker") {
+      props.value = dateValue;
+      props.onChange = (d: Date) => setDateValue(d);
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "FAB") {
+      if (!props.label) delete props.label;
+      return (
+        <View style={{ width: "100%", height: 200 }}>
+          <Component {...props} onPress={() => {}} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "IconBadge") {
+      props.badgeCount = Number(props.badgeCount) || 0;
+      props.size = Number(props.size) || 32;
+      if (!props.badgeColor) delete props.badgeColor;
+      if (!props.color) delete props.color;
+      return <Component {...props} onPress={() => {}} />;
+    }
+
+    if (selectedComponentName === "NumericInput") {
+      props.precision = props.precision ? Number(props.precision) : undefined;
+      props.onChangeText = (t: string) => updateProp("value", t);
+      if (!props.prefix) delete props.prefix;
+      if (!props.suffix) delete props.suffix;
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Toggle") {
+      props.width = Number(props.width) || 48;
+      props.height = Number(props.height) || 28;
+      props.onValueChange = (v: boolean) => updateProp("value", v);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "Select") {
+      props.options = [
+        { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
+        { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
+        { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
+        { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
+      ];
+      props.onSelect = (v: any) => updateProp("value", v);
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Stepper") {
+      props.activeStep = Number(props.activeStep) || 0;
+      props.steps = ["Cart", "Shipping", "Payment", "Review"];
+      props.onStepPress = (i: number) => updateProp("activeStep", i);
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "StatusBadge") {
+      if (!props.icon) delete props.icon;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "Tabs") {
+      props.activeTab = Number(props.activeTab) || 0;
+      props.tabs = ["Overview", "Specs", "Reviews"];
+      props.onChange = (i: number) => updateProp("activeTab", i);
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "ToggleButtonGroup") {
+      props.options = [
+        { label: "List", icon: "format-list-bulleted", value: "list" },
+        { label: "Grid", icon: "view-grid-outline", value: "grid" },
+        { label: "Cards", icon: "card-outline", value: "cards" },
+      ];
+      props.onValueChange = (v: any) => updateProp("value", v);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "CircularProgress") {
+      props.size = Number(props.size) || 48;
+      props.strokeWidth = Number(props.strokeWidth) || 4;
+      props.duration = Number(props.duration) || 1000;
+      if (!props.color) delete props.color;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "LinearProgress") {
+      props.progress = Number(props.progress) || 0;
+      props.height = Number(props.height) || 4;
+      if (!props.color) delete props.color;
+      return (
+        <View style={{ width: "100%", maxWidth: 400 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Snackbar") {
+      props.duration = Number(props.duration) || 0;
+      props.onDismiss = () => updateProp("visible", false);
+      props.action = { label: "Undo", onPress: () => {} };
+      if (!props.icon) delete props.icon;
+      return (
+        <View style={{ width: "100%", height: 160 }}>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Show Snackbar
+          </Button>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "SpeedDial") {
+      props.actions = [
+        { id: "1", label: "New Doc", icon: "file-outline", onPress: () => {} },
+        { id: "2", label: "Upload", icon: "upload-outline", onPress: () => {} },
+        { id: "3", label: "Folder", icon: "folder-outline", onPress: () => {} },
+      ];
+      return (
+        <View style={{ width: "100%", height: 260 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Modal") {
+      props.onClose = () => updateProp("visible", false);
+      const { children, ...modalProps } = props;
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Modal
+          </Button>
+          <Component {...modalProps}>{children}</Component>
+        </>
+      );
+    }
+
+    if (selectedComponentName === "ConfirmDialog") {
+      props.onConfirm = () => updateProp("visible", false);
+      props.onCancel = () => updateProp("visible", false);
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Confirm Dialog
+          </Button>
+          <Component {...props} />
+        </>
+      );
+    }
+
+    if (selectedComponentName === "Popover") {
+      props.onDismiss = () => updateProp("visible", false);
+      props.anchor = (
+        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+          Open Popover
+        </Button>
+      );
+      return (
+        <Component {...props}>
+          <View style={{ padding: 16, maxWidth: 240 }}>
+            <Typography variant="bodyMedium">
+              Popover content anchored to the button above.
+            </Typography>
+          </View>
+        </Component>
+      );
+    }
+
+    if (selectedComponentName === "Divider") {
+      props.thickness = Number(props.thickness) || 1;
+      props.inset = Number(props.inset) || 0;
+      const { children, ...dividerProps } = props;
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...dividerProps}>{children}</Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Paper") {
+      props.elevation = Number(props.elevation) || 0;
+    }
+
     if (isContainer) {
       const { children, ...otherProps } = props;
       return (
@@ -779,108 +1447,522 @@ const Playground = () => {
     return <Component {...props} onPress={() => console.log("Pressed")} />;
   };
 
+  // --- Derived navigation state ---
+  const [navCat, setNavCat] = useState<string>("All");
+  const q = query.trim().toLowerCase();
+  const matches = (n: string) => n.toLowerCase().includes(q);
+  const activeCategory = CATEGORY_OF[selectedComponentName];
+  const activeIndex = FLAT_ORDER.indexOf(selectedComponentName) + 1;
+  const propKeys = Object.keys(activeMeta.props);
+  const navPillItems = FLAT_ORDER.filter(matches).filter(
+    (n) => navCat === "All" || CATEGORY_OF[n] === navCat,
+  );
+
+  const stageAnimStyle = {
+    opacity: enterAnim,
+    transform: [
+      {
+        translateY: enterAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [14, 0],
+        }),
+      },
+      {
+        scale: enterAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.985, 1],
+        }),
+      },
+    ],
+  };
+
+  // --- Small render helpers ---
+  const renderNavRow = (name: string) => {
+    const active = name === selectedComponentName;
+    return (
+      <Pressable
+        key={name}
+        accessibilityRole="button"
+        accessibilityState={{ selected: active }}
+        onPress={() => handleComponentChange(name)}
+        style={({ hovered }: any) => [
+          styles.navItem,
+          hovered && { backgroundColor: theme.colors.surfaceContainerHigh },
+          active && { backgroundColor: theme.colors.secondaryContainer },
+        ]}
+      >
+        <View
+          style={[
+            styles.navAccent,
+            {
+              backgroundColor: active ? theme.colors.primary : "transparent",
+            },
+          ]}
+        />
+        <Typography
+          variant="bodyMedium"
+          style={{
+            color: active
+              ? theme.colors.onSecondaryContainer
+              : theme.colors.onSurfaceVariant,
+            fontWeight: active ? "700" : "400",
+          }}
+        >
+          {name}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const renderPill = (name: string) => {
+    const active = name === selectedComponentName;
+    return (
+      <Pressable
+        key={name}
+        onPress={() => handleComponentChange(name)}
+        style={({ hovered }: any) => [
+          styles.pill,
+          {
+            borderColor: active
+              ? theme.colors.primary
+              : theme.colors.outlineVariant,
+            backgroundColor: active
+              ? theme.colors.secondaryContainer
+              : hovered
+                ? theme.colors.surfaceContainerHigh
+                : "transparent",
+          },
+        ]}
+      >
+        <Typography
+          variant="labelLarge"
+          style={{
+            color: active
+              ? theme.colors.onSecondaryContainer
+              : theme.colors.onSurface,
+          }}
+        >
+          {name}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const renderCatChip = (label: string, icon?: string) => {
+    const active = navCat === label;
+    return (
+      <Pressable
+        key={label}
+        onPress={() => setNavCat(label)}
+        style={({ hovered }: any) => [
+          styles.catChip,
+          {
+            backgroundColor: active
+              ? theme.colors.primary
+              : hovered
+                ? theme.colors.surfaceContainerHigh
+                : theme.colors.surfaceContainer,
+          },
+        ]}
+      >
+        {icon && (
+          <Icons
+            name={icon as any}
+            size={14}
+            color={
+              active ? theme.colors.onPrimary : theme.colors.onSurfaceVariant
+            }
+          />
+        )}
+        <Typography
+          variant="labelMedium"
+          style={{
+            color: active
+              ? theme.colors.onPrimary
+              : theme.colors.onSurfaceVariant,
+            marginLeft: icon ? 6 : 0,
+          }}
+        >
+          {label}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const eyebrow = (text: string, color: string) => (
+    <Typography variant="labelSmall" style={[styles.eyebrow, { color }]}>
+      {text}
+    </Typography>
+  );
+
+  const stage = (
+    <View style={styles.stageCol}>
+      <View style={styles.stageHeader}>
+        {eyebrow(
+          `${(activeCategory || "").toUpperCase()} · ${String(activeIndex).padStart(2, "0")} / ${TOTAL_COUNT}`,
+          theme.colors.primary,
+        )}
+        <Typography
+          variant="headlineMedium"
+          style={{ color: theme.colors.onSurface }}
+        >
+          {selectedComponentName}
+        </Typography>
+      </View>
+      <View
+        style={[
+          styles.stage,
+          {
+            backgroundColor: theme.colors.surfaceContainerLow,
+            borderColor: theme.colors.outlineVariant,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.corner,
+            styles.cornerTL,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerTR,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerBL,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerBR,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <Animated.View style={[styles.stageInner, stageAnimStyle]}>
+          {renderPreview()}
+        </Animated.View>
+      </View>
+    </View>
+  );
+
+  const propsPanel = (
+    <>
+      <View
+        style={[
+          styles.propsHeader,
+          { borderBottomColor: theme.colors.outlineVariant },
+        ]}
+      >
+        {eyebrow("PROPERTIES", theme.colors.onSurfaceVariant)}
+        <Typography
+          variant="labelSmall"
+          style={{ color: theme.colors.outline }}
+        >
+          {propKeys.length} {propKeys.length === 1 ? "prop" : "props"}
+        </Typography>
+      </View>
+      {propKeys.length === 0 ? (
+        <Typography
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          No configurable props.
+        </Typography>
+      ) : (
+        propKeys.map((key) => renderPropEditor(key, activeMeta.props[key]))
+      )}
+    </>
+  );
+
+  const header = (
+    <View
+      style={[
+        styles.header,
+        {
+          backgroundColor: theme.colors.surface,
+          borderBottomColor: theme.colors.outlineVariant,
+        },
+      ]}
+    >
+      <View>
+        {eyebrow("MATERIAL YOU", theme.colors.primary)}
+        <Typography
+          variant="titleLarge"
+          style={{ color: theme.colors.onSurface, letterSpacing: 0.5 }}
+        >
+          Component Gallery
+        </Typography>
+      </View>
+      <View style={styles.headerRight}>
+        <View
+          style={[
+            styles.countChip,
+            { borderColor: theme.colors.outlineVariant },
+          ]}
+        >
+          <Typography
+            variant="labelMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            {TOTAL_COUNT} components
+          </Typography>
+        </View>
+        <Pressable
+          onPress={toggleTheme}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle theme"
+          style={({ hovered }: any) => [
+            styles.themeBtn,
+            { backgroundColor: theme.colors.secondaryContainer },
+            hovered && { opacity: 0.85 },
+          ]}
+        >
+          <Icons
+            name={theme.isDark ? "weather-sunny" : "weather-night"}
+            size={20}
+            color={theme.colors.onSecondaryContainer}
+          />
+        </Pressable>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
     >
-      <AppBar
-        navigation={{ openDrawer: () => {}, goBack: () => {} } as any}
-        route={{ name: "Playground" } as any}
-        back={false}
-        options={
-          {
-            headerTitle: "Live Playground",
-            headerRight: () => (
-              <View style={{ marginRight: 8 }}>
-                <Button
-                  onPress={toggleTheme}
-                  mode="tonal"
-                  iconName={theme.isDark ? "brightness-7" : "brightness-4"}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    padding: 0,
-                  }}
-                >
-                  {""}
-                </Button>
-              </View>
-            ),
-          } as any
-        }
-      />
+      {header}
 
-      <View style={styles.container}>
-        {/* Component Selector */}
-        <View style={styles.selectorSection}>
-          <Select
-            label="Select Component"
-            value={selectedComponentName}
-            onSelect={handleComponentChange}
-            options={Object.keys(ComponentRegistry).map((name) => ({
-              id: name,
-              label: name,
-              value: name,
-            }))}
-          />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+      {isWide ? (
+        <View style={styles.wideBody}>
+          {/* Sidebar navigator */}
           <View
-            style={
-              Platform.OS === "web" ? styles.webLayout : styles.mobileLayout
-            }
+            style={[
+              styles.sidebar,
+              {
+                backgroundColor: theme.colors.surface,
+                borderRightColor: theme.colors.outlineVariant,
+              },
+            ]}
           >
-            {/* Prop Editors */}
-            <View style={styles.editorSection}>
-              <Typography variant="titleMedium" style={styles.sectionTitle}>
-                Properties
-              </Typography>
-              <Divider style={styles.divider} />
-              {Object.keys(activeMeta.props).map((key) =>
-                renderPropEditor(key, activeMeta.props[key]),
+            <View style={styles.sidebarHeader}>
+              {eyebrow("CATALOG", theme.colors.onSurfaceVariant)}
+            </View>
+            <View style={styles.searchWrap}>
+              <SearchBar
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Filter components…"
+              />
+            </View>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {CATEGORIES.map((cat) => {
+                const items = cat.items.filter(matches);
+                if (!items.length) return null;
+                return (
+                  <View key={cat.label} style={styles.navGroup}>
+                    <View style={styles.navGroupHeader}>
+                      <Icons
+                        name={cat.icon as any}
+                        size={14}
+                        color={theme.colors.primary}
+                      />
+                      <Typography
+                        variant="labelSmall"
+                        style={[
+                          styles.navGroupLabel,
+                          { color: theme.colors.onSurfaceVariant },
+                        ]}
+                      >
+                        {cat.label.toUpperCase()}
+                      </Typography>
+                      <Typography
+                        variant="labelSmall"
+                        style={{ color: theme.colors.outline }}
+                      >
+                        {items.length}
+                      </Typography>
+                    </View>
+                    {items.map(renderNavRow)}
+                  </View>
+                );
+              })}
+              {navPillItems.length === 0 && (
+                <Typography
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant, padding: 16 }}
+                >
+                  No matches for “{query}”.
+                </Typography>
               )}
-            </View>
-
-            {/* Preview Area */}
-            <View style={styles.previewSection}>
-              <Typography variant="titleMedium" style={styles.sectionTitle}>
-                Preview
-              </Typography>
-              <Divider style={styles.divider} />
-              <View style={styles.previewBox}>{renderPreview()}</View>
-            </View>
+            </ScrollView>
           </View>
+
+          {/* Stage */}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.stageScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            {stage}
+          </ScrollView>
+
+          {/* Properties */}
+          <View
+            style={[
+              styles.propsColWide,
+              { borderLeftColor: theme.colors.outlineVariant },
+            ]}
+          >
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120 }}
+            >
+              {propsPanel}
+            </ScrollView>
+          </View>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.narrowBody}>
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Filter components…"
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.catRow}
+          >
+            {renderCatChip("All")}
+            {CATEGORIES.map((c) => renderCatChip(c.label, c.icon))}
+          </ScrollView>
+          <View style={styles.pillWrap}>{navPillItems.map(renderPill)}</View>
+          {stage}
+          <View style={{ marginTop: 8 }}>{propsPanel}</View>
         </ScrollView>
-      </View>
+      )}
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  container: { flex: 1 },
-  selectorSection: { padding: 16, zIndex: 100 },
-  scrollContent: { padding: 16, paddingBottom: 100 },
-  webLayout: {
+
+  // Header band
+  header: {
     flexDirection: "row",
-    gap: 32,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    zIndex: 10,
   },
-  mobileLayout: {
-    flexDirection: "column",
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+  countChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  editorSection: {
-    flex: 1,
-    minWidth: 300,
-    marginBottom: 24,
+  themeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  previewSection: {
-    flex: 1.5,
-    minWidth: 300,
+
+  eyebrow: {
+    textTransform: "uppercase",
+    letterSpacing: 1.6,
+    fontWeight: "700",
   },
-  sectionTitle: { marginBottom: 8, opacity: 0.7 },
-  divider: { marginBottom: 16 },
+
+  // Wide 3-pane body
+  wideBody: { flex: 1, flexDirection: "row" },
+
+  // Sidebar
+  sidebar: { width: 264, borderRightWidth: 1, paddingTop: 12 },
+  sidebarHeader: { paddingHorizontal: 20, paddingBottom: 8 },
+  searchWrap: { paddingHorizontal: 12 },
+  navGroup: { marginTop: 10, paddingHorizontal: 8 },
+  navGroupHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    marginBottom: 4,
+  },
+  navGroupLabel: { flex: 1, letterSpacing: 1.2, fontWeight: "700" },
+  navItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    marginBottom: 2,
+    overflow: "hidden",
+  },
+  navAccent: { width: 3, height: 16, borderRadius: 2, marginRight: 10 },
+
+  // Stage
+  stageScroll: { flexGrow: 1, padding: 28 },
+  stageCol: { width: "100%", maxWidth: 760, alignSelf: "center" },
+  stageHeader: { marginBottom: 18, gap: 2 },
+  stage: {
+    borderWidth: 1,
+    borderRadius: 20,
+    minHeight: 340,
+    padding: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  stageInner: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  corner: { position: "absolute", width: 14, height: 14, opacity: 0.5 },
+  cornerTL: { top: 12, left: 12, borderTopWidth: 1, borderLeftWidth: 1 },
+  cornerTR: { top: 12, right: 12, borderTopWidth: 1, borderRightWidth: 1 },
+  cornerBL: { bottom: 12, left: 12, borderBottomWidth: 1, borderLeftWidth: 1 },
+  cornerBR: {
+    bottom: 12,
+    right: 12,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+  },
+
+  // Properties
+  propsColWide: {
+    width: 328,
+    borderLeftWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  propsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 18,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+  },
   propInput: { marginBottom: 16 },
   propRow: {
     flexDirection: "row",
@@ -889,15 +1971,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 4,
   },
-  previewBox: {
-    padding: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "rgba(128,128,128,0.3)",
+
+  // Narrow (stacked) body
+  narrowBody: { padding: 16, paddingBottom: 140, gap: 14 },
+  catRow: { gap: 8, paddingVertical: 2, paddingRight: 16 },
+  catChip: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    minHeight: 200,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  pillWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  pill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
 });
 

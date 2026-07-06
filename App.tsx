@@ -65,7 +65,7 @@ const DrawerNavigationWrapper = () => {
   return (
     <DrawerNavigation
       routes={APP_ROUTES}
-      initialRouteName="Start"
+      initialRouteName="Playground"
       logoutText={t("LOGOUT")}
       onLogout={() => console.log("Logout")}
       user={{

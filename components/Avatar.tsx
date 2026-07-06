@@ -21,6 +21,8 @@ interface AvatarProps {
   backgroundColor?: string;
   textColor?: string;
   status?: "online" | "offline" | "busy" | "away" | null;
+  /** Shape: full circle, rounded corners, or square. */
+  variant?: "circular" | "rounded" | "square";
 }
 
 const Avatar = ({
@@ -32,6 +34,7 @@ const Avatar = ({
   backgroundColor,
   textColor,
   status,
+  variant = "circular",
 }: AvatarProps) => {
   const getInitials = (fullName: string | undefined | null) => {
     if (!fullName || typeof fullName !== "string" || fullName.trim() === "")
@@ -61,6 +64,13 @@ const Avatar = ({
   const dotSize = size * 0.25;
   const offset = size * 0.05;
 
+  const borderRadius =
+    variant === "circular"
+      ? size / 2
+      : variant === "rounded"
+        ? theme.shape.medium
+        : 0;
+
   return (
     <View style={{ width: size, height: size }}>
       <Pressable
@@ -73,7 +83,7 @@ const Avatar = ({
           {
             width: size,
             height: size,
-            borderRadius: size / 2,
+            borderRadius,
             backgroundColor: backgroundColor || theme.colors.primaryContainer,
           },
           onPress && (hovered || pressed) && getGlowStyles(theme, true),
@@ -85,7 +95,7 @@ const Avatar = ({
             style={{
               width: size,
               height: size,
-              borderRadius: size / 2,
+              borderRadius,
             }}
           />
         ) : name ? (

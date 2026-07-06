@@ -20,6 +20,8 @@ interface SliderProps {
   step?: number;
   label?: string;
   showValueLabel?: boolean;
+  /** Draw a tick at every step (requires step > 0). */
+  marks?: boolean;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
@@ -36,6 +38,7 @@ const Slider = ({
   step,
   label,
   showValueLabel = false,
+  marks = false,
   disabled,
   style,
 }: SliderProps) => {
@@ -109,6 +112,16 @@ const Slider = ({
   const ratio = max > min ? (clamp(value) - min) / (max - min) : 0;
   const thumbLeft = ratio * trackWidth - THUMB_SIZE / 2;
 
+  const markRatios = useMemo(() => {
+    if (!marks || !step || step <= 0 || max <= min) return [];
+    const count = Math.floor((max - min) / step);
+    if (count > 100) return []; // avoid rendering hundreds of ticks
+    return Array.from(
+      { length: count + 1 },
+      (_, i) => (i * step) / (max - min),
+    );
+  }, [marks, step, min, max]);
+
   return (
     <View style={[styles.wrapper, style, disabled && { opacity: 0.38 }]}>
       {(label || showValueLabel) && (
@@ -153,6 +166,21 @@ const Slider = ({
       >
         <View ref={trackRef} onLayout={onTrackLayout} style={styles.track}>
           <View style={[styles.activeTrack, { width: `${ratio * 100}%` }]} />
+          {markRatios.map((r, i) => (
+            <View
+              key={i}
+              style={[
+                styles.mark,
+                {
+                  left: `${r * 100}%`,
+                  backgroundColor:
+                    r <= ratio
+                      ? theme.colors.onPrimary
+                      : theme.colors.onSurfaceVariant,
+                },
+              ]}
+            />
+          ))}
         </View>
 
         <View
@@ -212,6 +240,14 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       height: TRACK_HEIGHT,
       borderRadius: TRACK_HEIGHT / 2,
       backgroundColor: theme.colors.primary,
+    },
+    mark: {
+      position: "absolute",
+      top: TRACK_HEIGHT / 2 - 1,
+      width: 2,
+      height: 2,
+      borderRadius: 1,
+      marginLeft: -1,
     },
     thumb: {
       position: "absolute",

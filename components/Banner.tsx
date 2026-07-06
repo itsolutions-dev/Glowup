@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Button from "./Button";
-import { MaterialCommunityIconsGlyphs } from "./types";
+import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface BannerAction {
   label: string;
@@ -19,6 +19,9 @@ interface BannerProps {
   /** Up to two actions, rendered right-aligned below the message. */
   actions?: BannerAction[];
   type?: BannerType;
+  /** Show a close (X) button; requires onDismiss. */
+  dismissable?: boolean;
+  onDismiss?: () => void;
 }
 
 const DEFAULT_ICONS: Record<BannerType, MaterialCommunityIconsGlyphs | null> = {
@@ -34,6 +37,8 @@ const Banner = ({
   icon,
   actions,
   type = "default",
+  dismissable,
+  onDismiss,
 }: BannerProps) => {
   const { theme } = useTheme();
   const { styles, iconColor } = useMemo(
@@ -63,6 +68,19 @@ const Banner = ({
         <Text style={[theme.typography.bodyMedium, styles.messageText]}>
           {message}
         </Text>
+        {dismissable && onDismiss && (
+          <Pressable
+            onPress={onDismiss}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss banner"
+            style={({ pressed, hovered }: PressableState) => [
+              styles.closeButton,
+              { opacity: pressed ? 0.7 : hovered ? 0.5 : 1 },
+            ]}
+          >
+            <Icons name="close" size={20} color={iconColor} />
+          </Pressable>
+        )}
       </View>
 
       {actions && actions.length > 0 && (
@@ -135,6 +153,13 @@ const makeStyles = (theme: Theme, type: BannerType) => {
       paddingVertical: 6,
       paddingHorizontal: 12,
       minHeight: 32,
+    },
+    closeButton: {
+      marginLeft: 8,
+      padding: 4,
+      ...Platform.select({
+        web: { cursor: "pointer" },
+      }),
     },
   });
 

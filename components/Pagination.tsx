@@ -11,6 +11,8 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
   /** Pages shown on each side of the current page. */
   siblingCount?: number;
+  /** Show jump-to-first / jump-to-last arrows. */
+  showFirstLast?: boolean;
   disabled?: boolean;
 }
 
@@ -43,6 +45,7 @@ const Pagination = ({
   totalPages,
   onPageChange,
   siblingCount = 1,
+  showFirstLast = false,
   disabled,
 }: PaginationProps) => {
   const { theme } = useTheme();
@@ -53,8 +56,15 @@ const Pagination = ({
     [page, totalPages, siblingCount],
   );
 
+  const ARROW_LABELS = {
+    "chevron-left": "Previous page",
+    "chevron-right": "Next page",
+    "page-first": "First page",
+    "page-last": "Last page",
+  } as const;
+
   const renderArrow = (
-    icon: "chevron-left" | "chevron-right",
+    icon: keyof typeof ARROW_LABELS,
     target: number,
     arrowDisabled: boolean,
   ) => (
@@ -62,9 +72,7 @@ const Pagination = ({
       onPress={() => onPageChange(target)}
       disabled={disabled || arrowDisabled}
       accessibilityRole="button"
-      accessibilityLabel={
-        icon === "chevron-left" ? "Previous page" : "Next page"
-      }
+      accessibilityLabel={ARROW_LABELS[icon]}
       style={[styles.item, (disabled || arrowDisabled) && { opacity: 0.38 }]}
     >
       {({ hovered, pressed }: PressableState) => (
@@ -88,6 +96,7 @@ const Pagination = ({
       style={[styles.container, disabled && { opacity: 0.38 }]}
       accessibilityRole="menubar"
     >
+      {showFirstLast && renderArrow("page-first", 1, page <= 1)}
       {renderArrow("chevron-left", page - 1, page <= 1)}
 
       {range.map((entry, index) => {
@@ -149,6 +158,8 @@ const Pagination = ({
       })}
 
       {renderArrow("chevron-right", page + 1, page >= totalPages)}
+      {showFirstLast &&
+        renderArrow("page-last", totalPages, page >= totalPages)}
     </View>
   );
 };

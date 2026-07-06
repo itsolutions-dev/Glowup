@@ -12,7 +12,7 @@ import { useTheme, Theme } from "../providers/ThemeProvider";
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
-  position?: "top" | "bottom";
+  position?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
   /** Auto-hide delay (ms) after long-press on native. */
   hideDelay?: number;
@@ -65,10 +65,19 @@ const Tooltip = ({
   }, []);
 
   const tipStyle = useMemo(() => {
-    const left = (anchorSize.width - tipSize.width) / 2;
-    return position === "top"
-      ? { left, top: -(tipSize.height + GAP) }
-      : { left, top: anchorSize.height + GAP };
+    const centeredLeft = (anchorSize.width - tipSize.width) / 2;
+    const centeredTop = (anchorSize.height - tipSize.height) / 2;
+    switch (position) {
+      case "bottom":
+        return { left: centeredLeft, top: anchorSize.height + GAP };
+      case "left":
+        return { left: -(tipSize.width + GAP), top: centeredTop };
+      case "right":
+        return { left: anchorSize.width + GAP, top: centeredTop };
+      case "top":
+      default:
+        return { left: centeredLeft, top: -(tipSize.height + GAP) };
+    }
   }, [position, anchorSize, tipSize]);
 
   const webHoverProps =

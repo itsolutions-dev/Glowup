@@ -8,6 +8,8 @@ interface CheckboxProps {
   label?: string;
   labelPosition?: "left" | "right";
   checked: boolean;
+  /** Mixed state (e.g. "select all" with partial selection); overrides the checkmark. */
+  indeterminate?: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
   error?: boolean;
@@ -17,20 +19,23 @@ const Checkbox = ({
   label,
   labelPosition = "right",
   checked,
+  indeterminate,
   onValueChange,
   disabled,
   error,
 }: CheckboxProps) => {
   const { theme } = useTheme();
 
+  const filled = checked || !!indeterminate;
+
   const checkboxColor = useMemo(
     () =>
       error
         ? theme.colors.error
-        : checked
+        : filled
           ? theme.colors.primary
           : theme.colors.onSurfaceVariant,
-    [error, checked, theme.colors],
+    [error, filled, theme.colors],
   );
 
   const labelComponent = useMemo(() => {
@@ -53,7 +58,10 @@ const Checkbox = ({
       onPress={() => onValueChange(!checked)}
       accessibilityLabel={label}
       accessibilityRole="checkbox"
-      accessibilityState={{ checked, disabled }}
+      accessibilityState={{
+        checked: indeterminate ? "mixed" : checked,
+        disabled,
+      }}
       disabled={disabled}
       style={[styles.wrapper, { opacity: disabled ? 0.38 : 1 }]}
     >
@@ -83,15 +91,19 @@ const Checkbox = ({
                 styles.box,
                 {
                   borderColor: checkboxColor,
-                  backgroundColor: checked ? checkboxColor : "transparent",
-                  borderWidth: checked ? 0 : 2,
+                  backgroundColor: filled ? checkboxColor : "transparent",
+                  borderWidth: filled ? 0 : 2,
                 },
                 (hovered || pressed) &&
                   getGlowStyles(theme, true, error ? "error" : undefined),
               ]}
             >
-              {checked && (
-                <Icons name="check" size={14} color={theme.colors.onPrimary} />
+              {filled && (
+                <Icons
+                  name={indeterminate ? "minus" : "check"}
+                  size={14}
+                  color={theme.colors.onPrimary}
+                />
               )}
             </View>
           </View>

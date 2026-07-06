@@ -15,11 +15,14 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from "react-native";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
 interface CarouselProps {
   children: React.ReactNode;
   showDots?: boolean;
+  /** Overlay prev/next arrow buttons. */
+  showArrows?: boolean;
   /** Auto-advance interval in ms; 0 disables auto-play. */
   autoPlayInterval?: number;
   /** Fixed height; otherwise sized by the tallest page. */
@@ -30,6 +33,7 @@ interface CarouselProps {
 const Carousel = ({
   children,
   showDots = true,
+  showArrows = false,
   autoPlayInterval = 0,
   height,
   onIndexChange,
@@ -118,6 +122,39 @@ const Carousel = ({
         ))}
       </ScrollView>
 
+      {showArrows && pages.length > 1 && (
+        <>
+          {activeIndex > 0 && (
+            <Pressable
+              onPress={() => goToIndex(activeIndex - 1)}
+              accessibilityRole="button"
+              accessibilityLabel="Previous slide"
+              style={[styles.arrow, styles.arrowLeft]}
+            >
+              <Icons
+                name="chevron-left"
+                size={24}
+                color={theme.colors.onSurface}
+              />
+            </Pressable>
+          )}
+          {activeIndex < pages.length - 1 && (
+            <Pressable
+              onPress={() => goToIndex(activeIndex + 1)}
+              accessibilityRole="button"
+              accessibilityLabel="Next slide"
+              style={[styles.arrow, styles.arrowRight]}
+            >
+              <Icons
+                name="chevron-right"
+                size={24}
+                color={theme.colors.onSurface}
+              />
+            </Pressable>
+          )}
+        </>
+      )}
+
       {showDots && pages.length > 1 && (
         <View style={styles.dotsRow}>
           {pages.map((_, index) => (
@@ -166,6 +203,28 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       ...Platform.select({
         web: { cursor: "pointer" },
       }),
+    },
+    arrow: {
+      position: "absolute",
+      top: "50%",
+      marginTop: -20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.surfaceContainerHigh,
+      opacity: 0.9,
+      zIndex: 1,
+      ...Platform.select({
+        web: { cursor: "pointer" },
+      }),
+    },
+    arrowLeft: {
+      left: theme.spacing.s,
+    },
+    arrowRight: {
+      right: theme.spacing.s,
     },
     dot: {
       width: 8,

@@ -16,6 +16,8 @@ interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   onSubmit?: (text: string) => void;
+  /** Called after the clear button empties the field. */
+  onClear?: () => void;
   placeholder?: string;
   leadingIcon?: MaterialCommunityIconsGlyphs;
   disabled?: boolean;
@@ -27,6 +29,7 @@ const SearchBar = ({
   value,
   onChangeText,
   onSubmit,
+  onClear,
   placeholder = "Search",
   leadingIcon = "magnify",
   disabled,
@@ -71,7 +74,10 @@ const SearchBar = ({
 
       {value.length > 0 && (
         <Pressable
-          onPress={() => onChangeText("")}
+          onPress={() => {
+            onChangeText("");
+            onClear?.();
+          }}
           accessibilityLabel="Clear search"
           accessibilityRole="button"
           style={styles.clearButton}

@@ -230,6 +230,8 @@ interface DataGridProps {
   sortDirection?: "asc" | "desc";
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
   onColumnReorder?: (newColumns: ColumnDefinition[]) => void;
+  /** Shown centered when data is empty and not loading. */
+  emptyMessage?: string;
   style?: ViewStyle;
   rowStyle?: ViewStyle;
   headerStyle?: ViewStyle;
@@ -246,6 +248,7 @@ const DataGrid = ({
   sortDirection,
   onSort,
   onColumnReorder,
+  emptyMessage,
   style,
   rowStyle,
   headerStyle,
@@ -366,6 +369,20 @@ const DataGrid = ({
             onEndReached={onEndReached}
             onEndReachedThreshold={onEndReachedThreshold}
             ListFooterComponent={renderFooter}
+            ListEmptyComponent={
+              !loading && emptyMessage ? (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={[
+                      theme.typography.bodyMedium,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    {emptyMessage}
+                  </Text>
+                </View>
+              ) : null
+            }
             contentContainerStyle={styles.listContent}
           />
         </View>
@@ -387,6 +404,10 @@ const styles = StyleSheet.create({
   },
   tfoot: {
     paddingVertical: 16,
+    alignItems: "center",
+  },
+  emptyContainer: {
+    paddingVertical: 24,
     alignItems: "center",
   },
   tr: {

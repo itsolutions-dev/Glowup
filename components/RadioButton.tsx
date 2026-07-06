@@ -103,6 +103,8 @@ export interface RadioOption {
   id: string;
   label: string;
   value: any;
+  /** Disables only this option. */
+  disabled?: boolean;
 }
 
 interface RadioGroupProps {
@@ -150,7 +152,7 @@ export const RadioGroup = ({
               label={option.label}
               selected={value === option.value}
               onPress={() => onValueChange(option.value)}
-              disabled={disabled}
+              disabled={disabled || option.disabled}
               error={!!error}
             />
           </View>

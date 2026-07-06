@@ -65,9 +65,20 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
           { label: "Filled", value: "filled" },
           { label: "Tonal", value: "tonal" },
           { label: "Outlined", value: "outlined" },
+          { label: "Text", value: "text" },
         ],
       },
       iconName: { type: "text", default: "plus", label: "Icon Name" },
+      iconPosition: {
+        type: "select",
+        default: "left",
+        label: "Icon Position",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      fullWidth: { type: "boolean", default: false, label: "Full Width" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
       loading: { type: "boolean", default: false, label: "Loading" },
     },
@@ -84,6 +95,8 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       },
       value: { type: "text", default: "", label: "Value" },
       error: { type: "text", default: "", label: "Error Message" },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -103,6 +116,16 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
           { label: "Outlined", value: "outlined" },
         ],
       },
+      size: {
+        type: "select",
+        default: "medium",
+        label: "Size",
+        options: [
+          { label: "Medium", value: "medium" },
+          { label: "Small", value: "small" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   Avatar: {
@@ -124,6 +147,16 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         ],
       },
       icon: { type: "text", default: "", label: "Icon Override" },
+      variant: {
+        type: "select",
+        default: "circular",
+        label: "Variant",
+        options: [
+          { label: "Circular", value: "circular" },
+          { label: "Rounded", value: "rounded" },
+          { label: "Square", value: "square" },
+        ],
+      },
     },
   },
   Badge: {
@@ -131,9 +164,17 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
     Component: Badge,
     props: {
       count: { type: "number", default: 5, label: "Count" },
-      maxCount: { type: "number", default: 99, label: "Max Count" },
+      max: { type: "number", default: 99, label: "Max" },
       showZero: { type: "boolean", default: false, label: "Show Zero" },
-      dot: { type: "boolean", default: false, label: "Dot Mode" },
+      size: {
+        type: "select",
+        default: "large",
+        label: "Size",
+        options: [
+          { label: "Large", value: "large" },
+          { label: "Small (dot)", value: "small" },
+        ],
+      },
     },
   },
   Card: {
@@ -182,6 +223,36 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         ],
       },
       loading: { type: "boolean", default: false, label: "Loading" },
+      empty: { type: "boolean", default: false, label: "Empty Data" },
+      emptyMessage: {
+        type: "text",
+        default: "No rows to display",
+        label: "Empty Message",
+      },
+    },
+  },
+  Checkbox: {
+    name: "Checkbox",
+    Component: Checkbox,
+    props: {
+      label: { type: "text", default: "Accept terms", label: "Label" },
+      checked: { type: "boolean", default: false, label: "Checked" },
+      indeterminate: {
+        type: "boolean",
+        default: false,
+        label: "Indeterminate",
+      },
+      labelPosition: {
+        type: "select",
+        default: "right",
+        label: "Label Position",
+        options: [
+          { label: "Right", value: "right" },
+          { label: "Left", value: "left" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "boolean", default: false, label: "Error" },
     },
   },
   RadioGroup: {
@@ -217,6 +288,7 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         default: true,
         label: "Show Value",
       },
+      marks: { type: "boolean", default: false, label: "Marks" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -236,6 +308,8 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         options: [
           { label: "Top", value: "top" },
           { label: "Bottom", value: "bottom" },
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
         ],
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -300,6 +374,7 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       width: { type: "number", default: 200, label: "Width" },
       height: { type: "number", default: 48, label: "Height" },
       duration: { type: "number", default: 1200, label: "Duration (ms)" },
+      animate: { type: "boolean", default: true, label: "Animate" },
     },
   },
   SearchBar: {
@@ -332,6 +407,7 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
           { label: "Error", value: "error" },
         ],
       },
+      dismissable: { type: "boolean", default: false, label: "Dismissable" },
     },
   },
   Breadcrumbs: {
@@ -348,6 +424,11 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       page: { type: "number", default: 1, label: "Page" },
       totalPages: { type: "number", default: 12, label: "Total Pages" },
       siblingCount: { type: "number", default: 1, label: "Sibling Count" },
+      showFirstLast: {
+        type: "boolean",
+        default: false,
+        label: "First/Last Arrows",
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -379,6 +460,7 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
     Component: Carousel,
     props: {
       showDots: { type: "boolean", default: true, label: "Show Dots" },
+      showArrows: { type: "boolean", default: false, label: "Show Arrows" },
       autoPlayInterval: {
         type: "number",
         default: 0,
@@ -492,14 +574,24 @@ const Playground = () => {
 
     // Special handling for some components
     if (selectedComponentName === "DataGrid") {
-      props.data = gridData;
+      props.data = props.empty ? [] : gridData;
       props.columns = gridCols;
+      delete props.empty;
+    }
+
+    if (selectedComponentName === "Badge") {
+      props.count = Number(props.count) || 0;
+      props.max = Number(props.max) || 99;
+    }
+
+    if (selectedComponentName === "Checkbox") {
+      props.onValueChange = (v: boolean) => updateProp("checked", v);
     }
 
     if (selectedComponentName === "RadioGroup") {
       props.options = [
         { id: "a", label: "Option A", value: "a" },
-        { id: "b", label: "Option B", value: "b" },
+        { id: "b", label: "Option B (disabled)", value: "b", disabled: true },
         { id: "c", label: "Option C", value: "c" },
       ];
       props.onValueChange = (v: any) => updateProp("value", v);
@@ -606,6 +698,7 @@ const Playground = () => {
         { label: "Dismiss", onPress: () => updateProp("visible", false) },
         { label: "Renew", onPress: () => {} },
       ];
+      props.onDismiss = () => updateProp("visible", false);
     }
 
     if (selectedComponentName === "Breadcrumbs") {

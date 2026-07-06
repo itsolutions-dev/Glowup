@@ -18,6 +18,8 @@ interface SkeletonProps {
   style?: StyleProp<ViewStyle>;
   /** Pulse animation duration for a full cycle (ms). */
   duration?: number;
+  /** false renders a static placeholder (no pulse). */
+  animate?: boolean;
 }
 
 const Skeleton = ({
@@ -27,6 +29,7 @@ const Skeleton = ({
   borderRadius,
   style,
   duration = 1200,
+  animate = true,
 }: SkeletonProps) => {
   const { theme } = useTheme();
   // useState lazy init instead of useAnimatedValue: react-native-web
@@ -34,6 +37,10 @@ const Skeleton = ({
   const [opacity] = useState(() => new Animated.Value(0.4));
 
   useEffect(() => {
+    if (!animate) {
+      opacity.setValue(0.6);
+      return;
+    }
     const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
@@ -50,7 +57,7 @@ const Skeleton = ({
     );
     animation.start();
     return () => animation.stop();
-  }, [opacity, duration]);
+  }, [opacity, duration, animate]);
 
   const variantStyle = useMemo<ViewStyle>(() => {
     switch (variant) {

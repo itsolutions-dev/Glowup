@@ -18,6 +18,8 @@ interface ChipProps {
   disabled?: boolean;
   selected?: boolean;
   mode?: "filled" | "tonal" | "outlined";
+  /** "small" renders a compact 24px chip. */
+  size?: "small" | "medium";
   style?: object;
 }
 
@@ -29,6 +31,7 @@ const Chip = ({
   selected = false,
   disabled = false,
   mode = "filled",
+  size = "medium",
   style = {},
 }: ChipProps) => {
   const { theme } = useTheme();
@@ -96,12 +99,15 @@ const Chip = ({
           borderColor: border || theme.colors.outlineVariant,
         };
 
+  const iconSize = size === "small" ? theme.shape.medium : theme.shape.large;
+
   return (
     // Plain container: keeps the close icon a SIBLING of the body press target
     // instead of a descendant, so react-native-web never nests <button> in <button>.
     <View
       style={[
         styles.container,
+        size === "small" && styles.containerSmall,
         style,
         {
           backgroundColor: currentBg,
@@ -128,18 +134,24 @@ const Chip = ({
         {icon && (
           <Icons
             name={icon}
-            size={theme.shape.large}
+            size={iconSize}
             color={on}
             style={[styles.icon, disabled && styles.disabledText]}
           />
         )}
-        <Text style={[styles.label, disabled && styles.disabledText]}>
+        <Text
+          style={[
+            styles.label,
+            size === "small" && styles.labelSmall,
+            disabled && styles.disabledText,
+          ]}
+        >
           {label}
         </Text>
         {selected && (
           <Icons
             name="check"
-            size={theme.shape.large}
+            size={iconSize}
             color={on}
             style={[styles.checkIcon, disabled && styles.disabledText]}
           />
@@ -158,7 +170,7 @@ const Chip = ({
         >
           <Icons
             name="close"
-            size={theme.shape.large}
+            size={iconSize}
             color={on}
             style={[styles.closeIcon, disabled && styles.disabledText]}
           />
@@ -190,6 +202,10 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
         web: { transition: "all 200ms ease-in-out" },
       }),
     },
+    containerSmall: {
+      height: 24,
+      paddingHorizontal: theme.spacing.s,
+    },
     content: {
       flexDirection: "row",
       alignItems: "center",
@@ -197,6 +213,9 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     label: {
       ...theme.typography.labelLarge,
       color: theme.colors.primary,
+    },
+    labelSmall: {
+      ...theme.typography.labelMedium,
     },
     icon: {
       marginRight: theme.spacing.s,

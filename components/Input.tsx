@@ -24,9 +24,15 @@ interface InputProps {
   onChangeText: (text: string) => void;
   variant?: "outlined" | "filled";
   error?: string;
+  /** Supporting text below the field; hidden while an error is shown. */
+  helperText?: string;
+  /** Marks the label with an asterisk. */
+  required?: boolean;
   disabled?: boolean;
   readonly?: boolean;
   secureTextEntry?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
   leadingIcon?: MaterialCommunityIconsGlyphs;
   trailingIcon?: MaterialCommunityIconsGlyphs;
   onTrailingIconPress?: () => void;
@@ -48,9 +54,13 @@ const Input = ({
   onChangeText,
   variant = "outlined",
   error,
+  helperText,
+  required,
   disabled,
   readonly,
   secureTextEntry,
+  onFocus,
+  onBlur,
   leadingIcon,
   trailingIcon,
   onTrailingIconPress,
@@ -107,7 +117,7 @@ const Input = ({
             },
           ]}
         >
-          {label}
+          {required ? `${label} *` : label}
         </Text>
       )}
 
@@ -142,7 +152,7 @@ const Input = ({
                 },
               ]}
             >
-              {label}
+              {required ? `${label} *` : label}
             </Text>
           )}
 
@@ -168,8 +178,14 @@ const Input = ({
             placeholderTextColor={theme.colors.onSurfaceVariant}
             value={value}
             onChangeText={handleTextChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onFocus={() => {
+              setIsFocused(true);
+              onFocus?.();
+            }}
+            onBlur={() => {
+              setIsFocused(false);
+              onBlur?.();
+            }}
             editable={!disabled}
             secureTextEntry={secureTextEntry}
             keyboardType={type === "number" ? "decimal-pad" : "default"}
@@ -210,6 +226,21 @@ const Input = ({
           ]}
         >
           {error}
+        </Text>
+      )}
+
+      {!error && !!helperText && (
+        <Text
+          style={[
+            theme.typography.bodySmall,
+            {
+              color: theme.colors.onSurfaceVariant,
+              marginTop: 4,
+              marginLeft: 16,
+            },
+          ]}
+        >
+          {helperText}
         </Text>
       )}
     </View>

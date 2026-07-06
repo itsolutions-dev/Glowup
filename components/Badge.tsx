@@ -7,6 +7,10 @@ interface BadgeProps {
   count?: number;
   size?: "small" | "large";
   visible?: boolean;
+  /** Cap shown as "max+" when count exceeds it. */
+  max?: number;
+  /** Render the badge even when count is 0 (hidden by default). */
+  showZero?: boolean;
   style?: any;
 }
 
@@ -14,18 +18,21 @@ const Badge = ({
   count,
   size = "large",
   visible = true,
+  max = 99,
+  showZero = false,
   style,
 }: BadgeProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   if (!visible) return null;
+  if (count === 0 && !showZero) return null;
 
   // Determine if it's a small dot or a label badge
   const isDot = size === "small" || count === undefined;
 
   // Format count (e.g., 102 becomes 99+)
-  const displayCount = count !== undefined && count > 99 ? "99+" : count;
+  const displayCount = count !== undefined && count > max ? `${max}+` : count;
 
   return (
     <View style={[styles.badge, isDot ? styles.dot : styles.large, style]}>

@@ -20,6 +20,10 @@ interface ButtonProps {
   iconStyle?: object;
   disabled?: boolean;
   loading?: boolean;
+  /** Stretch to fill the parent width. */
+  fullWidth?: boolean;
+  /** Icon side relative to the label. */
+  iconPosition?: "left" | "right";
   accessibilityLabel?: string;
   children?: React.ReactNode;
 }
@@ -33,6 +37,8 @@ const Button = ({
   style = {},
   iconStyle = {},
   loading = false,
+  fullWidth = false,
+  iconPosition = "left",
   accessibilityLabel,
   children,
 }: ButtonProps) => {
@@ -113,6 +119,7 @@ const Button = ({
             ...glow,
             opacity: disabled ? 0.38 : 1,
           },
+          fullWidth && styles.fullWidth,
           style,
         ];
       }}
@@ -126,7 +133,7 @@ const Button = ({
           <CircularProgress size={20} strokeWidth={2.5} color={on} />
         ) : (
           <>
-            {iconName && (
+            {iconName && iconPosition === "left" && (
               <Icons
                 name={iconName}
                 size={size || theme.shape.medium}
@@ -135,6 +142,13 @@ const Button = ({
             )}
             {children != null && children !== "" && (
               <Text style={[styles.buttonText, { color: on }]}>{children}</Text>
+            )}
+            {iconName && iconPosition === "right" && (
+              <Icons
+                name={iconName}
+                size={size || theme.shape.medium}
+                style={[styles.icon, { color: on }, iconStyle]}
+              />
             )}
           </>
         )}
@@ -173,6 +187,10 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+    },
+    fullWidth: {
+      alignSelf: "stretch",
+      width: "auto",
     },
     icon: {},
   });

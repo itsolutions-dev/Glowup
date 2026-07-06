@@ -19,6 +19,20 @@ import Spinner from "../components/Spinner";
 import NumericInput from "../components/NumericInput";
 import AppBar from "../components/AppBar";
 import DataGrid from "../components/DataGrid";
+import { RadioGroup } from "../components/RadioButton";
+import Slider from "../components/Slider";
+import Tooltip from "../components/Tooltip";
+import Menu from "../components/Menu";
+import BottomSheet from "../components/BottomSheet";
+import NavigationBar from "../components/NavigationBar";
+import Skeleton from "../components/Skeleton";
+import SearchBar from "../components/SearchBar";
+import Banner from "../components/Banner";
+import Breadcrumbs from "../components/Breadcrumbs";
+import Pagination from "../components/Pagination";
+import Rating from "../components/Rating";
+import EmptyState from "../components/EmptyState";
+import Carousel from "../components/Carousel";
 
 // Types for Registry
 type PropType = "text" | "number" | "boolean" | "select" | "node";
@@ -170,6 +184,208 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       loading: { type: "boolean", default: false, label: "Loading" },
     },
   },
+  RadioGroup: {
+    name: "RadioGroup",
+    Component: RadioGroup,
+    props: {
+      label: { type: "text", default: "Choose one", label: "Label" },
+      value: { type: "text", default: "a", label: "Value" },
+      direction: {
+        type: "select",
+        default: "column",
+        label: "Direction",
+        options: [
+          { label: "Column", value: "column" },
+          { label: "Row", value: "row" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "text", default: "", label: "Error Message" },
+    },
+  },
+  Slider: {
+    name: "Slider",
+    Component: Slider,
+    props: {
+      value: { type: "number", default: 40, label: "Value" },
+      min: { type: "number", default: 0, label: "Min" },
+      max: { type: "number", default: 100, label: "Max" },
+      step: { type: "number", default: 0, label: "Step (0 = off)" },
+      label: { type: "text", default: "Volume", label: "Label" },
+      showValueLabel: {
+        type: "boolean",
+        default: true,
+        label: "Show Value",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Tooltip: {
+    name: "Tooltip",
+    Component: Tooltip,
+    props: {
+      content: {
+        type: "text",
+        default: "Helpful hint",
+        label: "Content",
+      },
+      position: {
+        type: "select",
+        default: "top",
+        label: "Position",
+        options: [
+          { label: "Top", value: "top" },
+          { label: "Bottom", value: "bottom" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Menu: {
+    name: "Menu",
+    Component: Menu,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      closeOnSelect: {
+        type: "boolean",
+        default: true,
+        label: "Close On Select",
+      },
+    },
+  },
+  BottomSheet: {
+    name: "BottomSheet",
+    Component: BottomSheet,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Sheet Title", label: "Title" },
+      showHandle: { type: "boolean", default: true, label: "Show Handle" },
+      dismissOnScrimTap: {
+        type: "boolean",
+        default: true,
+        label: "Dismiss On Scrim Tap",
+      },
+    },
+  },
+  NavigationBar: {
+    name: "NavigationBar",
+    Component: NavigationBar,
+    props: {
+      activeId: { type: "text", default: "home", label: "Active Id" },
+      showLabels: {
+        type: "select",
+        default: "always",
+        label: "Show Labels",
+        options: [
+          { label: "Always", value: "always" },
+          { label: "Selected", value: "selected" },
+        ],
+      },
+    },
+  },
+  Skeleton: {
+    name: "Skeleton",
+    Component: Skeleton,
+    props: {
+      variant: {
+        type: "select",
+        default: "rect",
+        label: "Variant",
+        options: [
+          { label: "Rect", value: "rect" },
+          { label: "Circle", value: "circle" },
+          { label: "Text", value: "text" },
+        ],
+      },
+      width: { type: "number", default: 200, label: "Width" },
+      height: { type: "number", default: 48, label: "Height" },
+      duration: { type: "number", default: 1200, label: "Duration (ms)" },
+    },
+  },
+  SearchBar: {
+    name: "SearchBar",
+    Component: SearchBar,
+    props: {
+      value: { type: "text", default: "", label: "Value" },
+      placeholder: { type: "text", default: "Search", label: "Placeholder" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Banner: {
+    name: "Banner",
+    Component: Banner,
+    props: {
+      visible: { type: "boolean", default: true, label: "Visible" },
+      message: {
+        type: "text",
+        default: "Your subscription is about to expire.",
+        label: "Message",
+      },
+      type: {
+        type: "select",
+        default: "default",
+        label: "Type",
+        options: [
+          { label: "Default", value: "default" },
+          { label: "Info", value: "info" },
+          { label: "Warning", value: "warning" },
+          { label: "Error", value: "error" },
+        ],
+      },
+    },
+  },
+  Breadcrumbs: {
+    name: "Breadcrumbs",
+    Component: Breadcrumbs,
+    props: {
+      maxItems: { type: "number", default: 0, label: "Max Items (0 = all)" },
+    },
+  },
+  Pagination: {
+    name: "Pagination",
+    Component: Pagination,
+    props: {
+      page: { type: "number", default: 1, label: "Page" },
+      totalPages: { type: "number", default: 12, label: "Total Pages" },
+      siblingCount: { type: "number", default: 1, label: "Sibling Count" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Rating: {
+    name: "Rating",
+    Component: Rating,
+    props: {
+      value: { type: "number", default: 3.5, label: "Value" },
+      max: { type: "number", default: 5, label: "Max" },
+      size: { type: "number", default: 24, label: "Size" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  EmptyState: {
+    name: "EmptyState",
+    Component: EmptyState,
+    props: {
+      icon: { type: "text", default: "inbox-outline", label: "Icon" },
+      title: { type: "text", default: "No items yet", label: "Title" },
+      description: {
+        type: "text",
+        default: "Items you add will show up here.",
+        label: "Description",
+      },
+    },
+  },
+  Carousel: {
+    name: "Carousel",
+    Component: Carousel,
+    props: {
+      showDots: { type: "boolean", default: true, label: "Show Dots" },
+      autoPlayInterval: {
+        type: "number",
+        default: 0,
+        label: "Auto-play (ms, 0 = off)",
+      },
+    },
+  },
 };
 
 const Playground = () => {
@@ -278,6 +494,180 @@ const Playground = () => {
     if (selectedComponentName === "DataGrid") {
       props.data = gridData;
       props.columns = gridCols;
+    }
+
+    if (selectedComponentName === "RadioGroup") {
+      props.options = [
+        { id: "a", label: "Option A", value: "a" },
+        { id: "b", label: "Option B", value: "b" },
+        { id: "c", label: "Option C", value: "c" },
+      ];
+      props.onValueChange = (v: any) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "Slider") {
+      props.value = Number(props.value) || 0;
+      props.min = Number(props.min) || 0;
+      props.max = Number(props.max) || 100;
+      props.step = Number(props.step) || undefined;
+      props.onValueChange = (v: number) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "Tooltip") {
+      return (
+        <Component {...props}>
+          <Button mode="tonal" onPress={() => {}}>
+            Hover / long-press me
+          </Button>
+        </Component>
+      );
+    }
+
+    if (selectedComponentName === "Menu") {
+      props.items = [
+        { id: "1", label: "Edit", icon: "pencil-outline", onPress: () => {} },
+        {
+          id: "2",
+          label: "Duplicate",
+          icon: "content-copy",
+          trailing: "Ctrl+D",
+          onPress: () => {},
+        },
+        {
+          id: "3",
+          label: "Delete",
+          icon: "delete-outline",
+          destructive: true,
+          dividerAbove: true,
+          onPress: () => {},
+        },
+      ];
+      props.onDismiss = () => updateProp("visible", false);
+      props.anchor = (
+        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+          Open Menu
+        </Button>
+      );
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "BottomSheet") {
+      props.onDismiss = () => updateProp("visible", false);
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Bottom Sheet
+          </Button>
+          <Component {...props}>
+            <Typography variant="bodyMedium">
+              Bottom sheet content goes here. Drag the handle down or tap the
+              scrim to dismiss.
+            </Typography>
+          </Component>
+        </>
+      );
+    }
+
+    if (selectedComponentName === "NavigationBar") {
+      props.items = [
+        { id: "home", label: "Home", icon: "home-outline", badgeCount: 0 },
+        {
+          id: "search",
+          label: "Search",
+          icon: "magnify",
+        },
+        {
+          id: "inbox",
+          label: "Inbox",
+          icon: "email-outline",
+          badgeCount: 3,
+        },
+        {
+          id: "profile",
+          label: "Profile",
+          icon: "account-outline",
+        },
+      ];
+      props.onItemPress = (id: string) => updateProp("activeId", id);
+    }
+
+    if (selectedComponentName === "Skeleton") {
+      props.width = Number(props.width) || 200;
+      props.height = Number(props.height) || 48;
+      props.duration = Number(props.duration) || 1200;
+    }
+
+    if (selectedComponentName === "SearchBar") {
+      props.onChangeText = (t: string) => updateProp("value", t);
+    }
+
+    if (selectedComponentName === "Banner") {
+      props.actions = [
+        { label: "Dismiss", onPress: () => updateProp("visible", false) },
+        { label: "Renew", onPress: () => {} },
+      ];
+    }
+
+    if (selectedComponentName === "Breadcrumbs") {
+      const maxItems = Number(props.maxItems) || 0;
+      props.maxItems = maxItems > 0 ? maxItems : undefined;
+      props.items = [
+        { id: "1", label: "Home", icon: "home-outline", onPress: () => {} },
+        { id: "2", label: "Projects", onPress: () => {} },
+        { id: "3", label: "Glowup", onPress: () => {} },
+        { id: "4", label: "Components", onPress: () => {} },
+        { id: "5", label: "Breadcrumbs" },
+      ];
+    }
+
+    if (selectedComponentName === "Pagination") {
+      props.page = Number(props.page) || 1;
+      props.totalPages = Number(props.totalPages) || 1;
+      props.siblingCount = Number(props.siblingCount) || 1;
+      props.onPageChange = (p: number) => updateProp("page", p);
+    }
+
+    if (selectedComponentName === "Rating") {
+      props.value = Number(props.value) || 0;
+      props.max = Number(props.max) || 5;
+      props.size = Number(props.size) || 24;
+      props.onChange = (v: number) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "EmptyState") {
+      props.action = {
+        label: "Add item",
+        iconName: "plus",
+        onPress: () => {},
+      };
+    }
+
+    if (selectedComponentName === "Carousel") {
+      props.autoPlayInterval = Number(props.autoPlayInterval) || 0;
+      return (
+        <View style={{ width: "100%", maxWidth: 480 }}>
+          <Component {...props}>
+            {[
+              "primaryContainer",
+              "secondaryContainer",
+              "tertiaryContainer",
+            ].map((colorKey, i) => (
+              <View
+                key={colorKey}
+                style={{
+                  height: 160,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: (theme.colors as any)[colorKey],
+                }}
+              >
+                <Typography variant="titleMedium">{`Slide ${i + 1}`}</Typography>
+              </View>
+            ))}
+          </Component>
+        </View>
+      );
     }
 
     if (isContainer) {

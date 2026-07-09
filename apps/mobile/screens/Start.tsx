@@ -1,35 +1,9 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, View, ScrollView } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
-import Title from "components/Typography";
-import Button from "components/Button";
-import FAB from "components/FAB";
-import SpeedDial, { SpeedDialAction } from "components/SpeedDial";
-import { Alert } from "providers/AlertProvider";
-import Spinner from "components/Spinner";
-import ToggleButton from "components/ToggleButton/ToggleButton";
-import Input from "components/Input";
-import Divider from "components/Divider";
-import Chip from "components/Chip";
-import NumericInput from "components/NumericInput";
-import Checkbox from "components/Checkbox";
+import { useTheme, Theme, Typography as Title, Button, FAB, SpeedDial, SpeedDialAction, Alert, Spinner, ToggleButton, Input, Divider, Chip, NumericInput, Checkbox, Card, Paper, LinearProgress, CircularProgress, Accordion, Tabs, TabContent, Toggle, Badge, StatusBadge, IconBadge, Avatar, Modal, ConfirmDialog } from "@glowup/ui";
 //import ToggleButtonGroup from "components/ToggleButton/ToggleButtonGroup";
 
-import Card from "components/Card";
-import Paper from "components/Paper";
-import LinearProgress from "components/Progress/LinearProgress";
-import CircularProgress from "components/Progress/CircularProgress";
-import Accordion from "components/Accordion";
-import Tabs from "components/Tab/Tabs";
-import TabContent from "components/Tab/TabContent";
-import Toggle from "components/Toggle";
-import Badge from "components/Badge";
-import StatusBadge from "components/StatusBadge";
-import IconBadge from "components/IconBadge";
-import Avatar from "components/Avatar";
 import { useTranslation } from "react-i18next";
-import Modal from "components/Modal/Modal";
-import ConfirmDialog from "components/Modal/ConfirmDialog";
 
 /* 
 

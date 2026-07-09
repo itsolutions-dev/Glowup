@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { useTheme } from "providers/ThemeProvider";
+import { useTheme } from "../../providers/ThemeProvider";
 
 interface LinearProgressProps {
   progress?: number;

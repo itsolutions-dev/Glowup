@@ -2,11 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, Theme } from "../providers/ThemeProvider";
-import Input from "../components/Input";
-import Button from "../components/Button";
-import Typography from "../components/Typography";
-import Divider from "../components/Divider";
+import { useTheme, Theme, Input, Button, Typography, Divider } from "@glowup/ui";
 
 interface ChangePasswordScreenProps {
   onPasswordChanged?: () => void;

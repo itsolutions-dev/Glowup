@@ -8,8 +8,8 @@ import { CustomDrawerContent } from "./DrawerContent";
 import { useWindowDimensions, View } from "react-native";
 import AppBar from "../AppBar";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import Avatar from "components/Avatar";
-import LanguageSelector from "components/LanguageSelector";
+import Avatar from "../Avatar";
+import LanguageSelector from "../LanguageSelector";
 
 import RouteProp from "./Route";
 import UserProps from "./User";

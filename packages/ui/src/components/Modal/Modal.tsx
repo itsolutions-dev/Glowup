@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { Modal as NativeModal, StyleSheet, Text, View } from "react-native";
-import { useTheme, Theme, getGlowStyles } from "providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 
 import Button from "../Button";
-import Title from "components/Typography";
+import Title from "../Typography";
 
 interface ModalProps {
   children: React.ReactNode | string;

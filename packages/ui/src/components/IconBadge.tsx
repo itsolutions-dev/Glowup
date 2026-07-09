@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet, Text } from "react-native";
 
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme } from "../providers/ThemeProvider";
 import Button from "./Button";
 import { MaterialCommunityIconsGlyphs } from "./types";
 

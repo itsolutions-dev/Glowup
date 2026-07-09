@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Text, StyleSheet, StyleProp, TextStyle } from "react-native";
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme } from "../providers/ThemeProvider";
 
 interface TypographyProps {
   children: React.ReactNode;

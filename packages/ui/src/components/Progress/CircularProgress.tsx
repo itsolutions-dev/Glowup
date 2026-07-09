@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { useTheme } from "providers/ThemeProvider";
+import { useTheme } from "../../providers/ThemeProvider";
 
 interface CircularProgressProps {
   size?: number;

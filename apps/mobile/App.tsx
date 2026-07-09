@@ -1,11 +1,8 @@
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { AlertProviderWrapper, AlertProvider } from "providers/AlertProvider";
-import { ThemeProvider } from "providers/ThemeProvider";
+import { AlertProviderWrapper, AlertProvider, ThemeProvider, DrawerNavigation, StatusBar } from "@glowup/ui";
 import { NavigationContainer } from "@react-navigation/native";
-import DrawerNavigation from "components/Navigation/DrawerNavigation";
 
 import { useTranslation } from "react-i18next";
-import StatusBar from "components/StatusBar";
 /* 
 import { WorkOrderProvider } from "./store/workorder-context";
 import "./i18n";

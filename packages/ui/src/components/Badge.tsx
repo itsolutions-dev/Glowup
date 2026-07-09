@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-import { useTheme, Theme } from "providers/ThemeProvider";
+import { useTheme, Theme } from "../providers/ThemeProvider";
 
 interface BadgeProps {
   count?: number;

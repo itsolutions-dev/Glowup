@@ -12,7 +12,7 @@ import { useTheme, Theme } from "../../providers/ThemeProvider";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import DrawerPreferenceItem from "./DrawerPreferenceItem";
 import Toggle from "../Toggle";
-import Typography from "components/Typography";
+import Typography from "../Typography";
 
 interface CustomDrawerContentProps extends DrawerContentComponentProps {
   isPinned: boolean;

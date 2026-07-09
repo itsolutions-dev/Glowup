@@ -1,5 +1,33 @@
 # Plan: Publish the Glowup component library to npm
 
+## Execution status (updated during implementation)
+
+Phases 1–6 of §8 have been executed on this branch:
+
+- ✅ **Monorepo scaffolded** — npm workspaces (`apps/mobile`, `packages/ui`); app moved to
+  `apps/mobile`, library to `packages/ui/src` (internal `components/` + `providers/` structure
+  preserved to minimise import churn).
+- ✅ **Components migrated** — all components + `ThemeProvider`/`theme.json` + `AlertProvider`
+  now in `packages/ui`; `AuthProvider`/`useWebAuthn`/screens/i18n stay app-side; obsolete
+  `common/themes.ts` and unused `react-native-paper` removed.
+- ✅ **Imports fixed** — library root-relative imports rewritten to relative; app now imports
+  named exports from `@glowup/ui`; single `src/index.ts` barrel added. Both workspaces
+  `tsc --noEmit` clean.
+- ✅ **Build tooling** — `react-native-builder-bob` produces CJS + ESM + `.d.ts`; native deps
+  are (mostly optional) `peerDependencies`, `date-fns`/`polished` are `dependencies`.
+  `npm pack --dry-run` verified.
+- ✅ **i18n** — no work needed: `LanguageSelector` was already prop-driven and the library has
+  zero `react-i18next`/`useTranslation` usage (only a self-contained device-locale default in
+  `DateTimePicker`).
+- ✅ **CI + versioning** — Changesets + `.github/workflows/{ci,release}.yml` added.
+
+**Still required before an actual publish (see §9):**
+- Reserve the `@glowup` npm scope (or rename) and add an `NPM_TOKEN` repo secret.
+- Line endings: the repo enforces CRLF via ESLint but the checked-in files are LF (no
+  `.gitattributes`), so `npm run lint` reports repo-wide line-ending errors. Lint is wired
+  into CI as **informational** (`continue-on-error`) until a separate normalisation pass
+  (add `.gitattributes`, reformat) lands. Type-check, tests, and build are all green.
+
 ## 0. Current state (audit)
 
 - This repo is a single Expo app. `components/` (~40 components + 6 sub-folders),

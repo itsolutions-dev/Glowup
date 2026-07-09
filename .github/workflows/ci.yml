@@ -15,12 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No committed lockfile in this repo (package-lock.json is gitignored), so npm
+      # caching by lockfile hash is unavailable and we use `npm install` (not `npm ci`).
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      # No committed lockfile in this repo, so use `npm install` (not `npm ci`).
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 

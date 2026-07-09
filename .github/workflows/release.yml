@@ -18,10 +18,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # package-lock.json is gitignored in this repo, so npm caching is unavailable.
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies

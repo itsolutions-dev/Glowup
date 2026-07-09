@@ -1,5 +1,5 @@
 {
-  "name": "@glowup/mobile",
+  "name": "@glowup/playground",
   "version": "1.0.0",
   "private": true,
   "main": "index.ts",

@@ -87,6 +87,7 @@ const InternalApp = () => {
         <NavigationContainer>
           <Stack.Navigator
             id="MainStack"
+            initialRouteName="AppDrawer"
             screenOptions={{ headerShown: false }}
           >
             <Stack.Screen name="Auth" component={AuthScreen} />

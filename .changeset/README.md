@@ -2,7 +2,7 @@
 
 This folder is managed by [Changesets](https://github.com/changesets/changesets) — it
 drives versioning and changelog generation for the publishable packages in this monorepo
-(currently `@glowup/ui`; the private `@glowup/mobile` app is ignored).
+(currently `@glowup/ui`; the private `@glowup/playground` app is ignored).
 
 ## Adding a changeset
 

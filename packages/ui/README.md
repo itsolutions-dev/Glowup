@@ -61,8 +61,8 @@ theme-reactive components.
 
 ## Live demo
 
-The `apps/mobile` example app in this monorepo (`screens/Playground.tsx`) exercises every
-component — run `npm start` from that workspace to browse them.
+The `apps/playground` example app in this monorepo (`screens/Playground.tsx`) exercises every
+component — run `npm start` from the repo root to browse them.
 
 ## License
 

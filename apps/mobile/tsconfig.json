@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "types": ["jest"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@glowup/ui": ["../../packages/ui/src/index.ts"],
+      "*": ["./*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

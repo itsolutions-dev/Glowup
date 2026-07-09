@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # package-lock.json is gitignored in this repo, so npm caching is unavailable.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build library
+        run: npm run build
+
+      # Opens/updates a "Version Packages" PR from pending changesets; when that PR is
+      # merged, `npm run release` (changeset publish) publishes @glowup/ui to npm.
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: npx changeset version
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

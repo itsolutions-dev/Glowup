@@ -1,0 +1,1949 @@
+import React, { useState, useMemo } from "react";
+import {
+  ScrollView,
+  View,
+  StyleSheet,
+  Animated,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme, Typography, Button, Input, Select, Checkbox, Toggle, Chip, Badge, Avatar, Card, Divider, Spinner, NumericInput, DataGrid, RadioGroup, Slider, Tooltip, Menu, BottomSheet, NavigationBar, Skeleton, SearchBar, Banner, Breadcrumbs, Pagination, Rating, EmptyState, Carousel, Accordion, DateTimePicker, FAB, IconBadge, Paper, Stepper, StatusBadge, Snackbar, SpeedDial, CircularProgress, LinearProgress, Tabs, ToggleButtonGroup, ListItem, Modal, ConfirmDialog, Popover } from "@glowup/ui";
+
+// Components
+
+// Types for Registry
+type PropType = "text" | "number" | "boolean" | "select" | "node";
+
+interface PropDefinition {
+  type: PropType;
+  default: any;
+  options?: { label: string; value: any }[];
+  label: string;
+}
+
+interface ComponentMetadata {
+  name: string;
+  Component: any;
+  props: Record<string, PropDefinition>;
+  isContainer?: boolean;
+}
+
+const ComponentRegistry: Record<string, ComponentMetadata> = {
+  Button: {
+    name: "Button",
+    Component: Button,
+    props: {
+      children: { type: "text", default: "Click Me", label: "Label" },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Text", value: "text" },
+        ],
+      },
+      iconName: { type: "text", default: "plus", label: "Icon Name" },
+      iconPosition: {
+        type: "select",
+        default: "left",
+        label: "Icon Position",
+        options: [
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      fullWidth: { type: "boolean", default: false, label: "Full Width" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      loading: { type: "boolean", default: false, label: "Loading" },
+    },
+  },
+  Input: {
+    name: "Input",
+    Component: Input,
+    props: {
+      label: { type: "text", default: "User Name", label: "Label" },
+      placeholder: {
+        type: "text",
+        default: "Enter name...",
+        label: "Placeholder",
+      },
+      value: { type: "text", default: "", label: "Value" },
+      error: { type: "text", default: "", label: "Error Message" },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      required: { type: "boolean", default: false, label: "Required" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Chip: {
+    name: "Chip",
+    Component: Chip,
+    props: {
+      label: { type: "text", default: "React Native", label: "Label" },
+      selected: { type: "boolean", default: false, label: "Selected" },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      size: {
+        type: "select",
+        default: "medium",
+        label: "Size",
+        options: [
+          { label: "Medium", value: "medium" },
+          { label: "Small", value: "small" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Avatar: {
+    name: "Avatar",
+    Component: Avatar,
+    props: {
+      name: { type: "text", default: "Glowup User", label: "Name" },
+      size: { type: "number", default: 48, label: "Size" },
+      status: {
+        type: "select",
+        default: undefined,
+        label: "Status",
+        options: [
+          { label: "None", value: undefined },
+          { label: "Online", value: "online" },
+          { label: "Offline", value: "offline" },
+          { label: "Busy", value: "busy" },
+          { label: "Away", value: "away" },
+        ],
+      },
+      icon: { type: "text", default: "", label: "Icon Override" },
+      variant: {
+        type: "select",
+        default: "circular",
+        label: "Variant",
+        options: [
+          { label: "Circular", value: "circular" },
+          { label: "Rounded", value: "rounded" },
+          { label: "Square", value: "square" },
+        ],
+      },
+    },
+  },
+  Badge: {
+    name: "Badge",
+    Component: Badge,
+    props: {
+      count: { type: "number", default: 5, label: "Count" },
+      max: { type: "number", default: 99, label: "Max" },
+      showZero: { type: "boolean", default: false, label: "Show Zero" },
+      size: {
+        type: "select",
+        default: "large",
+        label: "Size",
+        options: [
+          { label: "Large", value: "large" },
+          { label: "Small (dot)", value: "small" },
+        ],
+      },
+    },
+  },
+  Card: {
+    name: "Card",
+    Component: Card,
+    isContainer: true,
+    props: {
+      variant: {
+        type: "select",
+        default: "filled",
+        label: "Variant",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Glow", value: "glow" },
+        ],
+      },
+      children: {
+        type: "text",
+        default: "This is a card content",
+        label: "Content",
+      },
+    },
+  },
+  Spinner: {
+    name: "Spinner",
+    Component: Spinner,
+    props: {
+      label: { type: "text", default: "Loading...", label: "Label" },
+      value: { type: "number", default: 10, label: "Value" },
+      min: { type: "number", default: 0, label: "Min" },
+      max: { type: "number", default: 100, label: "Max" },
+    },
+  },
+  DataGrid: {
+    name: "DataGrid",
+    Component: DataGrid,
+    props: {
+      density: {
+        type: "select",
+        default: "normal",
+        label: "Density",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "Dense", value: "dense" },
+        ],
+      },
+      loading: { type: "boolean", default: false, label: "Loading" },
+      empty: { type: "boolean", default: false, label: "Empty Data" },
+      emptyMessage: {
+        type: "text",
+        default: "No rows to display",
+        label: "Empty Message",
+      },
+    },
+  },
+  Checkbox: {
+    name: "Checkbox",
+    Component: Checkbox,
+    props: {
+      label: { type: "text", default: "Accept terms", label: "Label" },
+      checked: { type: "boolean", default: false, label: "Checked" },
+      indeterminate: {
+        type: "boolean",
+        default: false,
+        label: "Indeterminate",
+      },
+      labelPosition: {
+        type: "select",
+        default: "right",
+        label: "Label Position",
+        options: [
+          { label: "Right", value: "right" },
+          { label: "Left", value: "left" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "boolean", default: false, label: "Error" },
+    },
+  },
+  RadioGroup: {
+    name: "RadioGroup",
+    Component: RadioGroup,
+    props: {
+      label: { type: "text", default: "Choose one", label: "Label" },
+      value: { type: "text", default: "a", label: "Value" },
+      direction: {
+        type: "select",
+        default: "column",
+        label: "Direction",
+        options: [
+          { label: "Column", value: "column" },
+          { label: "Row", value: "row" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "text", default: "", label: "Error Message" },
+    },
+  },
+  Slider: {
+    name: "Slider",
+    Component: Slider,
+    props: {
+      value: { type: "number", default: 40, label: "Value" },
+      min: { type: "number", default: 0, label: "Min" },
+      max: { type: "number", default: 100, label: "Max" },
+      step: { type: "number", default: 0, label: "Step (0 = off)" },
+      label: { type: "text", default: "Volume", label: "Label" },
+      showValueLabel: {
+        type: "boolean",
+        default: true,
+        label: "Show Value",
+      },
+      marks: { type: "boolean", default: false, label: "Marks" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Tooltip: {
+    name: "Tooltip",
+    Component: Tooltip,
+    props: {
+      content: {
+        type: "text",
+        default: "Helpful hint",
+        label: "Content",
+      },
+      position: {
+        type: "select",
+        default: "top",
+        label: "Position",
+        options: [
+          { label: "Top", value: "top" },
+          { label: "Bottom", value: "bottom" },
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Menu: {
+    name: "Menu",
+    Component: Menu,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      closeOnSelect: {
+        type: "boolean",
+        default: true,
+        label: "Close On Select",
+      },
+    },
+  },
+  BottomSheet: {
+    name: "BottomSheet",
+    Component: BottomSheet,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Sheet Title", label: "Title" },
+      showHandle: { type: "boolean", default: true, label: "Show Handle" },
+      dismissOnScrimTap: {
+        type: "boolean",
+        default: true,
+        label: "Dismiss On Scrim Tap",
+      },
+    },
+  },
+  NavigationBar: {
+    name: "NavigationBar",
+    Component: NavigationBar,
+    props: {
+      activeId: { type: "text", default: "home", label: "Active Id" },
+      showLabels: {
+        type: "select",
+        default: "always",
+        label: "Show Labels",
+        options: [
+          { label: "Always", value: "always" },
+          { label: "Selected", value: "selected" },
+        ],
+      },
+    },
+  },
+  Skeleton: {
+    name: "Skeleton",
+    Component: Skeleton,
+    props: {
+      variant: {
+        type: "select",
+        default: "rect",
+        label: "Variant",
+        options: [
+          { label: "Rect", value: "rect" },
+          { label: "Circle", value: "circle" },
+          { label: "Text", value: "text" },
+        ],
+      },
+      width: { type: "number", default: 200, label: "Width" },
+      height: { type: "number", default: 48, label: "Height" },
+      duration: { type: "number", default: 1200, label: "Duration (ms)" },
+      animate: { type: "boolean", default: true, label: "Animate" },
+    },
+  },
+  SearchBar: {
+    name: "SearchBar",
+    Component: SearchBar,
+    props: {
+      value: { type: "text", default: "", label: "Value" },
+      placeholder: { type: "text", default: "Search", label: "Placeholder" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Banner: {
+    name: "Banner",
+    Component: Banner,
+    props: {
+      visible: { type: "boolean", default: true, label: "Visible" },
+      message: {
+        type: "text",
+        default: "Your subscription is about to expire.",
+        label: "Message",
+      },
+      type: {
+        type: "select",
+        default: "default",
+        label: "Type",
+        options: [
+          { label: "Default", value: "default" },
+          { label: "Info", value: "info" },
+          { label: "Warning", value: "warning" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      dismissable: { type: "boolean", default: false, label: "Dismissable" },
+    },
+  },
+  Breadcrumbs: {
+    name: "Breadcrumbs",
+    Component: Breadcrumbs,
+    props: {
+      maxItems: { type: "number", default: 0, label: "Max Items (0 = all)" },
+    },
+  },
+  Pagination: {
+    name: "Pagination",
+    Component: Pagination,
+    props: {
+      page: { type: "number", default: 1, label: "Page" },
+      totalPages: { type: "number", default: 12, label: "Total Pages" },
+      siblingCount: { type: "number", default: 1, label: "Sibling Count" },
+      showFirstLast: {
+        type: "boolean",
+        default: false,
+        label: "First/Last Arrows",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Rating: {
+    name: "Rating",
+    Component: Rating,
+    props: {
+      value: { type: "number", default: 3.5, label: "Value" },
+      max: { type: "number", default: 5, label: "Max" },
+      size: { type: "number", default: 24, label: "Size" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  EmptyState: {
+    name: "EmptyState",
+    Component: EmptyState,
+    props: {
+      icon: { type: "text", default: "inbox-outline", label: "Icon" },
+      title: { type: "text", default: "No items yet", label: "Title" },
+      description: {
+        type: "text",
+        default: "Items you add will show up here.",
+        label: "Description",
+      },
+    },
+  },
+  Carousel: {
+    name: "Carousel",
+    Component: Carousel,
+    props: {
+      showDots: { type: "boolean", default: true, label: "Show Dots" },
+      showArrows: { type: "boolean", default: false, label: "Show Arrows" },
+      autoPlayInterval: {
+        type: "number",
+        default: 0,
+        label: "Auto-play (ms, 0 = off)",
+      },
+    },
+  },
+  Accordion: {
+    name: "Accordion",
+    Component: Accordion,
+    isContainer: true,
+    props: {
+      title: { type: "text", default: "Accordion Title", label: "Title" },
+      startExpanded: {
+        type: "boolean",
+        default: false,
+        label: "Start Expanded",
+      },
+      children: {
+        type: "text",
+        default: "Hidden content revealed when expanded.",
+        label: "Content",
+      },
+    },
+  },
+  DateTimePicker: {
+    name: "DateTimePicker",
+    Component: DateTimePicker,
+    props: {
+      label: { type: "text", default: "Pick a date", label: "Label" },
+      mode: {
+        type: "select",
+        default: "date",
+        label: "Mode",
+        options: [
+          { label: "Date", value: "date" },
+          { label: "Date & Time", value: "datetime" },
+          { label: "Time", value: "time" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  FAB: {
+    name: "FAB",
+    Component: FAB,
+    props: {
+      icon: { type: "text", default: "plus", label: "Icon" },
+      label: { type: "text", default: "Create", label: "Label (extended)" },
+      size: {
+        type: "select",
+        default: "regular",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Regular", value: "regular" },
+          { label: "Large", value: "large" },
+          { label: "Extended", value: "extended" },
+        ],
+      },
+      position: {
+        type: "select",
+        default: "bottom-right",
+        label: "Position",
+        options: [
+          { label: "Bottom Right", value: "bottom-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Top Left", value: "top-left" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  IconBadge: {
+    name: "IconBadge",
+    Component: IconBadge,
+    props: {
+      iconName: { type: "text", default: "bell-outline", label: "Icon Name" },
+      badgeCount: { type: "number", default: 3, label: "Badge Count" },
+      size: { type: "number", default: 40, label: "Size" },
+      badgeColor: { type: "text", default: "", label: "Badge Color" },
+      color: { type: "text", default: "", label: "Icon Color" },
+    },
+  },
+  NumericInput: {
+    name: "NumericInput",
+    Component: NumericInput,
+    props: {
+      label: { type: "text", default: "Amount", label: "Label" },
+      placeholder: { type: "text", default: "0.00", label: "Placeholder" },
+      value: { type: "text", default: "42", label: "Value" },
+      prefix: { type: "text", default: "$", label: "Prefix" },
+      suffix: { type: "text", default: "", label: "Suffix" },
+      precision: { type: "number", default: 2, label: "Precision" },
+      variant: {
+        type: "select",
+        default: "outlined",
+        label: "Variant",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Toggle: {
+    name: "Toggle",
+    Component: Toggle,
+    props: {
+      value: { type: "boolean", default: true, label: "Value" },
+      width: { type: "number", default: 48, label: "Width" },
+      height: { type: "number", default: 28, label: "Height" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Select: {
+    name: "Select",
+    Component: Select,
+    props: {
+      label: { type: "text", default: "Country", label: "Label" },
+      value: { type: "text", default: "it", label: "Value" },
+      placeholder: { type: "text", default: "Select…", label: "Placeholder" },
+      variant: {
+        type: "select",
+        default: "outlined",
+        label: "Variant",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
+      error: { type: "text", default: "", label: "Error Message" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Divider: {
+    name: "Divider",
+    Component: Divider,
+    isContainer: true,
+    props: {
+      orientation: {
+        type: "select",
+        default: "horizontal",
+        label: "Orientation",
+        options: [
+          { label: "Horizontal", value: "horizontal" },
+          { label: "Vertical", value: "vertical" },
+        ],
+      },
+      thickness: { type: "number", default: 1, label: "Thickness" },
+      inset: { type: "number", default: 0, label: "Inset" },
+      children: { type: "text", default: "OR", label: "Label" },
+    },
+  },
+  Typography: {
+    name: "Typography",
+    Component: Typography,
+    props: {
+      children: {
+        type: "text",
+        default: "The quick brown fox",
+        label: "Text",
+      },
+      variant: {
+        type: "select",
+        default: "bodyLarge",
+        label: "Variant",
+        options: [
+          { label: "Display Large", value: "displayLarge" },
+          { label: "Display Medium", value: "displayMedium" },
+          { label: "Display Small", value: "displaySmall" },
+          { label: "Headline Large", value: "headlineLarge" },
+          { label: "Headline Medium", value: "headlineMedium" },
+          { label: "Headline Small", value: "headlineSmall" },
+          { label: "Title Large", value: "titleLarge" },
+          { label: "Title Medium", value: "titleMedium" },
+          { label: "Title Small", value: "titleSmall" },
+          { label: "Body Large", value: "bodyLarge" },
+          { label: "Body Medium", value: "bodyMedium" },
+          { label: "Body Small", value: "bodySmall" },
+          { label: "Label Large", value: "labelLarge" },
+          { label: "Label Medium", value: "labelMedium" },
+          { label: "Label Small", value: "labelSmall" },
+        ],
+      },
+    },
+  },
+  Paper: {
+    name: "Paper",
+    Component: Paper,
+    isContainer: true,
+    props: {
+      elevation: { type: "number", default: 1, label: "Elevation (0-5)" },
+      outline: { type: "boolean", default: false, label: "Outline" },
+      glow: { type: "boolean", default: false, label: "Glow" },
+      children: {
+        type: "text",
+        default: "Elevated surface content",
+        label: "Content",
+      },
+    },
+  },
+  ListItem: {
+    name: "ListItem",
+    Component: ListItem,
+    props: {
+      children: { type: "text", default: "List item label", label: "Label" },
+    },
+  },
+  Stepper: {
+    name: "Stepper",
+    Component: Stepper,
+    props: {
+      activeStep: { type: "number", default: 1, label: "Active Step" },
+    },
+  },
+  StatusBadge: {
+    name: "StatusBadge",
+    Component: StatusBadge,
+    props: {
+      label: { type: "text", default: "Active", label: "Label" },
+      type: {
+        type: "select",
+        default: "success",
+        label: "Type",
+        options: [
+          { label: "Success", value: "success" },
+          { label: "Error", value: "error" },
+          { label: "Warning", value: "warning" },
+        ],
+      },
+      icon: { type: "text", default: "", label: "Icon Override" },
+    },
+  },
+  Tabs: {
+    name: "Tabs",
+    Component: Tabs,
+    props: {
+      activeTab: { type: "number", default: 0, label: "Active Tab" },
+    },
+  },
+  ToggleButtonGroup: {
+    name: "ToggleButtonGroup",
+    Component: ToggleButtonGroup,
+    props: {
+      value: { type: "text", default: "list", label: "Value" },
+    },
+  },
+  CircularProgress: {
+    name: "CircularProgress",
+    Component: CircularProgress,
+    props: {
+      size: { type: "number", default: 48, label: "Size" },
+      strokeWidth: { type: "number", default: 4, label: "Stroke Width" },
+      duration: { type: "number", default: 1000, label: "Duration (ms)" },
+      color: { type: "text", default: "", label: "Color" },
+    },
+  },
+  LinearProgress: {
+    name: "LinearProgress",
+    Component: LinearProgress,
+    props: {
+      progress: { type: "number", default: 0.6, label: "Progress (0-1)" },
+      indeterminate: {
+        type: "boolean",
+        default: false,
+        label: "Indeterminate",
+      },
+      height: { type: "number", default: 4, label: "Height" },
+      color: { type: "text", default: "", label: "Color" },
+    },
+  },
+  Snackbar: {
+    name: "Snackbar",
+    Component: Snackbar,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      message: {
+        type: "text",
+        default: "Changes saved.",
+        label: "Message",
+      },
+      type: {
+        type: "select",
+        default: "default",
+        label: "Type",
+        options: [
+          { label: "Default", value: "default" },
+          { label: "Success", value: "success" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      duration: { type: "number", default: 4000, label: "Duration (ms)" },
+      icon: { type: "text", default: "", label: "Icon Override" },
+    },
+  },
+  SpeedDial: {
+    name: "SpeedDial",
+    Component: SpeedDial,
+    props: {
+      mainIcon: { type: "text", default: "plus", label: "Main Icon" },
+      position: {
+        type: "select",
+        default: "bottom-right",
+        label: "Position",
+        options: [
+          { label: "Bottom Right", value: "bottom-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Top Left", value: "top-left" },
+        ],
+      },
+    },
+  },
+  Modal: {
+    name: "Modal",
+    Component: Modal,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Dialog Title", label: "Title" },
+      children: {
+        type: "text",
+        default: "This is the modal body content.",
+        label: "Content",
+      },
+      closeText: { type: "text", default: "Close", label: "Close Text" },
+    },
+  },
+  ConfirmDialog: {
+    name: "ConfirmDialog",
+    Component: ConfirmDialog,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+      title: { type: "text", default: "Delete item?", label: "Title" },
+      message: {
+        type: "text",
+        default: "This action cannot be undone.",
+        label: "Message",
+      },
+      confirmText: { type: "text", default: "Delete", label: "Confirm Text" },
+      cancelText: { type: "text", default: "Cancel", label: "Cancel Text" },
+    },
+  },
+  Popover: {
+    name: "Popover",
+    Component: Popover,
+    props: {
+      visible: { type: "boolean", default: false, label: "Visible" },
+    },
+  },
+};
+
+// Grouped catalog for the navigator. Every registry key lives in exactly one group.
+interface Category {
+  label: string;
+  icon: string;
+  items: string[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    label: "Foundations",
+    icon: "cube-outline",
+    items: ["Typography", "Divider", "Paper", "Card"],
+  },
+  {
+    label: "Actions",
+    icon: "cursor-default-click-outline",
+    items: ["Button", "Chip", "FAB", "SpeedDial", "ToggleButtonGroup"],
+  },
+  {
+    label: "Inputs",
+    icon: "form-textbox",
+    items: [
+      "Input",
+      "NumericInput",
+      "Select",
+      "Checkbox",
+      "RadioGroup",
+      "Toggle",
+      "Slider",
+      "Spinner",
+      "SearchBar",
+      "DateTimePicker",
+      "Rating",
+    ],
+  },
+  {
+    label: "Data Display",
+    icon: "view-grid-outline",
+    items: [
+      "Avatar",
+      "Badge",
+      "IconBadge",
+      "StatusBadge",
+      "DataGrid",
+      "ListItem",
+      "Tooltip",
+      "Accordion",
+      "Carousel",
+    ],
+  },
+  {
+    label: "Feedback",
+    icon: "message-alert-outline",
+    items: [
+      "Snackbar",
+      "Banner",
+      "Modal",
+      "ConfirmDialog",
+      "Popover",
+      "BottomSheet",
+      "Menu",
+      "Skeleton",
+      "CircularProgress",
+      "LinearProgress",
+      "EmptyState",
+    ],
+  },
+  {
+    label: "Navigation",
+    icon: "compass-outline",
+    items: ["NavigationBar", "Tabs", "Breadcrumbs", "Pagination", "Stepper"],
+  },
+];
+
+// Flat ordered list + reverse lookup, derived once.
+const FLAT_ORDER: string[] = CATEGORIES.flatMap((c) => c.items);
+const TOTAL_COUNT = FLAT_ORDER.length;
+const CATEGORY_OF: Record<string, string> = {};
+CATEGORIES.forEach((c) => c.items.forEach((i) => (CATEGORY_OF[i] = c.label)));
+
+const Playground = () => {
+  const { theme, toggleTheme } = useTheme();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 960;
+  const [query, setQuery] = useState("");
+  const [enterAnim] = useState(() => new Animated.Value(1));
+  const [selectedComponentName, setSelectedComponentName] =
+    useState<string>("Button");
+  const [dateValue, setDateValue] = useState(() => new Date());
+
+  // Dynamically initialize state for the selected component's props
+  const [componentProps, setComponentProps] = useState<Record<string, any>>(
+    () => {
+      const meta = ComponentRegistry["Button"];
+      const initial: Record<string, any> = {};
+      Object.keys(meta.props).forEach((key) => {
+        initial[key] = meta.props[key].default;
+      });
+      return initial;
+    },
+  );
+
+  const activeMeta = ComponentRegistry[selectedComponentName];
+
+  const handleComponentChange = (name: any) => {
+    if (name === selectedComponentName) return;
+    setSelectedComponentName(name);
+    const meta = ComponentRegistry[name];
+    const initial: Record<string, any> = {};
+    Object.keys(meta.props).forEach((key) => {
+      initial[key] = meta.props[key].default;
+    });
+    setComponentProps(initial);
+
+    // Re-play the stage entrance on every switch.
+    enterAnim.setValue(0);
+    Animated.spring(enterAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 60,
+      friction: 11,
+    }).start();
+  };
+
+  const updateProp = (key: string, value: any) => {
+    setComponentProps((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const renderPropEditor = (key: string, def: PropDefinition) => {
+    const val = componentProps[key];
+
+    switch (def.type) {
+      case "text":
+        return (
+          <Input
+            key={key}
+            label={def.label}
+            value={val?.toString() || ""}
+            onChangeText={(t) => updateProp(key, t)}
+            style={styles.propInput}
+          />
+        );
+      case "number":
+        return (
+          <NumericInput
+            key={key}
+            label={def.label}
+            value={val?.toString() || "0"}
+            onChangeText={(t) => updateProp(key, t)}
+            style={styles.propInput}
+          />
+        );
+      case "boolean":
+        return (
+          <View key={key} style={styles.propRow}>
+            <Typography variant="bodyMedium">{def.label}</Typography>
+            <Toggle value={!!val} onValueChange={(v) => updateProp(key, v)} />
+          </View>
+        );
+      case "select":
+        return (
+          <Select
+            key={key}
+            label={def.label}
+            options={
+              def.options?.map((o, i) => ({ id: i.toString(), ...o })) || []
+            }
+            value={val}
+            onSelect={(v) => updateProp(key, v)}
+            style={styles.propInput}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Mock data for DataGrid if needed
+  const gridData = useMemo(
+    () => [
+      { id: 1, name: "Item 1", value: "Val 1" },
+      { id: 2, name: "Item 2", value: "Val 2" },
+    ],
+    [],
+  );
+  const gridCols = useMemo(
+    () => [
+      { id: "name", label: "Name", width: 150 },
+      { id: "value", label: "Value", width: 150 },
+    ],
+    [],
+  );
+
+  const renderPreview = () => {
+    const { Component, isContainer } = activeMeta;
+    let props = { ...componentProps };
+
+    // Special handling for some components
+    if (selectedComponentName === "DataGrid") {
+      props.data = props.empty ? [] : gridData;
+      props.columns = gridCols;
+      delete props.empty;
+    }
+
+    if (selectedComponentName === "Badge") {
+      props.count = Number(props.count) || 0;
+      props.max = Number(props.max) || 99;
+    }
+
+    if (selectedComponentName === "Checkbox") {
+      props.onValueChange = (v: boolean) => updateProp("checked", v);
+    }
+
+    if (selectedComponentName === "RadioGroup") {
+      props.options = [
+        { id: "a", label: "Option A", value: "a" },
+        { id: "b", label: "Option B (disabled)", value: "b", disabled: true },
+        { id: "c", label: "Option C", value: "c" },
+      ];
+      props.onValueChange = (v: any) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "Slider") {
+      props.value = Number(props.value) || 0;
+      props.min = Number(props.min) || 0;
+      props.max = Number(props.max) || 100;
+      props.step = Number(props.step) || undefined;
+      props.onValueChange = (v: number) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "Tooltip") {
+      return (
+        <Component {...props}>
+          <Button mode="tonal" onPress={() => {}}>
+            Hover / long-press me
+          </Button>
+        </Component>
+      );
+    }
+
+    if (selectedComponentName === "Menu") {
+      props.items = [
+        { id: "1", label: "Edit", icon: "pencil-outline", onPress: () => {} },
+        {
+          id: "2",
+          label: "Duplicate",
+          icon: "content-copy",
+          trailing: "Ctrl+D",
+          onPress: () => {},
+        },
+        {
+          id: "3",
+          label: "Delete",
+          icon: "delete-outline",
+          destructive: true,
+          dividerAbove: true,
+          onPress: () => {},
+        },
+      ];
+      props.onDismiss = () => updateProp("visible", false);
+      props.anchor = (
+        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+          Open Menu
+        </Button>
+      );
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "BottomSheet") {
+      props.onDismiss = () => updateProp("visible", false);
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Bottom Sheet
+          </Button>
+          <Component {...props}>
+            <Typography variant="bodyMedium">
+              Bottom sheet content goes here. Drag the handle down or tap the
+              scrim to dismiss.
+            </Typography>
+          </Component>
+        </>
+      );
+    }
+
+    if (selectedComponentName === "NavigationBar") {
+      props.items = [
+        { id: "home", label: "Home", icon: "home-outline", badgeCount: 0 },
+        {
+          id: "search",
+          label: "Search",
+          icon: "magnify",
+        },
+        {
+          id: "inbox",
+          label: "Inbox",
+          icon: "email-outline",
+          badgeCount: 3,
+        },
+        {
+          id: "profile",
+          label: "Profile",
+          icon: "account-outline",
+        },
+      ];
+      props.onItemPress = (id: string) => updateProp("activeId", id);
+    }
+
+    if (selectedComponentName === "Skeleton") {
+      props.width = Number(props.width) || 200;
+      props.height = Number(props.height) || 48;
+      props.duration = Number(props.duration) || 1200;
+    }
+
+    if (selectedComponentName === "SearchBar") {
+      props.onChangeText = (t: string) => updateProp("value", t);
+    }
+
+    if (selectedComponentName === "Banner") {
+      props.actions = [
+        { label: "Dismiss", onPress: () => updateProp("visible", false) },
+        { label: "Renew", onPress: () => {} },
+      ];
+      props.onDismiss = () => updateProp("visible", false);
+    }
+
+    if (selectedComponentName === "Breadcrumbs") {
+      const maxItems = Number(props.maxItems) || 0;
+      props.maxItems = maxItems > 0 ? maxItems : undefined;
+      props.items = [
+        { id: "1", label: "Home", icon: "home-outline", onPress: () => {} },
+        { id: "2", label: "Projects", onPress: () => {} },
+        { id: "3", label: "Glowup", onPress: () => {} },
+        { id: "4", label: "Components", onPress: () => {} },
+        { id: "5", label: "Breadcrumbs" },
+      ];
+    }
+
+    if (selectedComponentName === "Pagination") {
+      props.page = Number(props.page) || 1;
+      props.totalPages = Number(props.totalPages) || 1;
+      props.siblingCount = Number(props.siblingCount) || 1;
+      props.onPageChange = (p: number) => updateProp("page", p);
+    }
+
+    if (selectedComponentName === "Rating") {
+      props.value = Number(props.value) || 0;
+      props.max = Number(props.max) || 5;
+      props.size = Number(props.size) || 24;
+      props.onChange = (v: number) => updateProp("value", v);
+    }
+
+    if (selectedComponentName === "EmptyState") {
+      props.action = {
+        label: "Add item",
+        iconName: "plus",
+        onPress: () => {},
+      };
+    }
+
+    if (selectedComponentName === "Carousel") {
+      props.autoPlayInterval = Number(props.autoPlayInterval) || 0;
+      return (
+        <View style={{ width: "100%", maxWidth: 480 }}>
+          <Component {...props}>
+            {[
+              "primaryContainer",
+              "secondaryContainer",
+              "tertiaryContainer",
+            ].map((colorKey, i) => (
+              <View
+                key={colorKey}
+                style={{
+                  height: 160,
+                  borderRadius: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: (theme.colors as any)[colorKey],
+                }}
+              >
+                <Typography variant="titleMedium">{`Slide ${i + 1}`}</Typography>
+              </View>
+            ))}
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "DateTimePicker") {
+      props.value = dateValue;
+      props.onChange = (d: Date) => setDateValue(d);
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "FAB") {
+      if (!props.label) delete props.label;
+      return (
+        <View style={{ width: "100%", height: 200 }}>
+          <Component {...props} onPress={() => {}} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "IconBadge") {
+      props.badgeCount = Number(props.badgeCount) || 0;
+      props.size = Number(props.size) || 32;
+      if (!props.badgeColor) delete props.badgeColor;
+      if (!props.color) delete props.color;
+      return <Component {...props} onPress={() => {}} />;
+    }
+
+    if (selectedComponentName === "NumericInput") {
+      props.precision = props.precision ? Number(props.precision) : undefined;
+      props.onChangeText = (t: string) => updateProp("value", t);
+      if (!props.prefix) delete props.prefix;
+      if (!props.suffix) delete props.suffix;
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Toggle") {
+      props.width = Number(props.width) || 48;
+      props.height = Number(props.height) || 28;
+      props.onValueChange = (v: boolean) => updateProp("value", v);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "Select") {
+      props.options = [
+        { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
+        { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
+        { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
+        { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
+      ];
+      props.onSelect = (v: any) => updateProp("value", v);
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Stepper") {
+      props.activeStep = Number(props.activeStep) || 0;
+      props.steps = ["Cart", "Shipping", "Payment", "Review"];
+      props.onStepPress = (i: number) => updateProp("activeStep", i);
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "StatusBadge") {
+      if (!props.icon) delete props.icon;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "Tabs") {
+      props.activeTab = Number(props.activeTab) || 0;
+      props.tabs = ["Overview", "Specs", "Reviews"];
+      props.onChange = (i: number) => updateProp("activeTab", i);
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "ToggleButtonGroup") {
+      props.options = [
+        { label: "List", icon: "format-list-bulleted", value: "list" },
+        { label: "Grid", icon: "view-grid-outline", value: "grid" },
+        { label: "Cards", icon: "card-outline", value: "cards" },
+      ];
+      props.onValueChange = (v: any) => updateProp("value", v);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "CircularProgress") {
+      props.size = Number(props.size) || 48;
+      props.strokeWidth = Number(props.strokeWidth) || 4;
+      props.duration = Number(props.duration) || 1000;
+      if (!props.color) delete props.color;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "LinearProgress") {
+      props.progress = Number(props.progress) || 0;
+      props.height = Number(props.height) || 4;
+      if (!props.color) delete props.color;
+      return (
+        <View style={{ width: "100%", maxWidth: 400 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Snackbar") {
+      props.duration = Number(props.duration) || 0;
+      props.onDismiss = () => updateProp("visible", false);
+      props.action = { label: "Undo", onPress: () => {} };
+      if (!props.icon) delete props.icon;
+      return (
+        <View style={{ width: "100%", height: 160 }}>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Show Snackbar
+          </Button>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "SpeedDial") {
+      props.actions = [
+        { id: "1", label: "New Doc", icon: "file-outline", onPress: () => {} },
+        { id: "2", label: "Upload", icon: "upload-outline", onPress: () => {} },
+        { id: "3", label: "Folder", icon: "folder-outline", onPress: () => {} },
+      ];
+      return (
+        <View style={{ width: "100%", height: 260 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Modal") {
+      props.onClose = () => updateProp("visible", false);
+      const { children, ...modalProps } = props;
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Modal
+          </Button>
+          <Component {...modalProps}>{children}</Component>
+        </>
+      );
+    }
+
+    if (selectedComponentName === "ConfirmDialog") {
+      props.onConfirm = () => updateProp("visible", false);
+      props.onCancel = () => updateProp("visible", false);
+      return (
+        <>
+          <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+            Open Confirm Dialog
+          </Button>
+          <Component {...props} />
+        </>
+      );
+    }
+
+    if (selectedComponentName === "Popover") {
+      props.onDismiss = () => updateProp("visible", false);
+      props.anchor = (
+        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+          Open Popover
+        </Button>
+      );
+      return (
+        <Component {...props}>
+          <View style={{ padding: 16, maxWidth: 240 }}>
+            <Typography variant="bodyMedium">
+              Popover content anchored to the button above.
+            </Typography>
+          </View>
+        </Component>
+      );
+    }
+
+    if (selectedComponentName === "Divider") {
+      props.thickness = Number(props.thickness) || 1;
+      props.inset = Number(props.inset) || 0;
+      const { children, ...dividerProps } = props;
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...dividerProps}>{children}</Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Paper") {
+      props.elevation = Number(props.elevation) || 0;
+    }
+
+    if (isContainer) {
+      const { children, ...otherProps } = props;
+      return (
+        <Component {...otherProps}>
+          {typeof children === "string" ? (
+            <Typography variant="bodyMedium">{children}</Typography>
+          ) : (
+            children
+          )}
+        </Component>
+      );
+    }
+
+    return <Component {...props} onPress={() => console.log("Pressed")} />;
+  };
+
+  // --- Derived navigation state ---
+  const [navCat, setNavCat] = useState<string>("All");
+  const q = query.trim().toLowerCase();
+  const matches = (n: string) => n.toLowerCase().includes(q);
+  const activeCategory = CATEGORY_OF[selectedComponentName];
+  const activeIndex = FLAT_ORDER.indexOf(selectedComponentName) + 1;
+  const propKeys = Object.keys(activeMeta.props);
+  const navPillItems = FLAT_ORDER.filter(matches).filter(
+    (n) => navCat === "All" || CATEGORY_OF[n] === navCat,
+  );
+
+  const stageAnimStyle = {
+    opacity: enterAnim,
+    transform: [
+      {
+        translateY: enterAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [14, 0],
+        }),
+      },
+      {
+        scale: enterAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.985, 1],
+        }),
+      },
+    ],
+  };
+
+  // --- Small render helpers ---
+  const renderNavRow = (name: string) => {
+    const active = name === selectedComponentName;
+    return (
+      <Pressable
+        key={name}
+        accessibilityRole="button"
+        accessibilityState={{ selected: active }}
+        onPress={() => handleComponentChange(name)}
+        style={({ hovered }: any) => [
+          styles.navItem,
+          hovered && { backgroundColor: theme.colors.surfaceContainerHigh },
+          active && { backgroundColor: theme.colors.secondaryContainer },
+        ]}
+      >
+        <View
+          style={[
+            styles.navAccent,
+            {
+              backgroundColor: active ? theme.colors.primary : "transparent",
+            },
+          ]}
+        />
+        <Typography
+          variant="bodyMedium"
+          style={{
+            color: active
+              ? theme.colors.onSecondaryContainer
+              : theme.colors.onSurfaceVariant,
+            fontWeight: active ? "700" : "400",
+          }}
+        >
+          {name}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const renderPill = (name: string) => {
+    const active = name === selectedComponentName;
+    return (
+      <Pressable
+        key={name}
+        onPress={() => handleComponentChange(name)}
+        style={({ hovered }: any) => [
+          styles.pill,
+          {
+            borderColor: active
+              ? theme.colors.primary
+              : theme.colors.outlineVariant,
+            backgroundColor: active
+              ? theme.colors.secondaryContainer
+              : hovered
+                ? theme.colors.surfaceContainerHigh
+                : "transparent",
+          },
+        ]}
+      >
+        <Typography
+          variant="labelLarge"
+          style={{
+            color: active
+              ? theme.colors.onSecondaryContainer
+              : theme.colors.onSurface,
+          }}
+        >
+          {name}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const renderCatChip = (label: string, icon?: string) => {
+    const active = navCat === label;
+    return (
+      <Pressable
+        key={label}
+        onPress={() => setNavCat(label)}
+        style={({ hovered }: any) => [
+          styles.catChip,
+          {
+            backgroundColor: active
+              ? theme.colors.primary
+              : hovered
+                ? theme.colors.surfaceContainerHigh
+                : theme.colors.surfaceContainer,
+          },
+        ]}
+      >
+        {icon && (
+          <Icons
+            name={icon as any}
+            size={14}
+            color={
+              active ? theme.colors.onPrimary : theme.colors.onSurfaceVariant
+            }
+          />
+        )}
+        <Typography
+          variant="labelMedium"
+          style={{
+            color: active
+              ? theme.colors.onPrimary
+              : theme.colors.onSurfaceVariant,
+            marginLeft: icon ? 6 : 0,
+          }}
+        >
+          {label}
+        </Typography>
+      </Pressable>
+    );
+  };
+
+  const eyebrow = (text: string, color: string) => (
+    <Typography variant="labelSmall" style={[styles.eyebrow, { color }]}>
+      {text}
+    </Typography>
+  );
+
+  const stage = (
+    <View style={styles.stageCol}>
+      <View style={styles.stageHeader}>
+        {eyebrow(
+          `${(activeCategory || "").toUpperCase()} · ${String(activeIndex).padStart(2, "0")} / ${TOTAL_COUNT}`,
+          theme.colors.primary,
+        )}
+        <Typography
+          variant="headlineMedium"
+          style={{ color: theme.colors.onSurface }}
+        >
+          {selectedComponentName}
+        </Typography>
+      </View>
+      <View
+        style={[
+          styles.stage,
+          {
+            backgroundColor: theme.colors.surfaceContainerLow,
+            borderColor: theme.colors.outlineVariant,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.corner,
+            styles.cornerTL,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerTR,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerBL,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <View
+          style={[
+            styles.corner,
+            styles.cornerBR,
+            { borderColor: theme.colors.outline },
+          ]}
+        />
+        <Animated.View style={[styles.stageInner, stageAnimStyle]}>
+          {renderPreview()}
+        </Animated.View>
+      </View>
+    </View>
+  );
+
+  const propsPanel = (
+    <>
+      <View
+        style={[
+          styles.propsHeader,
+          { borderBottomColor: theme.colors.outlineVariant },
+        ]}
+      >
+        {eyebrow("PROPERTIES", theme.colors.onSurfaceVariant)}
+        <Typography
+          variant="labelSmall"
+          style={{ color: theme.colors.outline }}
+        >
+          {propKeys.length} {propKeys.length === 1 ? "prop" : "props"}
+        </Typography>
+      </View>
+      {propKeys.length === 0 ? (
+        <Typography
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          No configurable props.
+        </Typography>
+      ) : (
+        propKeys.map((key) => renderPropEditor(key, activeMeta.props[key]))
+      )}
+    </>
+  );
+
+  const header = (
+    <View
+      style={[
+        styles.header,
+        {
+          backgroundColor: theme.colors.surface,
+          borderBottomColor: theme.colors.outlineVariant,
+        },
+      ]}
+    >
+      <View>
+        {eyebrow("MATERIAL YOU", theme.colors.primary)}
+        <Typography
+          variant="titleLarge"
+          style={{ color: theme.colors.onSurface, letterSpacing: 0.5 }}
+        >
+          Component Gallery
+        </Typography>
+      </View>
+      <View style={styles.headerRight}>
+        <View
+          style={[
+            styles.countChip,
+            { borderColor: theme.colors.outlineVariant },
+          ]}
+        >
+          <Typography
+            variant="labelMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            {TOTAL_COUNT} components
+          </Typography>
+        </View>
+        <Pressable
+          onPress={toggleTheme}
+          accessibilityRole="button"
+          accessibilityLabel="Toggle theme"
+          style={({ hovered }: any) => [
+            styles.themeBtn,
+            { backgroundColor: theme.colors.secondaryContainer },
+            hovered && { opacity: 0.85 },
+          ]}
+        >
+          <Icons
+            name={theme.isDark ? "weather-sunny" : "weather-night"}
+            size={20}
+            color={theme.colors.onSecondaryContainer}
+          />
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
+    >
+      {header}
+
+      {isWide ? (
+        <View style={styles.wideBody}>
+          {/* Sidebar navigator */}
+          <View
+            style={[
+              styles.sidebar,
+              {
+                backgroundColor: theme.colors.surface,
+                borderRightColor: theme.colors.outlineVariant,
+              },
+            ]}
+          >
+            <View style={styles.sidebarHeader}>
+              {eyebrow("CATALOG", theme.colors.onSurfaceVariant)}
+            </View>
+            <View style={styles.searchWrap}>
+              <SearchBar
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Filter components…"
+              />
+            </View>
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 40 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {CATEGORIES.map((cat) => {
+                const items = cat.items.filter(matches);
+                if (!items.length) return null;
+                return (
+                  <View key={cat.label} style={styles.navGroup}>
+                    <View style={styles.navGroupHeader}>
+                      <Icons
+                        name={cat.icon as any}
+                        size={14}
+                        color={theme.colors.primary}
+                      />
+                      <Typography
+                        variant="labelSmall"
+                        style={[
+                          styles.navGroupLabel,
+                          { color: theme.colors.onSurfaceVariant },
+                        ]}
+                      >
+                        {cat.label.toUpperCase()}
+                      </Typography>
+                      <Typography
+                        variant="labelSmall"
+                        style={{ color: theme.colors.outline }}
+                      >
+                        {items.length}
+                      </Typography>
+                    </View>
+                    {items.map(renderNavRow)}
+                  </View>
+                );
+              })}
+              {navPillItems.length === 0 && (
+                <Typography
+                  variant="bodySmall"
+                  style={{ color: theme.colors.onSurfaceVariant, padding: 16 }}
+                >
+                  No matches for “{query}”.
+                </Typography>
+              )}
+            </ScrollView>
+          </View>
+
+          {/* Stage */}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.stageScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            {stage}
+          </ScrollView>
+
+          {/* Properties */}
+          <View
+            style={[
+              styles.propsColWide,
+              { borderLeftColor: theme.colors.outlineVariant },
+            ]}
+          >
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 120 }}
+            >
+              {propsPanel}
+            </ScrollView>
+          </View>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.narrowBody}>
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Filter components…"
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.catRow}
+          >
+            {renderCatChip("All")}
+            {CATEGORIES.map((c) => renderCatChip(c.label, c.icon))}
+          </ScrollView>
+          <View style={styles.pillWrap}>{navPillItems.map(renderPill)}</View>
+          {stage}
+          <View style={{ marginTop: 8 }}>{propsPanel}</View>
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+
+  // Header band
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    zIndex: 10,
+  },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: 12 },
+  countChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  themeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  eyebrow: {
+    textTransform: "uppercase",
+    letterSpacing: 1.6,
+    fontWeight: "700",
+  },
+
+  // Wide 3-pane body
+  wideBody: { flex: 1, flexDirection: "row" },
+
+  // Sidebar
+  sidebar: { width: 264, borderRightWidth: 1, paddingTop: 12 },
+  sidebarHeader: { paddingHorizontal: 20, paddingBottom: 8 },
+  searchWrap: { paddingHorizontal: 12 },
+  navGroup: { marginTop: 10, paddingHorizontal: 8 },
+  navGroupHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 8,
+    marginBottom: 4,
+  },
+  navGroupLabel: { flex: 1, letterSpacing: 1.2, fontWeight: "700" },
+  navItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 10,
+    marginBottom: 2,
+    overflow: "hidden",
+  },
+  navAccent: { width: 3, height: 16, borderRadius: 2, marginRight: 10 },
+
+  // Stage
+  stageScroll: { flexGrow: 1, padding: 28 },
+  stageCol: { width: "100%", maxWidth: 760, alignSelf: "center" },
+  stageHeader: { marginBottom: 18, gap: 2 },
+  stage: {
+    borderWidth: 1,
+    borderRadius: 20,
+    minHeight: 340,
+    padding: 36,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  stageInner: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  corner: { position: "absolute", width: 14, height: 14, opacity: 0.5 },
+  cornerTL: { top: 12, left: 12, borderTopWidth: 1, borderLeftWidth: 1 },
+  cornerTR: { top: 12, right: 12, borderTopWidth: 1, borderRightWidth: 1 },
+  cornerBL: { bottom: 12, left: 12, borderBottomWidth: 1, borderLeftWidth: 1 },
+  cornerBR: {
+    bottom: 12,
+    right: 12,
+    borderBottomWidth: 1,
+    borderRightWidth: 1,
+  },
+
+  // Properties
+  propsColWide: {
+    width: 328,
+    borderLeftWidth: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  propsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 18,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+  },
+  propInput: { marginBottom: 16 },
+  propRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+
+  // Narrow (stacked) body
+  narrowBody: { padding: 16, paddingBottom: 140, gap: 14 },
+  catRow: { gap: 8, paddingVertical: 2, paddingRight: 16 },
+  catChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  pillWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  pill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+});
+
+export default Playground;

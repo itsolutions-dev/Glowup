@@ -1,19 +1,13 @@
-import React, { useCallback, useState, useMemo } from "react";
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
-
-import * as Localization from "expo-localization";
-import { isToday, isYesterday, isTomorrow } from "date-fns";
-
-interface DateTimePickerProps {
-  label?: string;
-  value: Date;
-  onChange: (date: Date) => void;
-  disabled?: boolean;
-  mode?: "date" | "datetime" | "time";
-}
+import {
+  DateTimePickerProps,
+  getDeviceLocale,
+  useDateTimeDisplay,
+} from "./DateTimePicker.shared";
 
 const DateTimePicker = ({
   label,
@@ -21,6 +15,7 @@ const DateTimePicker = ({
   onChange,
   disabled,
   mode = "date",
+  relativeLabels,
 }: DateTimePickerProps) => {
   const [pickerVisible, setPickerVisible] = useState(false);
   const { theme } = useTheme();
@@ -30,35 +25,8 @@ const DateTimePicker = ({
     onChange(date);
   };
 
-  const getDeviceLocale = useCallback(() => {
-    if (Platform.OS === "web") {
-      return navigator.language || "it-IT";
-    }
-    return Localization.getLocales()[0]?.languageTag || "it-IT";
-  }, []);
-
-  const getRelativeLabel = useCallback(
-    (date: Date, locale: string, mode: string) => {
-      if (mode === "time") return null;
-      if (isToday(date)) return "Today";
-      if (isYesterday(date)) return "Yesterday";
-      if (isTomorrow(date)) return "Tomorrow";
-      return null;
-    },
-    [],
-  );
-
   const locale = getDeviceLocale();
-
-  const displayValue = useMemo(() => {
-    const relative = getRelativeLabel(value, locale, mode);
-    const options: Intl.DateTimeFormatOptions = {
-      dateStyle: mode === "time" ? undefined : "medium",
-      timeStyle: mode === "date" ? undefined : "short",
-    };
-    const formatted = new Intl.DateTimeFormat(locale, options).format(value);
-    return relative ? `${relative}, ${formatted}` : formatted;
-  }, [value, mode, locale, getRelativeLabel]);
+  const displayValue = useDateTimeDisplay(value, mode, locale, relativeLabels);
 
   return (
     <View style={styles.wrapper}>
@@ -144,10 +112,5 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: "center",
-  },
-  iosDone: {
-    alignItems: "flex-end",
-    padding: 10,
-    marginTop: -10,
   },
 });

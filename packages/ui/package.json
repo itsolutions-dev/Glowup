@@ -71,6 +71,7 @@
     "react-native-svg": { "optional": true }
   },
   "devDependencies": {
+    "@types/react-dom": "~19.2",
     "del-cli": "^7.0.0",
     "react-native-builder-bob": "^0.43.0"
   },

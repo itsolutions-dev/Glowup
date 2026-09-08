@@ -7,7 +7,6 @@ node_modules/
 .expo/
 dist/
 web-build/
-docs/
 expo-env.d.ts
 
 # Native
@@ -60,3 +59,7 @@ packages/ui/.design-sync-entry.mjs
 .design-sync/web-barrel.mjs
 .design-sync/docs/
 .design-sync/guidelines/
+
+# local tool state (code graphs, indexes, agent caches)
+.tokensave/
+.serena/

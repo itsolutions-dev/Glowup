@@ -46,8 +46,8 @@ lib/
 package-lock.json
 
 .claude
-.vscode
-CLAUDE.md
+.vscode/*
+!.vscode/settings.json
 .ds-sync/
 ds-bundle/
 .design-sync/.cache/

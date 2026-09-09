@@ -93,6 +93,12 @@ because the script wipes that directory on every run.
   all styles at runtime. There is no stylesheet to point `cfg.cssEntry` at, and
   `providers/theme.json` is JSON consumed by `ThemeProvider`, not CSS custom properties —
   so `tokens/` is legitimately empty.
+- `[RENDER_THIN]` on `ConfirmDialog` — `maxHeight: 0` with DOM content present. Correct:
+  the dialog is a react-native-web `Modal`, i.e. a real `createPortal` into
+  `document.body`, so nothing measurable stays inside the card root. The screenshot is a
+  full, correctly styled M3 dialog (verified 2026-09-09). Any portal-based card with
+  `cardMode: single` can print this; `Modal`, `BottomSheet`, `Popover` and `Menu` happen
+  not to because their compositions leave measurable content behind.
 - esbuild `direct-eval` warning on `eval("require")("node:crypto")` inside the prebundled
   entry (expo-modules-core's uuid path). Harmless in a browser; the code path isn't taken.
 
@@ -316,17 +322,51 @@ render in a browser at all and is described in copy instead of mocked up.
 `Snackbar` previews pass `duration={0}`; otherwise its 4s auto-hide races the 2000ms
 clock advance and the resting state becomes a coin flip.
 
-## Upload status (first run, 2026-09-08)
+## Upload status (imported 2026-09-09)
 
-Nothing has been uploaded yet. `DesignSync` needs a design-system authorization that
-`/design-login` can only grant from an **interactive** `claude` terminal, and this run was
-non-interactive. So `config.json` has **no `projectId`**: the next run is still a
-first-time import and will create the project, which is the correct state, not a bug.
+Uploaded. Project: **Glowup Design System**, `projectId`
+`c02682fc-2db9-465f-b4c0-1d7581b437ec` (pinned in `config.json`) —
+https://claude.ai/design/p/c02682fc-2db9-465f-b4c0-1d7581b437ec
 
-The build is complete and verified locally in `ds-bundle/`. To finish: run
-`/design-login` once in an interactive terminal, then `/design-sync` again — the anchor in
-`.design-sync/.cache/review/` carries all 55 grades forward, so it rebuilds and uploads
-without re-verifying anything.
+The 2026-09-08 run built and graded everything but could not upload: `/design-login`
+grants the design-system authorization only from an **interactive** `claude` terminal and
+that run was headless. The 2026-09-09 run did exactly what that note predicted — all 55
+grades came back `carried forward` with zero cleared, so it was rebuild + validate +
+upload with no re-verification. 284 files uploaded (283 content + sentinel + anchor).
+`package-validate.mjs` exited 0.
+
+Two things worth knowing for the next run:
+
+- **The staged `.ds-sync/` scripts were already byte-identical to the bundled skill**
+  (skill build 2.1.265) except for the capture-clock patch below, so the `cp -r` was
+  skipped deliberately — re-copying would have silently reverted that patch. Diff before
+  copying; only copy what actually differs.
+- **`npm run build` (bob) was skipped**: no file under `packages/ui/src` was newer than
+  `packages/ui/lib/module/index.js`. The three repo generators (`make-web-barrel`,
+  `split-docs`, `prebuild-web-entry`) were re-run anyway — they are cheap and
+  deterministic.
+
+## In-flight source fixes at import time (2026-09-09, 00:06+)
+
+While the upload was running, 16 files under `packages/ui/src` were edited in parallel —
+addressing most of the "DS gaps" list above: `disabled` opacity on `Toggle`/`FAB`,
+`Popover` width measurement, `Menu`'s `<Divider contentSpacing={0} />`, `defaultOpen` on
+`Select` and `SpeedDial`, `Tooltip` `width: max-content`, and `leading`/`trailing`/
+`secondary` slots on `ListItem`.
+
+**The uploaded bundle predates them**: it was built from `packages/ui/lib` (bob output of
+2026-09-08 16:33), so it is faithful to the last build, not to current `src`. Consequences
+for the next run:
+
+- Run `npm run build` first — the mtime shortcut used this run will (correctly) no longer
+  apply.
+- **`conventions.md`'s "Known gaps — do not design around them" section goes stale.** Every
+  claim in it is about a gap being fixed here; re-validate that section against the fresh
+  build and cut what no longer reproduces.
+- Gap (11) becomes previewable: with `defaultOpen`, `Select`'s dropdown and `SpeedDial`'s
+  expanded stack can finally be captured — see the suggested overrides in the gaps list.
+- The `ListItem` preview is written against the text-only tile ("`ListItem` takes
+  `children`, not `title`"); the new slots deserve new cells.
 
 ## Re-sync risks
 

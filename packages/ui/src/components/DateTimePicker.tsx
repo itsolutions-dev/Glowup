@@ -44,7 +44,9 @@ const DateTimePicker = ({
   firstDayOfWeek,
   style,
   testID,
+  defaultOpen = false,
 }: DateTimePickerProps) => {
+  //const [pickerVisible, setPickerVisible] = useState(defaultOpen);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const labels = useLabels(labelOverrides);

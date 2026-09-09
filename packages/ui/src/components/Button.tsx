@@ -16,6 +16,8 @@ interface ButtonProps {
   iconName?: MaterialCommunityIconsGlyphs;
   size?: number;
   mode?: "filled" | "tonal" | "outlined" | "text";
+  /** Colour role. `error` is the destructive treatment (delete, discard). */
+  tone?: "primary" | "error";
   style?: object;
   iconStyle?: object;
   disabled?: boolean;
@@ -33,6 +35,7 @@ const Button = ({
   iconName,
   size,
   mode = "filled",
+  tone = "primary",
   disabled = false,
   style = {},
   iconStyle = {},
@@ -46,34 +49,32 @@ const Button = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const { bg, on, border } = useMemo(() => {
+    const isError = tone === "error";
+    const accent = isError ? theme.colors.error : theme.colors.primary;
+    const onAccent = isError ? theme.colors.onError : theme.colors.onPrimary;
+    const container = isError
+      ? theme.colors.errorContainer
+      : theme.colors.secondaryContainer;
+    const onContainer = isError
+      ? theme.colors.onErrorContainer
+      : theme.colors.onSecondaryContainer;
+
     switch (mode) {
       case "tonal":
-        return {
-          bg: theme.colors.secondaryContainer,
-          on: theme.colors.onSecondaryContainer,
-          border: undefined,
-        };
+        return { bg: container, on: onContainer, border: undefined };
       case "outlined":
         return {
           bg: "transparent",
-          on: theme.colors.primary,
-          border: theme.colors.outline,
+          on: accent,
+          border: isError ? theme.colors.error : theme.colors.outline,
         };
       case "text":
-        return {
-          bg: "transparent",
-          on: theme.colors.primary,
-          border: undefined,
-        };
+        return { bg: "transparent", on: accent, border: undefined };
       case "filled":
       default:
-        return {
-          bg: theme.colors.primary,
-          on: theme.colors.onPrimary,
-          border: undefined,
-        };
+        return { bg: accent, on: onAccent, border: undefined };
     }
-  }, [mode, theme.colors]);
+  }, [mode, tone, theme.colors]);
 
   const isInteractive = !disabled && !loading;
 

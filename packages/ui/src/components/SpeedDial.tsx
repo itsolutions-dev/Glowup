@@ -26,20 +26,25 @@ interface SpeedDialProps {
   actions: SpeedDialAction[];
   mainIcon: MaterialCommunityIconsGlyphs;
   position?: SpeedDialPosition;
+  /** Mount with the action stack already expanded. Uncontrolled after that. */
+  defaultOpen?: boolean;
 }
 
 const SpeedDial = ({
   actions,
   mainIcon,
   position = "bottom-right",
+  defaultOpen = false,
 }: SpeedDialProps) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const insets = useSafeAreaInsets();
 
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const [anim] = useState(() => new Animated.Value(0));
+  const [anim] = useState(
+    () => new Animated.Value(defaultOpen ? 1 : 0),
+  ).current;
 
   const toggle = () => {
     const toValue = open ? 0 : 1;

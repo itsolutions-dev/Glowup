@@ -31,6 +31,388 @@ interface AnchorPosition {
   top: number;
   left: number;
 }
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const toInputValue = (date: Date, mode: DateTimePickerMode) => {
+  const datePart = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}`;
+  const timePart = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  if (mode === "time") return timePart;
+  if (mode === "datetime") return `${datePart}T${timePart}`;
+  return datePart;
+};
+
+const fromInputValue = (raw: string, mode: DateTimePickerMode, base: Date) => {
+  const next = new Date(base);
+  if (mode === "time") {
+    const [hours, minutes] = raw.split(":").map(Number);
+    next.setHours(hours, minutes, 0, 0);
+  } else if (mode === "datetime") {
+    const [datePart, timePart] = raw.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+    next.setFullYear(year, month - 1, day);
+    next.setHours(hours, minutes, 0, 0);
+  } else {
+    const [year, month, day] = raw.split("-").map(Number);
+    next.setFullYear(year, month - 1, day);
+  }
+  return next;
+};
+
+// --- Custom it-IT calendar (date mode) --------------------------------------
+// Replaces the browser's native <input type="date"> for mode="date": a styled
+// popover with Monday-first weeks, Italian month/day labels, a filled-primary
+// selected pill and an "Oggi" shortcut. time/datetime keep the native input.
+const MONTHS = [
+  "gennaio",
+  "febbraio",
+  "marzo",
+  "aprile",
+  "maggio",
+  "giugno",
+  "luglio",
+  "agosto",
+  "settembre",
+  "ottobre",
+  "novembre",
+  "dicembre",
+];
+// Monday-first weekday labels; Sunday (last) gets a primary tint.
+const WEEKDAYS = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"];
+
+const sameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
+// Monday-first offset for the 1st of the shown month (0 = Monday … 6 = Sunday).
+const leadingOffset = (year: number, month: number) =>
+  (new Date(year, month, 1).getDay() + 6) % 7;
+
+const CELL = 40;
+
+const DateCalendarField = ({
+  label,
+  value,
+  onChange,
+  disabled,
+  displayValue,
+  defaultOpen = false,
+}: {
+  label?: string;
+  value: Date;
+  onChange: (date: Date) => void;
+  disabled?: boolean;
+  displayValue: string;
+  defaultOpen?: boolean;
+}) => {
+  const { theme } = useTheme();
+  const triggerRef = useRef<any>(null);
+  const [open, setOpen] = useState(defaultOpen);
+  const [yearPicker, setYearPicker] = useState(false);
+  const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(
+    null,
+  );
+  const [view, setView] = useState<Date>(
+    () => new Date(value.getFullYear(), value.getMonth(), 1),
+  );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const close = () => setOpen(false);
+
+  const openPicker = () => {
+    if (disabled) return;
+    // Anchor the popover in fixed coordinates so a scrolling form body can't clip it.
+    const el = triggerRef.current;
+    if (el && typeof el.getBoundingClientRect === "function") {
+      const r = el.getBoundingClientRect();
+      setAnchor({ top: r.bottom + 6, left: r.left });
+    }
+    setView(new Date(value.getFullYear(), value.getMonth(), 1));
+    setYearPicker(false);
+    setOpen(true);
+  };
+
+  const cells = useMemo(() => {
+    const year = view.getFullYear();
+    const month = view.getMonth();
+    const offset = leadingOffset(year, month);
+    const start = new Date(year, month, 1 - offset);
+    return Array.from(
+      { length: 42 },
+      (_, i) =>
+        new Date(start.getFullYear(), start.getMonth(), start.getDate() + i),
+    );
+  }, [view]);
+
+  const years = useMemo(() => {
+    const base = view.getFullYear();
+    return Array.from({ length: 12 }, (_, i) => base - 5 + i);
+  }, [view]);
+
+  const pick = (d: Date) => {
+    // Preserve the current time-of-day; only the calendar date changes.
+    const next = new Date(value);
+    next.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
+    onChange(next);
+    close();
+  };
+
+  const step = (delta: number) =>
+    setView((v) => new Date(v.getFullYear(), v.getMonth() + delta, 1));
+
+  return (
+    <View style={styles.wrapper}>
+      {!!label && (
+        <Text
+          style={[
+            theme.typography.labelMedium,
+            styles.staticLabel,
+            {
+              color: open
+                ? theme.colors.primary
+                : theme.colors.onSurfaceVariant,
+            },
+          ]}
+        >
+          {label}
+        </Text>
+      )}
+
+      <Pressable
+        ref={triggerRef}
+        accessibilityRole="button"
+        accessibilityLabel={label || "Select date"}
+        accessibilityValue={{ text: displayValue }}
+        onPress={openPicker}
+        disabled={disabled}
+        style={[
+          styles.container,
+          getGlowStyles(theme, open),
+          disabled && { opacity: 0.38 },
+        ]}
+      >
+        <View style={styles.content}>
+          <Text
+            style={[
+              theme.typography.bodyLarge,
+              { color: theme.colors.onSurface },
+            ]}
+          >
+            {displayValue}
+          </Text>
+        </View>
+        <Icons
+          name="calendar-blank-outline"
+          size={20}
+          color={theme.colors.onSurfaceVariant}
+        />
+      </Pressable>
+
+      {open &&
+        createPortal(
+          <>
+            <Pressable
+              accessibilityLabel="Chiudi calendario"
+              onPress={close}
+              style={OVERLAY_STYLE}
+            />
+            <View
+              style={[
+                POPOVER_STYLE,
+                {
+                  top: anchor?.top ?? 0,
+                  left: anchor?.left ?? 0,
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.outline,
+                },
+              ]}
+            >
+              {/* Header: prev / month-year (toggles year picker) / next */}
+              <View style={styles.calHeader}>
+                <Pressable
+                  onPress={() => step(-1)}
+                  accessibilityLabel="Mese precedente"
+                  style={({ hovered }: any) => [
+                    styles.navBtn,
+                    hovered && { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
+                >
+                  <Icons
+                    name="chevron-left"
+                    size={22}
+                    color={theme.colors.onSurface}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => setYearPicker((y) => !y)}
+                  style={styles.monthLabel}
+                  accessibilityRole="button"
+                >
+                  <Text
+                    style={[
+                      theme.typography.titleMedium,
+                      { color: theme.colors.onSurface },
+                    ]}
+                  >
+                    {MONTHS[view.getMonth()]} {view.getFullYear()}
+                  </Text>
+                  <Icons
+                    name={yearPicker ? "menu-up" : "menu-down"}
+                    size={18}
+                    color={theme.colors.onSurfaceVariant}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() => step(1)}
+                  accessibilityLabel="Mese successivo"
+                  style={({ hovered }: any) => [
+                    styles.navBtn,
+                    hovered && { backgroundColor: theme.colors.surfaceVariant },
+                  ]}
+                >
+                  <Icons
+                    name="chevron-right"
+                    size={22}
+                    color={theme.colors.onSurface}
+                  />
+                </Pressable>
+              </View>
+
+              {yearPicker ? (
+                <View style={styles.yearGrid}>
+                  {years.map((y) => {
+                    const active = y === view.getFullYear();
+                    return (
+                      <Pressable
+                        key={y}
+                        onPress={() => {
+                          setView(new Date(y, view.getMonth(), 1));
+                          setYearPicker(false);
+                        }}
+                        style={({ hovered }: any) => [
+                          styles.yearCell,
+                          active && { backgroundColor: theme.colors.primary },
+                          !active &&
+                            hovered && {
+                              backgroundColor: theme.colors.surfaceVariant,
+                            },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            theme.typography.bodyMedium,
+                            {
+                              color: active
+                                ? theme.colors.onPrimary
+                                : theme.colors.onSurface,
+                            },
+                          ]}
+                        >
+                          {y}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              ) : (
+                <>
+                  <View style={styles.weekRow}>
+                    {WEEKDAYS.map((w, i) => (
+                      <Text
+                        key={w}
+                        style={[
+                          theme.typography.labelSmall,
+                          styles.weekLabel,
+                          {
+                            color:
+                              i === 6
+                                ? theme.colors.primary
+                                : theme.colors.onSurfaceVariant,
+                          },
+                        ]}
+                      >
+                        {w}
+                      </Text>
+                    ))}
+                  </View>
+                  <View style={styles.grid}>
+                    {cells.map((d, i) => {
+                      const inMonth = d.getMonth() === view.getMonth();
+                      const sel = sameDay(d, value);
+                      const isSunday = d.getDay() === 0;
+                      return (
+                        <Pressable
+                          key={i}
+                          onPress={() => pick(d)}
+                          style={({ hovered }: any) => [
+                            styles.dayCell,
+                            sel && {
+                              backgroundColor: theme.colors.primary,
+                              ...getGlowStyles(theme, true),
+                            },
+                            !sel &&
+                              hovered && {
+                                backgroundColor: theme.colors.surfaceVariant,
+                              },
+                            !sel &&
+                              sameDay(d, today) && {
+                                borderWidth: 1,
+                                borderColor: theme.colors.primary,
+                              },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              theme.typography.bodyMedium,
+                              {
+                                color: sel
+                                  ? theme.colors.onPrimary
+                                  : !inMonth
+                                    ? theme.colors.onSurfaceVariant
+                                    : isSunday
+                                      ? theme.colors.primary
+                                      : theme.colors.onSurface,
+                              },
+                            ]}
+                          >
+                            {d.getDate()}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </>
+              )}
+
+              <View
+                style={[
+                  styles.calFooter,
+                  { borderTopColor: theme.colors.outline },
+                ]}
+              >
+                <Pressable onPress={() => pick(today)} style={styles.footerBtn}>
+                  <Text
+                    style={[
+                      theme.typography.labelLarge,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
+                    Oggi
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </>,
+          document.body,
+        )}
+    </View>
+  );
+};
 
 const DateTimePicker = ({
   label,
@@ -54,6 +436,7 @@ const DateTimePicker = ({
   firstDayOfWeek,
   style,
   testID,
+  defaultOpen,
 }: DateTimePickerProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -95,6 +478,19 @@ const DateTimePicker = ({
       Math.max(MARGIN, window.innerWidth - width - MARGIN),
     );
     setAnchor({ top, left });
+
+    if (mode === "date") {
+      return (
+        <DateCalendarField
+          label={label}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          displayValue={displayValue}
+          defaultOpen={defaultOpen}
+        />
+      );
+    }
   }, [mode]);
 
   useEffect(() => {

@@ -40,6 +40,8 @@ interface SelectProps {
   showAsChips?: boolean;
   selectedValues?: any[];
   toggleOptions?: (value: any) => void;
+  /** Mount with the option list already open. Uncontrolled after that. */
+  defaultOpen?: boolean;
 }
 
 const Select = ({
@@ -57,8 +59,9 @@ const Select = ({
   showAsChips = false,
   selectedValues = [],
   toggleOptions,
+  defaultOpen = false,
 }: SelectProps) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(defaultOpen);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 

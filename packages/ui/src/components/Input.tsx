@@ -121,7 +121,14 @@ const Input = ({
         </Text>
       )}
 
-      <View style={[styles.inputContainer, { minHeight }, dynamicStyles]}>
+      <View
+        style={[
+          styles.inputContainer,
+          { minHeight },
+          dynamicStyles,
+          disabled && styles.disabled,
+        ]}
+      >
         {prefix ? (
           <Text
             style={[styles.affix, { color: theme.colors.onSurfaceVariant }]}
@@ -269,6 +276,11 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: theme.colors.surface,
+    },
+
+    disabled: {
+      opacity: 0.38,
+      backgroundColor: theme.colors.surfaceVariant,
     },
 
     textInput: {

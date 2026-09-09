@@ -104,6 +104,8 @@ export interface DateTimePickerProps {
   firstDayOfWeek?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  /** Mount with the picker already open. Uncontrolled after that. */
+  defaultOpen?: boolean;
 }
 
 export const getDeviceLocale = () => {

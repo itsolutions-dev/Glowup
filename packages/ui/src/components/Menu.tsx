@@ -66,7 +66,7 @@ const Menu = ({
 
             return (
               <React.Fragment key={item.id}>
-                {item.dividerAbove && <Divider />}
+                {item.dividerAbove && <Divider contentSpacing={0} />}
                 <Pressable
                   onPress={() => handleItemPress(item)}
                   disabled={item.disabled}

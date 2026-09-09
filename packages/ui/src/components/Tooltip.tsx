@@ -139,7 +139,11 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       ...Platform.select({
         web: {
           boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-          whiteSpace: "nowrap" as any,
+          // The tip is absolutely positioned inside a wrapper that is only as
+          // wide as the anchor, so shrink-to-fit would collapse it to
+          // min-content (one word per line). max-content sizes it to the text
+          // and lets maxWidth above do the wrapping.
+          width: "max-content" as any,
         },
         ios: {
           shadowColor: "#000",

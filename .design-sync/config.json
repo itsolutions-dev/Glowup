@@ -1,0 +1,176 @@
+{
+  "pkg": "@glowup/ui",
+  "projectId": "c02682fc-2db9-465f-b4c0-1d7581b437ec",
+  "globalName": "GlowupUI",
+  "shape": "package",
+  "buildCmd": "npm run build",
+  "provider": {
+    "component": "SafeAreaProvider",
+    "inner": {
+      "component": "ThemeProvider",
+      "inner": {
+        "component": "AlertProvider"
+      }
+    }
+  },
+  "componentSrcMap": {
+    "DrawerNavigation": null,
+    "StackNavigation": null,
+    "CustomDrawerContent": null,
+    "Alert": null,
+    "SafeAreaProvider": null,
+    "FAB": "src/components/FAB.tsx"
+  },
+  "docsDir": "../../.design-sync/docs",
+  "guidelinesGlob": [
+    "../../.design-sync/guidelines/*.md"
+  ],
+  "libOverrides": {
+    "source-kit.mjs": "Glowup's List/ Modal/ Progress/ Tab/ ToggleButton/ src dirs are file organisation, not DS groups",
+    "dts.mjs": "allowlist the all-caps component name FAB (ALL-CAPS-means-constant rule would drop it)"
+  },
+  "overrides": {
+    "Accordion": {
+      "cardMode": "column"
+    },
+    "AlertProvider": {
+      "cardMode": "single",
+      "primaryStory": "HostedDialog",
+      "viewport": "560x420"
+    },
+    "AlertProviderWrapper": {
+      "cardMode": "single",
+      "primaryStory": "BindsTheSingleton",
+      "viewport": "560x420"
+    },
+    "AppBar": {
+      "cardMode": "column"
+    },
+    "Banner": {
+      "cardMode": "column"
+    },
+    "BottomSheet": {
+      "cardMode": "single",
+      "viewport": "420x620"
+    },
+    "Breadcrumbs": {
+      "cardMode": "column"
+    },
+    "Card": {
+      "cardMode": "column"
+    },
+    "Carousel": {
+      "cardMode": "column"
+    },
+    "Checkbox": {
+      "cardMode": "column"
+    },
+    "Chip": {
+      "cardMode": "column"
+    },
+    "CircularProgress": {
+      "cardMode": "column"
+    },
+    "ConfirmDialog": {
+      "cardMode": "single",
+      "viewport": "560x400"
+    },
+    "DataGrid": {
+      "cardMode": "column"
+    },
+    "DateTimePicker": {
+      "cardMode": "column"
+    },
+    "Divider": {
+      "cardMode": "column"
+    },
+    "EmptyState": {
+      "cardMode": "column"
+    },
+    "FAB": {
+      "cardMode": "column"
+    },
+    "IconBadge": {
+      "cardMode": "column"
+    },
+    "LanguageSelector": {
+      "cardMode": "column"
+    },
+    "LinearProgress": {
+      "cardMode": "column"
+    },
+    "ListItem": {
+      "cardMode": "column"
+    },
+    "Menu": {
+      "cardMode": "single",
+      "viewport": "480x460"
+    },
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "560x440"
+    },
+    "NavigationBar": {
+      "cardMode": "column"
+    },
+    "Pagination": {
+      "cardMode": "column"
+    },
+    "Paper": {
+      "cardMode": "column"
+    },
+    "Popover": {
+      "cardMode": "single",
+      "viewport": "480x420"
+    },
+    "RadioButton": {
+      "cardMode": "column"
+    },
+    "RadioGroup": {
+      "cardMode": "column"
+    },
+    "Rating": {
+      "cardMode": "column"
+    },
+    "SearchBar": {
+      "cardMode": "column"
+    },
+    "Select": {
+      "cardMode": "column"
+    },
+    "Skeleton": {
+      "cardMode": "column"
+    },
+    "Slider": {
+      "cardMode": "column"
+    },
+    "Snackbar": {
+      "cardMode": "column"
+    },
+    "SpeedDial": {
+      "cardMode": "column"
+    },
+    "StatusBar": {
+      "cardMode": "column"
+    },
+    "Stepper": {
+      "cardMode": "column"
+    },
+    "TabContent": {
+      "cardMode": "column"
+    },
+    "Tabs": {
+      "cardMode": "column"
+    },
+    "ThemeProvider": {
+      "cardMode": "column"
+    },
+    "Toggle": {
+      "cardMode": "column"
+    },
+    "Tooltip": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

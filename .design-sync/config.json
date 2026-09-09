@@ -43,6 +43,9 @@
       "primaryStory": "BindsTheSingleton",
       "viewport": "560x420"
     },
+    "AnimatedFAB": {
+      "cardMode": "column"
+    },
     "AppBar": {
       "cardMode": "column"
     },
@@ -60,6 +63,19 @@
       "cardMode": "column"
     },
     "Card": {
+      "cardMode": "column"
+    },
+    "CardActions": {
+      "cardMode": "column"
+    },
+    "CardContent": {
+      "cardMode": "single",
+      "viewport": "440x260"
+    },
+    "CardCover": {
+      "cardMode": "column"
+    },
+    "CardTitle": {
       "cardMode": "column"
     },
     "Carousel": {
@@ -96,6 +112,12 @@
     "FAB": {
       "cardMode": "column"
     },
+    "HelperText": {
+      "cardMode": "column"
+    },
+    "Icon": {
+      "cardMode": "column"
+    },
     "IconBadge": {
       "cardMode": "column"
     },
@@ -107,6 +129,13 @@
     },
     "ListItem": {
       "cardMode": "column"
+    },
+    "ListSection": {
+      "cardMode": "column"
+    },
+    "ListSubheader": {
+      "cardMode": "single",
+      "viewport": "420x320"
     },
     "Menu": {
       "cardMode": "single",
@@ -128,6 +157,11 @@
     "Popover": {
       "cardMode": "single",
       "viewport": "480x420"
+    },
+    "Portal": {
+      "cardMode": "single",
+      "primaryStory": "EscapesAClippingParent",
+      "viewport": "460x260"
     },
     "RadioButton": {
       "cardMode": "column"
@@ -175,6 +209,9 @@
       "cardMode": "column"
     },
     "Tooltip": {
+      "cardMode": "column"
+    },
+    "TouchableRipple": {
       "cardMode": "column"
     }
   },

@@ -1,9 +1,10 @@
 import React from "react";
 import { Breadcrumbs } from "@glowup/ui";
+import type { BreadcrumbItem } from "@glowup/ui";
 
 const wrap: React.CSSProperties = { width: 400, display: "flex" };
 
-const trail = [
+const trail: BreadcrumbItem[] = [
   { id: "home", label: "Home", icon: "home-outline", onPress: () => {} },
   { id: "projects", label: "Projects", onPress: () => {} },
   { id: "glowup", label: "Glowup", onPress: () => {} },

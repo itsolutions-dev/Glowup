@@ -8,9 +8,11 @@
 //   - SafeAreaProvider is re-exported so previews (and design-agent output)
 //     can mount AppBar / SpeedDial, which read safe-area insets.
 // Run from the repo root, then .ds-sync/prebuild-web-entry.mjs.
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
+const OUT = ".design-sync/web-barrel.mjs";
 const DROP = /Navigation\/(DrawerContent|DrawerNavigation|StackNavigation)/;
 // `export type` statements have no runtime meaning, so they must not reach the
 // barrel. They can span many lines (`export type {\n  A,\n  B,\n} from "…";`),
@@ -31,6 +33,42 @@ const source = readFileSync("packages/ui/src/index.ts", "utf8").replace(
 const body = source
   .split(/\r?\n/)
   .filter((l) => !DROP.test(l))
+// Types do not exist at run time, so `export type` statements have no place in
+// a runtime barrel. They cannot be dropped line by line, though: the picker
+// types are re-exported as a multi-line block, and removing only its opening
+// line left the member list and the closing `} from "…";` behind. The barrel
+// then failed to parse at that point — while this script still exited 0.
+const stripTypeExports = (lines) => {
+  const kept = [];
+  let insideBlock = false;
+
+  for (const line of lines) {
+    if (insideBlock) {
+      // The statement ends at the line carrying its terminator.
+      if (line.includes(";")) insideBlock = false;
+      continue;
+    }
+    if (/^export\s+type\b/.test(line)) {
+      // `export type { X } from "y";` closes on its own line; the block form
+      // does not, so keep consuming until the terminator shows up.
+      if (!line.includes(";")) insideBlock = true;
+      continue;
+    }
+    kept.push(line);
+  }
+
+  if (insideBlock) {
+    console.error(
+      "unterminated `export type` block in packages/ui/src/index.ts",
+    );
+    process.exit(1);
+  }
+
+  return kept;
+};
+
+const lines = readFileSync("packages/ui/src/index.ts", "utf8").split(/\r?\n/);
+const body = stripTypeExports(lines.filter((l) => !DROP.test(l)))
   .map((l) =>
     l.replace(
       '"./components/DateTimePicker"',
@@ -52,3 +90,16 @@ if (check.status !== 0) {
   process.exit(check.status ?? 1);
 }
 console.log(`wrote ${OUT}`);
+// `node --check` parses without executing, so it neither resolves the deep
+// imports into packages/ui/lib nor runs any module side effect. Guarding here
+// is the difference between this failing and step 4 of the re-sync failing on
+// a barrel nobody suspected.
+try {
+  execFileSync(process.execPath, ["--check", OUT], { stdio: "pipe" });
+} catch (error) {
+  console.error(`${OUT} was written but does not parse:\n`);
+  console.error(error.stderr?.toString() || error.message);
+  process.exit(1);
+}
+
+console.log("wrote " + OUT);

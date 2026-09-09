@@ -15,11 +15,13 @@ import {
   StyleSheet,
   StyleProp,
   ViewStyle,
+  useWindowDimensions,
 } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import CircularProgress from "./Progress/CircularProgress";
 import HelperText from "./HelperText";
+import Portal, { usePortalHost } from "./Portal";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface AutocompleteOption {
@@ -75,6 +77,16 @@ const normalize = (text: string) =>
 const defaultFilter = (option: AutocompleteOption, query: string) =>
   normalize(option.label).includes(normalize(query));
 
+// Web: mousedown on the list blurs the input, which closes and unmounts the
+// list before the click completes, so the option's onPress never fires.
+const keepFocus =
+  Platform.OS === "web"
+    ? {
+        onMouseDown: (event: { preventDefault: () => void }) =>
+          event.preventDefault(),
+      }
+    : null;
+
 /**
  * Text field with a suggestion list — NativeBase's Typeahead, adapted to M3.
  *
@@ -107,6 +119,16 @@ const Autocomplete = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const inputRef = useRef<TextInput>(null);
+  const anchorRef = useRef<View>(null);
+  const window = useWindowDimensions();
+  const hasPortalHost = usePortalHost();
+  // Window rect of the field, only needed on the portalled path.
+  const [anchorRect, setAnchorRect] = useState({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  });
   const [focused, setFocused] = useState(false);
   const [highlighted, setHighlighted] = useState(0);
   // Selecting an option fills the field, which would otherwise immediately
@@ -126,6 +148,39 @@ const Autocomplete = ({
     !disabled &&
     value.length >= minChars &&
     (suggestions.length > 0 || !!emptyMessage);
+
+  useEffect(() => {
+    if (!hasPortalHost || !listVisible || !anchorRef.current) return;
+    anchorRef.current.measureInWindow((x, y, width, height) =>
+      setAnchorRect({ x, y, width, height }),
+    );
+  }, [hasPortalHost, listVisible, window.width, window.height, suggestions]);
+
+  // Portalled, the list is no longer a child of the field, so `top: 100%` and
+  // `left/right: 0` mean nothing: it needs the field's window rect. The two
+  // paths therefore carry disjoint offsets rather than one unsetting the other.
+  const listPlacement = useMemo(() => {
+    if (!hasPortalHost) return styles.listInline;
+
+    const gap = 4;
+    const below = anchorRect.y + anchorRect.height + gap;
+    const spaceBelow = window.height - below;
+    // Flip above when the list would run off the bottom and there is more room
+    // up there — the inline path could never do this.
+    const flipAbove = spaceBelow < 160 && anchorRect.y > spaceBelow;
+
+    return flipAbove
+      ? {
+          left: anchorRect.x,
+          width: anchorRect.width,
+          bottom: window.height - anchorRect.y + gap,
+        }
+      : { left: anchorRect.x, width: anchorRect.width, top: below };
+  }, [hasPortalHost, anchorRect, window.height, styles.listInline]);
+
+  // Portal moves its children to the host wherever the element itself sits, so
+  // the block below stays put in the source either way.
+  const ListContainer = hasPortalHost ? Portal : React.Fragment;
 
   const commit = useCallback(
     (option: AutocompleteOption) => {
@@ -196,7 +251,7 @@ const Autocomplete = ({
         </Text>
       )}
 
-      <View style={styles.anchor}>
+      <View ref={anchorRef} style={styles.anchor} collapsable={false}>
         <View
           style={[
             styles.field,
@@ -216,8 +271,8 @@ const Autocomplete = ({
             value={value}
             onChangeText={handleChange}
             onFocus={() => setFocused(true)}
-            // Blur closes the list; the option Pressables fire before blur on
-            // both platforms because they are inside the same responder tree.
+            // Blur closes the list; `keepFocus` stops option presses from
+            // blurring in the first place.
             onBlur={() => setFocused(false)}
             editable={!disabled}
             placeholder={placeholder}
@@ -262,76 +317,80 @@ const Autocomplete = ({
         </View>
 
         {listVisible && (
-          <View
-            role="list"
-            style={[
-              styles.list,
-              {
-                backgroundColor: theme.colors.surfaceContainerLow,
-                borderColor: theme.colors.outlineVariant,
-              },
-            ]}
-          >
-            {suggestions.length === 0 ? (
-              <Text
-                style={[
-                  theme.typography.bodyMedium,
-                  styles.emptyMessage,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-              >
-                {emptyMessage}
-              </Text>
-            ) : (
-              <ScrollView keyboardShouldPersistTaps="handled">
-                {suggestions.map((option, index) => (
-                  <Pressable
-                    key={option.id}
-                    accessibilityRole="menuitem"
-                    accessibilityState={{ selected: index === highlighted }}
-                    onPress={() => commit(option)}
-                    onHoverIn={() => setHighlighted(index)}
-                    style={({ hovered, pressed }: PressableState) => [
-                      styles.option,
-                      (index === highlighted || hovered || pressed) && {
-                        backgroundColor: theme.colors.surfaceContainerHighest,
-                      },
-                    ]}
-                  >
-                    {!!option.icon && (
-                      <Icons
-                        name={option.icon}
-                        size={20}
-                        color={theme.colors.onSurfaceVariant}
-                      />
-                    )}
-                    <View style={styles.optionText}>
-                      <Text
-                        numberOfLines={1}
-                        style={[
-                          theme.typography.bodyLarge,
-                          { color: theme.colors.onSurface },
-                        ]}
-                      >
-                        {option.label}
-                      </Text>
-                      {!!option.description && (
+          <ListContainer>
+            <View
+              role="list"
+              {...keepFocus}
+              style={[
+                styles.list,
+                listPlacement,
+                {
+                  backgroundColor: theme.colors.surfaceContainerLow,
+                  borderColor: theme.colors.outlineVariant,
+                },
+              ]}
+            >
+              {suggestions.length === 0 ? (
+                <Text
+                  style={[
+                    theme.typography.bodyMedium,
+                    styles.emptyMessage,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  {emptyMessage}
+                </Text>
+              ) : (
+                <ScrollView keyboardShouldPersistTaps="handled">
+                  {suggestions.map((option, index) => (
+                    <Pressable
+                      key={option.id}
+                      accessibilityRole="menuitem"
+                      accessibilityState={{ selected: index === highlighted }}
+                      onPress={() => commit(option)}
+                      onHoverIn={() => setHighlighted(index)}
+                      style={({ hovered, pressed }: PressableState) => [
+                        styles.option,
+                        (index === highlighted || hovered || pressed) && {
+                          backgroundColor: theme.colors.surfaceContainerHighest,
+                        },
+                      ]}
+                    >
+                      {!!option.icon && (
+                        <Icons
+                          name={option.icon}
+                          size={20}
+                          color={theme.colors.onSurfaceVariant}
+                        />
+                      )}
+                      <View style={styles.optionText}>
                         <Text
                           numberOfLines={1}
                           style={[
-                            theme.typography.bodySmall,
-                            { color: theme.colors.onSurfaceVariant },
+                            theme.typography.bodyLarge,
+                            { color: theme.colors.onSurface },
                           ]}
                         >
-                          {option.description}
+                          {option.label}
                         </Text>
-                      )}
-                    </View>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            )}
-          </View>
+                        {!!option.description && (
+                          <Text
+                            numberOfLines={1}
+                            style={[
+                              theme.typography.bodySmall,
+                              { color: theme.colors.onSurfaceVariant },
+                            ]}
+                          >
+                            {option.description}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </ListContainer>
         )}
       </View>
 
@@ -374,10 +433,6 @@ const makeStyles = (theme: Theme) =>
     },
     list: {
       position: "absolute",
-      top: "100%",
-      left: 0,
-      right: 0,
-      marginTop: theme.spacing.xs,
       maxHeight: 240,
       borderWidth: 1,
       borderRadius: theme.shape.medium,
@@ -388,6 +443,13 @@ const makeStyles = (theme: Theme) =>
       shadowOpacity: 0.16,
       shadowRadius: 12,
       zIndex: 20,
+    },
+    // Anchored inside the field wrapper (no portal host mounted).
+    listInline: {
+      top: "100%",
+      left: 0,
+      right: 0,
+      marginTop: theme.spacing.xs,
     },
     option: {
       flexDirection: "row",

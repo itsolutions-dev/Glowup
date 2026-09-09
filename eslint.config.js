@@ -15,6 +15,15 @@ module.exports = defineConfig([
       "**/.expo/**",
       "**/web-build/**",
       "**/coverage/**",
+      // design-sync generated artifacts, all gitignored and all rebuilt by the
+      // committed scripts (see .design-sync/NOTES.md for the build order). CI
+      // never runs those scripts, but anyone who does would otherwise turn
+      // `npm run lint` into thousands of errors — the 3 MB pre-bundled entry
+      // alone accounts for most of them.
+      ".design-sync/web-barrel.mjs",
+      ".design-sync/docs/**",
+      ".design-sync/guidelines/**",
+      "**/.design-sync-entry.mjs",
     ],
   },
   {

@@ -8,6 +8,8 @@ export * from "./providers/ToastProvider";
 
 // --- Components ---
 export { default as Accordion } from "./components/Accordion";
+export { default as AnimatedFAB } from "./components/AnimatedFAB";
+export * from "./components/AnimatedFAB";
 export { default as AppBar } from "./components/AppBar";
 export { default as AspectRatio } from "./components/Layout/AspectRatio";
 export * from "./components/Layout/AspectRatio";

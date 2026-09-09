@@ -12,8 +12,10 @@ import {
   StyleSheet,
   Platform,
   LayoutChangeEvent,
+  useWindowDimensions,
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import Portal, { usePortalHost } from "./Portal";
 
 interface TooltipProps {
   content: string;
@@ -48,6 +50,11 @@ const Tooltip = ({
   const [visible, setVisible] = useState(false);
   const [anchorSize, setAnchorSize] = useState({ width: 0, height: 0 });
   const [tipSize, setTipSize] = useState({ width: 0, height: 0 });
+  // Window coordinates of the anchor, only needed on the portalled path.
+  const [anchorOrigin, setAnchorOrigin] = useState({ x: 0, y: 0 });
+  const anchorRef = useRef<View>(null);
+  const window = useWindowDimensions();
+  const hasPortalHost = usePortalHost();
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -59,15 +66,27 @@ const Tooltip = ({
   // Timers outlive the component if the anchor unmounts mid-hover.
   useEffect(() => clearTimers, [clearTimers]);
 
+  // Portalled, the tip is no longer a child of the anchor, so it has to be
+  // placed in window coordinates rather than offsets from the wrapper.
+  const measureAnchor = useCallback(() => {
+    if (!hasPortalHost || !anchorRef.current) return;
+    anchorRef.current.measureInWindow((x, y) => setAnchorOrigin({ x, y }));
+  }, [hasPortalHost]);
+
   const show = useCallback(() => {
     if (disabled) return;
     clearTimers();
+    measureAnchor();
     if (enterDelay <= 0) {
       setVisible(true);
       return;
     }
-    showTimer.current = setTimeout(() => setVisible(true), enterDelay);
-  }, [disabled, enterDelay, clearTimers]);
+    showTimer.current = setTimeout(() => {
+      // Re-measure at fire time: the page may have scrolled during the dwell.
+      measureAnchor();
+      setVisible(true);
+    }, enterDelay);
+  }, [disabled, enterDelay, clearTimers, measureAnchor]);
 
   const hide = useCallback(() => {
     clearTimers();
@@ -82,9 +101,10 @@ const Tooltip = ({
   const handleLongPress = useCallback(() => {
     if (disabled) return;
     clearTimers();
+    measureAnchor();
     setVisible(true);
     hideTimer.current = setTimeout(() => setVisible(false), hideDelay);
-  }, [disabled, hideDelay, clearTimers]);
+  }, [disabled, hideDelay, clearTimers, measureAnchor]);
 
   const onAnchorLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -99,27 +119,76 @@ const Tooltip = ({
   const tipStyle = useMemo(() => {
     const centeredLeft = (anchorSize.width - tipSize.width) / 2;
     const centeredTop = (anchorSize.height - tipSize.height) / 2;
+
+    let left: number;
+    let top: number;
     switch (position) {
       case "bottom":
-        return { left: centeredLeft, top: anchorSize.height + GAP };
+        left = centeredLeft;
+        top = anchorSize.height + GAP;
+        break;
       case "left":
-        return { left: -(tipSize.width + GAP), top: centeredTop };
+        left = -(tipSize.width + GAP);
+        top = centeredTop;
+        break;
       case "right":
-        return { left: anchorSize.width + GAP, top: centeredTop };
+        left = anchorSize.width + GAP;
+        top = centeredTop;
+        break;
       case "top":
       default:
-        return { left: centeredLeft, top: -(tipSize.height + GAP) };
+        left = centeredLeft;
+        top = -(tipSize.height + GAP);
+        break;
     }
-  }, [position, anchorSize, tipSize]);
+
+    if (!hasPortalHost) return { left, top };
+
+    // In the portal the offsets are absolute on the screen, so they also have
+    // to be kept inside it — a tip on a screen-edge anchor would otherwise
+    // hang off, which the anchor-relative path never had to handle.
+    const margin = 8;
+    const maxLeft = Math.max(margin, window.width - tipSize.width - margin);
+    const maxTop = Math.max(margin, window.height - tipSize.height - margin);
+
+    return {
+      left: Math.min(Math.max(margin, anchorOrigin.x + left), maxLeft),
+      top: Math.min(Math.max(margin, anchorOrigin.y + top), maxTop),
+    };
+  }, [
+    position,
+    anchorSize,
+    tipSize,
+    hasPortalHost,
+    anchorOrigin,
+    window.width,
+    window.height,
+  ]);
 
   const webHoverProps =
     Platform.OS === "web"
       ? { onHoverIn: show, onHoverOut: hide, onFocus: show, onBlur: hide }
       : { onLongPress: handleLongPress };
 
+  const tip = (
+    <View
+      onLayout={onTipLayout}
+      pointerEvents="none"
+      style={[styles.tooltip, tipStyle, { opacity: tipSize.width > 0 ? 1 : 0 }]}
+    >
+      <Text
+        style={[theme.typography.bodySmall, styles.tooltipText]}
+        numberOfLines={2}
+      >
+        {content}
+      </Text>
+    </View>
+  );
+
   return (
     <View style={styles.wrapper}>
       <Pressable
+        ref={anchorRef}
         onLayout={onAnchorLayout}
         accessibilityLabel={content}
         {...webHoverProps}
@@ -127,24 +196,13 @@ const Tooltip = ({
         {children}
       </Pressable>
 
-      {visible && (
-        <View
-          onLayout={onTipLayout}
-          pointerEvents="none"
-          style={[
-            styles.tooltip,
-            tipStyle,
-            { opacity: tipSize.width > 0 ? 1 : 0 },
-          ]}
-        >
-          <Text
-            style={[theme.typography.bodySmall, styles.tooltipText]}
-            numberOfLines={2}
-          >
-            {content}
-          </Text>
-        </View>
-      )}
+      {/*
+        A tooltip cannot use the native Modal the kit's other overlays use: it
+        must never take touches. Portalled, it escapes an `overflow: hidden`
+        parent and any sibling stacking context; with no host mounted it stays
+        where it always was, positioned against the anchor.
+      */}
+      {visible && (hasPortalHost ? <Portal>{tip}</Portal> : tip)}
     </View>
   );
 };

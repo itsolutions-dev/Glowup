@@ -209,6 +209,15 @@ is safe in a tree that has not been wrapped.
 
 `usePortalHost()` reports whether a host is mounted above the caller.
 
+**Which overlays use it.** `Tooltip` and `Autocomplete`'s suggestion list render through the
+Portal when a host is mounted, and stay anchored in place when one is not. Those two are the
+only overlays in the kit that lay out inline: `Modal`, `ConfirmDialog`, `Popover`, `Menu`,
+`Select` and `BottomSheet` all go through a native `Modal`, which is a separate window on
+native and a `createPortal` into `document.body` on web — already stronger isolation than an
+in-tree Portal, so they are deliberately left alone. Portal exists for the cases a `Modal`
+cannot serve: a tooltip must never take touches, and the Autocomplete list must not steal
+focus from the field being typed into.
+
 ### Layout
 
 Token-driven layout primitives, so screens stop hardcoding spacing. `SpacingValue` is a
@@ -325,6 +334,36 @@ Floating by default: absolutely positioned, respecting safe-area insets. Set
 | placement | `"floating" \| "inline"`                                       | `floating`     |
 | position  | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
 | disabled  | boolean                                                        |                |
+
+#### `AnimatedFAB`
+
+A FAB that animates between an icon-only circle and a labelled pill. Drive `extended` from a
+scroll offset to get the M3 shrink-on-scroll behaviour.
+
+| Prop        | Type                                                           | Default        |
+| ----------- | -------------------------------------------------------------- | -------------- |
+| icon        | icon (required)                                                | —              |
+| label       | string (required — it is the label that animates)              | —              |
+| onPress     | () => void (required)                                          | —              |
+| extended    | boolean                                                        | `true`         |
+| animateFrom | `"left" \| "right"` (edge the label grows from)                | `right`        |
+| iconMode    | `"static" \| "dynamic"` (icon stays put, or travels)           | `static`       |
+| placement   | `"floating" \| "inline"`                                       | `floating`     |
+| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
+| duration    | number (ms)                                                    | `150`          |
+| disabled    | boolean                                                        | `false`        |
+
+```tsx
+const [extended, setExtended] = useState(true);
+
+<ScrollView
+  onScroll={(e) => setExtended(e.nativeEvent.contentOffset.y <= 0)}
+  scrollEventThrottle={16}
+>
+  …
+</ScrollView>
+<AnimatedFAB icon="plus" label="Nuovo intervento" extended={extended} onPress={create} />
+```
 
 #### `SpeedDial`
 
@@ -595,6 +634,12 @@ would steal focus from the input), so the parent must not clip overflow while it
 | leadingIcon                                                    | icon                                                                            |                              |
 | clearable                                                      | boolean                                                                         | `true`                       |
 
+
+With a `Portal.Host` mounted the suggestion list renders through it, so it escapes a
+clipping or scrolling parent and flips above the field when there is no room below;
+with no host it stays anchored under the field as before. It deliberately does not use a
+native `Modal` like `Select` does — that would take focus off the field being typed into.
+
 #### `PinInput`
 
 One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
@@ -763,7 +808,9 @@ Wraps a child; shows a bubble on hover (web) / long-press (native).
 | enterDelay | number (ms hover dwell before showing, web) | `500`   |
 | leaveDelay | number (ms grace before hiding, web)        | `100`   |
 
-Also shows on keyboard focus, not only on hover.
+Also shows on keyboard focus, not only on hover. With a `Portal.Host` mounted the bubble
+renders through it, so it escapes an `overflow: hidden` parent and is clamped to the window
+instead of being clipped; with no host it stays anchored in place as before.
 
 #### `Accordion`
 

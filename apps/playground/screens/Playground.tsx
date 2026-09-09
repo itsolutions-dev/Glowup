@@ -72,6 +72,29 @@ import {
   PinInput,
   Stack,
   Stat,
+  AnimatedFAB,
+  CardActions,
+  CardContent,
+  CardCover,
+  CardTitle,
+  HelperText,
+  Icon,
+  ListSection,
+  ListSubheader,
+  Portal,
+  RadioButton,
+  TouchableRipple,
+  ToggleButton,
+  AspectRatio,
+  Center,
+  Spacer,
+  TabContent,
+  ClockDial,
+  DatePicker,
+  TimePicker,
+  TimeSelect,
+  LanguageSelector,
+  DrawerPreferenceItem,
   EMPTY_RANGE,
 } from "@glowup/ui";
 import type { DateRange } from "@glowup/ui";
@@ -232,6 +255,7 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         label: "Variant",
         options: [
           { label: "Filled", value: "filled" },
+          { label: "Elevated", value: "elevated" },
           { label: "Outlined", value: "outlined" },
           { label: "Glow", value: "glow" },
         ],
@@ -1361,6 +1385,9 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
         label: "Content",
       },
       closeText: { type: "text", default: "Close", label: "Close Text" },
+      icon: { type: "text", default: "", label: "Hero icon" },
+      dismissable: { type: "boolean", default: true, label: "Dismissable" },
+      scrollable: { type: "boolean", default: false, label: "Scrollable body" },
     },
   },
   ConfirmDialog: {
@@ -1385,6 +1412,293 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       visible: { type: "boolean", default: false, label: "Visible" },
     },
   },
+  Icon: {
+    name: "Icon",
+    Component: Icon,
+    props: {
+      source: { type: "text", default: "camera", label: "Source (glyph)" },
+      size: { type: "number", default: 32, label: "Size" },
+      flipForRTL: { type: "boolean", default: false, label: "Flip for RTL" },
+    },
+  },
+  TouchableRipple: {
+    name: "TouchableRipple",
+    Component: TouchableRipple,
+    props: {
+      borderless: { type: "boolean", default: false, label: "Borderless" },
+      borderRadius: { type: "number", default: 12, label: "Border radius" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  HelperText: {
+    name: "HelperText",
+    Component: HelperText,
+    props: {
+      children: {
+        type: "text",
+        default: "Massimo 8 caratteri",
+        label: "Text",
+      },
+      type: {
+        type: "select",
+        default: "info",
+        label: "Type",
+        options: [
+          { label: "Info", value: "info" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      visible: { type: "boolean", default: true, label: "Visible" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      padding: {
+        type: "select",
+        default: "normal",
+        label: "Padding",
+        options: [
+          { label: "Normal", value: "normal" },
+          { label: "None", value: "none" },
+        ],
+      },
+    },
+  },
+  ListSection: {
+    name: "ListSection",
+    Component: ListSection,
+    props: {
+      title: { type: "text", default: "Notifiche", label: "Title" },
+      divider: { type: "boolean", default: false, label: "Divider below" },
+    },
+  },
+  ListSubheader: {
+    name: "ListSubheader",
+    Component: ListSubheader,
+    props: {
+      children: { type: "text", default: "Preferenze", label: "Text" },
+    },
+  },
+  AnimatedFAB: {
+    name: "AnimatedFAB",
+    Component: AnimatedFAB,
+    props: {
+      icon: { type: "text", default: "plus", label: "Icon" },
+      label: { type: "text", default: "Nuovo intervento", label: "Label" },
+      extended: { type: "boolean", default: true, label: "Extended" },
+      animateFrom: {
+        type: "select",
+        default: "right",
+        label: "Animate from",
+        options: [
+          { label: "Right", value: "right" },
+          { label: "Left", value: "left" },
+        ],
+      },
+      iconMode: {
+        type: "select",
+        default: "static",
+        label: "Icon mode",
+        options: [
+          { label: "Static", value: "static" },
+          { label: "Dynamic", value: "dynamic" },
+        ],
+      },
+      placement: {
+        type: "select",
+        default: "inline",
+        label: "Placement",
+        options: [
+          { label: "Inline", value: "inline" },
+          { label: "Floating", value: "floating" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  CardTitle: {
+    name: "CardTitle",
+    Component: CardTitle,
+    props: {
+      title: { type: "text", default: "Impianto 4", label: "Title" },
+      subtitle: {
+        type: "text",
+        default: "Manutenzione programmata",
+        label: "Subtitle",
+      },
+    },
+  },
+  CardContent: {
+    name: "CardContent",
+    Component: CardContent,
+    isContainer: true,
+    props: {
+      children: {
+        type: "text",
+        default: "Prossimo intervento: 12 marzo",
+        label: "Content",
+      },
+    },
+  },
+  CardCover: {
+    name: "CardCover",
+    Component: CardCover,
+    props: {
+      ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
+      alt: { type: "text", default: "Impianto 4", label: "Alt text" },
+    },
+  },
+  CardActions: {
+    name: "CardActions",
+    Component: CardActions,
+    props: {
+      align: {
+        type: "select",
+        default: "end",
+        label: "Align",
+        options: [
+          { label: "End", value: "end" },
+          { label: "Start", value: "start" },
+          { label: "Space between", value: "space-between" },
+        ],
+      },
+    },
+  },
+  RadioButton: {
+    name: "RadioButton",
+    Component: RadioButton,
+    props: {
+      selected: { type: "boolean", default: true, label: "Selected" },
+      label: { type: "text", default: "Opzione singola", label: "Label" },
+      labelPosition: {
+        type: "select",
+        default: "right",
+        label: "Label position",
+        options: [
+          { label: "Right", value: "right" },
+          { label: "Left", value: "left" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "boolean", default: false, label: "Error" },
+    },
+  },
+  ToggleButton: {
+    name: "ToggleButton",
+    Component: ToggleButton,
+    props: {
+      active: { type: "boolean", default: true, label: "Active" },
+      label: { type: "text", default: "Griglia", label: "Label" },
+      icon: { type: "text", default: "view-grid-outline", label: "Icon" },
+      showSelectedCheck: {
+        type: "boolean",
+        default: false,
+        label: "Selected check",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  AspectRatio: {
+    name: "AspectRatio",
+    Component: AspectRatio,
+    props: {
+      ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
+    },
+  },
+  Center: {
+    name: "Center",
+    Component: Center,
+    props: {},
+  },
+  Spacer: {
+    name: "Spacer",
+    Component: Spacer,
+    props: {
+      size: { type: "number", default: 24, label: "Size" },
+      axis: {
+        type: "select",
+        default: "vertical",
+        label: "Axis",
+        options: [
+          { label: "Vertical", value: "vertical" },
+          { label: "Horizontal", value: "horizontal" },
+        ],
+      },
+    },
+  },
+  TabContent: {
+    name: "TabContent",
+    Component: TabContent,
+    props: {
+      activeTab: { type: "number", default: 0, label: "Active tab" },
+    },
+  },
+  Portal: {
+    name: "Portal",
+    Component: Portal,
+    props: {},
+  },
+  LanguageSelector: {
+    name: "LanguageSelector",
+    Component: LanguageSelector,
+    props: {},
+  },
+  DrawerPreferenceItem: {
+    name: "DrawerPreferenceItem",
+    Component: DrawerPreferenceItem,
+    props: {
+      icon: { type: "text", default: "theme-light-dark", label: "Icon" },
+      label: { type: "text", default: "Tema", label: "Label" },
+    },
+  },
+  ClockDial: {
+    name: "ClockDial",
+    Component: ClockDial,
+    props: {
+      unit: {
+        type: "select",
+        default: "hours",
+        label: "Unit",
+        options: [
+          { label: "Hours", value: "hours" },
+          { label: "Minutes", value: "minutes" },
+        ],
+      },
+      use24HourClock: {
+        type: "boolean",
+        default: true,
+        label: "24-hour clock",
+      },
+      minuteInterval: {
+        type: "number",
+        default: 5,
+        label: "Minute interval",
+      },
+    },
+  },
+  DatePicker: {
+    name: "DatePicker",
+    Component: DatePicker,
+    props: {
+      label: { type: "text", default: "Data intervento", label: "Label" },
+    },
+  },
+  TimePicker: {
+    name: "TimePicker",
+    Component: TimePicker,
+    props: {
+      label: { type: "text", default: "Ora intervento", label: "Label" },
+    },
+  },
+  TimeSelect: {
+    name: "TimeSelect",
+    Component: TimeSelect,
+    props: {
+      use12Hour: { type: "boolean", default: false, label: "12-hour clock" },
+      minuteInterval: {
+        type: "number",
+        default: 5,
+        label: "Minute interval",
+      },
+    },
+  },
 };
 
 // Grouped catalog for the navigator. Every registry key lives in exactly one group.
@@ -1398,7 +1712,18 @@ const CATEGORIES: Category[] = [
   {
     label: "Foundations",
     icon: "cube-outline",
-    items: ["Typography", "Divider", "Paper", "Card"],
+    items: [
+      "Typography",
+      "Divider",
+      "Paper",
+      "Card",
+      "CardTitle",
+      "CardContent",
+      "CardCover",
+      "CardActions",
+      "Icon",
+      "TouchableRipple",
+    ],
   },
   {
     label: "Actions",
@@ -1408,7 +1733,9 @@ const CATEGORIES: Category[] = [
       "IconButton",
       "Chip",
       "FAB",
+      "AnimatedFAB",
       "SpeedDial",
+      "ToggleButton",
       "ToggleButtonGroup",
     ],
   },
@@ -1420,6 +1747,7 @@ const CATEGORIES: Category[] = [
       "NumericInput",
       "Select",
       "Checkbox",
+      "RadioButton",
       "RadioGroup",
       "Toggle",
       "Slider",
@@ -1429,11 +1757,16 @@ const CATEGORIES: Category[] = [
       "PinInput",
       "FormControl",
       "DateTimePicker",
+      "DatePicker",
       "DatePickerInput",
       "DateRangePicker",
+      "TimePicker",
+      "TimeSelect",
       "Calendar",
       "ClockPicker",
+      "ClockDial",
       "Rating",
+      "HelperText",
     ],
   },
   {
@@ -1446,6 +1779,8 @@ const CATEGORIES: Category[] = [
       "StatusBadge",
       "DataGrid",
       "ListItem",
+      "ListSection",
+      "ListSubheader",
       "Tooltip",
       "Accordion",
       "Carousel",
@@ -1471,19 +1806,35 @@ const CATEGORIES: Category[] = [
       "EmptyState",
       "Toast",
       "Collapse",
+      "Portal",
     ],
   },
   {
     label: "Navigation",
     icon: "compass-outline",
-    items: ["NavigationBar", "Tabs", "Breadcrumbs", "Pagination", "Stepper"],
+    items: [
+      "NavigationBar",
+      "Tabs",
+      "TabContent",
+      "Breadcrumbs",
+      "Pagination",
+      "Stepper",
+      "LanguageSelector",
+      "DrawerPreferenceItem",
+    ],
   },
   {
     label: "Layout",
     icon: "view-dashboard-outline",
-    items: ["Box", "Stack", "Grid"],
+    items: ["Box", "Stack", "Grid", "AspectRatio", "Center", "Spacer"],
   },
 ];
+
+// Not catalogued, and deliberately so: `AppBar` takes a navigator's
+// `navigation`/`route`/`options`, `DrawerNavigation` and `StackNavigation` need a
+// NavigationContainer plus a route array, and `StatusBar` wraps expo-status-bar
+// and paints nothing of its own. Faking a navigator to fill the grid would
+// preview a stub, not the component.
 
 // Flat ordered list + reverse lookup, derived once.
 const FLAT_ORDER: string[] = CATEGORIES.flatMap((c) => c.items);
@@ -1505,6 +1856,8 @@ const Playground = () => {
   const [pinValue, setPinValue] = useState("");
   const [autocompleteQuery, setAutocompleteQuery] = useState("");
   const [collapseOpen, setCollapseOpen] = useState(false);
+  const [languageDemo, setLanguageDemo] = useState("it");
+  const [preferenceDemo, setPreferenceDemo] = useState(true);
   const toast = useToast();
 
   // Dynamically initialize state for the selected component's props
@@ -1831,6 +2184,8 @@ const Playground = () => {
 
     if (
       selectedComponentName === "DateTimePicker" ||
+      selectedComponentName === "DatePicker" ||
+      selectedComponentName === "TimePicker" ||
       selectedComponentName === "DatePickerInput" ||
       selectedComponentName === "DateRangePicker" ||
       selectedComponentName === "Calendar"
@@ -2315,6 +2670,272 @@ const Playground = () => {
 
     if (selectedComponentName === "Paper") {
       props.elevation = Number(props.elevation) || 0;
+    }
+
+    if (selectedComponentName === "Icon") {
+      props.size = Number(props.size) || 24;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "TouchableRipple") {
+      props.borderRadius = Number(props.borderRadius) || 0;
+      return (
+        <Component
+          {...props}
+          onPress={() => {}}
+          accessibilityLabel="Superficie premibile"
+        >
+          <View style={{ padding: 16 }}>
+            <Typography variant="bodyMedium">
+              Passa il mouse o premi questa superficie
+            </Typography>
+          </View>
+        </Component>
+      );
+    }
+
+    // The Card parts only read correctly inside the surface they belong to.
+    if (selectedComponentName === "CardTitle") {
+      return (
+        <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
+          <Component
+            {...props}
+            left={<Avatar name="Impianto 4" size={40} />}
+            right={
+              <IconButton
+                icon="dots-vertical"
+                accessibilityLabel="Altre azioni"
+                onPress={() => {}}
+              />
+            }
+          />
+        </Card>
+      );
+    }
+
+    if (selectedComponentName === "CardContent") {
+      const { children, ...rest } = props;
+      return (
+        <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
+          <CardTitle title="Impianto 4" subtitle="Manutenzione programmata" />
+          <Component {...rest}>
+            <Typography variant="bodyMedium">{children}</Typography>
+          </Component>
+        </Card>
+      );
+    }
+
+    if (selectedComponentName === "CardCover") {
+      props.ratio = Number(props.ratio) || 16 / 9;
+      return (
+        <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
+          <Component
+            {...props}
+            source={{ uri: "https://picsum.photos/seed/glowup/800/450" }}
+          />
+          <CardTitle title="Impianto 4" subtitle="Manutenzione programmata" />
+        </Card>
+      );
+    }
+
+    if (selectedComponentName === "CardActions") {
+      return (
+        <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
+          <CardTitle title="Impianto 4" subtitle="Conferma l'intervento" />
+          <Component {...props}>
+            <Button mode="text" onPress={() => {}}>
+              Rinvia
+            </Button>
+            <Button onPress={() => {}}>Conferma</Button>
+          </Component>
+        </Card>
+      );
+    }
+
+    if (selectedComponentName === "RadioButton") {
+      props.onPress = () => updateProp("selected", !props.selected);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "ToggleButton") {
+      props.onPress = () => updateProp("active", !props.active);
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "AnimatedFAB") {
+      props.onPress = () => {};
+      // Floating pins it to the screen corner, so give it room to sit in.
+      return (
+        <View style={{ width: "100%", height: 160, justifyContent: "center" }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "AspectRatio") {
+      props.ratio = Number(props.ratio) || 1;
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props} radius="medium" bg="surfaceContainerHigh">
+            <Center style={{ flex: 1 }}>
+              <Typography variant="labelLarge">
+                {`ratio ${props.ratio.toFixed(2)}`}
+              </Typography>
+            </Center>
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Center") {
+      return (
+        <View style={{ width: "100%", maxWidth: 420, height: 140 }}>
+          <Component {...props} style={{ flex: 1 }} bg="surfaceContainerHigh">
+            <Typography variant="labelLarge">Centrato su due assi</Typography>
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Spacer") {
+      props.size = Number(props.size) || 0;
+      const horizontal = props.axis === "horizontal";
+      return (
+        <View
+          style={{
+            width: "100%",
+            maxWidth: 420,
+            flexDirection: horizontal ? "row" : "column",
+            alignItems: horizontal ? "center" : "stretch",
+          }}
+        >
+          <Chip label="Prima" />
+          <Component {...props} />
+          <Chip label="Dopo" />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "TabContent") {
+      props.activeTab = Number(props.activeTab) || 0;
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props}>
+            <Typography variant="bodyMedium">Contenuto del tab 0</Typography>
+            <Typography variant="bodyMedium">Contenuto del tab 1</Typography>
+            <Typography variant="bodyMedium">Contenuto del tab 2</Typography>
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "ListSection") {
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props}>
+            <ListItem
+              trailing={
+                <Typography variant="bodySmall">Settimanale</Typography>
+              }
+            >
+              Riepilogo email
+            </ListItem>
+            <ListItem
+              trailing={<Typography variant="bodySmall">Immediato</Typography>}
+            >
+              Menzioni
+            </ListItem>
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Portal") {
+      // The whole point is escaping a clipping parent, so show one.
+      return (
+        <Portal.Host>
+          <View style={{ width: "100%", maxWidth: 420, gap: 12 }}>
+            <Typography variant="bodySmall">
+              Il riquadro sotto ha overflow: hidden e 64px di altezza. Il
+              contenuto nel Portal viene disegnato sopra, fuori dal ritaglio.
+            </Typography>
+            <View
+              style={{
+                height: 64,
+                overflow: "hidden",
+                borderRadius: 12,
+                backgroundColor: theme.colors.surfaceContainerHigh,
+                padding: 12,
+              }}
+            >
+              <Typography variant="labelLarge">
+                Genitore che ritaglia
+              </Typography>
+              <Portal>
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    top: 96,
+                    left: 24,
+                    padding: 12,
+                    borderRadius: 12,
+                    backgroundColor: theme.colors.inverseSurface,
+                  }}
+                >
+                  <Typography
+                    variant="labelLarge"
+                    style={{ color: theme.colors.inverseOnSurface }}
+                  >
+                    Disegnato all&apos;host
+                  </Typography>
+                </View>
+              </Portal>
+            </View>
+          </View>
+        </Portal.Host>
+      );
+    }
+
+    if (selectedComponentName === "LanguageSelector") {
+      props.currentLang = languageDemo;
+      props.onChange = setLanguageDemo;
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "DrawerPreferenceItem") {
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props}>
+            <Toggle value={preferenceDemo} onValueChange={setPreferenceDemo} />
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "ClockDial") {
+      const current = dateValue ?? new Date();
+      props.minuteInterval = Number(props.minuteInterval) || 1;
+      props.hours = current.getHours();
+      props.minutes = current.getMinutes();
+      props.onChangeHours = (hours: number) => {
+        const next = new Date(current);
+        next.setHours(hours);
+        setDateValue(next);
+      };
+      props.onChangeMinutes = (minutes: number) => {
+        const next = new Date(current);
+        next.setMinutes(minutes);
+        setDateValue(next);
+      };
+      return <Component {...props} />;
+    }
+
+    if (selectedComponentName === "TimeSelect") {
+      props.minuteInterval = Number(props.minuteInterval) || 1;
+      props.value = dateValue ?? new Date();
+      props.onChange = setDateValue;
+      return <Component {...props} />;
     }
 
     if (isContainer) {

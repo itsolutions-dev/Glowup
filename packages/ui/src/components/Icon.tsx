@@ -68,8 +68,7 @@ const Icon = ({
   const tint = color ?? theme.colors.onSurface;
 
   const transform = useMemo(
-    () =>
-      flipForRTL && I18nManager.isRTL ? [{ scaleX: -1 }] : undefined,
+    () => (flipForRTL && I18nManager.isRTL ? [{ scaleX: -1 }] : undefined),
     [flipForRTL],
   );
 

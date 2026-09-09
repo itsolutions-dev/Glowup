@@ -98,10 +98,10 @@ const Input = ({
     [type, precision, onChangeText],
   );
 
-  // BISECT-TEST: glow disabled
+  // Focus ring + error border, both driven by the theme's glow helper.
   const dynamicStyles = useMemo(
-    () => ({ borderWidth: 1, borderColor: theme.colors.outlineVariant }),
-    [theme],
+    () => getGlowStyles(theme, isFocused, error),
+    [theme, isFocused, error],
   );
 
   return (

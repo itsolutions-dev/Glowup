@@ -1,5 +1,12 @@
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-import { AlertProviderWrapper, AlertProvider, ThemeProvider, DrawerNavigation, StatusBar } from "@glowup/ui";
+import {
+  AlertProviderWrapper,
+  AlertProvider,
+  ThemeProvider,
+  ToastProvider,
+  DrawerNavigation,
+  StatusBar,
+} from "@glowup/ui";
 import { NavigationContainer } from "@react-navigation/native";
 
 import { useTranslation } from "react-i18next";
@@ -27,7 +34,9 @@ export default function App() {
       <SafeAreaProvider>
         <AlertProvider>
           <AlertProviderWrapper>
-            <InternalApp />
+            <ToastProvider>
+              <InternalApp />
+            </ToastProvider>
           </AlertProviderWrapper>
         </AlertProvider>
       </SafeAreaProvider>

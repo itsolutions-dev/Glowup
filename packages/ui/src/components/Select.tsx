@@ -133,7 +133,7 @@ const Select = ({
     }
     return (
       <View style={styles.leftSlot}>
-        {selectedOption && selectedOption.icon && (
+        {selectedOption && !!selectedOption.icon && (
           <Icons
             name={selectedOption.icon}
             size={20}
@@ -280,7 +280,7 @@ const Select = ({
                   )}
                   {!multiSelect && (
                     <View style={styles.innerContent}>
-                      {variant === "filled" && label && option.value && (
+                      {variant === "filled" && !!label && !!option.value && (
                         <Text
                           style={[
                             theme.typography.labelSmall,
@@ -320,7 +320,7 @@ const Select = ({
                       </View>
                     </View>
                   )}
-                  {!multiSelect && value === option.value && option.value && (
+                  {!multiSelect && value === option.value && !!option.value && (
                     <Icons
                       name="check"
                       size={18}

@@ -114,65 +114,61 @@ const PickerField = forwardRef<View, PickerFieldProps>(
     );
 
     const body = (
-      <>
-        <View style={styles.content}>
-          {editable ? (
-            <TextInput
-              accessibilityLabel={accessibilityLabel ?? label}
-              editable={!disabled}
-              value={inputValue}
-              onChangeText={onInputChange}
-              onFocus={() => setFocused(true)}
-              onBlur={() => {
-                setFocused(false);
-                onInputBlur?.();
-              }}
-              placeholder={inputPlaceholder ?? placeholder}
-              placeholderTextColor={theme.colors.onSurfaceVariant}
-              style={[
-                theme.typography.bodyLarge,
-                styles.input,
-                { color: theme.colors.onSurface },
-              ]}
-            />
-          ) : (
-            <Text
-              numberOfLines={1}
-              style={[
-                theme.typography.bodyLarge,
-                {
-                  color: hasValue
-                    ? theme.colors.onSurface
-                    : theme.colors.onSurfaceVariant,
-                },
-              ]}
-            >
-              {hasValue ? displayValue : (placeholder ?? "")}
-            </Text>
-          )}
-        </View>
-
-        {showClear && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={clearAccessibilityLabel}
-            onPress={onClear}
-            hitSlop={8}
-            style={({ hovered }: PressableState) => [
-              styles.iconButton,
-              hovered && {
-                backgroundColor: theme.colors.surfaceContainerHighest,
+      <View style={styles.content}>
+        {editable ? (
+          <TextInput
+            accessibilityLabel={accessibilityLabel ?? label}
+            editable={!disabled}
+            value={inputValue}
+            onChangeText={onInputChange}
+            onFocus={() => setFocused(true)}
+            onBlur={() => {
+              setFocused(false);
+              onInputBlur?.();
+            }}
+            placeholder={inputPlaceholder ?? placeholder}
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+            style={[
+              theme.typography.bodyLarge,
+              styles.input,
+              { color: theme.colors.onSurface },
+            ]}
+          />
+        ) : (
+          <Text
+            numberOfLines={1}
+            style={[
+              theme.typography.bodyLarge,
+              {
+                color: hasValue
+                  ? theme.colors.onSurface
+                  : theme.colors.onSurfaceVariant,
               },
             ]}
           >
-            <Icons
-              name="close"
-              size={18}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
+            {hasValue ? displayValue : (placeholder ?? "")}
+          </Text>
         )}
-      </>
+      </View>
+    );
+
+    // Sibling of the trigger, never a child of it: a Pressable renders a
+    // <button> on web, and a button cannot contain another button.
+    const clearButton = showClear && (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={clearAccessibilityLabel}
+        onPress={onClear}
+        hitSlop={8}
+        style={({ hovered }: PressableState) => [
+          styles.iconButton,
+          hovered && {
+            backgroundColor: theme.colors.surfaceContainerHighest,
+          },
+        ]}
+      >
+        <Icons name="close" size={18} color={theme.colors.onSurfaceVariant} />
+      </Pressable>
     );
 
     const containerStyle = [
@@ -204,28 +200,33 @@ const PickerField = forwardRef<View, PickerFieldProps>(
         {editable ? (
           <View ref={ref} style={containerStyle}>
             {body}
+            {clearButton}
             {openButton}
             {children}
           </View>
         ) : (
-          <Pressable
-            ref={ref}
-            accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel ?? label}
-            accessibilityValue={{ text: displayValue }}
-            accessibilityState={{ disabled, expanded: active }}
-            disabled={disabled}
-            onPress={onPress}
-            style={containerStyle}
-          >
-            {body}
-            <Icons
-              name={icon}
-              size={20}
-              color={error ? theme.colors.error : theme.colors.onSurfaceVariant}
-            />
+          <View ref={ref} style={containerStyle}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={accessibilityLabel ?? label}
+              accessibilityValue={{ text: displayValue }}
+              accessibilityState={{ disabled, expanded: active }}
+              disabled={disabled}
+              onPress={onPress}
+              style={styles.trigger}
+            >
+              {body}
+              <Icons
+                name={icon}
+                size={20}
+                color={
+                  error ? theme.colors.error : theme.colors.onSurfaceVariant
+                }
+              />
+            </Pressable>
+            {clearButton}
             {children}
-          </Pressable>
+          </View>
         )}
 
         {!!(error || helperText) && (
@@ -254,6 +255,13 @@ const makeStyles = (theme: Theme) =>
       borderRadius: theme.shape.medium,
       paddingHorizontal: theme.spacing.m,
       backgroundColor: theme.colors.surface,
+    },
+    trigger: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.s,
+      alignSelf: "stretch",
     },
     content: { flex: 1, justifyContent: "center" },
     input: { paddingVertical: 0, outlineStyle: "none" } as any,

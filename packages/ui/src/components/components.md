@@ -413,7 +413,7 @@ Numeric field with +/- steppers. (Distinct from progress spinners in §6.)
 | autoFocus    | boolean        |         |     |                                  |
 | style        | ViewStyle      |         |     |                                  |
 
-### DateTimePicker
+### DateTimePicker / DatePicker / DatePickerInput / DateRangePicker / TimePicker
 
 Field that opens a Material 3 date/time picker. There is no OS picker underneath: the same
 in-house surface renders everywhere — a dialog on native, a popover docked to the field on web —
@@ -1071,7 +1071,7 @@ never pushes a cell onto the next line and a short last row keeps its cells at c
 
 ---
 
-## 9. Component Index (58)
+## 9. Component Index (62)
 
 **Foundations**: Typography, Divider, Paper, Card
 **Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio

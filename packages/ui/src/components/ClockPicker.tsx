@@ -256,7 +256,7 @@ const ClockPicker = ({
                       borderBottomColor: theme.colors.outline,
                     },
                     active && {
-                      backgroundColor: theme.colors.tertiaryContainer,
+                      backgroundColor: theme.colors.secondaryContainer,
                     },
                     !active &&
                       hovered && {
@@ -270,7 +270,7 @@ const ClockPicker = ({
                       theme.typography.titleMedium,
                       {
                         color: active
-                          ? theme.colors.onTertiaryContainer
+                          ? theme.colors.onSecondaryContainer
                           : theme.colors.onSurfaceVariant,
                       },
                     ]}

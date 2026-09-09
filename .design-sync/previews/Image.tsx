@@ -66,8 +66,6 @@ export const Fallback = () => (
       fallbackIcon="image"
       showLoader={false}
     />
-    <Typography variant="labelSmall">
-      broken source → fallbackIcon
-    </Typography>
+    <Typography variant="labelSmall">broken source → fallbackIcon</Typography>
   </VStack>
 );

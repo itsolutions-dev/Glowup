@@ -26,8 +26,20 @@ export const Trends = () => (
 /** `invertTrendColors` is for metrics where a fall is the good news. */
 export const InvertedTrend = () => (
   <div style={row}>
-    <Stat label="Failed builds" value="3" delta="42%" trend="down" invertTrendColors />
-    <Stat label="p95 latency" value="240 ms" delta="18%" trend="up" invertTrendColors />
+    <Stat
+      label="Failed builds"
+      value="3"
+      delta="42%"
+      trend="down"
+      invertTrendColors
+    />
+    <Stat
+      label="p95 latency"
+      value="240 ms"
+      delta="18%"
+      trend="up"
+      invertTrendColors
+    />
   </div>
 );
 
@@ -66,8 +78,20 @@ export const OnAPanel = () => (
       <Typography variant="titleMedium">This quarter</Typography>
       <div style={{ height: 12 }} />
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <Stat label="Orders" value="1,204" delta="9.2%" trend="up" icon="cart-outline" />
-        <Stat label="Refunds" value="18" delta="3.1%" trend="down" invertTrendColors />
+        <Stat
+          label="Orders"
+          value="1,204"
+          delta="9.2%"
+          trend="up"
+          icon="cart-outline"
+        />
+        <Stat
+          label="Refunds"
+          value="18"
+          delta="3.1%"
+          trend="down"
+          invertTrendColors
+        />
       </div>
     </Paper>
   </div>

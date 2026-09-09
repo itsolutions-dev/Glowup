@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Center,
-  CircularProgress,
-  EmptyState,
-  Typography,
-} from "@glowup/ui";
+import { Center, CircularProgress, EmptyState, Typography } from "@glowup/ui";
 
 export const Basic = () => (
   <Center bg="surfaceContainerLow" radius="medium" height={160} width={360}>

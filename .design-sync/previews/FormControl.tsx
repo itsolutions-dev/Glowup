@@ -54,7 +54,11 @@ export const AroundARadioGroup = () => (
 /** `disabled` dims the whole group, control and supporting text together. */
 export const Disabled = () => (
   <VStack spacing="m" width={380}>
-    <FormControl label="Storage quota" helperText="Fixed by your plan." disabled>
+    <FormControl
+      label="Storage quota"
+      helperText="Fixed by your plan."
+      disabled
+    >
       <Slider
         value={30}
         onValueChange={() => {}}

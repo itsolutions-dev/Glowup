@@ -79,8 +79,8 @@ export const TheApi = () => (
   <VStack spacing="s" p="m" bg="surfaceContainerLow" radius="large" width={420}>
     <Typography variant="titleMedium">Raising a toast</Typography>
     <Typography variant="bodyMedium">
-      Mount ToastProvider once near the root, then call useToast() from
-      anywhere below it. There is no visible state to thread through a screen.
+      Mount ToastProvider once near the root, then call useToast() from anywhere
+      below it. There is no visible state to thread through a screen.
     </Typography>
     <VStack spacing="xs" p="s" bg="surface" radius="medium">
       <Typography variant="bodySmall">const toast = useToast();</Typography>

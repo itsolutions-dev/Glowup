@@ -13,7 +13,9 @@ export const Padding = () => (
       <Typography variant="bodySmall">p=&quot;m&quot; — 16</Typography>
     </Box>
     <Box bg="secondaryContainer" px="xl" py="xs" radius="small">
-      <Typography variant="bodySmall">px=&quot;xl&quot; py=&quot;xs&quot;</Typography>
+      <Typography variant="bodySmall">
+        px=&quot;xl&quot; py=&quot;xs&quot;
+      </Typography>
     </Box>
   </Box>
 );

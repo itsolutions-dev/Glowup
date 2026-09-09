@@ -19,7 +19,14 @@ export const Default = () => (
 
 export const Steps = () => (
   <div style={row}>
-    <Spinner label="Quantity" value={6} step={1} min={1} max={99} onChange={noop} />
+    <Spinner
+      label="Quantity"
+      value={6}
+      step={1}
+      min={1}
+      max={99}
+      onChange={noop}
+    />
     <Spinner
       label="Seats (packs of 5)"
       value={25}
@@ -40,6 +47,13 @@ export const AtBounds = () => (
 
 export const Disabled = () => (
   <div style={row}>
-    <Spinner label="Licences" value={10} min={1} max={50} disabled onChange={noop} />
+    <Spinner
+      label="Licences"
+      value={10}
+      min={1}
+      max={50}
+      disabled
+      onChange={noop}
+    />
   </div>
 );

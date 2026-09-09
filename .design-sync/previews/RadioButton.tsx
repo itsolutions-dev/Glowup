@@ -13,7 +13,11 @@ const noop = () => {};
 export const Selection = () => (
   <div style={stack}>
     <RadioButton label="Standard delivery (3–5 days)" selected onPress={noop} />
-    <RadioButton label="Express delivery (next day)" selected={false} onPress={noop} />
+    <RadioButton
+      label="Express delivery (next day)"
+      selected={false}
+      onPress={noop}
+    />
     <RadioButton label="Pick up in store" selected={false} onPress={noop} />
   </div>
 );
@@ -21,8 +25,18 @@ export const Selection = () => (
 export const DisabledAndError = () => (
   <div style={stack}>
     <RadioButton label="Bank transfer" selected disabled onPress={noop} />
-    <RadioButton label="Cash on delivery (unavailable)" selected={false} disabled onPress={noop} />
-    <RadioButton label="Pick a payment method" selected={false} error onPress={noop} />
+    <RadioButton
+      label="Cash on delivery (unavailable)"
+      selected={false}
+      disabled
+      onPress={noop}
+    />
+    <RadioButton
+      label="Pick a payment method"
+      selected={false}
+      error
+      onPress={noop}
+    />
     <RadioButton label="Credit card" selected error onPress={noop} />
   </div>
 );

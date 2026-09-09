@@ -38,6 +38,18 @@ module.exports = defineConfig([
     },
   },
   {
+    // The two design-sync lib forks import `ts-morph` and `../../.ds-sync/lib/*`.
+    // Both are supplied by the design-sync tooling at run time and neither is
+    // resolvable from a clone: `.ds-sync/` and `.design-sync/node_modules` are
+    // gitignored (the latter is a per-clone symlink, see .design-sync/NOTES.md)
+    // and `ts-morph` is not a repo dependency. The resolver is therefore always
+    // right and always useless here.
+    files: [".design-sync/overrides/*.mjs"],
+    rules: {
+      "import/no-unresolved": "off",
+    },
+  },
+  {
     rules: {
       "linebreak-style": ["error", "unix"],
     },

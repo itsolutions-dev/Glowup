@@ -95,7 +95,11 @@ export const HelpBubble = () => (
       visible
       onDismiss={() => {}}
       anchor={
-        <Button mode="outlined" iconName="help-circle-outline" onPress={() => {}}>
+        <Button
+          mode="outlined"
+          iconName="help-circle-outline"
+          onPress={() => {}}
+        >
           Token sets
         </Button>
       }

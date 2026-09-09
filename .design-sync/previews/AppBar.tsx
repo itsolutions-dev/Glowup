@@ -22,7 +22,11 @@ export const Default = () => (
         title: "Dashboard",
         headerRight: () => (
           <div style={trailing}>
-            <IconBadge iconName="bell-outline" badgeCount={4} onPress={() => {}} />
+            <IconBadge
+              iconName="bell-outline"
+              badgeCount={4}
+              onPress={() => {}}
+            />
             <Avatar name="Marta Rossi" size={32} />
           </div>
         ),

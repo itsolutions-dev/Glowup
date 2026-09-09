@@ -1,5 +1,11 @@
 import React from "react";
-import { Chip, Divider, DrawerPreferenceItem, Toggle, Typography } from "@glowup/ui";
+import {
+  Chip,
+  Divider,
+  DrawerPreferenceItem,
+  Toggle,
+  Typography,
+} from "@glowup/ui";
 
 const panel: React.CSSProperties = {
   width: 320,

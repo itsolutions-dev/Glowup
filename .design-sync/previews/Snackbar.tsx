@@ -18,7 +18,9 @@ export const WithAction = () => (
   <div style={frame(180)}>
     <Card variant="outlined">
       <Typography variant="titleSmall">Chip</Typography>
-      <Typography variant="bodySmall">Moved to Buttons &amp; actions.</Typography>
+      <Typography variant="bodySmall">
+        Moved to Buttons &amp; actions.
+      </Typography>
     </Card>
     <Snackbar
       visible

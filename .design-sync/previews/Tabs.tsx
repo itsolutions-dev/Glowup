@@ -5,7 +5,11 @@ const wrap: React.CSSProperties = { width: 400, display: "flex" };
 
 export const TextTabs = () => (
   <div style={wrap}>
-    <Tabs tabs={["Overview", "Specs", "Reviews"]} activeTab={0} onChange={() => {}} />
+    <Tabs
+      tabs={["Overview", "Specs", "Reviews"]}
+      activeTab={0}
+      onChange={() => {}}
+    />
   </div>
 );
 
@@ -36,6 +40,10 @@ export const FourTabs = () => (
 
 export const TwoTabs = () => (
   <div style={wrap}>
-    <Tabs tabs={["Sign in", "Create account"]} activeTab={0} onChange={() => {}} />
+    <Tabs
+      tabs={["Sign in", "Create account"]}
+      activeTab={0}
+      onChange={() => {}}
+    />
   </div>
 );

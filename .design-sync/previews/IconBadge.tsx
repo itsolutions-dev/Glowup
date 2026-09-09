@@ -30,7 +30,11 @@ export const NotificationCounts = () => (
       <Typography variant="labelSmall">Cart</Typography>
     </div>
     <div style={stack}>
-      <IconBadge iconName="calendar-outline" badgeCount={0} onPress={() => {}} />
+      <IconBadge
+        iconName="calendar-outline"
+        badgeCount={0}
+        onPress={() => {}}
+      />
       <Typography variant="labelSmall">Nothing due</Typography>
     </div>
   </div>
@@ -38,10 +42,30 @@ export const NotificationCounts = () => (
 
 export const Sizes = () => (
   <div style={row}>
-    <IconBadge iconName="bell-outline" badgeCount={5} size={32} onPress={() => {}} />
-    <IconBadge iconName="bell-outline" badgeCount={5} size={40} onPress={() => {}} />
-    <IconBadge iconName="bell-outline" badgeCount={5} size={56} onPress={() => {}} />
-    <IconBadge iconName="bell-outline" badgeCount={5} size={72} onPress={() => {}} />
+    <IconBadge
+      iconName="bell-outline"
+      badgeCount={5}
+      size={32}
+      onPress={() => {}}
+    />
+    <IconBadge
+      iconName="bell-outline"
+      badgeCount={5}
+      size={40}
+      onPress={() => {}}
+    />
+    <IconBadge
+      iconName="bell-outline"
+      badgeCount={5}
+      size={56}
+      onPress={() => {}}
+    />
+    <IconBadge
+      iconName="bell-outline"
+      badgeCount={5}
+      size={72}
+      onPress={() => {}}
+    />
   </div>
 );
 
@@ -92,7 +116,17 @@ export const AppBarActions = () => (
     }}
   >
     <IconBadge iconName="magnify" badgeCount={0} size={36} onPress={() => {}} />
-    <IconBadge iconName="bell-outline" badgeCount={4} size={36} onPress={() => {}} />
-    <IconBadge iconName="email-outline" badgeCount={112} size={36} onPress={() => {}} />
+    <IconBadge
+      iconName="bell-outline"
+      badgeCount={4}
+      size={36}
+      onPress={() => {}}
+    />
+    <IconBadge
+      iconName="email-outline"
+      badgeCount={112}
+      size={36}
+      onPress={() => {}}
+    />
   </div>
 );

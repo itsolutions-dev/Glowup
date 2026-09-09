@@ -27,7 +27,9 @@ export const Outlined = () => (
   <div style={{ width: 380, display: "flex" }}>
     <Paper elevation={0} outline style={{ flex: 1 }}>
       <Typography variant="titleSmall">API key</Typography>
-      <Typography variant="bodySmall">Rotates automatically every 90 days.</Typography>
+      <Typography variant="bodySmall">
+        Rotates automatically every 90 days.
+      </Typography>
       <div style={{ height: 12 }} />
       <Divider contentSpacing={0} />
       <div style={{ height: 12 }} />
@@ -40,9 +42,16 @@ export const Glow = () => (
   <div style={{ width: 380, display: "flex" }}>
     <Paper elevation={3} glow style={{ flex: 1 }}>
       <Typography variant="titleMedium">Pro plan</Typography>
-      <Typography variant="bodySmall">Unlimited seats and priority support.</Typography>
+      <Typography variant="bodySmall">
+        Unlimited seats and priority support.
+      </Typography>
       <div style={{ height: 16 }} />
-      <Button mode="filled" iconName="arrow-right" iconPosition="right" onPress={() => {}}>
+      <Button
+        mode="filled"
+        iconName="arrow-right"
+        iconPosition="right"
+        onPress={() => {}}
+      >
         Upgrade
       </Button>
     </Paper>
@@ -52,7 +61,13 @@ export const Glow = () => (
 export const AsPanel = () => (
   <div style={{ width: 380, display: "flex" }}>
     <Paper elevation={2} style={{ flex: 1 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="titleMedium">Build #418</Typography>
         <StatusBadge label="Passed" type="success" />
       </div>
@@ -61,7 +76,9 @@ export const AsPanel = () => (
       <div style={{ height: 12 }} />
       <Typography variant="bodyMedium">master · 75b8c46</Typography>
       <div style={{ height: 4 }} />
-      <Typography variant="bodySmall">Finished in 2m 14s · 312 tests</Typography>
+      <Typography variant="bodySmall">
+        Finished in 2m 14s · 312 tests
+      </Typography>
     </Paper>
   </div>
 );

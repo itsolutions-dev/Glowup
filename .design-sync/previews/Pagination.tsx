@@ -11,12 +11,7 @@ export const Default = () => (
 
 export const WithFirstLast = () => (
   <div style={wrap}>
-    <Pagination
-      page={1}
-      totalPages={8}
-      showFirstLast
-      onPageChange={() => {}}
-    />
+    <Pagination page={1} totalPages={8} showFirstLast onPageChange={() => {}} />
   </div>
 );
 

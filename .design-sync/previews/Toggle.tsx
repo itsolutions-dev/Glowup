@@ -50,8 +50,16 @@ export const OnOffDisabled = () => (
       <Toggle value disabled width={48} height={28} onValueChange={noop} />
     </div>
     <div style={row}>
-      <Typography variant="bodyLarge">Beta features (Enterprise only)</Typography>
-      <Toggle value={false} disabled width={48} height={28} onValueChange={noop} />
+      <Typography variant="bodyLarge">
+        Beta features (Enterprise only)
+      </Typography>
+      <Toggle
+        value={false}
+        disabled
+        width={48}
+        height={28}
+        onValueChange={noop}
+      />
     </div>
   </div>
 );

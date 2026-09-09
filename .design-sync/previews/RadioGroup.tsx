@@ -13,7 +13,11 @@ const noop = () => {};
 const plans = [
   { id: "starter", label: "Starter — €9 / month", value: "starter" },
   { id: "business", label: "Business — €29 / month", value: "business" },
-  { id: "enterprise", label: "Enterprise — contact sales", value: "enterprise" },
+  {
+    id: "enterprise",
+    label: "Enterprise — contact sales",
+    value: "enterprise",
+  },
 ];
 
 export const Column = () => (
@@ -49,7 +53,11 @@ export const WithError = () => (
       label="Shipping address"
       options={[
         { id: "home", label: "Home — Via Roma 12, Milano", value: "home" },
-        { id: "office", label: "Office — Corso Buenos Aires 4", value: "office" },
+        {
+          id: "office",
+          label: "Office — Corso Buenos Aires 4",
+          value: "office",
+        },
         { id: "new", label: "Add a new address", value: "new" },
       ]}
       value={null}
@@ -65,8 +73,18 @@ export const DisabledOptions = () => (
       label="Support tier"
       options={[
         { id: "email", label: "Email support", value: "email" },
-        { id: "phone", label: "Phone support (Business+)", value: "phone", disabled: true },
-        { id: "dedicated", label: "Dedicated engineer (Enterprise)", value: "dedicated", disabled: true },
+        {
+          id: "phone",
+          label: "Phone support (Business+)",
+          value: "phone",
+          disabled: true,
+        },
+        {
+          id: "dedicated",
+          label: "Dedicated engineer (Enterprise)",
+          value: "dedicated",
+          disabled: true,
+        },
       ]}
       value="email"
       onValueChange={noop}

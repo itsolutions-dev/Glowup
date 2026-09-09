@@ -26,18 +26,50 @@ export const FilterSheet = () => (
       <div style={column}>
         <Typography variant="labelLarge">Group</Typography>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Chip label="Buttons & actions" size="small" mode="tonal" selected onPress={() => {}} />
-          <Chip label="Inputs & forms" size="small" mode="outlined" onPress={() => {}} />
-          <Chip label="Feedback" size="small" mode="outlined" onPress={() => {}} />
-          <Chip label="Navigation" size="small" mode="outlined" onPress={() => {}} />
+          <Chip
+            label="Buttons & actions"
+            size="small"
+            mode="tonal"
+            selected
+            onPress={() => {}}
+          />
+          <Chip
+            label="Inputs & forms"
+            size="small"
+            mode="outlined"
+            onPress={() => {}}
+          />
+          <Chip
+            label="Feedback"
+            size="small"
+            mode="outlined"
+            onPress={() => {}}
+          />
+          <Chip
+            label="Navigation"
+            size="small"
+            mode="outlined"
+            onPress={() => {}}
+          />
         </div>
         <div style={{ height: 4 }} />
         <Divider contentSpacing={0} />
         <div style={{ height: 4 }} />
         <Typography variant="labelLarge">Status</Typography>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Chip label="Stable" size="small" mode="tonal" selected onPress={() => {}} />
-          <Chip label="Deprecated" size="small" mode="outlined" onPress={() => {}} />
+          <Chip
+            label="Stable"
+            size="small"
+            mode="tonal"
+            selected
+            onPress={() => {}}
+          />
+          <Chip
+            label="Deprecated"
+            size="small"
+            mode="outlined"
+            onPress={() => {}}
+          />
         </div>
         <div style={{ height: 12 }} />
         <Button mode="filled" fullWidth onPress={() => {}}>
@@ -54,17 +86,37 @@ export const ActionSheet = () => (
     <Typography variant="bodyMedium">Buttons &amp; actions</Typography>
     <BottomSheet visible title="Chip" onDismiss={() => {}}>
       <div style={column}>
-        <Button mode="text" fullWidth iconName="pencil-outline" onPress={() => {}}>
+        <Button
+          mode="text"
+          fullWidth
+          iconName="pencil-outline"
+          onPress={() => {}}
+        >
           Edit props
         </Button>
-        <Button mode="text" fullWidth iconName="content-copy" onPress={() => {}}>
+        <Button
+          mode="text"
+          fullWidth
+          iconName="content-copy"
+          onPress={() => {}}
+        >
           Duplicate component
         </Button>
-        <Button mode="text" fullWidth iconName="share-variant" onPress={() => {}}>
+        <Button
+          mode="text"
+          fullWidth
+          iconName="share-variant"
+          onPress={() => {}}
+        >
           Share preview link
         </Button>
         <Divider contentSpacing={0} />
-        <Button mode="text" fullWidth iconName="delete-outline" onPress={() => {}}>
+        <Button
+          mode="text"
+          fullWidth
+          iconName="delete-outline"
+          onPress={() => {}}
+        >
           Delete
         </Button>
       </div>
@@ -74,9 +126,19 @@ export const ActionSheet = () => (
 
 export const NoHandle = () => (
   <div style={behind}>
-    <BottomSheet visible showHandle={false} title="Sort by" onDismiss={() => {}}>
+    <BottomSheet
+      visible
+      showHandle={false}
+      title="Sort by"
+      onDismiss={() => {}}
+    >
       <div style={column}>
-        <Chip label="Recently updated" mode="tonal" selected onPress={() => {}} />
+        <Chip
+          label="Recently updated"
+          mode="tonal"
+          selected
+          onPress={() => {}}
+        />
         <Chip label="Name A–Z" mode="outlined" onPress={() => {}} />
         <Chip label="Most used" mode="outlined" onPress={() => {}} />
         <div style={{ height: 8 }} />

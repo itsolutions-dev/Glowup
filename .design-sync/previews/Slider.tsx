@@ -14,7 +14,12 @@ export const WithValueLabel = () => (
   <div style={stack}>
     <Slider label="Volume" value={40} showValueLabel onValueChange={noop} />
     <Slider label="Brightness" value={82} showValueLabel onValueChange={noop} />
-    <Slider label="Microphone gain" value={0} showValueLabel onValueChange={noop} />
+    <Slider
+      label="Microphone gain"
+      value={0}
+      showValueLabel
+      onValueChange={noop}
+    />
   </div>
 );
 

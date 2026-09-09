@@ -25,17 +25,13 @@ const stack = (gap: number): React.CSSProperties => ({
 
 // Typography renders as an inline-flex <Text> on react-native-web, so any div
 // holding sibling lines needs an explicit column flex.
-const lines: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 2 };
+const lines: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
 
-const Swatch = ({
-  role,
-  bg,
-  fg,
-}: {
-  role: string;
-  bg: string;
-  fg: string;
-}) => (
+const Swatch = ({ role, bg, fg }: { role: string; bg: string; fg: string }) => (
   <div
     style={{
       display: "flex",
@@ -78,9 +74,17 @@ export const Palette = () => {
       </div>
       <div style={grid}>
         <Swatch role="primary" bg={c.primary} fg={c.onPrimary} />
-        <Swatch role="primaryContainer" bg={c.primaryContainer} fg={c.onPrimaryContainer} />
+        <Swatch
+          role="primaryContainer"
+          bg={c.primaryContainer}
+          fg={c.onPrimaryContainer}
+        />
         <Swatch role="secondary" bg={c.secondary} fg={c.onSecondary} />
-        <Swatch role="secondaryContainer" bg={c.secondaryContainer} fg={c.onSecondaryContainer} />
+        <Swatch
+          role="secondaryContainer"
+          bg={c.secondaryContainer}
+          fg={c.onSecondaryContainer}
+        />
         <Swatch role="tertiary" bg={c.tertiary} fg={c.onTertiary} />
         <Swatch role="error" bg={c.error} fg={c.onError} />
       </div>
@@ -107,15 +111,31 @@ export const Surfaces = () => {
       </div>
       <div style={grid}>
         <Swatch role="surface" bg={c.surface} fg={c.onSurface} />
-        <Swatch role="surfaceContainerLow" bg={c.surfaceContainerLow} fg={c.onSurface} />
-        <Swatch role="surfaceContainer" bg={c.surfaceContainer} fg={c.onSurface} />
-        <Swatch role="surfaceContainerHigh" bg={c.surfaceContainerHigh} fg={c.onSurface} />
-        <Swatch role="surfaceVariant" bg={c.surfaceVariant} fg={c.onSurfaceVariant} />
+        <Swatch
+          role="surfaceContainerLow"
+          bg={c.surfaceContainerLow}
+          fg={c.onSurface}
+        />
+        <Swatch
+          role="surfaceContainer"
+          bg={c.surfaceContainer}
+          fg={c.onSurface}
+        />
+        <Swatch
+          role="surfaceContainerHigh"
+          bg={c.surfaceContainerHigh}
+          fg={c.onSurface}
+        />
+        <Swatch
+          role="surfaceVariant"
+          bg={c.surfaceVariant}
+          fg={c.onSurfaceVariant}
+        />
         <Swatch role="outlineVariant" bg={c.outlineVariant} fg={c.onSurface} />
       </div>
       <Typography variant="labelSmall" style={{ color: c.onSurfaceVariant }}>
-        theme.isDark is {String(theme.isDark)} — the provider follows the OS scheme
-        until toggleTheme() overrides it.
+        theme.isDark is {String(theme.isDark)} — the provider follows the OS
+        scheme until toggleTheme() overrides it.
       </Typography>
     </div>
   );
@@ -138,8 +158,8 @@ export const TypeScale = () => {
       <div style={lines}>
         <Typography variant="titleMedium">Type scale</Typography>
         <Typography variant="bodySmall">
-          Fifteen roles on theme.typography; Typography takes the role name as its
-          variant.
+          Fifteen roles on theme.typography; Typography takes the role name as
+          its variant.
         </Typography>
       </div>
       <Divider contentSpacing={0} />
@@ -167,14 +187,21 @@ export const SpacingAndShape = () => {
       <div style={lines}>
         <Typography variant="titleMedium">Spacing</Typography>
         <Typography variant="bodySmall">
-          theme.spacing — the five gaps every layout in the library is built from.
+          theme.spacing — the five gaps every layout in the library is built
+          from.
         </Typography>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {(["xs", "s", "m", "l", "xl"] as const).map((key) => (
-          <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div
+            key={key}
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+          >
             <div style={{ width: 96 }}>
-              <Typography variant="labelMedium" style={{ color: colors.onSurfaceVariant }}>
+              <Typography
+                variant="labelMedium"
+                style={{ color: colors.onSurfaceVariant }}
+              >
                 {key} · {spacing[key]}px
               </Typography>
             </div>
@@ -198,7 +225,10 @@ export const SpacingAndShape = () => {
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         {(["small", "medium", "large", "extraLarge"] as const).map((key) => (
-          <div key={key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div
+            key={key}
+            style={{ display: "flex", flexDirection: "column", gap: 4 }}
+          >
             <div
               style={{
                 width: 76,
@@ -208,7 +238,10 @@ export const SpacingAndShape = () => {
                 border: `1px solid ${colors.outlineVariant}`,
               }}
             />
-            <Typography variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
+            <Typography
+              variant="labelSmall"
+              style={{ color: colors.onSurfaceVariant }}
+            >
               {key} · {shape[key]}
             </Typography>
           </div>
@@ -223,8 +256,8 @@ export const WrapsTheApp = () => (
     <div style={lines}>
       <Typography variant="titleMedium">The wrap</Typography>
       <Typography variant="bodySmall">
-        ThemeProvider sits at the root, above AlertProvider. Anything below it is
-        themed; anything above it renders with browser defaults.
+        ThemeProvider sits at the root, above AlertProvider. Anything below it
+        is themed; anything above it renders with browser defaults.
       </Typography>
     </div>
     <ThemeProvider>
@@ -237,7 +270,14 @@ export const WrapsTheApp = () => (
           </Typography>
         </div>
         <div style={{ height: 12 }} />
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
           <Button mode="filled" onPress={() => {}}>
             Renew
           </Button>

@@ -14,7 +14,9 @@ const backdrop: React.CSSProperties = {
 export const Destructive = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Chip</Typography>
-    <Typography variant="bodyMedium">Buttons &amp; actions · 4 variants</Typography>
+    <Typography variant="bodyMedium">
+      Buttons &amp; actions · 4 variants
+    </Typography>
     <ConfirmDialog
       visible
       title="Delete Chip?"

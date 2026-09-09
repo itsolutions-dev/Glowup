@@ -109,7 +109,12 @@ export const DisabledHint = () => (
     }}
   >
     <div
-      style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        alignItems: "center",
+      }}
     >
       <Hovered>
         <Tooltip content="Ctrl+Enter" position="top">
@@ -121,7 +126,12 @@ export const DisabledHint = () => (
       <Typography variant="labelSmall">enabled</Typography>
     </div>
     <div
-      style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        alignItems: "center",
+      }}
     >
       <Hovered>
         <Tooltip content="Ctrl+S" position="top" disabled>

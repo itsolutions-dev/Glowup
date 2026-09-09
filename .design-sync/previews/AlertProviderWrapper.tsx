@@ -23,7 +23,11 @@ const stack: React.CSSProperties = {
   width: 400,
 };
 
-const lines: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 2 };
+const lines: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
 
 const RaiseOnMount = () => {
   React.useEffect(() => {
@@ -68,8 +72,8 @@ export const WrapOrder = () => (
     <div style={lines}>
       <Typography variant="titleMedium">Where it goes</Typography>
       <Typography variant="bodySmall">
-        Directly inside AlertProvider, above the app. It renders a fragment, so it
-        adds no layout of its own.
+        Directly inside AlertProvider, above the app. It renders a fragment, so
+        it adds no layout of its own.
       </Typography>
     </div>
     <Paper outline style={{ padding: 12 }}>
@@ -79,9 +83,7 @@ export const WrapOrder = () => (
         <Typography variant="labelSmall">
           {"    <AlertProviderWrapper>"}
         </Typography>
-        <Typography variant="labelSmall">
-          {"      <App />"}
-        </Typography>
+        <Typography variant="labelSmall">{"      <App />"}</Typography>
         <Typography variant="labelSmall">
           {"    </AlertProviderWrapper>"}
         </Typography>
@@ -91,9 +93,9 @@ export const WrapOrder = () => (
     </Paper>
     <Divider contentSpacing={0} />
     <Typography variant="bodySmall">
-      Omit it and every Alert() call is a no-op that warns
-      &ldquo;AlertProvider is not initialized.&rdquo; — the provider still renders,
-      nothing ever asks it to show anything.
+      Omit it and every Alert() call is a no-op that warns &ldquo;AlertProvider
+      is not initialized.&rdquo; — the provider still renders, nothing ever asks
+      it to show anything.
     </Typography>
   </div>
 );

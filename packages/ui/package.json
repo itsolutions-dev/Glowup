@@ -48,7 +48,6 @@
   },
   "peerDependencies": {
     "@expo/vector-icons": ">=15",
-    "@react-native-community/datetimepicker": ">=9",
     "@react-navigation/drawer": ">=7",
     "@react-navigation/native": ">=7",
     "@react-navigation/native-stack": ">=7",
@@ -56,14 +55,10 @@
     "expo-status-bar": ">=57 || >=2",
     "react": ">=19",
     "react-native": ">=0.86",
-    "react-native-modal-datetime-picker": ">=18",
     "react-native-safe-area-context": ">=5",
     "react-native-svg": ">=15"
   },
   "peerDependenciesMeta": {
-    "@react-native-community/datetimepicker": {
-      "optional": true
-    },
     "@react-navigation/drawer": {
       "optional": true
     },
@@ -77,9 +72,6 @@
       "optional": true
     },
     "expo-status-bar": {
-      "optional": true
-    },
-    "react-native-modal-datetime-picker": {
       "optional": true
     },
     "react-native-svg": {

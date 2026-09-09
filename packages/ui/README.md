@@ -21,14 +21,15 @@ npx expo install react-native-safe-area-context react-native-svg @expo/vector-ic
 
 Some components need additional peers (installed only if you use them):
 
-| Component(s) | Peer dependency |
-|---|---|
-| `DrawerNavigation`, `StackNavigation` | `@react-navigation/native`, `@react-navigation/drawer`, `@react-navigation/native-stack` |
-| `DateTimePicker`, `DatePicker`, `TimePicker` | `react-native-modal-datetime-picker`, `@react-native-community/datetimepicker`, `expo-localization` |
-| `StatusBar` | `expo-status-bar` |
+| Component(s)                                                                       | Peer dependency                                                                          |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `DrawerNavigation`, `StackNavigation`                                              | `@react-navigation/native`, `@react-navigation/drawer`, `@react-navigation/native-stack` |
+| `DateTimePicker`, `DatePicker`, `DatePickerInput`, `DateRangePicker`, `TimePicker` | `expo-localization`                                                                      |
+| `StatusBar`                                                                        | `expo-status-bar`                                                                        |
 
-`Calendar` and `TimeSelect` are pure React Native and need none of the date-picker peers, so
-`variant="inline"` works without them.
+The date and time pickers are pure React Native: the same Material 3 surface renders on iOS,
+Android and web, with no OS picker underneath. `expo-localization` is only used to read the device
+locale — pass `locale` explicitly and it is not needed either.
 
 ## Usage
 
@@ -67,8 +68,12 @@ shape and color as **token names** rather than numbers, so screens never hardcod
 
 ```tsx
 <Grid columns={2} spacing="m">
-  <Box p="m" bg="primaryContainer" radius="large">…</Box>
-  <Box p="m" bg="secondaryContainer" radius="large">…</Box>
+  <Box p="m" bg="primaryContainer" radius="large">
+    …
+  </Box>
+  <Box p="m" bg="secondaryContainer" radius="large">
+    …
+  </Box>
 </Grid>
 ```
 

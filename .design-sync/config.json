@@ -56,6 +56,9 @@
     "Breadcrumbs": {
       "cardMode": "column"
     },
+    "Calendar": {
+      "cardMode": "column"
+    },
     "Card": {
       "cardMode": "column"
     },
@@ -69,6 +72,9 @@
       "cardMode": "column"
     },
     "CircularProgress": {
+      "cardMode": "column"
+    },
+    "ClockPicker": {
       "cardMode": "column"
     },
     "ConfirmDialog": {

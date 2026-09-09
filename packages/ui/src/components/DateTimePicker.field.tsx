@@ -1,7 +1,8 @@
-import React, { forwardRef, useMemo } from "react";
+import React, { forwardRef, useMemo, useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   Pressable,
   StyleSheet,
   StyleProp,
@@ -26,8 +27,22 @@ export interface PickerFieldProps {
   clearable?: boolean;
   onClear?: () => void;
   clearAccessibilityLabel?: string;
+  /** Opens the picker. Bound to the whole row, or to the icon when editable. */
   onPress?: () => void;
   accessibilityLabel?: string;
+  /**
+   * Turns the value area into a text field. The trailing icon keeps opening the
+   * picker, so typing and picking stay available at the same time.
+   */
+  editable?: boolean;
+  /** Text shown in the input while editable; ignored otherwise. */
+  inputValue?: string;
+  onInputChange?: (text: string) => void;
+  onInputBlur?: () => void;
+  /** Typing hint, e.g. "DD/MM/YYYY". */
+  inputPlaceholder?: string;
+  /** Label of the trailing icon button in editable mode. */
+  openAccessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
   /** Rendered inside the field container — used by the web hidden input. */
@@ -56,6 +71,12 @@ const PickerField = forwardRef<View, PickerFieldProps>(
       clearAccessibilityLabel,
       onPress,
       accessibilityLabel,
+      editable,
+      inputValue,
+      onInputChange,
+      onInputBlur,
+      inputPlaceholder,
+      openAccessibilityLabel,
       style,
       testID,
       children,
@@ -64,41 +85,56 @@ const PickerField = forwardRef<View, PickerFieldProps>(
   ) => {
     const { theme } = useTheme();
     const styles = useMemo(() => makeStyles(theme), [theme]);
+    const [focused, setFocused] = useState(false);
     const activeColor = error ? theme.colors.error : theme.colors.primary;
     const hasValue = displayValue.length > 0;
     const showClear = clearable && hasValue && !disabled && !!onClear;
+    const highlighted = !!active || focused;
 
-    return (
-      <View style={[styles.wrapper, style]} testID={testID}>
-        {!!label && (
-          <Text
-            style={[
-              theme.typography.bodySmall,
-              styles.label,
-              {
-                color: active ? activeColor : theme.colors.onSurfaceVariant,
-              },
-            ]}
-          >
-            {required ? `${label} *` : label}
-          </Text>
-        )}
+    const openButton = (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={openAccessibilityLabel ?? label}
+        accessibilityState={{ disabled, expanded: active }}
+        disabled={disabled}
+        onPress={onPress}
+        hitSlop={8}
+        style={({ hovered }: PressableState) => [
+          styles.iconButton,
+          hovered && { backgroundColor: theme.colors.surfaceContainerHighest },
+        ]}
+      >
+        <Icons
+          name={icon}
+          size={20}
+          color={error ? theme.colors.error : theme.colors.onSurfaceVariant}
+        />
+      </Pressable>
+    );
 
-        <Pressable
-          ref={ref}
-          accessibilityRole="button"
-          accessibilityLabel={accessibilityLabel ?? label}
-          accessibilityValue={{ text: displayValue }}
-          accessibilityState={{ disabled, expanded: active }}
-          disabled={disabled}
-          onPress={onPress}
-          style={[
-            styles.container,
-            getGlowStyles(theme, !!active, error),
-            disabled && styles.disabled,
-          ]}
-        >
-          <View style={styles.content}>
+    const body = (
+      <>
+        <View style={styles.content}>
+          {editable ? (
+            <TextInput
+              accessibilityLabel={accessibilityLabel ?? label}
+              editable={!disabled}
+              value={inputValue}
+              onChangeText={onInputChange}
+              onFocus={() => setFocused(true)}
+              onBlur={() => {
+                setFocused(false);
+                onInputBlur?.();
+              }}
+              placeholder={inputPlaceholder ?? placeholder}
+              placeholderTextColor={theme.colors.onSurfaceVariant}
+              style={[
+                theme.typography.bodyLarge,
+                styles.input,
+                { color: theme.colors.onSurface },
+              ]}
+            />
+          ) : (
             <Text
               numberOfLines={1}
               style={[
@@ -112,36 +148,84 @@ const PickerField = forwardRef<View, PickerFieldProps>(
             >
               {hasValue ? displayValue : (placeholder ?? "")}
             </Text>
-          </View>
-
-          {showClear && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={clearAccessibilityLabel}
-              onPress={onClear}
-              hitSlop={8}
-              style={({ hovered }: PressableState) => [
-                styles.clearButton,
-                hovered && {
-                  backgroundColor: theme.colors.surfaceContainerHighest,
-                },
-              ]}
-            >
-              <Icons
-                name="close"
-                size={18}
-                color={theme.colors.onSurfaceVariant}
-              />
-            </Pressable>
           )}
+        </View>
 
-          <Icons
-            name={icon}
-            size={20}
-            color={error ? theme.colors.error : theme.colors.onSurfaceVariant}
-          />
-          {children}
-        </Pressable>
+        {showClear && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={clearAccessibilityLabel}
+            onPress={onClear}
+            hitSlop={8}
+            style={({ hovered }: PressableState) => [
+              styles.iconButton,
+              hovered && {
+                backgroundColor: theme.colors.surfaceContainerHighest,
+              },
+            ]}
+          >
+            <Icons
+              name="close"
+              size={18}
+              color={theme.colors.onSurfaceVariant}
+            />
+          </Pressable>
+        )}
+      </>
+    );
+
+    const containerStyle = [
+      styles.container,
+      getGlowStyles(theme, highlighted, error),
+      disabled && styles.disabled,
+    ];
+
+    return (
+      <View style={[styles.wrapper, style]} testID={testID}>
+        {!!label && (
+          <Text
+            style={[
+              theme.typography.bodySmall,
+              styles.label,
+              {
+                color: highlighted
+                  ? activeColor
+                  : theme.colors.onSurfaceVariant,
+              },
+            ]}
+          >
+            {required ? `${label} *` : label}
+          </Text>
+        )}
+
+        {/* A text field cannot live inside a Pressable without swallowing its
+            own taps, so editable fields open the picker from the icon only. */}
+        {editable ? (
+          <View ref={ref} style={containerStyle}>
+            {body}
+            {openButton}
+            {children}
+          </View>
+        ) : (
+          <Pressable
+            ref={ref}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel ?? label}
+            accessibilityValue={{ text: displayValue }}
+            accessibilityState={{ disabled, expanded: active }}
+            disabled={disabled}
+            onPress={onPress}
+            style={containerStyle}
+          >
+            {body}
+            <Icons
+              name={icon}
+              size={20}
+              color={error ? theme.colors.error : theme.colors.onSurfaceVariant}
+            />
+            {children}
+          </Pressable>
+        )}
 
         {!!error && (
           <Text
@@ -188,7 +272,8 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.colors.surface,
     },
     content: { flex: 1, justifyContent: "center" },
-    clearButton: {
+    input: { paddingVertical: 0, outlineStyle: "none" } as any,
+    iconButton: {
       width: 28,
       height: 28,
       borderRadius: 14,

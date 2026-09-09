@@ -1,6 +1,6 @@
 {
   "name": "@glowup/ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Material You (Material Design 3) component library for React Native + Web (Expo)",
   "license": "MIT",
   "main": "lib/commonjs/index.js",
@@ -61,14 +61,30 @@
     "react-native-svg": ">=15"
   },
   "peerDependenciesMeta": {
-    "@react-native-community/datetimepicker": { "optional": true },
-    "@react-navigation/drawer": { "optional": true },
-    "@react-navigation/native": { "optional": true },
-    "@react-navigation/native-stack": { "optional": true },
-    "expo-localization": { "optional": true },
-    "expo-status-bar": { "optional": true },
-    "react-native-modal-datetime-picker": { "optional": true },
-    "react-native-svg": { "optional": true }
+    "@react-native-community/datetimepicker": {
+      "optional": true
+    },
+    "@react-navigation/drawer": {
+      "optional": true
+    },
+    "@react-navigation/native": {
+      "optional": true
+    },
+    "@react-navigation/native-stack": {
+      "optional": true
+    },
+    "expo-localization": {
+      "optional": true
+    },
+    "expo-status-bar": {
+      "optional": true
+    },
+    "react-native-modal-datetime-picker": {
+      "optional": true
+    },
+    "react-native-svg": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react-dom": "~19.2",
@@ -81,7 +97,12 @@
     "targets": [
       "commonjs",
       "module",
-      ["typescript", { "project": "tsconfig.build.json" }]
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
     ]
   }
 }

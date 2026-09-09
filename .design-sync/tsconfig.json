@@ -1,0 +1,13 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    // `paths` without `baseUrl` resolves relative to this file (baseUrl is
+    // deprecated in TS 6). Point at source so a preview is checked against the
+    // library it will actually be bundled against, not a stale build.
+    "paths": { "@glowup/ui": ["../packages/ui/src/index.ts"] }
+  },
+  "include": ["previews/**/*.tsx"]
+}

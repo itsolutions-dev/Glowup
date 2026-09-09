@@ -1,9 +1,10 @@
 import React from "react";
 import { NavigationBar } from "@glowup/ui";
+import type { NavigationBarItem } from "@glowup/ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
 
-const items = [
+const items: NavigationBarItem[] = [
   { id: "home", label: "Home", icon: "home-outline" },
   { id: "search", label: "Search", icon: "magnify" },
   { id: "inbox", label: "Inbox", icon: "email-outline", badgeCount: 3 },

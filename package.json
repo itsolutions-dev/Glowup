@@ -13,7 +13,7 @@
     "ios": "npm run ios -w @glowup/playground",
     "web": "npm run web -w @glowup/playground",
     "lint": "eslint .",
-    "type-check": "npm run type-check --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present && tsc --noEmit -p .design-sync/tsconfig.json",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace @glowup/ui",
     "release": "changeset publish"

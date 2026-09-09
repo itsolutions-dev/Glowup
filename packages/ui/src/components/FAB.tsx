@@ -70,11 +70,13 @@ const FAB = ({
         styles[size],
         getSafeStyle(),
         {
-          backgroundColor: hovered
-            ? theme.colors.primaryContainer + "CC"
-            : theme.colors.primaryContainer,
+          backgroundColor:
+            hovered && !disabled
+              ? theme.colors.primaryContainer + "CC"
+              : theme.colors.primaryContainer,
         },
-        (hovered || pressed) && getGlowStyles(theme, true),
+        (hovered || pressed) && !disabled && getGlowStyles(theme, true),
+        disabled && styles.disabled,
         customStyle,
       ]}
     >
@@ -127,5 +129,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 16,
     flexDirection: "row",
+  },
+  disabled: {
+    opacity: 0.38,
+    elevation: 0,
   },
 });

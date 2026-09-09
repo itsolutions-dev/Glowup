@@ -72,13 +72,23 @@ const Popover = ({
   }, []);
 
   const pos = useMemo(() => {
+    // Before the first onLayout, assume the widest allowed card. Assuming a
+    // narrow one instead would lay the content out inside that width, so
+    // onLayout would measure it back unchanged and the card could never grow.
     const width = matchAnchorWidth
       ? anchorCoords.width
-      : contentSize.width || 200;
+      : contentSize.width || window.width;
     const height = contentSize.height || 100;
 
     return getSafePosition(anchorCoords, { width, height }, window);
   }, [anchorCoords, contentSize, window, matchAnchorWidth]);
+
+  // matchAnchorWidth pins the card to the anchor; otherwise the measured width
+  // is only a ceiling and the card sizes to its content.
+  const { width: safeWidth, ...placement } = pos;
+  const sizing = matchAnchorWidth
+    ? { width: safeWidth }
+    : { maxWidth: safeWidth };
 
   return (
     <View>
@@ -102,7 +112,8 @@ const Popover = ({
               styles.popoverCard,
               {
                 backgroundColor: theme.colors.surfaceContainerLow,
-                ...pos,
+                ...placement,
+                ...sizing,
                 opacity: contentSize.width > 0 ? 1 : 0,
               },
             ]}

@@ -154,7 +154,8 @@ const Toggle = ({
       style={({ hovered }: PressableState) => [
         styles.container,
         containerStyle,
-        hovered && getGlowStyles(theme, true),
+        hovered && !disabled && getGlowStyles(theme, true),
+        disabled && styles.disabled,
       ]}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
@@ -211,6 +212,9 @@ const makeStyles: (
       height: TRACK_HEIGHT,
       justifyContent: "center",
       borderRadius: TRACK_HEIGHT / 2, // Ensures a pill shape based on height
+    },
+    disabled: {
+      opacity: 0.38,
     },
     track: {
       width: TRACK_WIDTH,

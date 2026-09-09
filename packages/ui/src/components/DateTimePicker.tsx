@@ -16,8 +16,9 @@ const DateTimePicker = ({
   disabled,
   mode = "date",
   relativeLabels,
+  defaultOpen = false,
 }: DateTimePickerProps) => {
-  const [pickerVisible, setPickerVisible] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(defaultOpen);
   const { theme } = useTheme();
 
   const handleConfirm = (date: Date) => {

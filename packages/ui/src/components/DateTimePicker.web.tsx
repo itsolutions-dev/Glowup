@@ -84,16 +84,18 @@ const DateCalendarField = ({
   onChange,
   disabled,
   displayValue,
+  defaultOpen = false,
 }: {
   label?: string;
   value: Date;
   onChange: (date: Date) => void;
   disabled?: boolean;
   displayValue: string;
+  defaultOpen?: boolean;
 }) => {
   const { theme } = useTheme();
   const triggerRef = useRef<any>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [yearPicker, setYearPicker] = useState(false);
   const [anchor, setAnchor] = useState<{ top: number; left: number } | null>(
     null,
@@ -404,6 +406,7 @@ const DateTimePicker = ({
   disabled,
   mode = "date",
   relativeLabels,
+  defaultOpen,
 }: DateTimePickerProps) => {
   const [focused, setFocused] = useState(false);
   const { theme } = useTheme();
@@ -421,6 +424,7 @@ const DateTimePicker = ({
         onChange={onChange}
         disabled={disabled}
         displayValue={displayValue}
+        defaultOpen={defaultOpen}
       />
     );
   }

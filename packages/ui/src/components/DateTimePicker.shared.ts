@@ -23,6 +23,8 @@ export interface DateTimePickerProps {
    * Defaults to the device locale via Intl.RelativeTimeFormat.
    */
   relativeLabels?: DateTimePickerRelativeLabels;
+  /** Mount with the picker already open. Uncontrolled after that. */
+  defaultOpen?: boolean;
 }
 
 export const getDeviceLocale = () => {

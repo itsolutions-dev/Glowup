@@ -39,13 +39,14 @@ const RadioButton = ({
       <Text
         style={[
           theme.typography.bodyLarge,
-          { color: theme.colors.onSurface, marginLeft: 12 },
+          { color: theme.colors.onSurface },
+          labelPosition === "left" ? { marginRight: 12 } : { marginLeft: 12 },
         ]}
       >
         {label}
       </Text>
     );
-  }, [label, theme.typography, theme.colors]);
+  }, [label, labelPosition, theme.typography, theme.colors]);
 
   return (
     <Pressable

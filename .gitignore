@@ -63,3 +63,4 @@ packages/ui/.design-sync-entry.mjs
 # local tool state (code graphs, indexes, agent caches)
 .tokensave/
 .serena/
+graphify-out/

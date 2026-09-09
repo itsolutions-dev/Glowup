@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
+  /** Renders the confirm action in the error tone (delete, discard). */
+  destructive?: boolean;
 }
 
 function ConfirmDialog({
@@ -22,6 +24,7 @@ function ConfirmDialog({
   onCancel,
   confirmText = "Confirm",
   cancelText = "Cancel",
+  destructive = false,
 }: ConfirmDialogProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -34,7 +37,9 @@ function ConfirmDialog({
           <Button onPress={onCancel} mode="text" style={styles.cancelButton}>
             {cancelText}
           </Button>
-          <Button onPress={onConfirm}>{confirmText}</Button>
+          <Button onPress={onConfirm} tone={destructive ? "error" : "primary"}>
+            {confirmText}
+          </Button>
         </View>
       </View>
     </Modal>

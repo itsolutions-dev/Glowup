@@ -9,11 +9,19 @@ import {
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 type FABSize = "small" | "regular" | "large" | "extended";
 
 type FABPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
+
+/**
+ * `floating` pins the button to a screen corner (the default). `inline` drops
+ * the absolute positioning so the FAB can sit inside a toolbar, an AppBar row
+ * or a Card action bar.
+ */
+type FABPlacement = "floating" | "inline";
 
 interface FABProps {
   icon: MaterialCommunityIconsGlyphs;
@@ -21,6 +29,7 @@ interface FABProps {
   onPress: () => void;
   size?: FABSize;
   position?: FABPosition;
+  placement?: FABPlacement;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }
@@ -31,13 +40,20 @@ const FAB = ({
   onPress,
   size = "regular",
   position = "bottom-right",
+  placement = "floating",
   disabled,
   style: customStyle,
 }: FABProps) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const stateLayer = useStateLayer(
+    theme.colors.primaryContainer,
+    theme.colors.onPrimaryContainer,
+  );
 
   const getSafeStyle = useCallback(() => {
+    if (placement === "inline") return null;
+
     const baseMargin = 16;
     const style: ViewStyle = { position: "absolute" };
 
@@ -54,7 +70,7 @@ const FAB = ({
     }
 
     return style;
-  }, [position, insets]);
+  }, [placement, position, insets]);
 
   const isExtended = size === "extended";
 
@@ -65,17 +81,17 @@ const FAB = ({
       disabled={disabled}
       accessibilityState={{ disabled }}
       onPress={onPress}
-      style={({ hovered, pressed }: PressableState) => [
+      style={(state: PressableState) => [
         styles.fabBase,
+        placement === "floating" && styles.floating,
         styles[size],
         getSafeStyle(),
-        {
-          backgroundColor:
-            hovered && !disabled
-              ? theme.colors.primaryContainer + "CC"
-              : theme.colors.primaryContainer,
-        },
-        (hovered || pressed) && !disabled && getGlowStyles(theme, true),
+        // The M3 state layer, not a hex string with an alpha suffix glued on:
+        // that only worked for 6-digit hex and skipped the press state.
+        { backgroundColor: stateLayer(state, disabled) },
+        (state.hovered || state.pressed) &&
+          !disabled &&
+          getGlowStyles(theme, true),
         disabled && styles.disabled,
         customStyle,
       ]}
@@ -105,9 +121,11 @@ const styles = StyleSheet.create({
   fabBase: {
     justifyContent: "center",
     alignItems: "center",
+    elevation: 6,
+  },
+  floating: {
     position: "absolute",
     zIndex: 99,
-    elevation: 6,
   },
   small: {
     width: 40,

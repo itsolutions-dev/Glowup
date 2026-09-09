@@ -43,7 +43,8 @@ Its public surface is the barrel `src/index.ts`. Layout:
 packages/ui/src/
 ├── index.ts          # public API barrel — everything importable from "@glowup/ui"
 ├── components/        # ~60 Material You components
-│   ├── List/          # ListItem
+│   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
+│   ├── List/          # ListItem, ListSection, ListSubheader
 │   ├── Modal/         # Modal, ConfirmDialog
 │   ├── Navigation/    # DrawerNavigation, StackNavigation, DrawerContent, Route, User
 │   ├── Progress/      # CircularProgress, LinearProgress
@@ -84,8 +85,9 @@ Exported from the library alongside the components:
 - **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 
-Theme tokens: colors (primary/secondary/tertiary/error + container & surface tones, all with
-light/dark values), a full M3 type scale (`displayLarge` → `labelSmall`), spacing
+Theme tokens: colors (primary/secondary/tertiary/error + container & surface tones, the inverse
+pair `inverseSurface` / `inverseOnSurface` / `inversePrimary`, plus `surfaceTint` and `scrim`, all
+with light/dark values), a full M3 type scale (`displayLarge` → `labelSmall`), spacing
 (`xs:4 s:8 m:16 l:24 xl:32`) and shape radii (`small:8 medium:12 large:16 extraLarge:28`).
 
 ### Foundations
@@ -133,6 +135,79 @@ Pressable content surface.
 | variant            | `"elevated" \| "filled" \| "outlined" \| "glow"` | `filled` |
 | onPress            | () => void (makes it interactive, button role)   |          |
 | accessibilityLabel | string                                           |          |
+
+Compound parts, also exported standalone as `CardTitle` / `CardContent` / `CardCover` /
+`CardActions`. Compose these instead of hand-building a header row:
+
+```tsx
+<Card variant="elevated" onPress={open}>
+  <Card.Cover source={photo} alt="Impianto 4" />
+  <Card.Title title="Impianto 4" subtitle="Manutenzione programmata" />
+  <Card.Content>
+    <Typography variant="bodyMedium">Prossimo intervento: 12 marzo</Typography>
+  </Card.Content>
+  <Card.Actions>
+    <Button mode="text" onPress={postpone}>Rinvia</Button>
+    <Button onPress={confirm}>Conferma</Button>
+  </Card.Actions>
+</Card>
+```
+
+| Part            | Props                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| `Card.Title`    | `title` (required), `subtitle`, `left`, `right`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2)   |
+| `Card.Content`  | `children` (required)                                                                                    |
+| `Card.Cover`    | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding                        |
+| `Card.Actions`  | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)                            |
+
+#### `Icon`
+
+Source-agnostic icon primitive. Use it when the icon may not be a MaterialCommunityIcons glyph —
+a bundled bitmap, an SVG, a custom glyph set.
+
+| Prop       | Type                                                                                  | Default     |
+| ---------- | ------------------------------------------------------------------------------------- | ----------- |
+| source     | `IconSource` (required)                                                               | —           |
+| size       | number                                                                                | `24`        |
+| color      | string (tints a glyph; leave unset for a full-colour bitmap)                          | `onSurface` |
+| flipForRTL | boolean (mirrors directional glyphs under RTL)                                        | `false`     |
+
+`IconSource` is a MaterialCommunityIcons name, an `ImageSourcePropType`, a
+`({ size, color }) => ReactNode` render function, or a ready-made element.
+
+#### `TouchableRipple`
+
+A `Pressable` that paints the M3 state layer — 8% hover, 10% focus, 12% press — over a surface,
+with the platform ripple on Android. Reach for it instead of re-deriving hover/press colours.
+
+| Prop          | Type                                                       | Default     |
+| ------------- | ---------------------------------------------------------- | ----------- |
+| children      | ReactNode (required)                                       | —           |
+| underlayColor | string (the surface the layer sits on)                     | `surface`   |
+| rippleColor   | string (the "on" role of that surface)                     | `onSurface` |
+| borderless    | boolean (tint only, no container background)               | `false`     |
+| borderRadius  | number (match the parent so the layer doesn't bleed out)   |             |
+| activeStyle   | ViewStyle (applied while hovered or pressed)               |             |
+
+Plus every `Pressable` prop except `style`/`children`. The `useStateLayer(base, on)` hook exports
+the same colours for a component that already owns its `Pressable`.
+
+#### `Portal` / `Portal.Host`
+
+Renders an overlay at the host instead of in place, so it escapes a clipping parent, sits above
+siblings regardless of elevation, and is not dragged around by a `ScrollView`. Mount the host
+once near the app root. With no host above it, `Portal` renders its children inline, so opting in
+is safe in a tree that has not been wrapped.
+
+```tsx
+<ThemeProvider>
+  <Portal.Host>
+    <App />
+  </Portal.Host>
+</ThemeProvider>
+```
+
+`usePortalHost()` reports whether a host is mounted above the caller.
 
 ### Layout
 
@@ -238,16 +313,18 @@ Inline navigational text.
 
 #### `FAB` — Floating Action Button
 
-Absolutely positioned; respects safe-area insets.
+Floating by default: absolutely positioned, respecting safe-area insets. Set
+`placement="inline"` to drop the positioning and put the FAB in a toolbar or a card action row.
 
-| Prop     | Type                                                           | Default        |
-| -------- | -------------------------------------------------------------- | -------------- |
-| icon     | icon (required)                                                | —              |
-| onPress  | () => void (required)                                          | —              |
-| label    | string (only when `size="extended"`)                           |                |
-| size     | `"small" \| "regular" \| "large" \| "extended"`                | `regular`      |
-| position | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
-| disabled | boolean                                                        |                |
+| Prop      | Type                                                           | Default        |
+| --------- | -------------------------------------------------------------- | -------------- |
+| icon      | icon (required)                                                | —              |
+| onPress   | () => void (required)                                          | —              |
+| label     | string (only when `size="extended"`)                           |                |
+| size      | `"small" \| "regular" \| "large" \| "extended"`                | `regular`      |
+| placement | `"floating" \| "inline"`                                       | `floating`     |
+| position  | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
+| disabled  | boolean                                                        |                |
 
 #### `SpeedDial`
 
@@ -263,24 +340,35 @@ FAB that expands a stack of labeled actions.
 
 Single segment; usually used via `ToggleButtonGroup`.
 
-| Prop             | Type                                      | Default |
-| ---------------- | ----------------------------------------- | ------- |
-| active           | boolean (required)                        | —       |
-| onPress          | () => void (required)                     | —       |
-| label            | string                                    |         |
-| icon             | icon                                      |         |
-| isFirst / isLast | boolean (rounds outer corners in a group) |         |
+| Prop              | Type                                                | Default  |
+| ----------------- | --------------------------------------------------- | -------- |
+| active            | boolean (required)                                  | —        |
+| onPress           | () => void (required)                               | —        |
+| label             | string                                              |          |
+| icon              | icon                                                |          |
+| isFirst / isLast  | boolean (rounds outer corners in a group)           |          |
+| disabled          | boolean                                             | `false`  |
+| grow              | boolean (equal share of the group width)            | `false`  |
+| showSelectedCheck | boolean (check mark replaces the glyph when active) | `false`  |
+| accessibilityRole | `"radio" \| "checkbox" \| "button"`                 | `button` |
 
 #### `ToggleButtonGroup`
 
 Segmented button set (single or multi select).
 
-| Prop          | Type                                                    | Default |
-| ------------- | ------------------------------------------------------- | ------- |
-| options       | `{ label?, icon?, value }[]` (required)                 | —       |
-| value         | string \| string[] (array when `multiSelect`, required) | —       |
-| onValueChange | (val) => void (required)                                | —       |
-| multiSelect   | boolean                                                 | `false` |
+Announces itself correctly: a single-select group is a `radiogroup` of `radio`s, a multi-select
+one a set of `checkbox`es.
+
+| Prop               | Type                                                            | Default |
+| ------------------ | --------------------------------------------------------------- | ------- |
+| options            | `{ label?, icon?, value, disabled? }[]` (required)              | —       |
+| value              | string \| string[] (array when `multiSelect`, required)         | —       |
+| onValueChange      | (val) => void (required)                                        | —       |
+| multiSelect        | boolean                                                         | `false` |
+| disabled           | boolean (whole group)                                           | `false` |
+| fullWidth          | boolean (segments share the row equally)                        | `false` |
+| showSelectedCheck  | boolean (M3 segmented-button check mark)                        | `false` |
+| accessibilityLabel | string (names the group — a set of choices needs a question)     |         |
 
 #### `Chip`
 
@@ -535,6 +623,23 @@ descendants via `useFormControl()`. For controls with no `label`/`error` props o
 | label / helperText / error | string               |         |
 | required / disabled        | boolean              | `false` |
 
+#### `HelperText`
+
+The supporting text under a form control. `Input`, `FormControl`, `PinInput`, `Autocomplete` and
+the date/time picker field render this internally via their own `helperText` / `error` props —
+use it directly for a control that has neither.
+
+| Prop           | Type                                                   | Default  |
+| -------------- | ------------------------------------------------------ | -------- |
+| children       | ReactNode (required)                                   | —        |
+| type           | `"info" \| "error"` (error adds the alert glyph)        | `info`   |
+| visible        | boolean (fades out instead of unmounting)              | `true`   |
+| disabled       | boolean (dims to match a disabled field)               | `false`  |
+| padding        | `"normal" \| "none"` (the 16px field gutter)           | `normal` |
+
+Hiding it keeps the text mounted so the field height doesn't jump, but takes it out of the
+accessibility tree.
+
 #### `Rating`
 
 Star rating; renders half-stars, sets whole values on tap.
@@ -634,17 +739,31 @@ Single pressable list row.
 | onPress                                                                  | () => void (adds hover/press states) |         |
 | itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object                               |         |
 
+#### `ListSection` / `ListSubheader`
+
+Groups related `ListItem`s under a heading. Use this for a settings screen rather than wrapping
+each group in a `Card` — a sequence of labelled groups, not a pile of equal surfaces.
+
+| Component        | Props                                                                    |
+| ---------------- | ------------------------------------------------------------------------ |
+| `ListSection`    | `children` (required), `title` (heading above the rows), `divider` (`false`) |
+| `ListSubheader`  | `children` (required) — a standalone group label, marked as a heading    |
+
 #### `Tooltip`
 
 Wraps a child; shows a bubble on hover (web) / long-press (native).
 
-| Prop      | Type                                     | Default |
-| --------- | ---------------------------------------- | ------- |
-| content   | string (required)                        | —       |
-| children  | ReactNode (anchor, required)             | —       |
-| position  | `"top" \| "bottom" \| "left" \| "right"` | `top`   |
-| disabled  | boolean                                  |         |
-| hideDelay | number (ms, native auto-hide)            | `1500`  |
+| Prop       | Type                                       | Default |
+| ---------- | ------------------------------------------ | ------- |
+| content    | string (required)                          | —       |
+| children   | ReactNode (anchor, required)                | —       |
+| position   | `"top" \| "bottom" \| "left" \| "right"`   | `top`   |
+| disabled   | boolean                                    |         |
+| hideDelay  | number (ms, native auto-hide)               | `1500`  |
+| enterDelay | number (ms hover dwell before showing, web) | `500`   |
+| leaveDelay | number (ms grace before hiding, web)        | `100`   |
+
+Also shows on keyboard focus, not only on hover.
 
 #### `Accordion`
 
@@ -735,29 +854,37 @@ Inline prominent message with up to two actions.
 
 Centered dialog surface.
 
-| Prop          | Type                                                 | Default |
-| ------------- | ---------------------------------------------------- | ------- |
-| visible       | boolean                                              |         |
-| children      | ReactNode \| string (string → styled text, required) | —       |
-| title         | string                                               |         |
-| animationType | `"none" \| "slide" \| "fade"`                        | `fade`  |
-| transparent   | boolean                                              | `true`  |
-| onClose       | () => void (renders close button)                    |         |
-| onDismiss     | () => void (Android back / ESC)                      |         |
-| closeText     | string                                               | `Close` |
+| Prop          | Type                                                     | Default |
+| ------------- | -------------------------------------------------------- | ------- |
+| visible       | boolean                                                  |         |
+| children      | ReactNode \| string (string → styled text, required)     | —       |
+| title         | string                                                   |         |
+| icon          | `IconSource` (hero glyph above the title)                |         |
+| animationType | `"none" \| "slide" \| "fade"`                            | `fade`  |
+| transparent   | boolean                                                  | `true`  |
+| onClose       | () => void (renders close button)                        |         |
+| onDismiss     | () => void (Android back / ESC / scrim tap)              |         |
+| closeText     | string                                                   | `Close` |
+| dismissable   | boolean (scrim tap and ESC dismiss)                      | `true`  |
+| scrollable    | boolean (scrolls a body taller than the dialog)          | `false` |
+| actions       | ReactNode (trailing action row; replaces `closeText`)    |         |
+| testID        | string (the scrim gets `${testID}-scrim`)                | `modal` |
 
 #### `ConfirmDialog`
 
 Modal preset with confirm/cancel actions.
 
-| Prop            | Type                  | Default   |
-| --------------- | --------------------- | --------- |
-| visible         | boolean (required)    | —         |
-| onConfirm       | () => void (required) | —         |
-| onCancel        | () => void (required) | —         |
-| title / message | string                |           |
-| confirmText     | string                | `Confirm` |
-| cancelText      | string                | `Cancel`  |
+| Prop            | Type                                  | Default   |
+| --------------- | ------------------------------------- | --------- |
+| visible         | boolean (required)                    | —         |
+| onConfirm       | () => void (required)                 | —         |
+| onCancel        | () => void (required)                 | —         |
+| title / message | string                                |           |
+| confirmText     | string                                | `Confirm` |
+| cancelText      | string                                | `Cancel`  |
+| destructive     | boolean (confirm in the error tone)   | `false`   |
+| icon            | `IconSource` (hero glyph)             |           |
+| dismissable     | boolean (scrim tap and ESC cancel)    | `true`    |
 
 #### `Popover`
 

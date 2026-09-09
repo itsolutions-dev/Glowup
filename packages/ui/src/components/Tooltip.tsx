@@ -1,4 +1,10 @@
-import React, { useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   View,
   Text,
@@ -16,6 +22,13 @@ interface TooltipProps {
   disabled?: boolean;
   /** Auto-hide delay (ms) after long-press on native. */
   hideDelay?: number;
+  /**
+   * Hover dwell (ms) before the tip appears on web. Without it, sweeping the
+   * pointer across a toolbar flashes every tooltip in the row.
+   */
+  enterDelay?: number;
+  /** Grace period (ms) before the tip leaves on hover-out. */
+  leaveDelay?: number;
 }
 
 const GAP = 8;
@@ -26,6 +39,8 @@ const Tooltip = ({
   position = "top",
   disabled,
   hideDelay = 1500,
+  enterDelay = 500,
+  leaveDelay = 100,
 }: TooltipProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -34,25 +49,42 @@ const Tooltip = ({
   const [anchorSize, setAnchorSize] = useState({ width: 0, height: 0 });
   const [tipSize, setTipSize] = useState({ width: 0, height: 0 });
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    if (showTimer.current) clearTimeout(showTimer.current);
+  }, []);
+
+  // Timers outlive the component if the anchor unmounts mid-hover.
+  useEffect(() => clearTimers, [clearTimers]);
 
   const show = useCallback(() => {
     if (disabled) return;
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    setVisible(true);
-  }, [disabled]);
+    clearTimers();
+    if (enterDelay <= 0) {
+      setVisible(true);
+      return;
+    }
+    showTimer.current = setTimeout(() => setVisible(true), enterDelay);
+  }, [disabled, enterDelay, clearTimers]);
 
   const hide = useCallback(() => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    setVisible(false);
-  }, []);
+    clearTimers();
+    if (leaveDelay <= 0) {
+      setVisible(false);
+      return;
+    }
+    hideTimer.current = setTimeout(() => setVisible(false), leaveDelay);
+  }, [leaveDelay, clearTimers]);
 
   // Native: show on long press, then auto-hide
   const handleLongPress = useCallback(() => {
     if (disabled) return;
+    clearTimers();
     setVisible(true);
-    if (hideTimer.current) clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setVisible(false), hideDelay);
-  }, [disabled, hideDelay]);
+  }, [disabled, hideDelay, clearTimers]);
 
   const onAnchorLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -82,7 +114,7 @@ const Tooltip = ({
 
   const webHoverProps =
     Platform.OS === "web"
-      ? { onHoverIn: show, onHoverOut: hide }
+      ? { onHoverIn: show, onHoverOut: hide, onFocus: show, onBlur: hide }
       : { onLongPress: handleLongPress };
 
   return (
@@ -129,8 +161,7 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     },
     tooltip: {
       position: "absolute",
-      // Inverse-surface look (M3 plain tooltip); dedicated tokens missing
-      backgroundColor: theme.colors.onSurface,
+      backgroundColor: theme.colors.inverseSurface,
       borderRadius: 4,
       paddingHorizontal: 8,
       paddingVertical: 4,
@@ -146,7 +177,7 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
           width: "max-content" as any,
         },
         ios: {
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.15,
           shadowRadius: 6,
@@ -157,6 +188,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       }),
     },
     tooltipText: {
-      color: theme.colors.surface,
+      color: theme.colors.inverseOnSurface,
     },
   });

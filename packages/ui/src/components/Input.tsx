@@ -11,6 +11,7 @@ import {
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
+import HelperText from "./HelperText";
 
 interface InputProps {
   label?: string;
@@ -221,34 +222,10 @@ const Input = ({
         )}
       </View>
 
-      {!!error && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            {
-              color: theme.colors.error,
-              marginTop: 4,
-              marginLeft: 16,
-            },
-          ]}
-        >
-          {error}
-        </Text>
-      )}
-
-      {!error && !!helperText && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            {
-              color: theme.colors.onSurfaceVariant,
-              marginTop: 4,
-              marginLeft: 16,
-            },
-          ]}
-        >
-          {helperText}
-        </Text>
+      {!!(error || helperText) && (
+        <HelperText type={error ? "error" : "info"} disabled={disabled}>
+          {error || helperText}
+        </HelperText>
       )}
     </View>
   );

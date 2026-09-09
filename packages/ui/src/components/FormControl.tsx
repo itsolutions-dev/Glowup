@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { View, Text, StyleSheet, StyleProp, ViewStyle } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme } from "../providers/ThemeProvider";
+import HelperText from "./HelperText";
 
 interface FormControlState {
   invalid: boolean;
@@ -76,33 +76,10 @@ const FormControl = ({
 
         <View style={disabled && styles.disabled}>{children}</View>
 
-        {!!error && (
-          <View style={styles.supportingRow}>
-            <Icons
-              name="alert-circle-outline"
-              size={14}
-              color={theme.colors.error}
-            />
-            <Text
-              style={[
-                theme.typography.bodySmall,
-                { color: theme.colors.error },
-              ]}
-            >
-              {error}
-            </Text>
-          </View>
-        )}
-        {!error && !!helperText && (
-          <Text
-            style={[
-              theme.typography.bodySmall,
-              styles.supportingText,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
-            {helperText}
-          </Text>
+        {!!(error || helperText) && (
+          <HelperText type={error ? "error" : "info"} disabled={disabled}>
+            {error || helperText}
+          </HelperText>
         )}
       </View>
     </FormControlContext.Provider>
@@ -116,15 +93,4 @@ const makeStyles = (theme: Theme) =>
     wrapper: { marginBottom: theme.spacing.m, width: "100%" },
     label: { marginBottom: theme.spacing.xs, marginLeft: theme.spacing.xs },
     disabled: { opacity: 0.38 },
-    supportingRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.xs,
-      marginTop: theme.spacing.xs,
-      marginLeft: theme.spacing.m,
-    },
-    supportingText: {
-      marginTop: theme.spacing.xs,
-      marginLeft: theme.spacing.m,
-    },
   });

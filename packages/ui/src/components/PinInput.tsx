@@ -11,6 +11,7 @@ import {
   TextInputKeyPressEventData,
 } from "react-native";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import HelperText from "./HelperText";
 
 export interface PinInputProps {
   /** Number of cells. Defaults to 6. */
@@ -177,27 +178,14 @@ const PinInput = ({
         })}
       </View>
 
-      {!!error && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            styles.supportingText,
-            { color: theme.colors.error },
-          ]}
+      {!!(error || helperText) && (
+        <HelperText
+          type={error ? "error" : "info"}
+          padding="none"
+          containerStyle={styles.supportingText}
         >
-          {error}
-        </Text>
-      )}
-      {!error && !!helperText && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            styles.supportingText,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
-          {helperText}
-        </Text>
+          {error || helperText}
+        </HelperText>
       )}
     </View>
   );
@@ -219,7 +207,6 @@ const makeStyles = (theme: Theme) =>
     },
     disabled: { opacity: 0.38 },
     supportingText: {
-      marginTop: theme.spacing.xs,
       marginLeft: theme.spacing.xs,
     },
   });

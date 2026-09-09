@@ -16,12 +16,14 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # package-lock.json is gitignored in this repo, so npm caching is unavailable.
-      - uses: actions/setup-node@v4
+      # setup-node v5 would auto-enable it via a `packageManager` field; keep it off.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
+          package-manager-cache: false
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies

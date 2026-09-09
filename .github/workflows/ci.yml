@@ -13,13 +13,16 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # No committed lockfile in this repo (package-lock.json is gitignored), so npm
       # caching by lockfile hash is unavailable and we use `npm install` (not `npm ci`).
-      - uses: actions/setup-node@v4
+      # setup-node v5 auto-caches when package.json has a `packageManager` field, which
+      # would need a lockfile to hash - keep it off explicitly.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
+          package-manager-cache: false
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund

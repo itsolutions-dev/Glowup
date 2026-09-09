@@ -42,19 +42,21 @@ Its public surface is the barrel `src/index.ts`. Layout:
 ```
 packages/ui/src/
 ├── index.ts          # public API barrel — everything importable from "@glowup/ui"
-├── components/        # ~55 Material You components
+├── components/        # ~60 Material You components
 │   ├── List/          # ListItem
 │   ├── Modal/         # Modal, ConfirmDialog
 │   ├── Navigation/    # DrawerNavigation, StackNavigation, DrawerContent, Route, User
 │   ├── Progress/      # CircularProgress, LinearProgress
 │   ├── Tab/           # Tabs, TabContent
 │   ├── ToggleButton/  # ToggleButton, ToggleButtonGroup
+│   ├── Layout/        # Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
 │   ├── types.ts       # shared component types (e.g. PressableState)
 │   └── *.tsx          # Button, Card, Input, Chip, Select, DataGrid, Snackbar, ...
 └── providers/         # theme + alert infrastructure
     ├── ThemeProvider.tsx   # Material You theme, useTheme(), getStateColor(), getGlowStyles()
     ├── theme.json          # all color / typography / spacing / shape tokens (source of truth)
-    └── AlertProvider.tsx   # cross-platform Alert() (native Alert.alert / web Modal)
+    ├── AlertProvider.tsx   # cross-platform Alert() (native Alert.alert / web Modal)
+    └── ToastProvider.tsx   # imperative queued toasts via useToast()
 ```
 
 Styling everywhere is theme-reactive via `useMemo(() => makeStyles(theme), [theme])`, driven
@@ -68,7 +70,7 @@ accessibility role/state and reacts to the light/dark theme automatically.
 
 ## Component reference
 
-### Theme & alert (from `src/providers`)
+### Theme, alert & toasts (from `src/providers`)
 
 Exported from the library alongside the components:
 
@@ -79,6 +81,8 @@ Exported from the library alongside the components:
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native
   `Alert.alert` on iOS/Android, custom `Modal` on web.
+- **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
+  [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 
 Theme tokens: colors (primary/secondary/tertiary/error + container & surface tones, all with
 light/dark values), a full M3 type scale (`displayLarge` → `labelSmall`), spacing
@@ -126,6 +130,54 @@ Pressable content surface.
 | onPress | () => void (makes it interactive, button role) | |
 | accessibilityLabel | string | |
 
+### Layout
+
+Token-driven layout primitives, so screens stop hardcoding spacing. `SpacingValue` is a
+`theme.spacing` key (`"xs" | "s" | "m" | "l" | "xl"`) or a raw number; `RadiusValue` is a
+`theme.shape` key or a raw number; `ColorValue` is an M3 color role name or any raw color.
+
+#### `Box`
+A `View` that reads spacing, shape and color off the theme. Extends `ViewProps`, so anything not
+covered by a prop still goes through `style`.
+
+| Prop | Type | Default |
+|---|---|---|
+| p, px, py, pt, pr, pb, pl | SpacingValue — padding, narrowest wins | |
+| m, mx, my, mt, mr, mb, ml | SpacingValue — margin | |
+| bg / borderColor | ColorValue | |
+| radius | RadiusValue | |
+| borderWidth | number | |
+| flex / gap | number / SpacingValue | |
+| align / justify | `alignItems` / `justifyContent` values | |
+| width / height | ViewStyle dimensions | |
+| row / wrap | boolean | `false` |
+
+#### `Stack` / `HStack` / `VStack`
+Evenly spaced children via `gap`, so spacing stays right when children are conditionally
+rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `row` and `gap`.
+
+| Prop | Type | Default |
+|---|---|---|
+| direction | `"vertical" \| "horizontal"` | `vertical` |
+| spacing | SpacingValue | `"s"` |
+| reverse | boolean | |
+
+#### `Center` / `Spacer` / `AspectRatio` / `Grid`
+- **`Center`** — centres children on both axes; every `Box` prop except `align`/`justify`.
+- **`Spacer`** — `size` (SpacingValue) for a fixed gap on `axis`, or no props to absorb the
+  leftover space and push siblings apart.
+- **`AspectRatio`** — `ratio` (default `1`), e.g. `16 / 9`.
+- **`Grid`** — equal-width grid: `columns` (default `2`) or a responsive `minChildWidth`, plus
+  `spacing`. Children are chunked into explicit rows rather than left to wrap, so the gap never
+  pushes a cell onto the next line and a short last row keeps its cells at column width.
+
+```tsx
+<Grid columns={2} spacing="m">
+  <Box p="m" bg="primaryContainer" radius="large">…</Box>
+  <Box p="m" bg="secondaryContainer" radius="large">…</Box>
+</Grid>
+```
+
 ### Buttons & actions
 
 #### `Button`
@@ -141,6 +193,34 @@ Pressable content surface.
 | loading | boolean (inline spinner) | `false` |
 | disabled | boolean | `false` |
 | accessibilityLabel | string (falls back to string child) | |
+
+#### `IconButton`
+Square, icon-only action — `Button` with only an icon comes out pill-shaped and label-padded.
+
+| Prop | Type | Default |
+|---|---|---|
+| icon | icon (required) | — |
+| accessibilityLabel | string (required — an icon carries no accessible name) | — |
+| onPress | () => void | |
+| mode | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` |
+| size | `"small" \| "medium" \| "large"` (32 / 40 / 48) | `medium` |
+| selected | boolean — M3 toggle-icon-button state | |
+| loading / disabled | boolean | |
+
+#### `Link`
+Inline navigational text.
+
+| Prop | Type | Default |
+|---|---|---|
+| children | string (label, required) | — |
+| href | string — opened with `Linking.openURL`; ignored when `onPress` is set | |
+| onPress | () => void | |
+| variant | typography key | `bodyMedium` |
+| underline | `"always" \| "hover" \| "none"` | `hover` |
+| showExternalIcon | boolean | `true` for a remote `href` |
+| externalIcon | icon | `open-in-new` |
+| color | string | `colors.primary` |
+| disabled | boolean | |
 
 #### `FAB` — Floating Action Button
 Absolutely positioned; respects safe-area insets.
@@ -321,17 +401,87 @@ Numeric field with +/- steppers. (Distinct from the progress spinners below.)
 | leadingIcon | icon | |
 | disabled / autoFocus | boolean | |
 
-#### `DateTimePicker`
-Field that opens a native/web modal picker. Locale-aware, with relative labels
-(Today/Yesterday/Tomorrow).
+#### `DateTimePicker` / `DatePicker` / `TimePicker`
+Field that opens a date/time picker: the OS picker on iOS/Android, an anchored popover on web.
+Everything locale-dependent — month and weekday names, week start, 12h/24h, AM/PM, the per-day
+screen-reader announcement — is derived from `Intl` and memoized per locale. Relative labels
+(Today/Yesterday/Tomorrow) come from `Intl.RelativeTimeFormat`. `DatePicker` and `TimePicker` are
+the same component with `mode` locked.
 
 | Prop | Type | Default |
 |---|---|---|
-| value | Date (required) | — |
+| value | `Date \| null` (required) | — |
 | onChange | (date) => void (required) | — |
 | label | string | |
 | mode | `"date" \| "datetime" \| "time"` | `date` |
+| variant | `"auto" \| "native" \| "inline"` | `auto` |
+| minimumDate / maximumDate | Date | |
+| isDateDisabled | (date) => boolean — forces `inline` | |
+| minuteInterval | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30` | `1` |
+| placeholder | string (shown while `value` is `null`) | |
+| clearable / onClear | boolean / () => void | |
+| error / helperText / required | string / string / boolean | |
+| locale | string | device locale |
+| firstDayOfWeek | 0–6 (0 = Sunday) | locale's own |
+| labels | `DateTimePickerLabels` — chrome strings, pass i18n values | English |
+| relativeLabels | `{ today?, yesterday?, tomorrow? }` | `Intl` |
 | disabled | boolean | |
+
+Keyboard (web): arrows = day/week, PageUp/PageDown = month (Shift = year), Home/End = ends of the
+week, Enter/Space = select, Escape = close.
+
+#### `Calendar` / `TimeSelect`
+The two surfaces `DateTimePicker` composes, exported on their own for inline use. Both are pure
+React Native, so they render identically on web and native and need none of the date-picker peer
+dependencies. `Calendar` adds month and year sub-views, `minimumDate`/`maximumDate`,
+`isDateDisabled` and the keyboard navigation above; `TimeSelect` gives hour/minute columns plus a
+day-period column on 12-hour locales. Full prop tables in
+[`components.md`](packages/ui/src/components/components.md).
+
+#### `Autocomplete`
+Text field with a suggestion list — free text allowed, unlike `Select`. Accent-insensitive
+matching by default, `description` lines, `loading` for server-side filtering, and
+ArrowUp/ArrowDown/Enter/Escape on web. The list renders inside the field's own container (a modal
+would steal focus from the input), so the parent must not clip overflow while it is open.
+
+| Prop | Type | Default |
+|---|---|---|
+| value / onChangeText | string / (text) => void (required) | — |
+| options | `AutocompleteOption[]` — `{ id, label, value, description?, icon? }` (required) | — |
+| onSelect | (option) => void (required) | — |
+| filter | (option, query) => boolean | accent-insensitive substring |
+| minChars / maxSuggestions | number | `1` / `8` |
+| loading | boolean | |
+| emptyMessage | string (omit to hide the list on no match) | |
+| label / placeholder / error / helperText / required / disabled | as `Input` | |
+| leadingIcon | icon | |
+| clearable | boolean | `true` |
+
+#### `PinInput`
+One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
+Backspace retreats, and pasting a whole code into any cell fills the row.
+
+| Prop | Type | Default |
+|---|---|---|
+| value / onChangeText | string / (value) => void (required) | — |
+| length | number | `6` |
+| onComplete | (value) => void — fired once, on becoming full | |
+| type | `"numeric" \| "alphanumeric"` | `numeric` |
+| mask | boolean | `false` |
+| label / error / helperText / required / disabled | as `Input` | |
+| autoFocus | boolean (first cell only) | |
+| cellSize | number | `48` |
+
+#### `FormControl`
+Groups a label, a control and its supporting text, and shares invalid/disabled/required state with
+descendants via `useFormControl()`. For controls with no `label`/`error` props of their own —
+`Checkbox`, `RadioGroup`, `Slider`, custom composites.
+
+| Prop | Type | Default |
+|---|---|---|
+| children | ReactNode (required) | — |
+| label / helperText / error | string | |
+| required / disabled | boolean | `false` |
 
 #### `Rating`
 Star rating; renders half-stars, sets whole values on tap.
@@ -456,6 +606,35 @@ Paged horizontal slider.
 | autoPlayInterval | number (ms, 0 = off) | `0` |
 | height | number (fixed; else tallest page) | |
 | onIndexChange | (index) => void | |
+
+#### `Stat`
+A single labelled metric with an optional trend delta.
+
+| Prop | Type | Default |
+|---|---|---|
+| label / value | string (both required) | — |
+| delta | string, e.g. `"12.5%"` | |
+| trend | `"up" \| "down" \| "flat"` — arrow + color for `delta` | |
+| invertTrendColors | boolean — for metrics where down is good | `false` |
+| helpText | string | |
+| icon | icon | |
+
+#### `Image`
+`react-native`'s Image plus a skeleton placeholder, a fallback for broken sources, and
+token-driven corner radius.
+
+| Prop | Type | Default |
+|---|---|---|
+| source | ImageSourcePropType (required) | — |
+| alt | string (required — a nameless image is invisible to screen readers) | — |
+| fallbackSource | ImageSourcePropType | |
+| fallbackIcon | icon (used when there is no `fallbackSource`) | `image-broken-variant` |
+| width / height | DimensionValue | `100%` / — |
+| ratio | number — width ÷ height; use instead of `height` for fluid layouts | |
+| radius | RadiusValue | `0` |
+| resizeMode | ImageResizeMode | `cover` |
+| showLoader | boolean | `true` |
+| onLoad / onError | () => void | |
 
 ### Feedback & overlays
 
@@ -590,6 +769,40 @@ Placeholder for empty content.
 | description | string | |
 | action | `{ label, onPress, iconName? }` (CTA button) | |
 
+#### `Collapse`
+Animates its children between `collapsedHeight` and their *measured* natural height, so it
+survives text reflow without a hardcoded height.
+
+| Prop | Type | Default |
+|---|---|---|
+| children | ReactNode (required) | — |
+| open | boolean (required) | — |
+| duration | number (ms) | `200` |
+| collapsedHeight | number — a peek/teaser height | `0` |
+| animateOpacity | boolean | `true` |
+| keepMounted | boolean — keep children mounted while collapsed | `false` |
+
+#### `ToastProvider` / `useToast()`
+Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
+Mount `ToastProvider` once above the app; the queue is FIFO and renders one `Snackbar` at a time.
+
+```tsx
+const toast = useToast();
+toast.success("Saved");
+toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
+toast.show({ id: "sync", message: "Syncing…", duration: 8000 }); // same id replaces
+toast.hide();                                                    // clears the queue
+```
+
+| `ToastOptions` | Type | Default |
+|---|---|---|
+| message | string (required) | — |
+| type | `"default" \| "success" \| "error"` | `default` |
+| duration | number (ms) | `4000` |
+| icon | icon | from `type` |
+| action | `{ label, onPress }` | |
+| id | string — replaces a queued toast with the same id instead of stacking | |
+
 ### Navigation
 
 #### `AppBar`
@@ -698,7 +911,7 @@ The Expo app that consumes `@glowup/ui` and demonstrates it. Its own source:
 
 ```
 apps/playground/
-├── App.tsx            # root: ThemeProvider / SafeAreaProvider / AlertProvider + Stack nav
+├── App.tsx            # root: ThemeProvider / SafeAreaProvider / AlertProvider / ToastProvider + Stack nav
 ├── index.ts           # Expo entry (registerRootComponent)
 ├── screens/           # Playground (component gallery), Start, Login, ChangePassword, ...
 ├── providers/         # AuthProvider (app-specific auth, token storage)

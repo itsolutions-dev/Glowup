@@ -9,7 +9,67 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, Typography, Button, Input, Select, Checkbox, Toggle, Chip, Badge, Avatar, Card, Divider, Spinner, NumericInput, DataGrid, RadioGroup, Slider, Tooltip, Menu, BottomSheet, NavigationBar, Skeleton, SearchBar, Banner, Breadcrumbs, Pagination, Rating, EmptyState, Carousel, Accordion, DateTimePicker, FAB, IconBadge, Paper, Stepper, StatusBadge, Snackbar, SpeedDial, CircularProgress, LinearProgress, Tabs, ToggleButtonGroup, ListItem, Modal, ConfirmDialog, Popover } from "@glowup/ui";
+import {
+  useTheme,
+  useToast,
+  Typography,
+  Button,
+  Input,
+  Select,
+  Checkbox,
+  Toggle,
+  Chip,
+  Badge,
+  Avatar,
+  Card,
+  Divider,
+  Spinner,
+  NumericInput,
+  DataGrid,
+  RadioGroup,
+  Slider,
+  Tooltip,
+  Menu,
+  BottomSheet,
+  NavigationBar,
+  Skeleton,
+  SearchBar,
+  Banner,
+  Breadcrumbs,
+  Pagination,
+  Rating,
+  EmptyState,
+  Carousel,
+  Accordion,
+  DateTimePicker,
+  FAB,
+  IconBadge,
+  Paper,
+  Stepper,
+  StatusBadge,
+  Snackbar,
+  SpeedDial,
+  CircularProgress,
+  LinearProgress,
+  Tabs,
+  ToggleButtonGroup,
+  ListItem,
+  Modal,
+  ConfirmDialog,
+  Popover,
+  Autocomplete,
+  Box,
+  Calendar,
+  Collapse,
+  FormControl,
+  Grid,
+  IconButton,
+  Image,
+  Link,
+  PinInput,
+  Stack,
+  Stat,
+} from "@glowup/ui";
 
 // Components
 
@@ -480,7 +540,376 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
           { label: "Time", value: "time" },
         ],
       },
+      variant: {
+        type: "select",
+        default: "auto",
+        label: "Variant",
+        options: [
+          { label: "Auto", value: "auto" },
+          { label: "Native (iOS/Android)", value: "native" },
+          { label: "Inline calendar", value: "inline" },
+        ],
+      },
+      locale: {
+        type: "select",
+        default: "",
+        label: "Locale override",
+        options: [
+          { label: "Device", value: "" },
+          { label: "it-IT", value: "it-IT" },
+          { label: "en-US", value: "en-US" },
+          { label: "de-DE", value: "de-DE" },
+          { label: "ja-JP", value: "ja-JP" },
+          { label: "ar-EG", value: "ar-EG" },
+        ],
+      },
+      minuteInterval: {
+        type: "select",
+        default: 1,
+        label: "Minute interval",
+        options: [
+          { label: "1", value: 1 },
+          { label: "5", value: 5 },
+          { label: "15", value: 15 },
+          { label: "30", value: 30 },
+        ],
+      },
+      placeholder: {
+        type: "text",
+        default: "No date selected",
+        label: "Placeholder",
+      },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      error: { type: "text", default: "", label: "Error Message" },
+      required: { type: "boolean", default: false, label: "Required" },
+      clearable: { type: "boolean", default: true, label: "Clearable" },
+      limitToThisMonth: {
+        type: "boolean",
+        default: false,
+        label: "Min/max = this month",
+      },
+      noWeekends: {
+        type: "boolean",
+        default: false,
+        label: "Disable weekends",
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Calendar: {
+    name: "Calendar",
+    Component: Calendar,
+    props: {
+      showToday: { type: "boolean", default: true, label: "Show 'Today'" },
+      keyboardNavigation: {
+        type: "boolean",
+        default: true,
+        label: "Keyboard nav (web)",
+      },
+      locale: {
+        type: "select",
+        default: "",
+        label: "Locale override",
+        options: [
+          { label: "Device", value: "" },
+          { label: "it-IT", value: "it-IT" },
+          { label: "en-US", value: "en-US" },
+          { label: "ja-JP", value: "ja-JP" },
+        ],
+      },
+      noWeekends: {
+        type: "boolean",
+        default: false,
+        label: "Disable weekends",
+      },
+    },
+  },
+  IconButton: {
+    name: "IconButton",
+    Component: IconButton,
+    props: {
+      icon: { type: "text", default: "heart-outline", label: "Icon" },
+      mode: {
+        type: "select",
+        default: "standard",
+        label: "Mode",
+        options: [
+          { label: "Standard", value: "standard" },
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      size: {
+        type: "select",
+        default: "medium",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
+      selected: { type: "boolean", default: false, label: "Selected" },
+      loading: { type: "boolean", default: false, label: "Loading" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Link: {
+    name: "Link",
+    Component: Link,
+    props: {
+      children: { type: "text", default: "Material Design 3", label: "Label" },
+      href: {
+        type: "text",
+        default: "https://m3.material.io",
+        label: "Href",
+      },
+      underline: {
+        type: "select",
+        default: "hover",
+        label: "Underline",
+        options: [
+          { label: "On hover", value: "hover" },
+          { label: "Always", value: "always" },
+          { label: "Never", value: "none" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Stat: {
+    name: "Stat",
+    Component: Stat,
+    props: {
+      label: { type: "text", default: "Monthly revenue", label: "Label" },
+      value: { type: "text", default: "128,400", label: "Value" },
+      delta: { type: "text", default: "12.5%", label: "Delta" },
+      trend: {
+        type: "select",
+        default: "up",
+        label: "Trend",
+        options: [
+          { label: "Up", value: "up" },
+          { label: "Down", value: "down" },
+          { label: "Flat", value: "flat" },
+        ],
+      },
+      invertTrendColors: {
+        type: "boolean",
+        default: false,
+        label: "Invert trend colors",
+      },
+      helpText: { type: "text", default: "vs. last month", label: "Help Text" },
+      icon: { type: "text", default: "cash-multiple", label: "Icon" },
+    },
+  },
+  PinInput: {
+    name: "PinInput",
+    Component: PinInput,
+    props: {
+      label: { type: "text", default: "Verification code", label: "Label" },
+      length: { type: "number", default: 6, label: "Length" },
+      type: {
+        type: "select",
+        default: "numeric",
+        label: "Type",
+        options: [
+          { label: "Numeric", value: "numeric" },
+          { label: "Alphanumeric", value: "alphanumeric" },
+        ],
+      },
+      mask: { type: "boolean", default: false, label: "Mask" },
+      helperText: {
+        type: "text",
+        default: "Paste the whole code into any cell",
+        label: "Helper Text",
+      },
+      error: { type: "text", default: "", label: "Error Message" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Autocomplete: {
+    name: "Autocomplete",
+    Component: Autocomplete,
+    props: {
+      label: { type: "text", default: "Country", label: "Label" },
+      placeholder: {
+        type: "text",
+        default: "Start typing…",
+        label: "Placeholder",
+      },
+      minChars: { type: "number", default: 1, label: "Min Chars" },
+      loading: { type: "boolean", default: false, label: "Loading" },
+      emptyMessage: {
+        type: "text",
+        default: "No match",
+        label: "Empty Message",
+      },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      error: { type: "text", default: "", label: "Error Message" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  FormControl: {
+    name: "FormControl",
+    Component: FormControl,
+    props: {
+      label: { type: "text", default: "Notifications", label: "Label" },
+      helperText: {
+        type: "text",
+        default: "We only email about incidents.",
+        label: "Helper Text",
+      },
+      error: { type: "text", default: "", label: "Error Message" },
+      required: { type: "boolean", default: false, label: "Required" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Collapse: {
+    name: "Collapse",
+    Component: Collapse,
+    props: {
+      collapsedHeight: {
+        type: "number",
+        default: 0,
+        label: "Collapsed Height",
+      },
+      duration: { type: "number", default: 200, label: "Duration (ms)" },
+      animateOpacity: { type: "boolean", default: true, label: "Fade" },
+    },
+  },
+  Image: {
+    name: "Image",
+    Component: Image,
+    props: {
+      alt: { type: "text", default: "A placeholder photo", label: "Alt text" },
+      ratio: { type: "number", default: 1.5, label: "Aspect Ratio" },
+      radius: {
+        type: "select",
+        default: "large",
+        label: "Radius",
+        options: [
+          { label: "None", value: 0 },
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
+      resizeMode: {
+        type: "select",
+        default: "cover",
+        label: "Resize Mode",
+        options: [
+          { label: "Cover", value: "cover" },
+          { label: "Contain", value: "contain" },
+        ],
+      },
+      showLoader: { type: "boolean", default: true, label: "Show Loader" },
+      broken: { type: "boolean", default: false, label: "Simulate broken URL" },
+    },
+  },
+  Box: {
+    name: "Box",
+    Component: Box,
+    props: {
+      p: {
+        type: "select",
+        default: "m",
+        label: "Padding",
+        options: [
+          { label: "xs", value: "xs" },
+          { label: "s", value: "s" },
+          { label: "m", value: "m" },
+          { label: "l", value: "l" },
+          { label: "xl", value: "xl" },
+        ],
+      },
+      bg: {
+        type: "select",
+        default: "primaryContainer",
+        label: "Background",
+        options: [
+          { label: "primaryContainer", value: "primaryContainer" },
+          { label: "secondaryContainer", value: "secondaryContainer" },
+          { label: "tertiaryContainer", value: "tertiaryContainer" },
+          {
+            label: "surfaceContainerHighest",
+            value: "surfaceContainerHighest",
+          },
+        ],
+      },
+      radius: {
+        type: "select",
+        default: "large",
+        label: "Radius",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+          { label: "Extra large", value: "extraLarge" },
+        ],
+      },
+      row: { type: "boolean", default: false, label: "Horizontal" },
+    },
+  },
+  Stack: {
+    name: "Stack",
+    Component: Stack,
+    props: {
+      direction: {
+        type: "select",
+        default: "vertical",
+        label: "Direction",
+        options: [
+          { label: "Vertical", value: "vertical" },
+          { label: "Horizontal", value: "horizontal" },
+        ],
+      },
+      spacing: {
+        type: "select",
+        default: "s",
+        label: "Spacing",
+        options: [
+          { label: "xs", value: "xs" },
+          { label: "s", value: "s" },
+          { label: "m", value: "m" },
+          { label: "l", value: "l" },
+        ],
+      },
+      reverse: { type: "boolean", default: false, label: "Reverse" },
+    },
+  },
+  Grid: {
+    name: "Grid",
+    Component: Grid,
+    props: {
+      columns: { type: "number", default: 3, label: "Columns" },
+      minChildWidth: {
+        type: "number",
+        default: 0,
+        label: "Min Child Width (0 = off)",
+      },
+      spacing: {
+        type: "select",
+        default: "s",
+        label: "Spacing",
+        options: [
+          { label: "xs", value: "xs" },
+          { label: "s", value: "s" },
+          { label: "m", value: "m" },
+          { label: "l", value: "l" },
+        ],
+      },
+    },
+  },
+  Toast: {
+    name: "Toast",
+    Component: Button,
+    props: {
+      message: { type: "text", default: "Changes saved", label: "Message" },
+      duration: { type: "number", default: 4000, label: "Duration (ms)" },
+      withAction: { type: "boolean", default: false, label: "With action" },
     },
   },
   FAB: {
@@ -810,7 +1239,14 @@ const CATEGORIES: Category[] = [
   {
     label: "Actions",
     icon: "cursor-default-click-outline",
-    items: ["Button", "Chip", "FAB", "SpeedDial", "ToggleButtonGroup"],
+    items: [
+      "Button",
+      "IconButton",
+      "Chip",
+      "FAB",
+      "SpeedDial",
+      "ToggleButtonGroup",
+    ],
   },
   {
     label: "Inputs",
@@ -825,7 +1261,11 @@ const CATEGORIES: Category[] = [
       "Slider",
       "Spinner",
       "SearchBar",
+      "Autocomplete",
+      "PinInput",
+      "FormControl",
       "DateTimePicker",
+      "Calendar",
       "Rating",
     ],
   },
@@ -842,6 +1282,9 @@ const CATEGORIES: Category[] = [
       "Tooltip",
       "Accordion",
       "Carousel",
+      "Stat",
+      "Image",
+      "Link",
     ],
   },
   {
@@ -859,12 +1302,19 @@ const CATEGORIES: Category[] = [
       "CircularProgress",
       "LinearProgress",
       "EmptyState",
+      "Toast",
+      "Collapse",
     ],
   },
   {
     label: "Navigation",
     icon: "compass-outline",
     items: ["NavigationBar", "Tabs", "Breadcrumbs", "Pagination", "Stepper"],
+  },
+  {
+    label: "Layout",
+    icon: "view-dashboard-outline",
+    items: ["Box", "Stack", "Grid"],
   },
 ];
 
@@ -882,7 +1332,11 @@ const Playground = () => {
   const [enterAnim] = useState(() => new Animated.Value(1));
   const [selectedComponentName, setSelectedComponentName] =
     useState<string>("Button");
-  const [dateValue, setDateValue] = useState(() => new Date());
+  const [dateValue, setDateValue] = useState<Date | null>(() => new Date());
+  const [pinValue, setPinValue] = useState("");
+  const [autocompleteQuery, setAutocompleteQuery] = useState("");
+  const [collapseOpen, setCollapseOpen] = useState(false);
+  const toast = useToast();
 
   // Dynamically initialize state for the selected component's props
   const [componentProps, setComponentProps] = useState<Record<string, any>>(
@@ -1182,12 +1636,262 @@ const Playground = () => {
       );
     }
 
-    if (selectedComponentName === "DateTimePicker") {
+    if (
+      selectedComponentName === "DateTimePicker" ||
+      selectedComponentName === "Calendar"
+    ) {
+      // limitToThisMonth / noWeekends are playground switches, not component
+      // props — they stand in for a real minimumDate / isDateDisabled.
+      const { limitToThisMonth, noWeekends, ...rest } = props;
+      props = rest;
       props.value = dateValue;
       props.onChange = (d: Date) => setDateValue(d);
+      if (!props.locale) delete props.locale;
+      if (!props.error) delete props.error;
+      if (!props.helperText) delete props.helperText;
+      if (limitToThisMonth) {
+        const now = new Date();
+        props.minimumDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        props.maximumDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
+      if (noWeekends) {
+        props.isDateDisabled = (date: Date) =>
+          date.getDay() === 0 || date.getDay() === 6;
+      }
+      if (selectedComponentName === "Calendar") {
+        return <Component {...props} />;
+      }
+      props.onClear = () => setDateValue(null);
+      props.minuteInterval = Number(props.minuteInterval) || 1;
       return (
         <View style={{ width: "100%", maxWidth: 360 }}>
           <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "IconButton") {
+      return (
+        <Component
+          {...props}
+          accessibilityLabel={props.icon || "Icon button"}
+          onPress={() => {}}
+        />
+      );
+    }
+
+    if (selectedComponentName === "Link") {
+      const { children, ...linkProps } = props;
+      if (!linkProps.href) delete linkProps.href;
+      return <Component {...linkProps}>{children}</Component>;
+    }
+
+    if (selectedComponentName === "Stat") {
+      if (!props.icon) delete props.icon;
+      if (!props.delta) delete props.delta;
+      if (!props.helpText) delete props.helpText;
+      return (
+        <View style={{ minWidth: 240 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "PinInput") {
+      props.length = Math.max(2, Math.min(10, Number(props.length) || 6));
+      props.value = pinValue;
+      props.onChangeText = setPinValue;
+      if (!props.error) delete props.error;
+      if (!props.helperText) delete props.helperText;
+      return (
+        <View style={{ alignItems: "center" }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Autocomplete") {
+      props.minChars = Math.max(0, Number(props.minChars) || 0);
+      props.value = autocompleteQuery;
+      props.onChangeText = setAutocompleteQuery;
+      props.onSelect = () => {};
+      props.options = [
+        {
+          id: "it",
+          label: "Italy",
+          value: "IT",
+          description: "Europe",
+          icon: "map-marker-outline",
+        },
+        { id: "is", label: "Iceland", value: "IS", description: "Europe" },
+        { id: "in", label: "India", value: "IN", description: "Asia" },
+        { id: "id", label: "Indonesia", value: "ID", description: "Asia" },
+        { id: "ie", label: "Ireland", value: "IE", description: "Europe" },
+        { id: "jp", label: "Japan", value: "JP", description: "Asia" },
+      ];
+      if (!props.error) delete props.error;
+      if (!props.helperText) delete props.helperText;
+      if (!props.emptyMessage) delete props.emptyMessage;
+      return (
+        <View style={{ width: "100%", maxWidth: 360, minHeight: 300 }}>
+          <Component {...props} />
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "FormControl") {
+      if (!props.error) delete props.error;
+      if (!props.helperText) delete props.helperText;
+      return (
+        <View style={{ width: "100%", maxWidth: 360 }}>
+          <Component {...props}>
+            <Checkbox
+              label="Email me about incidents"
+              checked
+              onValueChange={() => {}}
+            />
+            <Checkbox
+              label="Email me a weekly digest"
+              checked={false}
+              onValueChange={() => {}}
+            />
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Collapse") {
+      props.collapsedHeight = Number(props.collapsedHeight) || 0;
+      props.duration = Number(props.duration) || 200;
+      return (
+        <View style={{ width: "100%", maxWidth: 420, gap: 12 }}>
+          <Button mode="tonal" onPress={() => setCollapseOpen((o) => !o)}>
+            {collapseOpen ? "Collapse" : "Expand"}
+          </Button>
+          <Component {...props} open={collapseOpen}>
+            <View
+              style={{
+                padding: 16,
+                borderRadius: 16,
+                backgroundColor: theme.colors.secondaryContainer,
+              }}
+            >
+              <Typography variant="bodyMedium">
+                The height is measured from the content, so this animates
+                correctly however much text it holds — no fixed height needed.
+              </Typography>
+            </View>
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Image") {
+      const { broken, ...imageProps } = props;
+      imageProps.ratio = Number(imageProps.ratio) || 1.5;
+      imageProps.source = {
+        uri: broken
+          ? "https://example.invalid/missing.png"
+          : "https://picsum.photos/seed/glowup/640/420",
+      };
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...imageProps} />
+        </View>
+      );
+    }
+
+    if (
+      selectedComponentName === "Box" ||
+      selectedComponentName === "Stack" ||
+      selectedComponentName === "Grid"
+    ) {
+      if (selectedComponentName === "Grid") {
+        props.columns = Math.max(1, Number(props.columns) || 1);
+        const minChildWidth = Number(props.minChildWidth) || 0;
+        props.minChildWidth = minChildWidth > 0 ? minChildWidth : undefined;
+      }
+      const swatches = ["primary", "secondary", "tertiary", "error"];
+      return (
+        <View style={{ width: "100%", maxWidth: 420 }}>
+          <Component {...props}>
+            {swatches.map((colorKey) => (
+              <View
+                key={colorKey}
+                style={{
+                  minWidth: 72,
+                  paddingVertical: 18,
+                  paddingHorizontal: 12,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  backgroundColor: (theme.colors as any)[colorKey],
+                }}
+              >
+                <Typography
+                  variant="labelMedium"
+                  style={{
+                    color: (theme.colors as any)[
+                      `on${colorKey[0].toUpperCase()}${colorKey.slice(1)}`
+                    ],
+                  }}
+                >
+                  {colorKey}
+                </Typography>
+              </View>
+            ))}
+          </Component>
+        </View>
+      );
+    }
+
+    if (selectedComponentName === "Toast") {
+      const duration = Number(props.duration) || 4000;
+      const action = props.withAction
+        ? { label: "Undo", onPress: () => {} }
+        : undefined;
+      const message = props.message || "Changes saved";
+      return (
+        <View style={{ gap: 12, alignItems: "center" }}>
+          <Typography
+            variant="bodyMedium"
+            style={{
+              color: theme.colors.onSurfaceVariant,
+              textAlign: "center",
+            }}
+          >
+            useToast() queues toasts from anywhere in the tree — no `visible`
+            state to thread through the screen.
+          </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              mode="tonal"
+              onPress={() => toast.show({ message, duration, action })}
+            >
+              Show
+            </Button>
+            <Button
+              mode="tonal"
+              onPress={() => toast.success(message, { duration, action })}
+            >
+              Success
+            </Button>
+            <Button
+              mode="tonal"
+              onPress={() => toast.error(message, { duration, action })}
+            >
+              Error
+            </Button>
+            <Button mode="outlined" onPress={() => toast.hide()}>
+              Clear queue
+            </Button>
+          </View>
         </View>
       );
     }

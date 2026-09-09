@@ -136,6 +136,34 @@ Pressable content surface.
 | accessibilityLabel | string | | | Falls back to string child |
 | style | object | | | |
 
+### IconButton
+Square, icon-only action. `Button` with only an icon comes out pill-shaped and label-padded.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| icon | icon | — | ✓ | |
+| accessibilityLabel | string | — | ✓ | Required: an icon carries no accessible name |
+| onPress | () => void | | | |
+| mode | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` | | |
+| size | `"small" \| "medium" \| "large"` | `medium` | | 32 / 40 / 48 |
+| selected | boolean | | | M3 toggle-icon-button state |
+| loading | boolean | | | Inline spinner |
+| disabled | boolean | | | |
+| style | ViewStyle | | | |
+
+### Link
+Inline navigational text.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| children | string | — | ✓ | Label |
+| href | string | | | Opened with `Linking.openURL`; ignored when `onPress` is set |
+| onPress | () => void | | | |
+| variant | typography key | `bodyMedium` | | |
+| underline | `"always" \| "hover" \| "none"` | `hover` | | |
+| showExternalIcon | boolean | `true` for remote `href` | | |
+| externalIcon | icon | `open-in-new` | | |
+| color | string | `colors.primary` | | |
+| disabled | boolean | | | |
+
 ### FAB (Floating Action Button)
 Absolutely positioned; respects safe-area insets.
 | Prop | Type | Default | Req | Description |
@@ -342,14 +370,116 @@ Numeric field with +/- steppers. (Distinct from progress spinners in §6.)
 | style | ViewStyle | | | |
 
 ### DateTimePicker
-Field that opens a native/web modal date/time picker. Locale-aware, relative labels (Today/Yesterday/Tomorrow).
+Field that opens a date/time picker. Every locale-dependent label — month and weekday names, week
+start, 12h/24h, AM/PM, day announcements — is derived from `Intl` and memoized per locale; nothing
+is hardcoded to a language. Relative day labels (Today/Yesterday/Tomorrow) come from
+`Intl.RelativeTimeFormat` unless overridden.
+
+`DatePicker` and `TimePicker` are the same component with `mode` locked.
+
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| value | `Date \| null` | — | ✓ | `null` renders `placeholder` |
+| onChange | (date) => void | — | ✓ | Never called with `null`; clearing goes to `onClear` |
+| label | string | | | |
+| mode | `"date" \| "datetime" \| "time"` | `date` | | |
+| variant | `"auto" \| "native" \| "inline"` | `auto` | | `auto` = OS picker on native, popover on web; forced to `inline` when `isDateDisabled` is set |
+| minimumDate | Date | | | Earliest selectable instant |
+| maximumDate | Date | | | Latest selectable instant |
+| isDateDisabled | (date) => boolean | | | Per-day predicate (weekends, holidays) |
+| minuteInterval | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30` | `1` | | Set the OS pickers accept |
+| placeholder | string | | | Shown while `value` is `null` |
+| clearable | boolean | | | Adds a clear button; needs `onClear` |
+| onClear | () => void | | | |
+| error | string | | | Error text; also recolors the field |
+| helperText | string | | | Hidden while `error` is set |
+| required | boolean | | | Appends `*` to the label |
+| locale | string | device locale | | Formatting/labelling override |
+| firstDayOfWeek | 0–6 (0 = Sunday) | locale's own | | |
+| labels | `DateTimePickerLabels` | English | | Chrome strings (`today`, `confirm`, `cancel`, …) |
+| relativeLabels | `{ today?, yesterday?, tomorrow? }` | `Intl` | | |
+| disabled | boolean | | | |
+| style | ViewStyle | | | |
+| testID | string | | | |
+
+**Keyboard (web).** Arrows = day/week, PageUp/PageDown = month (Shift = year), Home/End = ends of
+the week, Enter/Space = select, Escape = close.
+
+### Calendar
+The inline month grid used by `DateTimePicker`, exported on its own. Cross-platform, with
+month and year sub-views.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| value | `Date \| null` | | | |
+| onChange | (date) => void | — | ✓ | Always a start-of-day `Date` |
+| minimumDate / maximumDate | Date | | | Whole-day comparison |
+| isDateDisabled | (date) => boolean | | | |
+| locale | string | device locale | | |
+| firstDayOfWeek | 0–6 | locale's own | | |
+| labels | `DateTimePickerLabels` | English | | |
+| showToday | boolean | `true` | | "Today" shortcut row |
+| keyboardNavigation | boolean | `true` | | Web only |
+| onRequestClose | () => void | | | Called on Escape |
+
+### TimeSelect
+Scrollable hour/minute columns, plus a day-period column on 12-hour locales.
 | Prop | Type | Default | Req | Description |
 |---|---|---|---|---|
 | value | Date | — | ✓ | |
 | onChange | (date) => void | — | ✓ | |
+| minimumDate / maximumDate | Date | | | Only clamp on the boundary day itself |
+| minuteInterval | number | `1` | | |
+| locale | string | device locale | | Decides 12h vs 24h |
+| use12Hour | boolean | from locale | | Force the clock format |
+
+### PinInput
+One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
+Backspace retreats, pasting a whole code into any cell fills the row.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| value | string | — | ✓ | |
+| onChangeText | (value) => void | — | ✓ | |
+| length | number | `6` | | |
+| onComplete | (value) => void | | | Fired once, on becoming full |
+| type | `"numeric" \| "alphanumeric"` | `numeric` | | |
+| mask | boolean | `false` | | Renders dots |
+| label / error / helperText / required / disabled | | | | As `Input` |
+| autoFocus | boolean | | | First cell only |
+| cellSize | number | `48` | | |
+
+### Autocomplete
+Text field with a suggestion list. Free text allowed — this is not a `Select`. The list renders
+inside the field's own container (a modal would steal focus from the input), so the parent must
+not clip overflow while it is open.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| value | string | — | ✓ | |
+| onChangeText | (text) => void | — | ✓ | |
+| options | `AutocompleteOption[]` | — | ✓ | `{ id, label, value, description?, icon? }` |
+| onSelect | (option) => void | — | ✓ | |
+| filter | (option, query) => boolean | accent-insensitive substring | | `() => true` for server-side filtering |
+| minChars | number | `1` | | |
+| maxSuggestions | number | `8` | | |
+| loading | boolean | | | Spinner in the field |
+| emptyMessage | string | | | Omit to hide the list on no match |
+| label / placeholder / error / helperText / required / disabled | | | | As `Input` |
+| leadingIcon | icon | | | |
+| clearable | boolean | `true` | | |
+
+**Keyboard (web).** ArrowUp/ArrowDown move the highlight, Enter selects, Escape closes.
+
+### FormControl
+Groups a label, a control and its supporting text, and shares invalid/disabled/required state with
+descendants via `useFormControl()`. For controls with no `label`/`error` props of their own —
+Checkbox, RadioGroup, Slider, custom composites.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| children | ReactNode | — | ✓ | |
 | label | string | | | |
-| mode | `"date" \| "datetime" \| "time"` | `date` | | |
-| disabled | boolean | | | |
+| helperText | string | | | Hidden while `error` is set |
+| error | string | | | Presence marks the group invalid |
+| required | boolean | `false` | | |
+| disabled | boolean | `false` | | Dims the control |
 
 ### Rating
 Star rating; half-stars rendered, whole values on tap.
@@ -462,6 +592,34 @@ Paged horizontal slider.
 | autoPlayInterval | number (ms) | `0` | | 0 = off |
 | height | number | | | Fixed height (else tallest page) |
 | onIndexChange | (index) => void | | | |
+
+### Stat
+A single labelled metric with an optional trend delta.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| label | string | — | ✓ | What the number measures |
+| value | string | — | ✓ | Pre-formatted by the caller |
+| delta | string | | | e.g. `"12.5%"` |
+| trend | `"up" \| "down" \| "flat"` | | | Arrow + color for `delta` |
+| invertTrendColors | boolean | `false` | | For metrics where down is good |
+| helpText | string | | | |
+| icon | icon | | | |
+
+### Image
+`react-native`'s Image plus a loading placeholder, a fallback for broken sources, and
+token-driven corner radius.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| source | ImageSourcePropType | — | ✓ | |
+| alt | string | — | ✓ | Required — a nameless image is invisible to screen readers |
+| fallbackSource | ImageSourcePropType | | | Swapped in on load failure |
+| fallbackIcon | icon | `image-broken-variant` | | Used when there is no `fallbackSource` |
+| width / height | DimensionValue | `100%` / — | | |
+| ratio | number | | | Width ÷ height; use instead of `height` for fluid layouts |
+| radius | shape key \| number | `0` | | |
+| resizeMode | ImageResizeMode | `cover` | | |
+| showLoader | boolean | `true` | | Skeleton until resolved |
+| onLoad / onError | () => void | | | |
 
 ---
 
@@ -590,6 +748,39 @@ Placeholder for empty content.
 | description | string | | | |
 | action | `{ label, onPress, iconName? }` | | | CTA button |
 
+### Collapse
+Animates its children between `collapsedHeight` and their *measured* natural height, so it
+survives text reflow without a hardcoded height.
+| Prop | Type | Default | Req | Description |
+|---|---|---|---|---|
+| children | ReactNode | — | ✓ | |
+| open | boolean | — | ✓ | |
+| duration | number (ms) | `200` | | |
+| collapsedHeight | number | `0` | | A peek/teaser height |
+| animateOpacity | boolean | `true` | | |
+| keepMounted | boolean | `false` | | Keep children mounted while collapsed |
+
+### ToastProvider / useToast
+Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
+Mount `ToastProvider` once above the app; the queue is FIFO and renders one `Snackbar` at a time.
+
+```tsx
+const toast = useToast();
+toast.success("Saved");
+toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
+toast.show({ id: "sync", message: "Syncing…", duration: 8000 }); // same id replaces
+toast.hide();                                                    // clears the queue
+```
+
+| `ToastOptions` | Type | Default | Description |
+|---|---|---|---|
+| message | string | — | |
+| type | `"default" \| "success" \| "error"` | `default` | Container colors + default icon |
+| duration | number (ms) | `4000` | |
+| icon | icon | from `type` | |
+| action | `{ label, onPress }` | | |
+| id | string | | Replaces a queued toast with the same id instead of stacking |
+
 ---
 
 ## 7. Navigation
@@ -644,18 +835,81 @@ Horizontal progress steps.
 
 ---
 
-## 8. Component Index (42)
+## 8. Layout Primitives
+
+Token-driven layout, so screens stop hardcoding spacing. `SpacingValue` is a `theme.spacing` key
+(`"xs" | "s" | "m" | "l" | "xl"`) or a raw number; `RadiusValue` is a `theme.shape` key or a raw
+number; `ColorValue` is an M3 color role name or any raw color string.
+
+### Box
+A `View` that reads spacing, shape and color off the theme. Anything not covered by a prop still
+goes through `style`.
+| Prop | Type | Description |
+|---|---|---|
+| p, px, py, pt, pr, pb, pl | SpacingValue | Padding — narrowest wins, as in CSS |
+| m, mx, my, mt, mr, mb, ml | SpacingValue | Margin |
+| bg | ColorValue | Background |
+| radius | RadiusValue | Corner radius |
+| borderWidth | number | |
+| borderColor | ColorValue | |
+| flex | number | |
+| gap | SpacingValue | |
+| align / justify | ViewStyle values | `alignItems` / `justifyContent` |
+| width / height | ViewStyle values | |
+| row | boolean | Horizontal instead of vertical |
+| wrap | boolean | |
+
+Extends `ViewProps`.
+
+### Stack / HStack / VStack
+Evenly spaced children via `gap`, so spacing stays correct when children are conditionally
+rendered. `HStack` and `VStack` lock the axis.
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| direction | `"vertical" \| "horizontal"` | `vertical` | |
+| spacing | SpacingValue | `"s"` | Gap between children |
+| reverse | boolean | | Reverses visual order |
+
+Plus every `Box` prop except `row` and `gap`.
+
+### Center
+Centres its children on both axes. Every `Box` prop except `align` and `justify`.
+
+### Spacer
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| size | SpacingValue | | Fixed gap; omit to absorb leftover space |
+| axis | `"vertical" \| "horizontal"` | `vertical` | Which axis `size` applies to |
+
+### Grid
+Equal-width grid. Children are chunked into explicit rows rather than left to wrap, so the gap
+never pushes a cell onto the next line and a short last row keeps its cells at column width.
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| columns | number | `2` | Ignored when `minChildWidth` is set |
+| minChildWidth | number | | Fits as many columns of at least this width as fit |
+| spacing | SpacingValue | `"s"` | |
+
+### AspectRatio
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| ratio | number | `1` | Width ÷ height — `16 / 9`, `4 / 3` |
+
+---
+
+## 9. Component Index (58)
 
 **Foundations**: Typography, Divider, Paper, Card
-**Actions**: Button, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, Chip
-**Inputs**: Input, NumericInput, Select, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker, Rating
-**Data display**: Avatar, Badge, IconBadge, StatusBadge, DataGrid, ListItem, Tooltip, Accordion, Carousel
-**Feedback & overlays**: Snackbar, Banner, Modal, ConfirmDialog, Popover, BottomSheet, Menu, Skeleton, CircularProgress, LinearProgress, EmptyState
+**Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
+**Actions**: Button, IconButton, Link, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, Chip
+**Inputs**: Input, NumericInput, Select, Autocomplete, PinInput, FormControl, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/TimePicker, Calendar, TimeSelect, Rating
+**Data display**: Avatar, Badge, IconBadge, StatusBadge, DataGrid, ListItem, Tooltip, Accordion, Carousel, Stat, Image
+**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, Menu, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: AppBar, NavigationBar, Tabs, Breadcrumbs, Pagination, Stepper
 
 ---
 
-## 9. Framework Selection Notes
+## 10. Framework Selection Notes
 
 Requirements this kit implies for a target framework:
 - **Theming**: runtime light/dark token switch, component-level theme access (context/hook or CSS vars).

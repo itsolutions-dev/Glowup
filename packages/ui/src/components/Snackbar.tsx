@@ -9,6 +9,7 @@ import {
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Button from "./Button";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import { MaterialCommunityIconsGlyphs } from "./types";
 
 export interface SnackbarProps {
   visible: boolean;
@@ -20,7 +21,7 @@ export interface SnackbarProps {
     onPress: () => void;
   };
   type?: "default" | "success" | "error";
-  icon?: string;
+  icon?: MaterialCommunityIconsGlyphs;
 }
 
 const Snackbar = ({
@@ -119,7 +120,7 @@ const Snackbar = ({
         <View style={styles.messageRow}>
           {!!icon && (
             <Icons
-              name={icon as any}
+              name={icon}
               size={20}
               color={iconColor}
               style={styles.leadingIcon}

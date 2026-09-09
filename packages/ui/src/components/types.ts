@@ -12,9 +12,10 @@ export type MaterialCommunityIconsGlyphs = ComponentProps<
 >["name"];
 
 /**
- * Pressable state including the web-only `hovered` flag provided by
- * react-native-web but missing from the core react-native typings.
+ * Pressable state including the web-only `hovered` and `focused` flags that
+ * react-native-web provides but the core react-native typings omit.
  */
 export interface PressableState extends PressableStateCallbackType {
   hovered?: boolean;
+  focused?: boolean;
 }

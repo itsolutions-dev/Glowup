@@ -420,13 +420,71 @@ the next run has to account for:
 - New previews: `Calendar.tsx` and `ClockPicker.tsx`, both `cardMode: column`.
   `DateTimePicker.tsx` was rewritten - eight stories now, covering selection modes, typed
   entry and `validRange`. `ClockDial` is deliberately left without one: it is the face
-  inside `ClockPicker`, which previews it in context.
+  inside `ClockPicker`, which previews it in context. **Reversed by the coverage sweep
+  below** - `ClockPicker` only ever shows the dial's default face.
 - `components.md`'s picker heading is now
   `### DateTimePicker / DatePicker / DatePickerInput / DateRangePicker / TimePicker`, so
   `split-docs.mjs` writes the same doc to all five names instead of leaving the four
   wrappers on a "general" card with no prompt.
 - Breaking props to expect in any carried-forward grade: `variant` is gone,
   `minimumDate`/`maximumDate` became `validRange`.
+
+## Component coverage sweep (2026-09-09, later)
+
+Cross-checked the four sync surfaces against each other - barrel export, preview,
+generated doc, presentation override - rather than against memory. Six components were
+shipping from the barrel with a doc but **no preview**, so they reached the Design System
+pane as a name with no card: `ClockDial`, `TimeSelect`, and the four wrappers
+`DatePicker`, `DatePickerInput`, `DateRangePicker`, `TimePicker`. All six now have one,
+all `cardMode: column`. Coverage is 87 shipped components / 87 previews.
+
+**This reverses the `ClockDial` decision above.** "It is the face inside `ClockPicker`,
+which previews it in context" holds for the picker's *default* face and nothing else:
+`unit`, the inner 13-00 ring `use24HourClock` adds, the bare knob `minuteInterval` leaves
+on an unlabelled minute, and `isTimeDisabled` are all `ClockDial` props that no
+`ClockPicker` story reaches. A public export with its own props table earns its own card.
+
+**The four wrappers get thin cards on purpose.** They are 15-19 line prop locks over
+`DateTimePicker`, so their stories stay at two or three: what the lock is, and that the
+field states still behave. A design agent should be able to see that `DateRangePicker`
+exists and what it looks like without being taught the picker twice. Note that
+`split-docs.mjs` writes the *same* doc to all five names (they share the
+`### DateTimePicker / DatePicker / ...` heading), so the cards are the only thing that
+tells them apart.
+
+**`CardTitle` / `CardContent` / `CardCover` / `CardActions` stay without their own
+previews** - the only four shipped components that do. They are slot components with no
+standalone meaning, and `Card.tsx`'s stories compose all four in place. They still get
+their own doc from the shared heading. Recorded here so the next sweep does not read it
+as an oversight.
+
+### Authoring notes for the six
+
+- `ClockDial` is fully controlled and wants `hours` **and** `minutes` whichever `unit` is
+  being edited; a story that passes only the edited one gets a hand pointing at midnight.
+- `isTimeDisabled` is asked about a *candidate*, not the current value:
+  `(candidateHour, currentMinutes)` on the hour face, `(currentHours, candidateMinute)` on
+  the minute face. A predicate written against the current value greys out all or nothing.
+- On the 12-hour face that candidate hour is the 0-23 value the label maps to under the
+  current AM/PM half, so an "office hours" rule only reads honestly on the 24-hour face.
+  That is why `DisabledTimes` passes `use24HourClock`.
+- `TimeSelect` sizes its own scroller (`ROW_HEIGHT * VISIBLE_ROWS` = 180px), so unlike most
+  scrollables it needs no wrapper height. It grows a third column on 12-hour locales, so
+  the format axis changes the component's width as well as its content.
+- The four wrappers inherit `DateTimePicker`'s own `marginBottom: 20` - their story columns
+  take no `gap`, same rule as the `DateTimePicker` preview.
+- `DatePicker` keeps `selectionMode` (only `mode` is locked), so its props are still the
+  discriminated union: `value` has to match the selection mode or the preview fails to
+  typecheck rather than rendering blank.
+
+### Lint was red before this sweep
+
+`npm run lint` gates CI and was failing with 28 `prettier/prettier` errors across twelve
+previews from the previous commit (`Autocomplete`, `Box`, `Card`, `Center`, `Collapse`,
+`FormControl`, `IconButton`, `Image`, `Stack`, `Stat`, `ToastProvider`, `VStack`).
+Formatting only; fixed with `npx eslint .design-sync/previews --fix`. Lint the previews
+before committing them - the repo runs prettier *as an ESLint rule* over the whole tree,
+so a clean `prettier --check` on the file you touched does not mean CI is green.
 
 ## Re-sync risks
 

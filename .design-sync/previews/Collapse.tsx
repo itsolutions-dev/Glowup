@@ -4,8 +4,8 @@ import { Box, Button, Collapse, Typography, VStack } from "@glowup/ui";
 const body = (
   <Typography variant="bodyMedium">
     Invoices are issued on the first working day of each month and charged to
-    the card on file. Changing the card mid-cycle applies from the next
-    invoice; the current one is already committed.
+    the card on file. Changing the card mid-cycle applies from the next invoice;
+    the current one is already committed.
   </Typography>
 );
 
@@ -37,7 +37,13 @@ export const Peek = () => (
 export const Interactive = () => {
   const [open, setOpen] = React.useState(true);
   return (
-    <VStack spacing="s" p="m" bg="surfaceContainerLow" radius="medium" width={380}>
+    <VStack
+      spacing="s"
+      p="m"
+      bg="surfaceContainerLow"
+      radius="medium"
+      width={380}
+    >
       <Typography variant="titleMedium">Billing preferences</Typography>
       <Collapse open={open}>{body}</Collapse>
       <Button mode="text" onPress={() => setOpen((o) => !o)}>

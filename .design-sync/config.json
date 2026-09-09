@@ -89,6 +89,9 @@
     "CircularProgress": {
       "cardMode": "column"
     },
+    "ClockDial": {
+      "cardMode": "column"
+    },
     "ClockPicker": {
       "cardMode": "column"
     },
@@ -100,6 +103,15 @@
       "viewport": "560x400"
     },
     "DataGrid": {
+      "cardMode": "column"
+    },
+    "DatePicker": {
+      "cardMode": "column"
+    },
+    "DatePickerInput": {
+      "cardMode": "column"
+    },
+    "DateRangePicker": {
       "cardMode": "column"
     },
     "DateTimePicker": {
@@ -235,6 +247,12 @@
       "cardMode": "column"
     },
     "ThemeProvider": {
+      "cardMode": "column"
+    },
+    "TimePicker": {
+      "cardMode": "column"
+    },
+    "TimeSelect": {
       "cardMode": "column"
     },
     "ToastProvider": {

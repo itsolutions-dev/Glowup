@@ -4,7 +4,13 @@ import { Button, Typography, VStack } from "@glowup/ui";
 export const Spacing = () => (
   <VStack spacing="m" width={360}>
     {(["xs", "s", "m"] as const).map((gap) => (
-      <VStack key={gap} spacing={gap} p="s" bg="surfaceContainerLow" radius="medium">
+      <VStack
+        key={gap}
+        spacing={gap}
+        p="s"
+        bg="surfaceContainerLow"
+        radius="medium"
+      >
         <Typography variant="labelSmall">spacing=&quot;{gap}&quot;</Typography>
         <Typography variant="bodySmall">First line</Typography>
         <Typography variant="bodySmall">Second line</Typography>

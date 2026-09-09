@@ -3,10 +3,34 @@ import { Autocomplete, VStack } from "@glowup/ui";
 import type { AutocompleteOption } from "@glowup/ui";
 
 const cities: AutocompleteOption[] = [
-  { id: "mi", label: "Milano", value: "MI", description: "Lombardia", icon: "domain" },
-  { id: "to", label: "Torino", value: "TO", description: "Piemonte", icon: "domain" },
-  { id: "ge", label: "Genova", value: "GE", description: "Liguria", icon: "domain" },
-  { id: "bo", label: "Bologna", value: "BO", description: "Emilia-Romagna", icon: "domain" },
+  {
+    id: "mi",
+    label: "Milano",
+    value: "MI",
+    description: "Lombardia",
+    icon: "domain",
+  },
+  {
+    id: "to",
+    label: "Torino",
+    value: "TO",
+    description: "Piemonte",
+    icon: "domain",
+  },
+  {
+    id: "ge",
+    label: "Genova",
+    value: "GE",
+    description: "Liguria",
+    icon: "domain",
+  },
+  {
+    id: "bo",
+    label: "Bologna",
+    value: "BO",
+    description: "Emilia-Romagna",
+    icon: "domain",
+  },
 ];
 
 const noop = () => {};

@@ -26,7 +26,12 @@ export const Modes = () => (
   <div style={row}>
     {(["standard", "filled", "tonal", "outlined"] as const).map((mode) => (
       <div key={mode} style={caption}>
-        <IconButton icon="pencil-outline" mode={mode} accessibilityLabel="Edit" onPress={() => {}} />
+        <IconButton
+          icon="pencil-outline"
+          mode={mode}
+          accessibilityLabel="Edit"
+          onPress={() => {}}
+        />
         <Typography variant="labelSmall">{mode}</Typography>
       </div>
     ))}
@@ -37,7 +42,13 @@ export const Sizes = () => (
   <div style={row}>
     {(["small", "medium", "large"] as const).map((size) => (
       <div key={size} style={caption}>
-        <IconButton icon="magnify" mode="tonal" size={size} accessibilityLabel="Search" onPress={() => {}} />
+        <IconButton
+          icon="magnify"
+          mode="tonal"
+          size={size}
+          accessibilityLabel="Search"
+          onPress={() => {}}
+        />
         <Typography variant="labelSmall">{size}</Typography>
       </div>
     ))}
@@ -47,19 +58,41 @@ export const Sizes = () => (
 export const States = () => (
   <div style={row}>
     <div style={caption}>
-      <IconButton icon="heart-outline" mode="tonal" accessibilityLabel="Save" onPress={() => {}} />
+      <IconButton
+        icon="heart-outline"
+        mode="tonal"
+        accessibilityLabel="Save"
+        onPress={() => {}}
+      />
       <Typography variant="labelSmall">default</Typography>
     </div>
     <div style={caption}>
-      <IconButton icon="heart" mode="tonal" selected accessibilityLabel="Saved" onPress={() => {}} />
+      <IconButton
+        icon="heart"
+        mode="tonal"
+        selected
+        accessibilityLabel="Saved"
+        onPress={() => {}}
+      />
       <Typography variant="labelSmall">selected</Typography>
     </div>
     <div style={caption}>
-      <IconButton icon="refresh" mode="filled" loading accessibilityLabel="Refreshing" onPress={() => {}} />
+      <IconButton
+        icon="refresh"
+        mode="filled"
+        loading
+        accessibilityLabel="Refreshing"
+        onPress={() => {}}
+      />
       <Typography variant="labelSmall">loading</Typography>
     </div>
     <div style={caption}>
-      <IconButton icon="delete-outline" mode="outlined" disabled accessibilityLabel="Delete" />
+      <IconButton
+        icon="delete-outline"
+        mode="outlined"
+        disabled
+        accessibilityLabel="Delete"
+      />
       <Typography variant="labelSmall">disabled</Typography>
     </div>
   </div>
@@ -72,10 +105,27 @@ export const InAToolbar = () => (
       <Typography variant="bodySmall">Shared drive · 2.4 MB</Typography>
       <div style={{ height: 12 }} />
       <div style={row}>
-        <IconButton icon="download" mode="tonal" accessibilityLabel="Download" onPress={() => {}} />
-        <IconButton icon="share-variant" accessibilityLabel="Share" onPress={() => {}} />
-        <IconButton icon="pencil-outline" accessibilityLabel="Rename" onPress={() => {}} />
-        <IconButton icon="delete-outline" accessibilityLabel="Delete" onPress={() => {}} />
+        <IconButton
+          icon="download"
+          mode="tonal"
+          accessibilityLabel="Download"
+          onPress={() => {}}
+        />
+        <IconButton
+          icon="share-variant"
+          accessibilityLabel="Share"
+          onPress={() => {}}
+        />
+        <IconButton
+          icon="pencil-outline"
+          accessibilityLabel="Rename"
+          onPress={() => {}}
+        />
+        <IconButton
+          icon="delete-outline"
+          accessibilityLabel="Delete"
+          onPress={() => {}}
+        />
       </div>
     </Paper>
   </div>

@@ -486,7 +486,93 @@ Formatting only; fixed with `npx eslint .design-sync/previews --fix`. Lint the p
 before committing them - the repo runs prettier *as an ESLint rule* over the whole tree,
 so a clean `prettier --check` on the file you touched does not mean CI is green.
 
+## Re-sync 2026-09-09 (later still) — the gaps list is now spent
+
+Ran the driver against the committed tree (`188cdfc`). `npm run build` was skipped again:
+nothing under `packages/ui/src` was newer than `packages/ui/lib/module/index.js` (bob had
+already run at 21:17 in the interrupted session before this one). The three repo
+generators were re-run anyway.
+
+Staged scripts were **already byte-identical to skill build 2.1.267** except the
+capture-clock patch, so the `cp -r` was skipped deliberately again — same reasoning as the
+2026-09-09 note above. Both `.design-sync/overrides/*.mjs` forks diff clean against
+2.1.267's `lib/`. Prettier-normalise the bundled copy before diffing or the diff is 100%
+formatting noise: `npx prettier --write` a temp copy, then `diff --strip-trailing-cr`.
+
+**Every entry in the "DS gaps" list above is now fixed in source and verified against this
+build** — checked in `packages/ui/src`, not from memory:
+
+- `Toggle`, `FAB`, `Input` all have a real `styles.disabled`; `NumericInput` forwards
+  `disabled` to `Input`. Confirmed visually on the DatePicker / TimePicker / PinInput /
+  FormControl / IconButton sheets.
+- `ListItem` has `leading` / `secondary` / `trailing` and switches to a row when any is
+  set (`isRow`), falling back to the centred tile when none is.
+- `Popover` measures content at its natural width before pinning (`contentSize.width ||
+  window.width`), so the 200px lock is gone; `Menu` inherits the fix.
+- `Checkbox` / `RadioButton` mirror the label margin on `labelPosition` (`marginRight` on
+  left, `marginLeft` on right).
+- `ConfirmDialog` takes `destructive` and passes `tone="error"` to the confirm Button.
+- `Tooltip` sets `width: "max-content"`. It still caps at `numberOfLines={2}`, which is
+  the only gap left standing and is now the one caveat in `conventions.md`.
+- `SpeedDial` `defaultOpen` works: the `Expanded` cell captures the open action stack.
+
+Keep the gaps list above as history — it explains why several previews are shaped the way
+they are — but do not re-derive design guidance from it.
+
+### Upload (this run)
+
+Re-uploaded the full bundle: **443 content files + sentinel + anchor**, atomic path, no
+deletions (`upload.deletePaths` was empty — nothing was removed or regrouped, only added).
+The project grew from the 55 components the previous upload anchored to **87**. New anchor
+identity: `bundleSha12 936efb354a25`, `styleSha 0b4ab263dbcf`, 87 renderHashes, up from
+`3e11626369c9` / `0e6df35c0a88` / 55.
+
+`_ds_needs_recompile` is written first and re-armed before `_ds_sync.json`, as always. The
+`DesignSync` tool does **not** infer `localPath` from `path` — every file entry needs both
+spelled out, so the three content calls are large. `list_files` returns a *sampled* view of
+a big project, not the full list; don't try to count files with it — verify with `get_file`
+on a couple of paths this run introduced instead.
+
+### `conventions.md` drift corrected this run
+
+Two claims no longer verified and were rewritten; the file is otherwise untouched:
+
+1. *"The library exports no layout primitives — no View, no Text. Use plain `<div>`"* —
+   false since the layout sweep. Eight layout components ship: `Stack`, `HStack`,
+   `VStack`, `Box`, `Grid`, `Center`, `Spacer`, `AspectRatio`. Left unfixed this would
+   have taught the design agent to hand-roll every layout in divs while the DS's own
+   primitives sat unused. Replaced with the primitive list and their real props, each
+   prop grepped out of the emitted `<Name>.d.ts`.
+2. The whole *"Known gaps — do not design around them"* section — every claim in it was
+   fixed by the in-flight source work. Replaced with the two things still true
+   (`ListItem` slots, `Tooltip`'s two-line cap).
+
+Validation recipe for the next run, since this drift was invisible until checked: grep
+every component name in the header against `ds-bundle/components/<group>/<Name>/`, and
+every prop against that component's emitted `.d.ts`. `SafeAreaProvider` is the one name
+that legitimately has no component folder — it is bundle-only by design.
+
+### Preview bug: inline SVG data URIs need `charset=utf-8`
+
+`Card.tsx` and `Image.tsx` drew their inline SVGs with a `data:image/svg+xml;utf8,`
+prefix. `;utf8` is not valid data-URL parameter syntax, so headless Chromium rejected the
+source and react-native-web's `Image` swapped in its `fallbackIcon`. Symptom: every
+`Image` cell and `Card.ComposedFromParts` showed the grey placeholder glyph, and
+`Image.ResizeModes` had three identical cells. **The render check cannot catch this** — a
+fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet. Fixed to
+`data:image/svg+xml;charset=utf-8,`. Any new preview that inlines an SVG must use
+`charset=utf-8`; a placeholder glyph where a picture belongs is the tell.
+
 ## Re-sync risks
+
+- **`conventions.md` goes stale silently.** It is prose in a committed file; nothing in the
+  pipeline checks it, and a component sweep (the layout primitives, the picker rebuild) can
+  falsify a whole paragraph without a single warn line firing. Re-run the grep validation
+  described above on every sync, not only when something looks wrong.
+- **A preview can render perfectly and still be wrong.** The `charset=utf-8` bug is the
+  worked example: healthy render, healthy PNG size, three "identical variants" that the
+  variant check did not flag because the fallback icon is legitimate output. Eyeballing the
+  review sheets is not optional ceremony — it is the only gate that catches this class.
 
 - **The prebundle script is the fragile part**, and it is repo-owned rather than
   skill-bundled: `.design-sync/prebuild-web-entry.mjs`. It imports `esbuild` by bare

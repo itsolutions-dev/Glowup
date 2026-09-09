@@ -2000,6 +2000,13 @@ const Playground = () => {
       props.onValueChange = (v: number) => updateProp("value", v);
     }
 
+    if (selectedComponentName === "Spinner") {
+      props.value = Number(props.value) || 0;
+      props.min = Number(props.min) || 0;
+      props.max = Number(props.max) || 100;
+      props.onChange = (v: number) => updateProp("value", v);
+    }
+
     if (selectedComponentName === "Tooltip") {
       return (
         <Component {...props}>

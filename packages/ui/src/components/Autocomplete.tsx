@@ -77,6 +77,16 @@ const normalize = (text: string) =>
 const defaultFilter = (option: AutocompleteOption, query: string) =>
   normalize(option.label).includes(normalize(query));
 
+// Web: mousedown on the list blurs the input, which closes and unmounts the
+// list before the click completes, so the option's onPress never fires.
+const keepFocus =
+  Platform.OS === "web"
+    ? {
+        onMouseDown: (event: { preventDefault: () => void }) =>
+          event.preventDefault(),
+      }
+    : null;
+
 /**
  * Text field with a suggestion list — NativeBase's Typeahead, adapted to M3.
  *
@@ -261,8 +271,8 @@ const Autocomplete = ({
             value={value}
             onChangeText={handleChange}
             onFocus={() => setFocused(true)}
-            // Blur closes the list; the option Pressables fire before blur on
-            // both platforms because they are inside the same responder tree.
+            // Blur closes the list; `keepFocus` stops option presses from
+            // blurring in the first place.
             onBlur={() => setFocused(false)}
             editable={!disabled}
             placeholder={placeholder}
@@ -310,6 +320,7 @@ const Autocomplete = ({
           <ListContainer>
             <View
               role="list"
+              {...keepFocus}
               style={[
                 styles.list,
                 listPlacement,

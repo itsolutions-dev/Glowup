@@ -1,12 +1,16 @@
 import React from "react";
 import DateTimePicker from "./DateTimePicker";
-import { DateTimePickerProps } from "./DateTimePicker.shared";
+import { DateTimePickerProps, DistributiveOmit } from "./DateTimePicker.shared";
 
-export type DatePickerProps = Omit<DateTimePickerProps, "mode">;
+export type DatePickerProps = DistributiveOmit<DateTimePickerProps, "mode">;
 
-/** `DateTimePicker` locked to calendar-date selection. */
+/**
+ * `DateTimePicker` locked to calendar-date selection. Still accepts
+ * `selectionMode` for a range or a set of days.
+ */
 const DatePicker = (props: DatePickerProps) => (
-  <DateTimePicker {...props} mode="date" />
+  // The cast re-attaches the discriminant that `DistributiveOmit` widened.
+  <DateTimePicker {...(props as DateTimePickerProps)} mode="date" />
 );
 
 export default DatePicker;

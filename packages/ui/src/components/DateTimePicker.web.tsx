@@ -6,24 +6,17 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
-import { PressableState } from "./types";
-import Calendar from "./Calendar";
-import TimeSelect from "./TimeSelect";
 import PickerField from "./DateTimePicker.field";
-import {
-  DateTimePickerProps,
-  clampDate,
-  getDeviceLocale,
-  mergeDateAndTime,
-  useDateTimeDisplay,
-  useLabels,
-} from "./DateTimePicker.shared";
+import PickerSurface, { PickerSelection } from "./DateTimePicker.surface";
+import { usePickerController } from "./DateTimePicker.hooks";
+import { DateTimePickerProps } from "./DateTimePicker.shared";
 
-/** Rough surface sizes, used to decide flip/clamp before the first layout. */
-const SURFACE_WIDTH = { date: 336, time: 168, datetime: 512 } as const;
-const SURFACE_HEIGHT = { date: 372, time: 260, datetime: 372 } as const;
+/** M3 docked-picker width; matches the native dialog so the two agree. */
+const SURFACE_WIDTH = 328;
+/** Only used for the very first frame, before the surface has been measured. */
+const ESTIMATED_HEIGHT = 600;
 const GAP = 6;
 const MARGIN = 8;
 
@@ -31,71 +24,83 @@ interface AnchorPosition {
   top: number;
   left: number;
 }
-const DateTimePicker = ({
-  label,
-  value,
-  onChange,
-  disabled,
-  mode = "date",
-  relativeLabels,
-  labels: labelOverrides,
-  minimumDate,
-  maximumDate,
-  isDateDisabled,
-  error,
-  helperText,
-  required,
-  clearable,
-  onClear,
-  placeholder,
-  minuteInterval,
-  locale: localeProp,
-  firstDayOfWeek,
-  style,
-  testID,
-  defaultOpen,
-}: DateTimePickerProps) => {
+
+/**
+ * A viewport shorter than the surface scrolls it instead of cutting the
+ * actions off the bottom. Both declarations are CSS-only, hence the cast past
+ * the react-native style typings.
+ */
+const VIEWPORT_CLAMP = {
+  maxHeight: `calc(100vh - ${MARGIN * 2}px)`,
+  overflowY: "auto",
+} as unknown as ViewStyle;
+
+/**
+ * Material 3 picker, docked to its field. Same surface as the native dialog,
+ * presented as an anchored popover because a mouse has somewhere to point.
+ */
+const DateTimePicker = (props: DateTimePickerProps) => {
+  const {
+    label,
+    placeholder,
+    mode = "date",
+    disabled,
+    required,
+    error,
+    helperText,
+    clearable,
+    onClear,
+    validRange,
+    isDateDisabled,
+    labels: labelOverrides,
+    firstDayOfWeek,
+    minuteInterval,
+    use24HourClock,
+    inputEnabled,
+    defaultInputType,
+    scrollMode,
+    startYear,
+    endYear,
+    style,
+    testID,
+    defaultOpen = false,
+  } = props;
+
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const labels = useLabels(labelOverrides);
-
-  const locale = localeProp ?? getDeviceLocale();
-  const displayValue = useDateTimeDisplay(value, mode, locale, relativeLabels);
+  const controller = usePickerController(props);
 
   const triggerRef = useRef<View>(null);
-  const [open, setOpen] = useState(!!defaultOpen);
+  const [open, setOpen] = useState(defaultOpen);
   const [anchor, setAnchor] = useState<AnchorPosition | null>(null);
-
-  /**
-   * The value the surface edits. It starts from `value`, or from "now" clamped
-   * into range when the field is still empty, so opening an empty picker lands
-   * on a selectable instant instead of an out-of-range one.
-   */
-  const draft = useMemo(
-    () => value ?? clampDate(new Date(), minimumDate, maximumDate),
-    [value, minimumDate, maximumDate],
-  );
+  // The surface's real height depends on the mode, the locale and the month
+  // grid, so it is measured once it is on screen rather than guessed at.
+  const [measuredHeight, setMeasuredHeight] = useState<number | null>(null);
 
   const reposition = useCallback(() => {
     const element = triggerRef.current as unknown as HTMLElement | null;
     if (!element?.getBoundingClientRect) return;
     const rect = element.getBoundingClientRect();
-    const width = SURFACE_WIDTH[mode];
-    const height = SURFACE_HEIGHT[mode];
+    const available = window.innerHeight - MARGIN * 2;
+    const height = Math.min(measuredHeight ?? ESTIMATED_HEIGHT, available);
 
-    // Flip above the field when there is not enough room below it, and clamp
-    // horizontally so the surface never hangs off the viewport.
+    // Flip above the field when there is not enough room below it, then clamp
+    // both axes so the surface never hangs off the viewport.
     const spaceBelow = window.innerHeight - rect.bottom;
-    const top =
+    const preferred =
       spaceBelow < height + GAP + MARGIN && rect.top > height + GAP + MARGIN
         ? rect.top - height - GAP
         : rect.bottom + GAP;
+    const top = Math.max(
+      MARGIN,
+      Math.min(preferred, window.innerHeight - height - MARGIN),
+    );
     const left = Math.min(
       Math.max(MARGIN, rect.left),
-      Math.max(MARGIN, window.innerWidth - width - MARGIN),
+      Math.max(MARGIN, window.innerWidth - SURFACE_WIDTH - MARGIN),
     );
     setAnchor({ top, left });
-  }, [mode]);
+  }, [measuredHeight]);
 
   useEffect(() => {
     if (!open) return;
@@ -127,105 +132,62 @@ const DateTimePicker = ({
 
   const openSurface = () => {
     if (disabled) return;
+    controller.resetInput();
+    setMeasuredHeight(null);
     reposition();
     setOpen(true);
   };
 
-  const handleDayChange = (day: Date) => {
-    onChange(mergeDateAndTime(day, draft));
-    // A pure date picker has nothing left to ask for once a day is picked.
-    if (mode === "date") close();
+  const confirm = (selection: PickerSelection) => {
+    close();
+    controller.handleConfirm(selection);
   };
-
-  const handleTimeChange = (next: Date) => onChange(next);
 
   const surface = (
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={labels.closePicker}
+        accessibilityLabel={controller.labels.closePicker}
         onPress={close}
         style={styles.scrim}
       />
       <View
         role="dialog"
-        accessibilityLabel={label ?? labels.openPicker}
+        accessibilityLabel={label ?? controller.labels.openPicker}
+        onLayout={(event) =>
+          setMeasuredHeight(Math.ceil(event.nativeEvent.layout.height))
+        }
         style={[
           styles.surface,
+          VIEWPORT_CLAMP,
           {
             top: anchor?.top ?? 0,
             left: anchor?.left ?? 0,
-            width: SURFACE_WIDTH[mode],
-            backgroundColor: theme.colors.surfaceContainerHigh,
+            backgroundColor: theme.colors.surfaceContainer,
             borderColor: theme.colors.outlineVariant,
           },
         ]}
       >
-        <View style={styles.surfaceBody}>
-          {mode !== "time" && (
-            <Calendar
-              value={value}
-              onChange={handleDayChange}
-              minimumDate={minimumDate}
-              maximumDate={maximumDate}
-              isDateDisabled={isDateDisabled}
-              locale={locale}
-              firstDayOfWeek={firstDayOfWeek}
-              labels={labelOverrides}
-              showToday={mode === "date"}
-            />
-          )}
-          {mode !== "date" && (
-            <View
-              style={[
-                styles.timePane,
-                mode === "datetime" && {
-                  borderLeftWidth: 1,
-                  borderLeftColor: theme.colors.outlineVariant,
-                },
-              ]}
-            >
-              <TimeSelect
-                value={draft}
-                onChange={handleTimeChange}
-                minimumDate={minimumDate}
-                maximumDate={maximumDate}
-                minuteInterval={minuteInterval}
-                locale={locale}
-                labels={labelOverrides}
-              />
-            </View>
-          )}
-        </View>
-
-        {mode !== "date" && (
-          <View
-            style={[
-              styles.surfaceFooter,
-              { borderTopColor: theme.colors.outlineVariant },
-            ]}
-          >
-            <Pressable
-              accessibilityRole="button"
-              onPress={close}
-              style={({ hovered }: PressableState) => [
-                styles.footerButton,
-                hovered && {
-                  backgroundColor: theme.colors.surfaceContainerHighest,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  theme.typography.labelLarge,
-                  { color: theme.colors.primary },
-                ]}
-              >
-                {labels.confirm}
-              </Text>
-            </Pressable>
-          </View>
-        )}
+        <PickerSurface
+          mode={mode}
+          fieldLabel={label}
+          selection={controller.selection}
+          onConfirm={confirm}
+          onCancel={close}
+          validRange={validRange}
+          isDateDisabled={isDateDisabled}
+          locale={controller.locale}
+          firstDayOfWeek={firstDayOfWeek}
+          labels={labelOverrides}
+          minuteInterval={minuteInterval}
+          use24HourClock={use24HourClock}
+          scrollMode={scrollMode}
+          startYear={startYear}
+          endYear={endYear}
+          inputEnabled={inputEnabled}
+          defaultInputType={defaultInputType}
+          testID={testID ? `${testID}-surface` : undefined}
+        />
       </View>
     </>
   );
@@ -236,18 +198,27 @@ const DateTimePicker = ({
         ref={triggerRef}
         label={label}
         required={required}
-        displayValue={displayValue}
+        displayValue={controller.displayValue}
         placeholder={placeholder}
         icon={mode === "time" ? "clock-outline" : "calendar-blank-outline"}
         active={open}
         disabled={disabled}
-        error={error}
+        error={error ?? controller.inputError}
         helperText={helperText}
         clearable={clearable}
-        onClear={onClear}
-        clearAccessibilityLabel={labels.clear}
+        onClear={() => {
+          controller.resetInput();
+          onClear?.();
+        }}
+        clearAccessibilityLabel={controller.labels.clear}
         onPress={openSurface}
-        accessibilityLabel={label ?? labels.openPicker}
+        accessibilityLabel={label ?? controller.labels.openPicker}
+        editable={controller.fieldEditable}
+        inputValue={controller.fieldText}
+        onInputChange={controller.handleInputChange}
+        onInputBlur={controller.handleInputBlur}
+        inputPlaceholder={controller.inputHint}
+        openAccessibilityLabel={controller.labels.openPicker}
         style={style}
         testID={testID}
       />
@@ -272,33 +243,13 @@ const makeStyles = (theme: Theme) =>
     },
     surface: {
       position: "fixed" as any,
+      width: SURFACE_WIDTH,
       borderWidth: 1,
       borderRadius: theme.shape.large,
-      paddingVertical: theme.spacing.xs,
       zIndex: 1001,
       // M3 elevation level 3 — the field sits on surface, so the popover needs
       // a stronger shadow than the theme's default level-1 token.
       boxShadow:
         "0px 4px 8px rgba(0,0,0,0.30), 0px 8px 24px rgba(0,0,0,0.22)" as any,
-    },
-    surfaceBody: { flexDirection: "row" },
-    timePane: {
-      flex: 1,
-      paddingVertical: theme.spacing.s,
-      paddingHorizontal: theme.spacing.xs,
-      justifyContent: "center",
-    },
-    surfaceFooter: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      borderTopWidth: 1,
-      marginTop: theme.spacing.xs,
-      paddingTop: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.s,
-    },
-    footerButton: {
-      paddingVertical: 6,
-      paddingHorizontal: theme.spacing.s,
-      borderRadius: theme.shape.small,
     },
   });

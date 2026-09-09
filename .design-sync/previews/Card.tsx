@@ -164,7 +164,7 @@ export const WithActions = () => (
 // A 16:9 band drawn inline so the card has a real cover without a network fetch.
 const cover = {
   uri:
-    "data:image/svg+xml;utf8," +
+    "data:image/svg+xml;charset=utf-8," +
     encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">

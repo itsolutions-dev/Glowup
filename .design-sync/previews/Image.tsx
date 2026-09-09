@@ -4,7 +4,7 @@ import { HStack, Image, Typography, VStack } from "@glowup/ui";
 // Drawn inline so the capture needs no network.
 const svg = (a: string, b: string) => ({
   uri:
-    "data:image/svg+xml;utf8," +
+    "data:image/svg+xml;charset=utf-8," +
     encodeURIComponent(
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">' +
         '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +

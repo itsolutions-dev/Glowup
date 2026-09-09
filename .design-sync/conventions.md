@@ -49,9 +49,14 @@ Helpers: `getStateColor(base, on, "hover" | "press" | "focus")` for M3 state lay
 type picks up the scale. **Icons** are MaterialCommunityIcons kebab-case name strings
 (`iconName="plus"`, `leadingIcon="email-outline"`); outline variants take `-outline`.
 
-The library exports **no layout primitives** — no `View`, no `Text`. Use plain `<div>`
-with inline styles for your own layout glue (react-native-web renders real DOM, so they
-compose fine) and take spacing values from `theme.spacing`.
+**Layout comes from the library, not from `<div>`.** `Stack` (`direction`, `reverse`,
+`wrap`), `HStack` / `VStack` (`spacing`, `align`, `justify`), `Box` (`p` / `px` / `py`,
+`bg`, `radius`, `gap`, `justify`, `align`), `Grid` (`columns`, `spacing`), `Center`,
+`Spacer` (`size`, or flexible to push siblings apart) and `AspectRatio` (`ratio`) all take
+the same `xs`/`s`/`m`/`l`/`xl` spacing and `bg` colour-role names as the theme. There is
+no `View` and no `Text` export: reach for these first, and drop to a plain `<div>` with
+inline styles only for glue they cannot express (react-native-web renders real DOM, so
+divs compose fine) — taking values from `theme.spacing` when you do.
 
 ### Where the truth lives
 
@@ -79,10 +84,8 @@ const { theme } = useTheme();
 </div>
 ```
 
-### Known gaps — do not design around them
+### Two things worth knowing
 
-`disabled` has **no visual treatment** on `Toggle`, `FAB`, `Input` or `NumericInput`; a
-disabled control there looks identical to an enabled one. `ListItem` is a single-line
-centred text tile, not an M3 list row — build rows from `<div>` + `Typography` + `Avatar`
-instead. `Popover` (and `Menu`, which uses it) is fixed at 200px wide unless
-`matchAnchorWidth` is set, so keep menu labels short.
+`ListItem` is a real M3 row: pass `leading`, `secondary` and `trailing` rather than
+composing a row by hand; with none of them it falls back to a centred single-line tile.
+`Tooltip` caps its text at two lines, so keep tips to a short phrase.

@@ -43,8 +43,11 @@ const nodeStubs = {
 };
 
 // expo-modules-core / expo-asset read `process.*` beyond NODE_ENV at module
-// scope; the design-preview page has no node globals.
+// scope; the design-preview page has no node globals. react-native's Image /
+// AssetRegistry path also dereferences `global` at runtime — without it every
+// card that renders an Image throws `ReferenceError: global is not defined`.
 const PROCESS_SHIM = [
+  "var global = globalThis;",
   "var process = globalThis.process || (globalThis.process = {",
   '  env: { NODE_ENV: "development" }, platform: "web", browser: true, version: "",',
   '  argv: [], cwd: function () { return "/"; },',

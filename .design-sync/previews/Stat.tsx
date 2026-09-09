@@ -1,106 +1,74 @@
 import React from "react";
-import { Stat, Typography, Divider } from "@glowup/ui";
+import { Paper, Stat, Typography } from "@glowup/ui";
 
 const row: React.CSSProperties = {
   display: "flex",
-  gap: 32,
-  alignItems: "flex-start",
+  gap: 16,
   flexWrap: "wrap",
+  width: 560,
+};
+
+const column: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+  width: 380,
 };
 
 export const Trends = () => (
   <div style={row}>
-    <Stat label="Revenue" value="€48.2k" delta="12.5%" trend="up" />
-    <Stat label="Refunds" value="€1.9k" delta="4.1%" trend="down" />
-    <Stat label="Open seats" value="24" delta="0%" trend="flat" />
+    <Stat label="Revenue" value="€18,420" delta="12.5%" trend="up" />
+    <Stat label="Churn" value="2.4%" delta="0.8%" trend="down" />
+    <Stat label="Active seats" value="128" delta="0" trend="flat" />
   </div>
 );
 
-export const WithIcons = () => (
+/** `invertTrendColors` is for metrics where a fall is the good news. */
+export const InvertedTrend = () => (
+  <div style={row}>
+    <Stat label="Failed builds" value="3" delta="42%" trend="down" invertTrendColors />
+    <Stat label="p95 latency" value="240 ms" delta="18%" trend="up" invertTrendColors />
+  </div>
+);
+
+export const WithIconsAndHelp = () => (
   <div style={row}>
     <Stat
-      label="Active users"
-      value="1,284"
-      delta="8.3%"
+      label="Monthly recurring"
+      value="€42,900"
+      delta="6.1%"
       trend="up"
-      icon="account-group"
+      icon="cash-multiple"
+      helpText="Excludes one-off invoices"
+    />
+    <Stat
+      label="New workspaces"
+      value="37"
+      delta="4"
+      trend="up"
+      icon="account-plus-outline"
       helpText="Last 30 days"
     />
-    <Stat
-      label="Downloads"
-      value="96,410"
-      delta="2.7%"
-      trend="up"
-      icon="download"
-      helpText="All platforms"
-    />
-  </div>
-);
-
-export const InvertedTrendColors = () => (
-  <div style={row}>
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <Stat
-        label="Churn"
-        value="2.1%"
-        delta="0.6pp"
-        trend="down"
-        invertTrendColors
-        icon="account-multiple-outline"
-      />
-      <Typography variant="labelSmall">down is good</Typography>
-    </div>
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <Stat
-        label="p95 latency"
-        value="412 ms"
-        delta="88 ms"
-        trend="up"
-        invertTrendColors
-        icon="clock-outline"
-      />
-      <Typography variant="labelSmall">up is bad</Typography>
-    </div>
   </div>
 );
 
 export const Bare = () => (
   <div style={row}>
-    <Stat label="Components" value="86" />
-    <Stat label="Bundle" value="3.1 MB" helpText="minified, pre-gzip" />
+    <Stat label="Components" value="87" />
+    <Stat label="Design tokens" value="42" />
+    <Stat label="Groups" value="9" />
   </div>
 );
 
-export const DashboardPanel = () => (
-  <div
-    style={{ display: "flex", flexDirection: "column", width: 320, gap: 12 }}
-  >
-    <Typography variant="titleMedium">This month</Typography>
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
-      <Stat
-        label="MRR"
-        value="€14.6k"
-        delta="5.2%"
-        trend="up"
-        icon="chart-box"
-      />
-      <Stat
-        label="Failed jobs"
-        value="7"
-        delta="3"
-        trend="down"
-        invertTrendColors
-        icon="cloud-off-outline"
-      />
-    </div>
-    <Divider contentSpacing={0} />
-    <Stat
-      label="Uptime"
-      value="99.98%"
-      delta="0.01pp"
-      trend="up"
-      icon="check-circle-outline"
-      helpText="30-day rolling window"
-    />
+export const OnAPanel = () => (
+  <div style={column}>
+    <Paper elevation={1} style={{ flex: 1 }}>
+      <Typography variant="titleMedium">This quarter</Typography>
+      <div style={{ height: 12 }} />
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <Stat label="Orders" value="1,204" delta="9.2%" trend="up" icon="cart-outline" />
+        <Stat label="Refunds" value="18" delta="3.1%" trend="down" invertTrendColors />
+      </div>
+    </Paper>
   </div>
 );

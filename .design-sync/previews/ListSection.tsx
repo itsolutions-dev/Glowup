@@ -31,7 +31,10 @@ export const SettingsScreen = () => {
   return (
     <div style={panel}>
       <Paper elevation={1} outline style={{ flex: 1 }}>
-        <ListSection title="Notifiche" divider>
+        {/* `divider` is left off deliberately: ListSection emits
+            <Divider contentSpacing={theme.spacing.s} />, which paints
+            line + 16px gap + line. Same defect as Menu's dividerAbove. */}
+        <ListSection title="Notifiche">
           <ListItem
             trailing={<Toggle value={digest} onValueChange={setDigest} />}
           >

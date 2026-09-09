@@ -1,6 +1,10 @@
 import React from "react";
 import {
   Card,
+  CardActions,
+  CardContent,
+  CardCover,
+  CardTitle,
   Typography,
   Divider,
   Avatar,
@@ -134,14 +138,17 @@ export const Pressable = () => (
 export const WithActions = () => (
   <div style={{ width: 380 }}>
     <Card variant="outlined">
-      <Typography variant="titleMedium">Invite your team</Typography>
-      {spacer(4)}
-      <Typography variant="bodyMedium">
-        Everyone you invite gets read access to the shared component library.
-        You can raise their role later from Settings.
-      </Typography>
-      {spacer(16)}
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+      <CardTitle
+        title="Invite your team"
+        subtitle="Workspace · Acme S.r.l."
+      />
+      <CardContent>
+        <Typography variant="bodyMedium">
+          Everyone you invite gets read access to the shared component library.
+          You can raise their role later from Settings.
+        </Typography>
+      </CardContent>
+      <CardActions>
         <Button mode="text" onPress={() => {}}>
           Not now
         </Button>
@@ -152,7 +159,55 @@ export const WithActions = () => (
         >
           Invite
         </Button>
-      </div>
+      </CardActions>
+    </Card>
+  </div>
+);
+
+// A 16:9 band drawn inline so the card has a real cover without a network fetch.
+const cover = {
+  uri:
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+         <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+           <stop offset="0" stop-color="#6750A4"/><stop offset="1" stop-color="#B3261E"/>
+         </linearGradient></defs>
+         <rect width="320" height="180" fill="url(#g)"/>
+       </svg>`,
+    ),
+};
+
+/** The four Card parts in one composition: cover, header, body, action row. */
+export const ComposedFromParts = () => (
+  <div style={{ width: 380 }}>
+    <Card variant="elevated">
+      <CardCover source={cover} alt="Release banner" />
+      <CardTitle
+        title="Material You 0.2.0"
+        subtitle="Released 9 September"
+        left={<Avatar name="Glowup UI" size={40} />}
+        right={<StatusBadge type="success" label="Stable" />}
+      />
+      <CardContent>
+        <Typography variant="bodyMedium">
+          Layout primitives, a Material 3 date/time picker and 32 new
+          components. Dark-mode contrast was corrected across every tonal
+          surface.
+        </Typography>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Chip label="87 components" mode="tonal" onPress={() => {}} />
+          <Chip label="Breaking" mode="outlined" onPress={() => {}} />
+        </div>
+      </CardContent>
+      <CardActions align="space-between">
+        <Button mode="text" onPress={() => {}}>
+          Changelog
+        </Button>
+        <Button mode="filled" onPress={() => {}}>
+          Update
+        </Button>
+      </CardActions>
     </Card>
   </div>
 );

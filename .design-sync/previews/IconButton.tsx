@@ -1,201 +1,82 @@
 import React from "react";
-import { IconButton, Typography, Divider } from "@glowup/ui";
+import { IconButton, Paper, Typography } from "@glowup/ui";
 
 const row: React.CSSProperties = {
   display: "flex",
-  gap: 24,
   alignItems: "center",
+  gap: 12,
   flexWrap: "wrap",
 };
 
-const stack: React.CSSProperties = {
+const column: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 8,
+  gap: 12,
+  width: 380,
+};
+
+const caption: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
   alignItems: "center",
+  gap: 4,
 };
 
 export const Modes = () => (
   <div style={row}>
-    <div style={stack}>
-      <IconButton icon="pencil-outline" accessibilityLabel="Edit" />
-      <Typography variant="labelSmall">standard</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="pencil-outline"
-        mode="filled"
-        accessibilityLabel="Edit"
-      />
-      <Typography variant="labelSmall">filled</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="pencil-outline"
-        mode="tonal"
-        accessibilityLabel="Edit"
-      />
-      <Typography variant="labelSmall">tonal</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="pencil-outline"
-        mode="outlined"
-        accessibilityLabel="Edit"
-      />
-      <Typography variant="labelSmall">outlined</Typography>
-    </div>
+    {(["standard", "filled", "tonal", "outlined"] as const).map((mode) => (
+      <div key={mode} style={caption}>
+        <IconButton icon="pencil-outline" mode={mode} accessibilityLabel="Edit" onPress={() => {}} />
+        <Typography variant="labelSmall">{mode}</Typography>
+      </div>
+    ))}
   </div>
 );
 
 export const Sizes = () => (
   <div style={row}>
-    <div style={stack}>
-      <IconButton
-        icon="magnify"
-        mode="tonal"
-        size="small"
-        accessibilityLabel="Search"
-      />
-      <Typography variant="labelSmall">small</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton icon="magnify" mode="tonal" accessibilityLabel="Search" />
-      <Typography variant="labelSmall">medium</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="magnify"
-        mode="tonal"
-        size="large"
-        accessibilityLabel="Search"
-      />
-      <Typography variant="labelSmall">large</Typography>
-    </div>
+    {(["small", "medium", "large"] as const).map((size) => (
+      <div key={size} style={caption}>
+        <IconButton icon="magnify" mode="tonal" size={size} accessibilityLabel="Search" onPress={() => {}} />
+        <Typography variant="labelSmall">{size}</Typography>
+      </div>
+    ))}
   </div>
 );
 
 export const States = () => (
   <div style={row}>
-    <div style={stack}>
-      <IconButton icon="check" mode="filled" accessibilityLabel="Confirm" />
-      <Typography variant="labelSmall">enabled</Typography>
+    <div style={caption}>
+      <IconButton icon="heart-outline" mode="tonal" accessibilityLabel="Save" onPress={() => {}} />
+      <Typography variant="labelSmall">default</Typography>
     </div>
-    <div style={stack}>
-      <IconButton
-        icon="check"
-        mode="filled"
-        disabled
-        accessibilityLabel="Confirm"
-      />
-      <Typography variant="labelSmall">disabled</Typography>
+    <div style={caption}>
+      <IconButton icon="heart" mode="tonal" selected accessibilityLabel="Saved" onPress={() => {}} />
+      <Typography variant="labelSmall">selected</Typography>
     </div>
-    <div style={stack}>
-      <IconButton
-        icon="refresh"
-        mode="filled"
-        loading
-        accessibilityLabel="Refreshing"
-      />
+    <div style={caption}>
+      <IconButton icon="refresh" mode="filled" loading accessibilityLabel="Refreshing" onPress={() => {}} />
       <Typography variant="labelSmall">loading</Typography>
     </div>
-  </div>
-);
-
-export const Selected = () => (
-  <div style={row}>
-    <div style={stack}>
-      <IconButton
-        icon="home-outline"
-        mode="tonal"
-        selected
-        accessibilityLabel="Pin to home"
-      />
-      <Typography variant="labelSmall">tonal on</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="home-outline"
-        mode="tonal"
-        selected={false}
-        accessibilityLabel="Pin to home"
-      />
-      <Typography variant="labelSmall">tonal off</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="home-outline"
-        mode="outlined"
-        selected
-        accessibilityLabel="Pin to home"
-      />
-      <Typography variant="labelSmall">outlined on</Typography>
-    </div>
-    <div style={stack}>
-      <IconButton
-        icon="home-outline"
-        mode="outlined"
-        selected={false}
-        accessibilityLabel="Pin to home"
-      />
-      <Typography variant="labelSmall">outlined off</Typography>
+    <div style={caption}>
+      <IconButton icon="delete-outline" mode="outlined" disabled accessibilityLabel="Delete" />
+      <Typography variant="labelSmall">disabled</Typography>
     </div>
   </div>
 );
 
-export const CardToolbar = () => (
-  <div style={{ display: "flex", flexDirection: "column", width: 320, gap: 4 }}>
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 8,
-        padding: "4px 0",
-      }}
-    >
-      <Typography variant="titleMedium">Q3 forecast</Typography>
-      <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <IconButton
-          icon="pencil-outline"
-          size="small"
-          accessibilityLabel="Edit forecast"
-        />
-        <IconButton
-          icon="content-copy"
-          size="small"
-          accessibilityLabel="Duplicate forecast"
-        />
-        <IconButton
-          icon="delete-outline"
-          size="small"
-          accessibilityLabel="Delete forecast"
-        />
+export const InAToolbar = () => (
+  <div style={column}>
+    <Paper elevation={1} style={{ flex: 1 }}>
+      <Typography variant="titleMedium">Component audit.xlsx</Typography>
+      <Typography variant="bodySmall">Shared drive · 2.4 MB</Typography>
+      <div style={{ height: 12 }} />
+      <div style={row}>
+        <IconButton icon="download" mode="tonal" accessibilityLabel="Download" onPress={() => {}} />
+        <IconButton icon="share-variant" accessibilityLabel="Share" onPress={() => {}} />
+        <IconButton icon="pencil-outline" accessibilityLabel="Rename" onPress={() => {}} />
+        <IconButton icon="delete-outline" accessibilityLabel="Delete" onPress={() => {}} />
       </div>
-    </div>
-    <Divider contentSpacing={0} />
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 8,
-        padding: "8px 0 0",
-      }}
-    >
-      <IconButton
-        icon="chevron-left"
-        mode="outlined"
-        size="small"
-        accessibilityLabel="Previous quarter"
-      />
-      <Typography variant="labelLarge">Jul – Sep 2026</Typography>
-      <IconButton
-        icon="chevron-right"
-        mode="outlined"
-        size="small"
-        accessibilityLabel="Next quarter"
-      />
-    </div>
+    </Paper>
   </div>
 );

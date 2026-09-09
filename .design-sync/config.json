@@ -49,12 +49,21 @@
     "AppBar": {
       "cardMode": "column"
     },
+    "AspectRatio": {
+      "cardMode": "column"
+    },
+    "Autocomplete": {
+      "cardMode": "column"
+    },
     "Banner": {
       "cardMode": "column"
     },
     "BottomSheet": {
       "cardMode": "single",
       "viewport": "420x620"
+    },
+    "Box": {
+      "cardMode": "column"
     },
     "Breadcrumbs": {
       "cardMode": "column"
@@ -65,20 +74,10 @@
     "Card": {
       "cardMode": "column"
     },
-    "CardActions": {
-      "cardMode": "column"
-    },
-    "CardContent": {
-      "cardMode": "single",
-      "viewport": "440x260"
-    },
-    "CardCover": {
-      "cardMode": "column"
-    },
-    "CardTitle": {
-      "cardMode": "column"
-    },
     "Carousel": {
+      "cardMode": "column"
+    },
+    "Center": {
       "cardMode": "column"
     },
     "Checkbox": {
@@ -91,6 +90,9 @@
       "cardMode": "column"
     },
     "ClockPicker": {
+      "cardMode": "column"
+    },
+    "Collapse": {
       "cardMode": "column"
     },
     "ConfirmDialog": {
@@ -112,7 +114,16 @@
     "FAB": {
       "cardMode": "column"
     },
+    "FormControl": {
+      "cardMode": "column"
+    },
+    "Grid": {
+      "cardMode": "column"
+    },
     "HelperText": {
+      "cardMode": "column"
+    },
+    "HStack": {
       "cardMode": "column"
     },
     "Icon": {
@@ -121,10 +132,19 @@
     "IconBadge": {
       "cardMode": "column"
     },
+    "IconButton": {
+      "cardMode": "column"
+    },
+    "Image": {
+      "cardMode": "column"
+    },
     "LanguageSelector": {
       "cardMode": "column"
     },
     "LinearProgress": {
+      "cardMode": "column"
+    },
+    "Link": {
       "cardMode": "column"
     },
     "ListItem": {
@@ -135,7 +155,7 @@
     },
     "ListSubheader": {
       "cardMode": "single",
-      "viewport": "420x320"
+      "viewport": "420x420"
     },
     "Menu": {
       "cardMode": "single",
@@ -152,6 +172,9 @@
       "cardMode": "column"
     },
     "Paper": {
+      "cardMode": "column"
+    },
+    "PinInput": {
       "cardMode": "column"
     },
     "Popover": {
@@ -187,7 +210,16 @@
     "Snackbar": {
       "cardMode": "column"
     },
+    "Spacer": {
+      "cardMode": "column"
+    },
     "SpeedDial": {
+      "cardMode": "column"
+    },
+    "Stack": {
+      "cardMode": "column"
+    },
+    "Stat": {
       "cardMode": "column"
     },
     "StatusBar": {
@@ -205,6 +237,9 @@
     "ThemeProvider": {
       "cardMode": "column"
     },
+    "ToastProvider": {
+      "cardMode": "column"
+    },
     "Toggle": {
       "cardMode": "column"
     },
@@ -212,6 +247,9 @@
       "cardMode": "column"
     },
     "TouchableRipple": {
+      "cardMode": "column"
+    },
+    "VStack": {
       "cardMode": "column"
     }
   },

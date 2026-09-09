@@ -49,6 +49,17 @@ export const OnASurface = () => (
   </div>
 );
 
+/** `defaultOpen` mounts the stack already expanded - the only way to see the labels statically. */
+export const Expanded = () => (
+  <div style={{ ...screen, height: 320 }}>
+    <Paper elevation={1} style={{ flex: 1 }}>
+      <Typography variant="titleMedium">Shared drive</Typography>
+      <Typography variant="bodySmall">Team Design · 128 files</Typography>
+      <SpeedDial mainIcon="plus" actions={actions} defaultOpen />
+    </Paper>
+  </div>
+);
+
 export const BottomLeft = () => (
   <div style={{ ...screen, height: 200 }}>
     <Paper elevation={1} outline style={{ flex: 1 }}>

@@ -8,7 +8,14 @@ const panel: React.CSSProperties = {
   gap: 12,
 };
 
-const inner: React.CSSProperties = { padding: 16 };
+// RNW renders Text as inline-flex, so stacked Typography siblings need an
+// explicit column here or they run onto one line.
+const inner: React.CSSProperties = {
+  padding: 16,
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+};
 
 export const StateLayer = () => (
   <div style={panel}>

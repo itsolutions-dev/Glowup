@@ -53,9 +53,13 @@ loader and no asset loaders — all four are required here. Rather than fork
 - `SafeAreaProvider` — re-exported from the barrel purely so `cfg.provider` can mount it
   (AppBar and SpeedDial read safe-area insets and throw without it). Excluded from the
   component list.
-- `DateTimePicker` is pinned to `DateTimePicker.web` in the barrel — esbuild has no
-  platform-extension resolution, so the bare specifier would pull the native
-  `react-native-modal-datetime-picker` implementation.
+- `DateTimePicker` is pinned to `DateTimePicker.web` in the barrel. Since the 2026-09-09
+  Material 3 rebuild the native implementation no longer pulls
+  `react-native-modal-datetime-picker` (it is a plain RN `Modal`, which react-native-web
+  does bundle), so the pin is now belt-and-braces rather than load-bearing —
+  `prebuild-web-entry.mjs` already puts `.web.*` first in `resolveExtensions`, which is
+  also what makes the `DatePicker` / `DateRangePicker` / `DatePickerInput` / `TimePicker`
+  wrappers resolve to the web surface through their bare `./DateTimePicker` import.
 
 ## Provider chain
 
@@ -149,7 +153,10 @@ clock, so the *shipped* cards were never affected — this is a grading-fidelity
 
 - The capture browser's `navigator.language` is **it-IT**, which `DateTimePicker` reads
   through `getDeviceLocale()` - date fields format as `3 giu 2024` and relative days come
-  out `Ieri / Oggi / Domani`. Deterministic, so it is fine, but don't mistake it for a bug.
+  out `Ieri / Oggi / Domani`. Since the Material 3 rebuild it also drives the **typed-entry
+  field order** (`DD/MM/YYYY`, and `22/11/2026` parses as 22 November) and the **12h vs 24h
+  clock face** (it-IT is 24-hour, so the AM/PM switch is absent unless a story passes
+  `locale="en-US"`). Deterministic, so it is fine, but don't mistake any of it for a bug.
 - **Flag emoji do not render**: headless Chromium has no flag-emoji font, so
   `LanguageSelector`'s four flags fall back to their regional-indicator letter pairs
   (`US`, `ES`, `IT`, `FR`). Legible and not misleading; fixing it would mean shipping an
@@ -163,7 +170,9 @@ clock, so the *shipped* cards were never affected — this is a grading-fidelity
   `email-outline`, `lock-outline`, `eye-off-outline`, `home-outline`, `flag-outline`,
   `tag-outline`, `clock-outline`, `message-outline`, `inbox-outline`,
   `calendar-blank-outline`, `cloud-off-outline`, `check-circle-outline`,
-  `account-multiple-outline`, `folder-multiple-outline`, `file-search-outline`.
+  `account-multiple-outline`, `folder-multiple-outline`, `file-search-outline`,
+  `pencil-outline`, `chevron-left`, `chevron-right` (the last three added by the Material 3
+  picker rebuild: the calendar/keyboard toggle and the month chevrons).
 
 ## Card presentation (`cfg.overrides`)
 
@@ -252,6 +261,26 @@ Learned while authoring; a future sync should not have to rediscover them.
   add `gap` to a column of them. `Select`, `SearchBar`, `DateTimePicker`, `LinearProgress`
   and `EmptyState` are all `width: 100%` and need a width-constrained parent.
 - **`ListItem` takes `children`, not `title`.**
+- **The date/time pickers are one surface on every platform.** Since the Material 3
+  rebuild there is no OS picker underneath, so what the capture shows on web is what an
+  iOS or Android build shows too - the previous "native looks different" caveat is gone.
+- **`DateTimePicker`'s `value`/`onChange` shape follows `selectionMode`**: a `Date | null`
+  for `single`, `{ startDate, endDate }` for `range`, a `Date[]` for `multiple`. The props
+  type is a union discriminated on it, so a story that passes the wrong pair fails to
+  typecheck rather than rendering blank.
+- **`Calendar` reports through three different callbacks** - `onChange`, `onRangeChange`,
+  `onDatesChange` - matching the same `selectionMode`. Passing only `onChange` to a range
+  calendar silently does nothing.
+- **`Calendar` defaults to `scrollMode="endless"`**, a virtualized `FlatList` roughly 320px
+  tall that titles each month and hides the neighbouring months' days. For a still
+  capture `scrollMode="paged"` reads better: one month, chevrons, a month dropdown, and
+  outside days greyed in. The previews use `paged` for every axis except the pair that
+  exists to contrast the two.
+- **`ClockPicker` is 256px of dial plus a ~76px readout row** and centres itself; give it a
+  `Paper` with padding rather than letting it float on the card background.
+- **The 12h/24h face is locale-derived.** `use24HourClock` only forces the 24-hour face;
+  it cannot force 12-hour. A story that wants the AM/PM switch must pass a 12-hour
+  `locale` (the capture browser is it-IT, which is 24-hour).
 
 ## DS gaps found while authoring (real component bugs, not preview problems)
 
@@ -293,11 +322,17 @@ Worth fixing in `packages/ui`, then re-adding the cells the gap forced out:
     `<Divider />`, so `contentSpacing: 16` paints line + 32px gap + line inside the menu.
     Fix is `<Divider contentSpacing={0} />` in `Menu.tsx`; the prop is currently unused in
     the previews because it looks like a defect.
-11. **`Select`'s dropdown and `DateTimePicker`'s calendar cannot be previewed open** -
-    both are behind an internal `useState` with no `defaultOpen` escape hatch (the
-    calendar additionally portals to `document.body` at `position: fixed`). Add such a
-    prop and these become previewable, with
-    `{"cardMode": "single", "viewport": "480x560"}`.
+11. ~~**`Select`'s dropdown and `DateTimePicker`'s calendar cannot be previewed open**~~ -
+    fixed on both. `Select` got `defaultOpen` in the 2026-09-09 in-flight batch;
+    `DateTimePicker` declared the prop but the native implementation ignored it
+    (`useState(false)`), and the Material 3 rebuild made both platforms honour it.
+    Not taken up in the preview: the open web surface portals to `document.body` at
+    `position: fixed`, so it needs `cardMode: single` plus a viewport, and the card is
+    `cardMode: column` for the eight closed-field stories. Measured height of the open
+    date popover is 672px, so a `single` card would want roughly
+    `{"cardMode": "single", "viewport": "480x760"}` - unverified, never captured.
+    The dialog body itself is previewed instead, inline and portal-free, by the
+    `Calendar` and `ClockPicker` cards.
 12. **`ConfirmDialog` has no destructive/error treatment** - a delete confirmation renders
     the same filled-primary action as a benign one.
 
@@ -367,6 +402,31 @@ for the next run:
   expanded stack can finally be captured — see the suggested overrides in the gaps list.
 - The `ListItem` preview is written against the text-only tile ("`ListItem` takes
   `children`, not `title`"); the new slots deserve new cells.
+
+## Material 3 picker rebuild (2026-09-09, after the upload)
+
+`DateTimePicker` was rebuilt on the Material 3 spec, modelled on
+`react-native-paper-dates`, and the OS pickers were dropped. **The uploaded bundle
+predates it** - like the in-flight fixes above, it was built from `packages/ui/lib`. What
+the next run has to account for:
+
+- Two peer dependencies are gone (`react-native-modal-datetime-picker`,
+  `@react-native-community/datetimepicker`), and so is the `@react-native-community/datetimepicker`
+  Expo plugin in `apps/playground/app.json`. Nothing in the prebundle referenced them, so
+  no script change was needed - but `packages/ui/README.md`'s peer table changed.
+- Four new components ship from the barrel: `ClockPicker`, `ClockDial`, `DatePickerInput`,
+  `DateRangePicker`. All four are pure React Native (the dial is plain Views, no SVG), so
+  `make-web-barrel.mjs` picks them up by text transform with nothing to pin.
+- New previews: `Calendar.tsx` and `ClockPicker.tsx`, both `cardMode: column`.
+  `DateTimePicker.tsx` was rewritten - eight stories now, covering selection modes, typed
+  entry and `validRange`. `ClockDial` is deliberately left without one: it is the face
+  inside `ClockPicker`, which previews it in context.
+- `components.md`'s picker heading is now
+  `### DateTimePicker / DatePicker / DatePickerInput / DateRangePicker / TimePicker`, so
+  `split-docs.mjs` writes the same doc to all five names instead of leaving the four
+  wrappers on a "general" card with no prompt.
+- Breaking props to expect in any carried-forward grade: `variant` is gone,
+  `minimumDate`/`maximumDate` became `validRange`.
 
 ## Re-sync risks
 

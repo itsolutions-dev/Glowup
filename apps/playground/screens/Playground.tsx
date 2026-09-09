@@ -41,6 +41,8 @@ import {
   EmptyState,
   Carousel,
   Accordion,
+  DatePickerInput,
+  DateRangePicker,
   DateTimePicker,
   FAB,
   IconBadge,
@@ -60,6 +62,7 @@ import {
   Autocomplete,
   Box,
   Calendar,
+  ClockPicker,
   Collapse,
   FormControl,
   Grid,
@@ -69,7 +72,9 @@ import {
   PinInput,
   Stack,
   Stat,
+  EMPTY_RANGE,
 } from "@glowup/ui";
+import type { DateRange } from "@glowup/ui";
 
 // Components
 
@@ -540,14 +545,23 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
           { label: "Time", value: "time" },
         ],
       },
-      variant: {
+      selectionMode: {
         type: "select",
-        default: "auto",
-        label: "Variant",
+        default: "single",
+        label: "Selection",
         options: [
-          { label: "Auto", value: "auto" },
-          { label: "Native (iOS/Android)", value: "native" },
-          { label: "Inline calendar", value: "inline" },
+          { label: "Single", value: "single" },
+          { label: "Range", value: "range" },
+          { label: "Multiple", value: "multiple" },
+        ],
+      },
+      scrollMode: {
+        type: "select",
+        default: "endless",
+        label: "Month scrolling",
+        options: [
+          { label: "Endless", value: "endless" },
+          { label: "Paged", value: "paged" },
         ],
       },
       locale: {
@@ -583,6 +597,16 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       error: { type: "text", default: "", label: "Error Message" },
       required: { type: "boolean", default: false, label: "Required" },
       clearable: { type: "boolean", default: true, label: "Clearable" },
+      inputEnabled: {
+        type: "boolean",
+        default: true,
+        label: "Typed entry",
+      },
+      use24HourClock: {
+        type: "boolean",
+        default: false,
+        label: "Force 24h clock",
+      },
       limitToThisMonth: {
         type: "boolean",
         default: false,
@@ -596,10 +620,150 @@ const ComponentRegistry: Record<string, ComponentMetadata> = {
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
+  DatePickerInput: {
+    name: "DatePickerInput",
+    Component: DatePickerInput,
+    props: {
+      label: { type: "text", default: "Date of birth", label: "Label" },
+      placeholder: { type: "text", default: "Not set", label: "Placeholder" },
+      helperText: {
+        type: "text",
+        default: "Type it, or pick it from the calendar",
+        label: "Helper Text",
+      },
+      locale: {
+        type: "select",
+        default: "",
+        label: "Locale override",
+        options: [
+          { label: "Device", value: "" },
+          { label: "it-IT", value: "it-IT" },
+          { label: "en-US", value: "en-US" },
+          { label: "ja-JP", value: "ja-JP" },
+        ],
+      },
+      error: { type: "text", default: "", label: "Error Message" },
+      required: { type: "boolean", default: false, label: "Required" },
+      clearable: { type: "boolean", default: true, label: "Clearable" },
+      limitToThisMonth: {
+        type: "boolean",
+        default: false,
+        label: "Valid range = this month",
+      },
+      noWeekends: {
+        type: "boolean",
+        default: false,
+        label: "Disable weekends",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  DateRangePicker: {
+    name: "DateRangePicker",
+    Component: DateRangePicker,
+    props: {
+      label: { type: "text", default: "Reporting period", label: "Label" },
+      placeholder: { type: "text", default: "No period", label: "Placeholder" },
+      scrollMode: {
+        type: "select",
+        default: "endless",
+        label: "Month scrolling",
+        options: [
+          { label: "Endless", value: "endless" },
+          { label: "Paged", value: "paged" },
+        ],
+      },
+      locale: {
+        type: "select",
+        default: "",
+        label: "Locale override",
+        options: [
+          { label: "Device", value: "" },
+          { label: "it-IT", value: "it-IT" },
+          { label: "en-US", value: "en-US" },
+          { label: "ja-JP", value: "ja-JP" },
+        ],
+      },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      clearable: { type: "boolean", default: true, label: "Clearable" },
+      limitToThisMonth: {
+        type: "boolean",
+        default: false,
+        label: "Valid range = this month",
+      },
+      noWeekends: {
+        type: "boolean",
+        default: false,
+        label: "Disable weekends",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  ClockPicker: {
+    name: "ClockPicker",
+    Component: ClockPicker,
+    props: {
+      inputType: {
+        type: "select",
+        default: "picker",
+        label: "Surface",
+        options: [
+          { label: "Clock dial", value: "picker" },
+          { label: "Text fields", value: "keyboard" },
+        ],
+      },
+      use24HourClock: {
+        type: "boolean",
+        default: false,
+        label: "Force 24h face",
+      },
+      minuteInterval: {
+        type: "select",
+        default: 1,
+        label: "Minute interval",
+        options: [
+          { label: "1", value: 1 },
+          { label: "5", value: 5 },
+          { label: "15", value: 15 },
+          { label: "30", value: 30 },
+        ],
+      },
+      locale: {
+        type: "select",
+        default: "",
+        label: "Locale override",
+        options: [
+          { label: "Device", value: "" },
+          { label: "it-IT", value: "it-IT" },
+          { label: "en-US", value: "en-US" },
+          { label: "ja-JP", value: "ja-JP" },
+        ],
+      },
+    },
+  },
   Calendar: {
     name: "Calendar",
     Component: Calendar,
     props: {
+      selectionMode: {
+        type: "select",
+        default: "single",
+        label: "Selection",
+        options: [
+          { label: "Single", value: "single" },
+          { label: "Range", value: "range" },
+          { label: "Multiple", value: "multiple" },
+        ],
+      },
+      scrollMode: {
+        type: "select",
+        default: "endless",
+        label: "Month scrolling",
+        options: [
+          { label: "Endless", value: "endless" },
+          { label: "Paged", value: "paged" },
+        ],
+      },
       showToday: { type: "boolean", default: true, label: "Show 'Today'" },
       keyboardNavigation: {
         type: "boolean",
@@ -1265,7 +1429,10 @@ const CATEGORIES: Category[] = [
       "PinInput",
       "FormControl",
       "DateTimePicker",
+      "DatePickerInput",
+      "DateRangePicker",
       "Calendar",
+      "ClockPicker",
       "Rating",
     ],
   },
@@ -1333,6 +1500,8 @@ const Playground = () => {
   const [selectedComponentName, setSelectedComponentName] =
     useState<string>("Button");
   const [dateValue, setDateValue] = useState<Date | null>(() => new Date());
+  const [dateRange, setDateRange] = useState<DateRange>(() => EMPTY_RANGE);
+  const [dateList, setDateList] = useState<Date[]>([]);
   const [pinValue, setPinValue] = useState("");
   const [autocompleteQuery, setAutocompleteQuery] = useState("");
   const [collapseOpen, setCollapseOpen] = useState(false);
@@ -1636,32 +1805,90 @@ const Playground = () => {
       );
     }
 
+    if (selectedComponentName === "ClockPicker") {
+      if (!props.locale) delete props.locale;
+      props.minuteInterval = Number(props.minuteInterval) || 1;
+      // The surface edits an instant, so it needs a non-null value.
+      props.value = dateValue ?? new Date();
+      props.onChange = (d: Date) => setDateValue(d);
+      // The M3 time surface has an intrinsic ~278px width (it is sized for a
+      // 328dp dialog); the stage is narrower than that below ~1400px, so let it
+      // scroll rather than clipping the AM/PM switch off the edge.
+      return (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 4,
+            flexGrow: 1,
+            justifyContent: "center",
+          }}
+        >
+          <Component {...props} />
+        </ScrollView>
+      );
+    }
+
     if (
       selectedComponentName === "DateTimePicker" ||
+      selectedComponentName === "DatePickerInput" ||
+      selectedComponentName === "DateRangePicker" ||
       selectedComponentName === "Calendar"
     ) {
       // limitToThisMonth / noWeekends are playground switches, not component
-      // props — they stand in for a real minimumDate / isDateDisabled.
+      // props — they stand in for a real validRange / isDateDisabled.
       const { limitToThisMonth, noWeekends, ...rest } = props;
       props = rest;
-      props.value = dateValue;
-      props.onChange = (d: Date) => setDateValue(d);
       if (!props.locale) delete props.locale;
       if (!props.error) delete props.error;
       if (!props.helperText) delete props.helperText;
       if (limitToThisMonth) {
         const now = new Date();
-        props.minimumDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        props.maximumDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        props.validRange = {
+          startDate: new Date(now.getFullYear(), now.getMonth(), 1),
+          endDate: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
       }
       if (noWeekends) {
         props.isDateDisabled = (date: Date) =>
           date.getDay() === 0 || date.getDay() === 6;
       }
+
+      // Each selection mode reports through its own callback and reads from
+      // its own state, so the three are wired separately. `DateRangePicker`
+      // locks the mode away as a prop, hence the name check.
+      const selection =
+        selectedComponentName === "DateRangePicker"
+          ? "range"
+          : (props.selectionMode ?? "single");
+
+      if (selection === "range") {
+        if (selectedComponentName === "Calendar") {
+          props.range = dateRange;
+          props.onRangeChange = setDateRange;
+        } else {
+          props.value = dateRange;
+          props.onChange = setDateRange;
+          props.onClear = () => setDateRange(EMPTY_RANGE);
+        }
+      } else if (selection === "multiple") {
+        if (selectedComponentName === "Calendar") {
+          props.dates = dateList;
+          props.onDatesChange = setDateList;
+        } else {
+          props.value = dateList;
+          props.onChange = setDateList;
+          props.onClear = () => setDateList([]);
+        }
+      } else {
+        props.value = dateValue;
+        props.onChange = (d: Date) => setDateValue(d);
+        props.onClear = () => setDateValue(null);
+      }
+
       if (selectedComponentName === "Calendar") {
         return <Component {...props} />;
       }
-      props.onClear = () => setDateValue(null);
       props.minuteInterval = Number(props.minuteInterval) || 1;
       return (
         <View style={{ width: "100%", maxWidth: 360 }}>

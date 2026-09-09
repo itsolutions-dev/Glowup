@@ -1,129 +1,97 @@
 import React, { useMemo, useState } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  Modal,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import { View, Pressable, Modal, ScrollView, StyleSheet } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
-import Calendar from "./Calendar";
-import TimeSelect from "./TimeSelect";
 import PickerField from "./DateTimePicker.field";
-import {
-  DateTimePickerProps,
-  clampDate,
-  getDeviceLocale,
-  mergeDateAndTime,
-  useDateTimeDisplay,
-  useLabels,
-} from "./DateTimePicker.shared";
+import PickerSurface, { PickerSelection } from "./DateTimePicker.surface";
+import { usePickerController } from "./DateTimePicker.hooks";
+import { DateTimePickerProps } from "./DateTimePicker.shared";
 
-const DateTimePicker = ({
-  label,
-  value,
-  onChange,
-  disabled,
-  mode = "date",
-  variant = "auto",
-  relativeLabels,
-  labels: labelOverrides,
-  minimumDate,
-  maximumDate,
-  isDateDisabled,
-  error,
-  helperText,
-  required,
-  clearable,
-  onClear,
-  placeholder,
-  minuteInterval,
-  locale: localeProp,
-  firstDayOfWeek,
-  style,
-  testID,
-  defaultOpen = false,
-}: DateTimePickerProps) => {
-  //const [pickerVisible, setPickerVisible] = useState(defaultOpen);
+/**
+ * Material 3 date / time / date-time picker.
+ *
+ * The same in-house surface renders on every platform, so the field, the
+ * calendar and the clock look identical on iOS, Android and web instead of
+ * deferring to whatever picker the OS ships.
+ */
+const DateTimePicker = (props: DateTimePickerProps) => {
+  const {
+    label,
+    placeholder,
+    mode = "date",
+    disabled,
+    required,
+    error,
+    helperText,
+    clearable,
+    onClear,
+    validRange,
+    isDateDisabled,
+    labels: labelOverrides,
+    firstDayOfWeek,
+    minuteInterval,
+    use24HourClock,
+    inputEnabled,
+    defaultInputType,
+    scrollMode,
+    startYear,
+    endYear,
+    style,
+    testID,
+    defaultOpen = false,
+  } = props;
+
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const labels = useLabels(labelOverrides);
-
-  const locale = localeProp ?? getDeviceLocale();
-  const displayValue = useDateTimeDisplay(value, mode, locale, relativeLabels);
-
-  const [open, setOpen] = useState(false);
-  // Dialog semantics: edits accumulate in the draft and only reach `onChange`
-  // when the user confirms, so Cancel really cancels.
-  const [draft, setDraft] = useState<Date>(
-    () => value ?? clampDate(new Date(), minimumDate, maximumDate),
-  );
-  // The OS picker has no way to express an arbitrary per-day predicate, so any
-  // caller passing one gets the in-house surface even under `auto`.
-  const useInlineSurface = variant === "inline" || !!isDateDisabled;
+  const controller = usePickerController(props);
+  const [open, setOpen] = useState(defaultOpen);
 
   const openPicker = () => {
     if (disabled) return;
-    setDraft(value ?? clampDate(new Date(), minimumDate, maximumDate));
+    // A half-typed value would otherwise reopen the dialog on stale text.
+    controller.resetInput();
     setOpen(true);
   };
 
   const close = () => setOpen(false);
 
-  const confirm = (date: Date) => {
+  const confirm = (selection: PickerSelection) => {
     close();
-    onChange(clampDate(date, minimumDate, maximumDate));
+    controller.handleConfirm(selection);
   };
-
-  const field = (
-    <PickerField
-      label={label}
-      required={required}
-      displayValue={displayValue}
-      placeholder={placeholder}
-      icon={mode === "time" ? "clock-outline" : "calendar-blank-outline"}
-      active={open}
-      disabled={disabled}
-      error={error}
-      helperText={helperText}
-      clearable={clearable}
-      onClear={onClear}
-      clearAccessibilityLabel={labels.clear}
-      onPress={openPicker}
-      accessibilityLabel={label ?? labels.openPicker}
-      style={style}
-      testID={testID}
-    />
-  );
-
-  if (!useInlineSurface) {
-    return (
-      <>
-        {field}
-        <DateTimePickerModal
-          isVisible={open}
-          date={draft}
-          mode={mode}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          minuteInterval={minuteInterval}
-          onConfirm={confirm}
-          onCancel={close}
-          locale={locale}
-          confirmTextIOS={labels.confirm}
-          cancelTextIOS={labels.cancel}
-          accentColor={theme.colors.primary}
-          buttonTextColorIOS={theme.colors.primary}
-        />
-      </>
-    );
-  }
 
   return (
     <>
-      {field}
+      <PickerField
+        label={label}
+        required={required}
+        displayValue={controller.displayValue}
+        placeholder={placeholder}
+        icon={mode === "time" ? "clock-outline" : "calendar-blank-outline"}
+        active={open}
+        disabled={disabled}
+        error={error ?? controller.inputError}
+        helperText={helperText}
+        clearable={clearable}
+        onClear={() => {
+          controller.resetInput();
+          onClear?.();
+        }}
+        clearAccessibilityLabel={controller.labels.clear}
+        onPress={openPicker}
+        accessibilityLabel={label ?? controller.labels.openPicker}
+        editable={controller.fieldEditable}
+        inputValue={controller.fieldText}
+        onInputChange={controller.handleInputChange}
+        onInputBlur={controller.handleInputBlur}
+        inputPlaceholder={controller.inputHint}
+        openAccessibilityLabel={controller.labels.openPicker}
+        style={style}
+        testID={testID}
+      />
+
+      {/* Glowup's `Modal` is a fixed-width card with its own title bar and a
+          single close action; the M3 picker needs a custom headline row and a
+          two-action footer, so the dialog shell is built on RN's Modal. */}
       <Modal
         visible={open}
         transparent
@@ -132,7 +100,7 @@ const DateTimePicker = ({
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={labels.closePicker}
+          accessibilityLabel={controller.labels.closePicker}
           onPress={close}
           style={styles.scrim}
         >
@@ -142,75 +110,36 @@ const DateTimePicker = ({
             onPress={() => {}}
             style={[
               styles.dialog,
-              { backgroundColor: theme.colors.surfaceContainerHigh },
+              { backgroundColor: theme.colors.surfaceContainer },
             ]}
           >
             <ScrollView
-              contentContainerStyle={styles.dialogBody}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              {mode !== "time" && (
-                <Calendar
-                  value={draft}
-                  onChange={(day) => setDraft(mergeDateAndTime(day, draft))}
-                  minimumDate={minimumDate}
-                  maximumDate={maximumDate}
+              <View style={styles.dialogBody}>
+                <PickerSurface
+                  mode={mode}
+                  fieldLabel={label}
+                  selection={controller.selection}
+                  onConfirm={confirm}
+                  onCancel={close}
+                  validRange={validRange}
                   isDateDisabled={isDateDisabled}
-                  locale={locale}
+                  locale={controller.locale}
                   firstDayOfWeek={firstDayOfWeek}
                   labels={labelOverrides}
-                  showToday={mode === "date"}
-                />
-              )}
-              {mode !== "date" && (
-                <TimeSelect
-                  value={draft}
-                  onChange={setDraft}
-                  minimumDate={minimumDate}
-                  maximumDate={maximumDate}
                   minuteInterval={minuteInterval}
-                  locale={locale}
-                  labels={labelOverrides}
-                  style={styles.timeSelect}
+                  use24HourClock={use24HourClock}
+                  scrollMode={scrollMode}
+                  startYear={startYear}
+                  endYear={endYear}
+                  inputEnabled={inputEnabled}
+                  defaultInputType={defaultInputType}
+                  testID={testID ? `${testID}-surface` : undefined}
                 />
-              )}
+              </View>
             </ScrollView>
-
-            <View
-              style={[
-                styles.dialogFooter,
-                { borderTopColor: theme.colors.outlineVariant },
-              ]}
-            >
-              <Pressable
-                accessibilityRole="button"
-                onPress={close}
-                style={styles.footerButton}
-              >
-                <Text
-                  style={[
-                    theme.typography.labelLarge,
-                    { color: theme.colors.onSurfaceVariant },
-                  ]}
-                >
-                  {labels.cancel}
-                </Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => confirm(draft)}
-                style={styles.footerButton}
-              >
-                <Text
-                  style={[
-                    theme.typography.labelLarge,
-                    { color: theme.colors.primary },
-                  ]}
-                >
-                  {labels.confirm}
-                </Text>
-              </Pressable>
-            </View>
           </Pressable>
         </Pressable>
       </Modal>
@@ -219,6 +148,9 @@ const DateTimePicker = ({
 };
 
 export default DateTimePicker;
+
+/** M3 basic-dialog width: the 7×40 day grid plus the dialog's own gutters. */
+const DIALOG_WIDTH = 328;
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -230,24 +162,11 @@ const makeStyles = (theme: Theme) =>
       padding: theme.spacing.m,
     },
     dialog: {
-      borderRadius: theme.shape.extraLarge,
-      paddingTop: theme.spacing.s,
+      width: DIALOG_WIDTH,
+      maxWidth: "100%",
       maxHeight: "90%",
+      borderRadius: theme.shape.extraLarge,
       overflow: "hidden",
     },
-    dialogBody: { alignItems: "center" },
-    timeSelect: { marginTop: theme.spacing.s },
-    dialogFooter: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: theme.spacing.s,
-      borderTopWidth: 1,
-      paddingVertical: theme.spacing.s,
-      paddingHorizontal: theme.spacing.m,
-    },
-    footerButton: {
-      paddingVertical: 8,
-      paddingHorizontal: theme.spacing.s,
-      borderRadius: theme.shape.small,
-    },
+    dialogBody: { alignItems: "stretch" },
   });

@@ -31,12 +31,20 @@ export { default as Center } from "./components/Layout/Center";
 export * from "./components/Layout/Center";
 export { default as Checkbox } from "./components/Checkbox";
 export { default as Chip } from "./components/Chip";
+export { default as ClockDial } from "./components/ClockDial";
+export * from "./components/ClockDial";
+export { default as ClockPicker } from "./components/ClockPicker";
+export * from "./components/ClockPicker";
 export { default as Collapse } from "./components/Collapse";
 export * from "./components/Collapse";
 export { default as DataGrid } from "./components/DataGrid";
 export * from "./components/DataGrid";
 export { default as DatePicker } from "./components/DatePicker";
 export * from "./components/DatePicker";
+export { default as DatePickerInput } from "./components/DatePickerInput";
+export * from "./components/DatePickerInput";
+export { default as DateRangePicker } from "./components/DateRangePicker";
+export * from "./components/DateRangePicker";
 export { default as DateTimePicker } from "./components/DateTimePicker";
 export { default as Divider } from "./components/Divider";
 export { default as EmptyState } from "./components/EmptyState";
@@ -114,14 +122,28 @@ export { default as Typography } from "./components/Typography";
 // --- Date/time picker types + locale helpers ---
 export type {
   DateTimePickerProps,
+  DateTimePickerCommonProps,
+  SingleDateTimePickerProps,
+  RangeDateTimePickerProps,
+  MultipleDateTimePickerProps,
   DateTimePickerMode,
-  DateTimePickerVariant,
+  DateSelectionMode,
+  CalendarScrollMode,
+  PickerInputType,
+  DateRange,
+  ValidRange,
   DateTimePickerLabels,
   DateTimePickerRelativeLabels,
   MinuteInterval,
 } from "./components/DateTimePicker.shared";
 export {
   DEFAULT_LABELS as DATE_TIME_PICKER_LABELS,
+  EMPTY_RANGE,
+  applyRangeSelection,
+  toggleMultipleSelection,
+  formatDateInput,
+  parseDateInput,
+  getDateInputHint,
   getDayPeriodNames,
   getDeviceLocale,
   getFirstDayOfWeek,

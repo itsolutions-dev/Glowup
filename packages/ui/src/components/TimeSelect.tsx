@@ -138,6 +138,10 @@ export interface TimeSelectProps {
 /**
  * Scrollable hour/minute columns, plus a day-period column on 12-hour locales.
  * Pure React Native, so the same surface renders on web and native.
+ *
+ * @deprecated inside the pickers — `DateTimePicker` and `TimePicker` use the
+ * Material 3 `ClockPicker` instead. Still exported for compact inline use
+ * where a full clock face does not fit.
  */
 const TimeSelect = ({
   value,

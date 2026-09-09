@@ -3,24 +3,47 @@ import { Platform, StyleProp, ViewStyle } from "react-native";
 import * as Localization from "expo-localization";
 import { isToday, isYesterday, isTomorrow } from "date-fns";
 
+/** What the picker collects: a calendar date, a time of day, or both. */
 export type DateTimePickerMode = "date" | "datetime" | "time";
 
 /**
- * How the picker surface is rendered.
- * - `auto` — the OS picker on iOS/Android, the in-house popover on web.
- * - `native` — force the OS picker (ignored on web, which has none).
- * - `inline` — force the in-house Calendar/TimeSelect surface everywhere.
+ * How many dates the calendar collects.
+ * - `single` — one date (the default).
+ * - `range` — a start/end pair; the grid highlights everything in between.
+ * - `multiple` — an unordered set of days.
  *
- * `auto` falls back to `inline` on native as soon as a feature the OS picker
- * cannot express is requested (currently `isDateDisabled`).
+ * Ignored when `mode` is `"time"`, which always collects a single instant.
  */
-export type DateTimePickerVariant = "auto" | "native" | "inline";
+export type DateSelectionMode = "single" | "range" | "multiple";
+
+/** Which surface the open dialog shows: the calendar/clock, or text fields. */
+export type PickerInputType = "picker" | "keyboard";
+
+/** How the calendar moves between months. */
+export type CalendarScrollMode = "endless" | "paged";
 
 /**
- * Minute granularities the OS pickers accept. Restricted to this set so the
- * `native` variant and the in-house `TimeSelect` stay interchangeable.
+ * Minute granularities the time picker offers. Restricted to divisors of 60 so
+ * every column ends exactly on the hour.
  */
 export type MinuteInterval = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30;
+
+/** A start/end pair. Either end may be `null` while the user is mid-selection. */
+export interface DateRange {
+  startDate: Date | null;
+  endDate: Date | null;
+}
+
+/**
+ * The selectable window. `startDate`/`endDate` are inclusive bounds compared at
+ * day granularity, so a `startDate` of "today 14:00" still allows today.
+ */
+export interface ValidRange {
+  startDate?: Date | null;
+  endDate?: Date | null;
+  /** Individual days to exclude inside the window (holidays, blackout days). */
+  disabledDates?: Date[];
+}
 
 export interface DateTimePickerRelativeLabels {
   today?: string;
@@ -30,6 +53,14 @@ export interface DateTimePickerRelativeLabels {
 
 /** Chrome strings for the picker surface. Defaults are English — pass i18n values. */
 export interface DateTimePickerLabels {
+  /** Dialog headline over a single-date calendar. */
+  selectDate?: string;
+  /** Dialog headline over a range calendar. */
+  selectDateRange?: string;
+  /** Dialog headline over a multi-date calendar. */
+  selectDates?: string;
+  /** Dialog headline over the clock. */
+  selectTime?: string;
   today?: string;
   clear?: string;
   cancel?: string;
@@ -44,9 +75,37 @@ export interface DateTimePickerLabels {
   closePicker?: string;
   hours?: string;
   minutes?: string;
+  am?: string;
+  pm?: string;
+  /** Placeholder/label of the range start field. */
+  startDate?: string;
+  /** Placeholder/label of the range end field. */
+  endDate?: string;
+  /** Toggles from calendar to typed entry. */
+  switchToKeyboard?: string;
+  /** Toggles from typed entry back to the calendar. */
+  switchToCalendar?: string;
+  /** Toggles from typed entry back to the clock. */
+  switchToClock?: string;
+  /** Shown under a field whose text is not a date at all. */
+  invalidDate?: string;
+  /** Shown under a field whose date falls outside `validRange`. */
+  dateOutOfRange?: string;
+  /** Shown when the range ends before it starts. */
+  invalidDateRange?: string;
+  /** Summary of a multi-date selection; `{{count}}` is substituted. */
+  selectedCount?: string;
+  /** Advances a `datetime` picker from the calendar step to the clock step. */
+  next?: string;
+  /** Returns a `datetime` picker from the clock step to the calendar step. */
+  back?: string;
 }
 
 export const DEFAULT_LABELS: Required<DateTimePickerLabels> = {
+  selectDate: "Select date",
+  selectDateRange: "Select period",
+  selectDates: "Select dates",
+  selectTime: "Select time",
   today: "Today",
   clear: "Clear",
   cancel: "Cancel",
@@ -61,52 +120,96 @@ export const DEFAULT_LABELS: Required<DateTimePickerLabels> = {
   closePicker: "Close picker",
   hours: "Hours",
   minutes: "Minutes",
+  am: "AM",
+  pm: "PM",
+  startDate: "Start",
+  endDate: "End",
+  switchToKeyboard: "Switch to text input",
+  switchToCalendar: "Switch to calendar",
+  switchToClock: "Switch to clock",
+  invalidDate: "Not a valid date",
+  dateOutOfRange: "Date outside the allowed range",
+  invalidDateRange: "The end date precedes the start date",
+  selectedCount: "{{count}} selected",
+  next: "Next",
+  back: "Back",
 };
 
-export interface DateTimePickerProps {
+/** Props shared by every selection mode. */
+export interface DateTimePickerCommonProps {
   label?: string;
-  /** `null` renders `placeholder` instead of a formatted value. */
-  value: Date | null;
-  onChange: (date: Date) => void;
-  disabled?: boolean;
+  /** Shown while the field has no value. */
+  placeholder?: string;
   mode?: DateTimePickerMode;
-  variant?: DateTimePickerVariant;
-  /**
-   * Overrides the relative day labels, e.g. from i18n:
-   * `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY"), tomorrow: t("TOMORROW") }}`.
-   * Defaults to the device locale via Intl.RelativeTimeFormat.
-   */
-  relativeLabels?: DateTimePickerRelativeLabels;
-  /** Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). */
-  labels?: DateTimePickerLabels;
-  /** Earliest selectable instant. Days before it are disabled, not hidden. */
-  minimumDate?: Date;
-  /** Latest selectable instant. */
-  maximumDate?: Date;
-  /** Disables individual days (weekends, holidays, …). Forces `inline` on native. */
-  isDateDisabled?: (date: Date) => boolean;
+  disabled?: boolean;
+  /** Appends an asterisk to the label. */
+  required?: boolean;
   /** Error text below the field; also recolors the field. */
   error?: string;
   /** Supporting text below the field; hidden while an error is shown. */
   helperText?: string;
-  /** Appends an asterisk to the label. */
-  required?: boolean;
   /** Adds a clear affordance to the field. Needs `onClear` to do anything. */
   clearable?: boolean;
   onClear?: () => void;
-  /** Shown while `value` is `null`. */
-  placeholder?: string;
-  /** Minute granularity of the time columns. Defaults to 1. */
-  minuteInterval?: MinuteInterval;
+  /** The selectable window plus individual excluded days. */
+  validRange?: ValidRange;
+  /** Excludes days `validRange` cannot express (weekends, a computed holiday set). */
+  isDateDisabled?: (date: Date) => boolean;
+  /** Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). */
+  labels?: DateTimePickerLabels;
+  /**
+   * Overrides the relative day labels, e.g. from i18n:
+   * `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`.
+   * Defaults to the device locale via Intl.RelativeTimeFormat.
+   */
+  relativeLabels?: DateTimePickerRelativeLabels;
   /** Overrides the formatting/labelling locale. Defaults to the device locale. */
   locale?: string;
   /** 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. */
   firstDayOfWeek?: number;
+  /** Minute granularity of the clock. Defaults to 1. */
+  minuteInterval?: MinuteInterval;
+  /** Forces the 24-hour clock face. Left unset, the locale decides. */
+  use24HourClock?: boolean;
+  /** Lets the user type the value straight into the field. Default `true`. */
+  inputEnabled?: boolean;
+  /** Which surface the dialog opens on. Default `"picker"`. */
+  defaultInputType?: PickerInputType;
+  /** Month navigation inside the dialog. Default `"endless"`. */
+  scrollMode?: CalendarScrollMode;
+  /** First year offered by the year grid. Defaults to 100 years back. */
+  startYear?: number;
+  /** Last year offered by the year grid. Defaults to 100 years on. */
+  endYear?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
   /** Mount with the picker already open. Uncontrolled after that. */
   defaultOpen?: boolean;
 }
+
+export interface SingleDateTimePickerProps extends DateTimePickerCommonProps {
+  selectionMode?: "single";
+  /** `null` renders `placeholder` instead of a formatted value. */
+  value: Date | null;
+  onChange: (date: Date) => void;
+}
+
+export interface RangeDateTimePickerProps extends DateTimePickerCommonProps {
+  selectionMode: "range";
+  value: DateRange;
+  onChange: (range: DateRange) => void;
+}
+
+export interface MultipleDateTimePickerProps extends DateTimePickerCommonProps {
+  selectionMode: "multiple";
+  value: Date[];
+  onChange: (dates: Date[]) => void;
+}
+
+export type DateTimePickerProps =
+  | SingleDateTimePickerProps
+  | RangeDateTimePickerProps
+  | MultipleDateTimePickerProps;
 
 export const getDeviceLocale = () => {
   if (Platform.OS === "web") {
@@ -295,6 +398,189 @@ export const buildMonthMatrix = (month: Date, firstDayOfWeek: number) => {
   );
 };
 
+// --- Month indexing (endless scrolling) -------------------------------------
+// The endless calendar addresses months by a single integer so a FlatList can
+// treat them as a flat, fixed-height list.
+
+/** Months elapsed since year 0 — a total order over (year, month). */
+export const toMonthIndex = (date: Date) =>
+  date.getFullYear() * 12 + date.getMonth();
+
+export const fromMonthIndex = (index: number) =>
+  new Date(Math.floor(index / 12), index % 12, 1);
+
+// --- validRange -------------------------------------------------------------
+
+export interface ResolvedBounds {
+  minimumDate?: Date;
+  maximumDate?: Date;
+}
+
+export const resolveBounds = (validRange?: ValidRange): ResolvedBounds => ({
+  minimumDate: validRange?.startDate ?? undefined,
+  maximumDate: validRange?.endDate ?? undefined,
+});
+
+/**
+ * One predicate folding together the window, the excluded-day list and the
+ * caller's own rule, so every surface disables exactly the same days.
+ */
+export const makeDayPredicate = (
+  validRange?: ValidRange,
+  isDateDisabled?: (date: Date) => boolean,
+) => {
+  const { minimumDate, maximumDate } = resolveBounds(validRange);
+  const excluded = validRange?.disabledDates;
+  return (day: Date) => {
+    if (isDayOutOfRange(day, minimumDate, maximumDate)) return true;
+    if (excluded?.some((excludedDay) => isSameDay(excludedDay, day))) {
+      return true;
+    }
+    return !!isDateDisabled?.(day);
+  };
+};
+
+// --- Range / multiple selection ---------------------------------------------
+
+export const EMPTY_RANGE: DateRange = { startDate: null, endDate: null };
+
+export const isRangeStart = (day: Date, range: DateRange) =>
+  !!range.startDate && isSameDay(day, range.startDate);
+
+export const isRangeEnd = (day: Date, range: DateRange) =>
+  !!range.endDate && isSameDay(day, range.endDate);
+
+/** Strictly between the two ends — the ends themselves render as endpoints. */
+export const isWithinRange = (day: Date, range: DateRange) => {
+  if (!range.startDate || !range.endDate) return false;
+  const time = startOfDay(day).getTime();
+  return (
+    time > startOfDay(range.startDate).getTime() &&
+    time < startOfDay(range.endDate).getTime()
+  );
+};
+
+/**
+ * Applies a tap to a range: the first tap opens a new range, the second closes
+ * it, and a second tap before the start re-opens from there rather than
+ * producing an inverted range.
+ */
+export const applyRangeSelection = (range: DateRange, day: Date): DateRange => {
+  const picked = startOfDay(day);
+  const { startDate, endDate } = range;
+  if (!startDate || endDate) return { startDate: picked, endDate: null };
+  if (picked.getTime() < startOfDay(startDate).getTime()) {
+    return { startDate: picked, endDate: null };
+  }
+  return { startDate, endDate: picked };
+};
+
+/** Adds the day, or removes it when it is already selected. */
+export const toggleMultipleSelection = (dates: Date[], day: Date) => {
+  const picked = startOfDay(day);
+  const without = dates.filter((date) => !isSameDay(date, picked));
+  if (without.length !== dates.length) return without;
+  return [...without, picked].sort((a, b) => a.getTime() - b.getTime());
+};
+
+// --- Typed date entry -------------------------------------------------------
+// The field order and separator are read out of Intl rather than hardcoded, so
+// the same input accepts 22/11/2023 in it-IT and 11/22/2023 in en-US.
+
+type DateField = "day" | "month" | "year";
+
+const DATE_PARTS_SAMPLE = new Date(2023, 10, 22);
+
+const getDateParts = memoize((locale: string) =>
+  new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(DATE_PARTS_SAMPLE),
+);
+
+/** The order the locale writes day, month and year in. */
+export const getDateFieldOrder = memoize((locale: string) => {
+  const order = getDateParts(locale)
+    .filter((part): part is Intl.DateTimeFormatPart & { type: DateField } =>
+      ["day", "month", "year"].includes(part.type),
+    )
+    .map((part) => part.type);
+  // A calendar the Gregorian parts don't cover (e.g. a non-numeric skeleton)
+  // still needs three fields to parse against.
+  return order.length === 3 ? order : (["day", "month", "year"] as DateField[]);
+});
+
+/** The literal the locale puts between the fields, e.g. "/" or ".". */
+export const getDateFieldSeparator = memoize((locale: string) => {
+  const literal = getDateParts(locale).find(
+    (part) => part.type === "literal" && part.value.trim().length > 0,
+  );
+  return literal?.value.trim() ?? "/";
+});
+
+const FIELD_HINTS: Record<DateField, string> = {
+  day: "DD",
+  month: "MM",
+  year: "YYYY",
+};
+
+/** A typing hint in the locale's own order, e.g. "DD/MM/YYYY". */
+export const getDateInputHint = memoize((locale: string) =>
+  getDateFieldOrder(locale)
+    .map((field) => FIELD_HINTS[field])
+    .join(getDateFieldSeparator(locale)),
+);
+
+const pad2 = (value: number) => String(value).padStart(2, "0");
+
+/** Renders a date in the same shape `parseDateInput` accepts. */
+export const formatDateInput = (date: Date, locale: string) => {
+  const separator = getDateFieldSeparator(locale);
+  return getDateFieldOrder(locale)
+    .map((field) => {
+      if (field === "year") return String(date.getFullYear());
+      if (field === "month") return pad2(date.getMonth() + 1);
+      return pad2(date.getDate());
+    })
+    .join(separator);
+};
+
+/**
+ * Parses typed text against the locale's field order. Returns `null` for
+ * anything that is not a real calendar date, so 31/02 is rejected rather than
+ * silently rolled over to 03/03.
+ */
+export const parseDateInput = (text: string, locale: string): Date | null => {
+  const groups = text.split(/\D+/).filter(Boolean);
+  if (groups.length !== 3) return null;
+
+  const order = getDateFieldOrder(locale);
+  const values: Partial<Record<DateField, number>> = {};
+  order.forEach((field, index) => {
+    values[field] = Number(groups[index]);
+  });
+
+  const { day, month, year } = values;
+  if (day === undefined || month === undefined || year === undefined) {
+    return null;
+  }
+  if (!Number.isFinite(day + month + year)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+
+  // A 2-digit year is read as this century; anything shorter is still being typed.
+  const fullYear =
+    String(groups[order.indexOf("year")]).length <= 2 ? 2000 + year : year;
+
+  const parsed = new Date(fullYear, month - 1, day);
+  // setDate rolls invalid days over, so a round-trip check catches 31/02.
+  const roundTrips =
+    parsed.getFullYear() === fullYear &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day;
+  return roundTrips ? parsed : null;
+};
+
 // --- Display formatting -----------------------------------------------------
 
 type RelativeDay = keyof DateTimePickerRelativeLabels;
@@ -335,6 +621,37 @@ const formatRelativeDay = (
   return FALLBACK_LABELS[day];
 };
 
+/** Formats one instant for the field, with a relative prefix when it earns one. */
+export const formatDateTime = (
+  value: Date,
+  mode: DateTimePickerMode,
+  locale: string,
+  labels?: DateTimePickerRelativeLabels,
+) => {
+  const day = mode === "time" ? null : getRelativeDay(value);
+  const relative = day ? formatRelativeDay(day, locale, labels) : null;
+  const options: Intl.DateTimeFormatOptions = {
+    dateStyle: mode === "time" ? undefined : "medium",
+    timeStyle: mode === "date" ? undefined : "short",
+  };
+  const formatted = new Intl.DateTimeFormat(locale, options).format(value);
+  return relative ? `${relative}, ${formatted}` : formatted;
+};
+
+/** The short form used inside the dialog headline, where space is tight. */
+export const formatHeadline = (
+  value: Date,
+  mode: DateTimePickerMode,
+  locale: string,
+) =>
+  new Intl.DateTimeFormat(locale, {
+    weekday: mode === "time" ? undefined : "short",
+    day: mode === "time" ? undefined : "numeric",
+    month: mode === "time" ? undefined : "short",
+    hour: mode === "date" ? undefined : "numeric",
+    minute: mode === "date" ? undefined : "2-digit",
+  }).format(value);
+
 export const useDateTimeDisplay = (
   value: Date | null,
   mode: DateTimePickerMode,
@@ -344,19 +661,18 @@ export const useDateTimeDisplay = (
   const { today, yesterday, tomorrow } = labels ?? {};
   return useMemo(() => {
     if (!value) return "";
-    const day = mode === "time" ? null : getRelativeDay(value);
-    const relative = day
-      ? formatRelativeDay(day, locale, { today, yesterday, tomorrow })
-      : null;
-    const options: Intl.DateTimeFormatOptions = {
-      dateStyle: mode === "time" ? undefined : "medium",
-      timeStyle: mode === "date" ? undefined : "short",
-    };
-    const formatted = new Intl.DateTimeFormat(locale, options).format(value);
-    return relative ? `${relative}, ${formatted}` : formatted;
+    return formatDateTime(value, mode, locale, { today, yesterday, tomorrow });
   }, [value, mode, locale, today, yesterday, tomorrow]);
 };
 
 /** Merges caller labels over the English defaults. */
 export const useLabels = (labels?: DateTimePickerLabels) =>
   useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels]);
+
+/**
+ * `Omit` applied to each member of a union instead of to the collapsed union,
+ * so the picker wrappers can lock `mode` without losing the discriminant.
+ */
+export type DistributiveOmit<T, K extends keyof never> = T extends unknown
+  ? Omit<T, K>
+  : never;

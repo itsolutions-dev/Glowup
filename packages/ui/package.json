@@ -1,6 +1,6 @@
 {
   "name": "@glowup/ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Material You (Material Design 3) component library for React Native + Web (Expo)",
   "license": "MIT",
   "main": "lib/commonjs/index.js",

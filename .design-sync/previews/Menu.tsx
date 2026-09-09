@@ -23,7 +23,12 @@ export const ContextMenu = () => (
         </Button>
       }
       items={[
-        { id: "edit", label: "Edit props", icon: "pencil-outline", onPress: () => {} },
+        {
+          id: "edit",
+          label: "Edit props",
+          icon: "pencil-outline",
+          onPress: () => {},
+        },
         {
           id: "duplicate",
           label: "Duplicate",
@@ -89,11 +94,34 @@ export const AccountMenu = () => (
       visible
       closeOnSelect={false}
       onDismiss={() => {}}
-      anchor={<Avatar name="Marta Rossi" size={40} status="online" onPress={() => {}} />}
+      anchor={
+        <Avatar
+          name="Marta Rossi"
+          size={40}
+          status="online"
+          onPress={() => {}}
+        />
+      }
       items={[
-        { id: "profile", label: "Marta Rossi", icon: "account-outline", onPress: () => {} },
-        { id: "theme", label: "Appearance", icon: "theme-light-dark", onPress: () => {} },
-        { id: "lang", label: "Language", icon: "translate", trailing: "IT", onPress: () => {} },
+        {
+          id: "profile",
+          label: "Marta Rossi",
+          icon: "account-outline",
+          onPress: () => {},
+        },
+        {
+          id: "theme",
+          label: "Appearance",
+          icon: "theme-light-dark",
+          onPress: () => {},
+        },
+        {
+          id: "lang",
+          label: "Language",
+          icon: "translate",
+          trailing: "IT",
+          onPress: () => {},
+        },
         { id: "settings", label: "Settings", icon: "cog", onPress: () => {} },
         {
           id: "logout",

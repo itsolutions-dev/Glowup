@@ -111,12 +111,28 @@ export const LoadingPane = () => (
 );
 
 export const InlineWithLabel = () => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 16, width: 320 }}>
-    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12 }}>
+  <div
+    style={{ display: "flex", flexDirection: "column", gap: 16, width: 320 }}
+  >
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
       <CircularProgress size={20} strokeWidth={2} />
       <Typography variant="bodyMedium">Checking availability…</Typography>
     </div>
-    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
       <CircularProgress size={20} strokeWidth={2} />
       <Typography variant="bodyMedium">Verifying payment method…</Typography>
     </div>

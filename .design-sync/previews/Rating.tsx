@@ -42,7 +42,9 @@ export const Sizes = () => (
   <div style={stack}>
     <div style={row}>
       <Rating value={4} size={16} />
-      <Typography variant="bodySmall">16 px — inline in a product list</Typography>
+      <Typography variant="bodySmall">
+        16 px — inline in a product list
+      </Typography>
     </div>
     <div style={row}>
       <Rating value={4} size={24} />
@@ -70,7 +72,9 @@ export const ReadOnlyAndDisabled = () => (
 
 export const TenStarScale = () => (
   <div style={stack}>
-    <Typography variant="titleMedium">How likely are you to recommend us?</Typography>
+    <Typography variant="titleMedium">
+      How likely are you to recommend us?
+    </Typography>
     <Rating value={8} max={10} size={22} onChange={noop} />
     <Typography variant="bodySmall">8 of 10</Typography>
   </div>

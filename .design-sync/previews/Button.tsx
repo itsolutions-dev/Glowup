@@ -33,7 +33,12 @@ export const WithIcons = () => (
     <Button mode="tonal" iconName="download" onPress={() => {}}>
       Download
     </Button>
-    <Button mode="outlined" iconName="arrow-right" iconPosition="right" onPress={() => {}}>
+    <Button
+      mode="outlined"
+      iconName="arrow-right"
+      iconPosition="right"
+      onPress={() => {}}
+    >
       Continue
     </Button>
   </div>
@@ -54,7 +59,9 @@ export const States = () => (
 );
 
 export const FullWidth = () => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 320 }}>
+  <div
+    style={{ display: "flex", flexDirection: "column", gap: 12, width: 320 }}
+  >
     <Button mode="filled" fullWidth iconName="check" onPress={() => {}}>
       Confirm booking
     </Button>

@@ -34,8 +34,18 @@ export const WithDisabledItem = () => (
       onItemPress={() => {}}
       items={[
         { id: "library", label: "Library", icon: "bookshelf" },
-        { id: "downloads", label: "Offline", icon: "download-outline", badgeCount: 12 },
-        { id: "sync", label: "Sync", icon: "cloud-off-outline", disabled: true },
+        {
+          id: "downloads",
+          label: "Offline",
+          icon: "download-outline",
+          badgeCount: 12,
+        },
+        {
+          id: "sync",
+          label: "Sync",
+          icon: "cloud-off-outline",
+          disabled: true,
+        },
       ]}
     />
   </div>

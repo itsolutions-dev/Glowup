@@ -10,9 +10,24 @@ const screen: React.CSSProperties = {
 };
 
 const actions = [
-  { id: "doc", label: "New document", icon: "file-document-outline", onPress: () => {} },
-  { id: "upload", label: "Upload file", icon: "upload-outline", onPress: () => {} },
-  { id: "folder", label: "New folder", icon: "folder-plus-outline", onPress: () => {} },
+  {
+    id: "doc",
+    label: "New document",
+    icon: "file-document-outline",
+    onPress: () => {},
+  },
+  {
+    id: "upload",
+    label: "Upload file",
+    icon: "upload-outline",
+    onPress: () => {},
+  },
+  {
+    id: "folder",
+    label: "New folder",
+    icon: "folder-plus-outline",
+    onPress: () => {},
+  },
 ];
 
 export const OnASurface = () => (
@@ -36,13 +51,19 @@ export const OnASurface = () => (
 export const BottomLeft = () => (
   <div style={{ ...screen, height: 200 }}>
     <Paper elevation={1} outline style={{ flex: 1 }}>
-      <Typography variant="labelMedium">position=&quot;bottom-left&quot;</Typography>
+      <Typography variant="labelMedium">
+        position=&quot;bottom-left&quot;
+      </Typography>
       <div style={{ height: 8 }} />
       <Typography variant="bodySmall">
-        The trigger anchors to the chosen corner; the labelled actions expand above it on
-        press.
+        The trigger anchors to the chosen corner; the labelled actions expand
+        above it on press.
       </Typography>
-      <SpeedDial mainIcon="dots-horizontal" actions={actions} position="bottom-left" />
+      <SpeedDial
+        mainIcon="dots-horizontal"
+        actions={actions}
+        position="bottom-left"
+      />
     </Paper>
   </div>
 );

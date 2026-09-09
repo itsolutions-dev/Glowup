@@ -1,5 +1,12 @@
 import React from "react";
-import { Chip, Divider, StatusBadge, Tabs, TabContent, Typography } from "@glowup/ui";
+import {
+  Chip,
+  Divider,
+  StatusBadge,
+  Tabs,
+  TabContent,
+  Typography,
+} from "@glowup/ui";
 
 // TabContent renders only the child at `activeTab`, so each cell is a real
 // Tabs + TabContent pair sharing one index. The children array must line up

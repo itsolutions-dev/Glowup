@@ -13,12 +13,8 @@ export const CollapsedAndExpanded = () => (
       Orders ship from the Milan warehouse within one business day. Tracking
       details arrive by email as soon as the courier scans the parcel.
     </Accordion>
-    <Accordion title="Payment methods">
-      Hidden until expanded.
-    </Accordion>
-    <Accordion title="Returns and refunds">
-      Hidden until expanded.
-    </Accordion>
+    <Accordion title="Payment methods">Hidden until expanded.</Accordion>
+    <Accordion title="Returns and refunds">Hidden until expanded.</Accordion>
   </div>
 );
 

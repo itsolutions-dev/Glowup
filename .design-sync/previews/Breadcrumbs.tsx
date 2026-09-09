@@ -27,8 +27,18 @@ export const WithIcons = () => (
   <div style={wrap}>
     <Breadcrumbs
       items={[
-        { id: "workspace", label: "Workspace", icon: "briefcase-outline", onPress: () => {} },
-        { id: "billing", label: "Billing", icon: "credit-card-outline", onPress: () => {} },
+        {
+          id: "workspace",
+          label: "Workspace",
+          icon: "briefcase-outline",
+          onPress: () => {},
+        },
+        {
+          id: "billing",
+          label: "Billing",
+          icon: "credit-card-outline",
+          onPress: () => {},
+        },
         { id: "invoices", label: "Invoices", icon: "file-document-outline" },
       ]}
     />

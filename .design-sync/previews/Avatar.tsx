@@ -89,13 +89,18 @@ export const Fallbacks = () => (
 );
 
 export const TeamRoster = () => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 14, width: 300 }}>
+  <div
+    style={{ display: "flex", flexDirection: "column", gap: 14, width: 300 }}
+  >
     {[
       { name: "Ada Lovelace", role: "Engineering lead", status: "online" },
       { name: "Grace Hopper", role: "Platform architect", status: "busy" },
       { name: "Katherine Johnson", role: "Data science", status: "away" },
     ].map((member) => (
-      <div key={member.name} style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      <div
+        key={member.name}
+        style={{ display: "flex", gap: 12, alignItems: "center" }}
+      >
         <Avatar name={member.name} size={44} status={member.status as any} />
         <div style={{ display: "flex", flexDirection: "column" }}>
           <Typography variant="titleSmall">{member.name}</Typography>

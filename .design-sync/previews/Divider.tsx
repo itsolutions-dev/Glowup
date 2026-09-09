@@ -21,7 +21,11 @@ const stat: React.CSSProperties = {
   justifyContent: "center",
 };
 
-const vRule: React.CSSProperties = { width: 1, alignSelf: "stretch", display: "flex" };
+const vRule: React.CSSProperties = {
+  width: 1,
+  alignSelf: "stretch",
+  display: "flex",
+};
 
 export const ListSeparators = () => (
   <div style={panel}>
@@ -46,7 +50,9 @@ export const ListSeparators = () => (
 );
 
 export const WithLabel = () => (
-  <div style={{ width: 380, display: "flex", flexDirection: "column", gap: 16 }}>
+  <div
+    style={{ width: 380, display: "flex", flexDirection: "column", gap: 16 }}
+  >
     <Button mode="filled" fullWidth onPress={() => {}}>
       Sign in with email
     </Button>
@@ -61,8 +67,12 @@ export const WithLabel = () => (
 );
 
 export const Thickness = () => (
-  <div style={{ width: 380, display: "flex", flexDirection: "column", gap: 14 }}>
-    <Typography variant="labelMedium">thickness 1 — default hairline rule</Typography>
+  <div
+    style={{ width: 380, display: "flex", flexDirection: "column", gap: 14 }}
+  >
+    <Typography variant="labelMedium">
+      thickness 1 — default hairline rule
+    </Typography>
     <Divider contentSpacing={0} />
     <Typography variant="labelMedium">thickness 2</Typography>
     <Divider contentSpacing={0} thickness={2} />

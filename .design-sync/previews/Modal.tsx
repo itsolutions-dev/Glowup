@@ -24,10 +24,12 @@ const lines: React.CSSProperties = {
 export const Dialog = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Component library</Typography>
-    <Typography variant="bodyMedium">34 components · last synced 4 minutes ago</Typography>
+    <Typography variant="bodyMedium">
+      34 components · last synced 4 minutes ago
+    </Typography>
     <Modal visible title="Publish 0.1.0" closeText="Close" onClose={() => {}}>
-      Publishing makes every component in this library available to the
-      Glowup playground and to any workspace that depends on it.
+      Publishing makes every component in this library available to the Glowup
+      playground and to any workspace that depends on it.
     </Modal>
   </div>
 );
@@ -53,7 +55,11 @@ export const RichContent = () => (
           <Button mode="text" onPress={() => {}}>
             Not now
           </Button>
-          <Button mode="filled" iconName="account-plus-outline" onPress={() => {}}>
+          <Button
+            mode="filled"
+            iconName="account-plus-outline"
+            onPress={() => {}}
+          >
             Send invites
           </Button>
         </div>

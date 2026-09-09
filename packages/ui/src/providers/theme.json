@@ -30,6 +30,11 @@
             "surfaceContainerHigh": "#ECE6F0",
             "surfaceContainerHighest": "#EDE7F0",
             "surfaceDim": "#DED8E1",
+            "inverseSurface": "#322F35",
+            "inverseOnSurface": "#F5EFF7",
+            "inversePrimary": "#D0BCFF",
+            "surfaceTint": "#6750A4",
+            "scrim": "#000000",
             "shadow": "#000000",
             "boxShadow": "0px 1px 3px rgba(0,0,0,0.2), 0px 1px 2px rgba(0,0,0,0.14), 0px 1px 1px rgba(0,0,0,0.12)"
         },
@@ -63,6 +68,11 @@
             "surfaceContainerHigh": "#2B2930",
             "surfaceContainerHighest": "#36343B",
             "surfaceDim": "#0F0D13",
+            "inverseSurface": "#E6E0E9",
+            "inverseOnSurface": "#322F35",
+            "inversePrimary": "#6750A4",
+            "surfaceTint": "#D0BCFF",
+            "scrim": "#000000",
             "shadow": "#000000",
             "boxShadow": "0px 1px 3px rgba(0,0,0,0.2), 0px 1px 2px rgba(0,0,0,0.14), 0px 1px 1px rgba(0,0,0,0.12)"
         }

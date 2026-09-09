@@ -25,7 +25,11 @@ const stack: React.CSSProperties = {
   width: 400,
 };
 
-const lines: React.CSSProperties = { display: "flex", flexDirection: "column", gap: 2 };
+const lines: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+};
 
 type Btn = { text: string; onPress?: () => void };
 
@@ -64,8 +68,8 @@ export const HostedDialog = () => (
           </div>
         </Paper>
         <Typography variant="bodySmall">
-          The dialog above is the provider&apos;s own web Modal — scrim, title rule
-          and one Button per entry in the buttons array.
+          The dialog above is the provider&apos;s own web Modal — scrim, title
+          rule and one Button per entry in the buttons array.
         </Typography>
       </div>
     </AlertProviderWrapper>
@@ -98,8 +102,8 @@ export const TheApi = () => (
     <div style={lines}>
       <Typography variant="titleMedium">Raising an alert</Typography>
       <Typography variant="bodySmall">
-        Consumers never touch the provider — they call the Alert() singleton from
-        anywhere below it.
+        Consumers never touch the provider — they call the Alert() singleton
+        from anywhere below it.
       </Typography>
     </div>
     <Paper outline style={{ padding: 12 }}>

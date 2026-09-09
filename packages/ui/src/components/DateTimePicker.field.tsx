@@ -11,6 +11,7 @@ import {
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import HelperText from "./HelperText";
 
 export interface PickerFieldProps {
   label?: string;
@@ -227,27 +228,10 @@ const PickerField = forwardRef<View, PickerFieldProps>(
           </Pressable>
         )}
 
-        {!!error && (
-          <Text
-            style={[
-              theme.typography.bodySmall,
-              styles.supportingText,
-              { color: theme.colors.error },
-            ]}
-          >
-            {error}
-          </Text>
-        )}
-        {!error && !!helperText && (
-          <Text
-            style={[
-              theme.typography.bodySmall,
-              styles.supportingText,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
-            {helperText}
-          </Text>
+        {!!(error || helperText) && (
+          <HelperText type={error ? "error" : "info"}>
+            {error || helperText}
+          </HelperText>
         )}
       </View>
     );
@@ -281,8 +265,4 @@ const makeStyles = (theme: Theme) =>
       justifyContent: "center",
     },
     disabled: { opacity: 0.38 },
-    supportingText: {
-      marginTop: theme.spacing.xs,
-      marginLeft: theme.spacing.m,
-    },
   });

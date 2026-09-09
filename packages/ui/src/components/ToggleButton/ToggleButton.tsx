@@ -18,6 +18,16 @@ interface ToggleButtonProps {
   onPress: () => void;
   isFirst?: boolean;
   isLast?: boolean;
+  disabled?: boolean;
+  /** Stretch to an equal share of the group's width. */
+  grow?: boolean;
+  /**
+   * Swap the leading glyph for a check mark while selected — the M3 segmented
+   * button affordance that tells "selected" apart from "just highlighted".
+   */
+  showSelectedCheck?: boolean;
+  /** Accessibility role. The group sets this per its selection mode. */
+  accessibilityRole?: "radio" | "checkbox" | "button";
   style?: StyleProp<ViewStyle>;
 }
 
@@ -28,25 +38,37 @@ const ToggleButton = ({
   onPress,
   isFirst,
   isLast,
+  disabled = false,
+  grow = false,
+  showSelectedCheck = false,
+  accessibilityRole = "button",
   style,
 }: ToggleButtonProps) => {
   const { theme } = useTheme();
 
+  const glyph = showSelectedCheck && active ? "check" : icon;
+  const contentColor = active
+    ? theme.colors.onSecondaryContainer
+    : theme.colors.onSurfaceVariant;
+
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityLabel={
         label || (icon ? `${icon} toggle button` : "Toggle Button")
       }
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={{ selected: active, checked: active, disabled }}
       style={({ hovered, pressed }: PressableState) => [
         styles.button,
+        grow && styles.grow,
+        disabled && styles.disabled,
         style,
         {
           backgroundColor: active
             ? theme.colors.secondaryContainer
-            : hovered
+            : hovered && !disabled
               ? theme.colors.surfaceContainerHigh
               : "transparent",
           borderColor: theme.colors.outline,
@@ -59,32 +81,24 @@ const ToggleButton = ({
           borderTopRightRadius: isLast ? 20 : 0,
           borderBottomRightRadius: isLast ? 20 : 0,
         },
-        (hovered || pressed) && getGlowStyles(theme, true),
+        (hovered || pressed) && !disabled && getGlowStyles(theme, true),
       ]}
-      {...(Platform.OS === "android" && {
-        android_ripple: { color: theme.colors.onPrimary },
-      })}
+      {...(Platform.OS === "android" &&
+        !disabled && {
+          android_ripple: { color: theme.colors.onPrimary },
+        })}
     >
-      {!!icon && (
-        <Icons
-          name={icon}
-          size={18}
-          color={
-            active
-              ? theme.colors.onSecondaryContainer
-              : theme.colors.onSurfaceVariant
-          }
-        />
-      )}
+      {!!glyph && <Icons name={glyph} size={18} color={contentColor} />}
       {!!label && (
         <Text
+          numberOfLines={1}
           style={[
             theme.typography.labelLarge,
             {
               color: active
                 ? theme.colors.onSecondaryContainer
                 : theme.colors.onSurface,
-              marginLeft: icon ? 8 : 0,
+              marginLeft: glyph ? 8 : 0,
             },
           ]}
         >
@@ -107,5 +121,11 @@ const styles = StyleSheet.create({
     ...Platform.select({
       web: { cursor: "pointer", transition: "all 0.2s" },
     }),
+  },
+  grow: {
+    flex: 1,
+  },
+  disabled: {
+    opacity: 0.38,
   },
 });

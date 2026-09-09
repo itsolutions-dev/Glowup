@@ -87,7 +87,7 @@ export const AboveContent = () => (
       message="2 of 34 components fail contrast in dark mode."
       dismissable
       onDismiss={() => {}}
-      actions={[{ label: "Review" , onPress: () => {} }]}
+      actions={[{ label: "Review", onPress: () => {} }]}
     />
     <div style={{ height: 16 }} />
     <Card variant="outlined">
@@ -95,7 +95,12 @@ export const AboveContent = () => (
       <div style={{ height: 8 }} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Chip label="32 passing" size="small" mode="tonal" onPress={() => {}} />
-        <Chip label="2 failing" size="small" mode="outlined" onPress={() => {}} />
+        <Chip
+          label="2 failing"
+          size="small"
+          mode="outlined"
+          onPress={() => {}}
+        />
       </div>
     </Card>
   </div>

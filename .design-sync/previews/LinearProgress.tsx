@@ -121,7 +121,9 @@ export const UploadCard = () => (
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         <Typography variant="titleMedium">Uploading assets</Typography>
-        <Typography variant="bodySmall">4.2 MB of 9.3 MB — 12 s left</Typography>
+        <Typography variant="bodySmall">
+          4.2 MB of 9.3 MB — 12 s left
+        </Typography>
       </div>
       <div style={{ marginTop: 16, display: "flex", flexDirection: "column" }}>
         <LinearProgress progress={0.45} height={8} />

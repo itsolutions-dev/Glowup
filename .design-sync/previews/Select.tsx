@@ -24,7 +24,12 @@ const plans = [
 ];
 
 const notifications = [
-  { id: "email", label: "Email", value: "email", icon: "email-outline" as const },
+  {
+    id: "email",
+    label: "Email",
+    value: "email",
+    icon: "email-outline" as const,
+  },
   { id: "push", label: "Push", value: "push", icon: "cellphone-link" as const },
   { id: "sms", label: "SMS", value: "sms", icon: "message-outline" as const },
   { id: "slack", label: "Slack", value: "slack", icon: "pound" as const },

@@ -14,13 +14,14 @@ export const ThemeColorSync = () => (
       <Divider contentSpacing={0} />
       <div style={{ height: 12 }} />
       <Typography variant="bodyMedium">
-        Renders nothing visible. On web it keeps the browser chrome in step with the theme
-        by writing meta[name=&quot;theme-color&quot;] and the document background.
+        Renders nothing visible. On web it keeps the browser chrome in step with
+        the theme by writing meta[name=&quot;theme-color&quot;] and the document
+        background.
       </Typography>
       <div style={{ height: 8 }} />
       <Typography variant="bodySmall">
-        On iOS and Android it sets the OS status bar to light or dark content. Mount it once,
-        near the root of the app.
+        On iOS and Android it sets the OS status bar to light or dark content.
+        Mount it once, near the root of the app.
       </Typography>
     </Paper>
   </div>
@@ -33,8 +34,9 @@ export const CustomBarColor = () => (
       <Typography variant="titleSmall">backgroundColor override</Typography>
       <div style={{ height: 8 }} />
       <Typography variant="bodyMedium">
-        Pass backgroundColor to pin the theme-color to a brand value instead of the current
-        surface — e.g. a marketing screen that keeps a purple browser chrome in both themes.
+        Pass backgroundColor to pin the theme-color to a brand value instead of
+        the current surface — e.g. a marketing screen that keeps a purple
+        browser chrome in both themes.
       </Typography>
     </Paper>
   </div>

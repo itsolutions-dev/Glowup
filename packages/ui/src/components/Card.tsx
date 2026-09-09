@@ -9,6 +9,10 @@ import {
 } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import CardActions from "./CardParts/CardActions";
+import CardContent from "./CardParts/CardContent";
+import CardCover from "./CardParts/CardCover";
+import CardTitle from "./CardParts/CardTitle";
 
 interface CardProps {
   children: React.ReactNode;
@@ -18,7 +22,7 @@ interface CardProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const Card = ({
+const CardBase = ({
   children,
   variant = "filled",
   onPress,
@@ -57,8 +61,8 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
 ) =>
   StyleSheet.create({
     base: {
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: theme.shape.medium,
+      padding: theme.spacing.m,
       overflow: "hidden",
       ...Platform.select({
         web: { transition: "all 200ms ease-in-out" },
@@ -106,5 +110,31 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       flex: 1,
     },
   });
+
+/**
+ * Compound parts. `Card.Cover` bleeds past the card padding, `Card.Title`
+ * carries the M3 header type roles, `Card.Actions` the trailing button row —
+ * so a card header is composed rather than hand-built each time.
+ *
+ * ```tsx
+ * <Card variant="elevated" onPress={open}>
+ *   <Card.Cover source={photo} alt="Impianto 4" />
+ *   <Card.Title title="Impianto 4" subtitle="Manutenzione programmata" />
+ *   <Card.Content>
+ *     <Typography variant="bodyMedium">Prossimo intervento: 12 marzo</Typography>
+ *   </Card.Content>
+ *   <Card.Actions>
+ *     <Button mode="text" onPress={postpone}>Rinvia</Button>
+ *     <Button onPress={confirm}>Conferma</Button>
+ *   </Card.Actions>
+ * </Card>
+ * ```
+ */
+const Card = Object.assign(CardBase, {
+  Title: CardTitle,
+  Content: CardContent,
+  Cover: CardCover,
+  Actions: CardActions,
+});
 
 export default Card;

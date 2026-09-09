@@ -1,11 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Animated,
-  Easing,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Animated, Easing, StyleSheet, Dimensions } from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
 
 interface LinearProgressProps {
@@ -28,7 +22,7 @@ const LinearProgress = ({
   indeterminateDuration = 1500,
 }: LinearProgressProps) => {
   const { theme } = useTheme();
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [animatedValue] = useState(() => new Animated.Value(0));
   const [trackWidth, setTrackWidth] = useState(Dimensions.get("window").width);
 
   const clampedProgress = Math.min(1, Math.max(0, progress));

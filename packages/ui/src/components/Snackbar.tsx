@@ -1,11 +1,5 @@
-import React, { useEffect, useRef, useMemo } from "react";
-import {
-  Animated,
-  StyleSheet,
-  View,
-  Text,
-  Platform,
-} from "react-native";
+import React, { useEffect, useRef, useMemo, useState } from "react";
+import { Animated, StyleSheet, View, Text, Platform } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Button from "./Button";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -35,8 +29,8 @@ const Snackbar = ({
 }: SnackbarProps) => {
   const { theme } = useTheme();
   const [shouldRender, setShouldRender] = React.useState(visible);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const translateYAnim = useRef(new Animated.Value(100)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(0));
+  const [translateYAnim] = useState(() => new Animated.Value(100));
 
   // Keep latest onDismiss without restarting the auto-hide timer on re-renders
   const onDismissRef = useRef(onDismiss);

@@ -1,0 +1,24 @@
+# Single source of truth for line endings.
+#
+# `text=auto eol=lf` normalises every text file to LF in the repository AND in
+# the working tree on every platform, so a Windows checkout no longer depends on
+# the machine's `core.autocrlf` setting. Prettier (`endOfLine: "lf"`) and ESLint
+# (`linebreak-style: ["error", "unix"]`) therefore agree with what is on disk.
+#
+# After pulling this in for the first time, refresh an existing clone once:
+#   git add --renormalize . && git status
+* text=auto eol=lf
+
+# Binary assets: never touched by the eol filters.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.jks binary
+*.keystore binary

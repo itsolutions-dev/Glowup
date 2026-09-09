@@ -100,18 +100,18 @@ async function simulateBiometricDelay(): Promise<void> {
 export function useWebAuthn(): UseWebAuthnReturn {
   const [status, setStatus] = useState<WebAuthnStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
-
   const isWeb = Platform.OS === "web";
+
+  // Only the web path has something to probe (the Web Credentials API).
+  // On native the biometric simulation is always available, so support is a
+  // constant there rather than state an effect has to write.
+  const [isWebSupported, setIsWebSupported] = useState(false);
+  const isSupported = isWeb ? isWebSupported : true;
 
   // Probe availability once on mount
   useEffect(() => {
-    if (isWeb) {
-      isPlatformAuthenticatorAvailable().then(setIsSupported);
-    } else {
-      // On native we always advertise support so the biometric simulation runs
-      setIsSupported(true);
-    }
+    if (!isWeb) return;
+    isPlatformAuthenticatorAvailable().then(setIsWebSupported);
   }, [isWeb]);
 
   const hasSavedPasskey = useCallback(

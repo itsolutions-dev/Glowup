@@ -363,7 +363,7 @@ const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
           variant="bodySmall"
           style={[styles.cardSubtitle, { marginTop: 8 }]}
         >
-          Check your inbox and click the link to reset your password. Didn't
+          Check your inbox and click the link to reset your password. Didn’t
           receive it? Check your spam folder.
         </Typography>
 
@@ -372,7 +372,7 @@ const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
         </Button>
 
         <View style={styles.centeredRow}>
-          <Typography variant="bodySmall">Didn't receive it? </Typography>
+          <Typography variant="bodySmall">Didn’t receive it? </Typography>
           <Pressable onPress={() => setView("forgotPassword")}>
             <Typography
               variant="bodySmall"
@@ -409,7 +409,7 @@ const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
           Forgot Password?
         </Typography>
         <Typography variant="bodyMedium" style={styles.cardSubtitle}>
-          Enter your email and we'll send you a reset link.
+          Enter your email and we’ll send you a reset link.
         </Typography>
 
         <Input
@@ -792,7 +792,7 @@ const LoginScreen = ({ onLoginSuccess }: LoginScreenProps) => {
 
       {/* Sign-up link */}
       <View style={[styles.centeredRow, { marginTop: 16 }]}>
-        <Typography variant="bodyMedium">Don't have an account? </Typography>
+        <Typography variant="bodyMedium">Don’t have an account? </Typography>
         <Pressable accessibilityRole="link">
           <Typography
             variant="bodyMedium"

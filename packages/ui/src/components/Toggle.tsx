@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Animated,
@@ -112,7 +112,7 @@ const Toggle = ({
     [theme, TRACK_WIDTH, TRACK_HEIGHT, TRACK_BORDER_WIDTH],
   );
 
-  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const [animatedValue] = useState(() => new Animated.Value(value ? 1 : 0));
 
   useEffect(() => {
     Animated.timing(animatedValue, {

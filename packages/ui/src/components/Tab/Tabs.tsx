@@ -1,11 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
@@ -26,7 +20,7 @@ interface TabProps {
 const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
   const { theme } = useTheme();
   const [containerWidth, setContainerWidth] = useState(0);
-  const indicatorAnim = useRef(new Animated.Value(0)).current;
+  const [indicatorAnim] = useState(() => new Animated.Value(0));
 
   const hasIcons =
     Array.isArray(tabs) &&

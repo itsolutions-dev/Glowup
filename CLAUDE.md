@@ -66,6 +66,9 @@ import { useTheme } from "providers/ThemeProvider";
 
 ## Code style
 
-- Prettier: `trailingComma: "all"`, `endOfLine: "crlf"` (CRLF line endings required)
-- ESLint enforces `linebreak-style: windows`
+- Prettier: `trailingComma: "all"`, `endOfLine: "lf"`
+- ESLint enforces `linebreak-style: unix`
+- `.gitattributes` (`* text=auto eol=lf`) is the source of truth: every checkout gets
+  LF on disk regardless of the machine's `core.autocrlf`, so the two rules above always
+  match the working tree. `npm run lint` gates CI.
 - Icons: `expo-vector-icons/MaterialCommunityIcons` — icon names are kebab-case strings; outline variants append `-outline` suffix

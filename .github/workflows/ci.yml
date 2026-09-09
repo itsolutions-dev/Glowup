@@ -33,9 +33,5 @@ jobs:
       - name: Build library
         run: npm run build
 
-      # Lint is currently informational: the repo enforces CRLF line endings via ESLint
-      # while the checked-in files use LF, so a repo-wide line-ending normalisation is
-      # needed before lint can gate CI. Tracked as a follow-up.
-      - name: Lint (informational)
+      - name: Lint
         run: npm run lint
-        continue-on-error: true

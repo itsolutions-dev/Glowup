@@ -42,9 +42,7 @@ const SpeedDial = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const [anim] = useState(
-    () => new Animated.Value(defaultOpen ? 1 : 0),
-  ).current;
+  const [anim] = useState(() => new Animated.Value(defaultOpen ? 1 : 0));
 
   const toggle = () => {
     const toValue = open ? 0 : 1;

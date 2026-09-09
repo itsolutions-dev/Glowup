@@ -132,6 +132,70 @@ Pressable content surface.
 
 ---
 
+### Icon
+
+Source-agnostic icon primitive. Use it wherever the icon may not be a
+MaterialCommunityIcons glyph — a bundled bitmap, an SVG, a custom glyph set.
+
+| Prop       | Type                            | Default     | Description                            |
+| ---------- | ------------------------------- | ----------- | -------------------------------------- |
+| source     | `IconSource` (required)         | —           | Glyph name, image source, render fn, or element |
+| size       | number                          | `24`        |                                        |
+| color      | string                          | `onSurface` | Tints a glyph; omit for a colour bitmap |
+| flipForRTL | boolean                         | `false`     | Mirrors directional glyphs under RTL   |
+| style      | ImageStyle                      |             |                                        |
+
+`IconSource` is a MaterialCommunityIcons name, an `ImageSourcePropType`, a
+`({ size, color }) => ReactNode` render function, or a ready-made element.
+
+### TouchableRipple
+
+A `Pressable` that paints the M3 state layer — 8% hover, 10% focus, 12% press — over a
+surface, with the platform ripple on Android. Reach for it instead of re-deriving
+hover/press colours in a component.
+
+| Prop          | Type                    | Default     | Description                                |
+| ------------- | ----------------------- | ----------- | ------------------------------------------ |
+| children      | ReactNode (required)    | —           |                                            |
+| underlayColor | string                  | `surface`   | Surface the layer sits on                  |
+| rippleColor   | string                  | `onSurface` | The "on" role of that surface              |
+| borderless    | boolean                 | `false`     | Tint only, no container background         |
+| borderRadius  | number                  |             | Match the parent so the layer doesn't bleed |
+| activeStyle   | ViewStyle               |             | Applied while hovered or pressed           |
+
+Plus every `Pressable` prop except `style`/`children`. The `useStateLayer(base, on)` hook
+exports the same colours for a component that already owns its `Pressable`.
+
+### CardTitle / CardContent / CardCover / CardActions
+
+The compound parts of `Card`, reachable either as `Card.Title` … `Card.Actions` or as these
+standalone exports. Compose them instead of hand-building a header row.
+
+(The heading uses the standalone names on purpose: the docs splitter only accepts
+identifier-shaped names, so a `Card.Title`-style heading would be dropped along with this
+whole section.)
+
+| Part           | Props                                                                                  |
+| -------------- | -------------------------------------------------------------------------------------- |
+| `Card.Title`   | `title` (required), `subtitle`, `left`, `right`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2) |
+| `Card.Content` | `children` (required)                                                                  |
+| `Card.Cover`   | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding       |
+| `Card.Actions` | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)          |
+
+```tsx
+<Card variant="elevated" onPress={open}>
+  <Card.Cover source={photo} alt="Impianto 4" />
+  <Card.Title title="Impianto 4" subtitle="Manutenzione programmata" />
+  <Card.Content>
+    <Typography variant="bodyMedium">Prossimo intervento: 12 marzo</Typography>
+  </Card.Content>
+  <Card.Actions>
+    <Button mode="text" onPress={postpone}>Rinvia</Button>
+    <Button onPress={confirm}>Conferma</Button>
+  </Card.Actions>
+</Card>
+```
+
 ## 3. Buttons & Actions
 
 ### Button
@@ -196,6 +260,24 @@ Absolutely positioned; respects safe-area insets.
 | position | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |     |                                   |
 | disabled | boolean                                                        |                |     |                                   |
 | style    | ViewStyle                                                      |                |     |                                   |
+
+### AnimatedFAB
+
+A FAB that animates between an icon-only circle and a labelled pill. Drive `extended`
+from a scroll offset for the M3 shrink-on-scroll behaviour.
+
+| Prop        | Type                                            | Default        | Description                        |
+| ----------- | ----------------------------------------------- | -------------- | ---------------------------------- |
+| icon        | icon (required)                                 | —              |                                    |
+| label       | string (required)                               | —              | It is the label that animates      |
+| onPress     | () => void (required)                           | —              |                                    |
+| extended    | boolean                                         | `true`         | Shows the label, or collapses      |
+| animateFrom | `"left" \| "right"`                             | `right`        | Edge the label grows from          |
+| iconMode    | `"static" \| "dynamic"`                         | `static`       | Icon stays put, or travels         |
+| placement   | `"floating" \| "inline"`                        | `floating`     | `inline` drops absolute positioning |
+| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` | |
+| duration    | number (ms)                                     | `150`          |                                    |
+| disabled    | boolean                                         | `false`        |                                    |
 
 ### SpeedDial
 
@@ -603,6 +685,23 @@ Star rating; half-stars rendered, whole values on tap.
 
 ---
 
+### HelperText
+
+Supporting text under a form control. `Input`, `FormControl`, `PinInput`, `Autocomplete`
+and the date/time picker field all render this internally via their own `helperText` /
+`error` props — use it directly for a control that has neither.
+
+| Prop     | Type                    | Default  | Description                              |
+| -------- | ----------------------- | -------- | ---------------------------------------- |
+| children | ReactNode (required)    | —        |                                          |
+| type     | `"info" \| "error"`     | `info`   | `error` adds the alert glyph             |
+| visible  | boolean                 | `true`   | Fades out instead of unmounting          |
+| disabled | boolean                 | `false`  | Dims to match a disabled field           |
+| padding  | `"normal" \| "none"`    | `normal` | The 16px field gutter                    |
+
+Hiding it keeps the text mounted so the field height does not jump, but takes it out of
+the accessibility tree.
+
 ## 5. Data Display
 
 ### Avatar
@@ -682,6 +781,16 @@ Single pressable list row (centered title text).
 | children                                                                 | ReactNode  | —       | ✓   | Label                   |
 | onPress                                                                  | () => void |         |     | Adds hover/press states |
 | itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object     |         |     | Style overrides         |
+
+### ListSection / ListSubheader
+
+Groups related `ListItem`s under a heading. Use this for a settings screen rather than
+wrapping each group in a `Card` — a sequence of labelled groups, not a pile of surfaces.
+
+| Component       | Props                                                                     |
+| --------------- | ------------------------------------------------------------------------- |
+| `ListSection`   | `children` (required), `title` (heading above the rows), `divider` (`false`) |
+| `ListSubheader` | `children` (required) — a standalone group label, marked as a heading      |
 
 ### Tooltip
 
@@ -783,6 +892,30 @@ Inline prominent message with up to two actions.
 | actions     | `{ label, onPress }[]`                        |           |     | Right-aligned, ≤ 2         |
 | dismissable | boolean                                       | `false`   |     | Close (X); needs onDismiss |
 | onDismiss   | () => void                                    |           |     |                            |
+
+### Portal / Portal.Host
+
+Renders an overlay at the host instead of in place, so it escapes a clipping parent, sits
+above siblings regardless of elevation, and is not dragged by a `ScrollView`. Mount the
+host once near the app root; with no host above it, `Portal` renders inline, so opting in
+is safe in a tree that has not been wrapped.
+
+```tsx
+<ThemeProvider>
+  <Portal.Host>
+    <App />
+  </Portal.Host>
+</ThemeProvider>
+```
+
+`usePortalHost()` reports whether a host is mounted above the caller.
+
+`Tooltip` and `Autocomplete`'s suggestion list are the overlays that use this. Every other
+overlay in the kit — `Modal`, `ConfirmDialog`, `Popover`, `Menu`, `Select`, `BottomSheet` —
+goes through a native `Modal`, which is a separate window on native and a `createPortal`
+into `document.body` on web: already stronger isolation. Portal exists for the two cases a
+`Modal` cannot serve — a tooltip must never take touches, and the Autocomplete list must
+not steal focus from the field being typed into.
 
 ### Modal
 
@@ -1071,14 +1204,14 @@ never pushes a cell onto the next line and a short last row keeps its cells at c
 
 ---
 
-## 9. Component Index (62)
+## 9. Component Index (73)
 
-**Foundations**: Typography, Divider, Paper, Card
+**Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
 **Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
-**Actions**: Button, IconButton, Link, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, Chip
-**Inputs**: Input, NumericInput, Select, Autocomplete, PinInput, FormControl, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/DatePickerInput/DateRangePicker/TimePicker, Calendar, ClockPicker, ClockDial, TimeSelect, Rating
-**Data display**: Avatar, Badge, IconBadge, StatusBadge, DataGrid, ListItem, Tooltip, Accordion, Carousel, Stat, Image
-**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, Menu, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
+**Actions**: Button, IconButton, Link, FAB, AnimatedFAB, SpeedDial, ToggleButton, ToggleButtonGroup, Chip
+**Inputs**: Input, NumericInput, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/DatePickerInput/DateRangePicker/TimePicker, Calendar, ClockPicker, ClockDial, TimeSelect, Rating
+**Data display**: Avatar, Badge, IconBadge, StatusBadge, DataGrid, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, Image
+**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: AppBar, NavigationBar, Tabs, Breadcrumbs, Pagination, Stepper
 
 ---

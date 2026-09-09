@@ -1,5 +1,6 @@
 import React from "react";
 import { SpeedDial, Paper, Typography, Divider } from "@glowup/ui";
+import type { SpeedDialAction } from "@glowup/ui";
 
 // SpeedDial's root is an absolutely-positioned overlay that fills its nearest
 // positioned ancestor, so it needs a sized surface to float over.
@@ -9,7 +10,7 @@ const screen: React.CSSProperties = {
   display: "flex",
 };
 
-const actions = [
+const actions: SpeedDialAction[] = [
   {
     id: "doc",
     label: "New document",

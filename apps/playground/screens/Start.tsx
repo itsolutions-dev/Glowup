@@ -31,7 +31,7 @@ import {
   Avatar,
   Modal,
   ConfirmDialog,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 import { useTranslation } from "react-i18next";
 

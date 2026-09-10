@@ -1,5 +1,5 @@
 import React from "react";
-import { FAB, Paper, Typography, Divider } from "@glowup/ui";
+import { FAB, Paper, Typography, Divider } from "@its/glowup-ui";
 
 // FAB is always `position: absolute` inside its nearest positioned ancestor.
 // A Paper acts as the "screen" surface it floats over.

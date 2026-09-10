@@ -13,7 +13,7 @@ import {
   Popover,
   Collapse,
   Portal,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Feedback: 14 catalogue entries. */

@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox } from "@glowup/ui";
+import { Checkbox } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

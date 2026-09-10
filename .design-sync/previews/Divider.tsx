@@ -1,5 +1,5 @@
 import React from "react";
-import { Divider, Paper, Typography, Button } from "@glowup/ui";
+import { Divider, Paper, Typography, Button } from "@its/glowup-ui";
 
 const panel: React.CSSProperties = { width: 380, display: "flex" };
 

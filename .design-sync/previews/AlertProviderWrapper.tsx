@@ -6,7 +6,7 @@ import {
   Typography,
   Paper,
   Divider,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 // AlertProviderWrapper renders no markup at all — it is the binding that points
 // the module-level Alert() singleton at the nearest AlertProvider. So the only

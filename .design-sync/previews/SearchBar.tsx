@@ -1,5 +1,5 @@
 import React from "react";
-import { SearchBar } from "@glowup/ui";
+import { SearchBar } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

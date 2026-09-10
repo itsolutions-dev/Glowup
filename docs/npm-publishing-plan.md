@@ -11,7 +11,7 @@ Phases 1–6 of §8 have been executed on this branch:
   now in `packages/ui`; `AuthProvider`/`useWebAuthn`/screens/i18n stay app-side; obsolete
   `common/themes.ts` and unused `react-native-paper` removed.
 - ✅ **Imports fixed** — library root-relative imports rewritten to relative; app now imports
-  named exports from `@glowup/ui`; single `src/index.ts` barrel added. Both workspaces
+  named exports from `@its/glowup-ui`; single `src/index.ts` barrel added. Both workspaces
   `tsc --noEmit` clean.
 - ✅ **Build tooling** — `react-native-builder-bob` produces CJS + ESM + `.d.ts`; native deps
   are (mostly optional) `peerDependencies`, `date-fns`/`polished` are `dependencies`.
@@ -22,7 +22,8 @@ Phases 1–6 of §8 have been executed on this branch:
 - ✅ **CI + versioning** — Changesets + `.github/workflows/{ci,release}.yml` added.
 
 **Still required before an actual publish (see §9):**
-- Reserve the `@glowup` npm scope (or rename) and add an `NPM_TOKEN` repo secret.
+- Add an `NPM_TOKEN` repo secret. (Scope settled later: the package is `@its/glowup-ui`,
+  published from the existing `@its` organisation — see `docs/library-split-plan.md`.)
 - Line endings: the repo enforces CRLF via ESLint but the checked-in files are LF (no
   `.gitattributes`), so `npm run lint` reports repo-wide line-ending errors. Lint is wired
   into CI as **informational** (`continue-on-error`) until a separate normalisation pass
@@ -57,7 +58,7 @@ Glowup/
 ├── apps/
 │   └── mobile/              ← current app (App.tsx, screens/, store/, api/, i18n/, AuthProvider…)
 ├── packages/
-│   └── ui/                  ← the publishable package (npm name TBD, e.g. @glowup/ui)
+│   └── ui/                  ← the publishable package (npm name TBD, e.g. @its/glowup-ui)
 │       ├── src/
 │       │   ├── components/  ← moved from components/, minus Navigation glue that's app-specific
 │       │   ├── theme/       ← ThemeProvider.tsx, theme.json, getStateColor, getGlowStyles
@@ -70,7 +71,7 @@ Glowup/
 ```
 
 Root `package.json` gains `"workspaces": ["apps/*", "packages/*"]`. The app depends on the
-package via `"@glowup/ui": "workspace:*"`, so local development always exercises the exact
+package via `"@its/glowup-ui": "workspace:*"`, so local development always exercises the exact
 code that will be published — no more copy-drift between "the library" and "the app".
 
 **Migration mechanics:** use `git mv` for every relocated file so history is preserved, do it
@@ -124,7 +125,7 @@ component libraries (used by react-native-paper, gluestack, etc.), and produces:
 
 ```jsonc
 {
-  "name": "@glowup/ui",
+  "name": "@its/glowup-ui",
   "version": "0.1.0",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
@@ -196,14 +197,14 @@ from scratch:
 ## 7. Versioning & CI
 
 - Add **Changesets** (`@changesets/cli`) at the repo root for semver-aware, changelog-generating
-  releases of `@glowup/ui` — standard for monorepos with one publishable package.
+  releases of `@its/glowup-ui` — standard for monorepos with one publishable package.
 - GitHub Actions:
   - `ci.yml`: on every PR/push — `npm ci`, `npm run lint`, `npm run type-check`, `npm test`
     (root + workspaces), `npm run build -w packages/ui`.
   - `release.yml`: on push to `master` — run `changesets/action`, which opens/updates a
     "Version Packages" PR and, once merged, publishes to npm and tags the release. Requires an
     `NPM_TOKEN` repo secret.
-- Decide the npm scope now (e.g. `@glowup` or `@itsolutions-dev`) — verify availability on
+- Decide the npm scope now (settled: the existing `@its` org) — verify availability on
   npmjs.com and reserve it before wiring the workflow.
 
 ## 8. Phased rollout
@@ -215,8 +216,8 @@ from scratch:
    `packages/ui/src`; keep the app importing them via a temporary relative path if needed to
    land this step without breaking the app.
 3. **Fix imports & wire the workspace dependency** — apply the relative-import codemod (§3),
-   add `"@glowup/ui": "workspace:*"` to `apps/mobile/package.json`, update app imports to
-   `import { Button } from "@glowup/ui"`, delete the now-unused root `components`/`providers`
+   add `"@its/glowup-ui": "workspace:*"` to `apps/mobile/package.json`, update app imports to
+   `import { Button } from "@its/glowup-ui"`, delete the now-unused root `components`/`providers`
    duplicates.
 4. **Build tooling** — add `react-native-builder-bob`, get `npm run build -w packages/ui`
    producing `lib/`, get `tsc --noEmit` clean across both workspaces.
@@ -225,7 +226,7 @@ from scratch:
 6. **CI + versioning** — add lint/type-check/test/build workflow, add Changesets, do a dry-run
    `npm publish --dry-run` from `packages/ui`.
 7. **First release** — reserve the npm scope, add `NPM_TOKEN`, merge the first Changesets
-   "Version Packages" PR → publishes `@glowup/ui@0.1.0`.
+   "Version Packages" PR → publishes `@its/glowup-ui@0.1.0`.
 8. **Iterate** — every component change now goes through the workspace package; app development
    and library development are the same activity going forward.
 

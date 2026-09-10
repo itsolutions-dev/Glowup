@@ -7,7 +7,7 @@
     // Metro and tsc stay in sync with a live edit in packages/ui; ESLint's
     // no-restricted-imports rule blocks every other route into the package.
     "paths": {
-      "@glowup/ui": ["../../packages/ui/src/index.ts"]
+      "@its/glowup-ui": ["../../packages/ui/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

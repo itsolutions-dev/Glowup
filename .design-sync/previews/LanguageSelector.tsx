@@ -1,5 +1,5 @@
 import React from "react";
-import { LanguageSelector, Paper, Typography, Divider } from "@glowup/ui";
+import { LanguageSelector, Paper, Typography, Divider } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

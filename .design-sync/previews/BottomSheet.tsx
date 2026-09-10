@@ -1,5 +1,5 @@
 import React from "react";
-import { BottomSheet, Typography, Button, Chip, Divider } from "@glowup/ui";
+import { BottomSheet, Typography, Button, Chip, Divider } from "@its/glowup-ui";
 
 // BottomSheet renders through react-native-web's Modal — a real portal into
 // document.body with a position: fixed scrim — so it fills the capture

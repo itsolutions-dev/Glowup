@@ -41,7 +41,7 @@ jobs:
       # map against the packed files; attw resolves the shipped .d.ts the way a
       # consumer's tsc would (it is what caught the theme.json type import).
       - name: Validate published package
-        run: npm run validate-package -w @glowup/ui
+        run: npm run validate-package -w @its/glowup-ui
 
       - name: Lint
         run: npm run lint

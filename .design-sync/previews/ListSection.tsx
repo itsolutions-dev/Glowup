@@ -1,5 +1,11 @@
 import React from "react";
-import { ListSection, ListItem, Toggle, Typography, Paper } from "@glowup/ui";
+import {
+  ListSection,
+  ListItem,
+  Toggle,
+  Typography,
+  Paper,
+} from "@its/glowup-ui";
 
 const panel: React.CSSProperties = { width: 380, display: "flex" };
 

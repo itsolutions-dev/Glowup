@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleButtonGroup, Typography } from "@glowup/ui";
+import { ToggleButtonGroup, Typography } from "@its/glowup-ui";
 
 const field: React.CSSProperties = {
   display: "flex",

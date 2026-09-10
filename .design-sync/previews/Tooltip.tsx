@@ -1,5 +1,5 @@
 import React from "react";
-import { Tooltip, Button, Typography } from "@glowup/ui";
+import { Tooltip, Button, Typography } from "@its/glowup-ui";
 
 /**
  * Tooltip has no controlled `visible` prop — it opens on real hover (web) or

@@ -1,11 +1,11 @@
-# design-sync notes — @glowup/ui
+# design-sync notes — @its/glowup-ui
 
 Repo-specific gotchas for future `/design-sync` runs. Read this before anything else.
 
 ## Shape and pipeline
 
 - Shape is `package` (no Storybook anywhere in the repo).
-- Monorepo. The DS is `packages/ui` (`@glowup/ui`); `apps/playground` is the demo app.
+- Monorepo. The DS is `packages/ui` (`@its/glowup-ui`); `apps/playground` is the demo app.
 - `--node-modules` must be the **repo root** `node_modules`. `packages/ui/node_modules`
   exists but is empty (npm workspaces hoists everything).
 - Build order for a re-sync:
@@ -19,7 +19,7 @@ Repo-specific gotchas for future `/design-sync` runs. Read this before anything 
 
 ## React Native → web is the whole problem
 
-Claude Design renders in a browser; `@glowup/ui` is Expo React Native. The converter's
+Claude Design renders in a browser; `@its/glowup-ui` is Expo React Native. The converter's
 esbuild has no `react-native` alias, no `.web.js` extension priority, no JSX-in-`.js`
 loader and no asset loaders — all four are required here. Rather than fork
 `lib/bundle.mjs` (the app contract surface), the RN→web work happens in a **pre-bundle**:

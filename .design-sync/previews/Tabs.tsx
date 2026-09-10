@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs } from "@glowup/ui";
+import { Tabs } from "@its/glowup-ui";
 
 const wrap: React.CSSProperties = { width: 400, display: "flex" };
 

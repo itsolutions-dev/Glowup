@@ -1,5 +1,5 @@
 import React from "react";
-import { Carousel, Card, Typography, Avatar } from "@glowup/ui";
+import { Carousel, Card, Typography, Avatar } from "@its/glowup-ui";
 
 const frame: React.CSSProperties = {
   width: 380,

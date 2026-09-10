@@ -1,5 +1,5 @@
 import React from "react";
-import { Banner, Typography, Card, Chip } from "@glowup/ui";
+import { Banner, Typography, Card, Chip } from "@its/glowup-ui";
 
 // Banner is a full-width inline strip (width: "100%", bottom hairline), so it
 // needs a parent with a real width — it is not an overlay and never portals.

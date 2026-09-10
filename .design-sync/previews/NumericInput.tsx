@@ -1,5 +1,5 @@
 import React from "react";
-import { NumericInput } from "@glowup/ui";
+import { NumericInput } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

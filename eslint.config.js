@@ -70,14 +70,14 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: ["@glowup/ui/*"],
+              group: ["@its/glowup-ui/*"],
               message:
-                "Import from the '@glowup/ui' barrel — deep imports are not part of the package's public API.",
+                "Import from the '@its/glowup-ui' barrel — deep imports are not part of the package's public API.",
             },
             {
               group: ["**/packages/ui/**", "packages/ui/**"],
               message:
-                "Reach the library through the '@glowup/ui' package name, not through a path into packages/ui.",
+                "Reach the library through the '@its/glowup-ui' package name, not through a path into packages/ui.",
             },
           ],
         },
@@ -94,7 +94,7 @@ module.exports = defineConfig([
         {
           patterns: [
             {
-              group: ["**/apps/**", "apps/**", "@glowup/playground*"],
+              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
               message:
                 "The library cannot depend on the playground app; move the shared code into packages/ui.",
             },

@@ -17,7 +17,7 @@ import {
   Toggle,
   NumericInput,
   SearchBar,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 // The catalogue itself — entries, grouping and the stage renderer — lives in
 // ../catalogue; this screen is only the shell around it.

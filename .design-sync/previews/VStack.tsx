@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Typography, VStack } from "@glowup/ui";
+import { Button, Typography, VStack } from "@its/glowup-ui";
 
 export const Spacing = () => (
   <VStack spacing="m" width={360}>

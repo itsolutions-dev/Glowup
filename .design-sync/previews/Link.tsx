@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Typography, VStack } from "@glowup/ui";
+import { Link, Typography, VStack } from "@its/glowup-ui";
 
 export const Underline = () => (
   <VStack spacing="s" width={420}>

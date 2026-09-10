@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleButton, Typography } from "@glowup/ui";
+import { ToggleButton, Typography } from "@its/glowup-ui";
 
 // ToggleButton is the segment leaf: isFirst/isLast round the outer ends, so it is
 // only ever true-to-life inside a row of siblings.

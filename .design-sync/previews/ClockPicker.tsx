@@ -1,5 +1,5 @@
 import React from "react";
-import { ClockPicker, Paper, Typography } from "@glowup/ui";
+import { ClockPicker, Paper, Typography } from "@its/glowup-ui";
 
 const noop = () => {};
 

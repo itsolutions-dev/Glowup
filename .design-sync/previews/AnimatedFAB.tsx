@@ -1,5 +1,5 @@
 import React from "react";
-import { AnimatedFAB, Typography, Paper, ListItem } from "@glowup/ui";
+import { AnimatedFAB, Typography, Paper, ListItem } from "@its/glowup-ui";
 
 const stage: React.CSSProperties = {
   width: 420,

@@ -5,7 +5,7 @@ import {
   DrawerPreferenceItem,
   Toggle,
   Typography,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 const panel: React.CSSProperties = {
   width: 320,

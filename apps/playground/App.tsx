@@ -6,7 +6,7 @@ import {
   ToastProvider,
   DrawerNavigation,
   StatusBar,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import { NavigationContainer } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 

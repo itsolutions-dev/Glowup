@@ -1,5 +1,5 @@
 import React from "react";
-import { IconBadge, Typography } from "@glowup/ui";
+import { IconBadge, Typography } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

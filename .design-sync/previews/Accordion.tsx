@@ -1,5 +1,5 @@
 import React from "react";
-import { Accordion, Typography, StatusBadge, Divider } from "@glowup/ui";
+import { Accordion, Typography, StatusBadge, Divider } from "@its/glowup-ui";
 
 const panel: React.CSSProperties = {
   display: "flex",

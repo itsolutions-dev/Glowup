@@ -1,5 +1,5 @@
 import React from "react";
-import { HelperText, Input, Typography, Checkbox } from "@glowup/ui";
+import { HelperText, Input, Typography, Checkbox } from "@its/glowup-ui";
 
 const field: React.CSSProperties = {
   width: 340,

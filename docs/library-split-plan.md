@@ -14,11 +14,11 @@ The repo was already an npm-workspaces monorepo:
 
 | Workspace         | Package              | State at audit                                                |
 | ----------------- | -------------------- | ------------------------------------------------------------- |
-| `packages/ui`     | `@glowup/ui` v0.3.0  | 86 exported components + 3 providers, bob build (CJS/ESM/d.ts) |
-| `apps/playground` | `@glowup/playground` | Expo app consuming the library, all 86 components demoed       |
+| `packages/ui`     | `@its/glowup-ui` v0.3.0  | 86 exported components + 3 providers, bob build (CJS/ESM/d.ts) |
+| `apps/playground` | `@its/glowup-playground` | Expo app consuming the library, all 86 components demoed       |
 
 `type-check`, `lint`, `test` and `build` were all green. Changesets, CI and a release
-workflow were in place. `npm view @glowup/ui` returned **404** — nothing has been published.
+workflow were in place. `npm view @its/glowup-ui` returned **404** — nothing has been published.
 
 The gaps were these:
 
@@ -33,7 +33,7 @@ The gaps were these:
 4. The library had **no tests of its own** (`"test": "echo \"no package tests yet\""`); the
    tests that exercise its components lived in the app.
 5. The **component reference lived in the root README** (1100 of its 1180 lines). An npm
-   consumer of `@glowup/ui` got a 4 KB README that still announced "Status: 0.1.0".
+   consumer of `@its/glowup-ui` got a 4 KB README that still announced "Status: 0.1.0".
 6. Nothing exercised the **published artefact**: the app consumes `packages/ui/src`, so a
    broken export map or `.d.ts` could ship unnoticed.
 7. The playground still contained the original product's code — Firestore client, work-order
@@ -61,12 +61,12 @@ The gaps were these:
 - `CLAUDE.md` rewritten around the monorepo: the two workspaces, the import rules, the
   library layout, the theme-token guard, where tests live, how releases work.
 - Removed the legacy `"*": ["./*"]` and dead `@/*` mappings from
-  `apps/playground/tsconfig.json`; `@glowup/ui` → `packages/ui/src/index.ts` is now the only
+  `apps/playground/tsconfig.json`; `@its/glowup-ui` → `packages/ui/src/index.ts` is now the only
   path mapping. App-internal imports are relative.
 - ESLint now enforces the boundary in both directions (`no-restricted-imports`): the app may
-  not deep-import `@glowup/ui/*` or reach into `packages/ui`, and the library may not import
+  not deep-import `@its/glowup-ui/*` or reach into `packages/ui`, and the library may not import
   the app.
-- Declared `react-dom` as an optional peer dependency of `@glowup/ui`.
+- Declared `react-dom` as an optional peer dependency of `@its/glowup-ui`.
 - Re-enabled the i18n initialisation in `App.tsx`, and restored the `ToggleButtonGroup` demo
   in `Start.tsx` that was commented out (as single-select, matching its `value: string`).
 
@@ -81,7 +81,7 @@ The gaps were these:
   now live in `packages/ui/README.md` (72 KB, what npm consumers see); the root README is a
   4.7 KB monorepo guide that points at it. Corrected the stale `0.1.0` status, the CRLF claim
   (the repo is LF), and the root-relative import convention.
-- **The published artefact is now validated**: `npm run validate-package -w @glowup/ui` runs
+- **The published artefact is now validated**: `npm run validate-package -w @its/glowup-ui` runs
   `publint` + `@arethetypeswrong/cli`, wired into CI after the build step.
 
   It immediately caught a real bug: the emitted `lib/typescript/providers/ThemeProvider.d.ts`
@@ -114,8 +114,10 @@ The gaps were these:
 
 ## 5. Still open (not code — decisions and secrets)
 
-- **Reserve the `@glowup` npm scope** (or pick another name) and add an `NPM_TOKEN` repo
-  secret. Until then `release.yml` cannot publish and `npm view @glowup/ui` stays 404.
+- **Add an `NPM_TOKEN` repo secret** with publish rights to the `@its` organisation. The
+  scope question is settled: the package is `@its/glowup-ui`, inside the existing `@its`
+  org, so no new organisation is needed. Until the secret exists `release.yml` cannot
+  publish and `npm view @its/glowup-ui` stays 404.
 - **Navigation components in or out of the library**: `DrawerNavigation` / `StackNavigation`
   pull `@react-navigation/*` in as peers. Keeping them is convenient and already exercised;
   moving them app-side would make the library navigation-agnostic. Unresolved since

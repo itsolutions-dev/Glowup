@@ -13,7 +13,7 @@ import {
   Stat,
   ListSection,
   ListSubheader,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Data Display: 14 catalogue entries. */

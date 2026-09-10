@@ -1,5 +1,5 @@
 import React from "react";
-import { StatusBar, Paper, Typography, Divider } from "@glowup/ui";
+import { StatusBar, Paper, Typography, Divider } from "@its/glowup-ui";
 
 // StatusBar renders no visible node by design. On native it drives the OS status
 // bar style; on web it writes <meta name="theme-color"> and the document

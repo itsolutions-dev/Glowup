@@ -1,5 +1,11 @@
 import React from "react";
-import { Paper, Typography, Divider, StatusBadge, Button } from "@glowup/ui";
+import {
+  Paper,
+  Typography,
+  Divider,
+  StatusBadge,
+  Button,
+} from "@its/glowup-ui";
 
 const grid: React.CSSProperties = {
   display: "flex",

@@ -1,5 +1,5 @@
 import React from "react";
-import { Chip, Typography } from "@glowup/ui";
+import { Chip, Typography } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

@@ -1,8 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useTheme } from "../../providers/ThemeProvider";
+import { AppBar, useTheme } from "@its/glowup-ui";
 import RouteProp from "./Route";
-import AppBar from "../AppBar";
 
 export interface StackNavigationProps {
   routes: RouteProp[];

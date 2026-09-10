@@ -24,7 +24,6 @@ Some components need additional peers (installed only if you use them):
 
 | Component(s)                                                                       | Peer dependency                                                                          |
 | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `DrawerNavigation`, `StackNavigation`                                              | `@react-navigation/native`, `@react-navigation/drawer`, `@react-navigation/native-stack` |
 | `DateTimePicker`, `DatePicker`, `DatePickerInput`, `DateRangePicker`, `TimePicker` | `expo-localization`                                                                      |
 | `StatusBar`                                                                        | `expo-status-bar`                                                                        |
 
@@ -131,7 +130,6 @@ src/
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
 │   ├── Modal/         # Modal, ConfirmDialog
-│   ├── Navigation/    # DrawerNavigation, StackNavigation, DrawerContent, Route, User
 │   ├── Progress/      # CircularProgress, LinearProgress
 │   ├── Tab/           # Tabs, TabContent
 │   ├── ToggleButton/  # ToggleButton, ToggleButtonGroup
@@ -1142,41 +1140,16 @@ toast.hide(); // clears the queue
 
 ### Navigation
 
+> The library is **navigation-agnostic**: it ships navigation *widgets* (app bar, bottom bar,
+> tabs, breadcrumbs, pagination, stepper) but no navigator. `DrawerNavigation` and
+> `StackNavigation` were removed in `0.5.0`; the changelog entry for that release shows the
+> app-side wiring that replaces them.
+
 #### `AppBar`
 
-Top app bar; integrates with the navigator (drawer/back button, title, right actions). Props
-are navigator-shaped (`navigation`, `route`, `options`, `back`, `isPinned`) — used as the
-`header` renderer inside `StackNavigation`.
-
-#### `StackNavigation`
-
-Native stack navigator preconfigured with the themed `AppBar` header and slide animation.
-
-| Prop             | Type                                                         | Default |
-| ---------------- | ------------------------------------------------------------ | ------- |
-| routes           | `Route[]` = `{ name, component, icon, options? }` (required) | —       |
-| initialRouteName | string (required)                                            | —       |
-
-#### `DrawerNavigation`
-
-Responsive drawer: **permanent** sidebar at width ≥ 840px, slide-over below (with a pin
-toggle to override). Renders the custom `DrawerContent`.
-
-| Prop             | Type                                                         | Default |
-| ---------------- | ------------------------------------------------------------ | ------- |
-| routes           | `Route[]` = `{ name, component, icon, options? }` (required) | —       |
-| user             | `UserProps` = `{ name, email, status }` (required)           | —       |
-| initialRouteName | string (required)                                            | —       |
-| onLogout         | () => void (required)                                        | —       |
-| onProfilePress   | () => void (required)                                        | —       |
-| logoutText       | string                                                       |         |
-
-#### `DrawerContent`
-
-The drawer body (`CustomDrawerContent`): route list, profile header, theme toggle, pin
-toggle, logout. Consumed internally by `DrawerNavigation`; extends React Navigation's
-`DrawerContentComponentProps` with `isPinned`, `onTogglePin`, `user`, `onProfilePress`,
-`logoutText`, `onLogout`.
+Top app bar (drawer/back button, title, right actions). Its props are navigator-shaped
+(`navigation`, `route`, `options`, `back`, `isPinned`) and structurally typed, so it drops
+into a React Navigation `header` renderer without the library depending on the navigator.
 
 #### `DrawerPreferenceItem`
 

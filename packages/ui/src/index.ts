@@ -85,12 +85,7 @@ export { default as Menu } from "./components/Menu";
 export * from "./components/Menu";
 export { default as ConfirmDialog } from "./components/Modal/ConfirmDialog";
 export { default as Modal } from "./components/Modal/Modal";
-export * from "./components/Navigation/DrawerContent";
-export { default as DrawerNavigation } from "./components/Navigation/DrawerNavigation";
-export * from "./components/Navigation/DrawerNavigation";
-export { default as DrawerPreferenceItem } from "./components/Navigation/DrawerPreferenceItem";
-export { default as StackNavigation } from "./components/Navigation/StackNavigation";
-export * from "./components/Navigation/StackNavigation";
+export { default as DrawerPreferenceItem } from "./components/DrawerPreferenceItem";
 export { default as NavigationBar } from "./components/NavigationBar";
 export * from "./components/NavigationBar";
 export { default as NumericInput } from "./components/NumericInput";
@@ -179,6 +174,3 @@ export {
 // --- Shared types ---
 export * from "./components/types";
 export * from "./components/Layout/tokens";
-export type { default as Route } from "./components/Navigation/Route";
-export * from "./components/Navigation/User";
-export type { default as UserProps } from "./components/Navigation/User";

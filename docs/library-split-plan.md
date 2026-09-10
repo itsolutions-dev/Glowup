@@ -118,10 +118,12 @@ The gaps were these:
   scope question is settled: the package is `@its/glowup-ui`, inside the existing `@its`
   org, so no new organisation is needed. Until the secret exists `release.yml` cannot
   publish and `npm view @its/glowup-ui` stays 404.
-- **Navigation components in or out of the library**: `DrawerNavigation` / `StackNavigation`
-  pull `@react-navigation/*` in as peers. Keeping them is convenient and already exercised;
-  moving them app-side would make the library navigation-agnostic. Unresolved since
-  `docs/npm-publishing-plan.md` §9.
+- ~~**Navigation components in or out of the library**~~ — **settled: out.** `0.5.0` removes
+  `DrawerNavigation`, `StackNavigation` and `DrawerContent` from `@its/glowup-ui`; they live
+  in `apps/playground/navigation/` and consume the library through its package name like any
+  other consumer. The library keeps the navigation *widgets* (`AppBar`, `NavigationBar`,
+  `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`, `DrawerPreferenceItem`) and has no
+  `@react-navigation/*` peers left; an ESLint rule now blocks reintroducing one.
 - **`publint` suggestions left unapplied** on purpose: `"type": "commonjs"` would make Node
   treat `lib/module/*.js` as CJS (harmless today, since the export map only exposes the CJS
   build, but a trap if the map ever exposes ESM), and `engines.node` is a breaking-ish

@@ -3,17 +3,14 @@ import {
   createDrawerNavigator,
   DrawerNavigationOptions,
 } from "@react-navigation/drawer";
-import { useTheme } from "../../providers/ThemeProvider";
+import { AppBar, Avatar, LanguageSelector, useTheme } from "@its/glowup-ui";
+import type { MaterialCommunityIconsGlyphs } from "@its/glowup-ui";
 import { CustomDrawerContent } from "./DrawerContent";
 import { useWindowDimensions, View } from "react-native";
-import AppBar from "../AppBar";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import Avatar from "../Avatar";
-import LanguageSelector from "../LanguageSelector";
 
 import RouteProp from "./Route";
 import UserProps from "./User";
-import { MaterialCommunityIconsGlyphs } from "../types";
 
 const Drawer = createDrawerNavigator();
 

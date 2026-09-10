@@ -233,7 +233,9 @@ from scratch:
 ## 9. Open decisions for you
 
 - **Package name / npm scope** — pick and confirm availability.
-- **Navigation components in or out** — `DrawerNavigation`/`StackNavigation` pull in
+- **Navigation components in or out** — decided later: **out**, in `0.5.0`; see
+  `docs/library-split-plan.md`. The original framing follows.
+  `DrawerNavigation`/`StackNavigation` pull in
   `@react-navigation/*` as peer deps; if you'd rather keep the library navigation-agnostic,
   they can stay app-side instead (moved to `apps/mobile/components/Navigation`).
 - **Example app vs. reusing Playground** — worth the extra scaffold now, or defer to a later

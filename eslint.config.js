@@ -98,6 +98,14 @@ module.exports = defineConfig([
               message:
                 "The library cannot depend on the playground app; move the shared code into packages/ui.",
             },
+            {
+              // 0.5.0 removed DrawerNavigation/StackNavigation: the library ships
+              // navigation widgets but no navigator, and has no @react-navigation
+              // peers left. Importing one here would put them back.
+              group: ["@react-navigation/*"],
+              message:
+                "The library is navigation-agnostic. Navigators live in the app (apps/playground/navigation).",
+            },
           ],
         },
       ],

@@ -50,9 +50,6 @@
   },
   "peerDependencies": {
     "@expo/vector-icons": ">=15",
-    "@react-navigation/drawer": ">=7",
-    "@react-navigation/native": ">=7",
-    "@react-navigation/native-stack": ">=7",
     "expo-localization": ">=57 || >=15",
     "expo-status-bar": ">=57 || >=2",
     "react": ">=19",
@@ -62,15 +59,6 @@
     "react-native-svg": ">=15"
   },
   "peerDependenciesMeta": {
-    "@react-navigation/drawer": {
-      "optional": true
-    },
-    "@react-navigation/native": {
-      "optional": true
-    },
-    "@react-navigation/native-stack": {
-      "optional": true
-    },
     "expo-localization": {
       "optional": true
     },

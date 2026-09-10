@@ -67,6 +67,11 @@ packages/ui/
   consumers.
 - Native/navigation dependencies are **peerDependencies** (mostly optional);
   only `date-fns` and `polished` are real dependencies.
+- Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
+  `.js.map` files; bob's typescript target hardcodes `--declarationMap`, so `npm run build`
+  chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
+  comments pointing at them. Don't "restore" either half without removing `!**/*.map` from
+  the package's `files` too, or the tarball will reference maps it does not ship.
 - The playground consumes `src`, never `lib`, so the published artefact is checked separately
   by `npm run validate-package -w @its/glowup-ui` (also a CI step). Run it after touching
   `package.json`, the export map or anything a `.d.ts` imports.

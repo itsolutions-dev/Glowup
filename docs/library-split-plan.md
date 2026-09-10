@@ -112,6 +112,31 @@ The gaps were these:
   metadata, so they cannot render on native and cannot drive a live props panel. The two
   catalogues serve different targets; the overlap is intentional, not duplication to remove.
 
+## 4b. Dogfooding the published package (`examples/consumer`)
+
+`apps/playground` is a workspace, so its `@its/glowup-ui` is a symlink to `packages/ui` and it
+always runs the local **source**. That is the right trade-off for development, but it means
+nothing in the repo exercised the artefact npm ships. Asked to point the playground at the
+published package instead, the first thing checked was whether that is even possible: it is
+not, by simply changing the range — with `"@its/glowup-ui": "^0.5.0"` npm still linked
+`node_modules/@its/glowup-ui -> ../../packages/ui`, because it links a workspace whenever the
+local version satisfies the request. Detaching the playground would have meant removing
+`packages/ui` from the `workspaces` array, at the cost of the live-edit loop *and* of CI
+coverage: the 85 catalogue tests would run against the released version, so a regression
+introduced in a PR would no longer be caught through the app.
+
+So the runtime check lives in a separate, non-workspace app instead: `examples/consumer`, a
+minimal Expo app that installs `@its/glowup-ui` from the registry and is verified by
+`tsc --noEmit` against the **published** `.d.ts` plus `expo export -p web`. It complements
+`validate-package`, which checks the tarball statically. `App.tsx` deliberately annotates a
+value as `ThemeColorTokens`, so the class of bug found in §3 (a `.d.ts` importing an unshipped
+`theme.json`) fails the smoke test rather than reaching a consumer.
+
+Its CI workflow (`consumer-smoke.yml`) runs after a release, weekly, and on demand — not on
+every PR, since a PR cannot change what is already published — and it **fails if
+`node_modules/@its/glowup-ui` is a symlink**, which is what would happen if someone ever
+moved the example under `apps/` or added it to the workspaces.
+
 ## 5. Still open (not code — decisions and secrets)
 
 - **Add an `NPM_TOKEN` repo secret** with publish rights to the `@its` organisation. The

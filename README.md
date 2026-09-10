@@ -10,6 +10,10 @@ The repo is an **npm-workspaces monorepo** with two workspaces:
 | `packages/ui`     | `@its/glowup-ui`         | The publishable component library (this is the product).         |
 | `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos the library on iOS, Android and Web. |
 
+One directory is deliberately **not** a workspace: `examples/consumer` installs
+`@its/glowup-ui` from the npm registry and is the runtime check on the published package —
+see [`examples/consumer/README.md`](examples/consumer/README.md).
+
 > The playground was previously called `apps/mobile`. It was renamed because it is **not
 > mobile-only** — it runs on web too — and its job is to exercise the library, not to be a
 > shippable mobile product.

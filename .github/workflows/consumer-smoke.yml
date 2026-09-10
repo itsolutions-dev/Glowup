@@ -1,0 +1,69 @@
+name: Consumer smoke
+
+# Validates the PUBLISHED package, not the working tree: examples/consumer is
+# outside the npm workspaces and installs @its/glowup-ui from the registry.
+# It therefore runs after a release (and on demand / weekly), not on every PR —
+# a PR cannot change what is already published.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+  push:
+    branches: [master]
+    paths:
+      - "examples/consumer/**"
+      - ".github/workflows/consumer-smoke.yml"
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [master]
+
+concurrency:
+  group: consumer-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: examples/consumer
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      # A just-published version can take a minute to show up in the packument
+      # that `npm install` reads, even though its version document is already
+      # served. Poll instead of losing the race with the Release run.
+      - name: Wait for the range to resolve on the registry
+        run: |
+          range=$(node -p "require('./package.json').dependencies['@its/glowup-ui']")
+          for i in $(seq 1 20); do
+            if npm view "@its/glowup-ui@$range" version; then exit 0; fi
+            echo "not resolvable yet; retrying in 15s"
+            sleep 15
+          done
+          echo "::error::@its/glowup-ui@$range never became resolvable"
+          exit 1
+
+      - name: Install from the registry
+        run: npm install --no-audit --no-fund
+
+      - name: Refuse a workspace symlink
+        run: |
+          if [ -L node_modules/@its/glowup-ui ]; then
+            echo "::error::node_modules/@its/glowup-ui is a symlink to the local package. This app must consume the published one — do not add examples/ to the npm workspaces."
+            exit 1
+          fi
+          node -p "'consuming @its/glowup-ui@' + require('@its/glowup-ui/package.json').version"
+
+      - name: Type-check against the published types
+        run: npx tsc --noEmit
+
+      - name: Bundle for web
+        run: npx expo export -p web

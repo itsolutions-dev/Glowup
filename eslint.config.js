@@ -112,6 +112,17 @@ module.exports = defineConfig([
     },
   },
   {
+    // examples/consumer is outside the npm workspaces on purpose (it installs the
+    // published package), so it has its own node_modules that the root `npm
+    // install` never creates. Style and correctness rules still apply here; only
+    // module resolution cannot work from the root.
+    files: ["examples/**/*.ts", "examples/**/*.tsx"],
+    rules: {
+      "import/no-unresolved": "off",
+      "no-restricted-imports": "off",
+    },
+  },
+  {
     rules: {
       "linebreak-style": ["error", "unix"],
     },

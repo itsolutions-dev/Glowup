@@ -1,5 +1,5 @@
 import React from "react";
-import { Snackbar, Typography, Card } from "@glowup/ui";
+import { Snackbar, Typography, Card } from "@its/glowup-ui";
 
 // Snackbar is NOT a portal — it is an absolutely-positioned sibling
 // (bottom: 24, left/right: 16). A plain <div> is position: static, so it needs
@@ -47,7 +47,7 @@ export const Types = () => (
         visible
         duration={0}
         type="success"
-        message="Published @glowup/ui 0.1.0 to the registry."
+        message="Published @its/glowup-ui 0.1.0 to the registry."
         onDismiss={() => {}}
       />
     </div>

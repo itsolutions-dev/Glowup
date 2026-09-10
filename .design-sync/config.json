@@ -1,5 +1,5 @@
 {
-  "pkg": "@glowup/ui",
+  "pkg": "@its/glowup-ui",
   "projectId": "c02682fc-2db9-465f-b4c0-1d7581b437ec",
   "globalName": "GlowupUI",
   "shape": "package",

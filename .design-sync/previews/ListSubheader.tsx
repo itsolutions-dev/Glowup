@@ -1,5 +1,5 @@
 import React from "react";
-import { ListSubheader, ListItem, Divider, Paper } from "@glowup/ui";
+import { ListSubheader, ListItem, Divider, Paper } from "@its/glowup-ui";
 
 export const GroupLabel = () => (
   <div style={{ width: 380, display: "flex" }}>

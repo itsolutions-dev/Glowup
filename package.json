@@ -7,15 +7,15 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "npm start -w @glowup/playground",
-    "playground": "npm start -w @glowup/playground",
-    "android": "npm run android -w @glowup/playground",
-    "ios": "npm run ios -w @glowup/playground",
-    "web": "npm run web -w @glowup/playground",
+    "start": "npm start -w @its/glowup-playground",
+    "playground": "npm start -w @its/glowup-playground",
+    "android": "npm run android -w @its/glowup-playground",
+    "ios": "npm run ios -w @its/glowup-playground",
+    "web": "npm run web -w @its/glowup-playground",
     "lint": "eslint .",
     "type-check": "npm run type-check --workspaces --if-present && tsc --noEmit -p .design-sync/tsconfig.json",
     "test": "npm run test --workspaces --if-present",
-    "build": "npm run build --workspace @glowup/ui",
+    "build": "npm run build --workspace @its/glowup-ui",
     "release": "changeset publish"
   },
   "devDependencies": {

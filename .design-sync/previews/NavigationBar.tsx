@@ -1,6 +1,6 @@
 import React from "react";
-import { NavigationBar } from "@glowup/ui";
-import type { NavigationBarItem } from "@glowup/ui";
+import { NavigationBar } from "@its/glowup-ui";
+import type { NavigationBarItem } from "@its/glowup-ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
 

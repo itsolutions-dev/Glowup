@@ -7,7 +7,7 @@ import {
   IconButton,
   AnimatedFAB,
   ToggleButton,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Actions: 8 catalogue entries. */

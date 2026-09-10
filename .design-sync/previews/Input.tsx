@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "@glowup/ui";
+import { Input } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

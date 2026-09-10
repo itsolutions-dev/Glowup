@@ -1,4 +1,4 @@
-import { Box, Grid, Stack, AspectRatio, Center, Spacer } from "@glowup/ui";
+import { Box, Grid, Stack, AspectRatio, Center, Spacer } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Layout: 6 catalogue entries. */

@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableRipple, Typography, Divider } from "@glowup/ui";
+import { TouchableRipple, Typography, Divider } from "@its/glowup-ui";
 
 const panel: React.CSSProperties = {
   width: 360,

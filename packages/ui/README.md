@@ -1,4 +1,4 @@
-# @glowup/ui
+# @its/glowup-ui
 
 A **Material You (Material Design 3)** component library for **React Native + Web** (Expo).
 ~60 theme-reactive components — layout primitives, buttons, inputs, navigation, dialogs, data
@@ -11,7 +11,7 @@ design-token system with light/dark support.
 ## Installation
 
 ```bash
-npm install @glowup/ui
+npm install @its/glowup-ui
 ```
 
 Then install the peer dependencies your app doesn't already have. The core set:
@@ -44,7 +44,7 @@ import {
   Button,
   Typography,
   VStack,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 export default function App() {
   return (
@@ -111,7 +111,7 @@ All colors, typography, spacing and shape tokens come from the built-in Material
 Access it with the `useTheme()` hook:
 
 ```tsx
-import { useTheme } from "@glowup/ui";
+import { useTheme } from "@its/glowup-ui";
 
 const { theme, toggleTheme } = useTheme();
 ```
@@ -121,12 +121,12 @@ theme-reactive components.
 
 ## Library layout
 
-`src` is the library source — the code published as `@glowup/ui`.
+`src` is the library source — the code published as `@its/glowup-ui`.
 Its public surface is the barrel `src/index.ts`. Layout:
 
 ```
 src/
-├── index.ts          # public API barrel — everything importable from "@glowup/ui"
+├── index.ts          # public API barrel — everything importable from "@its/glowup-ui"
 ├── components/        # ~60 Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader

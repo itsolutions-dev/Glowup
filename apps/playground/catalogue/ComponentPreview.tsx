@@ -16,8 +16,8 @@ import {
   Portal,
   Center,
   EMPTY_RANGE,
-} from "@glowup/ui";
-import type { DateRange } from "@glowup/ui";
+} from "@its/glowup-ui";
+import type { DateRange } from "@its/glowup-ui";
 import type { ComponentMetadata } from "./types";
 
 interface ComponentPreviewProps {

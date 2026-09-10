@@ -1,5 +1,5 @@
 import React from "react";
-import { IconButton, Paper, Typography } from "@glowup/ui";
+import { IconButton, Paper, Typography } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Button, Chip, HStack, Typography } from "@glowup/ui";
+import { Avatar, Button, Chip, HStack, Typography } from "@its/glowup-ui";
 
 export const Spacing = () => (
   <HStack spacing="m" align="center" width={480} wrap>

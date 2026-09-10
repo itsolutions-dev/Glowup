@@ -1,5 +1,5 @@
 import React from "react";
-import { DatePicker } from "@glowup/ui";
+import { DatePicker } from "@its/glowup-ui";
 
 // `DateTimePicker` carries its own marginBottom, so the column takes no gap.
 const stack: React.CSSProperties = {

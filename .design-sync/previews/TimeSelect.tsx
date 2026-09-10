@@ -1,5 +1,5 @@
 import React from "react";
-import { Paper, TimeSelect, Typography } from "@glowup/ui";
+import { Paper, TimeSelect, Typography } from "@its/glowup-ui";
 
 const noop = () => {};
 

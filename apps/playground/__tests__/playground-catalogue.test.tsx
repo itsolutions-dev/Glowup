@@ -6,7 +6,7 @@ import {
   AlertProviderWrapper,
   ThemeProvider,
   ToastProvider,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import Playground from "../screens/Playground";
 
 // Same provider chain App.tsx mounts — the kit's components read from all of it.

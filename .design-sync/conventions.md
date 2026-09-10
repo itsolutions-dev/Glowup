@@ -1,4 +1,4 @@
-## How to build with @glowup/ui
+## How to build with @its/glowup-ui
 
 Material Design 3 (Material You) for **Expo React Native**, rendered here through
 react-native-web. It is a **prop-and-theme** system: there are **no CSS classes, no CSS

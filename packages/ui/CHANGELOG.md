@@ -1,4 +1,4 @@
-# @glowup/ui
+# @its/glowup-ui
 
 ## 0.3.0
 

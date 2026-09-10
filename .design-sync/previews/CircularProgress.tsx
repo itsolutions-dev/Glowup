@@ -1,5 +1,5 @@
 import React from "react";
-import { CircularProgress, Paper, Typography, useTheme } from "@glowup/ui";
+import { CircularProgress, Paper, Typography, useTheme } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Typography, Button, Divider } from "@glowup/ui";
+import { Modal, Typography, Button, Divider } from "@its/glowup-ui";
 
 // Modal renders through react-native-web's Modal, which is a real portal into
 // document.body with a position: fixed scrim — so it fills the capture
@@ -71,7 +71,7 @@ export const RichContent = () => (
 export const Untitled = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Release notes</Typography>
-    <Typography variant="bodyMedium">@glowup/ui 0.1.0</Typography>
+    <Typography variant="bodyMedium">@its/glowup-ui 0.1.0</Typography>
     <Modal visible closeText="Got it" onClose={() => {}}>
       Dark mode contrast was corrected across every tonal surface.
     </Modal>

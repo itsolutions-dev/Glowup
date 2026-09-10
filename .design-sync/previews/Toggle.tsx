@@ -1,5 +1,5 @@
 import React from "react";
-import { Toggle, Typography } from "@glowup/ui";
+import { Toggle, Typography } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

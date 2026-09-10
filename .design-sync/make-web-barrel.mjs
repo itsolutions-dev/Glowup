@@ -1,5 +1,5 @@
 // Regenerates .design-sync/web-barrel.mjs from packages/ui/src/index.ts.
-// The barrel is the browser-facing public surface of @glowup/ui:
+// The barrel is the browser-facing public surface of @its/glowup-ui:
 //   - navigator shells (DrawerNavigation / StackNavigation / CustomDrawerContent)
 //     are dropped — they pull @react-navigation -> react-native-screens, whose
 //     native specs don't bundle for the web;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, Button, Avatar } from "@glowup/ui";
+import { Menu, Button, Avatar } from "@its/glowup-ui";
 
 // Menu renders its list inside Popover, which portals into document.body with
 // a position: fixed layer positioned from the anchor's measured window

@@ -1,4 +1,4 @@
-// Public API for @glowup/ui — generated barrel, edit generator in git history if regenerating.
+// Public API for @its/glowup-ui — generated barrel, edit generator in git history if regenerating.
 
 // --- Theme system ---
 export * from "./providers/ThemeProvider";

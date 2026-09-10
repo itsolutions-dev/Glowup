@@ -1,5 +1,5 @@
 import React from "react";
-import { Chip, Stack, Typography } from "@glowup/ui";
+import { Chip, Stack, Typography } from "@its/glowup-ui";
 
 const items = ["Buttons", "Inputs", "Feedback"];
 

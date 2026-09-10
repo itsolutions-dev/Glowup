@@ -1,5 +1,5 @@
 import React from "react";
-import { Skeleton, Paper, Typography, Divider } from "@glowup/ui";
+import { Skeleton, Paper, Typography, Divider } from "@its/glowup-ui";
 
 const col: React.CSSProperties = { display: "flex", flexDirection: "column" };
 

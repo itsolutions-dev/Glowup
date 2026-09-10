@@ -1,5 +1,12 @@
 import React from "react";
-import { Box, Button, HStack, Spacer, Typography, VStack } from "@glowup/ui";
+import {
+  Box,
+  Button,
+  HStack,
+  Spacer,
+  Typography,
+  VStack,
+} from "@its/glowup-ui";
 
 /** With no `size`, Spacer absorbs the leftover space along the parent's axis. */
 export const PushesApart = () => (

@@ -2,11 +2,11 @@
 
 This folder is managed by [Changesets](https://github.com/changesets/changesets) — it
 drives versioning and changelog generation for the publishable packages in this monorepo
-(currently `@glowup/ui`; the private `@glowup/playground` app is ignored).
+(currently `@its/glowup-ui`; the private `@its/glowup-playground` app is ignored).
 
 ## Adding a changeset
 
-When you make a change to `@glowup/ui` that should ship in a release, run:
+When you make a change to `@its/glowup-ui` that should ship in a release, run:
 
 ```bash
 npx changeset
@@ -19,7 +19,7 @@ markdown file here that gets committed with your PR.
 
 On push to `master`, the release workflow (`.github/workflows/release.yml`) opens (or
 updates) a **"Version Packages"** PR that consumes the pending changesets, bumps versions,
-and updates changelogs. Merging that PR publishes `@glowup/ui` to npm.
+and updates changelogs. Merging that PR publishes `@its/glowup-ui` to npm.
 
-Publishing requires an `NPM_TOKEN` repository secret with publish rights to the `@glowup`
-scope.
+Publishing requires an `NPM_TOKEN` repository secret with publish rights to the `@its`
+organisation on npm.

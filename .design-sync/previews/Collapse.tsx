@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Button, Collapse, Typography, VStack } from "@glowup/ui";
+import { Box, Button, Collapse, Typography, VStack } from "@its/glowup-ui";
 
 const body = (
   <Typography variant="bodyMedium">

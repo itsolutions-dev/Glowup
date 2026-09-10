@@ -1,5 +1,5 @@
 import React from "react";
-import { PinInput, VStack } from "@glowup/ui";
+import { PinInput, VStack } from "@its/glowup-ui";
 
 export const SixDigits = () => (
   <VStack width={420}>

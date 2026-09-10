@@ -1,5 +1,5 @@
 import React from "react";
-import { Portal, Typography, Paper, Tooltip, Button } from "@glowup/ui";
+import { Portal, Typography, Paper, Tooltip, Button } from "@its/glowup-ui";
 
 const stage: React.CSSProperties = {
   width: 420,

@@ -1,5 +1,5 @@
 ---
-"@glowup/ui": minor
+"@its/glowup-ui": minor
 ---
 
 Make the theme's public types self-contained, declare the `react-dom` peer, and give the

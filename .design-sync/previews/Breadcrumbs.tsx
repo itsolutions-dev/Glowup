@@ -1,6 +1,6 @@
 import React from "react";
-import { Breadcrumbs } from "@glowup/ui";
-import type { BreadcrumbItem } from "@glowup/ui";
+import { Breadcrumbs } from "@its/glowup-ui";
+import type { BreadcrumbItem } from "@its/glowup-ui";
 
 const wrap: React.CSSProperties = { width: 400, display: "flex" };
 

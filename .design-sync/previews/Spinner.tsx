@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner } from "@glowup/ui";
+import { Spinner } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",

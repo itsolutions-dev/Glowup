@@ -8,8 +8,8 @@ An **npm-workspaces monorepo** with exactly two workspaces:
 
 | Workspace         | Package              | Role                                                                 |
 | ----------------- | -------------------- | -------------------------------------------------------------------- |
-| `packages/ui`     | `@glowup/ui`         | The product: a publishable Material You (MD3) component library.     |
-| `apps/playground` | `@glowup/playground` | Private Expo presentation app that demos and exercises the library.  |
+| `packages/ui`     | `@its/glowup-ui`         | The product: a publishable Material You (MD3) component library.     |
+| `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos and exercises the library.  |
 
 The library targets iOS, Android and Web through Expo + `react-native-web`. The playground is
 not a shippable product and holds no product code (no API clients, auth or domain models) —
@@ -28,10 +28,10 @@ npm run web            # playground on Web
 npm run lint           # ESLint across the repo (gates CI)
 npm run type-check     # tsc --noEmit in every workspace + the design-sync tsconfig
 npm test               # tests in every workspace
-npm run build          # build @glowup/ui with react-native-builder-bob
+npm run build          # build @its/glowup-ui with react-native-builder-bob
 
-npm test -w @glowup/ui                    # only the library's component tests
-npm run validate-package -w @glowup/ui    # publint + are-the-types-wrong on the built package
+npm test -w @its/glowup-ui                    # only the library's component tests
+npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 ```
 
@@ -39,12 +39,12 @@ npm run release                           # changeset publish (CI does this)
 
 This is the rule that keeps the split real:
 
-- The app imports the library **only by package name**: `import { Button } from "@glowup/ui"`.
-  Deep imports (`@glowup/ui/src/...`) and paths into `packages/ui` are an **ESLint error**.
+- The app imports the library **only by package name**: `import { Button } from "@its/glowup-ui"`.
+  Deep imports (`@its/glowup-ui/src/...`) and paths into `packages/ui` are an **ESLint error**.
 - The library must never import the app — also an ESLint error.
 - Inside a workspace, use **relative** imports. There is no root-relative `baseUrl` mapping
   any more; `import Button from "components/Button"` no longer resolves anywhere.
-- `apps/playground/tsconfig.json` maps `@glowup/ui` to `packages/ui/src/index.ts` so an edit
+- `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts` so an edit
   in the library is picked up live by Metro and `tsc`. That is the only mapping.
 
 ## packages/ui — the library
@@ -68,7 +68,7 @@ packages/ui/
 - Native/navigation dependencies are **peerDependencies** (mostly optional);
   only `date-fns` and `polished` are real dependencies.
 - The playground consumes `src`, never `lib`, so the published artefact is checked separately
-  by `npm run validate-package -w @glowup/ui` (also a CI step). Run it after touching
+  by `npm run validate-package -w @its/glowup-ui` (also a CI step). Run it after touching
   `package.json`, the export map or anything a `.d.ts` imports.
 
 ### Theme system
@@ -137,7 +137,7 @@ slide-over below. Routes are the `APP_ROUTES` array in `App.tsx`.
 
 ## Releasing
 
-Changesets. Only `@glowup/ui` is published; `@glowup/playground` is private and ignored. A
+Changesets. Only `@its/glowup-ui` is published; `@its/glowup-playground` is private and ignored. A
 user-visible change to the library needs a changeset (`npx changeset`). On push to `master`,
 `release.yml` opens a "Version Packages" PR; merging it publishes to npm.
 

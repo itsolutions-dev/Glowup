@@ -11,7 +11,7 @@ import {
   StatusBadge,
   Chip,
   Button,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

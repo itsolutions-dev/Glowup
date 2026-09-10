@@ -1,5 +1,5 @@
 import React from "react";
-import { LinearProgress, Paper, Typography, useTheme } from "@glowup/ui";
+import { LinearProgress, Paper, Typography, useTheme } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

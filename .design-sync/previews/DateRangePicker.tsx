@@ -1,5 +1,5 @@
 import React from "react";
-import { DateRangePicker, EMPTY_RANGE } from "@glowup/ui";
+import { DateRangePicker, EMPTY_RANGE } from "@its/glowup-ui";
 
 const stack: React.CSSProperties = {
   display: "flex",

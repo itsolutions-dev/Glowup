@@ -1,5 +1,5 @@
 {
-  "name": "@glowup/playground",
+  "name": "@its/glowup-playground",
   "version": "1.0.0",
   "private": true,
   "main": "index.ts",
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
-    "@glowup/ui": "*",
+    "@its/glowup-ui": "*",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@react-navigation/drawer": "^7.12.5",

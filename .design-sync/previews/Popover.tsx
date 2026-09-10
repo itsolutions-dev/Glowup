@@ -1,5 +1,5 @@
 import React from "react";
-import { Popover, Button, Typography, Avatar, Divider } from "@glowup/ui";
+import { Popover, Button, Typography, Avatar, Divider } from "@its/glowup-ui";
 
 // Popover's floating card renders through react-native-web's Modal — a real
 // portal into document.body, positioned from the anchor's measured window

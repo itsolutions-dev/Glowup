@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Icon, ListItem, Toggle, Typography } from "@glowup/ui";
+import { Avatar, Icon, ListItem, Toggle, Typography } from "@its/glowup-ui";
 
 const list: React.CSSProperties = {
   display: "flex",

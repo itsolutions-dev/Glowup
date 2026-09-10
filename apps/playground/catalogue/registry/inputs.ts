@@ -23,7 +23,7 @@ import {
   DatePicker,
   TimePicker,
   TimeSelect,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Inputs: 24 catalogue entries. */

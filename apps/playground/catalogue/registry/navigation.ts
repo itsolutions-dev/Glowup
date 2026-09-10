@@ -7,7 +7,7 @@ import {
   TabContent,
   LanguageSelector,
   DrawerPreferenceItem,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
 /** Navigation: 8 catalogue entries. */

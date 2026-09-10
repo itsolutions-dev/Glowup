@@ -1,5 +1,5 @@
 import React from "react";
-import { AppBar, Avatar, Button, IconBadge } from "@glowup/ui";
+import { AppBar, Avatar, Button, IconBadge } from "@its/glowup-ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
 

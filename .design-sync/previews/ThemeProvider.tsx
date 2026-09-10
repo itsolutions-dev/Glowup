@@ -8,7 +8,7 @@ import {
   Chip,
   StatusBadge,
   Divider,
-} from "@glowup/ui";
+} from "@its/glowup-ui";
 
 // ThemeProvider renders no UI of its own — it supplies the Material You token
 // set through useTheme(). These cells read that context and draw the tokens, so

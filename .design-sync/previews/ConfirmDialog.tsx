@@ -1,5 +1,5 @@
 import React from "react";
-import { ConfirmDialog, Typography } from "@glowup/ui";
+import { ConfirmDialog, Typography } from "@its/glowup-ui";
 
 // ConfirmDialog wraps Modal, which portals into document.body with a
 // position: fixed scrim — it fills the capture viewport, not the card.

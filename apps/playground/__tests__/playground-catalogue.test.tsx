@@ -30,7 +30,7 @@ const renderPlayground = () =>
     </SafeAreaProvider>,
   );
 
-// Kept in sync with CATEGORIES in Playground.tsx. A component added to the
+// Kept in sync with CATEGORIES in ../catalogue/categories.ts. A component added to the
 // catalogue but left without a working demo fails here rather than in someone's
 // browser, which is the whole point of the screen.
 const CATALOGUE = [

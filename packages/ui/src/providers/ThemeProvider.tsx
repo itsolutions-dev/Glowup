@@ -4,20 +4,121 @@ import { useColorScheme, Platform, TextStyle } from "react-native";
 import { mix } from "polished";
 import themeConfig from "./theme.json";
 
+/**
+ * The design tokens exactly as `theme.json` declares them.
+ *
+ * Spelled out instead of derived with `typeof themeConfig` on purpose: a public
+ * type derived from the JSON import makes the emitted `.d.ts` import
+ * `./theme.json`, which is not shipped with the type declarations (bob's
+ * typescript target emits `.d.ts` only) and would force every consumer to
+ * enable `resolveJsonModule`. The `_ThemeTokensInSync` guard at the bottom of
+ * this block fails `tsc` if these types and `theme.json` ever drift apart.
+ */
+export interface ThemeColorTokens {
+  background: string;
+  boxShadow: string;
+  error: string;
+  errorContainer: string;
+  inverseOnSurface: string;
+  inversePrimary: string;
+  inverseSurface: string;
+  onBackground: string;
+  onError: string;
+  onErrorContainer: string;
+  onPrimary: string;
+  onPrimaryContainer: string;
+  onSecondary: string;
+  onSecondaryContainer: string;
+  onSurface: string;
+  onSurfaceVariant: string;
+  onTertiary: string;
+  onTertiaryContainer: string;
+  outline: string;
+  outlineVariant: string;
+  primary: string;
+  primaryContainer: string;
+  scrim: string;
+  secondary: string;
+  secondaryContainer: string;
+  shadow: string;
+  surface: string;
+  surfaceContainer: string;
+  surfaceContainerHigh: string;
+  surfaceContainerHighest: string;
+  surfaceContainerLow: string;
+  surfaceDim: string;
+  surfaceTint: string;
+  surfaceVariant: string;
+  tertiary: string;
+  tertiaryContainer: string;
+}
+
+/** Spacing scale, in density-independent pixels. */
+export interface ThemeSpacingTokens {
+  xs: number;
+  s: number;
+  m: number;
+  l: number;
+  xl: number;
+}
+
+/** Corner radii, in density-independent pixels. */
+export interface ThemeShapeTokens {
+  small: number;
+  medium: number;
+  large: number;
+  extraLarge: number;
+}
+
+/** Material 3 type scale roles carried by the theme. */
+export type TypographyVariant =
+  | "displayLarge"
+  | "displayMedium"
+  | "displaySmall"
+  | "headlineLarge"
+  | "headlineMedium"
+  | "headlineSmall"
+  | "titleLarge"
+  | "titleMedium"
+  | "titleSmall"
+  | "labelLarge"
+  | "labelMedium"
+  | "labelSmall"
+  | "bodyLarge"
+  | "bodyMedium"
+  | "bodySmall";
+
 export interface Theme {
-  colors: typeof themeConfig.colors.light & {
+  colors: ThemeColorTokens & {
     accent: string;
     text: string;
     onAccent: string;
     onSurfaceContainer: string;
   };
-  typography: {
-    [key in keyof typeof themeConfig.typography]: TextStyle;
-  };
-  spacing: typeof themeConfig.spacing;
-  shape: typeof themeConfig.shape;
+  typography: { [key in TypographyVariant]: TextStyle };
+  spacing: ThemeSpacingTokens;
+  shape: ThemeShapeTokens;
   isDark: boolean;
 }
+
+// Type-level only: emits no JavaScript and, being unexported, no declaration
+// either. If a token is added to or removed from theme.json, one of these stops
+// being `true` and `npm run type-check` fails here instead of shipping a theme
+// whose public type lies about its contents.
+type Exact<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type AllTrue<T extends true[]> = T;
+// The alias IS the assertion: tsc checks it where it is declared, so nothing
+// needs to reference it afterwards.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _ThemeTokensInSync = AllTrue<
+  [
+    Exact<ThemeColorTokens, typeof themeConfig.colors.light>,
+    Exact<ThemeColorTokens, typeof themeConfig.colors.dark>,
+    Exact<ThemeSpacingTokens, typeof themeConfig.spacing>,
+    Exact<ThemeShapeTokens, typeof themeConfig.shape>,
+    Exact<TypographyVariant, keyof typeof themeConfig.typography>,
+  ]
+>;
 
 interface ThemeContextType {
   theme: Theme;

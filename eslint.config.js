@@ -59,6 +59,51 @@ module.exports = defineConfig([
     },
   },
   {
+    // `packages/ui` is a published package with a public API: `src/index.ts`.
+    // A deep import would resolve inside this repo (Metro watches the whole
+    // workspace) and break for every npm consumer, so the app is only allowed
+    // to reach the library through its package name.
+    files: ["apps/**/*.ts", "apps/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@glowup/ui/*"],
+              message:
+                "Import from the '@glowup/ui' barrel — deep imports are not part of the package's public API.",
+            },
+            {
+              group: ["**/packages/ui/**", "packages/ui/**"],
+              message:
+                "Reach the library through the '@glowup/ui' package name, not through a path into packages/ui.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The dependency arrow points one way: the demo app may depend on the
+    // library, never the reverse.
+    files: ["packages/ui/**/*.ts", "packages/ui/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/apps/**", "apps/**", "@glowup/playground*"],
+              message:
+                "The library cannot depend on the playground app; move the shared code into packages/ui.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     rules: {
       "linebreak-style": ["error", "unix"],
     },

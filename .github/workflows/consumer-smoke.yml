@@ -1,18 +1,23 @@
 name: Consumer smoke
 
 # Validates the PUBLISHED package, not the working tree: examples/consumer is
-# outside the npm workspaces and installs @its/glowup-ui from the registry.
-# It therefore runs after a release (and on demand / weekly), not on every PR —
-# a PR cannot change what is already published.
+# outside the npm workspaces and installs @its/glowup-ui from the registry. It
+# therefore does not run on pull requests — a PR cannot change what is already
+# published — and instead chains off Release.
+#
+# `workflow_run` fires after EVERY Release run, which means every push to master:
+# Release runs whether or not there is anything to publish (with pending
+# changesets it just refreshes the "Version Packages" PR). That cadence is
+# deliberate — it means a just-published version is smoke-tested immediately —
+# but do not read it as "only after a publish". A `push` trigger here would be
+# pure duplication: it would fire on the same commit, one job earlier.
+#
+# The gap that leaves: if a Release run fails, the smoke test is skipped for that
+# commit. Re-run it by hand with workflow_dispatch.
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1"
-  push:
-    branches: [master]
-    paths:
-      - "examples/consumer/**"
-      - ".github/workflows/consumer-smoke.yml"
   workflow_run:
     workflows: [Release]
     types: [completed]

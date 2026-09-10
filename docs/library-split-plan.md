@@ -132,10 +132,13 @@ minimal Expo app that installs `@its/glowup-ui` from the registry and is verifie
 value as `ThemeColorTokens`, so the class of bug found in §3 (a `.d.ts` importing an unshipped
 `theme.json`) fails the smoke test rather than reaching a consumer.
 
-Its CI workflow (`consumer-smoke.yml`) runs after a release, weekly, and on demand — not on
-every PR, since a PR cannot change what is already published — and it **fails if
-`node_modules/@its/glowup-ui` is a symlink**, which is what would happen if someone ever
-moved the example under `apps/` or added it to the workspaces.
+Its CI workflow (`consumer-smoke.yml`) chains off the Release workflow, plus weekly and on
+demand. Never on a PR, since a PR cannot change what is already published. Note the real
+cadence: Release runs on every push to `master` (with pending changesets it only refreshes the
+"Version Packages" PR), so the smoke test runs on every master push and not just after a
+publish — which is what you want, since it then covers a just-published version immediately.
+The workflow **fails if `node_modules/@its/glowup-ui` is a symlink**, which is what would
+happen if someone ever moved the example under `apps/` or added it to the workspaces.
 
 ## 5. Still open (not code — decisions and secrets)
 

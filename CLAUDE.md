@@ -85,7 +85,9 @@ packages/ui/
 - The playground consumes `src`, never `lib`, so the published artefact is checked separately:
   `npm run validate-package -w @its/glowup-ui` (a CI step) validates the tarball's manifest
   and types statically, and `examples/consumer` exercises the published package at runtime
-  (its own CI workflow, `consumer-smoke.yml`, runs after a release). Run validate-package
+  (its own CI workflow, `consumer-smoke.yml`, chains off Release, so it runs on every push to
+  master, plus weekly and on demand — never on a PR, which cannot change what is already
+  published). Run validate-package
   after touching `package.json`, the export map or anything a `.d.ts` imports.
 
 ### Theme system

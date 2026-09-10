@@ -11,6 +11,13 @@ An **npm-workspaces monorepo** with exactly two workspaces:
 | `packages/ui`     | `@its/glowup-ui`         | The product: a publishable Material You (MD3) component library.     |
 | `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos and exercises the library.  |
 
+Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
+`@its/glowup-ui` **from the npm registry** and is the runtime check on the published artefact
+(the playground, being a workspace, always runs the local source). Never add it to the
+`workspaces` array — npm would link the local package and the check would silently test
+nothing; its CI job fails if `node_modules/@its/glowup-ui` is a symlink. See
+`examples/consumer/README.md`.
+
 The library targets iOS, Android and Web through Expo + `react-native-web`. The playground is
 not a shippable product and holds no product code (no API clients, auth or domain models) —
 if something reusable is needed, it belongs in `packages/ui`.
@@ -75,9 +82,11 @@ packages/ui/
   chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
   comments pointing at them. Don't "restore" either half without removing `!**/*.map` from
   the package's `files` too, or the tarball will reference maps it does not ship.
-- The playground consumes `src`, never `lib`, so the published artefact is checked separately
-  by `npm run validate-package -w @its/glowup-ui` (also a CI step). Run it after touching
-  `package.json`, the export map or anything a `.d.ts` imports.
+- The playground consumes `src`, never `lib`, so the published artefact is checked separately:
+  `npm run validate-package -w @its/glowup-ui` (a CI step) validates the tarball's manifest
+  and types statically, and `examples/consumer` exercises the published package at runtime
+  (its own CI workflow, `consumer-smoke.yml`, runs after a release). Run validate-package
+  after touching `package.json`, the export map or anything a `.d.ts` imports.
 
 ### Theme system
 

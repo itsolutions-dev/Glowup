@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Glowup consumer smoke",
+    "slug": "glowup-consumer-smoke",
+    "version": "1.0.0",
+    "userInterfaceStyle": "automatic",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-localization", "expo-status-bar"]
+  }
+}

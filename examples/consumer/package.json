@@ -1,0 +1,30 @@
+{
+  "name": "glowup-consumer-smoke",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Deliberately OUTSIDE the npm workspaces: installs @its/glowup-ui from the registry so the published artefact is exercised, not the local source.",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "type-check": "tsc --noEmit",
+    "smoke": "npm run type-check && expo export -p web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@its/glowup-ui": "^0.5.0",
+    "expo": "~57.0.21",
+    "expo-localization": "~57.0.1",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.17",
+    "typescript": "~6.0.3"
+  }
+}

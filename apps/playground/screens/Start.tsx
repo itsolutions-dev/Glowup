@@ -11,6 +11,7 @@ import {
   Alert,
   Spinner,
   ToggleButton,
+  ToggleButtonGroup,
   Input,
   Divider,
   Chip,
@@ -31,24 +32,8 @@ import {
   Modal,
   ConfirmDialog,
 } from "@glowup/ui";
-//import ToggleButtonGroup from "components/ToggleButton/ToggleButtonGroup";
 
 import { useTranslation } from "react-i18next";
-
-/* 
-
-
-import ListItem from "components/List/ListItem";
-import { useWorkOrderContext } from "store/workorder-context";
-
-
-
-
-
-
-
-
-import DateTimePicker from "components/DateTimePicker"; */
 
 function Start() {
   const { theme, toggleTheme } = useTheme();
@@ -285,16 +270,16 @@ function Start() {
             isLast={true}
           />
 
-          {/*           <ToggleButtonGroup
+          <ToggleButtonGroup
             value={lang}
             onValueChange={setLang}
-            multiSelect={true}
+            accessibilityLabel="Demo language"
             options={[
               { label: "EN", value: "en", icon: "translate" },
               { label: "IT", value: "it", icon: "translate" },
               { label: "ES", value: "es", icon: "translate" },
             ]}
-          /> */}
+          />
         </View>
         <Divider>
           <Chip

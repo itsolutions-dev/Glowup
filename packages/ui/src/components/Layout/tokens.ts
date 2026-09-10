@@ -36,5 +36,8 @@ export const resolveColor = (
   value: ColorValue | undefined,
 ): string | undefined => {
   if (value === undefined) return undefined;
-  return (theme.colors as Record<string, string>)[value] ?? value;
+  // `value` is a color role or a literal color; the cast asks the theme for the
+  // role and the fallback covers the literal, which is not a key of it.
+  const role = value as keyof Theme["colors"];
+  return (theme.colors[role] as string | undefined) ?? value;
 };

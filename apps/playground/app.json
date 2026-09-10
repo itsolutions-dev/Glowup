@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ANT",
-    "slug": "ANT",
+    "name": "Glowup Playground",
+    "slug": "glowup-playground",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +23,6 @@
     },
     "plugins": [
       "expo-localization",
-      "expo-secure-store",
       "expo-status-bar",
       "expo-font",
       [

@@ -8,7 +8,7 @@ import {
   Portal,
   ThemeProvider,
   Tooltip,
-} from "@glowup/ui";
+} from "../index";
 
 // SafeAreaProvider is part of the kit's provider contract — FAB, AnimatedFAB,
 // AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.

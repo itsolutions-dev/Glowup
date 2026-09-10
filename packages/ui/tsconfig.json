@@ -4,7 +4,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "types": []
+    "types": ["jest"]
   },
   "include": ["src"]
 }

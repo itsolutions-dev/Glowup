@@ -36,5 +36,12 @@ jobs:
       - name: Build library
         run: npm run build
 
+      # The playground consumes packages/ui/src, so nothing else in CI exercises
+      # the artefact npm actually ships. publint checks the manifest and export
+      # map against the packed files; attw resolves the shipped .d.ts the way a
+      # consumer's tsc would (it is what caught the theme.json type import).
+      - name: Validate published package
+        run: npm run validate-package -w @glowup/ui
+
       - name: Lint
         run: npm run lint

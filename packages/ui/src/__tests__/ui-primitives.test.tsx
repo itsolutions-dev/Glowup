@@ -14,7 +14,7 @@ import {
   ToggleButtonGroup,
   TouchableRipple,
   useTheme,
-} from "@glowup/ui";
+} from "../index";
 
 const wrap = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);

@@ -19,6 +19,7 @@
   "files": [
     "src",
     "lib",
+    "!**/*.map",
     "!**/__tests__",
     "!**/__fixtures__",
     "!**/*.test.ts",
@@ -27,10 +28,10 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "bob build",
+    "build": "bob build && node scripts/strip-declaration-maps.mjs",
     "validate-package": "publint && attw --pack .",
     "clean": "del-cli lib",
-    "prepack": "bob build",
+    "prepack": "npm run build",
     "type-check": "tsc --noEmit",
     "test": "jest"
   },
@@ -100,8 +101,18 @@
     "source": "src",
     "output": "lib",
     "targets": [
-      "commonjs",
-      "module",
+      [
+        "commonjs",
+        {
+          "sourceMaps": false
+        }
+      ],
+      [
+        "module",
+        {
+          "sourceMaps": false
+        }
+      ],
       [
         "typescript",
         {

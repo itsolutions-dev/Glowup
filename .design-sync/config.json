@@ -14,9 +14,6 @@
     }
   },
   "componentSrcMap": {
-    "DrawerNavigation": null,
-    "StackNavigation": null,
-    "CustomDrawerContent": null,
     "Alert": null,
     "SafeAreaProvider": null,
     "FAB": "src/components/FAB.tsx"

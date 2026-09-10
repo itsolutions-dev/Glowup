@@ -40,7 +40,7 @@ TextField, Toast, Tooltip, Transitions, Typeahead, Wrap.
 | Tag | `Chip` | Glowup's also does selected/filter states |
 | Heading / Text | `Typography` | One component, M3 variant scale |
 | Progress | `LinearProgress` | plus `CircularProgress` |
-| Drawer | `DrawerNavigation` | responsive permanent/slide-over |
+| Drawer | app-side since `0.5.0` (was `DrawerNavigation`) | responsive permanent/slide-over |
 | Actionsheet | `BottomSheet` | |
 | AlertDialog | `ConfirmDialog` | |
 | Alert | `Banner` | M3 banner rather than an inline alert box |
@@ -124,7 +124,7 @@ chunking also keeps a short final row at column width instead of stretching it.
 
 `DataGrid`, `DateTimePicker` / `DatePicker` / `TimePicker` / `Calendar` / `TimeSelect`, `Carousel`,
 `Rating`, `Pagination`, `Stepper`, `SpeedDial`, `EmptyState`, `SearchBar`, `StatusBadge`,
-`ToggleButtonGroup`, `LanguageSelector`, `IconBadge`, `DrawerNavigation` / `StackNavigation`,
+`ToggleButtonGroup`, `LanguageSelector`, `IconBadge`,
 `Paper`, and the whole Material You token system (`getStateColor`, `getGlowStyles`, dynamic
 light/dark).
 

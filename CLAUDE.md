@@ -53,8 +53,8 @@ This is the rule that keeps the split real:
 packages/ui/
 ├── src/
 │   ├── index.ts        # the public API barrel; nothing else is public
-│   ├── components/     # ~86 components (CardParts/, List/, Modal/, Navigation/,
-│   │                   #   Progress/, Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
+│   ├── components/     # 84 components (CardParts/, List/, Modal/, Progress/,
+│   │                   #   Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
 │   ├── components/components.md  # authoritative per-component spec, all prop defaults
 │   ├── providers/      # ThemeProvider, AlertProvider, ToastProvider, theme.json
 │   └── __tests__/      # the library's own component tests (jest-expo)
@@ -65,8 +65,11 @@ packages/ui/
 
 - Anything added under `src/components` must be exported from `src/index.ts` to exist for
   consumers.
-- Native/navigation dependencies are **peerDependencies** (mostly optional);
-  only `date-fns` and `polished` are real dependencies.
+- Native dependencies are **peerDependencies** (mostly optional); only `date-fns` and
+  `polished` are real dependencies. The library is **navigation-agnostic**: it must never
+  depend on `@react-navigation/*`. It ships navigation widgets (`AppBar`, `NavigationBar`,
+  `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`) but no navigator — those live in the app,
+  in `apps/playground/navigation/`.
 - Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
   `.js.map` files; bob's typescript target hardcodes `--declarationMap`, so `npm run build`
   chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
@@ -120,6 +123,7 @@ apps/playground/
 │   ├── registry/      # one module per category, merged into ComponentRegistry
 │   └── ComponentPreview.tsx  # renders the selected entry with the panel's props
 ├── __tests__/         # catalogue coverage only
+├── navigation/        # DrawerNavigation, StackNavigation, DrawerContent + Route/User types
 ├── i18n/              # i18next setup + locale JSON (app-side; the library is prop-driven)
 └── metro.config.js    # monorepo-aware Metro (watches the repo root)
 ```
@@ -130,14 +134,18 @@ module, its name in the right group in `catalogue/categories.ts`, any special-ca
 `__tests__/playground-catalogue.test.tsx` — the test pins the list against the screen's own
 counter, so a component catalogued without a working demo fails there.
 
-`DrawerNavigation` (from the library) is responsive: permanent sidebar at width ≥ 840px,
-slide-over below. Routes are the `APP_ROUTES` array in `App.tsx`.
+`DrawerNavigation` (`navigation/DrawerNavigation.tsx`, app-side) is responsive: permanent
+sidebar at width ≥ 840px, slide-over below. Routes are the `APP_ROUTES` array in `App.tsx`.
+It consumes the library like any external consumer would — through `@its/glowup-ui`.
 
 ## Tests
 
 - Component behaviour is tested **in the library**: `packages/ui/src/__tests__` (jest-expo).
-  `packages/ui/babel.config.js` exists only for jest and must keep `lazyImports: true` — an
-  eager transform of the barrel pulls `react-native-worklets` into every test run and throws.
+  `packages/ui/babel.config.js` exists only for jest (`bob build` has its own config). It
+  needed `lazyImports: true` while the barrel re-exported the drawer navigator, because the
+  eager transform pulled `@react-navigation/drawer` → reanimated → `react-native-worklets`
+  into every test run and its native initialisers throw under jest. Since `0.5.0` removed the
+  navigators, the plain preset works — don't reintroduce a dependency that brings it back.
 - The playground tests only the playground (catalogue coverage).
 
 ## Releasing

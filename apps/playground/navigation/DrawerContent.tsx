@@ -7,12 +7,15 @@ import {
 } from "@react-navigation/drawer";
 import UserProps from "./User";
 import { View, Text, StyleSheet } from "react-native";
-import Avatar from "../Avatar"; // Using the avatar we built earlier
-import { useTheme, Theme } from "../../providers/ThemeProvider";
+import {
+  Avatar,
+  DrawerPreferenceItem,
+  Toggle,
+  Typography,
+  useTheme,
+} from "@its/glowup-ui";
+import type { Theme } from "@its/glowup-ui";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import DrawerPreferenceItem from "./DrawerPreferenceItem";
-import Toggle from "../Toggle";
-import Typography from "../Typography";
 
 interface CustomDrawerContentProps extends DrawerContentComponentProps {
   isPinned: boolean;

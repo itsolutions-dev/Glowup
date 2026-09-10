@@ -4,9 +4,12 @@ import {
   AlertProvider,
   ThemeProvider,
   ToastProvider,
-  DrawerNavigation,
   StatusBar,
 } from "@its/glowup-ui";
+
+// Navigation lives in the app: the library is navigation-agnostic and does not
+// depend on @react-navigation/*.
+import DrawerNavigation from "./navigation/DrawerNavigation";
 import { NavigationContainer } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 

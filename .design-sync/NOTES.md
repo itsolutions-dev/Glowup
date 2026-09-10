@@ -42,12 +42,14 @@ loader and no asset loaders — all four are required here. Rather than fork
 
 ## What does NOT ship, and why
 
-- `DrawerNavigation`, `StackNavigation`, `CustomDrawerContent` — `@react-navigation/*` →
-  `react-native-screens`, whose commonjs build has unresolvable platform-split requires
-  (`./TabsHost`, `./TabsScreen`) and whose native specs are Flow. Excluded via
-  `componentSrcMap: null`. Confirmed with the user 2026-09-08. They are navigator
-  wrappers needing a `NavigationContainer` + route array, so they were poor preview
-  material regardless.
+- `DrawerNavigation`, `StackNavigation`, `CustomDrawerContent` — **no longer in the DS at
+  all.** They were removed from the library in `0.5.0` and now live in the playground
+  (`apps/playground/navigation/`), so there is nothing to exclude any more; their
+  `componentSrcMap: null` entries are gone with them. They had been excluded because
+  `@react-navigation/*` → `react-native-screens` has a commonjs build with unresolvable
+  platform-split requires (`./TabsHost`, `./TabsScreen`) and Flow native specs, and because
+  navigator wrappers needing a `NavigationContainer` + route array were poor preview material
+  regardless. Nothing else in the package pulls `@react-navigation/*`.
 - `Alert` — the imperative `Alert(title, message, buttons)` singleton, not a component.
   Excluded; it is documented in `conventions.md` instead.
 - `SafeAreaProvider` — re-exported from the barrel purely so `cfg.provider` can mount it

@@ -97,37 +97,51 @@ export default function Home() {
       >
         <View style={styles.cards}>
           {SITE_ROUTES.filter((route) => route.href !== "/").map((route) => (
-            <Link key={route.href} href={route.href as never} asChild>
-              <Pressable
-                accessibilityRole="link"
-                accessibilityLabel={route.label}
-                style={({ hovered, focused }: PressableState) => [
-                  styles.card,
-                  !layout.isCompact && styles.cardWide,
-                  (hovered || focused) && {
-                    borderColor: theme.colors.primary,
-                  },
-                ]}
-              >
-                <Icons
-                  name={route.icon}
-                  size={22}
-                  color={theme.colors.primary}
-                />
-                <Typography
-                  variant="titleSmall"
-                  style={{ color: theme.colors.onSurface }}
+            <View
+              key={route.href}
+              style={[
+                styles.cardSlot,
+                !layout.isCompact && styles.cardSlotWide,
+              ]}
+            >
+              <Link href={route.href as never} asChild>
+                <Pressable
+                  accessibilityRole="link"
+                  accessibilityLabel={route.label}
                 >
-                  {route.label}
-                </Typography>
-                <Typography
-                  variant="bodySmall"
-                  style={{ color: theme.colors.onSurfaceVariant }}
-                >
-                  {route.summary}
-                </Typography>
-              </Pressable>
-            </Link>
+                  {/* Painted one level in: `Link asChild` drops a function or
+                    array style on the Slot's direct child. */}
+                  {({ hovered, focused }: PressableState) => (
+                    <View
+                      style={[
+                        styles.card,
+                        (hovered || focused) && {
+                          borderColor: theme.colors.primary,
+                        },
+                      ]}
+                    >
+                      <Icons
+                        name={route.icon}
+                        size={22}
+                        color={theme.colors.primary}
+                      />
+                      <Typography
+                        variant="titleSmall"
+                        style={{ color: theme.colors.onSurface }}
+                      >
+                        {route.label}
+                      </Typography>
+                      <Typography
+                        variant="bodySmall"
+                        style={{ color: theme.colors.onSurfaceVariant }}
+                      >
+                        {route.summary}
+                      </Typography>
+                    </View>
+                  )}
+                </Pressable>
+              </Link>
+            </View>
           ))}
         </View>
       </Section>
@@ -197,9 +211,13 @@ const makeStyles = (theme: Theme) =>
     statsStacked: { flexDirection: "column" },
     statItem: { flexGrow: 1, flexBasis: 180 },
     cards: { flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.m },
+    cardSlot: { flexGrow: 1, flexBasis: "100%" },
+    cardSlotWide: { flexBasis: 240, maxWidth: 320 },
+    // Purely visual. The sizing lives on the slot: a Pressable under a
+    // `Link asChild` never receives a style, and flex properties on the card
+    // would read as height once it is a column child rather than a row item.
     card: {
-      flexGrow: 1,
-      flexBasis: "100%",
+      flex: 1,
       gap: theme.spacing.xs,
       padding: theme.spacing.l,
       borderRadius: theme.shape.large,
@@ -207,7 +225,6 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surfaceContainerLow,
     },
-    cardWide: { flexBasis: 240, maxWidth: 320 },
     bullets: { gap: theme.spacing.m },
     bullet: {
       flexDirection: "row",

@@ -124,37 +124,33 @@ const CatalogueLink = ({
 
   return (
     <Link href={`/components/${name}` as never} asChild>
-      <Pressable
-        accessibilityRole="link"
-        accessibilityState={{ selected }}
-        style={({ hovered, focused }: PressableState) => [
-          styles.item,
-          (hovered || focused) && {
-            backgroundColor: theme.colors.surfaceContainerHigh,
-          },
-          focused && { borderColor: theme.colors.primary },
-          selected && { backgroundColor: theme.colors.secondaryContainer },
-        ]}
-      >
-        <View
-          style={[
-            styles.accent,
-            {
-              backgroundColor: selected ? theme.colors.primary : "transparent",
-            },
-          ]}
-        />
-        <Typography
-          variant="bodyMedium"
-          style={{
-            color: selected
-              ? theme.colors.onSecondaryContainer
-              : theme.colors.onSurfaceVariant,
-            fontWeight: selected ? "700" : "400",
-          }}
-        >
-          {name}
-        </Typography>
+      <Pressable accessibilityRole="link" accessibilityState={{ selected }}>
+        {/* Styled one level in: `Link asChild` drops a function or array style
+            on the Slot's direct child. */}
+        {({ hovered, focused }: PressableState) => (
+          <View
+            style={[
+              styles.item,
+              (hovered || focused) && {
+                backgroundColor: theme.colors.surfaceContainerHigh,
+              },
+              focused && { borderColor: theme.colors.primary },
+              selected && { backgroundColor: theme.colors.secondaryContainer },
+            ]}
+          >
+            <Typography
+              variant="bodyMedium"
+              style={{
+                color: selected
+                  ? theme.colors.onSecondaryContainer
+                  : theme.colors.onSurfaceVariant,
+                fontWeight: selected ? "700" : "400",
+              }}
+            >
+              {name}
+            </Typography>
+          </View>
+        )}
       </Pressable>
     </Link>
   );
@@ -168,13 +164,17 @@ const makeStyles = (theme: Theme) =>
       borderRightColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surface,
     },
+    // The filter stays put while the list scrolls under it, which is the whole
+    // reason the sidebar lives in the layout rather than in the page.
     search: {
       padding: theme.spacing.s,
       gap: theme.spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outlineVariant,
     },
     scroll: { flex: 1 },
     scrollContent: { paddingBottom: theme.spacing.xl },
-    group: { marginTop: theme.spacing.s, paddingHorizontal: theme.spacing.xs },
+    group: { marginTop: theme.spacing.m, paddingHorizontal: theme.spacing.s },
     groupHeader: {
       flexDirection: "row",
       alignItems: "center",
@@ -182,22 +182,18 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.s,
       marginBottom: theme.spacing.xs,
     },
-    groupLabel: { flex: 1, letterSpacing: 1.2, fontWeight: "700" },
+    groupLabel: { flex: 1, letterSpacing: 1.4, fontWeight: "700" },
+    // Pills, like the destinations in the site drawer: the two menus sit side
+    // by side on a component page and should not look like different products.
     item: {
       flexDirection: "row",
       alignItems: "center",
-      borderRadius: theme.shape.small,
+      borderRadius: 999,
       borderWidth: 1,
       borderColor: "transparent",
       paddingVertical: theme.spacing.s,
-      paddingHorizontal: theme.spacing.s,
+      paddingHorizontal: theme.spacing.m,
       marginBottom: 2,
-    },
-    accent: {
-      width: 3,
-      height: 16,
-      borderRadius: 2,
-      marginRight: theme.spacing.s,
     },
   });
 

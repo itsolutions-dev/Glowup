@@ -20,7 +20,7 @@
 //     from them without a second source of truth.
 //
 // Run from the playground workspace: `npm run docgen -w @its/glowup-playground`.
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Project, Node } from "ts-morph";
@@ -379,7 +379,15 @@ for (const entry of allExports) {
   };
 }
 
+const { version: libraryVersion, name: libraryName } = JSON.parse(
+  readFileSync(resolve(UI_ROOT, "package.json"), "utf8"),
+);
+
 const payload = {
+  // The site shows these in its navigation; reading them here keeps the app
+  // from importing a path inside packages/ui, which ESLint forbids.
+  libraryName,
+  libraryVersion,
   // Regenerate with `npm run docgen -w @its/glowup-playground`.
   generatedFrom: relative(REPO_ROOT, BARREL).replace(/\\/g, "/"),
   componentCount: Object.keys(components).length,

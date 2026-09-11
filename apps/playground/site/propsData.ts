@@ -35,6 +35,10 @@ export const COMPONENT_DOCS = generated.components as unknown as Record<
   ComponentDoc
 >;
 
+/** The published package and the version these docs were generated from. */
+export const LIBRARY_NAME = generated.libraryName;
+export const LIBRARY_VERSION = generated.libraryVersion;
+
 export const docFor = (name: string): ComponentDoc | undefined =>
   COMPONENT_DOCS[name];
 

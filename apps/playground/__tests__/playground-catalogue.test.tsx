@@ -222,6 +222,38 @@ describe("Playground catalogue", () => {
     expect(snippet.startsWith(`<${name}`)).toBe(true);
   });
 
+  it.each(CATALOGUE)("puts %s's content in the right slot", (name) => {
+    // `label` and `title` used to go between the tags alongside `children`,
+    // which produced `<Slider>Volume</Slider>` — Slider takes no children, so
+    // a reader who pasted it got a slider with no label. Whether a component
+    // takes children is whether its entry declares a `children` prop, nothing
+    // else, and that is what decides the slot.
+    const meta = ComponentRegistry[name];
+    const snippet = buildSnippet(name, meta, defaultsOf(name));
+    const takesChildren = typeof meta.props.children?.default === "string";
+
+    expect(snippet.endsWith("/>")).toBe(!takesChildren);
+    for (const key of ["label", "title"]) {
+      const value = meta.props[key]?.default;
+      if (typeof value !== "string" || !value) continue;
+      // Written, but inside the tag rather than between the tags.
+      expect(snippet).toContain(`${key}=${JSON.stringify(value)}`);
+    }
+  });
+
+  it("writes a content prop even at its default, and drops it when emptied", () => {
+    // Every other prop is omitted at its default, which is what keeps the
+    // snippet short. Applied to the content prop it gave `<Chip />`, a tag
+    // whose whole subject is missing.
+    const meta = ComponentRegistry.Chip;
+    expect(buildSnippet("Chip", meta, defaultsOf("Chip"))).toBe(
+      '<Chip label="React Native" />',
+    );
+    expect(
+      buildSnippet("Chip", meta, { ...defaultsOf("Chip"), label: "" }),
+    ).toBe("<Chip />");
+  });
+
   it("leaves an inapplicable prop out of the snippet", () => {
     // Divider drops its label once it is vertical, so a snippet that still
     // wrote one would promise something the demo above it visibly does not do.

@@ -202,15 +202,26 @@ export default function ComponentPage() {
             />
           </View>
 
-          <View style={styles.stage}>
-            <View
-              style={[
-                styles.stageInner,
-                STAGE_WIDTHS[stageWidth]
-                  ? { width: "100%", maxWidth: STAGE_WIDTHS[stageWidth] }
-                  : { width: "100%" },
-              ]}
-            >
+          {/* The cap goes on the stage, not on a wrapper inside it. Capping an
+              inner box that is already wider than its content changes nothing
+              anyone can see: the frame stayed 912px and the demo never
+              reflowed. Narrowing the frame itself is both the feedback that
+              the viewport changed and the constraint the demo lays out in. */}
+          <View
+            style={[
+              styles.stage,
+              STAGE_WIDTHS[stageWidth] !== undefined && {
+                // A fixed width, not a cap: `alignSelf` takes the stage out of
+                // the column's stretch, so a maxWidth alone let it shrink-wrap
+                // its content and 360 and 720 rendered identically. maxWidth
+                // "100%" keeps it inside the column on a narrow screen.
+                width: STAGE_WIDTHS[stageWidth],
+                maxWidth: "100%",
+                alignSelf: "center",
+              },
+            ]}
+          >
+            <View style={styles.stageInner}>
               <DemoErrorBoundary label={name}>
                 <ComponentPreview
                   selectedComponentName={name}
@@ -411,7 +422,11 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surfaceContainerLow,
     },
-    stageInner: { alignItems: "center", justifyContent: "center" },
+    stageInner: {
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
     controlsAndCode: { gap: theme.spacing.l },
     controlsAndCodeWide: { flexDirection: "row", alignItems: "flex-start" },
     controlsColumn: { flex: 1, minWidth: 0 },

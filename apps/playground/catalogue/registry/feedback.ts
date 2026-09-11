@@ -147,7 +147,13 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       width: { type: "number", default: 200, label: "Width" },
       height: { type: "number", default: 48, label: "Height" },
-      duration: { type: "number", default: 1200, label: "Duration (ms)" },
+      duration: {
+        type: "number",
+        default: 1200,
+        label: "Duration (ms)",
+        // A static placeholder has no pulse to time.
+        appliesWhen: (values) => !!values.animate,
+      },
       animate: { type: "boolean", default: true, label: "Animate" },
     },
   },
@@ -165,7 +171,13 @@ export const feedback: Record<string, ComponentMetadata> = {
     name: "LinearProgress",
     Component: LinearProgress,
     props: {
-      progress: { type: "number", default: 0.6, label: "Progress (0-1)" },
+      progress: {
+        type: "number",
+        default: 0.6,
+        label: "Progress (0-1)",
+        // The indeterminate bar reports no value, to the eye or to a11y.
+        appliesWhen: (values) => !values.indeterminate,
+      },
       indeterminate: {
         type: "boolean",
         default: false,

@@ -23,7 +23,7 @@ const COVER = gradientCover("#6750A4", "#B3261E");
 const TitleBasic = () => (
   <View style={demo.panel}>
     <Card variant="outlined">
-      <CardTitle title="Invoice #1042" subtitle="Acme S.r.l. · due 12 Oct" />
+      <CardTitle title="Invoice #1042" subtitle="Acme Inc. · due 12 Oct" />
     </Card>
   </View>
 );
@@ -56,7 +56,7 @@ const TitleWithSlots = () => (
 const ContentBody = () => (
   <View style={demo.panel}>
     <Card variant="outlined">
-      <CardTitle title="Invite your team" subtitle="Workspace · Acme S.r.l." />
+      <CardTitle title="Invite your team" subtitle="Workspace · Acme Inc." />
       <CardContent>
         <Typography variant="bodyMedium">
           Everyone you invite gets read access to the shared component library.

@@ -115,6 +115,8 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
         type: "text",
         default: "No rows to display",
         label: "Empty Message",
+        // Drawn in the body's empty slot, which the spinner takes over.
+        appliesWhen: (values) => !!values.empty && !values.loading,
       },
     },
   },
@@ -210,11 +212,15 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Down", value: "down" },
           { label: "Flat", value: "flat" },
         ],
+        // The arrow lives in the delta row, which needs a delta.
+        appliesWhen: (values) => !!values.delta,
       },
       invertTrendColors: {
         type: "boolean",
         default: false,
         label: "Invert trend colors",
+        // Flat is the neutral role either way round.
+        appliesWhen: (values) => !!values.delta && values.trend !== "flat",
       },
       helpText: { type: "text", default: "vs. last month", label: "Help Text" },
       icon: { type: "text", default: "cash-multiple", label: "Icon" },

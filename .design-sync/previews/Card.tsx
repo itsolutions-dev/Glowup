@@ -138,7 +138,7 @@ export const Pressable = () => (
 export const WithActions = () => (
   <div style={{ width: 380 }}>
     <Card variant="outlined">
-      <CardTitle title="Invite your team" subtitle="Workspace · Acme S.r.l." />
+      <CardTitle title="Invite your team" subtitle="Workspace · Acme Inc." />
       <CardContent>
         <Typography variant="bodyMedium">
           Everyone you invite gets read access to the shared component library.

@@ -26,8 +26,8 @@ export const Variants = () => (
     <Input
       variant="outlined"
       label="Company"
-      placeholder="Acme S.r.l."
-      value="Acme S.r.l."
+      placeholder="Acme Inc."
+      value="Acme Inc."
       onChangeText={noop}
     />
   </View>

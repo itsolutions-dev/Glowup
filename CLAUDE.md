@@ -44,6 +44,7 @@ npm run release                           # changeset publish (CI does this)
 # The documentation site (apps/playground)
 npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source
 npm run variants -w @its/glowup-playground    # regenerate the variant galleries from .design-sync/previews
+npm run icons -w @its/glowup-playground       # redraw the icon set from theme.json
 npm run export:web -w @its/glowup-playground  # static export to apps/playground/dist
 ```
 
@@ -160,16 +161,19 @@ apps/playground/
 │   └── variants/      # generate.mjs + generated/ (see below) + manual.ts
 ├── docgen/            # extract-props.mjs + props.generated.json (see below)
 ├── __tests__/         # catalogue coverage only
-├── navigation/        # DrawerNavigation, StackNavigation, DrawerContent — the
-│                      #   app-side example of wiring AppBar into a navigator;
-│                      #   shown as a snippet on /templates, not mounted by the
-│                      #   site, which draws its own shell
-├── i18n/              # i18next setup + locale JSON (app-side; the library is prop-driven)
+├── scripts/           # generate-icons.mjs (see below)
+├── assets/            # generated app icons + splash
+├── public/            # copied to the export root verbatim (og-image.png)
 ├── app.config.ts      # reads GLOWUP_BASE_URL; web output is "static"
 └── metro.config.js    # monorepo-aware Metro (watches the repo root)
 ```
 
-### Two generated artefacts, both committed, both checked by CI
+The site is **English only** and carries no i18n layer: `i18n/` and the
+`@react-navigation`-based `navigation/` folder were removed once nothing rendered
+them. The navigator wiring survives as a snippet on /templates, because `AppBar`
+takes react-navigation's header contract and a consumer still needs to see it.
+
+### Three generated artefacts, all committed
 
 - `docgen/props.generated.json` — every exported component's prop table, read from the
   library's TypeScript with ts-morph: name, type as written, optionality, JSDoc, and the
@@ -181,8 +185,14 @@ apps/playground/
   `catalogue/variants/generate.mjs`. The previews stay in the browser dialect because the
   design-sync converter cannot resolve `react-native`; **edit the preview, then run
   `npm run variants -w @its/glowup-playground`**. Seven previews are excluded by name in the
-  generator, each with its reason; hand-written replacements go in `catalogue/variants/manual.ts`,
-  which wins over the generated entry for the same component.
+  generator, each with its reason; hand-written galleries live in
+  `catalogue/variants/manual/` and win over the generated entry for the same component.
+  A catalogued component with no gallery at all fails the playground test.
+- `assets/*.png` and `public/og-image.png` — the icon set and the share card, drawn from
+  `theme.json`'s primary colours by `scripts/generate-icons.mjs` (a hand-rolled PNG encoder;
+  no image dependency). `npm run icons -w @its/glowup-playground` regenerates them. Not checked
+  by CI — deflate output is not guaranteed byte-identical across zlib versions — so regenerate
+  them by hand when the theme's primary colours change.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
 module, its name in the right group in `catalogue/categories.ts`, any special-casing in
@@ -190,6 +200,13 @@ module, its name in the right group in `catalogue/categories.ts`, any special-ca
 `__tests__/playground-catalogue.test.tsx` — the test pins that list against `FLAT_ORDER`, the
 registry and the generated docs, so a component catalogued without a working demo fails there.
 It gets its page, its props table and its URL for free.
+
+### Keyboard
+
+`site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op
+on native. `SiteShell` owns the list — ⌘/Ctrl+K or `/` for the command palette, `[` and `]` to
+step through the catalogue, `t` for the scheme, `?` for the list itself — and `ShortcutsDialog`
+renders that same array, so a shortcut cannot exist without being documented.
 
 ### Responsive
 

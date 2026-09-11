@@ -47,6 +47,9 @@ jobs:
           # The repository name, case-sensitive — Pages serves the project site
           # from a path that matches it exactly.
           GLOWUP_BASE_URL: /${{ github.event.repository.name }}
+          # Open Graph needs an absolute URL for the share card image, and
+          # nothing else on the page does.
+          EXPO_PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
 
       - name: Prepare the Pages artefact
         working-directory: apps/playground/dist

@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import Head from "expo-router/head";
 import { Typography, useTheme, type Theme } from "@its/glowup-ui";
 import { useLayout } from "./breakpoints";
+import { OG_IMAGE_URL } from "./siteNav";
 
 const SITE_NAME = "Glowup";
 
@@ -113,6 +114,8 @@ export const PageHead = ({
       <meta property="og:title" content={documentTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
+      <meta property="og:image" content={OG_IMAGE_URL} />
+      <meta name="twitter:card" content="summary_large_image" />
     </Head>
   );
 };

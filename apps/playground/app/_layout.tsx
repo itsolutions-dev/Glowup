@@ -8,10 +8,6 @@ import {
   ToastProvider,
 } from "@its/glowup-ui";
 
-// Side-effect import: starts i18next so the template screens' `t()` calls
-// resolve to real copy instead of rendering the raw UPPER_SNAKE_CASE keys.
-import "../i18n";
-
 import { SiteShell } from "../site/SiteShell";
 
 /**

@@ -44,17 +44,16 @@ const OUT_DIR = resolve(HERE, "generated");
  * replacements belong in ./manual.
  */
 const EXCLUDED = new Set([
-  // Raw SVG.
-  "Card",
+  // Draws JSX SVG inside a custom `source` render prop. react-native-svg's
+  // elements are components, not intrinsics, so there is nothing to rewrite to.
+  // (Card and Image also contain `<svg`, but inside data-URI strings, which
+  // pass through untouched.)
   "Icon",
-  "Image",
   // A scrollable list built as a div with onScroll — that is a ScrollView in
   // React Native, not a View with a handler.
   "AnimatedFAB",
   // Measures its anchor with querySelector.
   "Autocomplete",
-  // Styles a caption wrapper with textAlign, which belongs on Text.
-  "Carousel",
   // Lays its examples out with CSS grid.
   "Tooltip",
 ]);
@@ -139,6 +138,11 @@ const convert = (source) => {
   );
   out = out.replace(/\boverflowY:\s*"auto"/g, 'overflow: "scroll"');
   out = out.replace(/\boverflowX:\s*"auto"/g, 'overflow: "scroll"');
+
+  // `textAlign` on a layout wrapper is a browser-only inheritance trick: React
+  // Native never inherits text styles, so the property does nothing on a View
+  // and the previews that use it already repeat it on the Typography inside.
+  out = out.replace(/^[ \t]*textAlign:\s*"[^"]*",?[ \t]*\r?\n/gm, "");
 
   // A ref on a layout wrapper points at the View the wrapper became.
   out = out.replace(/HTMLDivElement/g, "View");

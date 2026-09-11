@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Animated,
   Linking,
@@ -6,10 +6,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Link, usePathname } from "expo-router";
+import { Link, router, usePathname } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   IconButton,
@@ -18,7 +19,15 @@ import {
   type PressableState,
   type Theme,
 } from "@its/glowup-ui";
+import { FLAT_ORDER } from "../catalogue/categories";
 import { useLayout } from "./breakpoints";
+import { CommandPalette } from "./CommandPalette";
+import { ShortcutsDialog } from "./ShortcutsDialog";
+import {
+  COMMAND_KEY_LABEL,
+  useKeyboardShortcuts,
+  type Shortcut,
+} from "./useKeyboardShortcuts";
 import { activeRouteFor, GITHUB_URL, SITE_ROUTES } from "./siteNav";
 
 const RAIL_WIDTH = 80;
@@ -44,6 +53,8 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   const active = activeRouteFor(pathname);
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [drawerRequested, setDrawerRequested] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   // Derived, not synchronised: growing the window past the compact breakpoint
   // must not leave an overlay drawer floating over a layout that now has a
@@ -52,6 +63,69 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   const drawerOpen = drawerRequested && !layout.hasRail;
 
   const expanded = layout.atLeast("large");
+
+  // `[` and `]` step through the catalogue in its documented order, but only
+  // while a component page is what is on screen.
+  const currentComponent = pathname.startsWith("/components/")
+    ? decodeURIComponent(pathname.slice("/components/".length))
+    : undefined;
+
+  const step = useCallback(
+    (delta: number) => {
+      if (!currentComponent) return;
+      const index = FLAT_ORDER.indexOf(currentComponent);
+      if (index === -1) return;
+      const next = FLAT_ORDER[index + delta];
+      if (next) router.navigate(`/components/${next}` as never);
+    },
+    [currentComponent],
+  );
+
+  const shortcuts = useMemo<Shortcut[]>(
+    () => [
+      {
+        key: "k",
+        meta: true,
+        label: "K",
+        description: "Search components and pages",
+        run: () => setPaletteOpen(true),
+        whileTyping: true,
+      },
+      {
+        key: "/",
+        label: "/",
+        description: "Search — the same palette, without the modifier",
+        run: () => setPaletteOpen(true),
+      },
+      {
+        key: "[",
+        label: "[",
+        description: "Previous component",
+        run: () => step(-1),
+      },
+      {
+        key: "]",
+        label: "]",
+        description: "Next component",
+        run: () => step(1),
+      },
+      {
+        key: "t",
+        label: "T",
+        description: "Switch between the light and dark scheme",
+        run: toggleTheme,
+      },
+      {
+        key: "?",
+        label: "?",
+        description: "Show this list",
+        run: () => setShortcutsOpen(true),
+      },
+    ],
+    [step, toggleTheme],
+  );
+
+  useKeyboardShortcuts(shortcuts);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -70,8 +144,10 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
             style={styles.brand}
           >
             <View style={styles.brandMark}>
+              {/* The same four-pointed spark the favicon and app icons are
+                  drawn from, so the tab and the header carry one mark. */}
               <Icons
-                name="auto-fix"
+                name="star-four-points"
                 size={18}
                 color={theme.colors.onPrimaryContainer}
               />
@@ -96,6 +172,39 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
         </Link>
 
         <View style={styles.topBarSpacer} />
+
+        {layout.hasRail ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Search components and pages"
+            onPress={() => setPaletteOpen(true)}
+            style={({ hovered, focused }: PressableState) => [
+              styles.searchButton,
+              (hovered || focused) && {
+                backgroundColor: theme.colors.surfaceContainerHigh,
+              },
+            ]}
+          >
+            <Icons
+              name="magnify"
+              size={18}
+              color={theme.colors.onSurfaceVariant}
+            />
+            <Typography
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              Search
+            </Typography>
+            <Text style={styles.searchKey}>{`${COMMAND_KEY_LABEL} K`}</Text>
+          </Pressable>
+        ) : (
+          <IconButton
+            icon="magnify"
+            accessibilityLabel="Search components and pages"
+            onPress={() => setPaletteOpen(true)}
+          />
+        )}
 
         <IconButton
           icon={theme.isDark ? "weather-sunny" : "weather-night"}
@@ -130,6 +239,16 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           onDismiss={() => setDrawerRequested(false)}
         />
       )}
+
+      {paletteOpen && (
+        <CommandPalette onDismiss={() => setPaletteOpen(false)} />
+      )}
+
+      <ShortcutsDialog
+        shortcuts={shortcuts}
+        visible={shortcutsOpen}
+        onDismiss={() => setShortcutsOpen(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -309,6 +428,27 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.colors.primaryContainer,
     },
     topBarSpacer: { flex: 1 },
+    searchButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.s,
+      paddingLeft: theme.spacing.m,
+      paddingRight: theme.spacing.s,
+      paddingVertical: theme.spacing.s,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+    },
+    searchKey: {
+      fontSize: 11,
+      color: theme.colors.onSurfaceVariant,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: 4,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      overflow: "hidden",
+    },
     body: { flex: 1, flexDirection: "row" },
     nav: { backgroundColor: theme.colors.surface },
     navPermanent: {

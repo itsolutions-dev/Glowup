@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An **npm-workspaces monorepo** with exactly two workspaces:
 
-| Workspace         | Package              | Role                                                                 |
-| ----------------- | -------------------- | -------------------------------------------------------------------- |
-| `packages/ui`     | `@its/glowup-ui`         | The product: a publishable Material You (MD3) component library.     |
-| `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos and exercises the library.  |
+| Workspace         | Package                  | Role                                                                |
+| ----------------- | ------------------------ | ------------------------------------------------------------------- |
+| `packages/ui`     | `@its/glowup-ui`         | The product: a publishable Material You (MD3) component library.    |
+| `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos and exercises the library. |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` **from the npm registry** and is the runtime check on the published artefact
@@ -40,7 +40,15 @@ npm run build          # build @its/glowup-ui with react-native-builder-bob
 npm test -w @its/glowup-ui                    # only the library's component tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
+
+# The documentation site (apps/playground)
+npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source
+npm run variants -w @its/glowup-playground    # regenerate the variant galleries from .design-sync/previews
+npm run export:web -w @its/glowup-playground  # static export to apps/playground/dist
 ```
+
+Both generators write committed files and CI fails on a diff, so run them after touching a
+component's props or a preview.
 
 ## The library/app boundary
 
@@ -121,33 +129,75 @@ supports a manual toggle.
 
 ## apps/playground — the presentation app
 
+The playground is also the **published documentation site**: the same Expo app runs on
+device and exports to static HTML for GitHub Pages.
+
 ```
 apps/playground/
-├── App.tsx            # ThemeProvider / SafeAreaProvider / AlertProvider / ToastProvider + drawer nav
-├── index.ts           # Expo entry (registerRootComponent)
-├── screens/
-│   ├── Playground.tsx # gallery shell: category nav, search, live props panel, stage chrome
-│   └── Start.tsx      # kitchen-sink page
+├── app/               # expo-router routes — one file per URL, each prerendered
+│   ├── _layout.tsx    # provider chain + SiteShell, mounted for every route
+│   ├── index.tsx      # overview
+│   ├── getting-started.tsx
+│   ├── theming.tsx    # live token reference, read from the running theme
+│   ├── templates.tsx  # whole screens composed from the kit
+│   ├── +not-found.tsx # exported as 404.html by the deploy workflow
+│   └── components/
+│       ├── _layout.tsx  # catalogue sidebar (expanded and up) + the page
+│       ├── index.tsx    # the catalogue as a filterable grid
+│       └── [name].tsx   # one component: demo, controls, snippet, variants, API
+├── site/              # the site's own building blocks
+│   ├── breakpoints.ts   # M3 window size classes — the ONLY responsive source
+│   ├── SiteShell.tsx    # top bar + navigation (scrim drawer / rail / drawer)
+│   ├── CatalogueSidebar.tsx, Page.tsx, CodeBlock.tsx, PropsTable.tsx,
+│   ├── PropControls.tsx, ErrorBoundary.tsx, propsData.ts, siteNav.ts,
+│   └── usePersistentState.ts
 ├── catalogue/         # the gallery's content
 │   ├── types.ts       # PropDefinition, ComponentMetadata, Category
 │   ├── categories.ts  # CATEGORIES + FLAT_ORDER + TOTAL_COUNT + CATEGORY_OF
 │   ├── registry/      # one module per category, merged into ComponentRegistry
-│   └── ComponentPreview.tsx  # renders the selected entry with the panel's props
+│   ├── ComponentPreview.tsx  # renders the selected entry with the panel's props
+│   ├── snippet.ts     # the JSX shown under the stage, built from live props
+│   └── variants/      # generate.mjs + generated/ (see below) + manual.ts
+├── docgen/            # extract-props.mjs + props.generated.json (see below)
 ├── __tests__/         # catalogue coverage only
-├── navigation/        # DrawerNavigation, StackNavigation, DrawerContent + Route/User types
+├── navigation/        # DrawerNavigation, StackNavigation, DrawerContent — the
+│                      #   app-side example of wiring AppBar into a navigator;
+│                      #   shown as a snippet on /templates, not mounted by the
+│                      #   site, which draws its own shell
 ├── i18n/              # i18next setup + locale JSON (app-side; the library is prop-driven)
+├── app.config.ts      # reads GLOWUP_BASE_URL; web output is "static"
 └── metro.config.js    # monorepo-aware Metro (watches the repo root)
 ```
+
+### Two generated artefacts, both committed, both checked by CI
+
+- `docgen/props.generated.json` — every exported component's prop table, read from the
+  library's TypeScript with ts-morph: name, type as written, optionality, JSDoc, and the
+  default taken from the destructuring pattern. `npm run docgen -w @its/glowup-playground`
+  regenerates it; CI regenerates and fails on a diff. **Never hand-edit it**, and never
+  hand-write a prop table beside it.
+- `catalogue/variants/generated/` — the variant galleries, rewritten from
+  `.design-sync/previews/*.tsx` (the authored demos) into React Native primitives by
+  `catalogue/variants/generate.mjs`. The previews stay in the browser dialect because the
+  design-sync converter cannot resolve `react-native`; **edit the preview, then run
+  `npm run variants -w @its/glowup-playground`**. Seven previews are excluded by name in the
+  generator, each with its reason; hand-written replacements go in `catalogue/variants/manual.ts`,
+  which wins over the generated entry for the same component.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
 module, its name in the right group in `catalogue/categories.ts`, any special-casing in
 `ComponentPreview.tsx`, and its name in the `CATALOGUE` list in
-`__tests__/playground-catalogue.test.tsx` — the test pins the list against the screen's own
-counter, so a component catalogued without a working demo fails there.
+`__tests__/playground-catalogue.test.tsx` — the test pins that list against `FLAT_ORDER`, the
+registry and the generated docs, so a component catalogued without a working demo fails there.
+It gets its page, its props table and its URL for free.
 
-`DrawerNavigation` (`navigation/DrawerNavigation.tsx`, app-side) is responsive: permanent
-sidebar at width ≥ 840px, slide-over below. Routes are the `APP_ROUTES` array in `App.tsx`.
-It consumes the library like any external consumer would — through `@its/glowup-ui`.
+### Responsive
+
+`site/breakpoints.ts` holds the Material 3 window size classes (compact / medium / expanded /
+large / extraLarge) and `useLayout()` is the only way to ask about width. Do not compare
+`useWindowDimensions().width` to a number anywhere else: the previous screen switched layout at
+960 while the drawer switched at 840, and between the two you got a permanent drawer beside a
+layout that still believed it was on a phone.
 
 ## Tests
 
@@ -157,7 +207,24 @@ It consumes the library like any external consumer would — through `@its/glowu
   eager transform pulled `@react-navigation/drawer` → reanimated → `react-native-worklets`
   into every test run and its native initialisers throw under jest. Since `0.5.0` removed the
   navigators, the plain preset works — don't reintroduce a dependency that brings it back.
-- The playground tests only the playground (catalogue coverage).
+- The playground tests only the playground: it renders every catalogue entry's demo directly
+  (no router) and pins the catalogue against the registry, the categories and the generated
+  prop tables.
+
+## Publishing the documentation site
+
+`apps/playground` is exported to static HTML (`expo-router` with `output: "static"`) and
+deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to `master`. Each
+route — including all 84 component pages — is prerendered to its own file with its own title
+and meta description, so a component URL is shareable and crawlable.
+
+Pages serves a project site from a subpath (`/<repo>/`), so the workflow sets
+`GLOWUP_BASE_URL` and `app.config.ts` feeds it to `experiments.baseUrl`. Locally the variable
+is unset and the site serves from the root. The workflow also writes `.nojekyll` (Jekyll would
+drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html`.
+
+The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
+private repository requires GitHub Enterprise Cloud.
 
 ## Releasing
 

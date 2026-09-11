@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import {
   Avatar,
   Button,
@@ -26,9 +26,11 @@ import {
   type Theme,
 } from "@its/glowup-ui";
 
+import { CodeBlock } from "../site/CodeBlock";
 import { DemoErrorBoundary } from "../site/ErrorBoundary";
 import { Page, Section } from "../site/Page";
 import { useLayout } from "../site/breakpoints";
+import { GITHUB_URL } from "../site/siteNav";
 
 /**
  * Whole screens assembled from the kit.
@@ -39,6 +41,34 @@ import { useLayout } from "../site/breakpoints";
  * generic on purpose: the playground carries no product code, no API client and
  * no domain model, so these are shapes to copy, not an app to run.
  */
+const NAVIGATION = `import { createDrawerNavigator } from "@react-navigation/drawer";
+import { AppBar, useTheme } from "@its/glowup-ui";
+
+const Drawer = createDrawerNavigator();
+
+export const AppNavigator = ({ routes }) => {
+  const { theme } = useTheme();
+  const { width } = useWindowDimensions();
+  const isPinned = width >= 840;
+
+  return (
+    <Drawer.Navigator
+      screenOptions={{
+        // AppBar renders the navigator's header: it reads navigation, route
+        // and options straight from the header contract.
+        header: (props) => <AppBar {...props} isPinned={isPinned} />,
+        drawerType: isPinned ? "permanent" : "front",
+        headerStyle: { backgroundColor: theme.colors.surface },
+        headerShadowVisible: false,
+      }}
+    >
+      {routes.map((route) => (
+        <Drawer.Screen key={route.name} {...route} />
+      ))}
+    </Drawer.Navigator>
+  );
+};`;
+
 export default function Templates() {
   return (
     <Page
@@ -62,6 +92,24 @@ export default function Templates() {
         <TemplateFrame maxWidth={520} label="Settings">
           <SettingsTemplate />
         </TemplateFrame>
+      </Section>
+
+      <Section
+        title="Navigation"
+        description="The library ships navigation widgets but no navigator — picking a router is the app's call. AppBar takes react-navigation's header contract, so wiring it up looks like this."
+      >
+        <CodeBlock code={NAVIGATION} title="navigation/DrawerNavigation.tsx" />
+        <Button
+          mode="text"
+          iconName="file-code-outline"
+          onPress={() =>
+            Linking.openURL(
+              `${GITHUB_URL}/blob/master/apps/playground/navigation/DrawerNavigation.tsx`,
+            )
+          }
+        >
+          Full example on GitHub
+        </Button>
       </Section>
 
       <Section

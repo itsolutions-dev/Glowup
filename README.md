@@ -5,10 +5,10 @@ with Expo, plus a presentation app that showcases and exercises every component.
 
 The repo is an **npm-workspaces monorepo** with two workspaces:
 
-| Workspace         | Package              | What it is                                                       |
-| ----------------- | -------------------- | ---------------------------------------------------------------- |
-| `packages/ui`     | `@its/glowup-ui`         | The publishable component library (this is the product).         |
-| `apps/playground` | `@its/glowup-playground` | Private Expo presentation app that demos the library on iOS, Android and Web. |
+| Workspace         | Package                  | What it is                                                                                                     |
+| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `packages/ui`     | `@its/glowup-ui`         | The publishable component library (this is the product).                                                       |
+| `apps/playground` | `@its/glowup-playground` | Private Expo app that demos the library on iOS, Android and Web, and exports to the static documentation site. |
 
 One directory is deliberately **not** a workspace: `examples/consumer` installs
 `@its/glowup-ui` from the npm registry and is the runtime check on the published package —
@@ -25,8 +25,8 @@ npm install        # install all workspaces (run once, from the repo root)
 npm start          # start the playground (Expo dev server) — no need to cd anywhere
 ```
 
-`npm start` at the repo root launches the playground and opens straight on the **Component
-Playground** screen. Platform shortcuts, all runnable from the root:
+`npm start` at the repo root launches the playground and opens on the site's **overview**;
+`/components` is the reference. Platform shortcuts, all runnable from the root:
 
 ```bash
 npm run playground   # same as npm start
@@ -60,18 +60,25 @@ consumer would.
 
 ```
 apps/playground/
-├── App.tsx            # root: ThemeProvider / SafeAreaProvider / AlertProvider / ToastProvider + drawer nav
-├── index.ts           # Expo entry (registerRootComponent)
-├── screens/
-│   ├── Playground.tsx # the gallery shell: category nav, search, live props panel
-│   └── Start.tsx      # kitchen-sink page — many components on one scroll
-├── catalogue/         # the gallery's data: component registry, categories, demos
+├── app/               # expo-router routes — overview, getting started, theming,
+│                      #   templates, /components and /components/[name]
+├── site/              # the site's shell: breakpoints, navigation, page scaffold,
+│                      #   code block, props table, prop controls
+├── catalogue/         # the gallery's data: component registry, categories, demos,
+│                      #   snippet builder and the generated variant galleries
+├── docgen/            # prop tables extracted from the library's TypeScript
 ├── __tests__/         # catalogue coverage test (the library's own tests live in packages/ui)
+├── navigation/        # app-side example of wiring AppBar into react-navigation
 ├── i18n/              # i18next setup + locale JSON
 ├── assets/            # icons, splash
-├── app.json           # Expo config
+├── app.config.ts      # Expo config; web output is "static", base path from env
 └── metro.config.js    # monorepo-aware Metro (watches repo root, resolves @its/glowup-ui from source)
 ```
+
+Every route is a real URL, prerendered to its own HTML file with its own title and meta
+description. A component page carries a live demo with a width selector, generated controls,
+a copyable snippet, the curated variant gallery and the API reference — the last two generated
+from the library source and from `.design-sync/previews`, both committed and checked by CI.
 
 The app deliberately contains no product code: no API clients, auth or domain models. If a
 screen needs something reusable, it belongs in `packages/ui`.
@@ -87,9 +94,28 @@ npm test                         # tests across all workspaces
 npm run build                    # build the @its/glowup-ui library (react-native-builder-bob)
 npm run release                  # publish @its/glowup-ui (changeset publish)
 
+npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source
+npm run variants -w @its/glowup-playground    # regenerate the variant galleries
+npm run export:web -w @its/glowup-playground  # static export of the docs site
+
 npm test -w @its/glowup-ui                    # only the library's component tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 ```
+
+## The documentation site
+
+`apps/playground` is exported to static HTML and deployed to GitHub Pages by
+`.github/workflows/pages.yml` on every push to `master`. Pages serves a project site from a
+subpath, so the workflow passes the repository name as `GLOWUP_BASE_URL`; locally the variable
+is unset and the site serves from the root.
+
+```bash
+npm run export:web -w @its/glowup-playground             # → apps/playground/dist
+GLOWUP_BASE_URL=/Glowup npm run export:web -w @its/glowup-playground   # as Pages serves it
+```
+
+Enable it once in the repository: **Settings → Pages → Build and deployment → Source: GitHub
+Actions**. Pages on a private repository requires GitHub Enterprise Cloud.
 
 ## Releasing the library
 

@@ -3,6 +3,9 @@
 A **Material You (Material Design 3)** UI component library for **React Native + Web**, built
 with Expo, plus a presentation app that showcases and exercises every component.
 
+**→ [Live documentation and component gallery](https://itsolutions-dev.github.io/Glowup/)** —
+every component on its own page, with a live demo, its variants and a generated API reference.
+
 The repo is an **npm-workspaces monorepo** with two workspaces:
 
 | Workspace         | Package                  | What it is                                                                                                     |
@@ -105,6 +108,8 @@ npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on
 ```
 
 ## The documentation site
+
+Published at **<https://itsolutions-dev.github.io/Glowup/>**.
 
 `apps/playground` is exported to static HTML and deployed to GitHub Pages by
 `.github/workflows/pages.yml` on every push to `master`. Pages serves a project site from a

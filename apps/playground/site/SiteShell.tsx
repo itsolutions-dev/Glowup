@@ -28,7 +28,8 @@ import {
   useKeyboardShortcuts,
   type Shortcut,
 } from "./useKeyboardShortcuts";
-import { activeRouteFor, GITHUB_URL, SITE_ROUTES } from "./siteNav";
+import { activeRouteFor, GITHUB_URL, NPM_URL, SITE_ROUTES } from "./siteNav";
+import { LIBRARY_NAME, LIBRARY_VERSION } from "./propsData";
 
 const RAIL_WIDTH = 80;
 const DRAWER_WIDTH = 232;
@@ -138,35 +139,38 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           />
         )}
         <Link href="/" asChild>
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel="Glowup home"
-            style={styles.brand}
-          >
-            <View style={styles.brandMark}>
-              {/* The same four-pointed spark the favicon and app icons are
+          <Pressable accessibilityRole="link" accessibilityLabel="Glowup home">
+            {/* The looks go on a View inside the Pressable, not on the
+                Pressable: `Link asChild` routes the child through a Radix Slot
+                that merges `style` by spreading it, which turns a function
+                style into `{}` and throws on an array. See expo-router's own
+                Slot shim (build/ui/Slot.js). */}
+            <View style={styles.brand}>
+              <View style={styles.brandMark}>
+                {/* The same four-pointed spark the favicon and app icons are
                   drawn from, so the tab and the header carry one mark. */}
-              <Icons
-                name="star-four-points"
-                size={18}
-                color={theme.colors.onPrimaryContainer}
-              />
-            </View>
-            <View>
-              <Typography
-                variant="titleMedium"
-                style={{ color: theme.colors.onSurface }}
-              >
-                Glowup
-              </Typography>
-              {!layout.isCompact && (
+                <Icons
+                  name="star-four-points"
+                  size={18}
+                  color={theme.colors.onPrimaryContainer}
+                />
+              </View>
+              <View>
                 <Typography
-                  variant="labelSmall"
-                  style={{ color: theme.colors.onSurfaceVariant }}
+                  variant="titleMedium"
+                  style={{ color: theme.colors.onSurface }}
                 >
-                  Material You for React Native
+                  Glowup
                 </Typography>
-              )}
+                {!layout.isCompact && (
+                  <Typography
+                    variant="labelSmall"
+                    style={{ color: theme.colors.onSurfaceVariant }}
+                  >
+                    Material You for React Native
+                  </Typography>
+                )}
+              </View>
             </View>
           </Pressable>
         </Link>
@@ -254,9 +258,17 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
 };
 
 /**
- * The navigation itself. `permanent` renders it in the flow (rail or drawer);
- * `modal` renders the same list inside the compact overlay, so a change to an
- * item's treatment cannot apply to only two of the three forms.
+ * The navigation itself, in the two shapes Material 3 defines for it.
+ *
+ * `showLabels` picks between them: a **drawer**, where each destination is a
+ * full-width pill with its icon and label on one line, and a **rail**, where
+ * the active indicator is a 56×32 pill behind the icon alone with the label
+ * under it. They are one component because a change to how a destination looks
+ * has to reach all three surfaces — drawer, rail and the compact overlay.
+ *
+ * The active destination also swaps its icon for the filled glyph. That is the
+ * kit's own convention (outline variants append `-outline`), and it gives the
+ * selection a second signal besides the container colour.
  */
 const NavSurface = ({
   width,
@@ -289,8 +301,24 @@ const NavSurface = ({
         contentContainerStyle={styles.navScroll}
         showsVerticalScrollIndicator={false}
       >
+        {showLabels && (
+          <Typography
+            variant="labelSmall"
+            style={[
+              styles.navHeading,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            Documentation
+          </Typography>
+        )}
+
         {SITE_ROUTES.map((route) => {
           const selected = active === route.href;
+          const icon = (
+            selected ? route.icon.replace(/-outline$/, "") : route.icon
+          ) as typeof route.icon;
+
           return (
             <Link key={route.href} href={route.href as never} asChild>
               <Pressable
@@ -298,45 +326,128 @@ const NavSurface = ({
                 accessibilityState={{ selected }}
                 accessibilityLabel={route.label}
                 onPress={onNavigate}
-                style={({ hovered, focused }: PressableState) => [
-                  styles.navItem,
-                  showLabels ? styles.navItemWide : styles.navItemRail,
-                  (hovered || focused) && {
-                    backgroundColor: theme.colors.surfaceContainerHigh,
-                  },
-                  focused && {
-                    borderColor: theme.colors.primary,
-                  },
-                  selected && {
-                    backgroundColor: theme.colors.secondaryContainer,
-                  },
-                ]}
               >
-                <Icons
-                  name={route.icon}
-                  size={22}
-                  color={
-                    selected
-                      ? theme.colors.onSecondaryContainer
-                      : theme.colors.onSurfaceVariant
-                  }
-                />
-                <Typography
-                  variant={showLabels ? "labelLarge" : "labelSmall"}
-                  style={{
-                    color: selected
-                      ? theme.colors.onSecondaryContainer
-                      : theme.colors.onSurfaceVariant,
-                    textAlign: showLabels ? "left" : "center",
-                  }}
-                >
-                  {route.label}
-                </Typography>
+                {({ hovered, focused }: PressableState) =>
+                  showLabels ? (
+                    <View
+                      style={[
+                        styles.drawerItem,
+                        (hovered || focused) && {
+                          backgroundColor: theme.colors.surfaceContainerHigh,
+                        },
+                        selected && {
+                          backgroundColor: theme.colors.secondaryContainer,
+                        },
+                        focused && { borderColor: theme.colors.primary },
+                      ]}
+                    >
+                      <Icons
+                        name={icon}
+                        size={22}
+                        color={
+                          selected
+                            ? theme.colors.onSecondaryContainer
+                            : theme.colors.onSurfaceVariant
+                        }
+                      />
+                      <Typography
+                        variant="labelLarge"
+                        style={{
+                          color: selected
+                            ? theme.colors.onSecondaryContainer
+                            : theme.colors.onSurfaceVariant,
+                          fontWeight: selected ? "700" : "500",
+                        }}
+                      >
+                        {route.label}
+                      </Typography>
+                    </View>
+                  ) : (
+                    <View style={styles.railItem}>
+                      {/* The indicator is its own pill behind the icon — on a
+                          rail the label stays outside it, unlike the drawer. */}
+                      <View
+                        style={[
+                          styles.railIndicator,
+                          (hovered || focused) && {
+                            backgroundColor: theme.colors.surfaceContainerHigh,
+                          },
+                          selected && {
+                            backgroundColor: theme.colors.secondaryContainer,
+                          },
+                        ]}
+                      >
+                        <Icons
+                          name={icon}
+                          size={22}
+                          color={
+                            selected
+                              ? theme.colors.onSecondaryContainer
+                              : theme.colors.onSurfaceVariant
+                          }
+                        />
+                      </View>
+                      <Typography
+                        variant="labelSmall"
+                        style={{
+                          color: selected
+                            ? theme.colors.onSurface
+                            : theme.colors.onSurfaceVariant,
+                          fontWeight: selected ? "700" : "500",
+                          textAlign: "center",
+                        }}
+                      >
+                        {route.label}
+                      </Typography>
+                    </View>
+                  )
+                }
               </Pressable>
             </Link>
           );
         })}
       </ScrollView>
+
+      <NavFooter showLabels={showLabels} />
+    </View>
+  );
+};
+
+/**
+ * What the drawer's empty lower half is for: which version these docs were
+ * generated from, and the two places a reader goes next. On the rail it
+ * collapses to the two icons — there is no room for a version string at 80dp.
+ */
+const NavFooter = ({ showLabels }: { showLabels: boolean }) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  return (
+    <View style={[styles.navFooter, !showLabels && styles.navFooterRail]}>
+      {showLabels && (
+        <Typography
+          variant="labelSmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          {LIBRARY_NAME} v{LIBRARY_VERSION}
+        </Typography>
+      )}
+      <View
+        style={[styles.navFooterLinks, !showLabels && styles.navFooterRail]}
+      >
+        <IconButton
+          icon="npm"
+          size="small"
+          accessibilityLabel="Open the package on npm"
+          onPress={() => Linking.openURL(NPM_URL)}
+        />
+        <IconButton
+          icon="github"
+          size="small"
+          accessibilityLabel="Open the repository on GitHub"
+          onPress={() => Linking.openURL(GITHUB_URL)}
+        />
+      </View>
     </View>
   );
 };
@@ -450,31 +561,56 @@ const makeStyles = (theme: Theme) =>
       overflow: "hidden",
     },
     body: { flex: 1, flexDirection: "row" },
-    nav: { backgroundColor: theme.colors.surface },
+    nav: { backgroundColor: theme.colors.surface, flexDirection: "column" },
     navPermanent: {
       borderRightWidth: 1,
       borderRightColor: theme.colors.outlineVariant,
     },
     navScroll: { paddingVertical: theme.spacing.m, gap: theme.spacing.xs },
-    navItem: {
-      borderRadius: theme.shape.large,
-      borderWidth: 1,
-      borderColor: "transparent",
-      marginHorizontal: theme.spacing.s,
+    navHeading: {
+      textTransform: "uppercase",
+      letterSpacing: 1.4,
+      fontWeight: "700",
+      paddingHorizontal: theme.spacing.l,
+      paddingBottom: theme.spacing.s,
     },
-    navItemRail: {
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 2,
-      paddingVertical: theme.spacing.s,
-    },
-    navItemWide: {
+    // Material 3 drawer destination: a 56dp fully rounded container.
+    drawerItem: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.m,
-      paddingHorizontal: theme.spacing.m,
-      paddingVertical: theme.spacing.s + 2,
+      height: 56,
+      paddingHorizontal: theme.spacing.l,
+      marginHorizontal: theme.spacing.s,
+      borderRadius: 28,
+      borderWidth: 1,
+      borderColor: "transparent",
     },
+    railItem: {
+      alignItems: "center",
+      gap: 4,
+      paddingVertical: theme.spacing.xs,
+    },
+    // Material 3 rail indicator: 56×32 behind the icon, label outside it.
+    railIndicator: {
+      width: 56,
+      height: 32,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    navFooter: {
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.l,
+      paddingVertical: theme.spacing.m,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outlineVariant,
+    },
+    navFooterRail: {
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.xs,
+    },
+    navFooterLinks: { flexDirection: "row", gap: theme.spacing.xs },
     content: { flex: 1 },
     scrim: {
       position: "absolute",

@@ -319,33 +319,47 @@ const PagerLink = ({
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={`${isNext ? "Next" : "Previous"} component: ${name}`}
-        style={({ hovered, focused }: PressableState) => [
-          styles.pagerItem,
-          isNext && styles.pagerItemNext,
-          (hovered || focused) && {
-            backgroundColor: theme.colors.surfaceContainerHigh,
-          },
-        ]}
       >
-        {!isNext && (
-          <Icons name="chevron-left" size={20} color={theme.colors.primary} />
-        )}
-        <View style={isNext ? styles.pagerTextRight : undefined}>
-          <Typography
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
+        {/* Painted one level in: `Link asChild` drops a function or array style
+            on the Slot's direct child. */}
+        {({ hovered, focused }: PressableState) => (
+          <View
+            style={[
+              styles.pagerItem,
+              (hovered || focused) && {
+                backgroundColor: theme.colors.surfaceContainerHigh,
+              },
+            ]}
           >
-            {isNext ? "Next" : "Previous"}
-          </Typography>
-          <Typography
-            variant="bodyMedium"
-            style={{ color: theme.colors.onSurface }}
-          >
-            {name}
-          </Typography>
-        </View>
-        {isNext && (
-          <Icons name="chevron-right" size={20} color={theme.colors.primary} />
+            {!isNext && (
+              <Icons
+                name="chevron-left"
+                size={20}
+                color={theme.colors.primary}
+              />
+            )}
+            <View style={isNext ? styles.pagerTextRight : undefined}>
+              <Typography
+                variant="labelSmall"
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                {isNext ? "Next" : "Previous"}
+              </Typography>
+              <Typography
+                variant="bodyMedium"
+                style={{ color: theme.colors.onSurface }}
+              >
+                {name}
+              </Typography>
+            </View>
+            {isNext && (
+              <Icons
+                name="chevron-right"
+                size={20}
+                color={theme.colors.primary}
+              />
+            )}
+          </View>
         )}
       </Pressable>
     </Link>
@@ -427,6 +441,5 @@ const makeStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.colors.outlineVariant,
     },
-    pagerItemNext: { marginLeft: "auto" },
     pagerTextRight: { alignItems: "flex-end" },
   });

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Linking, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import {
   Avatar,
   Button,
@@ -30,7 +30,6 @@ import { CodeBlock } from "../site/CodeBlock";
 import { DemoErrorBoundary } from "../site/ErrorBoundary";
 import { Page, Section } from "../site/Page";
 import { useLayout } from "../site/breakpoints";
-import { GITHUB_URL } from "../site/siteNav";
 
 /**
  * Whole screens assembled from the kit.
@@ -98,18 +97,7 @@ export default function Templates() {
         title="Navigation"
         description="The library ships navigation widgets but no navigator — picking a router is the app's call. AppBar takes react-navigation's header contract, so wiring it up looks like this."
       >
-        <CodeBlock code={NAVIGATION} title="navigation/DrawerNavigation.tsx" />
-        <Button
-          mode="text"
-          iconName="file-code-outline"
-          onPress={() =>
-            Linking.openURL(
-              `${GITHUB_URL}/blob/master/apps/playground/navigation/DrawerNavigation.tsx`,
-            )
-          }
-        >
-          Full example on GitHub
-        </Button>
+        <CodeBlock code={NAVIGATION} title="AppNavigator.tsx" />
       </Section>
 
       <Section

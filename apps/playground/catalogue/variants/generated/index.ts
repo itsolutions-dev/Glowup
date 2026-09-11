@@ -11,6 +11,8 @@ import { variants as Box } from "./Box";
 import { variants as Breadcrumbs } from "./Breadcrumbs";
 import { variants as Button } from "./Button";
 import { variants as Calendar } from "./Calendar";
+import { variants as Card } from "./Card";
+import { variants as Carousel } from "./Carousel";
 import { variants as Center } from "./Center";
 import { variants as Checkbox } from "./Checkbox";
 import { variants as Chip } from "./Chip";
@@ -33,6 +35,7 @@ import { variants as Grid } from "./Grid";
 import { variants as HelperText } from "./HelperText";
 import { variants as IconBadge } from "./IconBadge";
 import { variants as IconButton } from "./IconButton";
+import { variants as Image } from "./Image";
 import { variants as Input } from "./Input";
 import { variants as LanguageSelector } from "./LanguageSelector";
 import { variants as LinearProgress } from "./LinearProgress";
@@ -85,6 +88,8 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Breadcrumbs,
   Button,
   Calendar,
+  Card,
+  Carousel,
   Center,
   Checkbox,
   Chip,
@@ -107,6 +112,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   HelperText,
   IconBadge,
   IconButton,
+  Image,
   Input,
   LanguageSelector,
   LinearProgress,

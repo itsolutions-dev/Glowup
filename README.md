@@ -68,15 +68,16 @@ apps/playground/
 │                      #   snippet builder and the generated variant galleries
 ├── docgen/            # prop tables extracted from the library's TypeScript
 ├── __tests__/         # catalogue coverage test (the library's own tests live in packages/ui)
-├── navigation/        # app-side example of wiring AppBar into react-navigation
-├── i18n/              # i18next setup + locale JSON
-├── assets/            # icons, splash
+├── scripts/           # draws the icon set from the theme's colours
+├── assets/            # generated app icons + splash
+├── public/            # copied to the export root (og-image.png)
 ├── app.config.ts      # Expo config; web output is "static", base path from env
 └── metro.config.js    # monorepo-aware Metro (watches repo root, resolves @its/glowup-ui from source)
 ```
 
-Every route is a real URL, prerendered to its own HTML file with its own title and meta
-description. A component page carries a live demo with a width selector, generated controls,
+The site is English only. Every route is a real URL, prerendered to its own HTML file with its
+own title, meta description and share card. ⌘/Ctrl+K opens a command palette over the whole
+catalogue; `[` and `]` step through it; `?` lists the rest. A component page carries a live demo with a width selector, generated controls,
 a copyable snippet, the curated variant gallery and the API reference — the last two generated
 from the library source and from `.design-sync/previews`, both committed and checked by CI.
 
@@ -96,6 +97,7 @@ npm run release                  # publish @its/glowup-ui (changeset publish)
 
 npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source
 npm run variants -w @its/glowup-playground    # regenerate the variant galleries
+npm run icons -w @its/glowup-playground       # redraw the icon set from theme.json
 npm run export:web -w @its/glowup-playground  # static export of the docs site
 
 npm test -w @its/glowup-ui                    # only the library's component tests

@@ -13,14 +13,14 @@
     "test": "jest",
     "docgen": "node docgen/extract-props.mjs",
     "export:web": "expo export --platform web",
-    "variants": "node catalogue/variants/generate.mjs"
+    "variants": "node catalogue/variants/generate.mjs",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@its/glowup-ui": "*",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-masked-view/masked-view": "0.3.2",
-    "@react-navigation/drawer": "^7.12.5",
     "@react-navigation/native": "^7.3.6",
     "@react-navigation/native-stack": "^7.17.8",
     "date-fns": "^4.4.0",
@@ -33,11 +33,9 @@
     "expo-router": "~57.0.20",
     "expo-splash-screen": "~57.0.8",
     "expo-status-bar": "~57.0.1",
-    "i18next": "^26.3.4",
     "polished": "^4.3.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-i18next": "^17.0.8",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-pager-view": "8.0.2",

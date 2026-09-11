@@ -56,4 +56,15 @@ export const activeRouteFor = (pathname: string): string => {
 };
 
 export const GITHUB_URL = "https://github.com/itsolutions-dev/Glowup";
+
+/**
+ * Where the site is served from. Only Open Graph needs it: a share card image
+ * has to be an absolute URL, and nothing else on the page does. The deploy
+ * workflow sets EXPO_PUBLIC_SITE_URL; the default is the GitHub Pages address.
+ */
+export const SITE_URL =
+  process.env.EXPO_PUBLIC_SITE_URL ??
+  "https://itsolutions-dev.github.io/Glowup";
+
+export const OG_IMAGE_URL = `${SITE_URL}/og-image.png`;
 export const NPM_URL = "https://www.npmjs.com/package/@its/glowup-ui";

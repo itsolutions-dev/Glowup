@@ -190,6 +190,16 @@ describe("Playground catalogue", () => {
     expect(unknown).toEqual([]);
   });
 
+  it("gives every catalogued component a variant gallery", () => {
+    // A component page without one shows a configurable instance and nothing
+    // about the states the component is meant to be used in. Either the
+    // authored preview converts, or a gallery goes in catalogue/variants/manual.
+    const withoutGallery = FLAT_ORDER.filter(
+      (name) => !VARIANTS_BY_COMPONENT[name]?.length,
+    );
+    expect(withoutGallery).toEqual([]);
+  });
+
   it.each(CATALOGUE)("renders the %s demo", async (name) => {
     const { toJSON } = await renderDemo(name);
     expect(toJSON()).toBeTruthy();

@@ -56,6 +56,16 @@ const EXCLUDED = new Set([
   "Autocomplete",
   // Lays its examples out with CSS grid.
   "Tooltip",
+  // The five overlays that portal into the document behind a fixed scrim.
+  // Their previews pin them open with no-op handlers, which is right for a
+  // screenshot and wrong for a page: converted, each one covered the whole
+  // site with a dialog nothing could dismiss. The hand-written galleries give
+  // them a trigger and real state.
+  "Modal",
+  "ConfirmDialog",
+  "BottomSheet",
+  "Popover",
+  "Menu",
 ]);
 
 /**

@@ -22,7 +22,8 @@ interface ModalProps {
   icon?: IconSource;
   animationType?: "none" | "slide" | "fade";
   transparent?: boolean;
-  visible?: boolean;
+  /** Whether the dialog is on screen. */
+  visible: boolean;
   onClose?: () => void;
   /** Called on Android back / ESC without rendering the close button. Falls back to onClose. */
   onDismiss?: () => void;

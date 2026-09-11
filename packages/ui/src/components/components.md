@@ -923,7 +923,7 @@ Centered dialog surface.
 
 | Prop          | Type                          | Default | Req | Description                 |
 | ------------- | ----------------------------- | ------- | --- | --------------------------- |
-| visible       | boolean                       |         |     |                             |
+| visible       | boolean                       | —       | ✓   |                             |
 | children      | ReactNode \| string           | —       | ✓   | Body (string → styled text) |
 | title         | string                        |         |     |                             |
 | animationType | `"none" \| "slide" \| "fade"` | `fade`  |     |                             |

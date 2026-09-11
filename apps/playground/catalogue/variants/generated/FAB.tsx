@@ -40,11 +40,11 @@ export const OnASurface = () => (
       <Divider contentSpacing={0} />
       <View style={{ height: 12 }} />
       <Typography variant="bodyMedium">
-        INV-2043 · Acme Srl · € 1.280,00
+        INV-2043 · Acme Inc. · €1,280.00
       </Typography>
       <View style={{ height: 8 }} />
       <Typography variant="bodyMedium">
-        INV-2042 · Vento Lab · € 640,00
+        INV-2042 · Vento Lab · €640.00
       </Typography>
       <FAB icon="plus" onPress={() => {}} />
     </Paper>

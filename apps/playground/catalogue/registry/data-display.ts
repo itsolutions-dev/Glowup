@@ -22,7 +22,10 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "Avatar",
     Component: Avatar,
     props: {
-      name: { type: "text", default: "Glowup User", label: "Name" },
+      // Empty: the icon below is the last link of source -> initials -> icon,
+      // so a name at rest made it inert whatever you typed into it. Start on
+      // the icon and let a typed name take over, which is the chain itself.
+      name: { type: "text", default: "", label: "Name" },
       size: { type: "number", default: 48, label: "Size" },
       status: {
         type: "select",
@@ -36,7 +39,14 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Away", value: "away" },
         ],
       },
-      icon: { type: "text", default: "", label: "Icon Override" },
+      icon: {
+        type: "text",
+        // "" is not the component's own default — it draws a nameless glyph.
+        default: "account",
+        label: "Fallback icon",
+        // Reached only with no image and no name to take initials from.
+        appliesWhen: (values) => !values.name,
+      },
       variant: {
         type: "select",
         default: "circular",
@@ -115,6 +125,8 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
         type: "text",
         default: "No rows to display",
         label: "Empty Message",
+        // Drawn in the body's empty slot, which the spinner takes over.
+        appliesWhen: (values) => !!values.empty && !values.loading,
       },
     },
   },
@@ -210,11 +222,15 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Down", value: "down" },
           { label: "Flat", value: "flat" },
         ],
+        // The arrow lives in the delta row, which needs a delta.
+        appliesWhen: (values) => !!values.delta,
       },
       invertTrendColors: {
         type: "boolean",
         default: false,
         label: "Invert trend colors",
+        // Flat is the neutral role either way round.
+        appliesWhen: (values) => !!values.delta && values.trend !== "flat",
       },
       helpText: { type: "text", default: "vs. last month", label: "Help Text" },
       icon: { type: "text", default: "cash-multiple", label: "Icon" },

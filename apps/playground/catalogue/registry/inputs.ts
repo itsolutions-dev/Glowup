@@ -26,6 +26,14 @@ import {
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
+/**
+ * Which surface a DateTimePicker's `mode` puts up. A prop the other surface
+ * owns is not merely ignored — the picker never renders the control that reads
+ * it — so the panel should not offer it either.
+ */
+const HAS_CALENDAR = (values: Record<string, any>) => values.mode !== "time";
+const HAS_CLOCK = (values: Record<string, any>) => values.mode !== "date";
+
 /** Inputs: 24 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
   Input: {
@@ -40,7 +48,13 @@ export const inputs: Record<string, ComponentMetadata> = {
       },
       value: { type: "text", default: "", label: "Value" },
       error: { type: "text", default: "", label: "Error Message" },
-      helperText: { type: "text", default: "", label: "Helper Text" },
+      helperText: {
+        type: "text",
+        default: "",
+        label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
+      },
       required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -166,14 +180,24 @@ export const inputs: Record<string, ComponentMetadata> = {
       value: { type: "number", default: 40, label: "Value" },
       min: { type: "number", default: 0, label: "Min" },
       max: { type: "number", default: 100, label: "Max" },
-      step: { type: "number", default: 0, label: "Step (0 = off)" },
+      // Not 0: a continuous slider is the duller half of this component and
+      // it left both this control and Marks doing nothing until you found the
+      // connection between them. 10 divides the default 0-100 range evenly and
+      // the default value of 40 sits on a step.
+      step: { type: "number", default: 10, label: "Step (0 = off)" },
       label: { type: "text", default: "Volume", label: "Label" },
       showValueLabel: {
         type: "boolean",
         default: true,
         label: "Show Value",
       },
-      marks: { type: "boolean", default: false, label: "Marks" },
+      marks: {
+        type: "boolean",
+        default: false,
+        label: "Marks",
+        // A tick per step, so there is nothing to draw on a continuous track.
+        appliesWhen: (values) => Number(values.step) > 0,
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -213,7 +237,13 @@ export const inputs: Record<string, ComponentMetadata> = {
         default: "No match",
         label: "Empty Message",
       },
-      helperText: { type: "text", default: "", label: "Helper Text" },
+      helperText: {
+        type: "text",
+        default: "",
+        label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
+      },
       error: { type: "text", default: "", label: "Error Message" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -238,6 +268,8 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "text",
         default: "Paste the whole code into any cell",
         label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
       },
       error: { type: "text", default: "", label: "Error Message" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -252,6 +284,8 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "text",
         default: "We only email about incidents.",
         label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
       },
       error: { type: "text", default: "", label: "Error Message" },
       required: { type: "boolean", default: false, label: "Required" },
@@ -282,6 +316,9 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "Range", value: "range" },
           { label: "Multiple", value: "multiple" },
         ],
+        // A time picker always collects one instant; the library forces
+        // "single" behind your back rather than honouring this.
+        appliesWhen: (values) => values.mode !== "time",
       },
       scrollMode: {
         type: "select",
@@ -291,6 +328,7 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "Endless", value: "endless" },
           { label: "Paged", value: "paged" },
         ],
+        appliesWhen: HAS_CALENDAR,
       },
       locale: {
         type: "select",
@@ -315,13 +353,20 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "15", value: 15 },
           { label: "30", value: 30 },
         ],
+        appliesWhen: HAS_CLOCK,
       },
       placeholder: {
         type: "text",
         default: "No date selected",
         label: "Placeholder",
       },
-      helperText: { type: "text", default: "", label: "Helper Text" },
+      helperText: {
+        type: "text",
+        default: "",
+        label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
+      },
       error: { type: "text", default: "", label: "Error Message" },
       required: { type: "boolean", default: false, label: "Required" },
       clearable: { type: "boolean", default: true, label: "Clearable" },
@@ -329,21 +374,27 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "boolean",
         default: true,
         label: "Typed entry",
+        // The keyboard surface is only offered for one plain date.
+        appliesWhen: (values) =>
+          values.mode === "date" && values.selectionMode === "single",
       },
       use24HourClock: {
         type: "boolean",
         default: false,
         label: "Force 24h clock",
+        appliesWhen: HAS_CLOCK,
       },
       limitToThisMonth: {
         type: "boolean",
         default: false,
         label: "Min/max = this month",
+        appliesWhen: HAS_CALENDAR,
       },
       noWeekends: {
         type: "boolean",
         default: false,
         label: "Disable weekends",
+        appliesWhen: HAS_CALENDAR,
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -365,6 +416,8 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "text",
         default: "Type it, or pick it from the calendar",
         label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
       },
       locale: {
         type: "select",
@@ -528,6 +581,8 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "15", value: 15 },
           { label: "30", value: 30 },
         ],
+        // Only the dial snaps to it; the text fields take any two digits.
+        appliesWhen: (values) => values.inputType !== "keyboard",
       },
       locale: {
         type: "select",
@@ -559,11 +614,15 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "boolean",
         default: true,
         label: "24-hour clock",
+        // The minute face is the same twelve labels either way.
+        appliesWhen: (values) => values.unit === "hours",
       },
       minuteInterval: {
         type: "number",
         default: 5,
         label: "Minute interval",
+        // The hour face has twelve fixed positions to snap to.
+        appliesWhen: (values) => values.unit === "minutes",
       },
     },
   },

@@ -1,6 +1,6 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.5.0",
+  "libraryVersion": "0.5.1",
   "generatedFrom": "packages/ui/src/index.ts",
   "componentCount": 92,
   "components": {
@@ -3792,6 +3792,13 @@
           "deprecated": false
         },
         {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "description": "Whether the dialog is on screen.",
+          "deprecated": false
+        },
+        {
           "name": "actions",
           "type": "React.ReactNode",
           "required": false,
@@ -3872,12 +3879,6 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": false,
           "deprecated": false
         }
       ]

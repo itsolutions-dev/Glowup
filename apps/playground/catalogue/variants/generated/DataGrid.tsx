@@ -17,7 +17,7 @@ const rows = [
   {
     id: 1,
     invoice: "INV-2041",
-    client: "Acme S.r.l.",
+    client: "Acme Inc.",
     issued: "12 Aug",
     total: "€1,240.50",
   },

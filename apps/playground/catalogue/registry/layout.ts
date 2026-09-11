@@ -78,7 +78,13 @@ export const layout: Record<string, ComponentMetadata> = {
     name: "Grid",
     Component: Grid,
     props: {
-      columns: { type: "number", default: 3, label: "Columns" },
+      columns: {
+        type: "number",
+        default: 3,
+        label: "Columns",
+        // "Ignored when `minChildWidth` is set", says the prop's own JSDoc.
+        appliesWhen: (values) => !Number(values.minChildWidth),
+      },
       minChildWidth: {
         type: "number",
         default: 0,

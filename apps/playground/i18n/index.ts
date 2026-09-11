@@ -1,4 +1,6 @@
-import i18n from "i18next";
+// `use` is aliased: imported under its own name it trips the rules-of-hooks
+// lint rule, which reads any top-level `use(...)` call as a React hook.
+import i18n, { changeLanguage, use as registerPlugin } from "i18next";
 import { initReactI18next } from "react-i18next";
 import * as Localization from "expo-localization";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,7 +31,7 @@ const systemLanguage = (): string => {
 // previous setup awaited AsyncStorage before calling init(), which left the
 // first frame untranslated and — during static rendering, where AsyncStorage
 // reaches for window.localStorage — threw outright.
-i18n.use(initReactI18next).init({
+registerPlugin(initReactI18next).init({
   resources,
   lng: systemLanguage(),
   fallbackLng: "en",
@@ -43,13 +45,13 @@ i18n.use(initReactI18next).init({
 if (typeof window !== "undefined") {
   AsyncStorage.getItem(STORAGE_KEY)
     .then((saved) => {
-      if (saved && saved !== i18n.language) i18n.changeLanguage(saved);
+      if (saved && saved !== i18n.language) changeLanguage(saved);
     })
     .catch(() => {});
 }
 
 export const setLanguage = async (language: string) => {
-  await i18n.changeLanguage(language);
+  await changeLanguage(language);
   AsyncStorage.setItem(STORAGE_KEY, language).catch(() => {});
 };
 

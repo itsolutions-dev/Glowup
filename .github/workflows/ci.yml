@@ -45,3 +45,27 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # The prop tables on the docs site are generated from the library's
+      # TypeScript and committed. A prop added, renamed or re-defaulted without
+      # regenerating them would ship a reference that disagrees with the code,
+      # and nothing else in CI would notice.
+      - name: Check the generated prop tables are current
+        run: |
+          npm run docgen -w @its/glowup-playground
+          git diff --exit-code -- apps/playground/docgen/props.generated.json
+
+      # The variant galleries are rewritten from .design-sync/previews and
+      # committed. An edited preview that is not regenerated would leave the
+      # site showing the previous demo.
+      - name: Check the generated variant galleries are current
+        run: |
+          npm run variants -w @its/glowup-playground
+          git diff --exit-code -- apps/playground/catalogue/variants/generated
+
+      # The playground is published as a static site, so a change that only
+      # breaks the web export (a module that reaches for `window` while
+      # prerendering, a route that throws) has to fail here rather than in the
+      # deploy workflow after merge.
+      - name: Build the documentation site
+        run: npm run export:web -w @its/glowup-playground

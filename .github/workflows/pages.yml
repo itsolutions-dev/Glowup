@@ -1,0 +1,76 @@
+name: Docs site
+
+# Publishes apps/playground as a static site on GitHub Pages.
+#
+# The export is a prerendered HTML file per route (expo-router `output:
+# "static"`), so every component page is a real URL rather than a client-side
+# state change. Pages serves a project site from https://<owner>.github.io/<repo>/,
+# which is why the build sets GLOWUP_BASE_URL: without that prefix every asset
+# URL would resolve against the domain root and 404.
+#
+# The repository must have Pages enabled with "GitHub Actions" as its source
+# (Settings → Pages → Build and deployment → Source). Pages on a private
+# repository needs GitHub Enterprise Cloud.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # package-lock.json is gitignored in this repo, so npm caching by lockfile
+      # hash is unavailable; keep setup-node's auto-cache off explicitly.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Export the static site
+        run: npm run export:web -w @its/glowup-playground
+        env:
+          # The repository name, case-sensitive — Pages serves the project site
+          # from a path that matches it exactly.
+          GLOWUP_BASE_URL: /${{ github.event.repository.name }}
+
+      - name: Prepare the Pages artefact
+        working-directory: apps/playground/dist
+        run: |
+          # Without this, Pages runs the output through Jekyll, which drops
+          # every directory whose name starts with an underscore — including
+          # _expo/, where the whole JavaScript bundle lives.
+          touch .nojekyll
+          # expo-router names the catch-all route +not-found.html; Pages serves
+          # 404.html for an unknown path.
+          cp +not-found.html 404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/playground/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

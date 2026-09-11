@@ -12,7 +12,8 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "docgen": "node docgen/extract-props.mjs",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "variants": "node catalogue/variants/generate.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

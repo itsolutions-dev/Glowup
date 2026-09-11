@@ -29,6 +29,7 @@ import {
   type Shortcut,
 } from "./useKeyboardShortcuts";
 import { activeRouteFor, GITHUB_URL, NPM_URL, SITE_ROUTES } from "./siteNav";
+import { usePersistedPalette } from "./usePersistedPalette";
 import { LIBRARY_NAME, LIBRARY_VERSION } from "./propsData";
 
 const RAIL_WIDTH = 80;
@@ -127,6 +128,10 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   );
 
   useKeyboardShortcuts(shortcuts);
+  // Site-wide preferences live with the chrome that owns them: the shell is
+  // mounted for every route, so the colour set is restored wherever the reader
+  // lands, not only on /theming.
+  usePersistedPalette();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>

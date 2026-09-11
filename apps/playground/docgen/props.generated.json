@@ -1,6 +1,6 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.5.1",
+  "libraryVersion": "0.6.0",
   "generatedFrom": "packages/ui/src/index.ts",
   "componentCount": 92,
   "components": {
@@ -5857,6 +5857,14 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "initialPalette",
+          "type": "ThemePalette",
+          "required": false,
+          "default": "palettes.baseline",
+          "description": "The colour set to start on — one of `palettes`, or anything\n`createPalette` returns. Read once, on mount: call `setPalette` from\n`useTheme()` to change it afterwards.",
           "deprecated": false
         }
       ]

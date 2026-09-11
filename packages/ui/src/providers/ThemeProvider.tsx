@@ -3,6 +3,7 @@ import { useColorScheme, Platform, TextStyle } from "react-native";
 
 import { mix } from "polished";
 import themeConfig from "./theme.json";
+import { palettes, type ThemePalette } from "./palettes";
 
 /**
  * The design tokens exactly as `theme.json` declares them.
@@ -123,6 +124,10 @@ type _ThemeTokensInSync = AllTrue<
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  /** The colour set the theme is currently resolved from. */
+  palette: ThemePalette;
+  /** Swap the colour set at runtime — every `useTheme()` re-renders. */
+  setPalette: (palette: ThemePalette) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
@@ -141,10 +146,24 @@ const ThemeContext = createContext<ThemeContextType>({
     isDark: true,
   },
   toggleTheme: () => {},
+  palette: palettes.baseline,
+  setPalette: () => {},
 });
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({
+  children,
+  initialPalette = palettes.baseline,
+}: {
+  children: React.ReactNode;
+  /**
+   * The colour set to start on — one of `palettes`, or anything
+   * `createPalette` returns. Read once, on mount: call `setPalette` from
+   * `useTheme()` to change it afterwards.
+   */
+  initialPalette?: ThemePalette;
+}) => {
   const systemScheme = useColorScheme(); // Hook to listen to system changes
+  const [palette, setPalette] = useState<ThemePalette>(initialPalette);
   // null = follow the OS color scheme; "light"/"dark" = manual override
   const [override, setOverride] = useState<"light" | "dark" | null>(null);
   const mode = override ?? systemScheme ?? "light";
@@ -153,8 +172,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     setOverride(mode === "light" ? "dark" : "light");
   };
 
-  const currentColors =
-    mode === "dark" ? themeConfig.colors.dark : themeConfig.colors.light;
+  const currentColors = mode === "dark" ? palette.dark : palette.light;
 
   const theme: Theme = {
     colors: {
@@ -176,6 +194,8 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         theme: theme,
         toggleTheme,
+        palette,
+        setPalette,
       }}
     >
       {children}

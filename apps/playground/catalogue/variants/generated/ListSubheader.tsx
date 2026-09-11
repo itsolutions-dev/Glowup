@@ -7,16 +7,16 @@ import type { Variant } from "../types";
 import { ListSubheader, ListItem, Divider, Paper } from "@its/glowup-ui";
 
 export const GroupLabel = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={1} outline style={{ flex: 1 }}>
       {/* Marked as a heading, so assistive tech can jump between groups —
           which a plain Typography line cannot do. */}
-      <ListSubheader>Oggi</ListSubheader>
-      <ListItem>Revisione impianto 4</ListItem>
-      <ListItem>Taratura sensori linea 2</ListItem>
+      <ListSubheader>Today</ListSubheader>
+      <ListItem>Inspect line 4</ListItem>
+      <ListItem>Calibrate line 2 sensors</ListItem>
       <Divider contentSpacing={0} />
-      <ListSubheader>Domani</ListSubheader>
-      <ListItem>Sostituzione filtri</ListItem>
+      <ListSubheader>Tomorrow</ListSubheader>
+      <ListItem>Replace filters</ListItem>
     </Paper>
   </View>
 );

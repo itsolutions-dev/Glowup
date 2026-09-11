@@ -12,16 +12,16 @@ const panel: React.CSSProperties = { width: 380, display: "flex" };
 export const Grouped = () => (
   <div style={panel}>
     <Paper elevation={1} outline style={{ flex: 1 }}>
-      <ListSection title="Notifiche">
+      <ListSection title="Notifications">
         <ListItem
-          trailing={<Typography variant="bodySmall">Settimanale</Typography>}
+          trailing={<Typography variant="bodySmall">Weekly</Typography>}
         >
-          Riepilogo email
+          Email digest
         </ListItem>
         <ListItem
-          trailing={<Typography variant="bodySmall">Immediato</Typography>}
+          trailing={<Typography variant="bodySmall">Instant</Typography>}
         >
-          Menzioni
+          Mentions
         </ListItem>
       </ListSection>
     </Paper>
@@ -37,24 +37,24 @@ export const SettingsScreen = () => {
   return (
     <div style={panel}>
       <Paper elevation={1} outline style={{ flex: 1 }}>
-        {/* `divider` is left off deliberately: ListSection emits
-            <Divider contentSpacing={theme.spacing.s} />, which paints
-            line + 16px gap + line. Same defect as Menu's dividerAbove. */}
-        <ListSection title="Notifiche">
+        {/* `divider` closes the group with a rule. It used to be left off
+            here: an unlabelled Divider still opened a contentSpacing-wide gap
+            in the middle of itself, so the group ended in line + gap + line. */}
+        <ListSection title="Notifications" divider>
           <ListItem
             trailing={<Toggle value={digest} onValueChange={setDigest} />}
           >
-            Riepilogo email
+            Email digest
           </ListItem>
           <ListItem
             trailing={<Toggle value={mentions} onValueChange={setMentions} />}
           >
-            Menzioni
+            Mentions
           </ListItem>
         </ListSection>
-        <ListSection title="Avanzate">
+        <ListSection title="Advanced">
           <ListItem trailing={<Toggle value={beta} onValueChange={setBeta} />}>
-            Funzioni sperimentali
+            Experimental features
           </ListItem>
         </ListSection>
       </Paper>

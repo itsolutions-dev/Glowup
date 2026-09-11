@@ -13,12 +13,13 @@ import {
 } from "@its/glowup-ui";
 
 const grid: ViewStyle = {
+  flexDirection: "row",
   flexWrap: "wrap",
   gap: 12,
   width: 380,
 };
 
-const tile: ViewStyle = { width: 116 };
+const tile: ViewStyle = { width: 116, flexDirection: "row" };
 
 export const Elevations = () => (
   <View style={grid}>
@@ -34,7 +35,7 @@ export const Elevations = () => (
 );
 
 export const Outlined = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={0} outline style={{ flex: 1 }}>
       <Typography variant="titleSmall">API key</Typography>
       <Typography variant="bodySmall">
@@ -49,7 +50,7 @@ export const Outlined = () => (
 );
 
 export const Glow = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={3} glow style={{ flex: 1 }}>
       <Typography variant="titleMedium">Pro plan</Typography>
       <Typography variant="bodySmall">
@@ -69,10 +70,11 @@ export const Glow = () => (
 );
 
 export const AsPanel = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={2} style={{ flex: 1 }}>
       <View
         style={{
+          flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
         }}

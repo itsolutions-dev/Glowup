@@ -80,16 +80,12 @@ describe("TouchableRipple", () => {
   it("does not fire onPress while disabled", async () => {
     const onPress = jest.fn();
     const { getByLabelText } = await wrap(
-      <TouchableRipple
-        onPress={onPress}
-        accessibilityLabel="Disabilitato"
-        disabled
-      >
-        <Text>Disabilitato</Text>
+      <TouchableRipple onPress={onPress} accessibilityLabel="Disabled" disabled>
+        <Text>Disabled</Text>
       </TouchableRipple>,
     );
 
-    await fireEvent.press(getByLabelText("Disabilitato"));
+    await fireEvent.press(getByLabelText("Disabled"));
     expect(onPress).not.toHaveBeenCalled();
   });
 });
@@ -98,23 +94,23 @@ describe("Portal", () => {
   it("renders children inline when no host is mounted", async () => {
     const { getByText } = await wrap(
       <Portal>
-        <Text>Senza host</Text>
+        <Text>No host</Text>
       </Portal>,
     );
-    expect(getByText("Senza host")).toBeTruthy();
+    expect(getByText("No host")).toBeTruthy();
   });
 
   it("renders children through a mounted host", async () => {
     const { getByText } = await wrap(
       <Portal.Host>
-        <Text>Contenuto</Text>
+        <Text>Content</Text>
         <Portal>
           <Text>In overlay</Text>
         </Portal>
       </Portal.Host>,
     );
 
-    expect(getByText("Contenuto")).toBeTruthy();
+    expect(getByText("Content")).toBeTruthy();
     expect(getByText("In overlay")).toBeTruthy();
   });
 
@@ -126,7 +122,7 @@ describe("Portal", () => {
     let renders = 0;
     const Child = () => {
       renders++;
-      return <Text>Contenuto</Text>;
+      return <Text>Content</Text>;
     };
 
     await wrap(
@@ -144,7 +140,7 @@ describe("Portal", () => {
   it("removes the portal content when the portal unmounts", async () => {
     const Host = ({ open }: { open: boolean }) => (
       <Portal.Host>
-        <Text>Contenuto</Text>
+        <Text>Content</Text>
         {open && (
           <Portal>
             <Text>In overlay</Text>
@@ -171,30 +167,30 @@ describe("Card compound parts", () => {
       <Card variant="elevated">
         <Card.Title title="Impianto 4" subtitle="Manutenzione" />
         <Card.Content>
-          <Text>Prossimo intervento</Text>
+          <Text>Next service</Text>
         </Card.Content>
         <Card.Actions>
-          <Text>Conferma</Text>
+          <Text>Confirm</Text>
         </Card.Actions>
       </Card>,
     );
 
     expect(getByText("Impianto 4")).toBeTruthy();
     expect(getByText("Manutenzione")).toBeTruthy();
-    expect(getByText("Prossimo intervento")).toBeTruthy();
-    expect(getByText("Conferma")).toBeTruthy();
+    expect(getByText("Next service")).toBeTruthy();
+    expect(getByText("Confirm")).toBeTruthy();
   });
 });
 
 describe("ListSection", () => {
   it("renders its title as a heading above the rows", async () => {
     const { getByText } = await wrap(
-      <ListSection title="Notifiche">
+      <ListSection title="Notifications">
         <ListItem>Email</ListItem>
       </ListSection>,
     );
 
-    expect(getByText("Notifiche").props.accessibilityRole).toBe("header");
+    expect(getByText("Notifications").props.accessibilityRole).toBe("header");
     expect(getByText("Email")).toBeTruthy();
   });
 });
@@ -281,7 +277,7 @@ describe("Modal", () => {
   it("dismisses on a scrim press", async () => {
     const onDismiss = jest.fn();
     const { getByTestId } = await wrap(
-      <Modal visible title="Titolo" onDismiss={onDismiss}>
+      <Modal visible title="Title" onDismiss={onDismiss}>
         Corpo
       </Modal>,
     );
@@ -297,7 +293,7 @@ describe("Modal", () => {
   it("does not dismiss on a scrim press when dismissable is false", async () => {
     const onDismiss = jest.fn();
     const { getByTestId } = await wrap(
-      <Modal visible title="Titolo" onDismiss={onDismiss} dismissable={false}>
+      <Modal visible title="Title" onDismiss={onDismiss} dismissable={false}>
         Corpo
       </Modal>,
     );
@@ -314,17 +310,17 @@ describe("Modal", () => {
     const { getByText, queryByText } = await wrap(
       <Modal
         visible
-        title="Titolo"
+        title="Title"
         onClose={() => {}}
-        closeText="Chiudi"
-        actions={<Text>Salva</Text>}
+        closeText="Close"
+        actions={<Text>Save</Text>}
       >
         Corpo
       </Modal>,
     );
 
-    expect(getByText("Salva")).toBeTruthy();
-    expect(queryByText("Chiudi")).toBeNull();
+    expect(getByText("Save")).toBeTruthy();
+    expect(queryByText("Close")).toBeNull();
   });
 });
 
@@ -336,19 +332,19 @@ describe("ConfirmDialog", () => {
       <ConfirmDialog
         visible
         title="Eliminare l'intervento?"
-        message="L'operazione non e' reversibile."
-        confirmText="Elimina"
-        cancelText="Annulla"
+        message="This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
         destructive
         onConfirm={onConfirm}
         onCancel={onCancel}
       />,
     );
 
-    await fireEvent.press(getByText("Elimina"));
+    await fireEvent.press(getByText("Delete"));
     expect(onConfirm).toHaveBeenCalledTimes(1);
 
-    await fireEvent.press(getByText("Annulla"));
+    await fireEvent.press(getByText("Cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });

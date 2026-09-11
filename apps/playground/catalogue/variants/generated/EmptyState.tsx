@@ -6,7 +6,7 @@ import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
 import { EmptyState } from "@its/glowup-ui";
 
-const frame: ViewStyle = { width: 400 };
+const frame: ViewStyle = { flexDirection: "row", width: 400 };
 
 const noop = () => {};
 

@@ -28,6 +28,7 @@ export const RichContent = () => (
       <View style={{ flexDirection: "column", gap: 10 }}>
         <View
           style={{
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
           }}
@@ -38,6 +39,7 @@ export const RichContent = () => (
         <Divider contentSpacing={0} />
         <View
           style={{
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
           }}
@@ -48,6 +50,7 @@ export const RichContent = () => (
         <Divider contentSpacing={0} />
         <View
           style={{
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
           }}

@@ -7,7 +7,7 @@ import type { Variant } from "../types";
 import { Breadcrumbs } from "@its/glowup-ui";
 import type { BreadcrumbItem } from "@its/glowup-ui";
 
-const wrap: ViewStyle = { width: 400 };
+const wrap: ViewStyle = { width: 400, flexDirection: "row" };
 
 const trail: BreadcrumbItem[] = [
   { id: "home", label: "Home", icon: "home-outline", onPress: () => {} },

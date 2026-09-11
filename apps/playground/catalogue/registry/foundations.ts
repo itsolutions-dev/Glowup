@@ -63,7 +63,13 @@ export const foundations: Record<string, ComponentMetadata> = {
       },
       thickness: { type: "number", default: 1, label: "Thickness" },
       inset: { type: "number", default: 0, label: "Inset" },
-      children: { type: "text", default: "OR", label: "Label" },
+      children: {
+        type: "text",
+        default: "OR",
+        label: "Label",
+        // Horizontal only — a vertical rule takes no label.
+        appliesWhen: (values) => values.orientation !== "vertical",
+      },
     },
   },
   Paper: {
@@ -108,10 +114,10 @@ export const foundations: Record<string, ComponentMetadata> = {
     name: "CardTitle",
     Component: CardTitle,
     props: {
-      title: { type: "text", default: "Impianto 4", label: "Title" },
+      title: { type: "text", default: "Line 4", label: "Title" },
       subtitle: {
         type: "text",
-        default: "Manutenzione programmata",
+        default: "Scheduled maintenance",
         label: "Subtitle",
       },
     },
@@ -123,7 +129,7 @@ export const foundations: Record<string, ComponentMetadata> = {
     props: {
       children: {
         type: "text",
-        default: "Prossimo intervento: 12 marzo",
+        default: "Next service: 12 March",
         label: "Content",
       },
     },
@@ -133,7 +139,7 @@ export const foundations: Record<string, ComponentMetadata> = {
     Component: CardCover,
     props: {
       ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
-      alt: { type: "text", default: "Impianto 4", label: "Alt text" },
+      alt: { type: "text", default: "Line 4", label: "Alt text" },
     },
   },
   CardActions: {

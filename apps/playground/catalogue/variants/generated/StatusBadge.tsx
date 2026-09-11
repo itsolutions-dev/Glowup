@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { StatusBadge, Typography, Divider } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 10,
   alignItems: "center",
   flexWrap: "wrap",
@@ -49,6 +50,7 @@ export const InvoiceList = () => (
         {i > 0 && <Divider contentSpacing={0} />}
         <View
           style={{
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
             gap: 12,

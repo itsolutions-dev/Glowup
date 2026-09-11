@@ -36,9 +36,15 @@ export const PropControls = ({
 }: PropControlsProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const keys = Object.keys(meta.props);
+  const allKeys = Object.keys(meta.props);
+  const keys = allKeys.filter(
+    (key) => meta.props[key].appliesWhen?.(values) ?? true,
+  );
 
-  const dirty = keys.some((key) => values[key] !== meta.props[key].default);
+  // Over every key, not just the visible ones: a value left behind by a prop
+  // that has since become inapplicable is still a value the reset clears, and
+  // hiding the button would leave no way back to it.
+  const dirty = allKeys.some((key) => values[key] !== meta.props[key].default);
 
   return (
     <View style={styles.wrap}>

@@ -36,7 +36,7 @@ export interface HelperTextProps {
  * ```tsx
  * <Input label="Email" value={email} onChangeText={setEmail} />
  * <HelperText type="error" visible={!email.includes("@")}>
- *   Indirizzo email non valido
+ *   Enter a valid email address
  * </HelperText>
  * ```
  */

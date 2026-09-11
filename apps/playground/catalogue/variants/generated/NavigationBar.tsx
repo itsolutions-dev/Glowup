@@ -7,7 +7,7 @@ import type { Variant } from "../types";
 import { NavigationBar } from "@its/glowup-ui";
 import type { NavigationBarItem } from "@its/glowup-ui";
 
-const bar: ViewStyle = { width: 400 };
+const bar: ViewStyle = { width: 400, flexDirection: "row" };
 
 const items: NavigationBarItem[] = [
   { id: "home", label: "Home", icon: "home-outline" },

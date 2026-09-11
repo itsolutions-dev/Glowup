@@ -14,6 +14,7 @@ const midMorning = new Date(2024, 4, 15, 9, 25);
 const afternoon = new Date(2024, 4, 15, 14, 30);
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 32,
   flexWrap: "wrap",
   alignItems: "flex-start",

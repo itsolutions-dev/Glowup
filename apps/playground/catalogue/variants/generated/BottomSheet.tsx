@@ -28,7 +28,7 @@ export const FilterSheet = () => (
     <BottomSheet visible title="Filter components" onDismiss={() => {}}>
       <View style={column}>
         <Typography variant="labelLarge">Group</Typography>
-        <View style={{ gap: 8, flexWrap: "wrap" }}>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           <Chip
             label="Buttons & actions"
             size="small"
@@ -59,7 +59,7 @@ export const FilterSheet = () => (
         <Divider contentSpacing={0} />
         <View style={{ height: 4 }} />
         <Typography variant="labelLarge">Status</Typography>
-        <View style={{ gap: 8, flexWrap: "wrap" }}>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           <Chip
             label="Stable"
             size="small"

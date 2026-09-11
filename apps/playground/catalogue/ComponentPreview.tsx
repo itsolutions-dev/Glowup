@@ -53,7 +53,7 @@ const ComponentPreview = ({
   const [pinValue, setPinValue] = useState("");
   const [autocompleteQuery, setAutocompleteQuery] = useState("");
   const [collapseOpen, setCollapseOpen] = useState(false);
-  const [languageDemo, setLanguageDemo] = useState("it");
+  const [languageDemo, setLanguageDemo] = useState("en");
   const [preferenceDemo, setPreferenceDemo] = useState(true);
 
   const gridData = useMemo(
@@ -773,6 +773,37 @@ const ComponentPreview = ({
     props.thickness = Number(props.thickness) || 1;
     props.inset = Number(props.inset) || 0;
     const { children, ...dividerProps } = props;
+
+    // A vertical rule is as tall as the row it separates, so on its own it has
+    // nothing to measure against and the stage showed an invisible hairline.
+    // Give it the two columns it exists to divide. The label is horizontal-only
+    // by design, so it is not passed here.
+    if (dividerProps.orientation === "vertical") {
+      return (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "stretch",
+            height: 72,
+            width: "100%",
+            maxWidth: 420,
+          }}
+        >
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Typography variant="bodyMedium">Before</Typography>
+          </View>
+          <Component {...dividerProps} />
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <Typography variant="bodyMedium">After</Typography>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...dividerProps}>{children}</Component>
@@ -795,11 +826,11 @@ const ComponentPreview = ({
       <Component
         {...props}
         onPress={() => {}}
-        accessibilityLabel="Superficie premibile"
+        accessibilityLabel="Tappable surface"
       >
         <View style={{ padding: 16 }}>
           <Typography variant="bodyMedium">
-            Passa il mouse o premi questa superficie
+            Hover or press this surface
           </Typography>
         </View>
       </Component>
@@ -812,11 +843,11 @@ const ComponentPreview = ({
       <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
         <Component
           {...props}
-          left={<Avatar name="Impianto 4" size={40} />}
+          left={<Avatar name="Ada Lovelace" size={40} />}
           right={
             <IconButton
               icon="dots-vertical"
-              accessibilityLabel="Altre azioni"
+              accessibilityLabel="More actions"
               onPress={() => {}}
             />
           }
@@ -829,7 +860,7 @@ const ComponentPreview = ({
     const { children, ...rest } = props;
     return (
       <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
-        <CardTitle title="Impianto 4" subtitle="Manutenzione programmata" />
+        <CardTitle title="Line 4" subtitle="Scheduled maintenance" />
         <Component {...rest}>
           <Typography variant="bodyMedium">{children}</Typography>
         </Component>
@@ -845,7 +876,7 @@ const ComponentPreview = ({
           {...props}
           source={{ uri: "https://picsum.photos/seed/glowup/800/450" }}
         />
-        <CardTitle title="Impianto 4" subtitle="Manutenzione programmata" />
+        <CardTitle title="Line 4" subtitle="Scheduled maintenance" />
       </Card>
     );
   }
@@ -853,12 +884,12 @@ const ComponentPreview = ({
   if (selectedComponentName === "CardActions") {
     return (
       <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
-        <CardTitle title="Impianto 4" subtitle="Conferma l'intervento" />
+        <CardTitle title="Line 4" subtitle="Confirm the service call" />
         <Component {...props}>
           <Button mode="text" onPress={() => {}}>
-            Rinvia
+            Postpone
           </Button>
-          <Button onPress={() => {}}>Conferma</Button>
+          <Button onPress={() => {}}>Confirm</Button>
         </Component>
       </Card>
     );
@@ -903,7 +934,7 @@ const ComponentPreview = ({
     return (
       <View style={{ width: "100%", maxWidth: 420, height: 140 }}>
         <Component {...props} style={{ flex: 1 }} bg="surfaceContainerHigh">
-          <Typography variant="labelLarge">Centrato su due assi</Typography>
+          <Typography variant="labelLarge">Centred on both axes</Typography>
         </Component>
       </View>
     );
@@ -921,9 +952,9 @@ const ComponentPreview = ({
           alignItems: horizontal ? "center" : "stretch",
         }}
       >
-        <Chip label="Prima" />
+        <Chip label="Before" />
         <Component {...props} />
-        <Chip label="Dopo" />
+        <Chip label="After" />
       </View>
     );
   }
@@ -933,9 +964,9 @@ const ComponentPreview = ({
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props}>
-          <Typography variant="bodyMedium">Contenuto del tab 0</Typography>
-          <Typography variant="bodyMedium">Contenuto del tab 1</Typography>
-          <Typography variant="bodyMedium">Contenuto del tab 2</Typography>
+          <Typography variant="bodyMedium">Tab 0 content</Typography>
+          <Typography variant="bodyMedium">Tab 1 content</Typography>
+          <Typography variant="bodyMedium">Tab 2 content</Typography>
         </Component>
       </View>
     );
@@ -946,14 +977,14 @@ const ComponentPreview = ({
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props}>
           <ListItem
-            trailing={<Typography variant="bodySmall">Settimanale</Typography>}
+            trailing={<Typography variant="bodySmall">Weekly</Typography>}
           >
-            Riepilogo email
+            Email digest
           </ListItem>
           <ListItem
-            trailing={<Typography variant="bodySmall">Immediato</Typography>}
+            trailing={<Typography variant="bodySmall">Instant</Typography>}
           >
-            Menzioni
+            Mentions
           </ListItem>
         </Component>
       </View>
@@ -966,8 +997,8 @@ const ComponentPreview = ({
       <Portal.Host>
         <View style={{ width: "100%", maxWidth: 420, gap: 12 }}>
           <Typography variant="bodySmall">
-            Il riquadro sotto ha overflow: hidden e 64px di altezza. Il
-            contenuto nel Portal viene disegnato sopra, fuori dal ritaglio.
+            The panel below is 64px tall with overflow: hidden. The portalled
+            content is drawn at the host, so the clip does not reach it.
           </Typography>
           <View
             style={{
@@ -978,7 +1009,7 @@ const ComponentPreview = ({
               padding: 12,
             }}
           >
-            <Typography variant="labelLarge">Genitore che ritaglia</Typography>
+            <Typography variant="labelLarge">Clipping parent</Typography>
             <Portal>
               <View
                 pointerEvents="none"
@@ -995,7 +1026,7 @@ const ComponentPreview = ({
                   variant="labelLarge"
                   style={{ color: theme.colors.inverseOnSurface }}
                 >
-                  Disegnato all&apos;host
+                  Drawn at the host
                 </Typography>
               </View>
             </Portal>

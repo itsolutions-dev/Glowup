@@ -2681,6 +2681,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": false,
+          "description": "Centred label, splitting the rule in two. Horizontal only — a vertical\ndivider is a bare rule.",
           "deprecated": false
         },
         {
@@ -2688,6 +2689,7 @@
           "type": "number",
           "required": false,
           "default": "16",
+          "description": "Gap between the label and each half of the rule. No label, no gap.",
           "deprecated": false
         },
         {
@@ -2695,6 +2697,7 @@
           "type": "number",
           "required": false,
           "default": "0",
+          "description": "Margin at both ends of the line, along its own axis.",
           "deprecated": false
         },
         {
@@ -2719,6 +2722,7 @@
           "type": "number",
           "required": false,
           "default": "1",
+          "description": "Line thickness, in pixels.",
           "deprecated": false
         }
       ]

@@ -51,7 +51,7 @@ const rows = [
   },
 ];
 
-const frame: ViewStyle = { width: 560, height: 320 };
+const frame: ViewStyle = { width: 560, height: 320, flexDirection: "row" };
 
 export const Sorted = () => (
   <View style={frame}>

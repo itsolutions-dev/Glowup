@@ -11,6 +11,7 @@ import { FAB, Paper, Typography, Divider } from "@its/glowup-ui";
 const screen: ViewStyle = {
   width: 380,
   height: 220,
+  flexDirection: "row",
 };
 
 // The DS itself un-anchors a FAB by re-declaring position (see SpeedDial's
@@ -24,6 +25,7 @@ const inline = {
 };
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 16,
   alignItems: "center",
   flexWrap: "wrap",

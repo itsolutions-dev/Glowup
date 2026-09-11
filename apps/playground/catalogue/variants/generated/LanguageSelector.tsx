@@ -16,7 +16,7 @@ const row: ViewStyle = {
 const noop = () => {};
 
 export const Languages = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={1} outline style={{ flex: 1 }}>
       <Typography variant="labelMedium">Interface language</Typography>
       <View style={{ height: 12 }} />
@@ -31,7 +31,7 @@ export const Languages = () => (
 );
 
 export const InHeaderRow = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper elevation={1} style={{ flex: 1 }}>
       <View
         style={{

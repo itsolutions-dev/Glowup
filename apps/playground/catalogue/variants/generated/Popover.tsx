@@ -37,7 +37,7 @@ export const AccountCard = () => (
       }
     >
       <View style={pad}>
-        <View style={{ gap: 10, alignItems: "center" }}>
+        <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
           <Avatar name="Marta Rossi" size={36} status="online" />
           <View style={{ flexDirection: "column", gap: 2 }}>
             <Typography variant="titleSmall">Marta Rossi</Typography>

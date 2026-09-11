@@ -38,10 +38,10 @@ describe("AnimatedFAB", () => {
   it("renders the label and fires onPress", async () => {
     const onPress = jest.fn();
     const { getByLabelText } = await wrap(
-      <AnimatedFAB icon="plus" label="Nuovo intervento" onPress={onPress} />,
+      <AnimatedFAB icon="plus" label="New ticket" onPress={onPress} />,
     );
 
-    const fab = getByLabelText("Nuovo intervento");
+    const fab = getByLabelText("New ticket");
     await fireEvent.press(fab);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
@@ -52,13 +52,13 @@ describe("AnimatedFAB", () => {
       // updating Animated after teardown.
       <AnimatedFAB
         icon="plus"
-        label="Aggiungi"
+        label="Add"
         onPress={() => {}}
         extended
         duration={0}
       />,
     );
-    expect(getByLabelText("Aggiungi").props.accessibilityState).toMatchObject({
+    expect(getByLabelText("Add").props.accessibilityState).toMatchObject({
       expanded: true,
     });
 
@@ -66,7 +66,7 @@ describe("AnimatedFAB", () => {
       <HostedProviders>
         <AnimatedFAB
           icon="plus"
-          label="Aggiungi"
+          label="Add"
           onPress={() => {}}
           extended={false}
           duration={0}
@@ -76,24 +76,19 @@ describe("AnimatedFAB", () => {
     // waitFor runs inside act, which lets the collapse animation the rerender
     // kicked off settle instead of updating after the test body.
     await waitFor(() =>
-      expect(getByLabelText("Aggiungi").props.accessibilityState).toMatchObject(
-        { expanded: false },
-      ),
+      expect(getByLabelText("Add").props.accessibilityState).toMatchObject({
+        expanded: false,
+      }),
     );
   });
 
   it("does not fire onPress while disabled", async () => {
     const onPress = jest.fn();
     const { getByLabelText } = await wrap(
-      <AnimatedFAB
-        icon="plus"
-        label="Disabilitato"
-        onPress={onPress}
-        disabled
-      />,
+      <AnimatedFAB icon="plus" label="Disabled" onPress={onPress} disabled />,
     );
 
-    await fireEvent.press(getByLabelText("Disabilitato"));
+    await fireEvent.press(getByLabelText("Disabled"));
     expect(onPress).not.toHaveBeenCalled();
   });
 });

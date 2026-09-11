@@ -40,7 +40,7 @@ export const Variants = () => (
 );
 
 export const CardPlaceholder = () => (
-  <View style={{ width: 360 }}>
+  <View style={{ flexDirection: "row", width: 360 }}>
     <Paper
       elevation={0}
       outline
@@ -59,7 +59,7 @@ export const CardPlaceholder = () => (
           <Skeleton variant="text" width={90} height={12} />
         </View>
       </View>
-      <View style={{ marginTop: 16 }}>
+      <View style={{ marginTop: 16, flexDirection: "row" }}>
         <Skeleton variant="rect" width={328} height={140} />
       </View>
       <View style={{ ...col, gap: 8, marginTop: 16 }}>

@@ -12,6 +12,7 @@ import type { SpeedDialAction } from "@its/glowup-ui";
 const screen: ViewStyle = {
   width: 380,
   height: 260,
+  flexDirection: "row",
 };
 
 const actions: SpeedDialAction[] = [

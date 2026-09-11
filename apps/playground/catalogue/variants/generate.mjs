@@ -117,14 +117,64 @@ const expandBoxShorthand = (property, value) => {
   ].join(", ");
 };
 
+/**
+ * The object literal a declaration sits in, found by balancing braces outwards
+ * from it. Good enough for a style object: the values in one are strings and
+ * numbers, so there is no brace inside a literal that this could trip over.
+ */
+const enclosingObjectLiteral = (source, index) => {
+  let depth = 0;
+  let start = -1;
+  for (let i = index; i >= 0; i -= 1) {
+    if (source[i] === "}") depth += 1;
+    else if (source[i] === "{") {
+      if (depth === 0) {
+        start = i;
+        break;
+      }
+      depth -= 1;
+    }
+  }
+  if (start === -1) return undefined;
+
+  depth = 0;
+  for (let i = start; i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  return undefined;
+};
+
+/** Whether the style object around `index` already picks a main axis. */
+const declaresFlexDirection = (source, index) =>
+  /\bflexDirection\s*:/.test(enclosingObjectLiteral(source, index) ?? "");
+
 const convert = (source) => {
   let out = source;
 
   out = out.replace(/React\.CSSProperties/g, "ViewStyle");
 
+  // The two dialects disagree on what a flex container defaults to: CSS lays
+  // one out in a row, React Native in a column. So dropping `display: "flex"`
+  // outright silently turned every unqualified row in a preview into a stack —
+  // captions under icons became a vertical list, a `space-between` row put its
+  // two halves on separate lines, and the Divider gallery squeezed three stats
+  // into a 56px column until their text overlapped. A flex container that
+  // never said which way it runs meant `row`, so say it.
+  out = out.replace(/\bdisplay:\s*"([^"]*)"/g, (whole, value, index) =>
+    /flex$/.test(value) && !declaresFlexDirection(out, index)
+      ? 'flexDirection: "row"'
+      : whole,
+  );
+
   // `display` has no React Native counterpart worth keeping: flex is the only
-  // layout there is, and `inline-flex` does not exist at all. Dropped wherever
-  // it appears — on its own line in a style constant, or inline in a literal.
+  // layout there is, and `inline-flex` does not exist at all. Whatever the
+  // rewrite above left — `block`, `none`, a container that set its own
+  // direction — is dropped wherever it appears: on its own line in a style
+  // constant, or inline in a literal.
   out = out.replace(/^[ \t]*display:\s*"[^"]*",?[ \t]*\r?\n/gm, "");
   out = out.replace(/\bdisplay:\s*"[^"]*",\s*/g, "");
   out = out.replace(/,\s*display:\s*"[^"]*"/g, "");

@@ -184,14 +184,14 @@ whole section.)
 
 ```tsx
 <Card variant="elevated" onPress={open}>
-  <Card.Cover source={photo} alt="Impianto 4" />
-  <Card.Title title="Impianto 4" subtitle="Manutenzione programmata" />
+  <Card.Cover source={photo} alt="Line 4" />
+  <Card.Title title="Line 4" subtitle="Scheduled maintenance" />
   <Card.Content>
-    <Typography variant="bodyMedium">Prossimo intervento: 12 marzo</Typography>
+    <Typography variant="bodyMedium">Next service: 12 March</Typography>
   </Card.Content>
   <Card.Actions>
-    <Button mode="text" onPress={postpone}>Rinvia</Button>
-    <Button onPress={confirm}>Conferma</Button>
+    <Button mode="text" onPress={postpone}>Postpone</Button>
+    <Button onPress={confirm}>Confirm</Button>
   </Card.Actions>
 </Card>
 ```

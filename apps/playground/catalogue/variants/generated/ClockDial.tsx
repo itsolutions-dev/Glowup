@@ -9,6 +9,7 @@ import { ClockDial, Paper, Typography } from "@its/glowup-ui";
 const noop = () => {};
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 32,
   flexWrap: "wrap",
   alignItems: "flex-start",

@@ -138,7 +138,7 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: AnimatedFAB,
     props: {
       icon: { type: "text", default: "plus", label: "Icon" },
-      label: { type: "text", default: "Nuovo intervento", label: "Label" },
+      label: { type: "text", default: "New ticket", label: "Label" },
       extended: { type: "boolean", default: true, label: "Extended" },
       animateFrom: {
         type: "select",
@@ -193,7 +193,7 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: ToggleButton,
     props: {
       active: { type: "boolean", default: true, label: "Active" },
-      label: { type: "text", default: "Griglia", label: "Label" },
+      label: { type: "text", default: "Grid", label: "Label" },
       icon: { type: "text", default: "view-grid-outline", label: "Icon" },
       showSelectedCheck: {
         type: "boolean",

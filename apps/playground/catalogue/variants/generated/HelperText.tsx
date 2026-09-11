@@ -14,13 +14,13 @@ const field: ViewStyle = {
 export const Types = () => (
   <View style={{ ...field, gap: 16 }}>
     <View style={field}>
-      <HelperText>Massimo 8 caratteri</HelperText>
+      <HelperText>Maximum 8 characters</HelperText>
     </View>
     <View style={field}>
-      <HelperText type="error">Indirizzo email non valido</HelperText>
+      <HelperText type="error">Enter a valid email address</HelperText>
     </View>
     <View style={field}>
-      <HelperText disabled>Campo non modificabile</HelperText>
+      <HelperText disabled>This field cannot be edited</HelperText>
     </View>
   </View>
 );
@@ -33,13 +33,13 @@ export const UnderAControl = () => (
       Controls without their own error prop borrow it
     </Typography>
     <Checkbox
-      label="Accetto i termini"
+      label="I accept the terms"
       checked={false}
       onValueChange={() => {}}
       error
     />
     <HelperText type="error" padding="none">
-      Devi accettare i termini per procedere
+      You must accept the terms to continue
     </HelperText>
   </View>
 );
@@ -48,15 +48,15 @@ export const AlongsideInput = () => (
   <View style={field}>
     <Input
       label="Email"
-      value="mario.rossi"
+      value="jane.doe"
       onChangeText={() => {}}
-      error="Manca la @"
+      error="Missing the @"
     />
     <Input
-      label="Telefono"
-      value="+39 340 1234567"
+      label="Phone"
+      value="+44 7700 900123"
       onChangeText={() => {}}
-      helperText="Includi il prefisso internazionale"
+      helperText="Include the country code"
     />
   </View>
 );
@@ -66,8 +66,8 @@ export const Hidden = () => (
     <Typography variant="labelMedium">
       visible=false fades out but keeps its space, so the field never jumps
     </Typography>
-    <HelperText visible={false}>Testo nascosto</HelperText>
-    <HelperText>Testo visibile</HelperText>
+    <HelperText visible={false}>Hidden text</HelperText>
+    <HelperText>Visible text</HelperText>
   </View>
 );
 

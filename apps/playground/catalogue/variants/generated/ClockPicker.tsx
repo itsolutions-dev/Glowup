@@ -12,6 +12,7 @@ const morning = new Date(2024, 4, 15, 9, 25);
 const afternoon = new Date(2024, 4, 15, 16, 40);
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 32,
   flexWrap: "wrap",
   alignItems: "flex-start",

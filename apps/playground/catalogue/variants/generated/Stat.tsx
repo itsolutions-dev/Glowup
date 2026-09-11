@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { Paper, Stat, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 16,
   flexWrap: "wrap",
   width: 560,
@@ -80,7 +81,7 @@ export const OnAPanel = () => (
     <Paper elevation={1} style={{ flex: 1 }}>
       <Typography variant="titleMedium">This quarter</Typography>
       <View style={{ height: 12 }} />
-      <View style={{ gap: 24, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: "row", gap: 24, flexWrap: "wrap" }}>
         <Stat
           label="Orders"
           value="1,204"

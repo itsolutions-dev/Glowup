@@ -263,7 +263,7 @@ const CategoryChip = ({
         style={{
           color: active
             ? theme.colors.onSecondaryContainer
-            : theme.colors.outline,
+            : theme.colors.onSurfaceVariant,
         }}
       >
         {count}
@@ -371,7 +371,7 @@ const ListRow = ({ name }: { name: string }) => {
             </Typography>
             <Typography
               variant="labelSmall"
-              style={[styles.rowMeta, { color: theme.colors.outline }]}
+              style={[styles.rowMeta, { color: theme.colors.onSurfaceVariant }]}
             >
               {doc ? `${doc.props.length} props` : "—"} · {variants} demos
             </Typography>

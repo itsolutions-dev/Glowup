@@ -1,0 +1,6314 @@
+{
+  "generatedFrom": "packages/ui/src/index.ts",
+  "componentCount": 92,
+  "components": {
+    "Accordion": {
+      "name": "Accordion",
+      "source": "packages/ui/src/components/Accordion.tsx",
+      "propsTypeName": "AccordionProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "startExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        },
+        {
+          "name": "titleStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        }
+      ]
+    },
+    "AnimatedFAB": {
+      "name": "AnimatedFAB",
+      "source": "packages/ui/src/components/AnimatedFAB.tsx",
+      "propsTypeName": "AnimatedFABProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": "Always required: it is the label that animates.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "animateFrom",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "default": "\"right\"",
+          "description": "Edge the label grows from. Match it to the FAB's own corner.",
+          "values": [
+            "left",
+            "right"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "150",
+          "description": "Animation duration (ms).",
+          "deprecated": false
+        },
+        {
+          "name": "extended",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`true` shows the label, `false` collapses to the icon. Drive it from a\nscroll offset to get the M3 \"shrink on scroll\" behaviour.",
+          "deprecated": false
+        },
+        {
+          "name": "iconMode",
+          "type": "\"static\" | \"dynamic\"",
+          "required": false,
+          "default": "\"static\"",
+          "description": "`static` keeps the icon put and slides the label out beside it.\n`dynamic` lets the icon travel with the label as the pill grows.",
+          "values": [
+            "static",
+            "dynamic"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "placement",
+          "type": "\"floating\" | \"inline\"",
+          "required": false,
+          "default": "\"floating\"",
+          "description": "`inline` drops the absolute positioning (toolbar, card action row).",
+          "values": [
+            "floating",
+            "inline"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "AnimatedFABPosition",
+          "required": false,
+          "default": "\"bottom-right\"",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "AppBar": {
+      "name": "AppBar",
+      "source": "packages/ui/src/components/AppBar.tsx",
+      "propsTypeName": "AppBarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "navigation",
+          "type": "any",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "any",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "route",
+          "type": "any",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "back",
+          "type": "{ title?: string; href?: string } | boolean",
+          "required": false,
+          "description": "Truthy when a back destination exists (native-stack passes { title, href })",
+          "deprecated": false
+        },
+        {
+          "name": "isPinned",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        }
+      ]
+    },
+    "AspectRatio": {
+      "name": "AspectRatio",
+      "source": "packages/ui/src/components/Layout/AspectRatio.tsx",
+      "propsTypeName": "AspectRatioProps",
+      "extends": [
+        "Omit<BoxProps, \"height\">"
+      ],
+      "props": [
+        {
+          "name": "ratio",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Autocomplete": {
+      "name": "Autocomplete",
+      "source": "packages/ui/src/components/Autocomplete.tsx",
+      "propsTypeName": "AutocompleteProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChangeText",
+          "type": "(text: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(option: AutocompleteOption) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "AutocompleteOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "description": "The text in the field. Free text is allowed — this is not a Select.",
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Adds a clear button once there is text. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "clearAccessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "emptyMessage",
+          "type": "string",
+          "required": false,
+          "description": "Shown when nothing matches. Omit to hide the list instead.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "filter",
+          "type": "(option: AutocompleteOption, query: string) => boolean",
+          "required": false,
+          "default": "defaultFilter",
+          "description": "Custom matcher. Defaults to a case- and accent-insensitive substring test\nover `label`. Pass `() => true` when the options are filtered server-side.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "leadingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "description": "Shows a spinner in the field — for options still being fetched.",
+          "deprecated": false
+        },
+        {
+          "name": "maxSuggestions",
+          "type": "number",
+          "required": false,
+          "default": "8",
+          "description": "Caps the visible suggestions. Defaults to 8.",
+          "deprecated": false
+        },
+        {
+          "name": "minChars",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Characters required before suggestions appear. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Avatar": {
+      "name": "Avatar",
+      "source": "packages/ui/src/components/Avatar.tsx",
+      "propsTypeName": "AvatarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "backgroundColor",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"account\"",
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "40",
+          "deprecated": false
+        },
+        {
+          "name": "source",
+          "type": "ImageSourcePropType",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "status",
+          "type": "\"online\" | \"offline\" | \"busy\" | \"away\" | null",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"circular\" | \"rounded\" | \"square\"",
+          "required": false,
+          "default": "\"circular\"",
+          "description": "Shape: full circle, rounded corners, or square.",
+          "values": [
+            "circular",
+            "rounded",
+            "square"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Badge": {
+      "name": "Badge",
+      "source": "packages/ui/src/components/Badge.tsx",
+      "propsTypeName": "BadgeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "99",
+          "description": "Cap shown as \"max+\" when count exceeds it.",
+          "deprecated": false
+        },
+        {
+          "name": "showZero",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Render the badge even when count is 0 (hidden by default).",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"small\" | \"large\"",
+          "required": false,
+          "default": "\"large\"",
+          "values": [
+            "small",
+            "large"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "any",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        }
+      ]
+    },
+    "Banner": {
+      "name": "Banner",
+      "source": "packages/ui/src/components/Banner.tsx",
+      "propsTypeName": "BannerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "message",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "BannerAction[]",
+          "required": false,
+          "description": "Up to two actions, rendered right-aligned below the message.",
+          "deprecated": false
+        },
+        {
+          "name": "dismissable",
+          "type": "boolean",
+          "required": false,
+          "description": "Show a close (X) button; requires onDismiss.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "BannerType",
+          "required": false,
+          "default": "\"default\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "BottomSheet": {
+      "name": "BottomSheet",
+      "source": "packages/ui/src/components/BottomSheet.tsx",
+      "propsTypeName": "BottomSheetProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "dismissOnScrimTap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        },
+        {
+          "name": "maxHeightRatio",
+          "type": "number",
+          "required": false,
+          "default": "0.85",
+          "description": "Max sheet height as a fraction of the window height.",
+          "deprecated": false
+        },
+        {
+          "name": "showHandle",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Box": {
+      "name": "Box",
+      "source": "packages/ui/src/components/Layout/Box.tsx",
+      "propsTypeName": "BoxProps",
+      "extends": [
+        "ViewProps"
+      ],
+      "props": [
+        {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "bg",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — an M3 color role name or a raw color.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "flex",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "m",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Margin on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "mb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "ml",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mx",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "my",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "p",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Padding on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "pb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pl",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "px",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Horizontal padding.",
+          "deprecated": false
+        },
+        {
+          "name": "py",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Vertical padding.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "row",
+          "type": "boolean",
+          "required": false,
+          "description": "Lays children out horizontally instead of vertically.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Breadcrumbs": {
+      "name": "Breadcrumbs",
+      "source": "packages/ui/src/components/Breadcrumbs.tsx",
+      "propsTypeName": "BreadcrumbsProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "items",
+          "type": "BreadcrumbItem[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "maxItems",
+          "type": "number",
+          "required": false,
+          "description": "Collapse middle items behind an ellipsis when exceeding this count.",
+          "deprecated": false
+        },
+        {
+          "name": "separator",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"chevron-right\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "Button": {
+      "name": "Button",
+      "source": "packages/ui/src/components/Button.tsx",
+      "propsTypeName": "ButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch to fill the parent width.",
+          "deprecated": false
+        },
+        {
+          "name": "iconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconPosition",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "default": "\"left\"",
+          "description": "Icon side relative to the label.",
+          "values": [
+            "left",
+            "right"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "iconStyle",
+          "type": "object",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "\"filled\" | \"tonal\" | \"outlined\" | \"text\"",
+          "required": false,
+          "default": "\"filled\"",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined",
+            "text"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "object",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        },
+        {
+          "name": "tone",
+          "type": "\"primary\" | \"error\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Colour role. `error` is the destructive treatment (delete, discard).",
+          "values": [
+            "primary",
+            "error"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Calendar": {
+      "name": "Calendar",
+      "source": "packages/ui/src/components/Calendar.tsx",
+      "propsTypeName": "CalendarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "dates",
+          "type": "Date[]",
+          "required": false,
+          "description": "Selected days in `multiple` mode.",
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year reachable from the year grid and the endless scroller.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, computed holidays).",
+          "deprecated": false
+        },
+        {
+          "name": "keyboardNavigation",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Arrow-key/PageUp/Home/Enter navigation. Web only — there is no key event\nsource on native. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": false,
+          "description": "Fires in `single` mode.",
+          "deprecated": false
+        },
+        {
+          "name": "onDatesChange",
+          "type": "(dates: Date[]) => void",
+          "required": false,
+          "description": "Fires in `multiple` mode with the full set after the tap.",
+          "deprecated": false
+        },
+        {
+          "name": "onRangeChange",
+          "type": "(range: DateRange) => void",
+          "required": false,
+          "description": "Fires in `range` mode with the interval after the tap.",
+          "deprecated": false
+        },
+        {
+          "name": "onRequestClose",
+          "type": "() => void",
+          "required": false,
+          "description": "Called on Escape while keyboard navigation is active.",
+          "deprecated": false
+        },
+        {
+          "name": "range",
+          "type": "DateRange",
+          "required": false,
+          "default": "EMPTY_RANGE",
+          "description": "Selected interval in `range` mode.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "default": "\"endless\"",
+          "description": "`endless` scrolls through months in one virtualized list; `paged` shows one\nmonth at a time behind the chevrons. Defaults to `endless`.",
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "DateSelectionMode",
+          "required": false,
+          "default": "\"single\"",
+          "description": "How many days the grid collects. Defaults to `\"single\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "showToday",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Renders the \"Today\" shortcut row. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year reachable from the year grid and the endless scroller.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": false,
+          "description": "Selected day in `single` mode.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Card": {
+      "name": "Card",
+      "source": "packages/ui/src/components/Card.tsx",
+      "propsTypeName": "CardProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"elevated\" | \"filled\" | \"outlined\" | \"glow\"",
+          "required": false,
+          "default": "\"filled\"",
+          "values": [
+            "elevated",
+            "filled",
+            "outlined",
+            "glow"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "CardActions": {
+      "name": "CardActions",
+      "source": "packages/ui/src/components/CardParts/CardActions.tsx",
+      "propsTypeName": "CardActionsProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "align",
+          "type": "\"start\" | \"end\" | \"space-between\"",
+          "required": false,
+          "default": "\"end\"",
+          "description": "Where the buttons sit on the row. M3 puts card actions on the right.",
+          "values": [
+            "start",
+            "end",
+            "space-between"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "CardContent": {
+      "name": "CardContent",
+      "source": "packages/ui/src/components/CardParts/CardContent.tsx",
+      "propsTypeName": "CardContentProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "CardCover": {
+      "name": "CardCover",
+      "source": "packages/ui/src/components/CardParts/CardCover.tsx",
+      "propsTypeName": "CardCoverProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "alt",
+          "type": "string",
+          "required": true,
+          "description": "Alternative text — an unnamed image is invisible to a screen reader.",
+          "deprecated": false
+        },
+        {
+          "name": "source",
+          "type": "ImageSourcePropType",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "ratio",
+          "type": "number",
+          "required": false,
+          "default": "16 / 9",
+          "description": "Width divided by height. M3 card covers default to 16:9.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "CardTitle": {
+      "name": "CardTitle",
+      "source": "packages/ui/src/components/CardParts/CardTitle.tsx",
+      "propsTypeName": "CardTitleProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "left",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`.",
+          "deprecated": false
+        },
+        {
+          "name": "right",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Trailing slot — an `IconButton`, a `Menu` anchor, a `Chip`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "subtitle",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "subtitleNumberOfLines",
+          "type": "number",
+          "required": false,
+          "default": "2",
+          "deprecated": false
+        },
+        {
+          "name": "titleNumberOfLines",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "deprecated": false
+        }
+      ]
+    },
+    "Carousel": {
+      "name": "Carousel",
+      "source": "packages/ui/src/components/Carousel.tsx",
+      "propsTypeName": "CarouselProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "autoPlayInterval",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "Auto-advance interval in ms; 0 disables auto-play.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "description": "Fixed height; otherwise sized by the tallest page.",
+          "deprecated": false
+        },
+        {
+          "name": "onIndexChange",
+          "type": "(index: number) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showArrows",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Overlay prev/next arrow buttons.",
+          "deprecated": false
+        },
+        {
+          "name": "showDots",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        }
+      ]
+    },
+    "Center": {
+      "name": "Center",
+      "source": "packages/ui/src/components/Layout/Center.tsx",
+      "propsTypeName": "CenterProps",
+      "extends": [
+        "Omit<BoxProps, \"align\" | \"justify\">"
+      ],
+      "props": [
+        {
+          "name": "bg",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — an M3 color role name or a raw color.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "flex",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "m",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Margin on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "mb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "ml",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mx",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "my",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "p",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Padding on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "pb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pl",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "px",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Horizontal padding.",
+          "deprecated": false
+        },
+        {
+          "name": "py",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Vertical padding.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "row",
+          "type": "boolean",
+          "required": false,
+          "description": "Lays children out horizontally instead of vertically.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Checkbox": {
+      "name": "Checkbox",
+      "source": "packages/ui/src/components/Checkbox.tsx",
+      "propsTypeName": "CheckboxProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: boolean) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "required": false,
+          "description": "Mixed state (e.g. \"select all\" with partial selection); overrides the checkmark.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPosition",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "default": "\"right\"",
+          "values": [
+            "left",
+            "right"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Chip": {
+      "name": "Chip",
+      "source": "packages/ui/src/components/Chip.tsx",
+      "propsTypeName": "ChipProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "\"filled\" | \"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"filled\"",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"small\" | \"medium\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "\"small\" renders a compact 24px chip.",
+          "values": [
+            "small",
+            "medium"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "object",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        }
+      ]
+    },
+    "ClockDial": {
+      "name": "ClockDial",
+      "source": "packages/ui/src/components/ClockDial.tsx",
+      "propsTypeName": "ClockDialProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "hours",
+          "type": "number",
+          "required": true,
+          "description": "Current hour, always 0–23 regardless of the displayed clock format.",
+          "deprecated": false
+        },
+        {
+          "name": "minutes",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChangeHours",
+          "type": "(hours: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChangeMinutes",
+          "type": "(minutes: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "unit",
+          "type": "ClockUnit",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "isTimeDisabled",
+          "type": "(hours: number, minutes: number) => boolean",
+          "required": false,
+          "description": "Greys out and refuses values the caller does not allow.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Minute granularity the dial snaps to. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "onUnitComplete",
+          "type": "() => void",
+          "required": false,
+          "description": "Fires when a press on the hour dial ends, to hand over to the minutes.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders two rings (1–12 outer, 13–00 inner) instead of one.",
+          "deprecated": false
+        }
+      ]
+    },
+    "ClockPicker": {
+      "name": "ClockPicker",
+      "source": "packages/ui/src/components/ClockPicker.tsx",
+      "propsTypeName": "ClockPickerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "inputType",
+          "type": "PickerInputType",
+          "required": false,
+          "default": "\"picker\"",
+          "description": "`picker` shows the dial, `keyboard` two text fields. Defaults to `picker`.",
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Formatting locale; decides 12h vs 24h. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "maximumDate",
+          "type": "Date",
+          "required": false,
+          "description": "Clamps the selectable times on the maximum's own day.",
+          "deprecated": false
+        },
+        {
+          "name": "minimumDate",
+          "type": "Date",
+          "required": false,
+          "description": "Clamps the selectable times on the minimum's own day.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "default": "1",
+          "description": "Minute granularity. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour face. Left unset, the locale decides.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Collapse": {
+      "name": "Collapse",
+      "source": "packages/ui/src/components/Collapse.tsx",
+      "propsTypeName": "CollapseProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": true,
+          "description": "Whether the content is expanded.",
+          "deprecated": false
+        },
+        {
+          "name": "animateOpacity",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Fades the content along with the height change. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "collapsedHeight",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "Height kept visible while collapsed — a peek/teaser. Defaults to 0.",
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "description": "Transition length in ms. Defaults to 200.",
+          "deprecated": false
+        },
+        {
+          "name": "keepMounted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Skips unmounting the children while collapsed. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "DataGrid": {
+      "name": "DataGrid",
+      "source": "packages/ui/src/components/DataGrid.tsx",
+      "propsTypeName": "DataGridProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "columns",
+          "type": "ColumnDefinition[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "any[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "density",
+          "type": "\"normal\" | \"dense\"",
+          "required": false,
+          "default": "\"normal\"",
+          "values": [
+            "normal",
+            "dense"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "emptyMessage",
+          "type": "string",
+          "required": false,
+          "description": "Shown centered when data is empty and not loading.",
+          "deprecated": false
+        },
+        {
+          "name": "headerStyle",
+          "type": "ViewStyle",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "onColumnReorder",
+          "type": "(newColumns: ColumnDefinition[]) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onEndReached",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onEndReachedThreshold",
+          "type": "number",
+          "required": false,
+          "default": "0.5",
+          "deprecated": false
+        },
+        {
+          "name": "onSort",
+          "type": "(columnId: string, direction: \"asc\" | \"desc\") => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "rowStyle",
+          "type": "ViewStyle",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "sortColumn",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "sortDirection",
+          "type": "\"asc\" | \"desc\"",
+          "required": false,
+          "values": [
+            "asc",
+            "desc"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "DatePicker": {
+      "name": "DatePicker",
+      "source": "packages/ui/src/components/DatePicker.tsx",
+      "propsTypeName": "DatePickerProps",
+      "extends": [
+        "DistributiveOmit<DateTimePickerProps, \"mode\">"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": true,
+          "description": "`null` renders `placeholder` instead of a formatted value.",
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultInputType",
+          "type": "PickerInputType",
+          "required": false,
+          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "description": "Mount with the picker already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year offered by the year grid. Defaults to 100 years on.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputEnabled",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets the user type the value straight into the field. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "description": "Minute granularity of the clock. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "relativeLabels",
+          "type": "DateTimePickerRelativeLabels",
+          "required": false,
+          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an asterisk to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\"",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year offered by the year grid. Defaults to 100 years back.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        }
+      ]
+    },
+    "DatePickerInput": {
+      "name": "DatePickerInput",
+      "source": "packages/ui/src/components/DatePickerInput.tsx",
+      "propsTypeName": "DatePickerInputProps",
+      "extends": [
+        "Omit< SingleDateTimePickerProps, \"mode\" | \"selectionMode\" | \"inputEnabled\" >"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": true,
+          "description": "`null` renders `placeholder` instead of a formatted value.",
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultInputType",
+          "type": "PickerInputType",
+          "required": false,
+          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "description": "Mount with the picker already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year offered by the year grid. Defaults to 100 years on.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "description": "Minute granularity of the clock. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "relativeLabels",
+          "type": "DateTimePickerRelativeLabels",
+          "required": false,
+          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an asterisk to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year offered by the year grid. Defaults to 100 years back.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        }
+      ]
+    },
+    "DateRangePicker": {
+      "name": "DateRangePicker",
+      "source": "packages/ui/src/components/DateRangePicker.tsx",
+      "propsTypeName": "DateRangePickerProps",
+      "extends": [
+        "Omit< RangeDateTimePickerProps, \"mode\" | \"selectionMode\" >"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(range: DateRange) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "DateRange",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultInputType",
+          "type": "PickerInputType",
+          "required": false,
+          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "description": "Mount with the picker already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year offered by the year grid. Defaults to 100 years on.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputEnabled",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets the user type the value straight into the field. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "description": "Minute granularity of the clock. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "relativeLabels",
+          "type": "DateTimePickerRelativeLabels",
+          "required": false,
+          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an asterisk to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year offered by the year grid. Defaults to 100 years back.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        }
+      ]
+    },
+    "DateTimePicker": {
+      "name": "DateTimePicker",
+      "source": "packages/ui/src/components/DateTimePicker.tsx",
+      "propsTypeName": "DateTimePickerProps",
+      "extends": [
+        "| SingleDateTimePickerProps | RangeDateTimePickerProps | MultipleDateTimePickerProps"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": true,
+          "description": "`null` renders `placeholder` instead of a formatted value.",
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultInputType",
+          "type": "PickerInputType",
+          "required": false,
+          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "description": "Mount with the picker already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year offered by the year grid. Defaults to 100 years on.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputEnabled",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets the user type the value straight into the field. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "description": "Minute granularity of the clock. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "DateTimePickerMode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "relativeLabels",
+          "type": "DateTimePickerRelativeLabels",
+          "required": false,
+          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an asterisk to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"single\"",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year offered by the year grid. Defaults to 100 years back.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Divider": {
+      "name": "Divider",
+      "source": "packages/ui/src/components/Divider.tsx",
+      "propsTypeName": "DividerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentSpacing",
+          "type": "number",
+          "required": false,
+          "default": "16",
+          "deprecated": false
+        },
+        {
+          "name": "inset",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "values": [
+            "horizontal",
+            "vertical"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "thickness",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "deprecated": false
+        }
+      ]
+    },
+    "EmptyState": {
+      "name": "EmptyState",
+      "source": "packages/ui/src/components/EmptyState.tsx",
+      "propsTypeName": "EmptyStateProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "action",
+          "type": "EmptyStateAction",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"inbox-outline\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "FAB": {
+      "name": "FAB",
+      "source": "packages/ui/src/components/FAB.tsx",
+      "propsTypeName": "FABProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placement",
+          "type": "FABPlacement",
+          "required": false,
+          "default": "\"floating\"",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "FABPosition",
+          "required": false,
+          "default": "\"bottom-right\"",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "FABSize",
+          "required": false,
+          "default": "\"regular\"",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "FormControl": {
+      "name": "FormControl",
+      "source": "packages/ui/src/components/FormControl.tsx",
+      "propsTypeName": "FormControlProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the control. Its presence marks the group invalid.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the control; hidden while `error` is set.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Grid": {
+      "name": "Grid",
+      "source": "packages/ui/src/components/Layout/Grid.tsx",
+      "propsTypeName": "GridProps",
+      "extends": [
+        "Omit<BoxProps, \"row\" | \"wrap\" | \"gap\">"
+      ],
+      "props": [
+        {
+          "name": "columns",
+          "type": "number",
+          "required": false,
+          "default": "2",
+          "description": "Fixed column count. Ignored when `minChildWidth` is set.",
+          "deprecated": false
+        },
+        {
+          "name": "minChildWidth",
+          "type": "number",
+          "required": false,
+          "description": "Responsive alternative to `columns`: fits as many columns of at least this\nwidth as the container allows.",
+          "deprecated": false
+        },
+        {
+          "name": "spacing",
+          "type": "SpacingValue",
+          "required": false,
+          "default": "\"s\"",
+          "description": "Gap between cells — a spacing token name or a raw value.",
+          "deprecated": false
+        }
+      ]
+    },
+    "HelperText": {
+      "name": "HelperText",
+      "source": "packages/ui/src/components/HelperText.tsx",
+      "propsTypeName": "HelperTextProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "containerStyle",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Dims the text to match a disabled field.",
+          "deprecated": false
+        },
+        {
+          "name": "padding",
+          "type": "\"normal\" | \"none\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "`none` removes the 16px gutter that aligns the text with the field body.",
+          "values": [
+            "normal",
+            "none"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "HelperTextType",
+          "required": false,
+          "default": "\"info\"",
+          "description": "`error` switches to the error role and shows the alert glyph.",
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Fades the text out instead of unmounting it, so the field doesn't jump.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Icon": {
+      "name": "Icon",
+      "source": "packages/ui/src/components/Icon.tsx",
+      "propsTypeName": "IconProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "source",
+          "type": "IconSource",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "flipForRTL",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mirror the glyph when the layout direction is RTL (arrows, chevrons).",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "24",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ImageStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "IconBadge": {
+      "name": "IconBadge",
+      "source": "packages/ui/src/components/IconBadge.tsx",
+      "propsTypeName": "IconBadgeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "badgeCount",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "badgeColor",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "32",
+          "deprecated": false
+        }
+      ]
+    },
+    "IconButton": {
+      "name": "IconButton",
+      "source": "packages/ui/src/components/IconButton.tsx",
+      "propsTypeName": "IconButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": true,
+          "description": "Required: an icon alone carries no accessible name.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "IconButtonMode",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "M3 icon-button container styles. Defaults to `\"standard\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "description": "Renders the M3 \"selected\" container of a toggle icon button.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "IconButtonSize",
+          "required": false,
+          "default": "\"medium\"",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Image": {
+      "name": "Image",
+      "source": "packages/ui/src/components/Image.tsx",
+      "propsTypeName": "ImageProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "alt",
+          "type": "string",
+          "required": true,
+          "description": "Alternative text. Required — an image with no accessible name is invisible\nto screen readers.",
+          "deprecated": false
+        },
+        {
+          "name": "source",
+          "type": "ImageSourcePropType",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "fallbackIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"image-broken-variant\"",
+          "description": "Shown when loading fails and there is no `fallbackSource`.",
+          "deprecated": false
+        },
+        {
+          "name": "fallbackSource",
+          "type": "ImageSourcePropType",
+          "required": false,
+          "description": "Swapped in when `source` fails to load.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onError",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onLoad",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "ratio",
+          "type": "number",
+          "required": false,
+          "description": "Width divided by height. Use instead of `height` for fluid layouts.",
+          "deprecated": false
+        },
+        {
+          "name": "resizeMode",
+          "type": "ImageResizeMode",
+          "required": false,
+          "default": "\"cover\"",
+          "deprecated": false
+        },
+        {
+          "name": "showLoader",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Renders a pulsing skeleton until the image resolves. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Input": {
+      "name": "Input",
+      "source": "packages/ui/src/components/Input.tsx",
+      "propsTypeName": "InputProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChangeText",
+          "type": "(text: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "leadingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": "56",
+          "deprecated": false
+        },
+        {
+          "name": "multiline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "numberOfLines",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "deprecated": false
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onTrailingIconPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "precision",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "prefix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Marks the label with an asterisk.",
+          "deprecated": false
+        },
+        {
+          "name": "secureTextEntry",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "suffix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "trailingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"text\" | \"number\"",
+          "required": false,
+          "default": "\"text\"",
+          "values": [
+            "text",
+            "number"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "values": [
+            "outlined",
+            "filled"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "LanguageSelector": {
+      "name": "LanguageSelector",
+      "source": "packages/ui/src/components/LanguageSelector.tsx",
+      "propsTypeName": "LanguageSelectorProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "currentLang",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(lang: string) => void",
+          "required": true,
+          "description": "Called with the next language code when the selector is pressed.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Link": {
+      "name": "Link",
+      "source": "packages/ui/src/components/Link.tsx",
+      "propsTypeName": "LinkProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "externalIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"open-in-new\"",
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "description": "Opened with `Linking.openURL`. Ignored when `onPress` is given.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showExternalIcon",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an external-link icon. Defaults to `true` when `href` is remote.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "textStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "underline",
+          "type": "\"always\" | \"hover\" | \"none\"",
+          "required": false,
+          "default": "\"hover\"",
+          "description": "Underline behaviour. Defaults to `\"hover\"`.",
+          "values": [
+            "always",
+            "hover",
+            "none"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "keyof Theme[\"typography\"]",
+          "required": false,
+          "default": "\"bodyMedium\"",
+          "description": "M3 typography variant for the label. Defaults to `\"bodyMedium\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "ListItem": {
+      "name": "ListItem",
+      "source": "packages/ui/src/components/List/ListItem.tsx",
+      "propsTypeName": "ListItemProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "itemContainerStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemHoveredStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemPressedStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemSecondaryTextStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemTextStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "leading",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Leading slot — an Avatar, an icon, a Checkbox.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "secondary",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Second line below `children`.",
+          "deprecated": false
+        },
+        {
+          "name": "trailing",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Trailing slot — a value, a Toggle, a chevron.",
+          "deprecated": false
+        }
+      ]
+    },
+    "ListSection": {
+      "name": "ListSection",
+      "source": "packages/ui/src/components/List/ListSection.tsx",
+      "propsTypeName": "ListSectionProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Rule below the section, for a settings screen of stacked groups.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Group label rendered above the rows as a heading.",
+          "deprecated": false
+        }
+      ]
+    },
+    "ListSubheader": {
+      "name": "ListSubheader",
+      "source": "packages/ui/src/components/List/ListSubheader.tsx",
+      "propsTypeName": "ListSubheaderProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Menu": {
+      "name": "Menu",
+      "source": "packages/ui/src/components/Menu.tsx",
+      "propsTypeName": "MenuProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "anchor",
+          "type": "React.ReactElement",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "MenuItem[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Close the menu automatically after an item is pressed. Default true.",
+          "deprecated": false
+        }
+      ]
+    },
+    "ConfirmDialog": {
+      "name": "ConfirmDialog",
+      "source": "packages/ui/src/components/Modal/ConfirmDialog.tsx",
+      "propsTypeName": "ConfirmDialogProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onConfirm",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "required": false,
+          "default": "\"Cancel\"",
+          "deprecated": false
+        },
+        {
+          "name": "confirmText",
+          "type": "string",
+          "required": false,
+          "default": "\"Confirm\"",
+          "deprecated": false
+        },
+        {
+          "name": "destructive",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders the confirm action in the error tone (delete, discard).",
+          "deprecated": false
+        },
+        {
+          "name": "dismissable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether the scrim and ESC cancel the dialog. Leave it off for a decision\nthe user must answer explicitly. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "IconSource",
+          "required": false,
+          "description": "Hero glyph above the title.",
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Modal": {
+      "name": "Modal",
+      "source": "packages/ui/src/components/Modal/Modal.tsx",
+      "propsTypeName": "ModalProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode | string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Trailing action row. Replaces the single `closeText` button.",
+          "deprecated": false
+        },
+        {
+          "name": "animationType",
+          "type": "\"none\" | \"slide\" | \"fade\"",
+          "required": false,
+          "default": "\"fade\"",
+          "values": [
+            "none",
+            "slide",
+            "fade"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "default": "\"Close\"",
+          "deprecated": false
+        },
+        {
+          "name": "dismissable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether tapping the scrim (and pressing ESC on web) dismisses the dialog.\nTurn it off for a decision the user must not be able to skip.\nDefaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "IconSource",
+          "required": false,
+          "description": "Hero glyph above the title (M3 dialog icon). Centres the header.",
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": false,
+          "description": "Called on Android back / ESC without rendering the close button. Falls back to onClose.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Scrolls the body when the content is taller than the dialog.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "default": "\"modal\"",
+          "description": "Root testID. The scrim gets `${testID}-scrim`.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "transparent",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "DrawerPreferenceItem": {
+      "name": "DrawerPreferenceItem",
+      "source": "packages/ui/src/components/DrawerPreferenceItem.tsx",
+      "propsTypeName": "DrawerPreferenceItemProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "NavigationBar": {
+      "name": "NavigationBar",
+      "source": "packages/ui/src/components/NavigationBar.tsx",
+      "propsTypeName": "NavigationBarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "activeId",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "NavigationBarItem[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onItemPress",
+          "type": "(id: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "showLabels",
+          "type": "\"always\" | \"selected\"",
+          "required": false,
+          "default": "\"always\"",
+          "description": "\"always\" shows every label, \"selected\" only the active one.",
+          "values": [
+            "always",
+            "selected"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "NumericInput": {
+      "name": "NumericInput",
+      "source": "packages/ui/src/components/NumericInput.tsx",
+      "propsTypeName": "NumericInputProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChangeText",
+          "type": "(text: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "default": "56",
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "precision",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "prefix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "suffix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "values": [
+            "outlined",
+            "filled"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Pagination": {
+      "name": "Pagination",
+      "source": "packages/ui/src/components/Pagination.tsx",
+      "propsTypeName": "PaginationProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onPageChange",
+          "type": "(page: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "page",
+          "type": "number",
+          "required": true,
+          "description": "Current page, 1-based.",
+          "deprecated": false
+        },
+        {
+          "name": "totalPages",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showFirstLast",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show jump-to-first / jump-to-last arrows.",
+          "deprecated": false
+        },
+        {
+          "name": "siblingCount",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Pages shown on each side of the current page.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Paper": {
+      "name": "Paper",
+      "source": "packages/ui/src/components/Paper.tsx",
+      "propsTypeName": "PaperProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "elevation",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "deprecated": false
+        },
+        {
+          "name": "glow",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "outline",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "PinInput": {
+      "name": "PinInput",
+      "source": "packages/ui/src/components/PinInput.tsx",
+      "propsTypeName": "PinInputProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChangeText",
+          "type": "(value: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "autoFocus",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "cellSize",
+          "type": "number",
+          "required": false,
+          "default": "48",
+          "description": "Cell edge length. Defaults to 48.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the cells; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "length",
+          "type": "number",
+          "required": false,
+          "default": "6",
+          "description": "Number of cells. Defaults to 6.",
+          "deprecated": false
+        },
+        {
+          "name": "mask",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders dots instead of characters.",
+          "deprecated": false
+        },
+        {
+          "name": "onComplete",
+          "type": "(value: string) => void",
+          "required": false,
+          "description": "Fired once the last cell is filled.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"numeric\" | \"alphanumeric\"",
+          "required": false,
+          "default": "\"numeric\"",
+          "description": "Restricts the accepted characters. Defaults to `\"numeric\"`.",
+          "values": [
+            "numeric",
+            "alphanumeric"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Popover": {
+      "name": "Popover",
+      "source": "packages/ui/src/components/Popover.tsx",
+      "propsTypeName": "PopoverProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "anchor",
+          "type": "React.ReactElement",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "matchAnchorWidth",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Portal": {
+      "name": "Portal",
+      "source": "packages/ui/src/components/Portal.tsx",
+      "propsTypeName": "PortalProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "CircularProgress": {
+      "name": "CircularProgress",
+      "source": "packages/ui/src/components/Progress/CircularProgress.tsx",
+      "propsTypeName": "CircularProgressProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "1000",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "48",
+          "deprecated": false
+        },
+        {
+          "name": "strokeWidth",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "deprecated": false
+        }
+      ]
+    },
+    "LinearProgress": {
+      "name": "LinearProgress",
+      "source": "packages/ui/src/components/Progress/LinearProgress.tsx",
+      "propsTypeName": "LinearProgressProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "color",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "500",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "deprecated": false
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "indeterminateDuration",
+          "type": "number",
+          "required": false,
+          "default": "1500",
+          "deprecated": false
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "deprecated": false
+        },
+        {
+          "name": "trackColor",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "RadioButton": {
+      "name": "RadioButton",
+      "source": "packages/ui/src/components/RadioButton.tsx",
+      "propsTypeName": "RadioButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPosition",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "default": "\"right\"",
+          "values": [
+            "left",
+            "right"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Rating": {
+      "name": "Rating",
+      "source": "packages/ui/src/components/Rating.tsx",
+      "propsTypeName": "RatingProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "description": "Current rating; halves are rendered (e.g. 3.5).",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "5",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "required": false,
+          "description": "Interactive when provided; tapping a star sets a whole value.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "24",
+          "deprecated": false
+        }
+      ]
+    },
+    "SearchBar": {
+      "name": "SearchBar",
+      "source": "packages/ui/src/components/SearchBar.tsx",
+      "propsTypeName": "SearchBarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChangeText",
+          "type": "(text: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "autoFocus",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "leadingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"magnify\"",
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "description": "Called after the clear button empties the field.",
+          "deprecated": false
+        },
+        {
+          "name": "onSubmit",
+          "type": "(text: string) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": "\"Search\"",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Select": {
+      "name": "Select",
+      "source": "packages/ui/src/components/Select.tsx",
+      "propsTypeName": "SelectProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onSelect",
+          "type": "(value: any) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "Option[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mount with the option list already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "multiSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "optionStyle",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": "\"Select an option\"",
+          "deprecated": false
+        },
+        {
+          "name": "selectedValues",
+          "type": "any[]",
+          "required": false,
+          "default": "[]",
+          "deprecated": false
+        },
+        {
+          "name": "showAsChips",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "toggleOptions",
+          "type": "(value: any) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "SelectVariant",
+          "required": false,
+          "default": "\"outlined\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "Skeleton": {
+      "name": "Skeleton",
+      "source": "packages/ui/src/components/Skeleton.tsx",
+      "propsTypeName": "SkeletonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "animate",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "false renders a static placeholder (no pulse).",
+          "deprecated": false
+        },
+        {
+          "name": "borderRadius",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "1200",
+          "description": "Pulse animation duration for a full cycle (ms).",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "SkeletonVariant",
+          "required": false,
+          "default": "\"rect\"",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Slider": {
+      "name": "Slider",
+      "source": "packages/ui/src/components/Slider.tsx",
+      "propsTypeName": "SliderProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(value: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "marks",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draw a tick at every step (requires step > 0).",
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "deprecated": false
+        },
+        {
+          "name": "onSlidingComplete",
+          "type": "(value: number) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showValueLabel",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Snackbar": {
+      "name": "Snackbar",
+      "source": "packages/ui/src/components/Snackbar.tsx",
+      "propsTypeName": "SnackbarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "message",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "action",
+          "type": "{ label: string; onPress: () => void; }",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "4000",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"default\" | \"success\" | \"error\"",
+          "required": false,
+          "default": "\"default\"",
+          "values": [
+            "default",
+            "success",
+            "error"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Spacer": {
+      "name": "Spacer",
+      "source": "packages/ui/src/components/Layout/Spacer.tsx",
+      "propsTypeName": "SpacerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "axis",
+          "type": "\"vertical\" | \"horizontal\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "Which axis `size` applies to. Defaults to `\"vertical\"`.",
+          "values": [
+            "vertical",
+            "horizontal"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Fixed size along the parent's axis. Omit to absorb the leftover space.",
+          "deprecated": false
+        }
+      ]
+    },
+    "SpeedDial": {
+      "name": "SpeedDial",
+      "source": "packages/ui/src/components/SpeedDial.tsx",
+      "propsTypeName": "SpeedDialProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "actions",
+          "type": "SpeedDialAction[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "mainIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mount with the action stack already expanded. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "SpeedDialPosition",
+          "required": false,
+          "default": "\"bottom-right\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "Spinner": {
+      "name": "Spinner",
+      "source": "packages/ui/src/components/Spinner.tsx",
+      "propsTypeName": "SpinnerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(val: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "deprecated": false
+        }
+      ]
+    },
+    "Stack": {
+      "name": "Stack",
+      "source": "packages/ui/src/components/Layout/Stack.tsx",
+      "propsTypeName": "StackProps",
+      "extends": [
+        "Omit<BoxProps, \"row\" | \"gap\">"
+      ],
+      "props": [
+        {
+          "name": "direction",
+          "type": "\"vertical\" | \"horizontal\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "Stacking axis. Defaults to `\"vertical\"`.",
+          "values": [
+            "vertical",
+            "horizontal"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "reverse",
+          "type": "boolean",
+          "required": false,
+          "description": "Reverses the visual order without touching the children array.",
+          "deprecated": false
+        },
+        {
+          "name": "spacing",
+          "type": "SpacingValue",
+          "required": false,
+          "default": "\"s\"",
+          "description": "Gap between children — a spacing token name or a raw value.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Stat": {
+      "name": "Stat",
+      "source": "packages/ui/src/components/Stat.tsx",
+      "propsTypeName": "StatProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "description": "What the number measures.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "description": "The number itself; pre-formatted by the caller.",
+          "deprecated": false
+        },
+        {
+          "name": "delta",
+          "type": "string",
+          "required": false,
+          "description": "Signed change shown next to an up/down arrow, e.g. `\"12.5%\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "helpText",
+          "type": "string",
+          "required": false,
+          "description": "Extra context under the value.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "invertTrendColors",
+          "type": "boolean",
+          "required": false,
+          "description": "Inverts the trend colors, for metrics where down is good.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "trend",
+          "type": "\"up\" | \"down\" | \"flat\"",
+          "required": false,
+          "description": "Direction of `delta`. Drives both the arrow and its color.",
+          "values": [
+            "up",
+            "down",
+            "flat"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "StatusBadge": {
+      "name": "StatusBadge",
+      "source": "packages/ui/src/components/StatusBadge.tsx",
+      "propsTypeName": "StatusBadgeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"success\" | \"error\" | \"warning\"",
+          "required": false,
+          "default": "\"success\"",
+          "values": [
+            "success",
+            "error",
+            "warning"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "StatusBar": {
+      "name": "StatusBar",
+      "source": "packages/ui/src/components/StatusBar.tsx",
+      "propsTypeName": "StatusBarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "backgroundColor",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Stepper": {
+      "name": "Stepper",
+      "source": "packages/ui/src/components/Stepper.tsx",
+      "propsTypeName": "StepperProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "activeStep",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "steps",
+          "type": "Step[] | string[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onStepPress",
+          "type": "(stepIndex: number) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "object",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "TabContent": {
+      "name": "TabContent",
+      "source": "packages/ui/src/components/Tab/TabContent.tsx",
+      "propsTypeName": "TabContentProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "activeTab",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "object",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        }
+      ]
+    },
+    "Tabs": {
+      "name": "Tabs",
+      "source": "packages/ui/src/components/Tab/Tabs.tsx",
+      "propsTypeName": "TabProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "activeTab",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(index: number) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "tabs",
+          "type": "IconTabItem[] | string[]",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "TimePicker": {
+      "name": "TimePicker",
+      "source": "packages/ui/src/components/TimePicker.tsx",
+      "propsTypeName": "TimePickerProps",
+      "extends": [
+        "Omit< SingleDateTimePickerProps, \"mode\" | \"selectionMode\" >"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date | null",
+          "required": true,
+          "description": "`null` renders `placeholder` instead of a formatted value.",
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "required": false,
+          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultInputType",
+          "type": "PickerInputType",
+          "required": false,
+          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "description": "Mount with the picker already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "endYear",
+          "type": "number",
+          "required": false,
+          "description": "Last year offered by the year grid. Defaults to 100 years on.",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputEnabled",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets the user type the value straight into the field. Default `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "isDateDisabled",
+          "type": "(date: Date) => boolean",
+          "required": false,
+          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "MinuteInterval",
+          "required": false,
+          "description": "Minute granularity of the clock. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "relativeLabels",
+          "type": "DateTimePickerRelativeLabels",
+          "required": false,
+          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Appends an asterisk to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollMode",
+          "type": "CalendarScrollMode",
+          "required": false,
+          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "startYear",
+          "type": "number",
+          "required": false,
+          "description": "First year offered by the year grid. Defaults to 100 years back.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use24HourClock",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
+          "deprecated": false
+        },
+        {
+          "name": "validRange",
+          "type": "ValidRange",
+          "required": false,
+          "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        }
+      ]
+    },
+    "TimeSelect": {
+      "name": "TimeSelect",
+      "source": "packages/ui/src/components/TimeSelect.tsx",
+      "propsTypeName": "TimeSelectProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DateTimePickerLabels",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "Formatting locale; decides 12h vs 24h. Defaults to the device locale.",
+          "deprecated": false
+        },
+        {
+          "name": "maximumDate",
+          "type": "Date",
+          "required": false,
+          "description": "Clamps the selectable times on the maximum's own day.",
+          "deprecated": false
+        },
+        {
+          "name": "minimumDate",
+          "type": "Date",
+          "required": false,
+          "description": "Clamps the selectable times on the minimum's own day.",
+          "deprecated": false
+        },
+        {
+          "name": "minuteInterval",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Minute granularity. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "use12Hour",
+          "type": "boolean",
+          "required": false,
+          "description": "Forces the clock format instead of deriving it from the locale.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Toggle": {
+      "name": "Toggle",
+      "source": "packages/ui/src/components/Toggle.tsx",
+      "propsTypeName": "ToggleProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(value: boolean) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "animationDuration",
+          "type": "number",
+          "required": false,
+          "default": "200",
+          "deprecated": false
+        },
+        {
+          "name": "containerStyle",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "default": "{}",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "18",
+          "deprecated": false
+        },
+        {
+          "name": "thumbOffSizeRatio",
+          "type": "number",
+          "required": false,
+          "default": "0.8",
+          "deprecated": false
+        },
+        {
+          "name": "thumbOnSizeRatio",
+          "type": "number",
+          "required": false,
+          "default": "0.9",
+          "deprecated": false
+        },
+        {
+          "name": "trackBorderWidth",
+          "type": "number",
+          "required": false,
+          "default": "2",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "default": "32",
+          "deprecated": false
+        }
+      ]
+    },
+    "ToggleButton": {
+      "name": "ToggleButton",
+      "source": "packages/ui/src/components/ToggleButton/ToggleButton.tsx",
+      "propsTypeName": "ToggleButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityRole",
+          "type": "\"radio\" | \"checkbox\" | \"button\"",
+          "required": false,
+          "default": "\"button\"",
+          "description": "Accessibility role. The group sets this per its selection mode.",
+          "values": [
+            "radio",
+            "checkbox",
+            "button"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "grow",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Stretch to an equal share of the group's width.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFirst",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLast",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showSelectedCheck",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Swap the leading glyph for a check mark while selected — the M3 segmented\nbutton affordance that tells \"selected\" apart from \"just highlighted\".",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "ToggleButtonGroup": {
+      "name": "ToggleButtonGroup",
+      "source": "packages/ui/src/components/ToggleButton/ToggleButtonGroup.tsx",
+      "propsTypeName": "ToggleButtonGroupProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(val: any) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "ToggleButtonOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | string[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Names the group for assistive tech — a group of choices needs a question.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Disables every segment.",
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Segments share the row equally instead of sizing to their labels.",
+          "deprecated": false
+        },
+        {
+          "name": "multiSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "showSelectedCheck",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Show a check mark on the selected segments (M3 segmented button).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Tooltip": {
+      "name": "Tooltip",
+      "source": "packages/ui/src/components/Tooltip.tsx",
+      "propsTypeName": "TooltipProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "enterDelay",
+          "type": "number",
+          "required": false,
+          "default": "500",
+          "description": "Hover dwell (ms) before the tip appears on web. Without it, sweeping the\npointer across a toolbar flashes every tooltip in the row.",
+          "deprecated": false
+        },
+        {
+          "name": "hideDelay",
+          "type": "number",
+          "required": false,
+          "default": "1500",
+          "description": "Auto-hide delay (ms) after long-press on native.",
+          "deprecated": false
+        },
+        {
+          "name": "leaveDelay",
+          "type": "number",
+          "required": false,
+          "default": "100",
+          "description": "Grace period (ms) before the tip leaves on hover-out.",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "\"top\" | \"bottom\" | \"left\" | \"right\"",
+          "required": false,
+          "default": "\"top\"",
+          "values": [
+            "top",
+            "bottom",
+            "left",
+            "right"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "TouchableRipple": {
+      "name": "TouchableRipple",
+      "source": "packages/ui/src/components/TouchableRipple.tsx",
+      "propsTypeName": "TouchableRippleProps",
+      "extends": [
+        "Omit<\n  PressableProps,\n  \"style\" | \"children\"\n>"
+      ],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "activeStyle",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Extra style applied only while hovered (web) or pressed.",
+          "deprecated": false
+        },
+        {
+          "name": "borderless",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Skip the container background so the layer only tints the child.",
+          "deprecated": false
+        },
+        {
+          "name": "borderRadius",
+          "type": "number",
+          "required": false,
+          "description": "Matches the parent's corner radius so the layer doesn't bleed out.",
+          "deprecated": false
+        },
+        {
+          "name": "rippleColor",
+          "type": "string",
+          "required": false,
+          "description": "Colour of the state layer itself — the M3 \"on\" role of the surface.\nDefaults to `onSurface`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "underlayColor",
+          "type": "string",
+          "required": false,
+          "description": "Surface the state layer is drawn over. Defaults to `surface`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Typography": {
+      "name": "Typography",
+      "source": "packages/ui/src/components/Typography.tsx",
+      "propsTypeName": "TypographyProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "| \"displayLarge\" | \"displayMedium\" | \"displaySmall\" | \"headlineLarge\" | \"headlineMedium\" | \"headlineSmall\" | \"titleLarge\" | \"titleMedium\" | \"titleSmall\" | \"bodyLarge\" | \"bodyMedium\" | \"bodySmall\" | \"labelLarge\" | \"labelMedium\" | \"labelSmall\"",
+          "required": false,
+          "default": "\"displayLarge\"",
+          "values": [
+            "displayLarge",
+            "displayMedium",
+            "displaySmall",
+            "headlineLarge",
+            "headlineMedium",
+            "headlineSmall",
+            "titleLarge",
+            "titleMedium",
+            "titleSmall",
+            "bodyLarge",
+            "bodyMedium",
+            "bodySmall",
+            "labelLarge",
+            "labelMedium",
+            "labelSmall"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "ThemeProvider": {
+      "name": "ThemeProvider",
+      "source": "packages/ui/src/providers/ThemeProvider.tsx",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "AlertProvider": {
+      "name": "AlertProvider",
+      "source": "packages/ui/src/providers/AlertProvider.tsx",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "AlertProviderWrapper": {
+      "name": "AlertProviderWrapper",
+      "source": "packages/ui/src/providers/AlertProvider.tsx",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "ToastProvider": {
+      "name": "ToastProvider",
+      "source": "packages/ui/src/providers/ToastProvider.tsx",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "PortalHost": {
+      "name": "PortalHost",
+      "source": "packages/ui/src/components/Portal.tsx",
+      "propsTypeName": "PortalHostProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "RadioGroup": {
+      "name": "RadioGroup",
+      "source": "packages/ui/src/components/RadioButton.tsx",
+      "propsTypeName": "RadioGroupProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(value: any) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "RadioOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "values": [
+            "column",
+            "row"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "HStack": {
+      "name": "HStack",
+      "source": "packages/ui/src/components/Layout/Stack.tsx",
+      "propsTypeName": "StackAxisProps",
+      "extends": [
+        "Omit<StackProps, \"direction\">"
+      ],
+      "props": [
+        {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "bg",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — an M3 color role name or a raw color.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "flex",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "m",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Margin on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "mb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "ml",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mx",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "my",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "p",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Padding on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "pb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pl",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "px",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Horizontal padding.",
+          "deprecated": false
+        },
+        {
+          "name": "py",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Vertical padding.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "reverse",
+          "type": "boolean",
+          "required": false,
+          "description": "Reverses the visual order without touching the children array.",
+          "deprecated": false
+        },
+        {
+          "name": "spacing",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Gap between children — a spacing token name or a raw value.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "VStack": {
+      "name": "VStack",
+      "source": "packages/ui/src/components/Layout/Stack.tsx",
+      "propsTypeName": "StackAxisProps",
+      "extends": [
+        "Omit<StackProps, \"direction\">"
+      ],
+      "props": [
+        {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "bg",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — an M3 color role name or a raw color.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "flex",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "m",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Margin on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "mb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "ml",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "mx",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "my",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "p",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Padding on every edge.",
+          "deprecated": false
+        },
+        {
+          "name": "pb",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pl",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pr",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pt",
+          "type": "SpacingValue",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "px",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Horizontal padding.",
+          "deprecated": false
+        },
+        {
+          "name": "py",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Vertical padding.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "reverse",
+          "type": "boolean",
+          "required": false,
+          "description": "Reverses the visual order without touching the children array.",
+          "deprecated": false
+        },
+        {
+          "name": "spacing",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Gap between children — a spacing token name or a raw value.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 // --- Theme system ---
 export * from "./providers/ThemeProvider";
+export * from "./providers/palettes";
 export * from "./providers/AlertProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";

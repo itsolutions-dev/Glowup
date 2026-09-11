@@ -28,7 +28,10 @@ import { Project, Node } from "ts-morph";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, "../../..");
 const UI_ROOT = resolve(REPO_ROOT, "packages/ui");
-const UI_SRC = resolve(UI_ROOT, "src");
+// Normalised to forward slashes: ts-morph reports POSIX paths on every
+// platform, so the `startsWith(UI_SRC)` filter below matched nothing on Windows
+// and every checker-derived prop was silently dropped from the tables.
+const UI_SRC = resolve(UI_ROOT, "src").replace(/\\/g, "/");
 const BARREL = resolve(UI_ROOT, "src/index.ts");
 const OUT = resolve(HERE, "props.generated.json");
 

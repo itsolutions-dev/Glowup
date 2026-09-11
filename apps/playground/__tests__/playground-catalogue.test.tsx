@@ -356,6 +356,18 @@ describe("Playground catalogue", () => {
       on: { minChildWidth: 0 },
       props: ["columns"],
     },
+    {
+      component: "Slider",
+      off: { step: 0 },
+      on: { step: 10 },
+      props: ["marks"],
+    },
+    {
+      component: "Avatar",
+      off: { name: "Ada Lovelace" },
+      on: { name: "" },
+      props: ["icon"],
+    },
   ];
 
   it.each(EXCLUSIONS)(
@@ -374,6 +386,33 @@ describe("Playground catalogue", () => {
       }
     },
   );
+
+  it("opens with nothing hidden but a mode switch away", () => {
+    // A control hidden in the panel's *opening* state is a prop nobody
+    // discovers: you cannot toggle something you cannot see. That is tolerable
+    // only where the switch that brings it back sits right beside it and is
+    // the obvious thing to try — a Mode select, a Unit select, an Empty Data
+    // toggle. It is not tolerable where the switch is a number field you would
+    // have to guess at, which is what Slider's `step` and Avatar's `name`
+    // defaults used to be. Anything new here needs the same argument or a
+    // better default.
+    const HIDDEN_AT_REST = [
+      "DateTimePicker.minuteInterval", // Mode → Time / Date & Time
+      "DateTimePicker.use24HourClock", // Mode → Time / Date & Time
+      "ClockDial.minuteInterval", // Unit → Minutes
+      "DataGrid.emptyMessage", // Empty Data → on
+    ];
+
+    const hidden = Object.entries(ComponentRegistry).flatMap(([name, meta]) =>
+      Object.entries(meta.props)
+        .filter(
+          ([, definition]) =>
+            definition.appliesWhen?.(defaultsOf(name)) === false,
+        )
+        .map(([key]) => `${name}.${key}`),
+    );
+    expect(hidden.sort()).toEqual([...HIDDEN_AT_REST].sort());
+  });
 
   it("pins every appliesWhen in the catalogue to a case above", () => {
     // A new exclusion that nobody covered is an exclusion nobody checked

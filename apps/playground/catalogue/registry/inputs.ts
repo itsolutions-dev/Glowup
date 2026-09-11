@@ -180,14 +180,24 @@ export const inputs: Record<string, ComponentMetadata> = {
       value: { type: "number", default: 40, label: "Value" },
       min: { type: "number", default: 0, label: "Min" },
       max: { type: "number", default: 100, label: "Max" },
-      step: { type: "number", default: 0, label: "Step (0 = off)" },
+      // Not 0: a continuous slider is the duller half of this component and
+      // it left both this control and Marks doing nothing until you found the
+      // connection between them. 10 divides the default 0-100 range evenly and
+      // the default value of 40 sits on a step.
+      step: { type: "number", default: 10, label: "Step (0 = off)" },
       label: { type: "text", default: "Volume", label: "Label" },
       showValueLabel: {
         type: "boolean",
         default: true,
         label: "Show Value",
       },
-      marks: { type: "boolean", default: false, label: "Marks" },
+      marks: {
+        type: "boolean",
+        default: false,
+        label: "Marks",
+        // A tick per step, so there is nothing to draw on a continuous track.
+        appliesWhen: (values) => Number(values.step) > 0,
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },

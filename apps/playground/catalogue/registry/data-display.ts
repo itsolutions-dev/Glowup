@@ -22,7 +22,10 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "Avatar",
     Component: Avatar,
     props: {
-      name: { type: "text", default: "Glowup User", label: "Name" },
+      // Empty: the icon below is the last link of source -> initials -> icon,
+      // so a name at rest made it inert whatever you typed into it. Start on
+      // the icon and let a typed name take over, which is the chain itself.
+      name: { type: "text", default: "", label: "Name" },
       size: { type: "number", default: 48, label: "Size" },
       status: {
         type: "select",
@@ -36,7 +39,14 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Away", value: "away" },
         ],
       },
-      icon: { type: "text", default: "", label: "Icon Override" },
+      icon: {
+        type: "text",
+        // "" is not the component's own default — it draws a nameless glyph.
+        default: "account",
+        label: "Fallback icon",
+        // Reached only with no image and no name to take initials from.
+        appliesWhen: (values) => !values.name,
+      },
       variant: {
         type: "select",
         default: "circular",

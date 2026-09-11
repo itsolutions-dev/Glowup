@@ -51,7 +51,7 @@ export const PropControls = ({
         </Typography>
         <Typography
           variant="labelSmall"
-          style={{ color: theme.colors.outline }}
+          style={{ color: theme.colors.onSurfaceVariant }}
         >
           {keys.length} {keys.length === 1 ? "control" : "controls"}
         </Typography>

@@ -92,7 +92,7 @@ export const CatalogueSidebar = () => {
                 </Typography>
                 <Typography
                   variant="labelSmall"
-                  style={{ color: theme.colors.outline }}
+                  style={{ color: theme.colors.onSurfaceVariant }}
                 >
                   {category.items.length}
                 </Typography>

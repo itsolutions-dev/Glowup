@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { Avatar, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 16,
   alignItems: "center",
   flexWrap: "wrap",
@@ -98,7 +99,10 @@ export const TeamRoster = () => (
       { name: "Grace Hopper", role: "Platform architect", status: "busy" },
       { name: "Katherine Johnson", role: "Data science", status: "away" },
     ].map((member) => (
-      <View key={member.name} style={{ gap: 12, alignItems: "center" }}>
+      <View
+        key={member.name}
+        style={{ flexDirection: "row", gap: 12, alignItems: "center" }}
+      >
         <Avatar name={member.name} size={44} status={member.status as any} />
         <View style={{ flexDirection: "column" }}>
           <Typography variant="titleSmall">{member.name}</Typography>

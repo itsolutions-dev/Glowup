@@ -117,7 +117,7 @@ export const Colors = () => {
 };
 
 export const UploadCard = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper
       elevation={1}
       style={{ width: "100%", paddingVertical: 20, paddingHorizontal: 20 }}

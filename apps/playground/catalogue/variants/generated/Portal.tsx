@@ -59,8 +59,8 @@ export const BacksTheTooltip = () => (
         With a host mounted, Tooltip renders through it — so a tip on an anchor
         inside a scrolling or clipping container is no longer cut off.
       </Typography>
-      <View style={{ height: 48, overflow: "hidden" }}>
-        <Tooltip content="Non viene ritagliato" enterDelay={0}>
+      <View style={{ height: 48, overflow: "hidden", flexDirection: "row" }}>
+        <Tooltip content="Not clipped" enterDelay={0}>
           <Button mode="tonal" onPress={() => {}}>
             Hover me
           </Button>

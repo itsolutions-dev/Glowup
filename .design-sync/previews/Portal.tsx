@@ -56,7 +56,7 @@ export const BacksTheTooltip = () => (
         inside a scrolling or clipping container is no longer cut off.
       </Typography>
       <div style={{ height: 48, overflow: "hidden", display: "flex" }}>
-        <Tooltip content="Non viene ritagliato" enterDelay={0}>
+        <Tooltip content="Not clipped" enterDelay={0}>
           <Button mode="tonal" onPress={() => {}}>
             Hover me
           </Button>

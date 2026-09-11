@@ -16,13 +16,13 @@ export const ExtendedAndCollapsed = () => (
     <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
       <AnimatedFAB
         icon="plus"
-        label="Nuovo intervento"
+        label="New ticket"
         placement="inline"
         onPress={() => {}}
       />
       <AnimatedFAB
         icon="plus"
-        label="Nuovo intervento"
+        label="New ticket"
         placement="inline"
         extended={false}
         onPress={() => {}}
@@ -42,7 +42,7 @@ export const AnimateFrom = () => (
         <div style={{ display: "flex" }}>
           <AnimatedFAB
             icon="pencil-outline"
-            label="Modifica"
+            label="Edit"
             animateFrom={from}
             placement="inline"
             onPress={() => {}}
@@ -69,14 +69,14 @@ export const ShrinkOnScroll = () => {
             }
           >
             {Array.from({ length: 12 }, (_, index) => (
-              <ListItem key={index}>{`Intervento ${index + 1}`}</ListItem>
+              <ListItem key={index}>{`Ticket ${index + 1}`}</ListItem>
             ))}
           </div>
         </Paper>
         <div style={{ position: "absolute", right: 12, bottom: 12 }}>
           <AnimatedFAB
             icon="plus"
-            label="Nuovo intervento"
+            label="New ticket"
             extended={extended}
             placement="inline"
             onPress={() => {}}
@@ -91,7 +91,7 @@ export const Disabled = () => (
   <div style={{ display: "flex" }}>
     <AnimatedFAB
       icon="plus"
-      label="Non disponibile"
+      label="Unavailable"
       placement="inline"
       disabled
       onPress={() => {}}

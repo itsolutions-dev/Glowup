@@ -5,21 +5,21 @@ import type { AutocompleteOption } from "@its/glowup-ui";
 const cities: AutocompleteOption[] = [
   {
     id: "mi",
-    label: "Milano",
+    label: "Milan",
     value: "MI",
-    description: "Lombardia",
+    description: "Lombardy",
     icon: "domain",
   },
   {
     id: "to",
-    label: "Torino",
+    label: "Turin",
     value: "TO",
-    description: "Piemonte",
+    description: "Piedmont",
     icon: "domain",
   },
   {
     id: "ge",
-    label: "Genova",
+    label: "Genoa",
     value: "GE",
     description: "Liguria",
     icon: "domain",
@@ -61,7 +61,7 @@ export const Suggestions = () => (
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città di consegna"
+      label="Delivery city"
       helperText="Free text is allowed - this is not a Select."
     />
   </Focused>
@@ -70,11 +70,11 @@ export const Suggestions = () => (
 export const ClosedField = () => (
   <VStack spacing="m" width={380}>
     <Autocomplete
-      value="Milano"
+      value="Milan"
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città di consegna"
+      label="Delivery city"
       leadingIcon="magnify"
       helperText="Clearable once there is text."
     />
@@ -83,7 +83,7 @@ export const ClosedField = () => (
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città di consegna"
+      label="Delivery city"
       placeholder="Start typing a city"
       required
     />
@@ -97,7 +97,7 @@ export const States = () => (
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città"
+      label="City"
       loading
       helperText="Fetching matches…"
     />
@@ -106,15 +106,15 @@ export const States = () => (
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città"
+      label="City"
       error="No delivery hub covers that city."
     />
     <Autocomplete
-      value="Milano"
+      value="Milan"
       onChangeText={noop}
       options={cities}
       onSelect={noop}
-      label="Città"
+      label="City"
       disabled
     />
   </VStack>

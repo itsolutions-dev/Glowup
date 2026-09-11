@@ -129,7 +129,7 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "ListSection",
     Component: ListSection,
     props: {
-      title: { type: "text", default: "Notifiche", label: "Title" },
+      title: { type: "text", default: "Notifications", label: "Title" },
       divider: { type: "boolean", default: false, label: "Divider below" },
     },
   },
@@ -137,7 +137,7 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "ListSubheader",
     Component: ListSubheader,
     props: {
-      children: { type: "text", default: "Preferenze", label: "Text" },
+      children: { type: "text", default: "Preferences", label: "Text" },
     },
   },
   Tooltip: {

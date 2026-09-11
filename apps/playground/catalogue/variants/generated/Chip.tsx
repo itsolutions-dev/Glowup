@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { Chip, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 8,
   alignItems: "center",
   flexWrap: "wrap",

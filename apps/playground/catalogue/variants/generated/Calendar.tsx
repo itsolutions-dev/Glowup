@@ -22,6 +22,7 @@ const surface = (children: React.ReactNode) => (
 );
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 24,
   flexWrap: "wrap",
   alignItems: "flex-start",

@@ -82,7 +82,7 @@ export const Colors = () => {
 };
 
 export const LoadingPane = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: 380, flexDirection: "row" }}>
     <Paper
       elevation={1}
       style={{

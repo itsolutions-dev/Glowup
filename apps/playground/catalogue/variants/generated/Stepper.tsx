@@ -6,7 +6,7 @@ import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
 import { Stepper } from "@its/glowup-ui";
 
-const wrap: ViewStyle = { width: 400 };
+const wrap: ViewStyle = { width: 400, flexDirection: "row" };
 
 const checkout = ["Cart", "Shipping", "Payment", "Review"];
 

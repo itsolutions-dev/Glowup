@@ -97,7 +97,7 @@ export const AboveContent = () => (
     <Card variant="outlined">
       <Typography variant="titleMedium">Component health</Typography>
       <View style={{ height: 8 }} />
-      <View style={{ gap: 8, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
         <Chip label="32 passing" size="small" mode="tonal" onPress={() => {}} />
         <Chip
           label="2 failing"

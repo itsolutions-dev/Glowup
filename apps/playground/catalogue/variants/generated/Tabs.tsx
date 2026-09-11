@@ -6,7 +6,7 @@ import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
 import { Tabs } from "@its/glowup-ui";
 
-const wrap: ViewStyle = { width: 400 };
+const wrap: ViewStyle = { width: 400, flexDirection: "row" };
 
 export const TextTabs = () => (
   <View style={wrap}>

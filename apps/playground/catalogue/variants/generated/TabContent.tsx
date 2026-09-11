@@ -31,12 +31,14 @@ const stack: ViewStyle = {
 };
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 8,
   flexWrap: "wrap",
   alignItems: "center",
 };
 
 const between: ViewStyle = {
+  flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
   paddingTop: 4,

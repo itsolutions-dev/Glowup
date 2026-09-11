@@ -6,7 +6,7 @@ import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
 import { Pagination } from "@its/glowup-ui";
 
-const wrap: ViewStyle = { width: 400 };
+const wrap: ViewStyle = { width: 400, flexDirection: "row" };
 
 export const Default = () => (
   <View style={wrap}>

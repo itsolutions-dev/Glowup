@@ -54,7 +54,9 @@ export const RichContent = () => (
         <View style={{ height: 12 }} />
         <Divider contentSpacing={0} />
         <View style={{ height: 12 }} />
-        <View style={{ gap: 8, justifyContent: "flex-end" }}>
+        <View
+          style={{ flexDirection: "row", gap: 8, justifyContent: "flex-end" }}
+        >
           <Button mode="text" onPress={() => {}}>
             Not now
           </Button>

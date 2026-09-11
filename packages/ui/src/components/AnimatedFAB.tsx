@@ -65,7 +65,7 @@ const HORIZONTAL_PADDING = 16;
  * >
  *   …
  * </ScrollView>
- * <AnimatedFAB icon="plus" label="Nuovo intervento" extended={extended} onPress={create} />
+ * <AnimatedFAB icon="plus" label="New ticket" extended={extended} onPress={create} />
  * ```
  */
 const AnimatedFAB = ({

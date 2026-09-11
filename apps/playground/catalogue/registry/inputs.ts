@@ -116,7 +116,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: RadioButton,
     props: {
       selected: { type: "boolean", default: true, label: "Selected" },
-      label: { type: "text", default: "Opzione singola", label: "Label" },
+      label: { type: "text", default: "Single option", label: "Label" },
       labelPosition: {
         type: "select",
         default: "right",
@@ -352,7 +352,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "DatePicker",
     Component: DatePicker,
     props: {
-      label: { type: "text", default: "Data intervento", label: "Label" },
+      label: { type: "text", default: "Service date", label: "Label" },
     },
   },
   DatePickerInput: {
@@ -438,7 +438,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "TimePicker",
     Component: TimePicker,
     props: {
-      label: { type: "text", default: "Ora intervento", label: "Label" },
+      label: { type: "text", default: "Service time", label: "Label" },
     },
   },
   TimeSelect: {
@@ -583,7 +583,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     props: {
       children: {
         type: "text",
-        default: "Massimo 8 caratteri",
+        default: "Maximum 8 characters",
         label: "Text",
       },
       type: {

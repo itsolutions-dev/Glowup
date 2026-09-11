@@ -81,7 +81,7 @@ export const navigation: Record<string, ComponentMetadata> = {
     Component: DrawerPreferenceItem,
     props: {
       icon: { type: "text", default: "theme-light-dark", label: "Icon" },
-      label: { type: "text", default: "Tema", label: "Label" },
+      label: { type: "text", default: "Theme", label: "Label" },
     },
   },
 };

@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { Badge, Avatar, Button, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 28,
   alignItems: "center",
   flexWrap: "wrap",
@@ -21,6 +22,7 @@ const stack: ViewStyle = {
 /** Badge is absolutely positioned — it needs a relatively-positioned anchor. */
 const anchor: ViewStyle = {
   position: "relative",
+  flexDirection: "row",
 };
 
 export const OnIconButtons = () => (
@@ -102,7 +104,9 @@ export const OverflowAndZero = () => (
 );
 
 export const OnAvatar = () => (
-  <View style={{ gap: 12, alignItems: "center", width: 300 }}>
+  <View
+    style={{ flexDirection: "row", gap: 12, alignItems: "center", width: 300 }}
+  >
     <View style={anchor}>
       <Avatar name="Katherine Johnson" size={48} />
       <Badge count={4} style={{ top: 0, right: -4 }} />

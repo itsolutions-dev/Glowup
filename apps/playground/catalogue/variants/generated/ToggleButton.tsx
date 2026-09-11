@@ -87,7 +87,14 @@ export const LabelOnly = () => (
 );
 
 export const Standalone = () => (
-  <View style={{ gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+  <View
+    style={{
+      flexDirection: "row",
+      gap: 16,
+      alignItems: "center",
+      flexWrap: "wrap",
+    }}
+  >
     <ToggleButton
       label="Notifications"
       icon="bell-outline"

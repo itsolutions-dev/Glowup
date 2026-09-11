@@ -24,7 +24,7 @@ export const StateLayer = () => (
     </Typography>
     <TouchableRipple
       onPress={() => {}}
-      accessibilityLabel="Superficie premibile"
+      accessibilityLabel="Tappable surface"
       borderRadius={12}
     >
       <div style={inner}>
@@ -44,7 +44,7 @@ export const Borderless = () => (
     </Typography>
     <TouchableRipple
       onPress={() => {}}
-      accessibilityLabel="Senza contenitore"
+      accessibilityLabel="No container"
       borderless
       borderRadius={12}
     >
@@ -57,18 +57,16 @@ export const Borderless = () => (
 
 export const AsListRows = () => (
   <div style={{ width: 360, display: "flex", flexDirection: "column" }}>
-    {["Riepilogo email", "Menzioni", "Aggiornamenti prodotto"].map(
-      (label, index) => (
-        <React.Fragment key={label}>
-          {index > 0 && <Divider contentSpacing={0} />}
-          <TouchableRipple onPress={() => {}} accessibilityLabel={label}>
-            <div style={{ padding: 14 }}>
-              <Typography variant="bodyLarge">{label}</Typography>
-            </div>
-          </TouchableRipple>
-        </React.Fragment>
-      ),
-    )}
+    {["Email digest", "Mentions", "Product updates"].map((label, index) => (
+      <React.Fragment key={label}>
+        {index > 0 && <Divider contentSpacing={0} />}
+        <TouchableRipple onPress={() => {}} accessibilityLabel={label}>
+          <div style={{ padding: 14 }}>
+            <Typography variant="bodyLarge">{label}</Typography>
+          </div>
+        </TouchableRipple>
+      </React.Fragment>
+    ))}
   </div>
 );
 
@@ -76,7 +74,7 @@ export const Disabled = () => (
   <div style={panel}>
     <TouchableRipple
       onPress={() => {}}
-      accessibilityLabel="Disabilitato"
+      accessibilityLabel="Disabled"
       borderRadius={12}
       disabled
     >

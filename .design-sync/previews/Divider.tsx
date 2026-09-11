@@ -21,12 +21,6 @@ const stat: React.CSSProperties = {
   justifyContent: "center",
 };
 
-const vRule: React.CSSProperties = {
-  width: 1,
-  alignSelf: "stretch",
-  display: "flex",
-};
-
 export const ListSeparators = () => (
   <div style={panel}>
     <Paper elevation={1} outline style={{ flex: 1 }}>
@@ -89,16 +83,12 @@ export const Vertical = () => (
           <Typography variant="titleMedium">128</Typography>
           <Typography variant="bodySmall">Components</Typography>
         </div>
-        <div style={vRule}>
-          <Divider orientation="vertical" />
-        </div>
+        <Divider orientation="vertical" />
         <div style={stat}>
           <Typography variant="titleMedium">42</Typography>
           <Typography variant="bodySmall">Tokens</Typography>
         </div>
-        <div style={vRule}>
-          <Divider orientation="vertical" />
-        </div>
+        <Divider orientation="vertical" />
         <div style={stat}>
           <Typography variant="titleMedium">7</Typography>
           <Typography variant="bodySmall">Groups</Typography>

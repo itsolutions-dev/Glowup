@@ -21,7 +21,7 @@ interface LanguageSelectorProps {
 const LanguageSelector = ({ currentLang, onChange }: LanguageSelectorProps) => {
   const { theme } = useTheme();
 
-  const activeCode = LANGUAGES[currentLang] ? currentLang : "it";
+  const activeCode = LANGUAGES[currentLang] ? currentLang : LANGUAGE_CODES[0];
   const active = LANGUAGES[activeCode];
 
   const handlePress = () => {

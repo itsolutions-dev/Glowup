@@ -65,7 +65,7 @@ export const Variants = () => (
 export const ProfileCard = () => (
   <View style={{ width: 380 }}>
     <Card variant="elevated">
-      <View style={{ gap: 12, alignItems: "center" }}>
+      <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
         <Avatar name="Marta Rossi" size={48} status="online" />
         <View style={{ flexDirection: "column", gap: 2 }}>
           <Typography variant="titleMedium">Marta Rossi</Typography>
@@ -75,7 +75,7 @@ export const ProfileCard = () => (
       {spacer(12)}
       <Divider contentSpacing={0} />
       {spacer(12)}
-      <View style={{ gap: 8, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
         <Chip
           label="Design system"
           size="small"
@@ -102,6 +102,7 @@ export const Pressable = () => (
     >
       <View
         style={{
+          flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
         }}
@@ -122,6 +123,7 @@ export const Pressable = () => (
     >
       <View
         style={{
+          flexDirection: "row",
           justifyContent: "space-between",
           alignItems: "center",
         }}
@@ -193,7 +195,7 @@ export const ComposedFromParts = () => (
           components. Dark-mode contrast was corrected across every tonal
           surface.
         </Typography>
-        <View style={{ gap: 8, flexWrap: "wrap" }}>
+        <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           <Chip label="87 components" mode="tonal" onPress={() => {}} />
           <Chip label="Breaking" mode="outlined" onPress={() => {}} />
         </View>

@@ -6,9 +6,10 @@ import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
 import { Divider, Paper, Typography, Button } from "@its/glowup-ui";
 
-const panel: ViewStyle = { width: 380 };
+const panel: ViewStyle = { width: 380, flexDirection: "row" };
 
 const rowBetween: ViewStyle = {
+  flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
   paddingTop: 10,
@@ -22,11 +23,6 @@ const stat: ViewStyle = {
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-};
-
-const vRule: ViewStyle = {
-  width: 1,
-  alignSelf: "stretch",
 };
 
 export const ListSeparators = () => (
@@ -82,21 +78,17 @@ export const Thickness = () => (
 export const Vertical = () => (
   <View style={panel}>
     <Paper elevation={2} style={{ flex: 1 }}>
-      <View style={{ alignItems: "stretch", height: 56 }}>
+      <View style={{ flexDirection: "row", alignItems: "stretch", height: 56 }}>
         <View style={stat}>
           <Typography variant="titleMedium">128</Typography>
           <Typography variant="bodySmall">Components</Typography>
         </View>
-        <View style={vRule}>
-          <Divider orientation="vertical" />
-        </View>
+        <Divider orientation="vertical" />
         <View style={stat}>
           <Typography variant="titleMedium">42</Typography>
           <Typography variant="bodySmall">Tokens</Typography>
         </View>
-        <View style={vRule}>
-          <Divider orientation="vertical" />
-        </View>
+        <Divider orientation="vertical" />
         <View style={stat}>
           <Typography variant="titleMedium">7</Typography>
           <Typography variant="bodySmall">Groups</Typography>

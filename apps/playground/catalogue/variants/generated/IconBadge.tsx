@@ -7,6 +7,7 @@ import type { Variant } from "../types";
 import { IconBadge, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
+  flexDirection: "row",
   gap: 28,
   alignItems: "center",
   flexWrap: "wrap",
@@ -110,6 +111,7 @@ export const Colors = () => (
 export const AppBarActions = () => (
   <View
     style={{
+      flexDirection: "row",
       gap: 24,
       alignItems: "center",
       justifyContent: "flex-end",

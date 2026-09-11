@@ -3792,6 +3792,13 @@
           "deprecated": false
         },
         {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "description": "Whether the dialog is on screen.",
+          "deprecated": false
+        },
+        {
           "name": "actions",
           "type": "React.ReactNode",
           "required": false,
@@ -3872,12 +3879,6 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": false,
           "deprecated": false
         }
       ]

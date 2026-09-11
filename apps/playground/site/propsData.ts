@@ -42,6 +42,16 @@ export const LIBRARY_VERSION = generated.libraryVersion;
 export const docFor = (name: string): ComponentDoc | undefined =>
   COMPONENT_DOCS[name];
 
+/**
+ * The props the library's own types mark required. Read from the generated
+ * docs so it cannot drift: a prop that stops being optional upstream shows up
+ * here on the next `npm run docgen`, which CI regenerates and diffs.
+ */
+export const requiredPropsOf = (name: string): string[] =>
+  (COMPONENT_DOCS[name]?.props ?? [])
+    .filter((prop) => prop.required)
+    .map((prop) => prop.name);
+
 export const DOCUMENTED_COMPONENT_COUNT = Object.keys(COMPONENT_DOCS).length;
 
 export const TOTAL_PROP_COUNT = Object.values(COMPONENT_DOCS).reduce(

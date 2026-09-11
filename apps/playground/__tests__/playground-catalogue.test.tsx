@@ -13,7 +13,7 @@ import { ComponentRegistry } from "../catalogue/registry";
 import { CATEGORIES, FLAT_ORDER, TOTAL_COUNT } from "../catalogue/categories";
 import { buildSnippet } from "../catalogue/snippet";
 import { VARIANTS_BY_COMPONENT } from "../catalogue/variants";
-import { COMPONENT_DOCS } from "../site/propsData";
+import { COMPONENT_DOCS, requiredPropsOf } from "../site/propsData";
 
 /** The panel's opening state for a component: every prop at its default. */
 const defaultsOf = (name: string) => {
@@ -218,6 +218,7 @@ describe("Playground catalogue", () => {
       name,
       ComponentRegistry[name],
       defaultsOf(name),
+      requiredPropsOf(name),
     );
     expect(snippet.startsWith(`<${name}`)).toBe(true);
   });
@@ -229,7 +230,12 @@ describe("Playground catalogue", () => {
     // takes children is whether its entry declares a `children` prop, nothing
     // else, and that is what decides the slot.
     const meta = ComponentRegistry[name];
-    const snippet = buildSnippet(name, meta, defaultsOf(name));
+    const snippet = buildSnippet(
+      name,
+      meta,
+      defaultsOf(name),
+      requiredPropsOf(name),
+    );
     const takesChildren = typeof meta.props.children?.default === "string";
 
     expect(snippet.endsWith("/>")).toBe(!takesChildren);
@@ -241,32 +247,82 @@ describe("Playground catalogue", () => {
     }
   });
 
+  it.each(CATALOGUE)("keeps %s's required props in the snippet", (name) => {
+    // A prop equal to its default is omitted, which is what keeps a snippet to
+    // the attributes that matter — but applied to a required one it produced
+    // `<Modal>…</Modal>` without `visible`, the prop that decides whether the
+    // dialog is on screen at all. Required-ness comes from the library's own
+    // types via the generated docs, so this cannot drift from the source.
+    const meta = ComponentRegistry[name];
+    const values = defaultsOf(name);
+    const snippet = buildSnippet(name, meta, values, requiredPropsOf(name));
+
+    for (const key of requiredPropsOf(name)) {
+      const definition = meta.props[key];
+      // Only the ones the panel drives: a required handler or data prop has no
+      // control and no value to write. See the note in snippet.ts.
+      if (!definition || values[key] === undefined) continue;
+      if (definition.appliesWhen?.(values) === false) continue;
+
+      if (key === "children") expect(snippet).toContain(values[key]);
+      // A `true` boolean is written bare, the way it would be by hand.
+      else if (definition.type === "boolean" && values[key])
+        expect(snippet).toMatch(new RegExp(`\\b${key}\\b`));
+      else expect(snippet).toContain(`${key}=`);
+    }
+  });
+
   it("writes a content prop even at its default, and drops it when emptied", () => {
     // Every other prop is omitted at its default, which is what keeps the
     // snippet short. Applied to the content prop it gave `<Chip />`, a tag
     // whose whole subject is missing.
-    const meta = ComponentRegistry.Chip;
-    expect(buildSnippet("Chip", meta, defaultsOf("Chip"))).toBe(
-      '<Chip label="React Native" />',
-    );
     expect(
-      buildSnippet("Chip", meta, { ...defaultsOf("Chip"), label: "" }),
-    ).toBe("<Chip />");
+      buildSnippet(
+        "Chip",
+        ComponentRegistry.Chip,
+        defaultsOf("Chip"),
+        requiredPropsOf("Chip"),
+      ),
+    ).toBe('<Chip label="React Native" />');
+
+    // Emptying an optional one is a deliberate "no label"…
+    expect(
+      buildSnippet(
+        "Input",
+        ComponentRegistry.Input,
+        { ...defaultsOf("Input"), label: "" },
+        requiredPropsOf("Input"),
+      ),
+    ).not.toContain("label=");
+
+    // …but a required one is written as the empty string the demo passes,
+    // because a tag without it does not type-check.
+    expect(
+      buildSnippet(
+        "Chip",
+        ComponentRegistry.Chip,
+        { ...defaultsOf("Chip"), label: "" },
+        requiredPropsOf("Chip"),
+      ),
+    ).toBe('<Chip label="" />');
   });
 
   it("leaves an inapplicable prop out of the snippet", () => {
     // Divider drops its label once it is vertical, so a snippet that still
     // wrote one would promise something the demo above it visibly does not do.
     const meta = ComponentRegistry.Divider;
+    const required = requiredPropsOf("Divider");
 
-    expect(buildSnippet("Divider", meta, defaultsOf("Divider"))).toContain(
-      "OR",
-    );
     expect(
-      buildSnippet("Divider", meta, {
-        ...defaultsOf("Divider"),
-        orientation: "vertical",
-      }),
+      buildSnippet("Divider", meta, defaultsOf("Divider"), required),
+    ).toContain("OR");
+    expect(
+      buildSnippet(
+        "Divider",
+        meta,
+        { ...defaultsOf("Divider"), orientation: "vertical" },
+        required,
+      ),
     ).not.toContain("OR");
   });
 

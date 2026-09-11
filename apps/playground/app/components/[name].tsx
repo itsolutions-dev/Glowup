@@ -26,7 +26,7 @@ import { DemoErrorBoundary } from "../../site/ErrorBoundary";
 import { PageHead, Section } from "../../site/Page";
 import { PropControls } from "../../site/PropControls";
 import { PropsTable } from "../../site/PropsTable";
-import { docFor } from "../../site/propsData";
+import { docFor, requiredPropsOf } from "../../site/propsData";
 import { useLayout } from "../../site/breakpoints";
 import { GITHUB_URL } from "../../site/siteNav";
 
@@ -122,7 +122,7 @@ export default function ComponentPage() {
   const next =
     index < FLAT_ORDER.length - 1 ? FLAT_ORDER[index + 1] : undefined;
   const variants = VARIANTS_BY_COMPONENT[name] ?? [];
-  const snippet = buildSnippet(name, meta, props);
+  const snippet = buildSnippet(name, meta, props, requiredPropsOf(name));
   const description =
     doc?.description ??
     `${name} — a Material You ${category?.toLowerCase() ?? "UI"} component for React Native and web.`;

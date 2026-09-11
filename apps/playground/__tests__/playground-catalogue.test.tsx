@@ -214,4 +214,19 @@ describe("Playground catalogue", () => {
     const snippet = buildSnippet(name, meta, props);
     expect(snippet.startsWith(`<${name}`)).toBe(true);
   });
+
+  it("leaves an inapplicable prop out of the snippet", () => {
+    // Divider drops its label once it is vertical, so a snippet that still
+    // wrote one would promise something the demo above it visibly does not do.
+    const meta = ComponentRegistry.Divider;
+    const defaults: Record<string, any> = {};
+    for (const [key, definition] of Object.entries(meta.props)) {
+      defaults[key] = definition.default;
+    }
+
+    expect(buildSnippet("Divider", meta, defaults)).toContain("OR");
+    expect(
+      buildSnippet("Divider", meta, { ...defaults, orientation: "vertical" }),
+    ).not.toContain("OR");
+  });
 });

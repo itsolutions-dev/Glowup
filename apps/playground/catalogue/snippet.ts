@@ -29,6 +29,7 @@ export const buildSnippet = (
   let children: string | undefined;
 
   for (const [key, definition] of Object.entries(meta.props)) {
+    if (definition.appliesWhen && !definition.appliesWhen(props)) continue;
     const value = props[key];
     if (value === definition.default) continue;
 
@@ -49,6 +50,8 @@ export const buildSnippet = (
   // the snippet renders an empty component.
   if (children === undefined) {
     for (const key of CHILDREN_KEYS) {
+      const definition = meta.props[key];
+      if (definition?.appliesWhen && !definition.appliesWhen(props)) continue;
       const value = props[key];
       if (typeof value === "string" && value.length) {
         children = value;

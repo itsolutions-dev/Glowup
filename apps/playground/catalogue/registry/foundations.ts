@@ -63,7 +63,13 @@ export const foundations: Record<string, ComponentMetadata> = {
       },
       thickness: { type: "number", default: 1, label: "Thickness" },
       inset: { type: "number", default: 0, label: "Inset" },
-      children: { type: "text", default: "OR", label: "Label" },
+      children: {
+        type: "text",
+        default: "OR",
+        label: "Label",
+        // Horizontal only — a vertical rule takes no label.
+        appliesWhen: (values) => values.orientation !== "vertical",
+      },
     },
   },
   Paper: {

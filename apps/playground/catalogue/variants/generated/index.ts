@@ -6,7 +6,6 @@ import { variants as AspectRatio } from "./AspectRatio";
 import { variants as Avatar } from "./Avatar";
 import { variants as Badge } from "./Badge";
 import { variants as Banner } from "./Banner";
-import { variants as BottomSheet } from "./BottomSheet";
 import { variants as Box } from "./Box";
 import { variants as Breadcrumbs } from "./Breadcrumbs";
 import { variants as Button } from "./Button";
@@ -20,7 +19,6 @@ import { variants as CircularProgress } from "./CircularProgress";
 import { variants as ClockDial } from "./ClockDial";
 import { variants as ClockPicker } from "./ClockPicker";
 import { variants as Collapse } from "./Collapse";
-import { variants as ConfirmDialog } from "./ConfirmDialog";
 import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
 import { variants as DatePickerInput } from "./DatePickerInput";
@@ -43,14 +41,11 @@ import { variants as Link } from "./Link";
 import { variants as ListItem } from "./ListItem";
 import { variants as ListSection } from "./ListSection";
 import { variants as ListSubheader } from "./ListSubheader";
-import { variants as Menu } from "./Menu";
-import { variants as Modal } from "./Modal";
 import { variants as NavigationBar } from "./NavigationBar";
 import { variants as NumericInput } from "./NumericInput";
 import { variants as Pagination } from "./Pagination";
 import { variants as Paper } from "./Paper";
 import { variants as PinInput } from "./PinInput";
-import { variants as Popover } from "./Popover";
 import { variants as Portal } from "./Portal";
 import { variants as RadioButton } from "./RadioButton";
 import { variants as RadioGroup } from "./RadioGroup";
@@ -83,7 +78,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Avatar,
   Badge,
   Banner,
-  BottomSheet,
   Box,
   Breadcrumbs,
   Button,
@@ -97,7 +91,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   ClockDial,
   ClockPicker,
   Collapse,
-  ConfirmDialog,
   DataGrid,
   DatePicker,
   DatePickerInput,
@@ -120,14 +113,11 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   ListItem,
   ListSection,
   ListSubheader,
-  Menu,
-  Modal,
   NavigationBar,
   NumericInput,
   Pagination,
   Paper,
   PinInput,
-  Popover,
   Portal,
   RadioButton,
   RadioGroup,

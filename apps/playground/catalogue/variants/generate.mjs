@@ -28,6 +28,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -314,9 +315,22 @@ writeFileSync(join(OUT_DIR, "index.ts"), barrel, "utf8");
 // Removing a `display` declaration leaves the surrounding literal formatted for
 // a line it no longer has. Generated code still has to pass `npm run lint`, so
 // the output is handed to the repo's own formatter rather than to a reviewer.
-execFileSync("npx", ["prettier", "--write", "--log-level", "warn", OUT_DIR], {
-  stdio: "inherit",
-});
+//
+// Spawned as `node <prettier's own entry>` rather than as `npx prettier`: npx
+// is a `.cmd` shim on Windows, which `execFileSync` cannot execute without a
+// shell, so the run died with ENOENT *after* writing the files — leaving the
+// generated directory unformatted and `npm run lint` failing on it.
+execFileSync(
+  process.execPath,
+  [
+    createRequire(import.meta.url).resolve("prettier/bin/prettier.cjs"),
+    "--write",
+    "--log-level",
+    "warn",
+    OUT_DIR,
+  ],
+  { stdio: "inherit" },
+);
 
 const total = modules.reduce((sum, m) => sum + m.count, 0);
 console.log(

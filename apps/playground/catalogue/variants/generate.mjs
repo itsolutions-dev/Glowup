@@ -60,6 +60,24 @@ const EXCLUDED = new Set([
 ]);
 
 /**
+ * Previews the rewrite handles perfectly and the site still cannot use: the
+ * overlays. Each of these mounts its component already open — the only way a
+ * screenshot can show the open state — and each of them renders through
+ * react-native-web's Modal, a portal into document.body that covers the whole
+ * viewport. On a page rather than a capture that means the gallery covers the
+ * documentation the moment it renders, with a preview's no-op `onDismiss`
+ * leaving no way back. Their galleries are hand-written in ./manual, where the
+ * overlay starts closed and opens from a trigger.
+ */
+const PORTAL_OVERLAYS = new Set([
+  "Modal",
+  "ConfirmDialog",
+  "BottomSheet",
+  "Popover",
+  "Menu",
+]);
+
+/**
  * Modules in the previews directory that document a provider or a singleton
  * rather than a catalogued component. They have no page to appear on.
  */
@@ -260,6 +278,13 @@ for (const file of readdirSync(PREVIEWS).sort()) {
   }
   if (EXCLUDED.has(component)) {
     skipped.push({ component, reason: "hand-written in ./manual" });
+    continue;
+  }
+  if (PORTAL_OVERLAYS.has(component)) {
+    skipped.push({
+      component,
+      reason: "opens over the whole page — hand-written in ./manual",
+    });
     continue;
   }
 

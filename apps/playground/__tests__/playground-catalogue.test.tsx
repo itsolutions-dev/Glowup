@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ComponentType, type ReactNode } from "react";
 import { render } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
@@ -30,34 +30,62 @@ const defaultsOf = (name: string) => {
 // all of it. The router is deliberately not mounted: what has to keep working
 // is that every catalogue entry renders, and rendering it through a navigator
 // only adds ways for the test to fail for reasons that are not that.
+const Providers = ({ children }: { children: ReactNode }) => (
+  <SafeAreaProvider
+    initialMetrics={{
+      frame: { x: 0, y: 0, width: 1280, height: 900 },
+      insets: { top: 0, left: 0, right: 0, bottom: 0 },
+    }}
+  >
+    <ThemeProvider>
+      <AlertProvider>
+        <AlertProviderWrapper>
+          <ToastProvider>{children}</ToastProvider>
+        </AlertProviderWrapper>
+      </AlertProvider>
+    </ThemeProvider>
+  </SafeAreaProvider>
+);
+
 const renderDemo = async (name: string) => {
   const meta = ComponentRegistry[name];
   const props = defaultsOf(name);
 
   return render(
-    <SafeAreaProvider
-      initialMetrics={{
-        frame: { x: 0, y: 0, width: 1280, height: 900 },
-        insets: { top: 0, left: 0, right: 0, bottom: 0 },
-      }}
-    >
-      <ThemeProvider>
-        <AlertProvider>
-          <AlertProviderWrapper>
-            <ToastProvider>
-              <ComponentPreview
-                selectedComponentName={name}
-                activeMeta={meta}
-                componentProps={props}
-                updateProp={() => {}}
-              />
-            </ToastProvider>
-          </AlertProviderWrapper>
-        </AlertProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>,
+    <Providers>
+      <ComponentPreview
+        selectedComponentName={name}
+        activeMeta={meta}
+        componentProps={props}
+        updateProp={() => {}}
+      />
+    </Providers>,
   );
 };
+
+/**
+ * Host nodes an open overlay leaves in the tree. React Native's Modal renders
+ * nothing while `visible` is false and a `Modal` host element once it is, so
+ * finding one means something opened itself on mount.
+ */
+const openOverlaysIn = (node: any): any[] => {
+  if (!node || typeof node === "string") return [];
+  const here = node.type === "Modal" ? [node] : [];
+  return (node.children ?? []).reduce(
+    (found: any[], child: any) => found.concat(openOverlaysIn(child)),
+    here,
+  );
+};
+
+/** Every gallery entry on every component page, as [label, demo] pairs. */
+const GALLERY: [string, ComponentType][] = Object.entries(
+  VARIANTS_BY_COMPONENT,
+).flatMap(([name, variants]) =>
+  variants.map(
+    (variant) =>
+      [`${name} — ${variant.title}`, variant.render] as [string, ComponentType],
+  ),
+);
 
 // Kept in sync with CATEGORIES in ../catalogue/categories.ts. A component added
 // to the catalogue but left without a working demo fails here rather than in
@@ -207,6 +235,28 @@ describe("Playground catalogue", () => {
     );
     expect(withoutGallery).toEqual([]);
   });
+
+  it.each(GALLERY)(
+    "renders the %s gallery entry closed",
+    async (label, Demo) => {
+      // A gallery entry may not mount an overlay already open. Modal,
+      // ConfirmDialog, BottomSheet, Popover and Menu all render through
+      // react-native-web's Modal — a real portal into document.body — so an
+      // entry that opened on mount would cover the component page it belongs
+      // to, and a demo's close handler is the page's only way back out. The
+      // overlay galleries in catalogue/variants/manual open from a trigger
+      // instead; this pins that, and that every entry renders at all.
+      const { toJSON } = await render(
+        <Providers>
+          <Demo />
+        </Providers>,
+      );
+
+      const tree = toJSON();
+      expect(tree).toBeTruthy();
+      expect(openOverlaysIn(tree).map(() => label)).toEqual([]);
+    },
+  );
 
   it.each(CATALOGUE)("renders the %s demo", async (name) => {
     const { toJSON } = await renderDemo(name);

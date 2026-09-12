@@ -1,3 +1,4 @@
+import { useCallback, useState } from "react";
 import { StyleSheet } from "react-native";
 
 /**
@@ -33,3 +34,23 @@ export const gradientCover = (from: string, to: string) => ({
         `<rect width="320" height="180" fill="url(#g)"/></svg>`,
     ),
 });
+
+/**
+ * Open/closed state for a gallery entry that renders an overlay, plus the two
+ * callbacks its trigger and its dismiss need.
+ *
+ * Modal, ConfirmDialog, BottomSheet, Popover and Menu all render through
+ * react-native-web's Modal: a real portal into document.body, covering the
+ * whole viewport rather than the demo's card. The authored previews mount them
+ * already open, which is what a screenshot needs and exactly what a page must
+ * not do — the overlay would cover the documentation the moment its section
+ * rendered, and a preview's no-op `onClose` would leave no way back. Those
+ * galleries are hand-written here instead: every overlay starts closed, opens
+ * from the demo's own trigger, and closes for real.
+ */
+export const useOverlayDemo = () => {
+  const [open, setOpen] = useState(false);
+  const show = useCallback(() => setOpen(true), []);
+  const hide = useCallback(() => setOpen(false), []);
+  return { open, show, hide };
+};

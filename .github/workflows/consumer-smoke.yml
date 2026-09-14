@@ -27,6 +27,9 @@ concurrency:
   group: consumer-smoke
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'

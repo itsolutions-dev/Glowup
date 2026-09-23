@@ -1,5 +1,50 @@
 # @its/glowup-ui
 
+## 0.8.0
+
+### Minor Changes
+
+- 209a3a9: `ProgressButton`: a button that carries the progress of the task it started
+  inside its own surface — idle → loading → success | error. `status` is
+  controlled; `progress` (0–1) drives a fill that sweeps across the surface or,
+  with `indicator="bar"`, a 4dp line along its bottom edge, and leaving it unset
+  gives an indeterminate sweep. While loading the button is busy, not disabled:
+  it keeps its colours, stays focusable, reports `aria-busy` and names its
+  percentage. Success and error switch tone with a Material reveal (skipped under
+  reduced motion) and are announced once through an `aria-live="polite"` region
+  on web and `announceForAccessibility` on native. It takes every `Button` mode.
+
+  It is built on `Button` and `LinearProgress`, which gain what it needed, all
+  additive:
+
+  - `Button`: `tone="success"` (a fixed green kept off the seed, like error),
+    `busy` (blocks presses and reports busy without swapping the label for a
+    spinner), `underlay` (a layer behind the label, clipped to the shape),
+    `labelStyle`, `accessibilityHint` and `testID`. `loading` and `busy` now set
+    `aria-busy` on web, where `accessibilityState.busy` never reached the DOM.
+  - `LinearProgress`: the determinate bar grows with `transform: scaleX` on the
+    native driver instead of tweening `width`; `height` accepts a percentage;
+    `decorative` hides it from assistive technology.
+
+  Palettes: `palettes` now holds the Material 3 baseline plus the nineteen named
+  Material hues (`red` … `blueGrey`), each derived from its 500 seed. `grey` is
+  monochrome and `brown` / `blueGrey` muted, so a near-neutral seed does not come
+  out in full colour. `cobalt`, `forest` and `rose` stay readable as deprecated,
+  non-enumerable aliases of `blue`, `green` and `pink`. **`amber` changes colour**:
+  it was seeded from `#FF9800`, which is Material's Orange, and is now the real
+  Amber `#FFC107`; an app that picked `palettes.amber` for its old look wants
+  `palettes.orange`.
+
+### Patch Changes
+
+- 2065b23: `Alert` on web honours the button `style` like the native dialog: `"cancel"` renders as a text button, `"destructive"` in the error tone.
+- 2065b23: `AspectRatio`: the `width` prop is honoured. It was overridden by a hardcoded `width: "100%"`, which is now only the default.
+- 2065b23: Autocomplete: the browser focus ring no longer draws inside the field on web. `outlineWidth: 0` does not suppress Chrome's `outline-style: auto` ring; it now uses `outlineStyle: "none"`, as Input and SearchBar already did.
+- 2065b23: Menu: item labels no longer truncate when the menu is wider than its minimum. The label's `flex: 1` gave it a zero basis, so the menu sized itself as if the labels were empty.
+- 2065b23: `Popover` (and `Menu`) on web no longer ellipsises the widest row when the measured card width rounds down by a fraction of a pixel.
+- 2065b23: `SpeedDial`: the trigger now sits in the corner `position` names. The collapsed action rows kept their layout width, so the trigger was centred under the widest label, and on the `*-left` positions FAB's own `left` offset was applied a second time. Left positions also mirror the action rows so labels sit on the open side.
+- 2065b23: `Spinner`: a disabled spinner now fades like the other disabled fields, instead of looking like one sitting at its bounds.
+
 ## 0.7.0
 
 ### Minor Changes

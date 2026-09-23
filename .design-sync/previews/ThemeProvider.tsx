@@ -8,6 +8,8 @@ import {
   Chip,
   StatusBadge,
   Divider,
+  ProgressButton,
+  palettes,
 } from "@its/glowup-ui";
 
 // ThemeProvider renders no UI of its own — it supplies the Material You token
@@ -287,4 +289,71 @@ export const WrapsTheApp = () => (
       </Paper>
     </ThemeProvider>
   </div>
+);
+
+// The palette picker. `palettes` holds the Material 3 baseline plus the
+// nineteen named Material hues, each generated from its seed with the M3 role
+// mapping; `setPalette` swaps the whole token set at runtime and every
+// component below the provider follows. A custom brand colour goes through
+// `createPalette(seed)` the same way. Nested provider on purpose: picking here
+// re-themes this card only, not the rest of the design system.
+const PalettePicker = () => {
+  const { theme, palette, setPalette } = useTheme();
+  const c = theme.colors;
+  return (
+    <div style={stack(12)}>
+      <div style={lines}>
+        <Typography variant="titleMedium">Colour sets</Typography>
+        <Typography variant="bodySmall">
+          {palette.name} — seed {palette.seed}. Pick a Material hue; the sample
+          below re-themes from the new token set.
+        </Typography>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {Object.values(palettes).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            title={option.name}
+            aria-label={option.name}
+            aria-pressed={option.id === palette.id}
+            onClick={() => setPalette(option)}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              cursor: "pointer",
+              background: theme.isDark
+                ? option.dark.primary
+                : option.light.primary,
+              border:
+                option.id === palette.id
+                  ? `3px solid ${c.onSurface}`
+                  : `1px solid ${c.outlineVariant}`,
+            }}
+          />
+        ))}
+      </div>
+      <Paper outline style={{ padding: 16 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Button mode="filled" onPress={() => {}}>
+            Filled
+          </Button>
+          <Button mode="tonal" onPress={() => {}}>
+            Tonal
+          </Button>
+          <Chip label="Selected" mode="tonal" selected onPress={() => {}} />
+          <ProgressButton status="loading" progress={0.6}>
+            Loading
+          </ProgressButton>
+        </div>
+      </Paper>
+    </div>
+  );
+};
+
+export const Palettes = () => (
+  <ThemeProvider initialPalette={palettes.baseline}>
+    <PalettePicker />
+  </ThemeProvider>
 );

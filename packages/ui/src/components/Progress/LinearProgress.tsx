@@ -1,15 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { View, Animated, Easing, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Animated,
+  Easing,
+  StyleSheet,
+  Dimensions,
+  I18nManager,
+  type DimensionValue,
+} from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
 
 interface LinearProgressProps {
   progress?: number;
   indeterminate?: boolean;
-  height?: number;
+  /** Bar thickness. A percentage fills the parent — a progress surface. */
+  height?: DimensionValue;
   color?: string;
   trackColor?: string;
   duration?: number;
   indeterminateDuration?: number;
+  /**
+   * Hide the bar from assistive technology, for when the component around it
+   * already announces the progress — a bar inside a button is not a second
+   * control to land on.
+   */
+  decorative?: boolean;
 }
 
 const LinearProgress = ({
@@ -20,6 +35,7 @@ const LinearProgress = ({
   trackColor,
   duration = 500,
   indeterminateDuration = 1500,
+  decorative = false,
 }: LinearProgressProps) => {
   const { theme } = useTheme();
   const [animatedValue] = useState(() => new Animated.Value(0));
@@ -35,18 +51,24 @@ const LinearProgress = ({
           toValue: 1,
           duration: indeterminateDuration,
           easing: Easing.linear,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       );
       animation.start();
       return () => animation.stop();
     }
 
-    Animated.timing(animatedValue, {
+    // A determinate bar grows with `scaleX` from its leading edge rather than
+    // by animating `width`: a transform runs on the native driver and never
+    // relayouts the tree, where a width tween re-runs layout every frame.
+    const animation = Animated.timing(animatedValue, {
       toValue: clampedProgress,
       duration,
-      useNativeDriver: false,
-    }).start();
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
   }, [
     clampedProgress,
     indeterminate,
@@ -64,6 +86,25 @@ const LinearProgress = ({
     outputRange: [-trackWidth * indeterminateBarWidthRatio, trackWidth],
   });
 
+  const a11y = decorative
+    ? {
+        accessible: false,
+        importantForAccessibility: "no-hide-descendants" as const,
+        accessibilityElementsHidden: true,
+        "aria-hidden": true,
+      }
+    : {
+        accessibilityRole: "progressbar" as const,
+        accessible: true,
+        accessibilityLabel: indeterminate
+          ? "Loading"
+          : `Progress: ${Math.round(clampedProgress * 100)}%`,
+        "aria-valuemin": 0,
+        "aria-valuemax": 1,
+        // Undefined for indeterminate: there is no value to report.
+        "aria-valuenow": indeterminate ? undefined : clampedProgress,
+      };
+
   return (
     <View
       style={[
@@ -74,33 +115,23 @@ const LinearProgress = ({
         },
       ]}
       onLayout={(event) => setTrackWidth(event.nativeEvent.layout.width)}
-      accessibilityRole="progressbar"
-      accessible={true}
-      accessibilityLabel={
-        indeterminate
-          ? "Loading"
-          : `Progress: ${Math.round(clampedProgress * 100)}%`
-      }
-      aria-valuemin={0}
-      aria-valuemax={1}
-      aria-valuenow={indeterminate ? undefined : clampedProgress} // Undefined for indeterminate
+      {...a11y}
     >
       <Animated.View
         style={[
           styles.linearBar,
-          {
-            backgroundColor: barColor,
-            height: "100%",
-            width: indeterminate
-              ? `${indeterminateBarWidthRatio * 100}%`
-              : animatedValue.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ["0%", "100%"],
-                }),
-            transform: indeterminate
-              ? [{ translateX: translateXIndeterminate }]
-              : [],
-          },
+          indeterminate
+            ? {
+                backgroundColor: barColor,
+                width: `${indeterminateBarWidthRatio * 100}%`,
+                transform: [{ translateX: translateXIndeterminate }],
+              }
+            : {
+                backgroundColor: barColor,
+                width: "100%",
+                transformOrigin: I18nManager.isRTL ? "right" : "left",
+                transform: [{ scaleX: animatedValue }],
+              },
         ]}
       />
     </View>
@@ -119,6 +150,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     position: "absolute",
     top: 0,
+    bottom: 0,
     left: 0,
   },
 });

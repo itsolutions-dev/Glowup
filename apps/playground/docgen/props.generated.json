@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.7.0",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 92,
+  "componentCount": 93,
   "components": {
     "Accordion": {
       "name": "Accordion",
@@ -794,9 +794,23 @@
       "extends": [],
       "props": [
         {
+          "name": "accessibilityHint",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "accessibilityLabel",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "busy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Blocks presses and announces the button as busy, but — unlike `loading` —\nkeeps the label, the icon and the full-strength colours on screen.",
           "deprecated": false
         },
         {
@@ -846,6 +860,13 @@
           "deprecated": false
         },
         {
+          "name": "labelStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "description": "Applied to the label text, after the theme's type style.",
+          "deprecated": false
+        },
+        {
           "name": "loading",
           "type": "boolean",
           "required": false,
@@ -854,15 +875,9 @@
         },
         {
           "name": "mode",
-          "type": "\"filled\" | \"tonal\" | \"outlined\" | \"text\"",
+          "type": "ButtonMode",
           "required": false,
           "default": "\"filled\"",
-          "values": [
-            "filled",
-            "tonal",
-            "outlined",
-            "text"
-          ],
           "deprecated": false
         },
         {
@@ -885,15 +900,24 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "tone",
-          "type": "\"primary\" | \"error\"",
+          "type": "ButtonTone",
           "required": false,
           "default": "\"primary\"",
-          "description": "Colour role. `error` is the destructive treatment (delete, discard).",
-          "values": [
-            "primary",
-            "error"
-          ],
+          "description": "Colour role. `error` is the destructive treatment (delete, discard);\n`success` is confirmation feedback, from a fixed green kept off the seed.",
+          "deprecated": false
+        },
+        {
+          "name": "underlay",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Drawn behind the label across the whole surface, clipped to its shape:\na progress fill, a state animation. It receives no touches.",
           "deprecated": false
         }
       ]
@@ -4341,6 +4365,14 @@
           "deprecated": false
         },
         {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the bar from assistive technology, for when the component around it\nalready announces the progress — a bar inside a button is not a second\ncontrol to land on.",
+          "deprecated": false
+        },
+        {
           "name": "duration",
           "type": "number",
           "required": false,
@@ -4349,9 +4381,10 @@
         },
         {
           "name": "height",
-          "type": "number",
+          "type": "DimensionValue",
           "required": false,
           "default": "4",
+          "description": "Bar thickness. A percentage fills the parent — a progress surface.",
           "deprecated": false
         },
         {
@@ -4379,6 +4412,184 @@
           "name": "trackColor",
           "type": "string",
           "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "ProgressButton": {
+      "name": "ProgressButton",
+      "source": "packages/ui/src/components/ProgressButton.tsx",
+      "propsTypeName": "ProgressButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name while idle. Falls back to the label.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "string",
+          "required": false,
+          "description": "The idle label. Also the loading label unless `loadingLabel` is set.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "default": "300",
+          "description": "Duration of each progress step's transition, in ms.",
+          "deprecated": false
+        },
+        {
+          "name": "errorIconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"alert-circle-outline\"",
+          "deprecated": false
+        },
+        {
+          "name": "errorLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Try again\"",
+          "description": "Label once the task failed. The button stays pressable, to retry.",
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "iconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "description": "Leading icon while idle and loading.",
+          "deprecated": false
+        },
+        {
+          "name": "indicator",
+          "type": "\"fill\" | \"bar\"",
+          "required": false,
+          "default": "\"fill\"",
+          "description": "How progress is drawn inside the surface: `fill` sweeps a darker (or, in\nthe dark scheme, lighter) tone of the button across it; `bar` runs a 4dp\nline along its bottom edge.",
+          "values": [
+            "fill",
+            "bar"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "labelStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "description": "Applied to the label: font family, size, weight.",
+          "deprecated": false
+        },
+        {
+          "name": "loadingLabel",
+          "type": "string",
+          "required": false,
+          "description": "Label while loading, e.g. \"Calculating route…\".",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "ButtonMode",
+          "required": false,
+          "default": "\"filled\"",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "description": "Fires in every status but `loading`, where the button is busy.",
+          "deprecated": false
+        },
+        {
+          "name": "onSuccessEnd",
+          "type": "() => void",
+          "required": false,
+          "description": "Called `successDuration` ms after the button turned to success.",
+          "deprecated": false
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "description": "Completion while `status` is `\"loading\"`, from 0 to 1. Leave it undefined\nwhen the task cannot say how far along it is, for an indeterminate sweep.",
+          "deprecated": false
+        },
+        {
+          "name": "progressColor",
+          "type": "string",
+          "required": false,
+          "description": "Colour of the fill or the bar. Derived from the button's colours if unset.",
+          "deprecated": false
+        },
+        {
+          "name": "status",
+          "type": "ProgressButtonStatus",
+          "required": false,
+          "default": "\"idle\"",
+          "description": "Which moment of the task to show. Controlled: the button never moves\nitself from one status to the next — the caller does, as the task reports.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Applied to the surface: corner radius, padding, width.",
+          "deprecated": false
+        },
+        {
+          "name": "successDuration",
+          "type": "number",
+          "required": false,
+          "default": "2000",
+          "description": "How long the success status holds before `onSuccessEnd` fires, in ms.\n`0` keeps it until the caller changes `status`.",
+          "deprecated": false
+        },
+        {
+          "name": "successIconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"check\"",
+          "deprecated": false
+        },
+        {
+          "name": "successLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Done\"",
+          "description": "Label once the task succeeded.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "trackColor",
+          "type": "string",
+          "required": false,
+          "description": "Colour behind the bar, and behind the fill on outlined and text.",
           "deprecated": false
         }
       ]

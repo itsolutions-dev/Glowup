@@ -1,5 +1,6 @@
 import themeConfig from "./theme.json";
 import type { ThemeColorTokens } from "./ThemeProvider";
+import { hexToLch, tone } from "./tonal";
 
 /**
  * A complete colour set: the same token names as `theme.json`, resolved for
@@ -41,107 +42,6 @@ const DEFAULT_CHROMA: PaletteChroma = {
   neutral: 4,
   neutralVariant: 7,
   tertiaryHueShift: 60,
-};
-
-/* ------------------------------------------------------------------ *
- * sRGB <-> CIELAB, and tone -> hex.
- *
- * Material's own tones are HCT, which needs CAM16; L* is what HCT's tone
- * actually measures, so a tone here is a CIELAB lightness and the hue and
- * chroma ride along in LCh. Close enough that the derived baseline matches
- * the hand-authored one to a couple of units per channel, with no dependency.
- * ------------------------------------------------------------------ */
-
-const linearize = (c: number) =>
-  c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-const delinearize = (c: number) =>
-  c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055;
-
-const WHITE_X = 95.047;
-const WHITE_Y = 100;
-const WHITE_Z = 108.883;
-const EPSILON = 216 / 24389;
-const KAPPA = 24389 / 27;
-
-const labF = (t: number) =>
-  t > EPSILON ? Math.cbrt(t) : (t * KAPPA + 16) / 116;
-const labFInv = (t: number) =>
-  t ** 3 > EPSILON ? t ** 3 : (116 * t - 16) / KAPPA;
-
-interface Lch {
-  l: number;
-  c: number;
-  h: number;
-}
-
-const hexToLch = (hex: string): Lch => {
-  const value = parseInt(hex.replace("#", ""), 16);
-  const r = linearize(((value >> 16) & 255) / 255);
-  const g = linearize(((value >> 8) & 255) / 255);
-  const b = linearize((value & 255) / 255);
-  const x = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) * 100;
-  const y = (0.2126729 * r + 0.7151522 * g + 0.072175 * b) * 100;
-  const z = (0.0193339 * r + 0.119192 * g + 0.9503041 * b) * 100;
-  const fx = labF(x / WHITE_X);
-  const fy = labF(y / WHITE_Y);
-  const fz = labF(z / WHITE_Z);
-  const a = 500 * (fx - fy);
-  const bb = 200 * (fy - fz);
-  return {
-    l: 116 * fy - 16,
-    c: Math.hypot(a, bb),
-    h: ((Math.atan2(bb, a) * 180) / Math.PI + 360) % 360,
-  };
-};
-
-/** Linear-light RGB, deliberately unclamped so the caller can test the gamut. */
-const lchToRgb = (
-  l: number,
-  c: number,
-  h: number,
-): [number, number, number] => {
-  const rad = (h * Math.PI) / 180;
-  const a = c * Math.cos(rad);
-  const b = c * Math.sin(rad);
-  const fy = (l + 16) / 116;
-  const x = (labFInv(fy + a / 500) * WHITE_X) / 100;
-  const y = (labFInv(fy) * WHITE_Y) / 100;
-  const z = (labFInv(fy - b / 200) * WHITE_Z) / 100;
-  return [
-    3.2404542 * x - 1.5371385 * y - 0.4985314 * z,
-    -0.969266 * x + 1.8760108 * y + 0.041556 * z,
-    0.0556434 * x - 0.2040259 * y + 1.0572252 * z,
-  ];
-};
-
-const inGamut = (l: number, c: number, h: number) =>
-  lchToRgb(l, c, h).every((v) => v >= -0.0001 && v <= 1.0001);
-
-/**
- * One step of a tonal palette: the given tone at the most chroma the sRGB
- * gamut will hold. Tones near 0 and 100 have almost no room, which is exactly
- * why Material's own near-white and near-black tones look grey.
- */
-const tone = (hue: number, chroma: number, t: number): string => {
-  let usable = chroma;
-  if (!inGamut(t, chroma, hue)) {
-    let low = 0;
-    let high = chroma;
-    for (let i = 0; i < 24; i += 1) {
-      const mid = (low + high) / 2;
-      if (inGamut(t, mid, hue)) low = mid;
-      else high = mid;
-    }
-    usable = low;
-  }
-  return `#${lchToRgb(t, usable, hue)
-    .map((v) =>
-      Math.round(Math.min(1, Math.max(0, delinearize(v))) * 255)
-        .toString(16)
-        .padStart(2, "0"),
-    )
-    .join("")
-    .toUpperCase()}`;
 };
 
 /** The seed of the scheme the library ships with, and its baseline id. */
@@ -261,16 +161,93 @@ export const createPalette = (
   };
 };
 
+/**
+ * A Material seed: one of the named hues of the Material colour system, at its
+ * 500 shade — the swatch the Material palette has always keyed a hue on.
+ * Material 3 itself ships no named list (a scheme is generated from whatever
+ * source colour you give it), so these are the canonical seeds to generate
+ * from, each run through the same M3 role mapping as a custom brand colour.
+ */
+interface MaterialSeed {
+  name: string;
+  seed: string;
+  /**
+   * The hues Material draws as greys. TonalSpot's fixed chroma would push a
+   * near-neutral seed to full colour — a grey seed has no reliable hue at all,
+   * so it would come out an arbitrary red — which is why these follow the
+   * lower-chroma M3 scheme variants instead.
+   */
+  chroma?: Partial<PaletteChroma>;
+}
+
+/** Material 3's Monochrome variant: every tonal palette is pure grey. */
+const MONOCHROME: Partial<PaletteChroma> = {
+  primary: 0,
+  secondary: 0,
+  tertiary: 0,
+  neutral: 0,
+  neutralVariant: 0,
+};
+
+/** Close to Material 3's Neutral variant: the hue survives, muted. */
+const MUTED: Partial<PaletteChroma> = {
+  primary: 16,
+  secondary: 8,
+  tertiary: 12,
+  neutral: 3,
+  neutralVariant: 5,
+};
+
+const MATERIAL_SEEDS = {
+  red: { name: "Red", seed: "#F44336" },
+  pink: { name: "Pink", seed: "#E91E63" },
+  purple: { name: "Purple", seed: "#9C27B0" },
+  deepPurple: { name: "Deep purple", seed: "#673AB7" },
+  indigo: { name: "Indigo", seed: "#3F51B5" },
+  blue: { name: "Blue", seed: "#2196F3" },
+  lightBlue: { name: "Light blue", seed: "#03A9F4" },
+  cyan: { name: "Cyan", seed: "#00BCD4" },
+  teal: { name: "Teal", seed: "#009688" },
+  green: { name: "Green", seed: "#4CAF50" },
+  lightGreen: { name: "Light green", seed: "#8BC34A" },
+  lime: { name: "Lime", seed: "#CDDC39" },
+  yellow: { name: "Yellow", seed: "#FFEB3B" },
+  amber: { name: "Amber", seed: "#FFC107" },
+  orange: { name: "Orange", seed: "#FF9800" },
+  deepOrange: { name: "Deep orange", seed: "#FF5722" },
+  brown: { name: "Brown", seed: "#795548", chroma: MUTED },
+  grey: { name: "Grey", seed: "#9E9E9E", chroma: MONOCHROME },
+  blueGrey: { name: "Blue grey", seed: "#607D8B", chroma: MUTED },
+} satisfies Record<string, MaterialSeed>;
+
+/** The named Material hues `palettes` carries, in the Material palette's order. */
+export type MaterialPaletteId = keyof typeof MATERIAL_SEEDS;
+
 /** The ids of the palettes this library ships. */
-export type PaletteId =
-  "baseline" | "cobalt" | "teal" | "forest" | "amber" | "rose";
+export type PaletteId = "baseline" | MaterialPaletteId;
 
 /**
- * The colour sets shipped with the library. `baseline` is the hand-authored
- * Material 3 baseline scheme — the one the library has always rendered; the
- * rest are derived from their seed with `createPalette`.
+ * Ids earlier releases shipped, each now the Material hue it was seeded from.
+ * Kept readable so stored ids and existing imports keep working; they are not
+ * enumerable, so a picker built from `Object.values(palettes)` lists every
+ * colour once.
  */
-export const palettes: Record<PaletteId, ThemePalette> = {
+const DEPRECATED_ALIASES = {
+  cobalt: "blue",
+  forest: "green",
+  rose: "pink",
+} as const satisfies Record<string, PaletteId>;
+
+type DeprecatedPaletteAliases = {
+  /** @deprecated Renamed to `palettes.blue`, the Material hue it was seeded from. */
+  readonly cobalt: ThemePalette;
+  /** @deprecated Renamed to `palettes.green`, the Material hue it was seeded from. */
+  readonly forest: ThemePalette;
+  /** @deprecated Renamed to `palettes.pink`, the Material hue it was seeded from. */
+  readonly rose: ThemePalette;
+};
+
+const shipped = {
   baseline: {
     id: "baseline",
     name: "Baseline purple",
@@ -278,9 +255,28 @@ export const palettes: Record<PaletteId, ThemePalette> = {
     light: themeConfig.colors.light,
     dark: themeConfig.colors.dark,
   },
-  cobalt: createPalette("#2196F3", { id: "cobalt", name: "Cobalt blue" }),
-  teal: createPalette("#009688", { id: "teal", name: "Teal" }),
-  forest: createPalette("#4CAF50", { id: "forest", name: "Forest green" }),
-  amber: createPalette("#FF9800", { id: "amber", name: "Amber" }),
-  rose: createPalette("#E91E63", { id: "rose", name: "Rose" }),
-};
+} as Record<PaletteId, ThemePalette>;
+
+(Object.keys(MATERIAL_SEEDS) as MaterialPaletteId[]).forEach((id) => {
+  const { name, seed, chroma } = MATERIAL_SEEDS[id] as MaterialSeed;
+  shipped[id] = createPalette(seed, { id, name, chroma });
+});
+
+(
+  Object.keys(DEPRECATED_ALIASES) as (keyof typeof DEPRECATED_ALIASES)[]
+).forEach((alias) => {
+  Object.defineProperty(shipped, alias, {
+    get: () => shipped[DEPRECATED_ALIASES[alias]],
+    enumerable: false,
+  });
+});
+
+/**
+ * The colour sets shipped with the library. `baseline` is the hand-authored
+ * Material 3 baseline scheme — the one the library has always rendered; the
+ * other nineteen are the named Material hues, derived from their seed with
+ * `createPalette`. Enumerate it for a picker: every entry is listed once.
+ */
+export const palettes: Record<PaletteId, ThemePalette> &
+  DeprecatedPaletteAliases = shipped as Record<PaletteId, ThemePalette> &
+  DeprecatedPaletteAliases;

@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import {
   useTheme,
   useToast,
   Typography,
   Button,
+  ProgressButton,
   Checkbox,
   Toggle,
   Chip,
@@ -362,6 +363,10 @@ const ComponentPreview = ({
         <Component {...props} />
       </View>
     );
+  }
+
+  if (selectedComponentName === "ProgressButton") {
+    return <ProgressButtonStage props={props} updateProp={updateProp} />;
   }
 
   if (selectedComponentName === "IconButton") {
@@ -1091,6 +1096,81 @@ const ComponentPreview = ({
   }
 
   return <Component {...props} onPress={() => console.log("Pressed")} />;
+};
+
+/**
+ * ProgressButton's stage: the panel's props, plus a task to run. Pressing the
+ * button (or the failure trigger) walks the panel through the statuses a real
+ * caller would — loading with progress ticking up, then success or error —
+ * by writing them back with `updateProp`, so the controls follow along.
+ */
+const ProgressButtonStage = ({
+  props,
+  updateProp,
+}: {
+  props: Record<string, any>;
+  updateProp: (key: string, value: any) => void;
+}) => {
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [running, setRunning] = useState(false);
+  const stop = () => {
+    if (timer.current) clearInterval(timer.current);
+    timer.current = null;
+    setRunning(false);
+  };
+  useEffect(() => stop, []);
+
+  const run = (failAt?: number) => {
+    stop();
+    setRunning(true);
+    let progress = 0;
+    updateProp("progress", 0);
+    updateProp("status", "loading");
+    timer.current = setInterval(() => {
+      progress = Math.min(1, progress + 0.04 + Math.random() * 0.08);
+      if (failAt !== undefined && progress >= failAt) {
+        stop();
+        updateProp("status", "error");
+        return;
+      }
+      updateProp("progress", Number(progress.toFixed(2)));
+      if (progress >= 1) {
+        stop();
+        updateProp("status", "success");
+      }
+    }, 180);
+  };
+
+  return (
+    <View style={{ alignItems: "center", gap: 16 }}>
+      <ProgressButton
+        {...props}
+        loadingLabel={props.loadingLabel || undefined}
+        iconName={props.iconName || undefined}
+        onPress={() => run()}
+        onSuccessEnd={() => updateProp("status", "idle")}
+      />
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button
+          mode="text"
+          iconName="play"
+          disabled={running}
+          onPress={() => run()}
+        >
+          Run the task
+        </Button>
+        <Button
+          mode="text"
+          tone="error"
+          iconName="alert-outline"
+          disabled={running}
+          onPress={() => run(0.7)}
+        >
+          Fail at 70%
+        </Button>
+      </View>
+    </View>
+  );
 };
 
 export default ComponentPreview;

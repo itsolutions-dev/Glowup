@@ -24,6 +24,7 @@ export const CATEGORIES: Category[] = [
     icon: "cursor-default-click-outline",
     items: [
       "Button",
+      "ProgressButton",
       "IconButton",
       "Chip",
       "FAB",

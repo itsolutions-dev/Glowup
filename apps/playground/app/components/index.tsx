@@ -50,7 +50,7 @@ const defaultsOf = (name: string) => {
 /**
  * The catalogue, as a gallery of live components.
  *
- * A list of 84 names tells a reader nothing they did not already know from the
+ * A list of 85 names tells a reader nothing they did not already know from the
  * sidebar — you pick a component by recognising it, so each card renders the
  * real thing at its default props rather than describing it. The previews are
  * inert (`pointerEvents="none"`): the card is a link, and a Toggle inside it

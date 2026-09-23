@@ -216,7 +216,7 @@ export default function Theming() {
 
       <Section
         title="Colour sets"
-        description="Six Material 3 schemes. Picking one re-themes the whole site — every page, every component demo — because the library resolves its tokens from the selected set."
+        description="Twenty Material 3 schemes: the baseline, and the nineteen named Material hues run through the same role mapping from their seed. Picking one re-themes the whole site — every page, every component demo — because the library resolves its tokens from the selected set."
       >
         <View style={styles.paletteGrid}>
           {Object.values(palettes).map((option) => (

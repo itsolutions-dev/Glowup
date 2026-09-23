@@ -73,4 +73,52 @@ describe("palettes", () => {
       });
     });
   });
+
+  it("ships the baseline plus the nineteen named Material hues", () => {
+    expect(Object.keys(palettes)).toEqual([
+      "baseline",
+      "red",
+      "pink",
+      "purple",
+      "deepPurple",
+      "indigo",
+      "blue",
+      "lightBlue",
+      "cyan",
+      "teal",
+      "green",
+      "lightGreen",
+      "lime",
+      "yellow",
+      "amber",
+      "orange",
+      "deepOrange",
+      "brown",
+      "grey",
+      "blueGrey",
+    ]);
+    Object.entries(palettes).forEach(([key, palette]) => {
+      expect(palette.id).toBe(key);
+    });
+  });
+
+  it("keeps the old ids readable without listing them twice", () => {
+    expect(palettes.cobalt).toBe(palettes.blue);
+    expect(palettes.forest).toBe(palettes.green);
+    expect(palettes.rose).toBe(palettes.pink);
+    expect(Object.values(palettes).map((p) => p.id)).not.toContain("cobalt");
+  });
+
+  it("derives grey as a true monochrome scheme", () => {
+    // A grey seed has no hue to speak of; at TonalSpot's chroma it would come
+    // out an arbitrary colour.
+    const { primary, tertiary } = palettes.grey.light;
+    [primary, tertiary].forEach((hex) => {
+      const value = parseInt(hex.slice(1), 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      expect(Math.max(r, g, b) - Math.min(r, g, b)).toBeLessThanOrEqual(1);
+    });
+  });
 });

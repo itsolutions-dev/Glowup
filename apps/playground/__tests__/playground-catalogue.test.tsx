@@ -104,6 +104,7 @@ const CATALOGUE = [
   "TouchableRipple",
   // Actions
   "Button",
+  "ProgressButton",
   "IconButton",
   "Chip",
   "FAB",
@@ -482,6 +483,13 @@ describe("Playground catalogue", () => {
       on: { animate: true },
       props: ["duration"],
     },
+    // Progress and the per-status labels only mean something in their status.
+    {
+      component: "ProgressButton",
+      off: { status: "idle" },
+      on: { status: "loading" },
+      props: ["progress", "loadingLabel"],
+    },
     {
       component: "LinearProgress",
       off: { indeterminate: true },
@@ -539,6 +547,8 @@ describe("Playground catalogue", () => {
       "DateTimePicker.use24HourClock", // Mode → Time / Date & Time
       "ClockDial.minuteInterval", // Unit → Minutes
       "DataGrid.emptyMessage", // Empty Data → on
+      "ProgressButton.progress", // Status → Loading
+      "ProgressButton.loadingLabel", // Status → Loading
     ];
 
     const hidden = Object.entries(ComponentRegistry).flatMap(([name, meta]) =>

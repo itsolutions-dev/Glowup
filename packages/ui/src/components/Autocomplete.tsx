@@ -422,7 +422,7 @@ const makeStyles = (theme: Theme) =>
     input: {
       flex: 1,
       paddingVertical: 12,
-      ...Platform.select({ web: { outlineWidth: 0 } }),
+      ...Platform.select({ web: { outlineStyle: "none" as any } }),
     },
     clearButton: {
       width: 28,

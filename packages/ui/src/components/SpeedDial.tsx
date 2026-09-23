@@ -43,6 +43,9 @@ const SpeedDial = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [anim] = useState(() => new Animated.Value(defaultOpen ? 1 : 0));
+  // The collapsed rows keep their layout width, so the stack has to hug the
+  // chosen corner or the trigger drifts inward by half the widest label.
+  const isLeft = position.endsWith("left");
 
   const toggle = () => {
     const toValue = open ? 0 : 1;
@@ -78,8 +81,18 @@ const SpeedDial = ({
     <View style={styles.container}>
       {open && <Pressable style={StyleSheet.absoluteFill} onPress={toggle} />}
 
-      <View style={[styles.fabContainer, getSafeStyle()]}>
-        <View style={styles.actionsStack}>
+      <View
+        style={[
+          { alignItems: isLeft ? "flex-start" : "flex-end" },
+          getSafeStyle(),
+        ]}
+      >
+        <View
+          style={[
+            styles.actionsStack,
+            { alignItems: isLeft ? "flex-start" : "flex-end" },
+          ]}
+        >
           {actions.map((action, index) => {
             const translateY = anim.interpolate({
               inputRange: [0, 1],
@@ -91,6 +104,7 @@ const SpeedDial = ({
                 key={action.id}
                 style={[
                   styles.actionRow,
+                  { flexDirection: isLeft ? "row-reverse" : "row" },
                   {
                     opacity: anim,
                     transform: [{ scale: anim }, { translateY }],
@@ -100,6 +114,7 @@ const SpeedDial = ({
                 <View
                   style={[
                     styles.labelCard,
+                    isLeft ? { marginLeft: 16 } : { marginRight: 16 },
                     { backgroundColor: theme.colors.surfaceContainerHigh },
                   ]}
                 >
@@ -122,7 +137,8 @@ const SpeedDial = ({
                     toggle();
                   }}
                   size="small"
-                  style={styles.fab}
+                  placement="inline"
+                  style={styles.actionFab}
                 />
               </Animated.View>
             );
@@ -145,8 +161,7 @@ const SpeedDial = ({
             icon={mainIcon}
             onPress={toggle}
             size="regular"
-            style={styles.fab}
-            position={position}
+            placement="inline"
           />
         </Animated.View>
       </View>
@@ -169,15 +184,10 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       pointerEvents: "box-none",
       zIndex: 1000,
     },
-    fabContainer: {
-      alignItems: "center",
-    },
     actionsStack: {
-      alignItems: "flex-end",
       marginBottom: 16,
     },
     actionRow: {
-      flexDirection: "row",
       alignItems: "center",
       marginBottom: 12,
     },
@@ -185,12 +195,12 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 8,
-      marginRight: 16,
       elevation: 2,
       shadowColor: theme.colors.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
     },
-    fab: { position: "relative", bottom: 0, right: 0 },
+    // Centres the 40px small FABs on the 56px trigger.
+    actionFab: { marginHorizontal: 8 },
   });

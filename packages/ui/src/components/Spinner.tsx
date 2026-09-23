@@ -62,7 +62,7 @@ const Spinner = ({
   }, [value, step, min, onChange]);
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, disabled && { opacity: 0.38 }]}>
       {!!label && (
         <Text
           style={[

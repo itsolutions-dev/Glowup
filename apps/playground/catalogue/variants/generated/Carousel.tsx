@@ -112,7 +112,7 @@ export const Testimonials = () => (
         },
       ].map((person) => (
         <Card key={person.name} variant="elevated" style={{ width: "100%" }}>
-          <View style={{ ...slide, gap: 10 }}>
+          <View style={{ ...slide, gap: 10, paddingInline: 48 }}>
             <Avatar name={person.name} size={44} />
             <Typography
               style={{ textAlign: "center" }}

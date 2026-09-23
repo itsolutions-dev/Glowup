@@ -2,7 +2,13 @@ import React from "react";
 import { AspectRatio, HStack, Typography } from "@its/glowup-ui";
 
 const band = (ratio: number, label: string) => (
-  <AspectRatio ratio={ratio} bg="primaryContainer" radius="medium" width={180}>
+  <AspectRatio
+    ratio={ratio}
+    bg="primaryContainer"
+    radius="medium"
+    width={180}
+    p="s"
+  >
     <Typography variant="labelMedium">{label}</Typography>
   </AspectRatio>
 );

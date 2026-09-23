@@ -23,6 +23,7 @@ export const Destructive = () => (
       message="Chip is used by 6 screens. Deleting it removes those usages and cannot be undone."
       confirmText="Delete"
       cancelText="Keep"
+      destructive
       onConfirm={() => {}}
       onCancel={() => {}}
     />

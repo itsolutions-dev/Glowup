@@ -160,8 +160,11 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     leadingIcon: {
       marginRight: 12,
     },
+    // Not `flex: 1`: its zero basis lets the shrink-wrapped popover size
+    // itself without the labels, which then truncate.
     label: {
-      flex: 1,
+      flexGrow: 1,
+      flexShrink: 1,
       marginRight: 12,
     },
   });

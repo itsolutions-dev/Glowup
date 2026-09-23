@@ -12,11 +12,12 @@ export interface AspectRatioProps extends Omit<BoxProps, "height"> {
  */
 const AspectRatio = ({
   ratio = 1,
+  width = "100%",
   style,
   children,
   ...boxProps
 }: AspectRatioProps) => (
-  <Box {...boxProps} style={[{ aspectRatio: ratio, width: "100%" }, style]}>
+  <Box {...boxProps} width={width} style={[{ aspectRatio: ratio }, style]}>
     {children}
   </Box>
 );

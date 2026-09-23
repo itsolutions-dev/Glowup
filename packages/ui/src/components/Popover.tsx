@@ -106,7 +106,9 @@ const Popover = ({
           <View
             onLayout={(e) => {
               const { width, height } = e.nativeEvent.layout;
-              setContentSize({ width, height });
+              // Web reports offsetWidth, rounded to an integer: a width rounded
+              // down would clip the widest row by a fraction and ellipsise it.
+              setContentSize({ width: width + 1, height });
             }}
             style={[
               styles.popoverCard,

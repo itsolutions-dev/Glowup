@@ -6,8 +6,9 @@
 // consumers never receive. This removes both, so lib/ matches the tarball.
 import { readdir, readFile, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("../lib/typescript/", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("../lib/typescript/", import.meta.url));
 const MAP_COMMENT = /\n?\/\/# sourceMappingURL=.*\.d\.ts\.map\s*$/;
 
 let stripped = 0;

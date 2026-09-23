@@ -591,3 +591,14 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 - Font fidelity: the DS sets `fontFamily: System` throughout (M3 type scale, no brand
   face), so previews render in the browser's system stack — matching the app on web.
   Nothing to source, no `[FONT_MISSING]`.
+
+## 2026-09-23 re-sync
+
+- **`package-build` / `resync` wipes `ds-bundle/_screenshots`.** Run a full `package-capture` after every full build, not only for the components you touched.
+- **A `cfg.overrides` change needs a full build.** `preview-rebuild` refuses with `[CONFIG_STALE]` once an override (viewport, cardMode) differs from the stamped build.
+- **Capture viewport crops silently.** The default 900x700 hid the third 330px Calendar and the bottom of the vertical-scroll one; Calendar now carries `viewport: "1100x480"`. When a cell looks cut, compare against `review/raw/` before blaming the component.
+- **RN-web: `flex: 1` truncates inside shrink-wrapped containers** (zero flex-basis, so the parent sizes without the child). Use `flexGrow: 1, flexShrink: 1`. Found in `Menu` labels.
+- **RN-web reports `onLayout` widths via `offsetWidth`, rounded down.** Feeding that back as a `maxWidth` clips the widest row by a fraction and ellipsises it; `Popover` pads the measured width by 1px.
+- **Chrome's `outline-style: auto` focus ring ignores `outlineWidth: 0`.** Use `outlineStyle: "none" as any` on web text inputs (SearchBar, Autocomplete).
+- `packages/ui/scripts/strip-declaration-maps.mjs` needed `fileURLToPath` to run on Windows.
+- Library fixes found only by grading sheets this run: SpeedDial corner anchor, Menu label width, Autocomplete focus ring, Spinner disabled fade, AspectRatio ignoring `width`, AlertProvider ignoring button `style` on web, Popover sub-pixel width.

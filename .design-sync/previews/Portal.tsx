@@ -8,6 +8,23 @@ const stage: React.CSSProperties = {
   gap: 12,
 };
 
+// Opens the tooltip for the capture, as in the Tooltip preview.
+const Hovered = ({ children }: { children: React.ReactNode }) => {
+  const hostRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    const anchor = hostRef.current?.firstElementChild
+      ?.firstElementChild as HTMLElement | null;
+    anchor?.dispatchEvent(
+      new PointerEvent("pointerenter", { pointerType: "mouse" }),
+    );
+  }, []);
+  return (
+    <div ref={hostRef} style={{ display: "inline-flex" }}>
+      {children}
+    </div>
+  );
+};
+
 // The only thing about Portal worth looking at is the escape, so the demo has
 // to contain a parent that really clips.
 export const EscapesAClippingParent = () => (
@@ -55,12 +72,21 @@ export const BacksTheTooltip = () => (
         With a host mounted, Tooltip renders through it — so a tip on an anchor
         inside a scrolling or clipping container is no longer cut off.
       </Typography>
-      <div style={{ height: 48, overflow: "hidden", display: "flex" }}>
-        <Tooltip content="Not clipped" enterDelay={0}>
-          <Button mode="tonal" onPress={() => {}}>
-            Hover me
-          </Button>
-        </Tooltip>
+      <div
+        style={{
+          height: 56,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Hovered>
+          <Tooltip content="Not clipped" position="bottom" enterDelay={0}>
+            <Button mode="tonal" onPress={() => {}}>
+              Hover me
+            </Button>
+          </Tooltip>
+        </Hovered>
       </div>
     </div>
   </Portal.Host>

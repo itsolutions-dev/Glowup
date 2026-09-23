@@ -76,6 +76,8 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
           {config.buttons.map((button, index) => (
             <Button
               key={index}
+              mode={button.style === "cancel" ? "text" : "filled"}
+              tone={button.style === "destructive" ? "error" : "primary"}
               onPress={() => {
                 closeAlert();
                 button.onPress?.();

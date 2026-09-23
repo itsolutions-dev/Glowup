@@ -17,7 +17,8 @@ const cell: React.CSSProperties = {
 };
 
 export const Glyphs = () => (
-  <div style={row}>
+  // Top-aligned: a wrapped label must not lift its glyph off the row.
+  <div style={{ ...row, alignItems: "flex-start" }}>
     {(
       [
         "camera",
@@ -29,7 +30,9 @@ export const Glyphs = () => (
     ).map((name) => (
       <div key={name} style={cell}>
         <Icon source={name} size={28} />
-        <Typography variant="labelSmall">{name}</Typography>
+        <Typography variant="labelSmall" style={{ textAlign: "center" }}>
+          {name}
+        </Typography>
       </div>
     ))}
   </div>

@@ -31,7 +31,11 @@ const lines: React.CSSProperties = {
   gap: 2,
 };
 
-type Btn = { text: string; onPress?: () => void };
+type Btn = {
+  text: string;
+  style?: "default" | "cancel" | "destructive";
+  onPress?: () => void;
+};
 
 const RaiseOnMount = ({
   title,
@@ -56,7 +60,10 @@ export const HostedDialog = () => (
       <RaiseOnMount
         title="Discard draft?"
         message="The invoice for Northwind Ltd has unsaved changes. Discarding cannot be undone."
-        buttons={[{ text: "Keep editing" }, { text: "Discard" }]}
+        buttons={[
+          { text: "Keep editing", style: "cancel" },
+          { text: "Discard", style: "destructive" },
+        ]}
       />
       <div style={stack}>
         <Paper outline style={{ padding: 16 }}>

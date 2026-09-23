@@ -87,9 +87,9 @@ export const TypedEntry = () => (
     />
     <DateTimePicker
       label="Date of birth"
-      value={new Date(1988, 2, 14)}
+      value={new Date(2031, 2, 14)}
       inputEnabled
-      error="Not a valid date"
+      error="Can't be in the future"
       onChange={noop}
     />
   </View>

@@ -46,7 +46,7 @@ export const FormColumn = () => (
       This removes every component, token and screen. It cannot be undone.
     </Typography>
     <VStack spacing="xs" align="stretch">
-      <Button mode="filled" onPress={() => {}}>
+      <Button mode="filled" tone="error" onPress={() => {}}>
         Delete workspace
       </Button>
       <Button mode="text" onPress={() => {}}>

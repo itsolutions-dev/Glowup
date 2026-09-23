@@ -1,5 +1,6 @@
 import {
   Button,
+  ProgressButton,
   Chip,
   FAB,
   SpeedDial,
@@ -10,7 +11,7 @@ import {
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
-/** Actions: 8 catalogue entries. */
+/** Actions: 9 catalogue entries. */
 export const actions: Record<string, ComponentMetadata> = {
   Button: {
     name: "Button",
@@ -41,6 +42,80 @@ export const actions: Record<string, ComponentMetadata> = {
       fullWidth: { type: "boolean", default: false, label: "Full Width" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
       loading: { type: "boolean", default: false, label: "Loading" },
+    },
+  },
+  ProgressButton: {
+    name: "ProgressButton",
+    Component: ProgressButton,
+    props: {
+      children: {
+        type: "text",
+        default: "Start navigation",
+        label: "Label",
+      },
+      status: {
+        type: "select",
+        default: "idle",
+        label: "Status",
+        options: [
+          { label: "Idle", value: "idle" },
+          { label: "Loading", value: "loading" },
+          { label: "Success", value: "success" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      progress: {
+        type: "number",
+        // Unset, like the component's own default: an indeterminate sweep.
+        default: undefined,
+        label: "Progress (0-1, empty = indeterminate)",
+        appliesWhen: (values) => values.status === "loading",
+      },
+      loadingLabel: {
+        type: "text",
+        // Empty falls back to the label, which is what the component does
+        // without one — so the snippet only writes it once it says something.
+        default: "",
+        label: "Loading label",
+        appliesWhen: (values) => values.status === "loading",
+      },
+      successLabel: {
+        type: "text",
+        default: "Done",
+        label: "Success label",
+      },
+      errorLabel: {
+        type: "text",
+        default: "Try again",
+        label: "Error label",
+      },
+      indicator: {
+        type: "select",
+        default: "fill",
+        label: "Indicator",
+        options: [
+          { label: "Fill", value: "fill" },
+          { label: "Bar", value: "bar" },
+        ],
+      },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Text", value: "text" },
+        ],
+      },
+      iconName: {
+        type: "text",
+        default: "",
+        label: "Icon Name",
+      },
+      fullWidth: { type: "boolean", default: false, label: "Full Width" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   IconButton: {

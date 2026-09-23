@@ -3,7 +3,7 @@
  * npm registry, reached only through the package name, typed only by the
  * published `.d.ts`.
  *
- * It is deliberately small — the playground is what demos all 84 components.
+ * It is deliberately small — the playground is what demos all 85 components.
  * What this file has to touch is the part of the contract a local workspace
  * install cannot prove:
  *

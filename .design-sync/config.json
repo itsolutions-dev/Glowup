@@ -195,6 +195,10 @@
       "primaryStory": "EscapesAClippingParent",
       "viewport": "460x260"
     },
+    "ProgressButton": {
+      "cardMode": "column",
+      "primaryStory": "Statuses"
+    },
     "RadioButton": {
       "cardMode": "column"
     },

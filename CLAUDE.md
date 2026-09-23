@@ -69,7 +69,7 @@ This is the rule that keeps the split real:
 packages/ui/
 ├── src/
 │   ├── index.ts        # the public API barrel; nothing else is public
-│   ├── components/     # 84 components (CardParts/, List/, Modal/, Progress/,
+│   ├── components/     # 85 components (CardParts/, List/, Modal/, Progress/,
 │   │                   #   Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
 │   ├── components/components.md  # authoritative per-component spec, all prop defaults
 │   ├── providers/      # ThemeProvider, AlertProvider, ToastProvider, theme.json
@@ -116,6 +116,11 @@ const styles = useMemo(() => makeStyles(theme), [theme]);
 // ...
 const makeStyles = (theme: Theme) => StyleSheet.create({ ... });
 ```
+
+Colour sets live in `providers/palettes.ts`: `palettes` is the baseline plus the nineteen named
+Material hues, each built by `createPalette(seed)`; `useTheme().setPalette()` swaps them live.
+The tone math is in `providers/tonal.ts` and the fixed success roles (Button's `tone="success"`)
+in `providers/successRoles.ts` — both internal, not re-exported from the barrel.
 
 `useTheme()` exposes `{ theme, toggleTheme }`; `getStateColor()` and `getGlowStyles()` are
 exported for building theme-reactive components. The theme follows the OS color scheme and
@@ -232,7 +237,7 @@ layout that still believed it was on a phone.
 
 `apps/playground` is exported to static HTML (`expo-router` with `output: "static"`) and
 deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to `master`. Each
-route — including all 84 component pages — is prerendered to its own file with its own title
+route — including all 85 component pages — is prerendered to its own file with its own title
 and meta description, so a component URL is shareable and crawlable.
 
 Pages serves a project site from a subpath (`/<repo>/`), so the workflow sets

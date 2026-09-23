@@ -591,3 +591,16 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 - Font fidelity: the DS sets `fontFamily: System` throughout (M3 type scale, no brand
   face), so previews render in the browser's system stack — matching the app on web.
   Nothing to source, no `[FONT_MISSING]`.
+
+## Palettes and ProgressButton (added 2026-09-23, not yet synced)
+
+- `ThemeProvider.Palettes` is the design system's palette switcher: a swatch per entry of
+  `palettes` (twenty) calling `setPalette`. It nests its own `ThemeProvider` on purpose, so
+  a pick re-themes that card only — the shared `cfg.provider` chain has no way to take an
+  `initialPalette`, and switching it would repaint every other card's capture. It uses raw
+  `<button>`s, which is fine: ThemeProvider is in the variants generator's
+  `NOT_CATALOGUED` list, so the preview is never rewritten to React Native.
+- `ProgressButton.TryIt` runs a timer only after a press; its capture is the idle state.
+  Every other story is a static status, so the review sheet shows all four.
+- `ProgressButton` draws inside `Button` through `underlay` and animates with the native
+  driver; react-native-web falls back to JS timing, so the captures are the resting frame.

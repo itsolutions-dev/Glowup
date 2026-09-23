@@ -45,6 +45,29 @@ The real token vocabulary, all under `theme`:
 Helpers: `getStateColor(base, on, "hover" | "press" | "focus")` for M3 state layers, and
 `getGlowStyles(theme, isActive, error?)` for the library's focus/error border treatment.
 
+### Colour sets (palettes)
+
+The tokens above are the **baseline** set. `palettes` ships twenty: `baseline` plus the
+named Material hues `red`, `pink`, `purple`, `deepPurple`, `indigo`, `blue`, `lightBlue`,
+`cyan`, `teal`, `green`, `lightGreen`, `lime`, `yellow`, `amber`, `orange`, `deepOrange`,
+`brown`, `grey`, `blueGrey` — each the full M3 role set for light and dark. To render a
+design in another colour set, pick it on the provider or switch it live; never override
+colours component by component:
+
+```tsx
+<ThemeProvider initialPalette={palettes.teal}>{/* design */}</ThemeProvider>
+
+const { palette, setPalette } = useTheme();   // setPalette(palettes.indigo)
+const brand = createPalette("#00639B", { id: "brand", name: "Brand" });
+```
+
+### Progress inside a button
+
+For an action that runs a task the user waits on (route, upload, payment), use
+`ProgressButton`, not a `Button` next to a `LinearProgress`: `status` is controlled
+(`"idle" | "loading" | "success" | "error"`), `progress` is 0–1 (omit it for an
+indeterminate sweep), `indicator="fill" | "bar"`. It takes every `Button` mode.
+
 **Text goes in `<Typography variant="...">`**, never a bare string — that is the only way
 type picks up the scale. **Icons** are MaterialCommunityIcons kebab-case name strings
 (`iconName="plus"`, `leadingIcon="email-outline"`); outline variants take `-outline`.

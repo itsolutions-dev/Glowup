@@ -67,7 +67,7 @@ const score = (label: string, needle: string): number => {
 /**
  * The ⌘K overlay: type to filter, arrows to move, Enter to go.
  *
- * It exists because the catalogue is 84 entries long and the sidebar only
+ * It exists because the catalogue is 85 entries long and the sidebar only
  * appears from `expanded` up — on a laptop the fastest route to a component
  * should not be scrolling a list.
  */

@@ -74,7 +74,27 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 - `getStateColor(bg, on, state)` → composites a hover/press state-layer color over a base.
 - `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus/hover ring (variant `"error"` for error state).
 
-### 1.6 Shared type
+### 1.6 Palettes
+
+The token set above is the **baseline** palette. `ThemeProvider` renders one `ThemePalette`
+(`{ id, name, seed, light, dark }`) at a time and can switch it at runtime.
+
+- `palettes` — the shipped sets: `baseline` (the hand-authored M3 scheme above) plus the
+  nineteen named Material hues, keyed on their 500 swatch: `red`, `pink`, `purple`,
+  `deepPurple`, `indigo`, `blue`, `lightBlue`, `cyan`, `teal`, `green`, `lightGreen`, `lime`,
+  `yellow`, `amber`, `orange`, `deepOrange`, `brown`, `grey`, `blueGrey`. Material 3 publishes
+  no named list of its own — a scheme is generated from any source colour — so these are
+  run through the M3 role mapping (TonalSpot) like any custom seed. `grey` uses the
+  Monochrome variant and `brown` / `blueGrey` a muted one, since TonalSpot's fixed chroma
+  would turn a near-neutral seed into full colour. `cobalt`, `forest` and `rose` remain as
+  deprecated, non-enumerable aliases of `blue`, `green` and `pink`.
+- `createPalette(seed, { id?, name?, chroma? })` — the same derivation for a brand colour.
+  Error stays the fixed Material red whatever the seed.
+- `<ThemeProvider initialPalette={palettes.teal}>` picks one on mount;
+  `useTheme().setPalette(palette)` switches it live, `useTheme().palette` reads it.
+  `Object.values(palettes)` lists each set once — build a picker from it.
+
+### 1.7 Shared type
 
 `MaterialCommunityIconsGlyphs` — icon names are kebab-case strings (e.g. `"plus"`, `"bell-outline"`).
 Outline variants append `-outline`. Any prop typed "icon" below takes one of these.
@@ -205,6 +225,7 @@ whole section.)
 | children           | ReactNode                                     |                      |     | Label                      |
 | onPress            | () => void                                    |                      |     |                            |
 | mode               | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |     |                            |
+| tone               | `"primary" \| "error" \| "success"`           | `primary`            |     | `success`: fixed green     |
 | iconName           | icon                                          |                      |     | Leading/trailing icon      |
 | iconPosition       | `"left" \| "right"`                           | `left`               |     |                            |
 | iconStyle          | object                                        |                      |     |                            |
@@ -212,8 +233,63 @@ whole section.)
 | fullWidth          | boolean                                       | `false`              |     | Stretch to parent width    |
 | disabled           | boolean                                       | `false`              |     |                            |
 | loading            | boolean                                       | `false`              |     | Shows inline spinner       |
+| busy               | boolean                                       | `false`              |     | Blocks presses, aria-busy  |
+| underlay           | ReactNode                                     |                      |     | Drawn behind the label     |
+| labelStyle         | TextStyle                                     |                      |     | After the type style       |
 | accessibilityLabel | string                                        |                      |     | Falls back to string child |
+| accessibilityHint  | string                                        |                      |     |                            |
+| testID             | string                                        |                      |     |                            |
 | style              | object                                        |                      |     |                            |
+
+`busy` is `loading` without the spinner: label, icon and full-strength colours stay on
+screen. `underlay` fills the whole surface behind the content, clipped to its shape and
+blind to touches — it is how `ProgressButton` draws its fill.
+
+### ProgressButton
+
+A `Button` that carries the progress of the task it started inside its own surface
+(the Google Maps "Start" pattern): **idle → loading → success | error**. Built on `Button`
+(same modes, shape, state layers) and `LinearProgress`.
+
+| Prop               | Type                                             | Default                | Description                                         |
+| ------------------ | ------------------------------------------------ | ---------------------- | --------------------------------------------------- |
+| status             | `"idle" \| "loading" \| "success" \| "error"`    | `idle`                 | Controlled — the caller moves it                    |
+| progress           | number 0–1                                       |                        | While loading. Undefined → indeterminate sweep      |
+| children           | string                                           |                        | Idle label (and loading label by default)           |
+| loadingLabel       | string                                           | `children`             | e.g. "Calculating route…"                           |
+| successLabel       | string                                           | `"Done"`               |                                                     |
+| errorLabel         | string                                           | `"Try again"`          |                                                     |
+| iconName           | icon                                             |                        | Idle and loading                                    |
+| successIconName    | icon                                             | `check`                |                                                     |
+| errorIconName      | icon                                             | `alert-circle-outline` |                                                     |
+| indicator          | `"fill" \| "bar"`                                | `fill`                 | Tone sweep across the surface, or a 4dp bottom line |
+| mode               | `"filled" \| "tonal" \| "outlined" \| "text"`    | `filled`               |                                                     |
+| onPress            | () => void                                       |                        | Fires in every status but `loading`                 |
+| disabled           | boolean                                          | `false`                |                                                     |
+| fullWidth          | boolean                                          | `false`                |                                                     |
+| successDuration    | number (ms)                                      | `2000`                 | Then `onSuccessEnd`; `0` holds success              |
+| onSuccessEnd       | () => void                                       |                        | Typically sets `status` back to `idle`              |
+| progressColor      | string                                           | derived                | Fill or bar colour                                  |
+| trackColor         | string                                           | `on` at 20% / 6%       | Behind the bar; behind the fill on outlined / text  |
+| duration           | number (ms)                                      | `300`                  | Each progress step's transition                     |
+| style              | ViewStyle                                        |                        | Surface: radius, padding, width                     |
+| labelStyle         | TextStyle                                        |                        | Label: font family, size, weight                    |
+| accessibilityLabel | string                                           | label                  | Idle accessible name                                |
+| testID             | string                                           |                        |                                                     |
+
+- **Loading** is busy (`aria-busy="true"`), not disabled: full-strength colours, presses
+  blocked. The fill grows with `transform: scaleX` on the native driver, never `width`.
+  The accessible name carries the percentage ("Calculating route…, 40%").
+- **Success / error** switch to the `success` / `error` tone with a Material reveal from the
+  centre; skipped when the OS asks for reduced motion. Error stays pressable to retry.
+- **Announcements**: status changes go to an `aria-live="polite"` region on web and to
+  `AccessibilityInfo.announceForAccessibility` on iOS/Android — once per status, never per
+  progress step.
+- **Default fill**: on `filled`, a tone of the surface moving away from the label colour
+  (darker in light, lighter in dark) so the label keeps its contrast; on `tonal` a step
+  towards it; on `outlined` / `text` the label colour at 16%.
+- No CSS classes or variables: customise through `style`, `labelStyle`, `progressColor`,
+  `trackColor`, `mode`, and the theme.
 
 ### IconButton
 
@@ -1017,11 +1093,14 @@ Determinate or indeterminate bar.
 | --------------------- | ----------- | ------------------------- | ---------------------- |
 | progress              | number 0–1  | `0`                       | Determinate value      |
 | indeterminate         | boolean     | `false`                   |                        |
-| height                | number      | `4`                       |                        |
+| height                | number \| %  | `4`                       | `"100%"` fills parent  |
 | color                 | string      | `primary`                 |                        |
 | trackColor            | string      | `surfaceContainerHighest` |                        |
 | duration              | number (ms) | `500`                     | Determinate transition |
 | indeterminateDuration | number (ms) | `1500`                    |                        |
+| decorative            | boolean     | `false`                   | Hidden from a11y tree  |
+
+The determinate bar grows with `transform: scaleX` from its leading edge (native driver).
 
 ### EmptyState
 

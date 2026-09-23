@@ -47,6 +47,7 @@ import { variants as Pagination } from "./Pagination";
 import { variants as Paper } from "./Paper";
 import { variants as PinInput } from "./PinInput";
 import { variants as Portal } from "./Portal";
+import { variants as ProgressButton } from "./ProgressButton";
 import { variants as RadioButton } from "./RadioButton";
 import { variants as RadioGroup } from "./RadioGroup";
 import { variants as Rating } from "./Rating";
@@ -119,6 +120,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Paper,
   PinInput,
   Portal,
+  ProgressButton,
   RadioButton,
   RadioGroup,
   Rating,

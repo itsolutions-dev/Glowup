@@ -14,7 +14,7 @@ Repo-specific gotchas for future `/design-sync` runs. Read this before anything 
   3. `node .design-sync/split-docs.mjs`
   4. `node .design-sync/prebuild-web-entry.mjs`
   5. `node .ds-sync/package-build.mjs --config .design-sync/config.json
-     --node-modules ./node_modules --entry ./packages/ui/.design-sync-entry.mjs --out ./ds-bundle`
+--node-modules ./node_modules --entry ./packages/ui/.design-sync-entry.mjs --out ./ds-bundle`
   6. `node .ds-sync/package-validate.mjs ./ds-bundle`
 
 ## React Native → web is the whole problem
@@ -149,7 +149,7 @@ The patch (two edits, both comment-marked `GLOWUP PATCH`):
 
 This keeps the wall clock deterministic (date-rendering components still show
 2024-05-15) while letting animations finish. `package-validate.mjs` does NOT pin the
-clock, so the *shipped* cards were never affected — this is a grading-fidelity fix only.
+clock, so the _shipped_ cards were never affected — this is a grading-fidelity fix only.
 
 ## Capture environment
 
@@ -166,15 +166,15 @@ clock, so the *shipped* cards were never affected — this is a grading-fidelity
 - Verified icon names (checked against
   `node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/glyphmaps/MaterialCommunityIcons.json`
   - cheaper than a box glyph in a sheet): `plus`, `minus`, `close`, `check`, `download`,
-  `refresh`, `magnify`, `arrow-right`, `page-first`, `page-last`, `menu-down`, `menu-up`,
-  `pound`, `cog`, `home`, `domain`, `translate`, `bookshelf`, `chart-box`,
-  `account-group`, `slash-forward`, `cellphone-link`, `theme-light-dark`,
-  `email-outline`, `lock-outline`, `eye-off-outline`, `home-outline`, `flag-outline`,
-  `tag-outline`, `clock-outline`, `message-outline`, `inbox-outline`,
-  `calendar-blank-outline`, `cloud-off-outline`, `check-circle-outline`,
-  `account-multiple-outline`, `folder-multiple-outline`, `file-search-outline`,
-  `pencil-outline`, `chevron-left`, `chevron-right` (the last three added by the Material 3
-  picker rebuild: the calendar/keyboard toggle and the month chevrons).
+    `refresh`, `magnify`, `arrow-right`, `page-first`, `page-last`, `menu-down`, `menu-up`,
+    `pound`, `cog`, `home`, `domain`, `translate`, `bookshelf`, `chart-box`,
+    `account-group`, `slash-forward`, `cellphone-link`, `theme-light-dark`,
+    `email-outline`, `lock-outline`, `eye-off-outline`, `home-outline`, `flag-outline`,
+    `tag-outline`, `clock-outline`, `message-outline`, `inbox-outline`,
+    `calendar-blank-outline`, `cloud-off-outline`, `check-circle-outline`,
+    `account-multiple-outline`, `folder-multiple-outline`, `file-search-outline`,
+    `pencil-outline`, `chevron-left`, `chevron-right` (the last three added by the Material 3
+    picker rebuild: the calendar/keyboard toggle and the month chevrons).
 
 ## Card presentation (`cfg.overrides`)
 
@@ -207,7 +207,7 @@ Learned while authoring; a future sync should not have to rediscover them.
 - **`Divider` always renders line + content-gap + line**, even with no children, and
   `contentSpacing` defaults to 16 — so a bare `<Divider />` shows a 32px break in the
   middle. Use `<Divider contentSpacing={0} />` for a plain rule. `inset` applies per-line
-  and therefore *widens* that gap; only combine it with a labelled Divider.
+  and therefore _widens_ that gap; only combine it with a labelled Divider.
 - **`Divider orientation="vertical"` sets `flex: 1`**, which in a flex row grows it
   horizontally. Wrap: `<div style={{ width: 1, alignSelf: "stretch", display: "flex" }}>`.
 - **`FAB` is unconditionally `position: absolute`** and needs a positioned, sized ancestor
@@ -239,7 +239,7 @@ Learned while authoring; a future sync should not have to rediscover them.
   `Popover` and `Menu` all route through react-native-web's `Modal`, which is a real
   `createPortal` into `document.body` - the card's `.ds-single` `translateZ(0)`
   containing block does NOT contain a portal, so each needs `cardMode: single` plus a
-  card-sized `viewport`. `Snackbar` and `Tooltip` are absolutely-positioned *siblings*
+  card-sized `viewport`. `Snackbar` and `Tooltip` are absolutely-positioned _siblings_
   (a `position: relative` wrapper with explicit height keeps them in-card) and `Banner`
   is plain inline flow - none of those three need an override.
 - **RNW's `Modal` focus-traps on open**, so dialog cards legitimately show a focus ring
@@ -250,13 +250,13 @@ Learned while authoring; a future sync should not have to rediscover them.
   so `Alert()` is a no-op warning inside an ordinary card. A preview that needs a live
   dialog mounts the `AlertProvider` > `AlertProviderWrapper` stack itself, and must queue
   the call through `setTimeout(..., 0)`: the wrapper's effect (which assigns the
-  module-level `alertRef`) runs *after* its children's.
+  module-level `alertRef`) runs _after_ its children's.
 - **`Skeleton` on an elevated `Paper` is near-invisible** - placeholder
   `surfaceContainerHighest` (#EDE7F0) vs `Paper elevation={1}` `surfaceContainerLow`
   (#F7F2FA) is a ~4% delta and the pulse takes it below that. Put skeletons on `surface`
   (`<Paper elevation={0} outline>`).
 - **`CircularProgress` has no determinate mode** - only `size`/`strokeWidth`/`color`/
-  `duration`. `Spinner` is a *number stepper*, not a loading spinner.
+  `duration`. `Spinner` is a _number stepper_, not a loading spinner.
 - **`Select` renders `label` only for `variant="outlined"`**; the filled closed field is
   intentionally label-less.
 - `Select`, `Spinner` and `DateTimePicker` each carry their own `marginBottom: 20` - don't
@@ -315,7 +315,7 @@ Worth fixing in `packages/ui`, then re-adding the cells the gap forced out:
    Same family as (1) and (2). Cost: those cells dropped from `Input` and `NumericInput`.
    `Input.tsx` also still carries a stray `// BISECT-TEST: glow disabled` debug comment.
 9. **`Popover` is permanently 200px wide** unless `matchAnchorWidth` is set:
-   `pos.width = contentSize.width || 200` is applied to the card *before* the content is
+   `pos.width = contentSize.width || 200` is applied to the card _before_ the content is
    measured, so the content lays out inside 200px, `onLayout` reports 200 back, and the
    width never grows. Any label over ~168px wraps or truncates. Hits `Menu` too, whose
    item labels are `numberOfLines={1}`. Fix: measure the content off-screen at its
@@ -441,7 +441,7 @@ pane as a name with no card: `ClockDial`, `TimeSelect`, and the four wrappers
 all `cardMode: column`. Coverage is 87 shipped components / 87 previews.
 
 **This reverses the `ClockDial` decision above.** "It is the face inside `ClockPicker`,
-which previews it in context" holds for the picker's *default* face and nothing else:
+which previews it in context" holds for the picker's _default_ face and nothing else:
 `unit`, the inner 13-00 ring `use24HourClock` adds, the bare knob `minuteInterval` leaves
 on an unlabelled minute, and `isTimeDisabled` are all `ClockDial` props that no
 `ClockPicker` story reaches. A public export with its own props table earns its own card.
@@ -450,7 +450,7 @@ on an unlabelled minute, and `isTimeDisabled` are all `ClockDial` props that no
 `DateTimePicker`, so their stories stay at two or three: what the lock is, and that the
 field states still behave. A design agent should be able to see that `DateRangePicker`
 exists and what it looks like without being taught the picker twice. Note that
-`split-docs.mjs` writes the *same* doc to all five names (they share the
+`split-docs.mjs` writes the _same_ doc to all five names (they share the
 `### DateTimePicker / DatePicker / ...` heading), so the cards are the only thing that
 tells them apart.
 
@@ -464,7 +464,7 @@ as an oversight.
 
 - `ClockDial` is fully controlled and wants `hours` **and** `minutes` whichever `unit` is
   being edited; a story that passes only the edited one gets a hand pointing at midnight.
-- `isTimeDisabled` is asked about a *candidate*, not the current value:
+- `isTimeDisabled` is asked about a _candidate_, not the current value:
   `(candidateHour, currentMinutes)` on the hour face, `(currentHours, candidateMinute)` on
   the minute face. A predicate written against the current value greys out all or nothing.
 - On the 12-hour face that candidate hour is the 0-23 value the label maps to under the
@@ -485,7 +485,7 @@ as an oversight.
 previews from the previous commit (`Autocomplete`, `Box`, `Card`, `Center`, `Collapse`,
 `FormControl`, `IconButton`, `Image`, `Stack`, `Stat`, `ToastProvider`, `VStack`).
 Formatting only; fixed with `npx eslint .design-sync/previews --fix`. Lint the previews
-before committing them - the repo runs prettier *as an ESLint rule* over the whole tree,
+before committing them - the repo runs prettier _as an ESLint rule_ over the whole tree,
 so a clean `prettier --check` on the file you touched does not mean CI is green.
 
 ## Re-sync 2026-09-09 (later still) — the gaps list is now spent
@@ -510,7 +510,7 @@ build** — checked in `packages/ui/src`, not from memory:
 - `ListItem` has `leading` / `secondary` / `trailing` and switches to a row when any is
   set (`isRow`), falling back to the centred tile when none is.
 - `Popover` measures content at its natural width before pinning (`contentSize.width ||
-  window.width`), so the 200px lock is gone; `Menu` inherits the fix.
+window.width`), so the 200px lock is gone; `Menu` inherits the fix.
 - `Checkbox` / `RadioButton` mirror the label margin on `labelPosition` (`marginRight` on
   left, `marginLeft` on right).
 - `ConfirmDialog` takes `destructive` and passes `tone="error"` to the confirm Button.
@@ -531,7 +531,7 @@ identity: `bundleSha12 936efb354a25`, `styleSha 0b4ab263dbcf`, 87 renderHashes, 
 
 `_ds_needs_recompile` is written first and re-armed before `_ds_sync.json`, as always. The
 `DesignSync` tool does **not** infer `localPath` from `path` — every file entry needs both
-spelled out, so the three content calls are large. `list_files` returns a *sampled* view of
+spelled out, so the three content calls are large. `list_files` returns a _sampled_ view of
 a big project, not the full list; don't try to count files with it — verify with `get_file`
 on a couple of paths this run introduced instead.
 
@@ -539,13 +539,13 @@ on a couple of paths this run introduced instead.
 
 Two claims no longer verified and were rewritten; the file is otherwise untouched:
 
-1. *"The library exports no layout primitives — no View, no Text. Use plain `<div>`"* —
+1. _"The library exports no layout primitives — no View, no Text. Use plain `<div>`"_ —
    false since the layout sweep. Eight layout components ship: `Stack`, `HStack`,
    `VStack`, `Box`, `Grid`, `Center`, `Spacer`, `AspectRatio`. Left unfixed this would
    have taught the design agent to hand-roll every layout in divs while the DS's own
    primitives sat unused. Replaced with the primitive list and their real props, each
    prop grepped out of the emitted `<Name>.d.ts`.
-2. The whole *"Known gaps — do not design around them"* section — every claim in it was
+2. The whole _"Known gaps — do not design around them"_ section — every claim in it was
    fixed by the in-flight source work. Replaced with the two things still true
    (`ListItem` slots, `Tooltip`'s two-line cap).
 
@@ -591,6 +591,19 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 - Font fidelity: the DS sets `fontFamily: System` throughout (M3 type scale, no brand
   face), so previews render in the browser's system stack — matching the app on web.
   Nothing to source, no `[FONT_MISSING]`.
+
+## Palettes and ProgressButton (added 2026-09-23, not yet synced)
+
+- `ThemeProvider.Palettes` is the design system's palette switcher: a swatch per entry of
+  `palettes` (twenty) calling `setPalette`. It nests its own `ThemeProvider` on purpose, so
+  a pick re-themes that card only — the shared `cfg.provider` chain has no way to take an
+  `initialPalette`, and switching it would repaint every other card's capture. It uses raw
+  `<button>`s, which is fine: ThemeProvider is in the variants generator's
+  `NOT_CATALOGUED` list, so the preview is never rewritten to React Native.
+- `ProgressButton.TryIt` runs a timer only after a press; its capture is the idle state.
+  Every other story is a static status, so the review sheet shows all four.
+- `ProgressButton` draws inside `Button` through `underlay` and animates with the native
+  driver; react-native-web falls back to JS timing, so the captures are the resting frame.
 
 ## 2026-09-23 re-sync
 

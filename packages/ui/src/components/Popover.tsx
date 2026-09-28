@@ -54,8 +54,11 @@ const Popover = ({
     if (visible) {
       // Small delay ensures the keyboard or scroll position is final
       const timer = setTimeout(updatePosition, 0);
-      requestAnimationFrame(updatePosition);
-      return () => clearTimeout(timer);
+      const frame = requestAnimationFrame(updatePosition);
+      return () => {
+        clearTimeout(timer);
+        cancelAnimationFrame(frame);
+      };
     }
   }, [visible, updatePosition]);
 

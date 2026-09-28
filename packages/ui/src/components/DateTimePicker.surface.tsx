@@ -356,6 +356,7 @@ const PickerSurface = ({
         endYear={endYear}
         showToday={selectionMode === "single"}
         onRequestClose={onCancel}
+        autoFocus
         testID={testID ? `${testID}-calendar` : undefined}
       />
     );

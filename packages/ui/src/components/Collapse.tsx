@@ -47,6 +47,12 @@ const Collapse = ({
   // Skips the opening animation on first render, so an initially-open Collapse
   // does not slide in on mount.
   const hasAnimated = useRef(false);
+  // The children outlive `open` by one closing animation: unmounting them in
+  // the same render would drop the measured height to 0 and the collapse
+  // would animate from nothing to nothing.
+  const [mounted, setMounted] = useState(open);
+  // Render-time adjustment, as BottomSheet does: mount as soon as it opens.
+  if (open && !mounted) setMounted(true);
 
   useEffect(() => {
     if (!hasAnimated.current) {
@@ -60,7 +66,9 @@ const Collapse = ({
       easing: Easing.out(Easing.cubic),
       // Height is not a transform, so it cannot run on the UI thread.
       useNativeDriver: false,
-    }).start();
+    }).start(({ finished }) => {
+      if (finished && !open) setMounted(false);
+    });
   }, [open, duration, progress]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
@@ -79,7 +87,8 @@ const Collapse = ({
           ],
         });
 
-  const shouldRenderChildren = open || keepMounted || collapsedHeight > 0;
+  const shouldRenderChildren =
+    open || mounted || keepMounted || collapsedHeight > 0;
 
   return (
     <Animated.View

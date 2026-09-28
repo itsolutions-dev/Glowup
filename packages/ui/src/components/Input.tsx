@@ -80,17 +80,14 @@ const Input = ({
       if (type === "number") {
         // Allow digits, one leading minus and one decimal point
         const sign = text.trimStart().startsWith("-") ? "-" : "";
-        let cleaned = text.replace(/[^0-9.]/g, "");
-        const parts = cleaned.split(".");
-
-        // Prevent multiple decimals
-        if (parts.length > 2)
-          cleaned = parts[0] + "." + parts.slice(1).join("");
-
-        // Handle precision (e.g., only 2 decimal places for currency)
-        if (precision !== undefined && parts[1]?.length > precision) {
-          cleaned = `${parts[0]}.${parts[1].substring(0, precision)}`;
-        }
+        const [whole, ...rest] = text.replace(/[^0-9.]/g, "").split(".");
+        // Every dot after the first is dropped, then precision applies to the
+        // merged fraction: "1.2.34" at precision 2 is "1.23", not "1.234".
+        const fraction =
+          precision === undefined
+            ? rest.join("")
+            : rest.join("").slice(0, precision);
+        const cleaned = rest.length > 0 ? `${whole}.${fraction}` : whole;
         onChangeText(sign + cleaned);
       } else {
         onChangeText(text);

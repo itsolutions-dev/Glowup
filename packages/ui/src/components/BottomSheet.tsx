@@ -50,6 +50,12 @@ const BottomSheet = ({
   const [translateY] = useState(() => new Animated.Value(0));
   const [scrimOpacity] = useState(() => new Animated.Value(0));
   const dragStartY = useRef(0);
+  // Read by the open/close animation without being one of its triggers:
+  // resizing the window while the sheet is open must not replay the entrance.
+  const windowHeight = useRef(window.height);
+  useEffect(() => {
+    windowHeight.current = window.height;
+  }, [window.height]);
 
   // Mount as soon as it becomes visible (render-time adjustment)
   if (visible && !shouldRender) {
@@ -58,7 +64,7 @@ const BottomSheet = ({
 
   useEffect(() => {
     if (visible) {
-      translateY.setValue(window.height);
+      translateY.setValue(windowHeight.current);
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
@@ -75,7 +81,7 @@ const BottomSheet = ({
     } else {
       Animated.parallel([
         Animated.timing(translateY, {
-          toValue: window.height,
+          toValue: windowHeight.current,
           duration: 250,
           useNativeDriver: true,
         }),
@@ -88,7 +94,7 @@ const BottomSheet = ({
         setShouldRender(false);
       });
     }
-  }, [visible, translateY, scrimOpacity, window.height]);
+  }, [visible, translateY, scrimOpacity]);
 
   const handleDragStart = useCallback((event: GestureResponderEvent) => {
     dragStartY.current = event.nativeEvent.pageY;

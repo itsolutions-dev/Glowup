@@ -107,6 +107,12 @@ export interface CalendarProps {
   keyboardNavigation?: boolean;
   /** Called on Escape while keyboard navigation is active. */
   onRequestClose?: () => void;
+  /**
+   * Moves keyboard focus into the calendar when it mounts, so the arrow keys
+   * work at once. Web only. The date pickers set it; leave it off for a
+   * calendar that is part of a page.
+   */
+  autoFocus?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -130,6 +136,7 @@ const Calendar = ({
   showToday = true,
   keyboardNavigation = true,
   onRequestClose,
+  autoFocus = false,
   style,
   testID,
 }: CalendarProps) => {
@@ -209,6 +216,9 @@ const Calendar = ({
   );
 
   const listRef = useRef<FlatList<number>>(null);
+  // On web this is the calendar's DOM element: keyboard handling is scoped to
+  // it, so a calendar on screen never takes keys from the rest of the page.
+  const rootRef = useRef<View>(null);
   const initialIndex = Math.min(
     Math.max(0, toMonthIndex(visibleMonth) - firstMonthIndex),
     monthCount - 1,
@@ -339,12 +349,24 @@ const Calendar = ({
   );
 
   useEffect(() => {
-    if (Platform.OS !== "web" || !keyboardNavigation || view !== "days") return;
+    if (Platform.OS !== "web" || !autoFocus) return;
+    (rootRef.current as unknown as HTMLElement | null)?.focus();
+  }, [autoFocus]);
 
+  useEffect(() => {
+    if (Platform.OS !== "web" || !keyboardNavigation || view !== "days") return;
+    const root = rootRef.current as unknown as HTMLElement | null;
+    if (!root) return;
+
+    // Listening on the calendar itself, in the capture phase, so a day cell's
+    // own Enter handling cannot also fire. Moving through the days hands DOM
+    // focus to the calendar root: from then on Enter selects the highlighted
+    // day, not whichever cell or header button focus happened to start on.
     const handleKeyDown = (event: KeyboardEvent) => {
       const handled = () => {
         event.preventDefault();
         event.stopPropagation();
+        if (document.activeElement !== root) root.focus();
       };
       switch (event.key) {
         case "ArrowLeft":
@@ -377,6 +399,8 @@ const Calendar = ({
         }
         case "Enter":
         case " ":
+          // A header or footer button keeps its own Enter.
+          if (event.target !== root) return;
           handled();
           return select(focusedDay);
         case "Escape":
@@ -390,8 +414,8 @@ const Calendar = ({
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown, true);
-    return () => document.removeEventListener("keydown", handleKeyDown, true);
+    root.addEventListener("keydown", handleKeyDown, true);
+    return () => root.removeEventListener("keydown", handleKeyDown, true);
   }, [
     keyboardNavigation,
     view,
@@ -785,7 +809,13 @@ const Calendar = ({
   const todayDisabled = isDisabled(today);
 
   return (
-    <View style={[styles.container, style]} testID={testID}>
+    <View
+      ref={rootRef}
+      // Focusable so a keyboard user can Tab to the calendar (web: tabIndex 0).
+      focusable={keyboardNavigation}
+      style={[styles.container, style]}
+      testID={testID}
+    >
       {renderHeader()}
       {view === "days" &&
         (scrollMode === "endless" ? renderEndlessDays() : renderPagedDays())}

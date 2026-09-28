@@ -23,3 +23,26 @@ dependency: only `isToday`/`isYesterday`/`isTomorrow` were used.
 
 **Supply chain.** Releases are published from GitHub Actions through npm trusted publishing
 with provenance, and the manifest now carries `repository`, `homepage` and `bugs`.
+
+**Fixes.**
+
+- `Calendar` (web) no longer takes the keyboard from the whole page: it listened on
+  `document` in the capture phase, so while any calendar was on screen no input could
+  receive a space, and Enter on a dialog button picked a day instead. It now handles keys
+  only while focus is inside it; the date pickers move focus into it on open (new
+  `autoFocus` prop), so their keyboard navigation works as before.
+- `ThemeProvider` memoises `theme` and the context value. It built a new theme on every
+  render, which invalidated every component's memoised styles.
+- `Collapse` animates closing (the children were removed before the animation ran), and
+  `Accordion` is built on it instead of the app-wide `LayoutAnimation`.
+- `Input type="number"`: `precision` applies after extra decimal points are merged
+  (`"1.2.34"` at precision 2 was `"1.234"`).
+- `Link` opens only `http`, `https`, `mailto` and `tel` URLs by default; anything else —
+  `javascript:`, `intent:`, another app's deep link — is ignored. New `allowedSchemes` to
+  permit your own app's scheme.
+- `Carousel` no longer calls `onIndexChange` (or scrolls) from inside a state updater,
+  which ran twice under StrictMode. `Popover` cancels its pending animation frame.
+  `BottomSheet` no longer replays its entrance when the window is resized.
+
+**Breaking — theme aliases.** `theme.colors.accent`, `.text`, `.onAccent` and
+`.onSurfaceContainer` are removed; use `primary`, `onSurface`, `onPrimary` and `onSurface`.

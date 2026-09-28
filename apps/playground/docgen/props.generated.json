@@ -929,6 +929,14 @@
       "extends": [],
       "props": [
         {
+          "name": "autoFocus",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Moves keyboard focus into the calendar when it mounts, so the arrow keys\nwork at once. Web only. The date pickers set it; leave it off for a\ncalendar that is part of a page.",
+          "deprecated": false
+        },
+        {
           "name": "dates",
           "type": "Date[]",
           "required": false,
@@ -3417,6 +3425,14 @@
           "deprecated": false
         },
         {
+          "name": "allowedSchemes",
+          "type": "string[]",
+          "required": false,
+          "default": "DEFAULT_SCHEMES",
+          "description": "URL schemes `href` may use. A link whose `href` came from data (a user's\nwebsite, a CMS field) must not be able to open `javascript:`, `intent:` or\nanother app's deep link. Add your own app's scheme here to deep-link.\nDefaults to `[\"http\", \"https\", \"mailto\", \"tel\"]`.",
+          "deprecated": false
+        },
+        {
           "name": "color",
           "type": "string",
           "required": false,
@@ -3439,7 +3455,7 @@
           "name": "href",
           "type": "string",
           "required": false,
-          "description": "Opened with `Linking.openURL`. Ignored when `onPress` is given.",
+          "description": "Opened with `Linking.openURL`. Ignored when `onPress` is given, and when\nits scheme is not in `allowedSchemes` — then the link does nothing.",
           "deprecated": false
         },
         {

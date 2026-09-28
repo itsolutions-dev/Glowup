@@ -46,3 +46,25 @@ with provenance, and the manifest now carries `repository`, `homepage` and `bugs
 
 **Breaking — theme aliases.** `theme.colors.accent`, `.text`, `.onAccent` and
 `.onSurfaceContainer` are removed; use `primary`, `onSurface`, `onPrimary` and `onSurface`.
+
+**New components** (Material 3 and M3 Expressive, no new dependencies):
+
+- `NavigationRail` — the side-mounted counterpart of `NavigationBar`, same item shape.
+- `NavigationDrawer` with `DrawerItem` and `DrawerSection` — `variant="standard"` (inline)
+  or `"modal"` (slides in over a scrim; Escape and Android back close it).
+- `TopAppBar` — navigator-agnostic top app bar: `small`, `center`, `medium`, `large`,
+  `leading`/`actions` slots, `elevated`. `AppBar` is now a thin react-navigation adapter
+  over it, with the same props.
+- `ButtonGroup` — standard or connected M3 Expressive button group, single or multi select.
+- `SplitButton` — a primary action plus a `Menu` of related ones.
+- `Toolbar` — docked or floating (standard/vibrant, horizontal/vertical, optional FAB).
+- `SideSheet` — modal or standard side sheet, with back, close and an action row.
+- `ChipGroup` — filter chips with single (optionally `required`) or multi selection.
+- `Table`, `TableHead`, `TableRow`, `TableHeaderCell`, `TableCell` — the primitives
+  `DataGrid` is built from, now public, with table/row/columnheader/cell roles.
+
+**Additions to existing components:** `Modal` `fullScreen`; `CircularProgress` `progress`
+(determinate ring over a track), `decorative`, `accessibilityLabel`; `Tooltip`
+`variant="rich"` with `title` and `action`; `Typography` forwards every `Text` prop
+(`numberOfLines`, `selectable`, `testID`…); `Chip` `accessibilityRole`. Props types are
+exported for `AppBar`, `CircularProgress`, `Tooltip` and `Typography`.

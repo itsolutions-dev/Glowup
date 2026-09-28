@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.8.0",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 87,
+  "componentCount": 102,
   "components": {
     "Accordion": {
       "name": "Accordion",
@@ -922,6 +922,91 @@
         }
       ]
     },
+    "ButtonGroup": {
+      "name": "ButtonGroup",
+      "source": "packages/ui/src/components/ButtonGroup.tsx",
+      "propsTypeName": "ButtonGroupProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(value: any) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "ButtonGroupOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | string[]",
+          "required": true,
+          "description": "The selected value, or the selected values with `multiSelect`.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Names the group for assistive tech.",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "\"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"tonal\"",
+          "description": "Look of the unselected buttons; selected ones are filled. Defaults to `\"tonal\"`.",
+          "values": [
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "multiSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "keyof typeof HEIGHTS",
+          "required": false,
+          "default": "\"s\"",
+          "description": "Defaults to `\"s\"` (40dp).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"standard\" | \"connected\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "`\"standard\"` spaces the buttons apart; `\"connected\"` joins them into one\ncontrol (the successor of segmented buttons). Defaults to `\"standard\"`.",
+          "values": [
+            "standard",
+            "connected"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
     "Calendar": {
       "name": "Calendar",
       "source": "packages/ui/src/components/Calendar.tsx",
@@ -1553,6 +1638,18 @@
           "deprecated": false
         },
         {
+          "name": "accessibilityRole",
+          "type": "\"button\" | \"radio\" | \"checkbox\"",
+          "required": false,
+          "description": "Overrides the role of a pressable chip (`\"button\"`). A chip that toggles\ninside a group is a `\"radio\"` or a `\"checkbox\"`, and then reports\n`selected` as checked.",
+          "values": [
+            "button",
+            "radio",
+            "checkbox"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -1613,6 +1710,89 @@
           "type": "object",
           "required": false,
           "default": "{}",
+          "deprecated": false
+        }
+      ]
+    },
+    "ChipGroup": {
+      "name": "ChipGroup",
+      "source": "packages/ui/src/components/ChipGroup.tsx",
+      "propsTypeName": "ChipGroupProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onValueChange",
+          "type": "(value: any) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "ChipGroupOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | string[] | null",
+          "required": true,
+          "description": "The selected value (or `null`), or the selected values with `multiSelect`.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Names the group for assistive tech.",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "\"filled\" | \"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "Chip look. Defaults to `\"outlined\"`, the M3 filter chip.",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "multiSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Filter chips: any number selected. Defaults to `false` (one at most).",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Single select only: the selected chip cannot be deselected.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`.",
           "deprecated": false
         }
       ]
@@ -3776,7 +3956,7 @@
           "name": "actions",
           "type": "React.ReactNode",
           "required": false,
-          "description": "Trailing action row. Replaces the single `closeText` button.",
+          "description": "Trailing action row. Replaces the single `closeText` button. In a\nfull-screen dialog it moves into the header, after the title.",
           "deprecated": false
         },
         {
@@ -3804,6 +3984,14 @@
           "required": false,
           "default": "true",
           "description": "Whether tapping the scrim (and pressing ESC on web) dismisses the dialog.\nTurn it off for a decision the user must not be able to skip.\nDefaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "fullScreen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The M3 full-screen dialog, for a form on a compact window: it fills the\nwindow, with a close button, the title and `actions` in a header row and\na scrolling body. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -3891,6 +4079,161 @@
             "always",
             "selected"
           ],
+          "deprecated": false
+        }
+      ]
+    },
+    "NavigationDrawer": {
+      "name": "NavigationDrawer",
+      "source": "packages/ui/src/components/NavigationDrawer.tsx",
+      "propsTypeName": "NavigationDrawerProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "description": "`DrawerSection`s and/or `DrawerItem`s.",
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Pinned below the scrolling items.",
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": false,
+          "description": "Modal only: called on scrim press, Android back and Escape (web).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Headline at the top of the drawer.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"standard\" | \"modal\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "`\"standard\"` is an inline panel to place beside the content (expanded\nwindows and up). `\"modal\"` slides over the content with a scrim.\nDefaults to `\"standard\"`.",
+          "values": [
+            "standard",
+            "modal"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Modal only: whether the drawer is open.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "default": "DRAWER_WIDTH",
+          "description": "Defaults to 360 (M3), capped at the window width when modal.",
+          "deprecated": false
+        }
+      ]
+    },
+    "NavigationRail": {
+      "name": "NavigationRail",
+      "source": "packages/ui/src/components/NavigationRail.tsx",
+      "propsTypeName": "NavigationRailProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "activeId",
+          "type": "string",
+          "required": true,
+          "description": "`id` of the current destination.",
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "NavigationBarItem[]",
+          "required": true,
+          "description": "Destinations, same shape as `NavigationBar`'s. Three to seven per M3.",
+          "deprecated": false
+        },
+        {
+          "name": "onItemPress",
+          "type": "(id: string) => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "alignment",
+          "type": "\"top\" | \"center\"",
+          "required": false,
+          "default": "\"top\"",
+          "description": "Where the destinations sit vertically. Defaults to `\"top\"`.",
+          "values": [
+            "top",
+            "center"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Pinned to the bottom of the rail.",
+          "deprecated": false
+        },
+        {
+          "name": "header",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Above the destinations: typically a menu `IconButton` and/or a `FAB`.",
+          "deprecated": false
+        },
+        {
+          "name": "showLabels",
+          "type": "\"always\" | \"selected\" | \"none\"",
+          "required": false,
+          "default": "\"always\"",
+          "description": "`\"always\"` labels every destination, `\"selected\"` only the active one,\n`\"none\"` none (the label is still the accessible name). Defaults to `\"always\"`.",
+          "values": [
+            "always",
+            "selected",
+            "none"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         }
       ]
@@ -4156,9 +4499,24 @@
       "extends": [],
       "props": [
         {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "color",
           "type": "string",
           "required": false,
+          "description": "Indicator colour. Defaults to `primary`.",
+          "deprecated": false
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hides it from assistive tech when something else announces the progress.",
           "deprecated": false
         },
         {
@@ -4166,6 +4524,14 @@
           "type": "number",
           "required": false,
           "default": "1000",
+          "description": "Indeterminate only: one revolution, in ms.",
+          "deprecated": false
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "description": "Completion from 0 to 1. Set, the ring fills to it over a track; unset,\nthe indicator spins (indeterminate).",
           "deprecated": false
         },
         {
@@ -4180,6 +4546,12 @@
           "type": "number",
           "required": false,
           "default": "4",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         }
       ]
@@ -4687,6 +5059,103 @@
         }
       ]
     },
+    "SideSheet": {
+      "name": "SideSheet",
+      "source": "packages/ui/src/components/SideSheet.tsx",
+      "propsTypeName": "SideSheetProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": true,
+          "description": "Called by the close button, and in modal mode by the scrim, Android back and Escape.",
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "A row of buttons at the bottom, below a divider.",
+          "deprecated": false
+        },
+        {
+          "name": "modal",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`true` slides over the content with a scrim; `false` is a standard sheet\nyou place in a row beside the content. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "description": "Shows a back button before the title — for a sheet with sub-pages.",
+          "deprecated": false
+        },
+        {
+          "name": "showCloseButton",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "side",
+          "type": "\"start\" | \"end\"",
+          "required": false,
+          "default": "\"end\"",
+          "description": "The edge it attaches to, in reading direction. Defaults to `\"end\"`.",
+          "values": [
+            "start",
+            "end"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Modal only: whether the sheet is open.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "default": "SHEET_WIDTH",
+          "description": "Defaults to 360, capped at the window width.",
+          "deprecated": false
+        }
+      ]
+    },
     "Skeleton": {
       "name": "Skeleton",
       "source": "packages/ui/src/components/Skeleton.tsx",
@@ -4936,6 +5405,82 @@
           "type": "SpeedDialPosition",
           "required": false,
           "default": "\"bottom-right\"",
+          "deprecated": false
+        }
+      ]
+    },
+    "SplitButton": {
+      "name": "SplitButton",
+      "source": "packages/ui/src/components/SplitButton.tsx",
+      "propsTypeName": "SplitButtonProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "string",
+          "required": true,
+          "description": "The primary action's label.",
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "MenuItem[]",
+          "required": true,
+          "description": "The related actions the trailing half opens.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "description": "The primary action.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "iconName",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "description": "Leading icon of the primary action.",
+          "deprecated": false
+        },
+        {
+          "name": "menuAccessibilityLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"More options\"",
+          "description": "Accessible name of the trailing half. Defaults to `\"More options\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "\"filled\" | \"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"filled\"",
+          "description": "Defaults to `\"filled\"`.",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         }
       ]
@@ -5216,6 +5761,26 @@
           "name": "tabs",
           "type": "IconTabItem[] | string[]",
           "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "Table": {
+      "name": "Table",
+      "source": "packages/ui/src/components/Table.tsx",
+      "propsTypeName": "TableProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle",
+          "required": false,
           "deprecated": false
         }
       ]
@@ -5638,6 +6203,91 @@
         }
       ]
     },
+    "Toolbar": {
+      "name": "Toolbar",
+      "source": "packages/ui/src/components/Toolbar.tsx",
+      "propsTypeName": "ToolbarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "description": "The actions: `IconButton`s, a `Button`, a `SplitButton`.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Names the toolbar for assistive tech.",
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "\"standard\" | \"vibrant\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "Floating only. `\"standard\"` is `surfaceContainer`; `\"vibrant\"` is\n`primaryContainer` — give its actions `onPrimaryContainer` content.\nDefaults to `\"standard\"`.",
+          "values": [
+            "standard",
+            "vibrant"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "fab",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Floating only: a FAB beside the toolbar, as M3 pairs them.",
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Floating only. Defaults to `\"horizontal\"`.",
+          "values": [
+            "horizontal",
+            "vertical"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "safeArea",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Docked only: pads the bottom safe-area inset. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"docked\" | \"floating\"",
+          "required": false,
+          "default": "\"docked\"",
+          "description": "`\"docked\"` spans the width of the screen's bottom edge (it replaces the\nbottom app bar); `\"floating\"` is a pill that floats over the content.\nDefaults to `\"docked\"`.",
+          "values": [
+            "docked",
+            "floating"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
     "Tooltip": {
       "name": "Tooltip",
       "source": "packages/ui/src/components/Tooltip.tsx",
@@ -5654,6 +6304,14 @@
           "name": "content",
           "type": "string",
           "required": true,
+          "description": "The tip's text; the body text of a rich tooltip.",
+          "deprecated": false
+        },
+        {
+          "name": "action",
+          "type": "{ label: string; onPress: () => void }",
+          "required": false,
+          "description": "Rich only: a text button. A rich tooltip with an action stays open while\nthe pointer is over it (web) and until the action is taken or the anchor\nis long-pressed again (native).",
           "deprecated": false
         },
         {
@@ -5696,6 +6354,110 @@
             "bottom",
             "left",
             "right"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Rich only: the subhead.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"plain\" | \"rich\"",
+          "required": false,
+          "default": "\"plain\"",
+          "description": "`\"plain\"` is the one-line label for an icon-only control. `\"rich\"` adds a\n`title` and an `action`, for context a label cannot carry. Defaults to\n`\"plain\"`.",
+          "values": [
+            "plain",
+            "rich"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "TopAppBar": {
+      "name": "TopAppBar",
+      "source": "packages/ui/src/components/TopAppBar.tsx",
+      "propsTypeName": "TopAppBarProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "After the title: up to three action `IconButton`s per M3.",
+          "deprecated": false
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A hairline under the bar.",
+          "deprecated": false
+        },
+        {
+          "name": "elevated",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The on-scroll state: `surfaceContainer` instead of `surface`.",
+          "deprecated": false
+        },
+        {
+          "name": "leading",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Before the title: typically a back or menu `IconButton`.",
+          "deprecated": false
+        },
+        {
+          "name": "safeArea",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pads the top safe-area inset. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "description": "A second line under the title.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"small\" | \"center\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"small\"",
+          "description": "`\"small\"` and `\"center\"` keep the title in the 64dp row; `\"medium\"` and\n`\"large\"` move it to a second, larger line. Defaults to `\"small\"`.",
+          "values": [
+            "small",
+            "center",
+            "medium",
+            "large"
           ],
           "deprecated": false
         }
@@ -5763,7 +6525,9 @@
       "name": "Typography",
       "source": "packages/ui/src/components/Typography.tsx",
       "propsTypeName": "TypographyProps",
-      "extends": [],
+      "extends": [
+        "TextProps"
+      ],
       "props": [
         {
           "name": "children",
@@ -5772,33 +6536,11 @@
           "deprecated": false
         },
         {
-          "name": "style",
-          "type": "StyleProp<TextStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
           "name": "variant",
-          "type": "| \"displayLarge\" | \"displayMedium\" | \"displaySmall\" | \"headlineLarge\" | \"headlineMedium\" | \"headlineSmall\" | \"titleLarge\" | \"titleMedium\" | \"titleSmall\" | \"bodyLarge\" | \"bodyMedium\" | \"bodySmall\" | \"labelLarge\" | \"labelMedium\" | \"labelSmall\"",
+          "type": "TypographyVariant",
           "required": false,
           "default": "\"displayLarge\"",
-          "values": [
-            "displayLarge",
-            "displayMedium",
-            "displaySmall",
-            "headlineLarge",
-            "headlineMedium",
-            "headlineSmall",
-            "titleLarge",
-            "titleMedium",
-            "titleSmall",
-            "bodyLarge",
-            "bodyMedium",
-            "bodySmall",
-            "labelLarge",
-            "labelMedium",
-            "labelSmall"
-          ],
+          "description": "M3 type-scale role. Defaults to `\"displayLarge\"`.",
           "deprecated": false
         }
       ]
@@ -5859,6 +6601,90 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        }
+      ]
+    },
+    "DrawerItem": {
+      "name": "DrawerItem",
+      "source": "packages/ui/src/components/NavigationDrawer.tsx",
+      "propsTypeName": "DrawerItemProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "badge",
+          "type": "string | number",
+          "required": false,
+          "description": "Trailing text, e.g. an unread count: `24`, `\"100+\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "description": "Leading glyph. The active state strips an \"-outline\" suffix.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Whether this is the current destination.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "DrawerSection": {
+      "name": "DrawerSection",
+      "source": "packages/ui/src/components/NavigationDrawer.tsx",
+      "propsTypeName": "DrawerSectionProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "showDivider",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws a divider above the section — between it and the one before.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Section headline.",
           "deprecated": false
         }
       ]
@@ -6275,6 +7101,134 @@
         {
           "name": "wrap",
           "type": "boolean",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "TableHead": {
+      "name": "TableHead",
+      "source": "packages/ui/src/components/Table.tsx",
+      "propsTypeName": "TableHeadProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "TableRow": {
+      "name": "TableRow",
+      "source": "packages/ui/src/components/Table.tsx",
+      "propsTypeName": "TableRowProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle | ViewStyle[]",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "TableHeaderCell": {
+      "name": "TableHeaderCell",
+      "source": "packages/ui/src/components/Table.tsx",
+      "propsTypeName": "TableHeaderCellProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onMoveLeft",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onMoveRight",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "sortable",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "sortDirection",
+          "type": "\"asc\" | \"desc\" | null",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle | ViewStyle[]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "TableCell": {
+      "name": "TableCell",
+      "source": "packages/ui/src/components/Table.tsx",
+      "propsTypeName": "TableCellProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "ViewStyle | ViewStyle[]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "textStyle",
+          "type": "TextStyle",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
           "required": false,
           "deprecated": false
         }

@@ -16,9 +16,25 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Portal, { usePortalHost } from "./Portal";
+import Button from "./Button";
 
-interface TooltipProps {
+export interface TooltipProps {
+  /** The tip's text; the body text of a rich tooltip. */
   content: string;
+  /**
+   * `"plain"` is the one-line label for an icon-only control. `"rich"` adds a
+   * `title` and an `action`, for context a label cannot carry. Defaults to
+   * `"plain"`.
+   */
+  variant?: "plain" | "rich";
+  /** Rich only: the subhead. */
+  title?: string;
+  /**
+   * Rich only: a text button. A rich tooltip with an action stays open while
+   * the pointer is over it (web) and until the action is taken or the anchor
+   * is long-pressed again (native).
+   */
+  action?: { label: string; onPress: () => void };
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
@@ -37,6 +53,9 @@ const GAP = 8;
 
 const Tooltip = ({
   content,
+  variant = "plain",
+  title,
+  action,
   children,
   position = "top",
   disabled,
@@ -97,14 +116,23 @@ const Tooltip = ({
     hideTimer.current = setTimeout(() => setVisible(false), leaveDelay);
   }, [leaveDelay, clearTimers]);
 
-  // Native: show on long press, then auto-hide
+  const rich = variant === "rich";
+  // A tip with something to press has to stay long enough to be pressed.
+  const persistent = rich && !!action;
+
+  // Native: show on long press, then auto-hide — or toggle, when persistent.
   const handleLongPress = useCallback(() => {
     if (disabled) return;
     clearTimers();
+    if (persistent) {
+      measureAnchor();
+      setVisible((open) => !open);
+      return;
+    }
     measureAnchor();
     setVisible(true);
     hideTimer.current = setTimeout(() => setVisible(false), hideDelay);
-  }, [disabled, hideDelay, clearTimers, measureAnchor]);
+  }, [disabled, hideDelay, clearTimers, measureAnchor, persistent]);
 
   const onAnchorLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -170,7 +198,45 @@ const Tooltip = ({
       ? { onHoverIn: show, onHoverOut: hide, onFocus: show, onBlur: hide }
       : { onLongPress: handleLongPress };
 
-  const tip = (
+  const tip = rich ? (
+    <Pressable
+      onLayout={onTipLayout}
+      // Over the tip counts as over the anchor, or the pointer could never
+      // reach the action.
+      onHoverIn={clearTimers}
+      onHoverOut={hide}
+      pointerEvents={persistent ? "auto" : "none"}
+      accessibilityRole={persistent ? undefined : "none"}
+      style={[
+        styles.tooltip,
+        styles.rich,
+        tipStyle,
+        { opacity: tipSize.width > 0 ? 1 : 0 },
+      ]}
+    >
+      {!!title && (
+        <Text style={[theme.typography.titleSmall, styles.richTitle]}>
+          {title}
+        </Text>
+      )}
+      <Text style={[theme.typography.bodyMedium, styles.richBody]}>
+        {content}
+      </Text>
+      {action && (
+        <View style={styles.richActions}>
+          <Button
+            mode="text"
+            onPress={() => {
+              setVisible(false);
+              action.onPress();
+            }}
+          >
+            {action.label}
+          </Button>
+        </View>
+      )}
+    </Pressable>
+  ) : (
     <View
       onLayout={onTipLayout}
       pointerEvents="none"
@@ -190,7 +256,7 @@ const Tooltip = ({
       <Pressable
         ref={anchorRef}
         onLayout={onAnchorLayout}
-        accessibilityLabel={content}
+        accessibilityLabel={title ? `${title}. ${content}` : content}
         {...webHoverProps}
       >
         {children}
@@ -209,9 +275,7 @@ const Tooltip = ({
 
 export default Tooltip;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       alignSelf: "flex-start",
@@ -247,5 +311,21 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     },
     tooltipText: {
       color: theme.colors.inverseOnSurface,
+    },
+    // M3 rich tooltip: surfaceContainer, medium corners, up to 312dp wide.
+    rich: {
+      backgroundColor: theme.colors.surfaceContainer,
+      borderRadius: theme.shape.medium,
+      paddingHorizontal: theme.spacing.m,
+      paddingTop: theme.spacing.s + theme.spacing.xs,
+      paddingBottom: theme.spacing.s,
+      maxWidth: 312,
+      gap: theme.spacing.xs,
+    },
+    richTitle: { color: theme.colors.onSurfaceVariant },
+    richBody: { color: theme.colors.onSurfaceVariant },
+    richActions: {
+      flexDirection: "row",
+      marginStart: -theme.spacing.s - theme.spacing.xs,
     },
   });

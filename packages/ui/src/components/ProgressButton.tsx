@@ -22,6 +22,7 @@ import Button, {
 } from "./Button";
 import LinearProgress from "./Progress/LinearProgress";
 import { MaterialCommunityIconsGlyphs } from "./types";
+import { useReduceMotion } from "./internal/useReduceMotion";
 
 /** The moment of a task the button is showing. */
 export type ProgressButtonStatus = "idle" | "loading" | "success" | "error";
@@ -106,25 +107,6 @@ const fillColorOf = (mode: ButtonMode, { bg, on }: ButtonColors) => {
     return mix(0.28, getLuminance(on) > 0.5 ? "#000000" : "#FFFFFF", bg);
   }
   return mix(0.16, on, bg);
-};
-
-const useReduceMotion = () => {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((value) => alive && setReduced(value))
-      .catch(() => {});
-    const subscription = AccessibilityInfo.addEventListener(
-      "reduceMotionChanged",
-      setReduced,
-    );
-    return () => {
-      alive = false;
-      subscription.remove();
-    };
-  }, []);
-  return reduced;
 };
 
 /**

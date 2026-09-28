@@ -20,6 +20,12 @@ interface ChipProps {
   mode?: "filled" | "tonal" | "outlined";
   /** "small" renders a compact 24px chip. */
   size?: "small" | "medium";
+  /**
+   * Overrides the role of a pressable chip (`"button"`). A chip that toggles
+   * inside a group is a `"radio"` or a `"checkbox"`, and then reports
+   * `selected` as checked.
+   */
+  accessibilityRole?: "button" | "radio" | "checkbox";
   style?: object;
 }
 
@@ -32,6 +38,7 @@ const Chip = ({
   disabled = false,
   mode = "filled",
   size = "medium",
+  accessibilityRole,
   style = {},
 }: ChipProps) => {
   const { theme } = useTheme();
@@ -123,9 +130,15 @@ const Chip = ({
         onPressIn={() => setBodyPressed(true)}
         onPressOut={() => setBodyPressed(false)}
         disabled={disabled}
-        accessibilityRole={onPress ? "button" : undefined}
+        accessibilityRole={
+          onPress ? (accessibilityRole ?? "button") : undefined
+        }
         accessibilityLabel={label}
-        accessibilityState={{ disabled, selected }}
+        accessibilityState={
+          accessibilityRole === "radio" || accessibilityRole === "checkbox"
+            ? { disabled, checked: selected }
+            : { disabled, selected }
+        }
         style={styles.content}
         {...(Platform.OS === "android" && {
           android_ripple: { color: rippleColor },

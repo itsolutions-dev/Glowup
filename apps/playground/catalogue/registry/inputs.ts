@@ -4,7 +4,6 @@ import {
   Checkbox,
   Toggle,
   Spinner,
-  NumericInput,
   RadioGroup,
   Slider,
   SearchBar,
@@ -22,7 +21,6 @@ import {
   ClockDial,
   DatePicker,
   TimePicker,
-  TimeSelect,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
@@ -34,7 +32,7 @@ import type { ComponentMetadata } from "../types";
 const HAS_CALENDAR = (values: Record<string, any>) => values.mode !== "time";
 const HAS_CLOCK = (values: Record<string, any>) => values.mode !== "date";
 
-/** Inputs: 24 catalogue entries. */
+/** Inputs: 22 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
   Input: {
     name: "Input",
@@ -56,28 +54,6 @@ export const inputs: Record<string, ComponentMetadata> = {
         appliesWhen: (values) => !values.error,
       },
       required: { type: "boolean", default: false, label: "Required" },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
-    },
-  },
-  NumericInput: {
-    name: "NumericInput",
-    Component: NumericInput,
-    props: {
-      label: { type: "text", default: "Amount", label: "Label" },
-      placeholder: { type: "text", default: "0.00", label: "Placeholder" },
-      value: { type: "text", default: "42", label: "Value" },
-      prefix: { type: "text", default: "$", label: "Prefix" },
-      suffix: { type: "text", default: "", label: "Suffix" },
-      precision: { type: "number", default: 2, label: "Precision" },
-      variant: {
-        type: "select",
-        default: "outlined",
-        label: "Variant",
-        options: [
-          { label: "Outlined", value: "outlined" },
-          { label: "Filled", value: "filled" },
-        ],
-      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -492,18 +468,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: TimePicker,
     props: {
       label: { type: "text", default: "Service time", label: "Label" },
-    },
-  },
-  TimeSelect: {
-    name: "TimeSelect",
-    Component: TimeSelect,
-    props: {
-      use12Hour: { type: "boolean", default: false, label: "12-hour clock" },
-      minuteInterval: {
-        type: "number",
-        default: 5,
-        label: "Minute interval",
-      },
     },
   },
   Calendar: {

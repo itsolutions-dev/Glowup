@@ -7,7 +7,6 @@ import {
   Button,
   ProgressButton,
   Checkbox,
-  Toggle,
   Chip,
   Avatar,
   Card,
@@ -54,8 +53,6 @@ const ComponentPreview = ({
   const [pinValue, setPinValue] = useState("");
   const [autocompleteQuery, setAutocompleteQuery] = useState("");
   const [collapseOpen, setCollapseOpen] = useState(false);
-  const [languageDemo, setLanguageDemo] = useState("en");
-  const [preferenceDemo, setPreferenceDemo] = useState(true);
 
   const gridData = useMemo(
     () => [
@@ -604,26 +601,6 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "IconBadge") {
-    props.badgeCount = Number(props.badgeCount) || 0;
-    props.size = Number(props.size) || 32;
-    if (!props.badgeColor) delete props.badgeColor;
-    if (!props.color) delete props.color;
-    return <Component {...props} onPress={() => {}} />;
-  }
-
-  if (selectedComponentName === "NumericInput") {
-    props.precision = props.precision ? Number(props.precision) : undefined;
-    props.onChangeText = (t: string) => updateProp("value", t);
-    if (!props.prefix) delete props.prefix;
-    if (!props.suffix) delete props.suffix;
-    return (
-      <View style={{ width: "100%", maxWidth: 360 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
   if (selectedComponentName === "Toggle") {
     props.width = Number(props.width) || 48;
     props.height = Number(props.height) || 28;
@@ -1041,22 +1018,6 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "LanguageSelector") {
-    props.currentLang = languageDemo;
-    props.onChange = setLanguageDemo;
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "DrawerPreferenceItem") {
-    return (
-      <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props}>
-          <Toggle value={preferenceDemo} onValueChange={setPreferenceDemo} />
-        </Component>
-      </View>
-    );
-  }
-
   if (selectedComponentName === "ClockDial") {
     const current = dateValue ?? new Date();
     props.minuteInterval = Number(props.minuteInterval) || 1;
@@ -1072,13 +1033,6 @@ const ComponentPreview = ({
       next.setMinutes(minutes);
       setDateValue(next);
     };
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "TimeSelect") {
-    props.minuteInterval = Number(props.minuteInterval) || 1;
-    props.value = dateValue ?? new Date();
-    props.onChange = setDateValue;
     return <Component {...props} />;
   }
 

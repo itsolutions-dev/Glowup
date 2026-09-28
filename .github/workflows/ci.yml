@@ -17,18 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
-      # No committed lockfile in this repo (package-lock.json is gitignored), so npm
-      # caching by lockfile hash is unavailable and we use `npm install` (not `npm ci`).
-      # setup-node v5 auto-caches when package.json has a `packageManager` field, which
-      # would need a lockfile to hash - keep it off explicitly.
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: npm
 
+      # `npm ci` installs exactly what package-lock.json pins and fails if the
+      # lockfile and the manifests disagree. `--ignore-scripts`: nothing in the
+      # tree needs an install script to work (esbuild left with tsx; unrs-resolver
+      # ships its binding as an optional dependency), and a compromised
+      # transitive package usually strikes through exactly that hook.
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Type-check (all workspaces)
         run: npm run type-check

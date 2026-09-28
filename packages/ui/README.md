@@ -14,22 +14,18 @@ design-token system with light/dark support.
 npm install @its/glowup-ui
 ```
 
-Then install the peer dependencies your app doesn't already have. The core set:
+Then install the peer dependencies your app doesn't already have:
 
 ```bash
 npx expo install react-native-safe-area-context react-native-svg @expo/vector-icons
 ```
 
-Some components need additional peers (installed only if you use them):
-
-| Component(s)                                                                       | Peer dependency                                                                          |
-| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `DateTimePicker`, `DatePicker`, `DatePickerInput`, `DateRangePicker`, `TimePicker` | `expo-localization`                                                                      |
-| `StatusBar`                                                                        | `expo-status-bar`                                                                        |
+That is the whole set. On web, `react-native-web` brings `react-dom`, which the web date
+picker portals into.
 
 The date and time pickers are pure React Native: the same Material 3 surface renders on iOS,
-Android and web, with no OS picker underneath. `expo-localization` is only used to read the device
-locale — pass `locale` explicitly and it is not needed either.
+Android and web, with no OS picker underneath. The locale comes from `Intl` (the browser's
+language on web, the device locale under Hermes); pass `locale` to override it.
 
 ## Usage
 
@@ -533,12 +529,6 @@ Text field (outlined or filled) with affixes, icons, multiline and number mode.
 | minHeight                  | number                                                      | `56`       |
 | onFocus / onBlur           | () => void                                                  |            |
 
-#### `NumericInput`
-
-Thin wrapper over `Input` with `type="number"`. Same core props: `value`, `onChangeText`
-(required), plus `label/placeholder/prefix/suffix`, `precision`, `variant` (`outlined`),
-`error`, `disabled/readonly`, `minHeight` (`56`).
-
 #### `Select`
 
 Dropdown built on `Popover`; single or multi select, optional chip display.
@@ -693,8 +683,7 @@ React Native — no SVG, no native modules — so they render identically on web
 `Calendar` adds month and year sub-views, single/range/multiple selection, virtualized endless
 month scrolling and the keyboard navigation above; `ClockPicker` is the M3 hour/minute readout
 with its AM/PM switch, over `ClockDial` (the analog face, drag to set) or two text fields.
-`TimeSelect` — the older scrolling hour/minute columns — is still exported but no longer used by
-the pickers. Full prop tables in
+Full prop tables in
 [`components.md`](src/components/components.md).
 
 #### `Autocomplete`
@@ -780,15 +769,6 @@ Star rating; renders half-stars, sets whole values on tap.
 | size     | number                                       | `24`    |
 | disabled | boolean                                      |         |
 
-#### `LanguageSelector`
-
-Cycles through the configured languages on press (flag/label pill).
-
-| Prop        | Type                                           | Default |
-| ----------- | ---------------------------------------------- | ------- |
-| currentLang | string (required)                              | —       |
-| onChange    | (lang) => void — next language code (required) | —       |
-
 ### Data display
 
 #### `Avatar`
@@ -815,19 +795,6 @@ Small count/dot overlay (position it over its target).
 | max      | number (shows `max+` when exceeded) | `99`    |
 | showZero | boolean                             | `false` |
 | visible  | boolean                             | `true`  |
-
-#### `IconBadge`
-
-Icon button with an attached count badge.
-
-| Prop       | Type                                         | Default   |
-| ---------- | -------------------------------------------- | --------- |
-| iconName   | icon (required)                              | —         |
-| badgeCount | number (hidden ≤ 0, caps at `99+`, required) | —         |
-| size       | number                                       | `32`      |
-| badgeColor | string                                       | `error`   |
-| color      | string (icon color)                          | `primary` |
-| onPress    | () => void                                   |           |
 
 #### `StatusBadge`
 
@@ -1151,16 +1118,6 @@ Top app bar (drawer/back button, title, right actions). Its props are navigator-
 (`navigation`, `route`, `options`, `back`, `isPinned`) and structurally typed, so it drops
 into a React Navigation `header` renderer without the library depending on the navigator.
 
-#### `DrawerPreferenceItem`
-
-A labeled row (icon + label + trailing control) used for the drawer's preference toggles.
-
-| Prop     | Type                         | Default |
-| -------- | ---------------------------- | ------- |
-| icon     | icon (required)              | —       |
-| label    | string (required)            | —       |
-| children | ReactNode (trailing control) |         |
-
 #### `NavigationBar`
 
 Bottom navigation bar.
@@ -1217,15 +1174,6 @@ Horizontal progress steps.
 | onStepPress | (stepIndex) => void (makes steps tappable)    |         |
 
 ### System
-
-#### `StatusBar`
-
-Themes the platform status bar / browser chrome. On web it drives the `theme-color` meta tag
-and body background; on native it sets the status-bar style. Renders nothing.
-
-| Prop            | Type   | Default                |
-| --------------- | ------ | ---------------------- |
-| backgroundColor | string | `theme.colors.surface` |
 
 ## Live demo
 

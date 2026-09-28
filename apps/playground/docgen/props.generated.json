@@ -1,8 +1,8 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.7.0",
+  "libraryVersion": "0.8.0",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 93,
+  "componentCount": 87,
   "components": {
     "Accordion": {
       "name": "Accordion",
@@ -3051,51 +3051,6 @@
         }
       ]
     },
-    "IconBadge": {
-      "name": "IconBadge",
-      "source": "packages/ui/src/components/IconBadge.tsx",
-      "propsTypeName": "IconBadgeProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "badgeCount",
-          "type": "number",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "iconName",
-          "type": "MaterialCommunityIconsGlyphs",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "badgeColor",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "color",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "size",
-          "type": "number",
-          "required": false,
-          "default": "32",
-          "deprecated": false
-        }
-      ]
-    },
     "IconButton": {
       "name": "IconButton",
       "source": "packages/ui/src/components/IconButton.tsx",
@@ -3439,27 +3394,6 @@
             "outlined",
             "filled"
           ],
-          "deprecated": false
-        }
-      ]
-    },
-    "LanguageSelector": {
-      "name": "LanguageSelector",
-      "source": "packages/ui/src/components/LanguageSelector.tsx",
-      "propsTypeName": "LanguageSelectorProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "currentLang",
-          "type": "string",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onChange",
-          "type": "(lang: string) => void",
-          "required": true,
-          "description": "Called with the next language code when the selector is pressed.",
           "deprecated": false
         }
       ]
@@ -3907,32 +3841,6 @@
         }
       ]
     },
-    "DrawerPreferenceItem": {
-      "name": "DrawerPreferenceItem",
-      "source": "packages/ui/src/components/DrawerPreferenceItem.tsx",
-      "propsTypeName": "DrawerPreferenceItemProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "icon",
-          "type": "MaterialCommunityIconsGlyphs",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "children",
-          "type": "React.ReactNode",
-          "required": false,
-          "deprecated": false
-        }
-      ]
-    },
     "NavigationBar": {
       "name": "NavigationBar",
       "source": "packages/ui/src/components/NavigationBar.tsx",
@@ -3966,98 +3874,6 @@
           "values": [
             "always",
             "selected"
-          ],
-          "deprecated": false
-        }
-      ]
-    },
-    "NumericInput": {
-      "name": "NumericInput",
-      "source": "packages/ui/src/components/NumericInput.tsx",
-      "propsTypeName": "NumericInputProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "onChangeText",
-          "type": "(text: string) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "string",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "error",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "minHeight",
-          "type": "number",
-          "required": false,
-          "default": "56",
-          "deprecated": false
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "precision",
-          "type": "number",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "prefix",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "readonly",
-          "type": "boolean",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "suffix",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "variant",
-          "type": "\"outlined\" | \"filled\"",
-          "required": false,
-          "default": "\"outlined\"",
-          "values": [
-            "outlined",
-            "filled"
           ],
           "deprecated": false
         }
@@ -5303,20 +5119,6 @@
         }
       ]
     },
-    "StatusBar": {
-      "name": "StatusBar",
-      "source": "packages/ui/src/components/StatusBar.tsx",
-      "propsTypeName": "StatusBarProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "backgroundColor",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        }
-      ]
-    },
     "Stepper": {
       "name": "Stepper",
       "source": "packages/ui/src/components/Stepper.tsx",
@@ -5584,80 +5386,6 @@
           "type": "ValidRange",
           "required": false,
           "description": "The selectable window plus individual excluded days.",
-          "deprecated": false
-        }
-      ]
-    },
-    "TimeSelect": {
-      "name": "TimeSelect",
-      "source": "packages/ui/src/components/TimeSelect.tsx",
-      "propsTypeName": "TimeSelectProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "onChange",
-          "type": "(date: Date) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "Date",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "labels",
-          "type": "DateTimePickerLabels",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "locale",
-          "type": "string",
-          "required": false,
-          "description": "Formatting locale; decides 12h vs 24h. Defaults to the device locale.",
-          "deprecated": false
-        },
-        {
-          "name": "maximumDate",
-          "type": "Date",
-          "required": false,
-          "description": "Clamps the selectable times on the maximum's own day.",
-          "deprecated": false
-        },
-        {
-          "name": "minimumDate",
-          "type": "Date",
-          "required": false,
-          "description": "Clamps the selectable times on the minimum's own day.",
-          "deprecated": false
-        },
-        {
-          "name": "minuteInterval",
-          "type": "number",
-          "required": false,
-          "default": "1",
-          "description": "Minute granularity. Defaults to 1.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "use12Hour",
-          "type": "boolean",
-          "required": false,
-          "description": "Forces the clock format instead of deriving it from the locale.",
           "deprecated": false
         }
       ]

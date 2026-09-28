@@ -81,33 +81,6 @@ for (const { names, group: g, buf } of docs) {
 // Components that predate (or sit outside) components.md. Hand-written here so
 // they get a real .prompt.md and a real group instead of landing in "general".
 const EXTRA_DOCS = {
-  LanguageSelector: [
-    "Inputs & Forms",
-    [
-      "A single-tap language cycler. Shows the active language as flag + code and",
-      "advances through `en -> es -> it -> fr` on every press, calling `onChange`",
-      "with the next code. Unknown `currentLang` values fall back to `it`.",
-      "",
-      "| Prop | Type | Req | Description |",
-      "|---|---|---|---|",
-      '| currentLang | `"en" \\| "es" \\| "it" \\| "fr"` | ✓ | Active language code |',
-      "| onChange | `(lang: string) => void` | ✓ | Receives the next code |",
-    ],
-  ],
-  StatusBar: [
-    "Foundations",
-    [
-      "Theme-aware platform status bar. On native it renders `expo-status-bar` with",
-      "the light/dark style implied by the theme; on web it keeps the",
-      '`<meta name="theme-color">` tag and the document background in sync with',
-      "`theme.colors.surface` / `theme.colors.background`. Renders no visible box of",
-      "its own — mount it once near the root of a screen.",
-      "",
-      "| Prop | Type | Req | Description |",
-      "|---|---|---|---|",
-      "| backgroundColor | string | | Overrides `theme.colors.surface` |",
-    ],
-  ],
   TabContent: [
     "Navigation",
     [
@@ -119,20 +92,6 @@ const EXTRA_DOCS = {
       "| activeTab | number | ✓ | Index of the visible child |",
       "| children | ReactNode | ✓ | One node per tab, in tab order |",
       "| style | object | | Style for the container |",
-    ],
-  ],
-  DrawerPreferenceItem: [
-    "Navigation",
-    [
-      "Labelled row for the navigation drawer's preferences area: leading",
-      "MaterialCommunityIcons glyph, label, and a trailing control supplied as",
-      "`children` (a `Toggle`, a `LanguageSelector`, a `Select`).",
-      "",
-      "| Prop | Type | Req | Description |",
-      "|---|---|---|---|",
-      "| icon | MaterialCommunityIconsGlyphs | ✓ | Leading glyph name |",
-      "| label | string | ✓ | Row label |",
-      "| children | ReactNode | | Trailing control |",
     ],
   ],
   ThemeProvider: [

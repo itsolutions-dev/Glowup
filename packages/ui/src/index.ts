@@ -1,4 +1,5 @@
-// Public API for @its/glowup-ui — generated barrel, edit generator in git history if regenerating.
+// Public API for @its/glowup-ui. Nothing outside this file is public: a module
+// under src/ that is not re-exported here does not exist for consumers.
 
 // --- Theme system ---
 export * from "./providers/ThemeProvider";
@@ -69,13 +70,11 @@ export { default as HelperText } from "./components/HelperText";
 export * from "./components/HelperText";
 export { default as Icon } from "./components/Icon";
 export * from "./components/Icon";
-export { default as IconBadge } from "./components/IconBadge";
 export { default as IconButton } from "./components/IconButton";
 export * from "./components/IconButton";
 export { default as Image } from "./components/Image";
 export * from "./components/Image";
 export { default as Input } from "./components/Input";
-export { default as LanguageSelector } from "./components/LanguageSelector";
 export { default as Link } from "./components/Link";
 export * from "./components/Link";
 export { default as ListItem } from "./components/List/ListItem";
@@ -87,10 +86,8 @@ export { default as Menu } from "./components/Menu";
 export * from "./components/Menu";
 export { default as ConfirmDialog } from "./components/Modal/ConfirmDialog";
 export { default as Modal } from "./components/Modal/Modal";
-export { default as DrawerPreferenceItem } from "./components/DrawerPreferenceItem";
 export { default as NavigationBar } from "./components/NavigationBar";
 export * from "./components/NavigationBar";
-export { default as NumericInput } from "./components/NumericInput";
 export { default as Pagination } from "./components/Pagination";
 export { default as Paper } from "./components/Paper";
 export { default as PinInput } from "./components/PinInput";
@@ -123,15 +120,12 @@ export * from "./components/Layout/Stack";
 export { default as Stat } from "./components/Stat";
 export * from "./components/Stat";
 export { default as StatusBadge } from "./components/StatusBadge";
-export { default as StatusBar } from "./components/StatusBar";
 export { default as Stepper } from "./components/Stepper";
 export * from "./components/Stepper";
 export { default as TabContent } from "./components/Tab/TabContent";
 export { default as Tabs } from "./components/Tab/Tabs";
 export { default as TimePicker } from "./components/TimePicker";
 export * from "./components/TimePicker";
-export { default as TimeSelect } from "./components/TimeSelect";
-export * from "./components/TimeSelect";
 export { default as Toggle } from "./components/Toggle";
 export { default as ToggleButton } from "./components/ToggleButton/ToggleButton";
 export { default as ToggleButtonGroup } from "./components/ToggleButton/ToggleButtonGroup";

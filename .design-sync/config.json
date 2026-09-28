@@ -139,16 +139,10 @@
     "Icon": {
       "cardMode": "column"
     },
-    "IconBadge": {
-      "cardMode": "column"
-    },
     "IconButton": {
       "cardMode": "column"
     },
     "Image": {
-      "cardMode": "column"
-    },
-    "LanguageSelector": {
       "cardMode": "column"
     },
     "LinearProgress": {
@@ -236,9 +230,6 @@
     "Stat": {
       "cardMode": "column"
     },
-    "StatusBar": {
-      "cardMode": "column"
-    },
     "Stepper": {
       "cardMode": "column"
     },
@@ -252,9 +243,6 @@
       "cardMode": "column"
     },
     "TimePicker": {
-      "cardMode": "column"
-    },
-    "TimeSelect": {
       "cardMode": "column"
     },
     "ToastProvider": {

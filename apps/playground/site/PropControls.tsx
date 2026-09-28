@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native";
 import {
   Button,
   Input,
-  NumericInput,
   Select,
   Toggle,
   Typography,
@@ -123,7 +122,8 @@ const PropControl = ({
 
     case "number":
       return (
-        <NumericInput
+        <Input
+          type="number"
           label={definition.label}
           value={draft ?? value?.toString() ?? ""}
           onChangeText={(text) => {

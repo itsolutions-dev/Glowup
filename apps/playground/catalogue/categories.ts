@@ -39,7 +39,6 @@ export const CATEGORIES: Category[] = [
     icon: "form-textbox",
     items: [
       "Input",
-      "NumericInput",
       "Select",
       "Checkbox",
       "RadioButton",
@@ -56,7 +55,6 @@ export const CATEGORIES: Category[] = [
       "DatePickerInput",
       "DateRangePicker",
       "TimePicker",
-      "TimeSelect",
       "Calendar",
       "ClockPicker",
       "ClockDial",
@@ -70,7 +68,6 @@ export const CATEGORIES: Category[] = [
     items: [
       "Avatar",
       "Badge",
-      "IconBadge",
       "StatusBadge",
       "DataGrid",
       "ListItem",
@@ -114,8 +111,6 @@ export const CATEGORIES: Category[] = [
       "Breadcrumbs",
       "Pagination",
       "Stepper",
-      "LanguageSelector",
-      "DrawerPreferenceItem",
     ],
   },
   {

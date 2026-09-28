@@ -114,7 +114,6 @@ const CATALOGUE = [
   "ToggleButtonGroup",
   // Inputs
   "Input",
-  "NumericInput",
   "Select",
   "Checkbox",
   "RadioButton",
@@ -131,7 +130,6 @@ const CATALOGUE = [
   "DatePickerInput",
   "DateRangePicker",
   "TimePicker",
-  "TimeSelect",
   "Calendar",
   "ClockPicker",
   "ClockDial",
@@ -140,7 +138,6 @@ const CATALOGUE = [
   // Data Display
   "Avatar",
   "Badge",
-  "IconBadge",
   "StatusBadge",
   "DataGrid",
   "ListItem",
@@ -174,8 +171,6 @@ const CATALOGUE = [
   "Breadcrumbs",
   "Pagination",
   "Stepper",
-  "LanguageSelector",
-  "DrawerPreferenceItem",
   // Layout
   "Box",
   "Stack",

@@ -22,24 +22,26 @@ concurrency:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # configure-pages reads the site's settings; it writes nothing.
+      pages: read
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
-      # package-lock.json is gitignored in this repo, so npm caching by lockfile
-      # hash is unavailable; keep setup-node's auto-cache off explicitly.
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          package-manager-cache: false
+          cache: npm
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Export the static site
         run: npm run export:web -w @its/glowup-playground
@@ -68,9 +70,14 @@ jobs:
         with:
           path: apps/playground/dist
 
+  # Only the job that deploys can write to Pages: the build job above runs the
+  # whole dependency tree and gets nothing but read access.
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

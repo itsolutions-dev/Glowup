@@ -5,12 +5,10 @@ import {
   Stepper,
   Tabs,
   TabContent,
-  LanguageSelector,
-  DrawerPreferenceItem,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
-/** Navigation: 8 catalogue entries. */
+/** Navigation: 6 catalogue entries. */
 export const navigation: Record<string, ComponentMetadata> = {
   NavigationBar: {
     name: "NavigationBar",
@@ -69,19 +67,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     Component: Stepper,
     props: {
       activeStep: { type: "number", default: 1, label: "Active Step" },
-    },
-  },
-  LanguageSelector: {
-    name: "LanguageSelector",
-    Component: LanguageSelector,
-    props: {},
-  },
-  DrawerPreferenceItem: {
-    name: "DrawerPreferenceItem",
-    Component: DrawerPreferenceItem,
-    props: {
-      icon: { type: "text", default: "theme-light-dark", label: "Icon" },
-      label: { type: "text", default: "Theme", label: "Label" },
     },
   },
 };

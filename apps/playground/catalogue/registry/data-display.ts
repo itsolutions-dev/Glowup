@@ -12,10 +12,12 @@ import {
   Stat,
   ListSection,
   ListSubheader,
+  Table,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
+import { TableDemo } from "../demos";
 
-/** Data Display: 13 catalogue entries. */
+/** Data Display: 14 catalogue entries. */
 export const dataDisplay: Record<string, ComponentMetadata> = {
   Avatar: {
     name: "Avatar",
@@ -276,5 +278,11 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
+  },
+  Table: {
+    name: "Table",
+    Component: Table,
+    Demo: TableDemo,
+    props: {},
   },
 };

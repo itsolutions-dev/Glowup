@@ -13,10 +13,12 @@ import {
   Popover,
   Collapse,
   Portal,
+  SideSheet,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
+import { SideSheetDemo } from "../demos";
 
-/** Feedback: 14 catalogue entries. */
+/** Feedback: 15 catalogue entries. */
 export const feedback: Record<string, ComponentMetadata> = {
   Snackbar: {
     name: "Snackbar",
@@ -226,5 +228,23 @@ export const feedback: Record<string, ComponentMetadata> = {
     name: "Portal",
     Component: Portal,
     props: {},
+  },
+  SideSheet: {
+    name: "SideSheet",
+    Component: SideSheet,
+    Demo: SideSheetDemo,
+    props: {
+      title: { type: "text", default: "Filters", label: "Title" },
+      modal: { type: "boolean", default: true, label: "Modal" },
+      side: {
+        type: "select",
+        default: "end",
+        label: "Side",
+        options: [
+          { label: "End", value: "end" },
+          { label: "Start", value: "start" },
+        ],
+      },
+    },
   },
 };

@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Pressable,
+  StyleProp,
   ViewStyle,
   TextStyle,
 } from "react-native";
@@ -17,7 +18,7 @@ import { PressableState } from "./types";
 
 export interface TableProps {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 const Table = ({ children, style }: TableProps) => {
   const { theme } = useTheme();
@@ -40,7 +41,7 @@ const Table = ({ children, style }: TableProps) => {
 
 export interface TableHeadProps {
   children: ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 export const TableHead = ({ children, style }: TableHeadProps) => {
   const { theme } = useTheme();
@@ -63,7 +64,7 @@ export const TableHead = ({ children, style }: TableHeadProps) => {
 
 export interface TableRowProps {
   children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
 }
 export const TableRow = ({ children, style }: TableRowProps) => {
   const { theme } = useTheme();
@@ -73,7 +74,7 @@ export const TableRow = ({ children, style }: TableRowProps) => {
       style={[
         styles.tr,
         { borderBottomColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
+        style,
       ]}
     >
       {children}
@@ -83,7 +84,7 @@ export const TableRow = ({ children, style }: TableRowProps) => {
 
 export interface TableHeaderCellProps {
   children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
+  style?: StyleProp<ViewStyle>;
   width?: number;
   onPress?: () => void;
   sortable?: boolean;
@@ -108,7 +109,7 @@ export const TableHeaderCell = ({
       style={[
         styles.th,
         { width: width || 150, borderRightColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
+        style,
       ]}
     >
       <Pressable
@@ -172,8 +173,8 @@ export const TableHeaderCell = ({
 
 export interface TableCellProps {
   children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   width?: number;
 }
 export const TableCell = ({
@@ -189,7 +190,7 @@ export const TableCell = ({
       style={[
         styles.td,
         { width: width || 150, borderRightColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
+        style,
       ]}
     >
       {typeof children === "string" || typeof children === "number" ? (
@@ -213,7 +214,6 @@ export const TableCell = ({
 
 const styles = StyleSheet.create({
   table: {
-    flex: 1,
     borderRadius: 12,
     borderWidth: 1,
     overflow: "hidden",

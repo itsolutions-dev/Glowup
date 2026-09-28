@@ -69,7 +69,8 @@ const ComponentPreview = ({
     [],
   );
 
-  const { Component, isContainer } = activeMeta;
+  const { Component, Demo, isContainer } = activeMeta;
+  if (Demo) return <Demo props={componentProps} updateProp={updateProp} />;
   let props = { ...componentProps };
 
   // Special handling for some components

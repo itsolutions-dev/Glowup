@@ -162,7 +162,7 @@ const DataGrid = ({
   };
 
   return (
-    <Table style={style}>
+    <Table style={[styles.grid, style]}>
       <ScrollView horizontal bounces={false}>
         <View>
           {renderHeader()}
@@ -198,6 +198,8 @@ const DataGrid = ({
 };
 
 const styles = StyleSheet.create({
+  // The grid fills its container, so the FlatList inside it can scroll.
+  grid: { flex: 1 },
   tfoot: {
     paddingVertical: 16,
     alignItems: "center",

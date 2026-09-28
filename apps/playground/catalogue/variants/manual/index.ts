@@ -15,6 +15,17 @@ import {
   cardCoverVariants,
   cardTitleVariants,
 } from "./CardParts";
+import {
+  buttonGroupVariants,
+  chipGroupVariants,
+  navigationDrawerVariants,
+  navigationRailVariants,
+  sideSheetVariants,
+  splitButtonVariants,
+  tableVariants,
+  toolbarVariants,
+  topAppBarVariants,
+} from "./fromDemos";
 
 /**
  * Galleries written by hand, for components the preview rewriter cannot reach.
@@ -51,4 +62,15 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   CardContent: cardContentVariants,
   CardCover: cardCoverVariants,
   CardActions: cardActionsVariants,
+  // Components added after the design-sync previews: no authored preview, so
+  // their galleries are their stage demos with fixed values (./fromDemos).
+  ButtonGroup: buttonGroupVariants,
+  ChipGroup: chipGroupVariants,
+  NavigationDrawer: navigationDrawerVariants,
+  NavigationRail: navigationRailVariants,
+  SideSheet: sideSheetVariants,
+  SplitButton: splitButtonVariants,
+  Table: tableVariants,
+  Toolbar: toolbarVariants,
+  TopAppBar: topAppBarVariants,
 };

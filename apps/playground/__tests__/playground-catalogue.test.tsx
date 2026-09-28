@@ -107,11 +107,14 @@ const CATALOGUE = [
   "ProgressButton",
   "IconButton",
   "Chip",
+  "ChipGroup",
   "FAB",
   "AnimatedFAB",
   "SpeedDial",
   "ToggleButton",
   "ToggleButtonGroup",
+  "ButtonGroup",
+  "SplitButton",
   // Inputs
   "Input",
   "Select",
@@ -140,6 +143,7 @@ const CATALOGUE = [
   "Badge",
   "StatusBadge",
   "DataGrid",
+  "Table",
   "ListItem",
   "ListSection",
   "ListSubheader",
@@ -156,6 +160,7 @@ const CATALOGUE = [
   "ConfirmDialog",
   "Popover",
   "BottomSheet",
+  "SideSheet",
   "Menu",
   "Skeleton",
   "CircularProgress",
@@ -165,7 +170,11 @@ const CATALOGUE = [
   "Collapse",
   "Portal",
   // Navigation
+  "TopAppBar",
   "NavigationBar",
+  "NavigationRail",
+  "NavigationDrawer",
+  "Toolbar",
   "Tabs",
   "TabContent",
   "Breadcrumbs",
@@ -508,6 +517,20 @@ describe("Playground catalogue", () => {
       off: { name: "Ada Lovelace" },
       on: { name: "" },
       props: ["icon"],
+    },
+    // `required` only guards the last selected chip of a single-select group.
+    {
+      component: "ChipGroup",
+      off: { multiSelect: true },
+      on: { multiSelect: false },
+      props: ["required"],
+    },
+    // Colour, orientation and the FAB belong to the floating toolbar.
+    {
+      component: "Toolbar",
+      off: { variant: "docked" },
+      on: { variant: "floating" },
+      props: ["color", "orientation", "withFab"],
     },
   ];
 

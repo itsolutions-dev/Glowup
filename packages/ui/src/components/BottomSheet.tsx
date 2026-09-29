@@ -182,9 +182,7 @@ const BottomSheet = ({
 
 export default BottomSheet;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     root: {
       flex: 1,

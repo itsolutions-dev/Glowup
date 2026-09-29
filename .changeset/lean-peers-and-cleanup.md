@@ -44,6 +44,10 @@ with provenance, and the manifest now carries `repository`, `homepage` and `bugs
   which ran twice under StrictMode. `Popover` cancels its pending animation frame.
   `BottomSheet` no longer replays its entrance when the window is resized.
 
+**Breaking — `Toggle` knobs.** `trackBorderWidth`, `animationDuration`,
+`thumbOffSizeRatio` and `thumbOnSizeRatio` are removed (nothing set them; the switch keeps
+its geometry). `width` and `height` stay.
+
 **Breaking — theme aliases.** `theme.colors.accent`, `.text`, `.onAccent` and
 `.onSurfaceContainer` are removed; use `primary`, `onSurface`, `onPrimary` and `onSurface`.
 

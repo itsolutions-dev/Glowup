@@ -45,9 +45,7 @@ const Badge = ({
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     badge: {
       backgroundColor: theme.colors.error, // "#B3261E", // M3 Error color

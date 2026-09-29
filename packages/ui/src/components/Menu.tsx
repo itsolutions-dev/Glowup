@@ -132,9 +132,7 @@ const Menu = ({
 
 export default Menu;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     menuContent: {
       minWidth: 180,

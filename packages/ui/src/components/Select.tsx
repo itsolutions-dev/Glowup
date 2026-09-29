@@ -65,9 +65,7 @@ const Select = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const variantStyles = useMemo(() => {
-    return getVariantStyles(variant, theme, visible, !!error);
-  }, [variant, theme, visible, error]);
+  const labelColor = error ? theme.colors.error : theme.colors.primary;
 
   const selectedOption = useMemo(
     () => options.find((opt) => opt.value === value),
@@ -284,7 +282,7 @@ const Select = ({
                         <Text
                           style={[
                             theme.typography.labelSmall,
-                            { color: variantStyles.labelColor },
+                            { color: labelColor },
                           ]}
                         >
                           {label}
@@ -349,18 +347,11 @@ const Select = ({
 
 export default Select;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: 20,
       width: "100%",
-    },
-    staticLabel: {
-      marginBottom: 8,
-      marginLeft: 4,
-      fontWeight: "500",
     },
     selectContainer: {
       minHeight: 52,
@@ -383,23 +374,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     },
     leadingIcon: {
       marginRight: 12,
-    },
-    selectBox: {
-      minHeight: 56,
-      width: "99%",
-      height: "auto",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 16,
-      ...Platform.select({
-        web: {
-          transitionProperty:
-            "border-color, background-color, box-shadow" as any,
-          transitionDuration: "0.2s" as any,
-          outlineStyle: "none" as any,
-        },
-      }),
     },
     innerContent: {
       flex: 1,
@@ -425,45 +399,3 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       alignItems: "center",
     },
   } as any);
-
-const getVariantStyles = (
-  variant: SelectVariant,
-  theme: any,
-  isFocused: boolean,
-  hasError: boolean,
-) => {
-  const { colors } = theme;
-
-  if (variant === "filled") {
-    return {
-      container: {
-        backgroundColor: colors.surfaceContainerHighest,
-        borderBottomWidth: isFocused ? 2 : 1,
-        borderBottomColor: hasError
-          ? colors.error
-          : isFocused
-            ? colors.primary
-            : colors.onSurfaceVariant,
-        borderTopLeftRadius: 4,
-        borderTopRightRadius: 4,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-      },
-      labelColor: hasError ? colors.error : colors.primary,
-    };
-  }
-
-  return {
-    container: {
-      backgroundColor: "transparent",
-      borderWidth: isFocused ? 2 : 1,
-      borderColor: hasError
-        ? colors.error
-        : isFocused
-          ? colors.primary
-          : colors.outline,
-      borderRadius: 4,
-    },
-    labelColor: hasError ? colors.error : colors.primary,
-  };
-};

@@ -177,7 +177,6 @@ const Chip = ({
           accessibilityRole="button"
           accessibilityLabel={`Close ${label}`}
           style={({ hovered, pressed }: PressableState) => [
-            styles.closeButton,
             { opacity: disabled ? 0.38 : pressed ? 0.7 : hovered ? 0.5 : 1 },
           ]}
         >
@@ -195,9 +194,7 @@ const Chip = ({
 
 export default Chip;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       marginTop: theme.spacing.xs,

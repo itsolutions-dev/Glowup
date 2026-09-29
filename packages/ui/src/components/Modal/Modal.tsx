@@ -205,9 +205,7 @@ function Modal({
   );
 }
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     fullScreen: { flex: 1, backgroundColor: theme.colors.surface },
     fullScreenHeader: {

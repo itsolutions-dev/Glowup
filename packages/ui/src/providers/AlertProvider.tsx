@@ -92,9 +92,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     messageContainer: { flex: 1, padding: 20 },
     message: {

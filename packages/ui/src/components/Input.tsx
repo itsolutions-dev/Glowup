@@ -230,18 +230,11 @@ const Input = ({
 
 export default Input;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: 20,
       width: "100%",
-    },
-    staticLabel: {
-      marginBottom: 8,
-      marginLeft: 4,
-      fontWeight: "500",
     },
     inputContainer: {
       minHeight: 52,
@@ -261,16 +254,9 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       flex: 1,
       paddingVertical: 8,
       ...Platform.select({
-        web: { outlineStyle: "none" },
+        // No browser focus ring: the field draws its own.
+        web: { outlineWidth: 0 },
       }),
-    },
-    outlined: {
-      borderRadius: 4,
-    },
-    filled: {
-      borderTopLeftRadius: 4,
-      borderTopRightRadius: 4,
-      borderBottomWidth: 1,
     },
     textInputWrapper: {
       flex: 1,

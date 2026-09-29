@@ -107,9 +107,7 @@ const NavigationBar = ({
 
 export default NavigationBar;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

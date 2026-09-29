@@ -56,9 +56,7 @@ const CardBase = ({
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     base: {
       borderRadius: theme.shape.medium,

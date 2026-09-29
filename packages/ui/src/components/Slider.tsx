@@ -210,9 +210,7 @@ const Slider = ({
 
 export default Slider;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       width: "100%",

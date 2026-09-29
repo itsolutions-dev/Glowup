@@ -133,9 +133,7 @@ const Popover = ({
 
 export default Popover;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -144,13 +142,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     popoverCard: {
       position: "absolute",
       borderRadius: 12,
-      /*       minWidth: 200,
-      paddingVertical: 8,
-      elevation: 6,
-      shadowColor: theme.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 12, */
       overflow: "hidden",
       ...Platform.select({
         web: {
@@ -167,10 +158,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
           elevation: 8,
         },
       }),
-    },
-    item: {
-      padding: 12,
-      paddingHorizontal: 16,
     },
   });
 

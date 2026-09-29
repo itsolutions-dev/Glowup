@@ -66,9 +66,7 @@ function ConfirmDialog({
 
 export default ConfirmDialog;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       alignItems: "center",

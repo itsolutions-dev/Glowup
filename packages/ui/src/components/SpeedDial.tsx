@@ -171,9 +171,7 @@ const SpeedDial = ({
 
 export default SpeedDial;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       position: "absolute",

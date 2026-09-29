@@ -250,9 +250,7 @@ const Button = ({
 
 export default Button;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     buttonContainer: {
       marginTop: theme.spacing.xs,

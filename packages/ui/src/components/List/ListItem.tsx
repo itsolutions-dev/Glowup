@@ -84,9 +84,7 @@ function ListItem({
 
 export default ListItem;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     outerContainer: {
       padding: theme.spacing.xs,

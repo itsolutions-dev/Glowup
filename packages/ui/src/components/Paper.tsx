@@ -40,7 +40,7 @@ const Paper = ({
         styles.paper,
         { backgroundColor: backgroundColor },
         outline && styles.outlined,
-        elev > 0 && !glow && styles[`elevation${elev}`],
+        elev > 0 && !glow && styles[`elevation${elev as 1 | 2 | 3 | 4 | 5}`],
         glow && getGlowStyles(theme, true),
         style,
       ]}
@@ -50,9 +50,7 @@ const Paper = ({
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     paper: {
       borderRadius: theme.shape.large,

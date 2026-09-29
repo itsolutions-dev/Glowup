@@ -5990,17 +5990,11 @@
           "deprecated": false
         },
         {
-          "name": "animationDuration",
-          "type": "number",
-          "required": false,
-          "default": "200",
-          "deprecated": false
-        },
-        {
           "name": "containerStyle",
           "type": "StyleProp<ViewStyle>",
           "required": false,
           "default": "{}",
+          "description": "Style for the outer Pressable.",
           "deprecated": false
         },
         {
@@ -6015,27 +6009,7 @@
           "type": "number",
           "required": false,
           "default": "18",
-          "deprecated": false
-        },
-        {
-          "name": "thumbOffSizeRatio",
-          "type": "number",
-          "required": false,
-          "default": "0.8",
-          "deprecated": false
-        },
-        {
-          "name": "thumbOnSizeRatio",
-          "type": "number",
-          "required": false,
-          "default": "0.9",
-          "deprecated": false
-        },
-        {
-          "name": "trackBorderWidth",
-          "type": "number",
-          "required": false,
-          "default": "2",
+          "description": "Track height; the thumb scales with it. Defaults to 18.",
           "deprecated": false
         },
         {
@@ -6043,6 +6017,7 @@
           "type": "number",
           "required": false,
           "default": "32",
+          "description": "Track width. Defaults to 32.",
           "deprecated": false
         }
       ]

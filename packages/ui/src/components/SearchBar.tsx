@@ -91,9 +91,7 @@ const SearchBar = ({
 
 export default SearchBar;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

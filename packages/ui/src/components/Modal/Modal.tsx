@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   Modal as NativeModal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,7 @@ import Button from "../Button";
 import Icon, { IconSource } from "../Icon";
 import IconButton from "../IconButton";
 import Title from "../Typography";
+import { useEscapeKey } from "../internal/useEscapeKey";
 
 export interface ModalProps {
   children: React.ReactNode | string;
@@ -81,15 +81,7 @@ function Modal({
 
   // react-native's `onRequestClose` covers Android back but not the web ESC
   // key, so the platform's own dismiss gesture has to be wired up by hand.
-  useEffect(() => {
-    if (Platform.OS !== "web" || !visible || !dismissable || !dismiss) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") dismiss();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [visible, dismissable, dismiss]);
+  useEscapeKey(visible && dismissable && !!dismiss, () => dismiss?.());
 
   const isText = typeof children === "string";
   const body = isText ? (

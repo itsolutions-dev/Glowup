@@ -13,6 +13,7 @@ import Icon from "./Icon";
 import Typography from "./Typography";
 import SideOverlay from "./internal/SideOverlay";
 import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { activeGlyph } from "./internal/activeGlyph";
 
 // M3 navigation drawer: up to 360dp wide, 56dp items with a full-width pill
 // indicator inset 12dp from the container edges.
@@ -48,10 +49,7 @@ export const DrawerItem = ({
   const content = selected
     ? theme.colors.onSecondaryContainer
     : theme.colors.onSurfaceVariant;
-  const glyph =
-    icon && selected && icon.endsWith("-outline")
-      ? (icon.replace(/-outline$/, "") as MaterialCommunityIconsGlyphs)
-      : icon;
+  const glyph = icon && activeGlyph(icon, selected);
 
   return (
     <Pressable
@@ -186,11 +184,11 @@ const NavigationDrawer = ({
     return (
       <SideOverlay
         visible={visible}
-        onDismiss={onDismiss ?? (() => {})}
+        onDismiss={onDismiss}
         side="start"
         width={width}
         scrimLabel="Close navigation drawer"
-        panelStyle={[styles.modalPanel, style]}
+        panelStyle={style}
         testID={testID}
       >
         {body}
@@ -213,13 +211,6 @@ const makeStyles = (theme: Theme) =>
       alignSelf: "stretch",
       maxWidth: "100%",
       backgroundColor: theme.colors.surface,
-    },
-    modalPanel: {
-      backgroundColor: theme.colors.surfaceContainerLow,
-      // M3: the modal drawer's trailing corners are extra-large.
-      borderTopEndRadius: theme.shape.large,
-      borderBottomEndRadius: theme.shape.large,
-      overflow: "hidden",
     },
     body: { flex: 1 },
     scroll: {

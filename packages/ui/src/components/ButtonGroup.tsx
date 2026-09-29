@@ -7,6 +7,7 @@ import Icon from "./Icon";
 import TouchableRipple from "./TouchableRipple";
 import Typography from "./Typography";
 import type { MaterialCommunityIconsGlyphs } from "./types";
+import { isSelected, selectionRoles, toggleIn } from "./internal/selection";
 
 // M3 Expressive button group: heights per size, 2dp between connected
 // buttons, whose inner corners are small while the outer ones stay round.
@@ -69,16 +70,9 @@ const ButtonGroup = ({
   const idle = getButtonColors(theme, mode, "primary");
   const picked = getButtonColors(theme, "filled", "primary");
 
-  const isSelected = (v: string) =>
-    multiSelect ? Array.isArray(value) && value.includes(v) : value === v;
-
-  const press = (v: string) => {
-    if (!multiSelect) return onValueChange(v);
-    const current = Array.isArray(value) ? value : [];
-    onValueChange(
-      current.includes(v) ? current.filter((x) => x !== v) : [...current, v],
-    );
-  };
+  const roles = selectionRoles(multiSelect);
+  const press = (v: string) =>
+    onValueChange(multiSelect ? toggleIn(value, v) : v);
 
   const cornersFor = (index: number, selected: boolean): ViewStyle => {
     if (!connected) {
@@ -99,7 +93,7 @@ const ButtonGroup = ({
 
   return (
     <View
-      accessibilityRole={multiSelect ? "none" : "radiogroup"}
+      accessibilityRole={roles.group}
       accessibilityLabel={accessibilityLabel}
       style={[
         styles.row,
@@ -109,7 +103,7 @@ const ButtonGroup = ({
       testID={testID}
     >
       {options.map((option, index) => {
-        const selected = isSelected(option.value);
+        const selected = isSelected(value, option.value, multiSelect);
         const colors = selected ? picked : idle;
         const corners = cornersFor(index, selected);
         return (
@@ -117,11 +111,9 @@ const ButtonGroup = ({
             key={option.value}
             onPress={() => press(option.value)}
             disabled={option.disabled}
-            underlayColor={
-              colors.bg === "transparent" ? theme.colors.surface : colors.bg
-            }
+            underlayColor={colors.underlay}
             rippleColor={colors.on}
-            accessibilityRole={multiSelect ? "checkbox" : "radio"}
+            accessibilityRole={roles.item}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
             accessibilityState={{
               checked: selected,

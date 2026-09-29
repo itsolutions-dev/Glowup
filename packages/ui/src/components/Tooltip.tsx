@@ -17,6 +17,7 @@ import {
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Portal, { usePortalHost } from "./Portal";
 import Button from "./Button";
+import { useEscapeKey } from "./internal/useEscapeKey";
 
 export interface TooltipProps {
   /** The tip's text; the body text of a rich tooltip. */
@@ -136,25 +137,17 @@ const Tooltip = ({
   }, [leaveDelay, clearTimers, persistent]);
 
   // A persistent tip is dismissed with Escape as well as by leaving it.
-  useEffect(() => {
-    if (Platform.OS !== "web" || !visible || !persistent) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setVisible(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [visible, persistent]);
+  useEscapeKey(visible && persistent, () => setVisible(false));
 
   // Native: show on long press, then auto-hide — or toggle, when persistent.
   const handleLongPress = useCallback(() => {
     if (disabled) return;
     clearTimers();
+    measureAnchor();
     if (persistent) {
-      measureAnchor();
       setVisible((open) => !open);
       return;
     }
-    measureAnchor();
     setVisible(true);
     hideTimer.current = setTimeout(() => setVisible(false), hideDelay);
   }, [disabled, hideDelay, clearTimers, measureAnchor, persistent]);
@@ -250,11 +243,11 @@ const Tooltip = ({
       ]}
     >
       {!!title && (
-        <Text style={[theme.typography.titleSmall, styles.richTitle]}>
+        <Text style={[theme.typography.titleSmall, styles.richText]}>
           {title}
         </Text>
       )}
-      <Text style={[theme.typography.bodyMedium, styles.richBody]}>
+      <Text style={[theme.typography.bodyMedium, styles.richText]}>
         {content}
       </Text>
       {action && (
@@ -364,8 +357,7 @@ const makeStyles = (theme: Theme) =>
       maxWidth: 312,
       gap: theme.spacing.xs,
     },
-    richTitle: { color: theme.colors.onSurfaceVariant },
-    richBody: { color: theme.colors.onSurfaceVariant },
+    richText: { color: theme.colors.onSurfaceVariant },
     richActions: {
       flexDirection: "row",
       marginStart: -theme.spacing.s - theme.spacing.xs,

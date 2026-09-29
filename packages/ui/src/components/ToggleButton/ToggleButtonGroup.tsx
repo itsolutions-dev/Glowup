@@ -2,6 +2,7 @@ import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import ToggleButton from "./ToggleButton";
 import { MaterialCommunityIconsGlyphs } from "../types";
+import { isSelected, selectionRoles, toggleIn } from "../internal/selection";
 
 export interface ToggleButtonOption {
   label?: string;
@@ -38,28 +39,15 @@ const ToggleButtonGroup = ({
   accessibilityLabel,
   style,
 }: ToggleButtonGroupProps) => {
-  const handlePress = (itemValue: string) => {
-    if (multiSelect) {
-      const currentValues = Array.isArray(value) ? value : [];
-      const newValue = currentValues.includes(itemValue)
-        ? currentValues.filter((v) => v !== itemValue)
-        : [...currentValues, itemValue];
-      onValueChange(newValue);
-    } else {
-      onValueChange(itemValue);
-    }
-  };
-
-  const isActive = (itemValue: string) =>
-    multiSelect
-      ? Array.isArray(value) && value.includes(itemValue)
-      : value === itemValue;
+  const roles = selectionRoles(multiSelect);
+  const handlePress = (itemValue: string) =>
+    onValueChange(multiSelect ? toggleIn(value, itemValue) : itemValue);
 
   return (
     <View
       // One choice out of many is a radio group; several is a plain group of
       // checkboxes. Announcing "button" for both loses that distinction.
-      accessibilityRole={multiSelect ? "none" : "radiogroup"}
+      accessibilityRole={roles.group}
       accessibilityLabel={accessibilityLabel}
       style={[styles.groupContainer, fullWidth && styles.fullWidth, style]}
     >
@@ -68,14 +56,14 @@ const ToggleButtonGroup = ({
           key={option.value}
           label={option.label}
           icon={option.icon}
-          active={isActive(option.value)}
+          active={isSelected(value, option.value, multiSelect)}
           onPress={() => handlePress(option.value)}
           isFirst={index === 0}
           isLast={index === options.length - 1}
           disabled={disabled || option.disabled}
           grow={fullWidth}
           showSelectedCheck={showSelectedCheck}
-          accessibilityRole={multiSelect ? "checkbox" : "radio"}
+          accessibilityRole={roles.item}
         />
       ))}
     </View>

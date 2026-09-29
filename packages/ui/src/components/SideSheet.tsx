@@ -59,7 +59,7 @@ const SideSheet = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const body = (
-    <View style={styles.body}>
+    <View style={styles.flex}>
       <View style={styles.header}>
         {onBack && (
           <IconButton
@@ -98,17 +98,6 @@ const SideSheet = ({
   );
 
   if (modal) {
-    // The inner edge is the one that faces the content.
-    const inner =
-      side === "end"
-        ? {
-            borderTopStartRadius: theme.shape.large,
-            borderBottomStartRadius: theme.shape.large,
-          }
-        : {
-            borderTopEndRadius: theme.shape.large,
-            borderBottomEndRadius: theme.shape.large,
-          };
     return (
       <SideOverlay
         visible={visible}
@@ -116,7 +105,7 @@ const SideSheet = ({
         side={side}
         width={width}
         scrimLabel="Close sheet"
-        panelStyle={[styles.modal, inner, style]}
+        panelStyle={style}
         testID={testID}
       >
         {body}
@@ -144,11 +133,6 @@ export default SideSheet;
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     flex: { flex: 1 },
-    body: { flex: 1 },
-    modal: {
-      backgroundColor: theme.colors.surfaceContainerLow,
-      overflow: "hidden",
-    },
     standard: {
       alignSelf: "stretch",
       maxWidth: "100%",

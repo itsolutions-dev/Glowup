@@ -27,6 +27,8 @@ import {
 } from "@its/glowup-ui";
 import type { DemoProps } from "./types";
 
+const noop = () => {};
+
 const RAIL_ITEMS = [
   { id: "home", label: "Home", icon: "home-outline" as const },
   { id: "search", label: "Search", icon: "magnify" as const },
@@ -50,12 +52,8 @@ export const NavigationRailDemo = ({ props, updateProp }: DemoProps) => (
       header={
         props.withFab ? (
           <>
-            <IconButton
-              icon="menu"
-              accessibilityLabel="Menu"
-              onPress={() => {}}
-            />
-            <FAB icon="pencil-outline" placement="inline" onPress={() => {}} />
+            <IconButton icon="menu" accessibilityLabel="Menu" onPress={noop} />
+            <FAB icon="pencil-outline" placement="inline" onPress={noop} />
           </>
         ) : undefined
       }
@@ -160,7 +158,7 @@ export const TopAppBarDemo = ({ props }: DemoProps) => (
         <IconButton
           icon="arrow-left"
           accessibilityLabel="Back"
-          onPress={() => {}}
+          onPress={noop}
         />
       }
       actions={
@@ -168,12 +166,12 @@ export const TopAppBarDemo = ({ props }: DemoProps) => (
           <IconButton
             icon="magnify"
             accessibilityLabel="Search"
-            onPress={() => {}}
+            onPress={noop}
           />
           <IconButton
             icon="dots-vertical"
             accessibilityLabel="More"
-            onPress={() => {}}
+            onPress={noop}
           />
         </>
       }
@@ -209,19 +207,19 @@ export const SplitButtonDemo = ({ props }: DemoProps) => (
     mode={props.mode}
     disabled={props.disabled}
     iconName="content-save-outline"
-    onPress={() => {}}
+    onPress={noop}
     items={[
       {
         id: "copy",
         label: "Save a copy",
         icon: "content-copy",
-        onPress: () => {},
+        onPress: noop,
       },
       {
         id: "draft",
         label: "Save as draft",
         icon: "file-outline",
-        onPress: () => {},
+        onPress: noop,
       },
       {
         id: "discard",
@@ -229,7 +227,7 @@ export const SplitButtonDemo = ({ props }: DemoProps) => (
         icon: "delete-outline",
         destructive: true,
         dividerAbove: true,
-        onPress: () => {},
+        onPress: noop,
       },
     ]}
   >
@@ -250,7 +248,7 @@ export const ToolbarDemo = ({ props }: DemoProps) => {
       key={icon}
       icon={icon as any}
       accessibilityLabel={icon.replace("format-", "")}
-      onPress={() => {}}
+      onPress={noop}
     />
   ));
   return (
@@ -263,7 +261,7 @@ export const ToolbarDemo = ({ props }: DemoProps) => {
         accessibilityLabel="Formatting"
         fab={
           props.variant === "floating" && props.withFab ? (
-            <FAB icon="plus" placement="inline" onPress={() => {}} />
+            <FAB icon="plus" placement="inline" onPress={noop} />
           ) : undefined
         }
       >
@@ -347,6 +345,12 @@ export const ChipGroupDemo = ({ props }: DemoProps) => {
   );
 };
 
+const COLUMNS = [
+  { key: "name", label: "Name", width: 180 },
+  { key: "role", label: "Role", width: 140 },
+  { key: "city", label: "City", width: 140 },
+] as const;
+
 const ROWS = [
   { name: "Ada Lovelace", role: "Analyst", city: "London" },
   { name: "Grace Hopper", role: "Engineer", city: "New York" },
@@ -358,16 +362,20 @@ export const TableDemo = () => (
     <Table>
       <TableHead>
         <TableRow>
-          <TableHeaderCell width={180}>Name</TableHeaderCell>
-          <TableHeaderCell width={140}>Role</TableHeaderCell>
-          <TableHeaderCell width={140}>City</TableHeaderCell>
+          {COLUMNS.map((column) => (
+            <TableHeaderCell key={column.key} width={column.width}>
+              {column.label}
+            </TableHeaderCell>
+          ))}
         </TableRow>
       </TableHead>
       {ROWS.map((row) => (
         <TableRow key={row.name} style={{ minHeight: 48 }}>
-          <TableCell width={180}>{row.name}</TableCell>
-          <TableCell width={140}>{row.role}</TableCell>
-          <TableCell width={140}>{row.city}</TableCell>
+          {COLUMNS.map((column) => (
+            <TableCell key={column.key} width={column.width}>
+              {row[column.key]}
+            </TableCell>
+          ))}
         </TableRow>
       ))}
     </Table>

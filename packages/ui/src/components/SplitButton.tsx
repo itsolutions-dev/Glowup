@@ -54,8 +54,7 @@ const SplitButton = ({
   const [open, setOpen] = useState(false);
   const colors = getButtonColors(theme, mode, "primary");
   const surface = {
-    underlayColor:
-      colors.bg === "transparent" ? theme.colors.surface : colors.bg,
+    underlayColor: colors.underlay,
     rippleColor: colors.on,
   };
   const outline =

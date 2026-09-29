@@ -12,6 +12,7 @@ import PickerField from "./DateTimePicker.field";
 import PickerSurface from "./DateTimePicker.surface";
 import { usePickerParts } from "./DateTimePicker.hooks";
 import { DateTimePickerProps } from "./DateTimePicker.shared";
+import { useEscapeKey } from "./internal/useEscapeKey";
 
 /** M3 docked-picker width; matches the native dialog so the two agree. */
 const SURFACE_WIDTH = 328;
@@ -91,16 +92,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
 
   // Escape lives here rather than in Calendar so a single owner closes the
   // surface in every mode, `time` included (which renders no Calendar).
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      close();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, close]);
+  useEscapeKey(open, close);
 
   const openSurface = () => {
     if (props.disabled) return;

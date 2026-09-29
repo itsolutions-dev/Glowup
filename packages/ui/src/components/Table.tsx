@@ -196,7 +196,6 @@ export const TableCell = ({
       {typeof children === "string" || typeof children === "number" ? (
         <Text
           style={[
-            styles.tdText,
             { color: theme.colors.onSurface },
             theme.typography.bodyMedium,
             textStyle,
@@ -245,9 +244,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRightWidth: 1,
     justifyContent: "center",
-  },
-  tdText: {
-    fontSize: 14,
   },
   sortIconContainer: {
     marginLeft: 4,

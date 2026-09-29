@@ -31,6 +31,8 @@ export interface ButtonColors {
   on: string;
   /** Outline colour, outlined mode only. */
   border?: string;
+  /** What a state layer is drawn over: `bg`, or `surface` for the transparent modes. */
+  underlay: string;
 }
 
 /**
@@ -65,20 +67,22 @@ export const getButtonColors = (
       ? theme.colors.onErrorContainer
       : theme.colors.onSecondaryContainer;
 
+  const surface = theme.colors.surface;
   switch (mode) {
     case "tonal":
-      return { bg: container, on: onContainer, border: undefined };
+      return { bg: container, on: onContainer, underlay: container };
     case "outlined":
       return {
         bg: "transparent",
         on: accent,
         border: tone === "primary" ? theme.colors.outline : accent,
+        underlay: surface,
       };
     case "text":
-      return { bg: "transparent", on: accent, border: undefined };
+      return { bg: "transparent", on: accent, underlay: surface };
     case "filled":
     default:
-      return { bg: accent, on: onAccent, border: undefined };
+      return { bg: accent, on: onAccent, underlay: accent };
   }
 };
 
@@ -143,10 +147,12 @@ const Button = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const { bg, on, border } = useMemo(
-    () => getButtonColors(theme, mode, tone),
-    [theme, mode, tone],
-  );
+  const {
+    bg,
+    on,
+    border,
+    underlay: stateBase,
+  } = useMemo(() => getButtonColors(theme, mode, tone), [theme, mode, tone]);
 
   const isInteractive = !disabled && !loading && !busy;
 
@@ -174,17 +180,9 @@ const Button = ({
         let currentBg = bg;
 
         if (isInteractive && pressed) {
-          currentBg = getStateColor(
-            bg === "transparent" ? theme.colors.surface : bg,
-            on,
-            "press",
-          );
+          currentBg = getStateColor(stateBase, on, "press");
         } else if (isInteractive && hovered) {
-          currentBg = getStateColor(
-            bg === "transparent" ? theme.colors.surface : bg,
-            on,
-            "hover",
-          );
+          currentBg = getStateColor(stateBase, on, "hover");
         }
 
         const glow =

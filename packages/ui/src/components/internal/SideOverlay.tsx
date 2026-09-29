@@ -14,10 +14,12 @@ import { rgba } from "polished";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { useReduceMotion } from "./useReduceMotion";
+import { useEscapeKey } from "./useEscapeKey";
 
 export interface SideOverlayProps {
   visible: boolean;
-  onDismiss: () => void;
+  /** Scrim press, Android back and Escape. Omitted, the panel only closes via `visible`. */
+  onDismiss?: () => void;
   /** The edge the panel slides in from, in reading direction. */
   side: "start" | "end";
   /** Panel width; capped at the window width. */
@@ -30,6 +32,7 @@ export interface SideOverlayProps {
 }
 
 const DURATION = 250;
+const noop = () => {};
 
 /**
  * The part a modal navigation drawer and a modal side sheet share: a panel
@@ -60,8 +63,12 @@ const SideOverlay = ({
   // Width is not a dependency of the animation, so resizing the window while
   // the panel is open re-lays it out instead of replaying the entrance.
   const [progress] = useState(() => new Animated.Value(visible ? 1 : 0));
+  const dismiss = onDismiss ?? noop;
 
   useEffect(() => {
+    // Mounted closed there is nothing to animate: a drawer that is always
+    // rendered must not start a timing run to the value it already holds.
+    if (!visible && !mounted) return;
     Animated.timing(progress, {
       toValue: visible ? 1 : 0,
       duration: reduceMotion ? 0 : DURATION,
@@ -69,38 +76,45 @@ const SideOverlay = ({
     }).start(({ finished }) => {
       if (finished && !visible) setMounted(false);
     });
+    // `mounted` is read, not a trigger: the run starts when `visible` changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, progress, reduceMotion]);
 
   // react-native's onRequestClose covers Android back, not Escape on web.
-  useEffect(() => {
-    if (Platform.OS !== "web" || !visible) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onDismiss();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [visible, onDismiss]);
+  useEscapeKey(visible, dismiss);
 
   // "start" is the left edge in LTR and the right edge in RTL.
-  const fromLeft = (side === "start") !== I18nManager.isRTL;
+  // react-native-web leaves `isRTL` undefined, hence the strict comparison.
+  const fromLeft = (side === "start") !== (I18nManager.isRTL === true);
   const offscreen = (fromLeft ? -1 : 1) * panelWidth;
-  const translateX = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [offscreen, 0],
-  });
+  const translateX = useMemo(
+    () =>
+      progress.interpolate({ inputRange: [0, 1], outputRange: [offscreen, 0] }),
+    [progress, offscreen],
+  );
+  // The edge that faces the content is rounded (M3 modal drawer and sheet).
+  const innerEdge = fromLeft
+    ? {
+        borderTopRightRadius: theme.shape.large,
+        borderBottomRightRadius: theme.shape.large,
+      }
+    : {
+        borderTopLeftRadius: theme.shape.large,
+        borderBottomLeftRadius: theme.shape.large,
+      };
 
   return (
     <NativeModal
       visible={mounted}
       transparent
       animationType="none"
-      onRequestClose={onDismiss}
+      onRequestClose={dismiss}
     >
       <View style={styles.root} testID={testID}>
         <Animated.View style={[styles.scrim, { opacity: progress }]}>
           <Pressable
             style={StyleSheet.absoluteFill}
-            onPress={onDismiss}
+            onPress={dismiss}
             accessibilityRole="button"
             accessibilityLabel={scrimLabel}
             testID={testID ? `${testID}-scrim` : undefined}
@@ -111,6 +125,7 @@ const SideOverlay = ({
           style={[
             styles.panel,
             fromLeft ? { left: 0 } : { right: 0 },
+            innerEdge,
             {
               width: panelWidth,
               paddingTop: insets.top,
@@ -146,5 +161,6 @@ const makeStyles = (theme: Theme) =>
       top: 0,
       bottom: 0,
       backgroundColor: theme.colors.surfaceContainerLow,
+      overflow: "hidden",
     },
   });

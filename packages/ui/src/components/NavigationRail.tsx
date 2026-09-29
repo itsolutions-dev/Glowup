@@ -6,7 +6,8 @@ import Badge from "./Badge";
 import Icon from "./Icon";
 import Typography from "./Typography";
 import type { NavigationBarItem } from "./NavigationBar";
-import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import type { PressableState } from "./types";
+import { activeGlyph } from "./internal/activeGlyph";
 
 // M3 navigation rail: 80dp container, 56x32 active indicator, 56dp per item.
 const RAIL_WIDTH = 80;
@@ -69,11 +70,7 @@ const NavigationRail = ({
       >
         {items.map((item) => {
           const active = item.id === activeId;
-          const icon = (
-            active && item.icon.endsWith("-outline")
-              ? item.icon.replace(/-outline$/, "")
-              : item.icon
-          ) as MaterialCommunityIconsGlyphs;
+          const icon = activeGlyph(item.icon, active);
           const showLabel =
             showLabels === "always" || (showLabels === "selected" && active);
 

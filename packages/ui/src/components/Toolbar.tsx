@@ -75,30 +75,27 @@ const Toolbar = ({
     );
   }
 
-  const vertical = orientation === "vertical";
-  const bar = (
-    <Paper
-      elevation={3}
-      style={[
-        styles.floating,
-        vertical ? styles.column : styles.row,
-        color === "vibrant" && {
-          backgroundColor: theme.colors.primaryContainer,
-        },
-        fab == null && style,
-      ]}
-    >
-      {children}
-    </Paper>
-  );
-
-  if (fab == null) return <View {...a11y}>{bar}</View>;
+  const direction = orientation === "vertical" ? "column" : "row";
+  // `style` always lands on the outer node, FAB or not, so a caller positioning
+  // the toolbar does not have to know which element that is.
   return (
     <View
       {...a11y}
-      style={[vertical ? styles.withFabColumn : styles.withFabRow, style]}
+      style={[styles.floatingRow, { flexDirection: direction }, style]}
     >
-      {bar}
+      <Paper
+        elevation={3}
+        style={[
+          styles.floating,
+          { flexDirection: direction },
+          direction === "row" ? { minHeight: HEIGHT } : { minWidth: HEIGHT },
+          color === "vibrant" && {
+            backgroundColor: theme.colors.primaryContainer,
+          },
+        ]}
+      >
+        {children}
+      </Paper>
       {fab}
     </View>
   );
@@ -126,16 +123,5 @@ const makeStyles = (theme: Theme) =>
       gap: theme.spacing.xs,
       alignItems: "center",
     },
-    row: { flexDirection: "row", minHeight: HEIGHT },
-    column: { flexDirection: "column", minWidth: HEIGHT },
-    withFabRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.s,
-    },
-    withFabColumn: {
-      flexDirection: "column",
-      alignItems: "center",
-      gap: theme.spacing.s,
-    },
+    floatingRow: { alignItems: "center", gap: theme.spacing.s },
   });

@@ -5,14 +5,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Typography from "./Typography";
 
-// M3 top app bar heights: small and center-aligned 64dp, medium 112dp, large 152dp.
+// M3 top app bar: a 64dp row; medium (112dp) and large (152dp) add a line
+// below it for a bigger title.
 const ROW_HEIGHT = 64;
-const LAYOUT = {
-  small: { height: 64, title: "titleLarge" },
-  center: { height: 64, title: "titleLarge" },
-  medium: { height: 112, title: "headlineSmall" },
-  large: { height: 152, title: "headlineMedium" },
+const TITLE_VARIANT = {
+  small: "titleLarge",
+  center: "titleLarge",
+  medium: "headlineSmall",
+  large: "headlineMedium",
 } as const;
+const TITLE_LINE = { medium: 112 - ROW_HEIGHT, large: 152 - ROW_HEIGHT };
 
 export interface TopAppBarProps {
   title: React.ReactNode;
@@ -57,13 +59,13 @@ const TopAppBar = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
-  const layout = LAYOUT[variant];
+
   const inline = variant === "small" || variant === "center";
 
   const heading =
     typeof title === "string" ? (
       <Typography
-        variant={layout.title}
+        variant={TITLE_VARIANT[variant]}
         numberOfLines={1}
         accessibilityRole="header"
       >
@@ -119,7 +121,7 @@ const TopAppBar = ({
         <View style={[styles.side, styles.actions]}>{actions}</View>
       </View>
       {!inline && (
-        <View style={[styles.block, { minHeight: layout.height - ROW_HEIGHT }]}>
+        <View style={[styles.block, { minHeight: TITLE_LINE[variant] }]}>
           {titleBlock}
         </View>
       )}

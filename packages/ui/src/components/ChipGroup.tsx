@@ -4,6 +4,7 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Chip from "./Chip";
 import type { MaterialCommunityIconsGlyphs } from "./types";
+import { isSelected, selectionRoles, toggleIn } from "./internal/selection";
 
 export interface ChipGroupOption {
   value: string;
@@ -50,18 +51,10 @@ const ChipGroup = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const selected = (v: string) =>
-    multiSelect ? Array.isArray(value) && value.includes(v) : value === v;
-
+  const roles = selectionRoles(multiSelect);
   const press = (v: string) => {
-    if (multiSelect) {
-      const current = Array.isArray(value) ? value : [];
-      onValueChange(
-        current.includes(v) ? current.filter((x) => x !== v) : [...current, v],
-      );
-      return;
-    }
-    if (value !== v) onValueChange(v);
+    if (multiSelect) onValueChange(toggleIn(value, v));
+    else if (value !== v) onValueChange(v);
     else if (!required) onValueChange(null);
   };
 
@@ -71,17 +64,15 @@ const ChipGroup = ({
       label={option.label}
       icon={option.icon}
       mode={mode}
-      selected={selected(option.value)}
+      selected={isSelected(value, option.value, multiSelect)}
       disabled={option.disabled}
       onPress={() => press(option.value)}
-      accessibilityRole={multiSelect ? "checkbox" : "radio"}
+      accessibilityRole={roles.item}
     />
   ));
 
   const a11y = {
-    accessibilityRole: multiSelect
-      ? ("none" as const)
-      : ("radiogroup" as const),
+    accessibilityRole: roles.group,
     accessibilityLabel,
     testID,
   };

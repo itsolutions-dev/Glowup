@@ -13,7 +13,7 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import HelperText from "./HelperText";
 
-interface InputProps {
+export interface InputProps {
   label?: string;
   placeholder?: string;
   precision?: number;
@@ -80,17 +80,14 @@ const Input = ({
       if (type === "number") {
         // Allow digits, one leading minus and one decimal point
         const sign = text.trimStart().startsWith("-") ? "-" : "";
-        let cleaned = text.replace(/[^0-9.]/g, "");
-        const parts = cleaned.split(".");
-
-        // Prevent multiple decimals
-        if (parts.length > 2)
-          cleaned = parts[0] + "." + parts.slice(1).join("");
-
-        // Handle precision (e.g., only 2 decimal places for currency)
-        if (precision !== undefined && parts[1]?.length > precision) {
-          cleaned = `${parts[0]}.${parts[1].substring(0, precision)}`;
-        }
+        const [whole, ...rest] = text.replace(/[^0-9.]/g, "").split(".");
+        // Every dot after the first is dropped, then precision applies to the
+        // merged fraction: "1.2.34" at precision 2 is "1.23", not "1.234".
+        const fraction =
+          precision === undefined
+            ? rest.join("")
+            : rest.join("").slice(0, precision);
+        const cleaned = rest.length > 0 ? `${whole}.${fraction}` : whole;
         onChangeText(sign + cleaned);
       } else {
         onChangeText(text);
@@ -233,18 +230,11 @@ const Input = ({
 
 export default Input;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: 20,
       width: "100%",
-    },
-    staticLabel: {
-      marginBottom: 8,
-      marginLeft: 4,
-      fontWeight: "500",
     },
     inputContainer: {
       minHeight: 52,
@@ -264,16 +254,9 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
       flex: 1,
       paddingVertical: 8,
       ...Platform.select({
-        web: { outlineStyle: "none" },
+        // No browser focus ring: the field draws its own.
+        web: { outlineWidth: 0 },
       }),
-    },
-    outlined: {
-      borderRadius: 4,
-    },
-    filled: {
-      borderTopLeftRadius: 4,
-      borderTopRightRadius: 4,
-      borderBottomWidth: 1,
     },
     textInputWrapper: {
       flex: 1,

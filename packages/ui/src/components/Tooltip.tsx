@@ -16,9 +16,26 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Portal, { usePortalHost } from "./Portal";
+import Button from "./Button";
+import { useEscapeKey } from "./internal/useEscapeKey";
 
-interface TooltipProps {
+export interface TooltipProps {
+  /** The tip's text; the body text of a rich tooltip. */
   content: string;
+  /**
+   * `"plain"` is the one-line label for an icon-only control. `"rich"` adds a
+   * `title` and an `action`, for context a label cannot carry. Defaults to
+   * `"plain"`.
+   */
+  variant?: "plain" | "rich";
+  /** Rich only: the subhead. */
+  title?: string;
+  /**
+   * Rich only: a text button. A rich tooltip with an action stays open while
+   * the pointer is over it (web) and until the action is taken or the anchor
+   * is long-pressed again (native).
+   */
+  action?: { label: string; onPress: () => void };
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
@@ -37,6 +54,9 @@ const GAP = 8;
 
 const Tooltip = ({
   content,
+  variant = "plain",
+  title,
+  action,
   children,
   position = "top",
   disabled,
@@ -55,6 +75,13 @@ const Tooltip = ({
   const anchorRef = useRef<View>(null);
   const window = useWindowDimensions();
   const hasPortalHost = usePortalHost();
+  const rich = variant === "rich";
+  // A tip with something to press has to stay long enough to be pressed.
+  const persistent = rich && !!action;
+  // A persistent tip renders inline, right after its anchor, so Tab moves from
+  // the anchor into the action; a portalled tip sits at the end of the page.
+  const portalled = hasPortalHost && !persistent;
+  const tipRef = useRef<View>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -69,9 +96,9 @@ const Tooltip = ({
   // Portalled, the tip is no longer a child of the anchor, so it has to be
   // placed in window coordinates rather than offsets from the wrapper.
   const measureAnchor = useCallback(() => {
-    if (!hasPortalHost || !anchorRef.current) return;
+    if (!portalled || !anchorRef.current) return;
     anchorRef.current.measureInWindow((x, y) => setAnchorOrigin({ x, y }));
-  }, [hasPortalHost]);
+  }, [portalled]);
 
   const show = useCallback(() => {
     if (disabled) return;
@@ -90,21 +117,40 @@ const Tooltip = ({
 
   const hide = useCallback(() => {
     clearTimers();
-    if (leaveDelay <= 0) {
+    const close = () => {
+      // Focus moved from the anchor into the tip's action: keep it open.
+      const tip = tipRef.current as unknown as HTMLElement | null;
+      if (
+        persistent &&
+        Platform.OS === "web" &&
+        tip?.contains(document.activeElement)
+      ) {
+        return;
+      }
       setVisible(false);
+    };
+    if (leaveDelay <= 0) {
+      close();
       return;
     }
-    hideTimer.current = setTimeout(() => setVisible(false), leaveDelay);
-  }, [leaveDelay, clearTimers]);
+    hideTimer.current = setTimeout(close, leaveDelay);
+  }, [leaveDelay, clearTimers, persistent]);
 
-  // Native: show on long press, then auto-hide
+  // A persistent tip is dismissed with Escape as well as by leaving it.
+  useEscapeKey(visible && persistent, () => setVisible(false));
+
+  // Native: show on long press, then auto-hide — or toggle, when persistent.
   const handleLongPress = useCallback(() => {
     if (disabled) return;
     clearTimers();
     measureAnchor();
+    if (persistent) {
+      setVisible((open) => !open);
+      return;
+    }
     setVisible(true);
     hideTimer.current = setTimeout(() => setVisible(false), hideDelay);
-  }, [disabled, hideDelay, clearTimers, measureAnchor]);
+  }, [disabled, hideDelay, clearTimers, measureAnchor, persistent]);
 
   const onAnchorLayout = useCallback((event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -142,7 +188,7 @@ const Tooltip = ({
         break;
     }
 
-    if (!hasPortalHost) return { left, top };
+    if (!portalled) return { left, top };
 
     // In the portal the offsets are absolute on the screen, so they also have
     // to be kept inside it — a tip on a screen-edge anchor would otherwise
@@ -159,20 +205,69 @@ const Tooltip = ({
     position,
     anchorSize,
     tipSize,
-    hasPortalHost,
+    portalled,
     anchorOrigin,
     window.width,
     window.height,
   ]);
 
-  const webHoverProps =
-    Platform.OS === "web"
-      ? { onHoverIn: show, onHoverOut: hide, onFocus: show, onBlur: hide }
-      : { onLongPress: handleLongPress };
+  // Web listens on a plain View, not a Pressable: react-native-web does not
+  // deliver hover or focus to a Pressable whose child is itself pressable (a
+  // Button, an IconButton — the usual anchor), so the tip never opened on hover
+  // and opened on focus only when the wrapper itself, an extra tab stop, took
+  // it. Pointer enter/leave fire once per boundary crossing, and focus/blur
+  // bubble up from the child.
+  const webAnchorProps = {
+    onPointerEnter: show,
+    onPointerLeave: hide,
+    onFocus: show,
+    onBlur: hide,
+  };
 
-  const tip = (
+  const tip = rich ? (
+    <View
+      ref={tipRef}
+      onLayout={onTipLayout}
+      role="tooltip"
+      // Over the tip counts as over the anchor, or the pointer could never
+      // reach the action; focus leaving the action closes it like the pointer.
+      onPointerEnter={clearTimers}
+      onPointerLeave={hide}
+      onBlur={hide}
+      pointerEvents={persistent ? "auto" : "none"}
+      style={[
+        styles.tooltip,
+        styles.rich,
+        tipStyle,
+        { opacity: tipSize.width > 0 ? 1 : 0 },
+      ]}
+    >
+      {!!title && (
+        <Text style={[theme.typography.titleSmall, styles.richText]}>
+          {title}
+        </Text>
+      )}
+      <Text style={[theme.typography.bodyMedium, styles.richText]}>
+        {content}
+      </Text>
+      {action && (
+        <View style={styles.richActions}>
+          <Button
+            mode="text"
+            onPress={() => {
+              setVisible(false);
+              action.onPress();
+            }}
+          >
+            {action.label}
+          </Button>
+        </View>
+      )}
+    </View>
+  ) : (
     <View
       onLayout={onTipLayout}
+      role="tooltip"
       pointerEvents="none"
       style={[styles.tooltip, tipStyle, { opacity: tipSize.width > 0 ? 1 : 0 }]}
     >
@@ -187,14 +282,20 @@ const Tooltip = ({
 
   return (
     <View style={styles.wrapper}>
-      <Pressable
-        ref={anchorRef}
-        onLayout={onAnchorLayout}
-        accessibilityLabel={content}
-        {...webHoverProps}
-      >
-        {children}
-      </Pressable>
+      {Platform.OS === "web" ? (
+        <View ref={anchorRef} onLayout={onAnchorLayout} {...webAnchorProps}>
+          {children}
+        </View>
+      ) : (
+        <Pressable
+          ref={anchorRef}
+          onLayout={onAnchorLayout}
+          accessibilityLabel={title ? `${title}. ${content}` : content}
+          onLongPress={handleLongPress}
+        >
+          {children}
+        </Pressable>
+      )}
 
       {/*
         A tooltip cannot use the native Modal the kit's other overlays use: it
@@ -202,16 +303,14 @@ const Tooltip = ({
         parent and any sibling stacking context; with no host mounted it stays
         where it always was, positioned against the anchor.
       */}
-      {visible && (hasPortalHost ? <Portal>{tip}</Portal> : tip)}
+      {visible && (portalled ? <Portal>{tip}</Portal> : tip)}
     </View>
   );
 };
 
 export default Tooltip;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       alignSelf: "flex-start",
@@ -247,5 +346,20 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     },
     tooltipText: {
       color: theme.colors.inverseOnSurface,
+    },
+    // M3 rich tooltip: surfaceContainer, medium corners, up to 312dp wide.
+    rich: {
+      backgroundColor: theme.colors.surfaceContainer,
+      borderRadius: theme.shape.medium,
+      paddingHorizontal: theme.spacing.m,
+      paddingTop: theme.spacing.s + theme.spacing.xs,
+      paddingBottom: theme.spacing.s,
+      maxWidth: 312,
+      gap: theme.spacing.xs,
+    },
+    richText: { color: theme.colors.onSurfaceVariant },
+    richActions: {
+      flexDirection: "row",
+      marginStart: -theme.spacing.s - theme.spacing.xs,
     },
   });

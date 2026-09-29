@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
 import { useTheme } from "../providers/ThemeProvider";
 
-interface DividerProps {
+export interface DividerProps {
   /**
    * Centred label, splitting the rule in two. Horizontal only — a vertical
    * divider is a bare rule.

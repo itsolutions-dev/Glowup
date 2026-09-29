@@ -14,22 +14,18 @@ design-token system with light/dark support.
 npm install @its/glowup-ui
 ```
 
-Then install the peer dependencies your app doesn't already have. The core set:
+Then install the peer dependencies your app doesn't already have:
 
 ```bash
 npx expo install react-native-safe-area-context react-native-svg @expo/vector-icons
 ```
 
-Some components need additional peers (installed only if you use them):
-
-| Component(s)                                                                       | Peer dependency                                                                          |
-| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `DateTimePicker`, `DatePicker`, `DatePickerInput`, `DateRangePicker`, `TimePicker` | `expo-localization`                                                                      |
-| `StatusBar`                                                                        | `expo-status-bar`                                                                        |
+That is the whole set. On web, `react-native-web` brings `react-dom`, which the web date
+picker portals into.
 
 The date and time pickers are pure React Native: the same Material 3 surface renders on iOS,
-Android and web, with no OS picker underneath. `expo-localization` is only used to read the device
-locale — pass `locale` explicitly and it is not needed either.
+Android and web, with no OS picker underneath. The locale comes from `Intl` (the browser's
+language on web, the device locale under Hermes); pass `locale` to override it.
 
 ## Usage
 
@@ -126,7 +122,7 @@ Its public surface is the barrel `src/index.ts`. Layout:
 ```
 src/
 ├── index.ts          # public API barrel — everything importable from "@its/glowup-ui"
-├── components/        # ~60 Material You components
+├── components/        # the Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
 │   ├── Modal/         # Modal, ConfirmDialog
@@ -149,8 +145,10 @@ accessibility role/state and reacts to the light/dark theme automatically.
 
 > Icons: any prop typed _icon_ below takes a **MaterialCommunityIcons** name — a kebab-case
 > string like `"plus"` or `"bell-outline"` (outline variants append `-outline`).
-> The authoritative, always-current spec (with full defaults for every prop) lives at
-> [`src/components/components.md`](src/components/components.md).
+> The authoritative spec (with full defaults for every prop) is
+> [`components.md`](https://github.com/itsolutions-dev/Glowup/blob/master/packages/ui/src/components/components.md)
+> in the repository; the documentation site's per-component pages carry the prop tables
+> generated from the source.
 
 ## Component reference
 
@@ -160,11 +158,11 @@ Exported from the library alongside the components:
 
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
-- **`useTheme()`** → `{ theme, isDark, toggleTheme }`.
+- **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
 - **`getStateColor(bg, on, state)`** — composites a hover/press state-layer color over a base.
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native
-  `Alert.alert` on iOS/Android, custom `Modal` on web.
+  `Alert.alert` on iOS/Android, custom `Modal` on web. Mounting `AlertProvider` is enough.
 - **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 
@@ -505,6 +503,22 @@ one a set of `checkbox`es.
 | size     | `"small" \| "medium"` (small = 24px) | `medium` |
 | disabled | boolean                              | `false`  |
 
+#### `ButtonGroup`
+
+M3 Expressive button group — `type="standard"` or `"connected"` (the successor of segmented
+buttons), single or `multiSelect`, sizes `xs` / `s` / `m`. Same `options` / `value` /
+`onValueChange` shape as `ToggleButtonGroup`.
+
+#### `SplitButton`
+
+A primary action (`children`, `iconName`, `onPress`) joined to a trailing button that opens a
+`Menu` of `items`.
+
+#### `ChipGroup`
+
+Filter chips with the selection handled: single (optionally `required`) or `multiSelect`,
+wrapping or horizontally scrolling.
+
 ### Inputs & forms
 
 #### `Input`
@@ -532,12 +546,6 @@ Text field (outlined or filled) with affixes, icons, multiline and number mode.
 | numberOfLines              | number                                                      | `4`        |
 | minHeight                  | number                                                      | `56`       |
 | onFocus / onBlur           | () => void                                                  |            |
-
-#### `NumericInput`
-
-Thin wrapper over `Input` with `type="number"`. Same core props: `value`, `onChangeText`
-(required), plus `label/placeholder/prefix/suffix`, `precision`, `variant` (`outlined`),
-`error`, `disabled/readonly`, `minHeight` (`56`).
 
 #### `Select`
 
@@ -693,9 +701,8 @@ React Native — no SVG, no native modules — so they render identically on web
 `Calendar` adds month and year sub-views, single/range/multiple selection, virtualized endless
 month scrolling and the keyboard navigation above; `ClockPicker` is the M3 hour/minute readout
 with its AM/PM switch, over `ClockDial` (the analog face, drag to set) or two text fields.
-`TimeSelect` — the older scrolling hour/minute columns — is still exported but no longer used by
-the pickers. Full prop tables in
-[`components.md`](src/components/components.md).
+Full prop tables in
+[`components.md`](https://github.com/itsolutions-dev/Glowup/blob/master/packages/ui/src/components/components.md).
 
 #### `Autocomplete`
 
@@ -780,15 +787,6 @@ Star rating; renders half-stars, sets whole values on tap.
 | size     | number                                       | `24`    |
 | disabled | boolean                                      |         |
 
-#### `LanguageSelector`
-
-Cycles through the configured languages on press (flag/label pill).
-
-| Prop        | Type                                           | Default |
-| ----------- | ---------------------------------------------- | ------- |
-| currentLang | string (required)                              | —       |
-| onChange    | (lang) => void — next language code (required) | —       |
-
 ### Data display
 
 #### `Avatar`
@@ -815,19 +813,6 @@ Small count/dot overlay (position it over its target).
 | max      | number (shows `max+` when exceeded) | `99`    |
 | showZero | boolean                             | `false` |
 | visible  | boolean                             | `true`  |
-
-#### `IconBadge`
-
-Icon button with an attached count badge.
-
-| Prop       | Type                                         | Default   |
-| ---------- | -------------------------------------------- | --------- |
-| iconName   | icon (required)                              | —         |
-| badgeCount | number (hidden ≤ 0, caps at `99+`, required) | —         |
-| size       | number                                       | `32`      |
-| badgeColor | string                                       | `error`   |
-| color      | string (icon color)                          | `primary` |
-| onPress    | () => void                                   |           |
 
 #### `StatusBadge`
 
@@ -949,6 +934,11 @@ token-driven corner radius.
 | resizeMode       | ImageResizeMode                                                     | `cover`                |
 | showLoader       | boolean                                                             | `true`                 |
 | onLoad / onError | () => void                                                          |                        |
+
+#### `Table`, `TableHead`, `TableRow`, `TableHeaderCell`, `TableCell`
+
+The primitives `DataGrid` is built from, for a table whose rows you lay out yourself; they carry
+the table / row / columnheader / cell roles.
 
 ### Feedback & overlays
 
@@ -1138,6 +1128,11 @@ toast.hide(); // clears the queue
 | action         | `{ label, onPress }`                                                  |             |
 | id             | string — replaces a queued toast with the same id instead of stacking |             |
 
+#### `SideSheet`
+
+M3 side sheet: `modal` (over a scrim, from the `end` or `start` edge) or standard (inline beside
+the content), with back / close buttons and an `actions` row.
+
 ### Navigation
 
 > The library is **navigation-agnostic**: it ships navigation *widgets* (app bar, bottom bar,
@@ -1147,19 +1142,10 @@ toast.hide(); // clears the queue
 
 #### `AppBar`
 
-Top app bar (drawer/back button, title, right actions). Its props are navigator-shaped
+`TopAppBar` behind react-navigation's header contract (drawer/back button, title, right
+actions). Its props are navigator-shaped
 (`navigation`, `route`, `options`, `back`, `isPinned`) and structurally typed, so it drops
 into a React Navigation `header` renderer without the library depending on the navigator.
-
-#### `DrawerPreferenceItem`
-
-A labeled row (icon + label + trailing control) used for the drawer's preference toggles.
-
-| Prop     | Type                         | Default |
-| -------- | ---------------------------- | ------- |
-| icon     | icon (required)              | —       |
-| label    | string (required)            | —       |
-| children | ReactNode (trailing control) |         |
 
 #### `NavigationBar`
 
@@ -1216,16 +1202,27 @@ Horizontal progress steps.
 | activeStep  | number (index, required)                      | —       |
 | onStepPress | (stepIndex) => void (makes steps tappable)    |         |
 
+#### `TopAppBar`
+
+The navigator-agnostic top app bar `AppBar` is built on: `small`, `center`, `medium`, `large`,
+with `leading` and `actions` slots and an `elevated` on-scroll state.
+
+#### `NavigationRail`
+
+The side-mounted counterpart of `NavigationBar` for medium and expanded windows — same item
+shape, `header` / `footer` slots for a menu button or a FAB.
+
+#### `NavigationDrawer`, `DrawerItem`, `DrawerSection`
+
+M3 navigation drawer, `variant="standard"` (inline) or `"modal"` (over a scrim; Escape and Android
+back close it).
+
+#### `Toolbar`
+
+M3 Expressive toolbar: `docked` along the bottom edge or `floating` (standard or vibrant,
+horizontal or vertical, with an optional FAB).
+
 ### System
-
-#### `StatusBar`
-
-Themes the platform status bar / browser chrome. On web it drives the `theme-color` meta tag
-and body background; on native it sets the status-bar style. Renders nothing.
-
-| Prop            | Type   | Default                |
-| --------------- | ------ | ---------------------- |
-| backgroundColor | string | `theme.colors.surface` |
 
 ## Live demo
 

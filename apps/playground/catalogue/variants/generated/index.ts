@@ -25,24 +25,20 @@ import { variants as DatePickerInput } from "./DatePickerInput";
 import { variants as DateRangePicker } from "./DateRangePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
 import { variants as Divider } from "./Divider";
-import { variants as DrawerPreferenceItem } from "./DrawerPreferenceItem";
 import { variants as EmptyState } from "./EmptyState";
 import { variants as FAB } from "./FAB";
 import { variants as FormControl } from "./FormControl";
 import { variants as Grid } from "./Grid";
 import { variants as HelperText } from "./HelperText";
-import { variants as IconBadge } from "./IconBadge";
 import { variants as IconButton } from "./IconButton";
 import { variants as Image } from "./Image";
 import { variants as Input } from "./Input";
-import { variants as LanguageSelector } from "./LanguageSelector";
 import { variants as LinearProgress } from "./LinearProgress";
 import { variants as Link } from "./Link";
 import { variants as ListItem } from "./ListItem";
 import { variants as ListSection } from "./ListSection";
 import { variants as ListSubheader } from "./ListSubheader";
 import { variants as NavigationBar } from "./NavigationBar";
-import { variants as NumericInput } from "./NumericInput";
 import { variants as Pagination } from "./Pagination";
 import { variants as Paper } from "./Paper";
 import { variants as PinInput } from "./PinInput";
@@ -66,7 +62,6 @@ import { variants as Stepper } from "./Stepper";
 import { variants as TabContent } from "./TabContent";
 import { variants as Tabs } from "./Tabs";
 import { variants as TimePicker } from "./TimePicker";
-import { variants as TimeSelect } from "./TimeSelect";
 import { variants as Toggle } from "./Toggle";
 import { variants as ToggleButton } from "./ToggleButton";
 import { variants as ToggleButtonGroup } from "./ToggleButtonGroup";
@@ -98,24 +93,20 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   DateRangePicker,
   DateTimePicker,
   Divider,
-  DrawerPreferenceItem,
   EmptyState,
   FAB,
   FormControl,
   Grid,
   HelperText,
-  IconBadge,
   IconButton,
   Image,
   Input,
-  LanguageSelector,
   LinearProgress,
   Link,
   ListItem,
   ListSection,
   ListSubheader,
   NavigationBar,
-  NumericInput,
   Pagination,
   Paper,
   PinInput,
@@ -139,7 +130,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   TabContent,
   Tabs,
   TimePicker,
-  TimeSelect,
   Toggle,
   ToggleButton,
   ToggleButtonGroup,

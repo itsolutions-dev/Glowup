@@ -10,7 +10,7 @@ import {
 } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
-interface ChipProps {
+export interface ChipProps {
   label: string;
   onPress?: () => void;
   onClose?: () => void;
@@ -20,6 +20,12 @@ interface ChipProps {
   mode?: "filled" | "tonal" | "outlined";
   /** "small" renders a compact 24px chip. */
   size?: "small" | "medium";
+  /**
+   * Overrides the role of a pressable chip (`"button"`). A chip that toggles
+   * inside a group is a `"radio"` or a `"checkbox"`, and then reports
+   * `selected` as checked.
+   */
+  accessibilityRole?: "button" | "radio" | "checkbox";
   style?: object;
 }
 
@@ -32,6 +38,7 @@ const Chip = ({
   disabled = false,
   mode = "filled",
   size = "medium",
+  accessibilityRole,
   style = {},
 }: ChipProps) => {
   const { theme } = useTheme();
@@ -123,9 +130,15 @@ const Chip = ({
         onPressIn={() => setBodyPressed(true)}
         onPressOut={() => setBodyPressed(false)}
         disabled={disabled}
-        accessibilityRole={onPress ? "button" : undefined}
+        accessibilityRole={
+          onPress ? (accessibilityRole ?? "button") : undefined
+        }
         accessibilityLabel={label}
-        accessibilityState={{ disabled, selected }}
+        accessibilityState={
+          accessibilityRole === "radio" || accessibilityRole === "checkbox"
+            ? { disabled, checked: selected }
+            : { disabled, selected }
+        }
         style={styles.content}
         {...(Platform.OS === "android" && {
           android_ripple: { color: rippleColor },
@@ -164,7 +177,6 @@ const Chip = ({
           accessibilityRole="button"
           accessibilityLabel={`Close ${label}`}
           style={({ hovered, pressed }: PressableState) => [
-            styles.closeButton,
             { opacity: disabled ? 0.38 : pressed ? 0.7 : hovered ? 0.5 : 1 },
           ]}
         >
@@ -182,9 +194,7 @@ const Chip = ({
 
 export default Chip;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       marginTop: theme.spacing.xs,

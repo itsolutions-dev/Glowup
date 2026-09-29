@@ -51,6 +51,23 @@ npm run export:web -w @its/glowup-playground  # static export to apps/playground
 Both generators write committed files and CI fails on a diff, so run them after touching a
 component's props or a preview.
 
+## Dependencies
+
+- `package-lock.json` is **committed**. CI, Pages and Release install with
+  `npm ci --ignore-scripts`; after editing any manifest run `npm install` and commit the
+  lockfile with it. Nothing in the tree needs an install script. (`examples/consumer` is the
+  exception: it has no lockfile on purpose, see its README.)
+- The Expo SDK owns the native versions (`node_modules/expo/bundledNativeModules.json`).
+  Upgrade them together, never one by one, and do not follow `npm outdated`'s "latest" for
+  them: a lone react-native or reanimated bump builds on no device.
+- `apps/playground` lists `react-native-reanimated`, `react-native-worklets` and
+  `react-native-gesture-handler` although it imports none of them. They are **pins**:
+  expo-router depends on them, and without a direct dependency npm resolves releases outside
+  the SDK (reanimated 4.7 + worklets 0.13, which expo-modules-core rejects). Keep them.
+- Held back on purpose: TypeScript 7 (no JS API; typescript-eslint supports < 6.1), ESLint 10
+  (eslint-plugin-import / eslint-plugin-react), Jest 30 (jest-expo depends on 29),
+  `@changesets/cli` 3 (its publish flow changed; unverified with `changesets/action@v1`).
+
 ## The library/app boundary
 
 This is the rule that keeps the split real:
@@ -69,8 +86,10 @@ This is the rule that keeps the split real:
 packages/ui/
 ├── src/
 │   ├── index.ts        # the public API barrel; nothing else is public
-│   ├── components/     # 85 components (CardParts/, List/, Modal/, Progress/,
+│   ├── components/     # the components (CardParts/, List/, Modal/, Progress/,
 │   │                   #   Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
+│   ├── components/internal/  # shared building blocks, never exported
+│   │                   #   (SideOverlay, cornerPlacement, useReduceMotion)
 │   ├── components/components.md  # authoritative per-component spec, all prop defaults
 │   ├── providers/      # ThemeProvider, AlertProvider, ToastProvider, theme.json
 │   └── __tests__/      # the library's own component tests (jest-expo)
@@ -81,11 +100,15 @@ packages/ui/
 
 - Anything added under `src/components` must be exported from `src/index.ts` to exist for
   consumers.
-- Native dependencies are **peerDependencies** (mostly optional); only `date-fns` and
-  `polished` are real dependencies. The library is **navigation-agnostic**: it must never
+- Native dependencies are **peerDependencies**, and every one of them is required except
+  `react-dom` (web only, and always there with `react-native-web`). An "optional" peer that a
+  barrel-reachable module imports is not optional — Metro resolves every static import — which
+  is why `expo-localization` (replaced by `Intl`) and `expo-status-bar` (the `StatusBar`
+  component moved into the playground) are gone. `polished` is the only real dependency.
+  The library is **navigation-agnostic**: it must never
   depend on `@react-navigation/*`. It ships navigation widgets (`AppBar`, `NavigationBar`,
-  `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`) but no navigator — those live in the app,
-  in `apps/playground/navigation/`.
+  `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`) but no navigator — that belongs to the
+  consuming app.
 - Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
   `.js.map` files; bob's typescript target hardcodes `--declarationMap`, so `npm run build`
   chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
@@ -130,7 +153,8 @@ supports a manual toggle.
 
 - `ThemeProvider` — Material You theme derived from `theme.json` (see above).
 - `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom Modal on
-  web. Call the `Alert(title, message, buttons)` singleton; mount `AlertProviderWrapper` too.
+  web. Call the `Alert(title, message, buttons)` singleton; `AlertProvider` wires it up
+  (`AlertProviderWrapper` is a deprecated pass-through).
 - `ToastProvider` — imperative queued toasts via `useToast()`.
 
 ## apps/playground — the presentation app
@@ -200,10 +224,14 @@ takes react-navigation's header contract and a consumer still needs to see it.
   them by hand when the theme's primary colours change.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
-module, its name in the right group in `catalogue/categories.ts`, any special-casing in
-`ComponentPreview.tsx`, and its name in the `CATALOGUE` list in
-`__tests__/playground-catalogue.test.tsx` — the test pins that list against `FLAT_ORDER`, the
-registry and the generated docs, so a component catalogued without a working demo fails there.
+module, its name in the right group in `catalogue/categories.ts`, and its name in the
+`CATALOGUE` list in `__tests__/playground-catalogue.test.tsx`. When the stage needs more than
+`<Component {...props} />` (sample data, controlled state, an overlay behind a trigger), give the
+entry a `Demo` component (`catalogue/demos.tsx`) instead of adding a branch to
+`ComponentPreview.tsx`; a component with no authored preview can reuse that demo as its
+gallery (`catalogue/variants/manual/fromDemos.tsx`). The test pins the `CATALOGUE` list
+against `FLAT_ORDER`, the registry and the generated docs, so a component catalogued without a
+working demo fails there.
 It gets its page, its props table and its URL for free.
 
 ### Keyboard
@@ -237,7 +265,7 @@ layout that still believed it was on a phone.
 
 `apps/playground` is exported to static HTML (`expo-router` with `output: "static"`) and
 deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to `master`. Each
-route — including all 85 component pages — is prerendered to its own file with its own title
+route — including every component page — is prerendered to its own file with its own title
 and meta description, so a component URL is shareable and crawlable.
 
 Pages serves a project site from a subpath (`/<repo>/`), so the workflow sets

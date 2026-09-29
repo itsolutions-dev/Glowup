@@ -8,10 +8,14 @@ import {
   IconButton,
   AnimatedFAB,
   ToggleButton,
+  ButtonGroup,
+  SplitButton,
+  ChipGroup,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
+import { ButtonGroupDemo, SplitButtonDemo, ChipGroupDemo } from "../demos";
 
-/** Actions: 9 catalogue entries. */
+/** Actions: 12 catalogue entries. */
 export const actions: Record<string, ComponentMetadata> = {
   Button: {
     name: "Button",
@@ -283,6 +287,86 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: ToggleButtonGroup,
     props: {
       value: { type: "text", default: "list", label: "Value" },
+    },
+  },
+  ButtonGroup: {
+    name: "ButtonGroup",
+    Component: ButtonGroup,
+    Demo: ButtonGroupDemo,
+    props: {
+      type: {
+        type: "select",
+        default: "standard",
+        label: "Type",
+        options: [
+          { label: "Standard", value: "standard" },
+          { label: "Connected", value: "connected" },
+        ],
+      },
+      mode: {
+        type: "select",
+        default: "tonal",
+        label: "Unselected look",
+        options: [
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      size: {
+        type: "select",
+        default: "s",
+        label: "Size",
+        options: [
+          { label: "Extra small", value: "xs" },
+          { label: "Small", value: "s" },
+          { label: "Medium", value: "m" },
+        ],
+      },
+      multiSelect: { type: "boolean", default: false, label: "Multi select" },
+    },
+  },
+  SplitButton: {
+    name: "SplitButton",
+    Component: SplitButton,
+    Demo: SplitButtonDemo,
+    props: {
+      children: { type: "text", default: "Save", label: "Label" },
+      mode: {
+        type: "select",
+        default: "filled",
+        label: "Mode",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  ChipGroup: {
+    name: "ChipGroup",
+    Component: ChipGroup,
+    Demo: ChipGroupDemo,
+    props: {
+      multiSelect: { type: "boolean", default: false, label: "Multi select" },
+      required: {
+        type: "boolean",
+        default: false,
+        label: "Required",
+        appliesWhen: (values) => !values.multiSelect,
+      },
+      wrap: { type: "boolean", default: true, label: "Wrap" },
+      mode: {
+        type: "select",
+        default: "outlined",
+        label: "Mode",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
     },
   },
 };

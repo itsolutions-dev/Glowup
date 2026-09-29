@@ -9,7 +9,7 @@ export interface Step {
   icon?: string;
 }
 
-interface StepperProps {
+export interface StepperProps {
   steps: Step[] | string[];
   activeStep: number;
   onStepPress?: (stepIndex: number) => void;

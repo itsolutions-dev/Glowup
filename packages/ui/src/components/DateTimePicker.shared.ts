@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import { Platform, StyleProp, ViewStyle } from "react-native";
-import * as Localization from "expo-localization";
-import { isToday, isYesterday, isTomorrow } from "date-fns";
+import { StyleProp, ViewStyle } from "react-native";
 
 /** What the picker collects: a calendar date, a time of day, or both. */
 export type DateTimePickerMode = "date" | "datetime" | "time";
@@ -211,11 +209,18 @@ export type DateTimePickerProps =
   | RangeDateTimePickerProps
   | MultipleDateTimePickerProps;
 
+/**
+ * The locale the runtime formats dates in. Intl is the one source on every
+ * platform — the browser's language on web, the device locale under Hermes —
+ * which is also what every other helper here formats with, so the chrome and
+ * the input format can never disagree.
+ */
 export const getDeviceLocale = () => {
-  if (Platform.OS === "web") {
-    return (typeof navigator !== "undefined" && navigator.language) || "en-US";
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().locale || "en-US";
+  } catch {
+    return "en-US";
   }
-  return Localization.getLocales()[0]?.languageTag || "en-US";
 };
 
 // --- Locale-derived calendar metadata ---------------------------------------
@@ -599,9 +604,10 @@ const FALLBACK_LABELS: Record<RelativeDay, string> = {
 };
 
 const getRelativeDay = (date: Date): RelativeDay | null => {
-  if (isToday(date)) return "today";
-  if (isYesterday(date)) return "yesterday";
-  if (isTomorrow(date)) return "tomorrow";
+  const today = new Date();
+  if (isSameDay(date, today)) return "today";
+  if (isSameDay(date, addDays(today, -1))) return "yesterday";
+  if (isSameDay(date, addDays(today, 1))) return "tomorrow";
   return null;
 };
 

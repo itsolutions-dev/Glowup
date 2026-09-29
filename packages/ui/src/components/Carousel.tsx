@@ -18,7 +18,7 @@ import {
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface CarouselProps {
+export interface CarouselProps {
   children: React.ReactNode;
   showDots?: boolean;
   /** Overlay prev/next arrow buttons. */
@@ -44,6 +44,10 @@ const Carousel = ({
   const pages = useMemo(() => React.Children.toArray(children), [children]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Mirrors activeIndex for the scroll handler and the auto-play timer, which
+  // must act on the current page without doing it inside a state updater
+  // (updaters run twice under StrictMode, so the callback and the scroll did too).
+  const activeIndexRef = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
   // Pause auto-play while the user is interacting
   const interacting = useRef(false);
@@ -71,10 +75,10 @@ const Carousel = ({
         event.nativeEvent.contentOffset.x / containerWidth,
       );
       const clamped = Math.max(0, Math.min(pages.length - 1, index));
-      setActiveIndex((prev) => {
-        if (prev !== clamped) onIndexChange?.(clamped);
-        return clamped;
-      });
+      if (clamped === activeIndexRef.current) return;
+      activeIndexRef.current = clamped;
+      setActiveIndex(clamped);
+      onIndexChange?.(clamped);
     },
     [containerWidth, pages.length, onIndexChange],
   );
@@ -83,11 +87,8 @@ const Carousel = ({
     if (!autoPlayInterval || autoPlayInterval <= 0 || pages.length < 2) return;
     const timer = setInterval(() => {
       if (interacting.current) return;
-      setActiveIndex((prev) => {
-        const next = (prev + 1) % pages.length;
-        goToIndex(next);
-        return prev; // handleScroll updates the index once the scroll lands
-      });
+      // handleScroll updates the index once the scroll lands.
+      goToIndex((activeIndexRef.current + 1) % pages.length);
     }, autoPlayInterval);
     return () => clearInterval(timer);
   }, [autoPlayInterval, pages.length, goToIndex]);
@@ -184,9 +185,7 @@ const Carousel = ({
 
 export default Carousel;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       width: "100%",

@@ -7,13 +7,13 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
-  LayoutAnimation,
 } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import Collapse from "./Collapse";
 
-interface AccordionProps {
+export interface AccordionProps {
   title: string;
   children: React.ReactNode;
   startExpanded?: boolean;
@@ -42,8 +42,6 @@ const Accordion = ({
   }
 
   const toggleExpand = () => {
-    // Standard M3 easing is roughly 300ms
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
     onPress?.(!expanded);
   };
@@ -79,7 +77,9 @@ const Accordion = ({
         />
       </Pressable>
 
-      {expanded && (
+      {/* Collapse animates this panel alone; LayoutAnimation, used before,
+          animated the next layout pass of the whole app. */}
+      <Collapse open={expanded} duration={300}>
         <View style={styles.content}>
           {typeof children === "string" ? (
             <Text
@@ -94,16 +94,14 @@ const Accordion = ({
             children
           )}
         </View>
-      )}
+      </Collapse>
     </View>
   );
 };
 
 export default Accordion;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       marginVertical: 4,

@@ -257,9 +257,17 @@ const shipped = {
   },
 } as Record<PaletteId, ThemePalette>;
 
+// Built on first read, then cached: importing the library (which every screen
+// does, through ThemeProvider) must not pay for nineteen palettes — about 1,400
+// tone searches — when an app uses one. Enumerable, so Object.values(palettes)
+// still lists them all, building each as it goes.
 (Object.keys(MATERIAL_SEEDS) as MaterialPaletteId[]).forEach((id) => {
   const { name, seed, chroma } = MATERIAL_SEEDS[id] as MaterialSeed;
-  shipped[id] = createPalette(seed, { id, name, chroma });
+  let built: ThemePalette | undefined;
+  Object.defineProperty(shipped, id, {
+    get: () => (built ??= createPalette(seed, { id, name, chroma })),
+    enumerable: true,
+  });
 });
 
 (

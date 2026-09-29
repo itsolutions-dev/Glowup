@@ -43,7 +43,10 @@ lib/
 # generated native folders
 /ios
 /android
-package-lock.json
+
+# The workspaces' lockfile is committed; the smoke app's is not (it must resolve
+# the published package and its peers fresh, the way a new app would).
+examples/consumer/package-lock.json
 
 .claude
 .vscode/*

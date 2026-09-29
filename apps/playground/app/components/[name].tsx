@@ -39,8 +39,15 @@ const STAGE_WIDTHS = {
 
 type StageWidth = keyof typeof STAGE_WIDTHS;
 
+// The name comes from the URL, so only the registry's own keys count:
+// /components/constructor must be a 404, not Object.prototype.constructor.
+const entryFor = (name?: string) =>
+  name && Object.hasOwn(ComponentRegistry, name)
+    ? ComponentRegistry[name]
+    : undefined;
+
 const defaultsOf = (name: string) => {
-  const meta = ComponentRegistry[name];
+  const meta = entryFor(name);
   const values: Record<string, any> = {};
   if (!meta) return values;
   for (const [key, definition] of Object.entries(meta.props)) {
@@ -65,7 +72,7 @@ export default function ComponentPage() {
   const layout = useLayout();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const meta = name ? ComponentRegistry[name] : undefined;
+  const meta = entryFor(name);
   const [stageWidth, setStageWidth] = useState<StageWidth>("full");
 
   // The layout keeps this page mounted across catalogue navigation, so the

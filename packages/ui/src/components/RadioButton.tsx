@@ -3,7 +3,7 @@ import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-interface RadioButtonProps {
+export interface RadioButtonProps {
   label?: string;
   labelPosition?: "left" | "right";
   selected: boolean;
@@ -108,7 +108,7 @@ export interface RadioOption {
   disabled?: boolean;
 }
 
-interface RadioGroupProps {
+export interface RadioGroupProps {
   label?: string;
   options: RadioOption[];
   value: any;

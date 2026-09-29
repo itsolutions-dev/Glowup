@@ -16,7 +16,11 @@ import {
   resolveBounds,
   useLabels,
 } from "./DateTimePicker.shared";
-import { PickerSelection } from "./DateTimePicker.surface";
+import type { PickerFieldProps } from "./DateTimePicker.field";
+import type {
+  PickerSelection,
+  PickerSurfaceProps,
+} from "./DateTimePicker.surface";
 
 /**
  * Everything the native and the web picker need in common: locale resolution,
@@ -194,4 +198,98 @@ export const usePickerController = (props: DateTimePickerProps) => {
     handleInputBlur,
     resetInput,
   };
+};
+
+/**
+ * The field and the surface, wired to one controller: everything the native
+ * dialog and the web popover render identically. Each platform file adds only
+ * its own shell — a Modal on native, an anchored portal on web — and its own
+ * way of opening, so a prop threaded through one cannot be forgotten on the
+ * other.
+ */
+export const usePickerParts = (props: DateTimePickerProps) => {
+  const {
+    label,
+    placeholder,
+    mode = "date",
+    disabled,
+    required,
+    error,
+    helperText,
+    clearable,
+    onClear,
+    validRange,
+    isDateDisabled,
+    labels: labelOverrides,
+    firstDayOfWeek,
+    minuteInterval,
+    use24HourClock,
+    inputEnabled,
+    defaultInputType,
+    scrollMode,
+    startYear,
+    endYear,
+    style,
+    testID,
+    defaultOpen = false,
+  } = props;
+
+  const controller = usePickerController(props);
+  const [open, setOpen] = useState(defaultOpen);
+  const close = useCallback(() => setOpen(false), []);
+
+  const confirm = (selection: PickerSelection) => {
+    close();
+    controller.handleConfirm(selection);
+  };
+
+  const fieldProps: Omit<PickerFieldProps, "onPress"> = {
+    label,
+    required,
+    displayValue: controller.displayValue,
+    placeholder,
+    icon: mode === "time" ? "clock-outline" : "calendar-blank-outline",
+    active: open,
+    disabled,
+    error: error ?? controller.inputError,
+    helperText,
+    clearable,
+    onClear: () => {
+      controller.resetInput();
+      onClear?.();
+    },
+    clearAccessibilityLabel: controller.labels.clear,
+    accessibilityLabel: label ?? controller.labels.openPicker,
+    editable: controller.fieldEditable,
+    inputValue: controller.fieldText,
+    onInputChange: controller.handleInputChange,
+    onInputBlur: controller.handleInputBlur,
+    inputPlaceholder: controller.inputHint,
+    openAccessibilityLabel: controller.labels.openPicker,
+    style,
+    testID,
+  };
+
+  const surfaceProps: PickerSurfaceProps = {
+    mode,
+    fieldLabel: label,
+    selection: controller.selection,
+    onConfirm: confirm,
+    onCancel: close,
+    validRange,
+    isDateDisabled,
+    locale: controller.locale,
+    firstDayOfWeek,
+    labels: labelOverrides,
+    minuteInterval,
+    use24HourClock,
+    scrollMode,
+    startYear,
+    endYear,
+    inputEnabled,
+    defaultInputType,
+    testID: testID ? `${testID}-surface` : undefined,
+  };
+
+  return { controller, open, setOpen, close, fieldProps, surfaceProps };
 };

@@ -14,7 +14,7 @@ import CardContent from "./CardParts/CardContent";
 import CardCover from "./CardParts/CardCover";
 import CardTitle from "./CardParts/CardTitle";
 
-interface CardProps {
+export interface CardProps {
   children: React.ReactNode;
   variant?: "elevated" | "filled" | "outlined" | "glow";
   onPress?: () => void;
@@ -56,9 +56,7 @@ const CardBase = ({
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     base: {
       borderRadius: theme.shape.medium,

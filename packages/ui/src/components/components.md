@@ -70,7 +70,7 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 
 ### 1.5 Theme utilities
 
-- `useTheme()` → `{ theme, isDark, toggleTheme }`. Syncs with OS scheme + manual toggle.
+- `useTheme()` → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`. Syncs with OS scheme + manual toggle.
 - `getStateColor(bg, on, state)` → composites a hover/press state-layer color over a base.
 - `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus/hover ring (variant `"error"` for error state).
 
@@ -112,6 +112,7 @@ Renders themed text at an M3 scale.
 | children | ReactNode                | —              | ✓   | Text content |
 | variant  | typography key (see 1.3) | `displayLarge` |     | Type scale   |
 | style    | TextStyle                |                |     | Override     |
+| …rest    | TextProps                |                |     | Forwarded to `Text` (`numberOfLines`, `selectable`, `testID`…) |
 
 ### Divider
 
@@ -315,6 +316,7 @@ Inline navigational text.
 | ---------------- | ------------------------------- | ------------------------ | --- | ------------------------------------------------------------ |
 | children         | string                          | —                        | ✓   | Label                                                        |
 | href             | string                          |                          |     | Opened with `Linking.openURL`; ignored when `onPress` is set |
+| allowedSchemes   | string[]                        | `http, https, mailto, tel` |   | An `href` with any other scheme does nothing                 |
 | onPress          | () => void                      |                          |     |                                                              |
 | variant          | typography key                  | `bodyMedium`             |     |                                                              |
 | underline        | `"always" \| "hover" \| "none"` | `hover`                  |     |                                                              |
@@ -389,6 +391,17 @@ Segmented button set (single or multi select).
 | onValueChange | (val) => void                | —       | ✓   |                          |
 | multiSelect   | boolean                      | `false` |     |                          |
 
+### ButtonGroup
+
+M3 Expressive button group: `type="standard"` (spaced) or `"connected"` (joined, the successor of
+segmented buttons), single or `multiSelect`, sizes `xs`/`s`/`m`. Same `options`/`value` shape as
+ToggleButtonGroup; selection changes shape as well as colour. Props: see the API reference on its page of the docs site (generated from the source).
+
+### SplitButton
+
+A primary action (`children`, `iconName`, `onPress`) joined to a trailing button that opens a
+`Menu` of `items`. Modes `filled`/`tonal`/`outlined`. Props: see the API reference on its page of the docs site (generated from the source).
+
 ### Chip
 
 | Prop     | Type                                | Default  | Req | Description                  |
@@ -402,6 +415,11 @@ Segmented button set (single or multi select).
 | size     | `"small" \| "medium"`               | `medium` |     | small = 24px                 |
 | disabled | boolean                             | `false`  |     |                              |
 | style    | object                              |          |     |                              |
+
+### ChipGroup
+
+A set of filter chips with the selection handled: single (optionally `required`) or `multiSelect`,
+wrapping or scrolling (`wrap`). Chips report radio/checkbox semantics. Props: see the API reference on its page of the docs site (generated from the source).
 
 ---
 
@@ -435,22 +453,6 @@ Text field, outlined or filled; supports affixes, icons, multiline, number mode.
 | minHeight                  | number                   | `56`       |     |                                      |
 | onFocus / onBlur           | () => void               |            |     |                                      |
 | style                      | ViewStyle                |            |     |                                      |
-
-### NumericInput
-
-Thin wrapper over `Input` with `type="number"`.
-
-| Prop                                  | Type                     | Default    | Description    |
-| ------------------------------------- | ------------------------ | ---------- | -------------- |
-| value                                 | string                   | —          | Required       |
-| onChangeText                          | (text) => void           | —          | Required       |
-| label / placeholder / prefix / suffix | string                   |            |                |
-| precision                             | number                   |            | Decimal places |
-| variant                               | `"outlined" \| "filled"` | `outlined` |                |
-| error                                 | string                   |            |                |
-| disabled / readonly                   | boolean                  |            |                |
-| minHeight                             | number                   | `56`       |                |
-| style                                 | ViewStyle                |            |                |
 
 ### Select
 
@@ -512,7 +514,7 @@ RadioGroup:
 
 ### Toggle (Switch)
 
-Animated M3 switch, fully configurable dimensions.
+Animated M3 switch.
 
 | Prop              | Type            | Default | Req | Description         |
 | ----------------- | --------------- | ------- | --- | ------------------- |
@@ -521,10 +523,6 @@ Animated M3 switch, fully configurable dimensions.
 | disabled          | boolean         | `false` |     |                     |
 | width             | number          | `32`    |     |                     |
 | height            | number          | `18`    |     |                     |
-| trackBorderWidth  | number          | `2`     |     |                     |
-| animationDuration | number (ms)     | `200`   |     |                     |
-| thumbOffSizeRatio | number          | `0.8`   |     | Thumb size when off |
-| thumbOnSizeRatio  | number          | `0.9`   |     | Thumb size when on  |
 | containerStyle    | ViewStyle       |         |     |                     |
 
 ### Slider
@@ -678,20 +676,6 @@ with plain Views, so it adds no SVG dependency.
 | onUnitComplete                  | () => void                  |         |     | Fires when a press ends, to hand over to the minutes |
 | isTimeDisabled                  | (hours, minutes) => boolean |         |     | Greys out and refuses values                         |
 
-### TimeSelect
-
-Scrollable hour/minute columns, plus a day-period column on 12-hour locales. Superseded by
-`ClockPicker` inside the pickers; still exported for compact inline use.
-
-| Prop                      | Type           | Default       | Req | Description                           |
-| ------------------------- | -------------- | ------------- | --- | ------------------------------------- |
-| value                     | Date           | —             | ✓   |                                       |
-| onChange                  | (date) => void | —             | ✓   |                                       |
-| minimumDate / maximumDate | Date           |               |     | Only clamp on the boundary day itself |
-| minuteInterval            | number         | `1`           |     |                                       |
-| locale                    | string         | device locale |     | Decides 12h vs 24h                    |
-| use12Hour                 | boolean        | from locale   |     | Force the clock format                |
-
 ### PinInput
 
 One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
@@ -806,19 +790,6 @@ Small count/dot overlay (position it over its target).
 | visible  | boolean              | `true`  |                            |
 | style    | any                  |         |                            |
 
-### IconBadge
-
-Icon button with an attached count badge.
-
-| Prop       | Type       | Default   | Req | Description                    |
-| ---------- | ---------- | --------- | --- | ------------------------------ |
-| iconName   | icon       | —         | ✓   |                                |
-| badgeCount | number     | —         | ✓   | Hidden when ≤ 0; caps at `99+` |
-| size       | number     | `32`      |     |                                |
-| badgeColor | string     | `error`   |     |                                |
-| color      | string     | `primary` |     | Icon color                     |
-| onPress    | () => void |           |     |                                |
-
 ### StatusBadge
 
 Small labeled status pill (own semantic colors, light/dark aware).
@@ -831,7 +802,7 @@ Small labeled status pill (own semantic colors, light/dark aware).
 
 ### DataGrid
 
-Virtualized table: sortable columns, reorder, density, loading, empty state. Also exports composable primitives `Table, Thead, Tfoot, Tr, Th, Td`.
+Virtualized table: sortable columns, reorder, density, loading, empty state. Built on the public `Table` primitives below.
 
 | Prop                           | Type                          | Default  | Req | Description                        |
 | ------------------------------ | ----------------------------- | -------- | --- | ---------------------------------- |
@@ -847,6 +818,12 @@ Virtualized table: sortable columns, reorder, density, loading, empty state. Als
 | onEndReachedThreshold          | number                        |          |     |                                    |
 | emptyMessage                   | string                        |          |     | Shown when empty & not loading     |
 | style / rowStyle / headerStyle | ViewStyle                     |          |     |                                    |
+
+### Table / TableHead / TableRow / TableHeaderCell / TableCell
+
+The primitives DataGrid is assembled from, for a table whose rows the caller lays out. They carry
+the table/row/columnheader/cell roles. `TableHeaderCell` takes `sortable`/`sortDirection`/`onPress`;
+cells take a fixed `width` (default 150). Props: see the API reference on its page of the docs site (generated from the source).
 
 ### ListItem
 
@@ -879,6 +856,7 @@ Wraps a child; shows a bubble on hover (web) / long-press (native).
 | position  | `"top" \| "bottom" \| "left" \| "right"` | `top`   |     |                  |
 | disabled  | boolean                                  |         |     |                  |
 | hideDelay | number (ms)                              | `1500`  |     | Native auto-hide |
+| variant   | `"plain" \| "rich"`                     | `plain` |     | Rich: `title`, body, optional `action`; persistent with an action |
 
 ### Accordion
 
@@ -1007,6 +985,7 @@ Centered dialog surface.
 | onClose       | () => void                    |         |     | Renders a close button      |
 | onDismiss     | () => void                    |         |     | Android back / ESC          |
 | closeText     | string                        | `Close` |     |                             |
+| fullScreen    | boolean                       | `false` |     | M3 full-screen dialog: close, title and `actions` in a header |
 
 ### ConfirmDialog
 
@@ -1048,6 +1027,11 @@ Draggable bottom sheet with scrim.
 | dismissOnScrimTap | boolean    | `true`  |     |                                  |
 | maxHeightRatio    | number     |         |     | Max height as fraction of window |
 
+### SideSheet
+
+M3 side sheet: modal (over a scrim, from the `end` or `start` edge) or standard (inline, beside the
+content). Header with optional back and close buttons, scrolling body, `actions` row. Props: see the API reference on its page of the docs site (generated from the source).
+
 ### Menu
 
 Anchored action menu.
@@ -1076,7 +1060,7 @@ Loading placeholder with pulse.
 
 ### CircularProgress
 
-Indeterminate spinner (SVG).
+Indeterminate spinner (SVG), or a determinate ring when `progress` is set.
 
 | Prop        | Type        | Default   | Description     |
 | ----------- | ----------- | --------- | --------------- |
@@ -1084,6 +1068,7 @@ Indeterminate spinner (SVG).
 | strokeWidth | number      | `4`       |                 |
 | color       | string      | `primary` |                 |
 | duration    | number (ms) | `1000`    | Rotation period |
+| progress    | number 0–1  |           | Determinate ring over a track |
 
 ### LinearProgress
 
@@ -1155,9 +1140,14 @@ toast.hide(); // clears the queue
 
 ### AppBar
 
-Top app bar; integrates with the navigator (drawer/back, title, right actions). Props are
-navigator-shaped (`navigation`, `route`, `options`, `back`, `isPinned`) — framework-specific,
-adapt to the chosen router.
+`TopAppBar` behind react-navigation's header contract: reads the title from `options`/`route`,
+shows back or a drawer menu button, renders `options.headerRight`. Props are navigator-shaped
+(`navigation`, `route`, `options`, `back`, `isPinned`). Without a navigator, use `TopAppBar`.
+
+### TopAppBar
+
+Navigator-agnostic M3 top app bar: `small`, `center`, `medium`, `large`; `leading` and `actions`
+slots; `elevated` for the on-scroll state; pads the top safe-area inset. Props: see the API reference on its page of the docs site (generated from the source).
 
 ### NavigationBar
 
@@ -1169,6 +1159,23 @@ Bottom navigation bar.
 | activeId    | string                   | —        | ✓   |                                               |
 | onItemPress | (id) => void             | —        | ✓   |                                               |
 | showLabels  | `"always" \| "selected"` | `always` |     |                                               |
+
+### NavigationRail
+
+The side-mounted counterpart of NavigationBar for medium and expanded windows: same item shape,
+labels `always`/`selected`/`none`, `header` (menu, FAB) and `footer` slots. Props: see the API reference on its page of the docs site (generated from the source).
+
+### NavigationDrawer / DrawerItem / DrawerSection
+
+M3 navigation drawer: `variant="standard"` (inline panel) or `"modal"` (slides in over a scrim;
+Escape and Android back close it). `DrawerItem` has `icon`, `selected`, trailing `badge`;
+`DrawerSection` a `title` and an optional divider. Props: see the API reference on its page of the docs site (generated from the source).
+
+### Toolbar
+
+M3 Expressive toolbar: `docked` (full-width, bottom inset) or `floating` (pill, elevation 3,
+`standard`/`vibrant`, horizontal/vertical, optional `fab`). Lays out actions; does not position
+itself. Props: see the API reference on its page of the docs site (generated from the source).
 
 ### Tabs
 
@@ -1283,15 +1290,15 @@ never pushes a cell onto the next line and a short last row keeps its cells at c
 
 ---
 
-## 9. Component Index (73)
+## 9. Component Index
 
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
 **Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
-**Actions**: Button, IconButton, Link, FAB, AnimatedFAB, SpeedDial, ToggleButton, ToggleButtonGroup, Chip
-**Inputs**: Input, NumericInput, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/DatePickerInput/DateRangePicker/TimePicker, Calendar, ClockPicker, ClockDial, TimeSelect, Rating
-**Data display**: Avatar, Badge, IconBadge, StatusBadge, DataGrid, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, Image
-**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
-**Navigation**: AppBar, NavigationBar, Tabs, Breadcrumbs, Pagination, Stepper
+**Actions**: Button, ProgressButton, IconButton, Link, FAB, AnimatedFAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
+**Inputs**: Input, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/DatePickerInput/DateRangePicker/TimePicker, Calendar, ClockPicker, ClockDial, Rating
+**Data display**: Avatar, Badge, StatusBadge, DataGrid, Table, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, Image
+**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, SideSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
+**Navigation**: TopAppBar, AppBar, NavigationBar, NavigationRail, NavigationDrawer, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
 
 ---
 

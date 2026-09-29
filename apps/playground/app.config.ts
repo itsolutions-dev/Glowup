@@ -36,7 +36,6 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
-    "expo-localization",
     "expo-status-bar",
     "expo-font",
     [

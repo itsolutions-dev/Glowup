@@ -5,7 +5,7 @@ import Modal from "./Modal";
 import Button from "../Button";
 import { IconSource } from "../Icon";
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
   visible: boolean;
   title?: string;
   message?: string;
@@ -66,9 +66,7 @@ function ConfirmDialog({
 
 export default ConfirmDialog;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       alignItems: "center",

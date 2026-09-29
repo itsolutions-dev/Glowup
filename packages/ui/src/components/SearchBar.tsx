@@ -12,7 +12,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
-interface SearchBarProps {
+export interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   onSubmit?: (text: string) => void;
@@ -91,9 +91,7 @@ const SearchBar = ({
 
 export default SearchBar;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

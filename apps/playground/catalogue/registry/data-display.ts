@@ -5,7 +5,6 @@ import {
   Tooltip,
   Carousel,
   Accordion,
-  IconBadge,
   StatusBadge,
   ListItem,
   Image,
@@ -13,8 +12,10 @@ import {
   Stat,
   ListSection,
   ListSubheader,
+  Table,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
+import { TableDemo } from "../demos";
 
 /** Data Display: 14 catalogue entries. */
 export const dataDisplay: Record<string, ComponentMetadata> = {
@@ -75,17 +76,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Small (dot)", value: "small" },
         ],
       },
-    },
-  },
-  IconBadge: {
-    name: "IconBadge",
-    Component: IconBadge,
-    props: {
-      iconName: { type: "text", default: "bell-outline", label: "Icon Name" },
-      badgeCount: { type: "number", default: 3, label: "Badge Count" },
-      size: { type: "number", default: 40, label: "Size" },
-      badgeColor: { type: "text", default: "", label: "Badge Color" },
-      color: { type: "text", default: "", label: "Icon Color" },
     },
   },
   StatusBadge: {
@@ -288,5 +278,11 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
+  },
+  Table: {
+    name: "Table",
+    Component: Table,
+    Demo: TableDemo,
+    props: {},
   },
 };

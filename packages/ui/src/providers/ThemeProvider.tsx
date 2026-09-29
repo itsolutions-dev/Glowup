@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 import { useColorScheme, Platform, TextStyle } from "react-native";
 
 import { mix } from "polished";
@@ -90,12 +96,7 @@ export type TypographyVariant =
   | "bodySmall";
 
 export interface Theme {
-  colors: ThemeColorTokens & {
-    accent: string;
-    text: string;
-    onAccent: string;
-    onSurfaceContainer: string;
-  };
+  colors: ThemeColorTokens;
   typography: { [key in TypographyVariant]: TextStyle };
   spacing: ThemeSpacingTokens;
   shape: ThemeShapeTokens;
@@ -132,13 +133,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: {
-    colors: {
-      ...themeConfig.colors.dark,
-      accent: themeConfig.colors.dark.primary,
-      text: themeConfig.colors.dark.onSurface,
-      onAccent: themeConfig.colors.dark.onPrimary,
-      onSurfaceContainer: themeConfig.colors.dark.onSurface,
-    },
+    colors: themeConfig.colors.dark,
     typography: themeConfig.typography as any,
 
     spacing: themeConfig.spacing,
@@ -168,38 +163,31 @@ export const ThemeProvider = ({
   const [override, setOverride] = useState<"light" | "dark" | null>(null);
   const mode = override ?? systemScheme ?? "light";
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setOverride(mode === "light" ? "dark" : "light");
-  };
+  }, [mode]);
 
-  const currentColors = mode === "dark" ? palette.dark : palette.light;
+  // Stable across unrelated re-renders of whatever mounts the provider: some
+  // seventy components memoise their styles on `theme`, so a fresh object on
+  // every render would rebuild every StyleSheet in the tree each time.
+  const theme = useMemo<Theme>(
+    () => ({
+      colors: mode === "dark" ? palette.dark : palette.light,
+      typography: themeConfig.typography as Theme["typography"],
+      spacing: themeConfig.spacing,
+      shape: themeConfig.shape,
+      isDark: mode === "dark",
+    }),
+    [palette, mode],
+  );
 
-  const theme: Theme = {
-    colors: {
-      ...currentColors,
-      accent: currentColors.primary,
-      text: currentColors.onSurface,
-      onAccent: currentColors.onPrimary,
-      onSurfaceContainer: currentColors.onSurface,
-    },
-    typography: themeConfig.typography as any,
-
-    spacing: themeConfig.spacing,
-    shape: themeConfig.shape,
-    isDark: mode === "dark",
-  };
+  const value = useMemo(
+    () => ({ theme, toggleTheme, palette, setPalette }),
+    [theme, toggleTheme, palette],
+  );
 
   return (
-    <ThemeContext.Provider
-      value={{
-        theme: theme,
-        toggleTheme,
-        palette,
-        setPalette,
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 };
 

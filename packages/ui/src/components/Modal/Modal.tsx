@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   Modal as NativeModal,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,13 +8,16 @@ import {
   View,
 } from "react-native";
 import { rgba } from "polished";
+import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 
 import Button from "../Button";
 import Icon, { IconSource } from "../Icon";
+import IconButton from "../IconButton";
 import Title from "../Typography";
+import { useEscapeKey } from "../internal/useEscapeKey";
 
-interface ModalProps {
+export interface ModalProps {
   children: React.ReactNode | string;
   title?: string;
   /** Hero glyph above the title (M3 dialog icon). Centres the header. */
@@ -36,11 +38,22 @@ interface ModalProps {
   dismissable?: boolean;
   /** Scrolls the body when the content is taller than the dialog. */
   scrollable?: boolean;
-  /** Trailing action row. Replaces the single `closeText` button. */
+  /**
+   * Trailing action row. Replaces the single `closeText` button. In a
+   * full-screen dialog it moves into the header, after the title.
+   */
   actions?: React.ReactNode;
+  /**
+   * The M3 full-screen dialog, for a form on a compact window: it fills the
+   * window, with a close button, the title and `actions` in a header row and
+   * a scrolling body. Defaults to `false`.
+   */
+  fullScreen?: boolean;
   /** Root testID. The scrim gets `${testID}-scrim`. */
   testID?: string;
 }
+
+const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
 
 function Modal({
   children,
@@ -55,24 +68,20 @@ function Modal({
   dismissable = true,
   scrollable = false,
   actions,
+  fullScreen = false,
   testID = "modal",
 }: ModalProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const dismiss = onDismiss || onClose;
+  // Read without requiring a SafeAreaProvider: only the full-screen dialog
+  // uses the insets, and a plain dialog must keep working without one.
+  const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
 
   // react-native's `onRequestClose` covers Android back but not the web ESC
   // key, so the platform's own dismiss gesture has to be wired up by hand.
-  useEffect(() => {
-    if (Platform.OS !== "web" || !visible || !dismissable || !dismiss) return;
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") dismiss();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [visible, dismissable, dismiss]);
+  useEscapeKey(visible && dismissable && !!dismiss, () => dismiss?.());
 
   const isText = typeof children === "string";
   const body = isText ? (
@@ -80,6 +89,51 @@ function Modal({
   ) : (
     children
   );
+
+  if (fullScreen) {
+    return (
+      <NativeModal
+        animationType={animationType === "fade" ? "slide" : animationType}
+        visible={visible}
+        onRequestClose={dismissable ? dismiss : undefined}
+      >
+        <View
+          testID={testID}
+          accessibilityViewIsModal
+          style={[
+            styles.fullScreen,
+            { paddingTop: insets.top, paddingBottom: insets.bottom },
+          ]}
+        >
+          <View style={styles.fullScreenHeader}>
+            {!!dismiss && (
+              <IconButton
+                icon="close"
+                accessibilityLabel={closeText}
+                onPress={dismiss}
+                testID={`${testID}-close`}
+              />
+            )}
+            <Title
+              variant="titleLarge"
+              numberOfLines={1}
+              accessibilityRole="header"
+              style={styles.fullScreenTitle}
+            >
+              {title ?? ""}
+            </Title>
+            {actions}
+          </View>
+          <ScrollView
+            style={styles.fullScreenScroll}
+            contentContainerStyle={styles.fullScreenBody}
+          >
+            {body}
+          </ScrollView>
+        </View>
+      </NativeModal>
+    );
+  }
 
   return (
     <NativeModal
@@ -143,10 +197,22 @@ function Modal({
   );
 }
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
+    fullScreen: { flex: 1, backgroundColor: theme.colors.surface },
+    fullScreenHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+      minHeight: 56,
+      paddingHorizontal: theme.spacing.xs,
+    },
+    fullScreenTitle: { flex: 1, paddingHorizontal: theme.spacing.s },
+    fullScreenScroll: { flex: 1 },
+    fullScreenBody: {
+      paddingHorizontal: theme.spacing.l,
+      paddingBottom: theme.spacing.l,
+    },
     overlay: {
       flex: 1,
       justifyContent: "center",

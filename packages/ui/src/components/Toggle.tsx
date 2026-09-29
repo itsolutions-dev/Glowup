@@ -11,37 +11,36 @@ import {
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-interface ToggleProps {
+export interface ToggleProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
-  containerStyle?: StyleProp<ViewStyle>; // Style for the outer Pressable
-  width?: number; // Make width configurable
-  height?: number; // Make height configurable
-  trackBorderWidth?: number; // Make border width configurable
-  animationDuration?: number; // Make animation duration configurable
-  thumbOffSizeRatio?: number; // Ratio of inner track height for thumb when off
-  thumbOnSizeRatio?: number; // Ratio of inner track height for thumb when on
+  /** Style for the outer Pressable. */
+  containerStyle?: StyleProp<ViewStyle>;
+  /** Track width. Defaults to 32. */
+  width?: number;
+  /** Track height; the thumb scales with it. Defaults to 18. */
+  height?: number;
 }
+
+// Fixed parts of the switch geometry: the track's outline and how much of the
+// inner track height the thumb fills, off and on.
+const TRACK_BORDER_WIDTH = 2;
+const THUMB_OFF_RATIO = 0.8;
+const THUMB_ON_RATIO = 0.9;
+const DURATION = 200;
 
 const Toggle = ({
   value,
   onValueChange,
   disabled = false,
   containerStyle = {},
-  width = 32, // Default width
-  height = 18, // Default height
-  trackBorderWidth = 2, // Default track border
-  animationDuration = 200, // Default duration
-  thumbOffSizeRatio = 0.8, // Example ratio for off state thumb size
-  thumbOnSizeRatio = 0.9, // Example ratio for on state thumb size
+  width = 32,
+  height = 18,
 }: ToggleProps) => {
   const { theme } = useTheme();
-
-  // Use the direct props, not trying to read from `style`
   const TRACK_WIDTH = width;
   const TRACK_HEIGHT = height;
-  const TRACK_BORDER_WIDTH = trackBorderWidth;
 
   const {
     thumbOffSize,
@@ -57,22 +56,12 @@ const Toggle = ({
     // Ensure they don't exceed innerTrackHeight
     const calculatedThumbOffSize = Math.max(
       0,
-      Math.min(innerTrackHeight, innerTrackHeight * thumbOffSizeRatio),
+      innerTrackHeight * THUMB_OFF_RATIO,
     );
     const calculatedThumbOnSize = Math.max(
       0,
-      Math.min(innerTrackHeight, innerTrackHeight * thumbOnSizeRatio),
+      innerTrackHeight * THUMB_ON_RATIO,
     );
-
-    // Warn if calculated thumb sizes are too large
-    if (
-      calculatedThumbOffSize > innerTrackHeight ||
-      calculatedThumbOnSize > innerTrackHeight
-    ) {
-      console.warn(
-        "Toggle: Calculated thumb size exceeds inner track height. Adjust thumb ratios or track dimensions.",
-      );
-    }
 
     // Offset for 'off' state: just the track border width
     const calculatedThumbOffOffset = TRACK_BORDER_WIDTH;
@@ -98,18 +87,11 @@ const Toggle = ({
       thumbMarginTopOff: calculatedThumbMarginTopOff,
       thumbMarginTopOn: calculatedThumbMarginTopOn,
     };
-  }, [
-    TRACK_WIDTH,
-    TRACK_HEIGHT,
-    TRACK_BORDER_WIDTH,
-    thumbOffSizeRatio,
-    thumbOnSizeRatio,
-  ]);
+  }, [TRACK_WIDTH, TRACK_HEIGHT]);
 
-  // Pass dynamic dimensions to makeStyles
   const styles = useMemo(
-    () => makeStyles(theme, TRACK_WIDTH, TRACK_HEIGHT, TRACK_BORDER_WIDTH),
-    [theme, TRACK_WIDTH, TRACK_HEIGHT, TRACK_BORDER_WIDTH],
+    () => makeStyles(theme, TRACK_WIDTH, TRACK_HEIGHT),
+    [theme, TRACK_WIDTH, TRACK_HEIGHT],
   );
 
   const [animatedValue] = useState(() => new Animated.Value(value ? 1 : 0));
@@ -117,10 +99,10 @@ const Toggle = ({
   useEffect(() => {
     Animated.timing(animatedValue, {
       toValue: value ? 1 : 0,
-      duration: animationDuration, // Use configurable duration
+      duration: DURATION,
       useNativeDriver: false,
     }).start();
-  }, [value, animationDuration, animatedValue]);
+  }, [value, animatedValue]);
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -194,18 +176,7 @@ const Toggle = ({
   );
 };
 
-// makeStyles now accepts dynamic dimensions
-const makeStyles: (
-  theme: Theme,
-  TRACK_WIDTH: number,
-  TRACK_HEIGHT: number,
-  TRACK_BORDER_WIDTH: number,
-) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-  TRACK_WIDTH: number,
-  TRACK_HEIGHT: number,
-  TRACK_BORDER_WIDTH: number,
-) =>
+const makeStyles = (theme: Theme, TRACK_WIDTH: number, TRACK_HEIGHT: number) =>
   StyleSheet.create({
     container: {
       width: TRACK_WIDTH,

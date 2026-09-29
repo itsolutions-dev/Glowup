@@ -1,45 +1,49 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
+import { getSuccessRoles, getWarningRoles } from "../providers/successRoles";
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
   label: string;
   icon?: string;
   type?: "success" | "error" | "warning";
 }
 
-const LIGHT_THEMES = {
-  success: { bg: "#ECFDF5", text: "#065F46", icon: "check-circle" },
-  error: { bg: "#FEF2F2", text: "#991B1B", icon: "alert-circle" },
-  warning: { bg: "#FFFBEB", text: "#92400E", icon: "alert" },
-};
-
-const DARK_THEMES = {
-  success: { bg: "#064E3B", text: "#6EE7B7", icon: "check-circle" },
-  error: { bg: "#7F1D1D", text: "#FCA5A5", icon: "alert-circle" },
-  warning: { bg: "#78350F", text: "#FCD34D", icon: "alert" },
-};
+const ICONS = {
+  success: "check-circle",
+  error: "alert-circle",
+  warning: "alert",
+} as const;
 
 const StatusBadge = ({ label, icon, type = "success" }: StatusBadgeProps) => {
   const { theme } = useTheme();
-  const themes = theme.isDark ? DARK_THEMES : LIGHT_THEMES;
-  const activeTheme = themes[type];
+  // Container roles from the theme — error from the palette, success and
+  // warning from their fixed hues — so a badge follows the scheme and the
+  // palette instead of a hand-picked hex pair per mode.
+  const { bg, on } = useMemo(() => {
+    if (type === "error") {
+      return {
+        bg: theme.colors.errorContainer,
+        on: theme.colors.onErrorContainer,
+      };
+    }
+    if (type === "warning") {
+      const roles = getWarningRoles(theme.isDark);
+      return { bg: roles.warningContainer, on: roles.onWarningContainer };
+    }
+    const roles = getSuccessRoles(theme.isDark);
+    return { bg: roles.successContainer, on: roles.onSuccessContainer };
+  }, [type, theme]);
 
   return (
     <View
-      style={[styles.statusContainer, { backgroundColor: activeTheme.bg }]}
+      style={[styles.statusContainer, { backgroundColor: bg }]}
       accessibilityRole="text"
       accessibilityLabel={`${type}: ${label}`}
     >
-      <Icons
-        name={(icon || activeTheme.icon) as any}
-        size={14}
-        color={activeTheme.text}
-      />
-      <Text style={[styles.statusText, { color: activeTheme.text }]}>
-        {label}
-      </Text>
+      <Icons name={(icon || ICONS[type]) as any} size={14} color={on} />
+      <Text style={[styles.statusText, { color: on }]}>{label}</Text>
     </View>
   );
 };

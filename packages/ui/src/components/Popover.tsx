@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface PopoverProps {
+export interface PopoverProps {
   anchor: React.ReactElement;
   children: React.ReactNode;
   visible: boolean;
@@ -54,8 +54,11 @@ const Popover = ({
     if (visible) {
       // Small delay ensures the keyboard or scroll position is final
       const timer = setTimeout(updatePosition, 0);
-      requestAnimationFrame(updatePosition);
-      return () => clearTimeout(timer);
+      const frame = requestAnimationFrame(updatePosition);
+      return () => {
+        clearTimeout(timer);
+        cancelAnimationFrame(frame);
+      };
     }
   }, [visible, updatePosition]);
 
@@ -130,9 +133,7 @@ const Popover = ({
 
 export default Popover;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -141,13 +142,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
     popoverCard: {
       position: "absolute",
       borderRadius: 12,
-      /*       minWidth: 200,
-      paddingVertical: 8,
-      elevation: 6,
-      shadowColor: theme.colors.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.1,
-      shadowRadius: 12, */
       overflow: "hidden",
       ...Platform.select({
         web: {
@@ -165,10 +159,6 @@ const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
         },
       }),
     },
-    item: {
-      padding: 12,
-      paddingHorizontal: 16,
-    },
   });
 
 type PositionResult = {
@@ -178,7 +168,7 @@ type PositionResult = {
   width: number;
 };
 
-export const getSafePosition = (
+const getSafePosition = (
   anchor: { x: number; y: number; width: number; height: number },
   popoverSize: { width: number; height: number },
   window: { width: number; height: number },

@@ -36,7 +36,16 @@ npm run smoke        # tsc --noEmit + expo export -p web
 npm run web          # or open it in a browser
 ```
 
-## Bumping the version
+## Which version it tests
 
-The dependency is a `^` range, so a new patch/minor is picked up by the next install. After a
-major bump of the library, update the range here in the same PR.
+CI does not trust a range: it reads the version `packages/ui/package.json` declares at
+the commit being tested and installs exactly that (`npm install --no-save
+@its/glowup-ui@<version>`), waiting for it to appear on the registry first. On `master`
+that is the version Release just published, so a publish that failed shows up here as a
+failure instead of a green run against an older release.
+
+`package.json` still lists `0.x`, which is only what a local `npm install` resolves: the
+newest published 0.x. (A caret would be wrong in 0.x — `^0.5.0` stops at 0.5.x — which is
+how this app once kept testing 0.5 after 0.7 shipped.) Keep `App.tsx` to API that exists in
+the version being released: a component removed in a minor has to leave this file in the
+same PR.

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface BadgeProps {
+export interface BadgeProps {
   count?: number;
   size?: "small" | "large";
   visible?: boolean;
@@ -45,9 +45,7 @@ const Badge = ({
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     badge: {
       backgroundColor: theme.colors.error, // "#B3261E", // M3 Error color

@@ -39,28 +39,45 @@ jobs:
         working-directory: examples/consumer
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           package-manager-cache: false
 
+      # Smoke-test the version this commit says was released, not whatever a
+      # range happens to resolve to. In 0.x a caret never crosses a minor
+      # (`^0.5.0` stops at 0.5.x), so a range in package.json silently kept this
+      # job testing an old release. On a master commit packages/ui's version is
+      # the one Release just published (or the last one it did), so pinning to
+      # it also turns a failed publish into a failure here instead of a pass
+      # against a stale version.
+      #
       # A just-published version can take a minute to show up in the packument
       # that `npm install` reads, even though its version document is already
       # served. Poll instead of losing the race with the Release run.
-      - name: Wait for the range to resolve on the registry
+      - name: Wait for the released version to resolve on the registry
+        id: version
         run: |
-          range=$(node -p "require('./package.json').dependencies['@its/glowup-ui']")
+          version=$(node -p "require('../../packages/ui/package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           for i in $(seq 1 20); do
-            if npm view "@its/glowup-ui@$range" version; then exit 0; fi
+            if npm view "@its/glowup-ui@$version" version; then exit 0; fi
             echo "not resolvable yet; retrying in 15s"
             sleep 15
           done
-          echo "::error::@its/glowup-ui@$range never became resolvable"
+          echo "::error::@its/glowup-ui@$version never became resolvable"
           exit 1
 
+      # No lockfile here on purpose (see examples/consumer/README.md): the point
+      # is to resolve the published package and its peers the way a new app does.
+      # `npm install <pkg>@<version>` installs the rest of package.json with it.
       - name: Install from the registry
-        run: npm install --no-audit --no-fund
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: npm install --no-audit --no-fund --no-save "@its/glowup-ui@$VERSION"
 
       - name: Refuse a workspace symlink
         run: |

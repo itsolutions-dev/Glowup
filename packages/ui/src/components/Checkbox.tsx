@@ -4,7 +4,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-interface CheckboxProps {
+export interface CheckboxProps {
   label?: string;
   labelPosition?: "left" | "right";
   checked: boolean;

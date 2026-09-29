@@ -11,7 +11,7 @@ export interface BreadcrumbItem {
   onPress?: () => void;
 }
 
-interface BreadcrumbsProps {
+export interface BreadcrumbsProps {
   items: BreadcrumbItem[];
   separator?: MaterialCommunityIconsGlyphs;
   /** Collapse middle items behind an ellipsis when exceeding this count. */
@@ -112,9 +112,7 @@ const Breadcrumbs = ({
 
 export default Breadcrumbs;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

@@ -9,9 +9,10 @@ import { createPortal } from "react-dom";
 import { View, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import PickerField from "./DateTimePicker.field";
-import PickerSurface, { PickerSelection } from "./DateTimePicker.surface";
-import { usePickerController } from "./DateTimePicker.hooks";
+import PickerSurface from "./DateTimePicker.surface";
+import { usePickerParts } from "./DateTimePicker.hooks";
 import { DateTimePickerProps } from "./DateTimePicker.shared";
+import { useEscapeKey } from "./internal/useEscapeKey";
 
 /** M3 docked-picker width; matches the native dialog so the two agree. */
 const SURFACE_WIDTH = 328;
@@ -40,38 +41,12 @@ const VIEWPORT_CLAMP = {
  * presented as an anchored popover because a mouse has somewhere to point.
  */
 const DateTimePicker = (props: DateTimePickerProps) => {
-  const {
-    label,
-    placeholder,
-    mode = "date",
-    disabled,
-    required,
-    error,
-    helperText,
-    clearable,
-    onClear,
-    validRange,
-    isDateDisabled,
-    labels: labelOverrides,
-    firstDayOfWeek,
-    minuteInterval,
-    use24HourClock,
-    inputEnabled,
-    defaultInputType,
-    scrollMode,
-    startYear,
-    endYear,
-    style,
-    testID,
-    defaultOpen = false,
-  } = props;
-
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const controller = usePickerController(props);
+  const { controller, open, setOpen, close, fieldProps, surfaceProps } =
+    usePickerParts(props);
 
   const triggerRef = useRef<View>(null);
-  const [open, setOpen] = useState(defaultOpen);
   const [anchor, setAnchor] = useState<AnchorPosition | null>(null);
   // The surface's real height depends on the mode, the locale and the month
   // grid, so it is measured once it is on screen rather than guessed at.
@@ -115,32 +90,16 @@ const DateTimePicker = (props: DateTimePickerProps) => {
     };
   }, [open, reposition]);
 
-  const close = useCallback(() => setOpen(false), []);
-
   // Escape lives here rather than in Calendar so a single owner closes the
   // surface in every mode, `time` included (which renders no Calendar).
-  useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      close();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, close]);
+  useEscapeKey(open, close);
 
   const openSurface = () => {
-    if (disabled) return;
+    if (props.disabled) return;
     controller.resetInput();
     setMeasuredHeight(null);
     reposition();
     setOpen(true);
-  };
-
-  const confirm = (selection: PickerSelection) => {
-    close();
-    controller.handleConfirm(selection);
   };
 
   const surface = (
@@ -153,7 +112,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
       />
       <View
         role="dialog"
-        accessibilityLabel={label ?? controller.labels.openPicker}
+        accessibilityLabel={props.label ?? controller.labels.openPicker}
         onLayout={(event) =>
           setMeasuredHeight(Math.ceil(event.nativeEvent.layout.height))
         }
@@ -168,60 +127,14 @@ const DateTimePicker = (props: DateTimePickerProps) => {
           },
         ]}
       >
-        <PickerSurface
-          mode={mode}
-          fieldLabel={label}
-          selection={controller.selection}
-          onConfirm={confirm}
-          onCancel={close}
-          validRange={validRange}
-          isDateDisabled={isDateDisabled}
-          locale={controller.locale}
-          firstDayOfWeek={firstDayOfWeek}
-          labels={labelOverrides}
-          minuteInterval={minuteInterval}
-          use24HourClock={use24HourClock}
-          scrollMode={scrollMode}
-          startYear={startYear}
-          endYear={endYear}
-          inputEnabled={inputEnabled}
-          defaultInputType={defaultInputType}
-          testID={testID ? `${testID}-surface` : undefined}
-        />
+        <PickerSurface {...surfaceProps} />
       </View>
     </>
   );
 
   return (
     <>
-      <PickerField
-        ref={triggerRef}
-        label={label}
-        required={required}
-        displayValue={controller.displayValue}
-        placeholder={placeholder}
-        icon={mode === "time" ? "clock-outline" : "calendar-blank-outline"}
-        active={open}
-        disabled={disabled}
-        error={error ?? controller.inputError}
-        helperText={helperText}
-        clearable={clearable}
-        onClear={() => {
-          controller.resetInput();
-          onClear?.();
-        }}
-        clearAccessibilityLabel={controller.labels.clear}
-        onPress={openSurface}
-        accessibilityLabel={label ?? controller.labels.openPicker}
-        editable={controller.fieldEditable}
-        inputValue={controller.fieldText}
-        onInputChange={controller.handleInputChange}
-        onInputBlur={controller.handleInputBlur}
-        inputPlaceholder={controller.inputHint}
-        openAccessibilityLabel={controller.labels.openPicker}
-        style={style}
-        testID={testID}
-      />
+      <PickerField {...fieldProps} ref={triggerRef} onPress={openSurface} />
       {open && createPortal(surface, document.body)}
     </>
   );

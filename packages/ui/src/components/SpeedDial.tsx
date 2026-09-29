@@ -1,16 +1,10 @@
-import React, { useState, useCallback, useMemo } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-  ViewStyle,
-} from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
+import { cornerStyle } from "./internal/cornerPlacement";
 
 type SpeedDialPosition =
   "bottom-right" | "bottom-left" | "top-right" | "top-left";
@@ -22,7 +16,7 @@ export interface SpeedDialAction {
   onPress: () => void;
 }
 
-interface SpeedDialProps {
+export interface SpeedDialProps {
   actions: SpeedDialAction[];
   mainIcon: MaterialCommunityIconsGlyphs;
   position?: SpeedDialPosition;
@@ -58,25 +52,6 @@ const SpeedDial = ({
     setOpen(!open);
   };
 
-  const getSafeStyle = useCallback(() => {
-    const baseMargin = 16;
-    const style: ViewStyle = { position: "absolute" };
-
-    if (position.startsWith("top")) {
-      style.top = insets.top + baseMargin;
-    } else {
-      style.bottom = insets.bottom + baseMargin;
-    }
-
-    if (position.endsWith("right")) {
-      style.right = insets.right + baseMargin;
-    } else {
-      style.left = insets.left + baseMargin;
-    }
-
-    return style;
-  }, [position, insets]);
-
   return (
     <View style={styles.container}>
       {open && <Pressable style={StyleSheet.absoluteFill} onPress={toggle} />}
@@ -84,7 +59,7 @@ const SpeedDial = ({
       <View
         style={[
           { alignItems: isLeft ? "flex-start" : "flex-end" },
-          getSafeStyle(),
+          cornerStyle(position, insets),
         ]}
       >
         <View
@@ -171,9 +146,7 @@ const SpeedDial = ({
 
 export default SpeedDial;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       position: "absolute",

@@ -8,14 +8,13 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   AlertProvider,
-  AlertProviderWrapper,
-  StatusBar,
   ThemeProvider,
   ToastProvider,
   useTheme,
 } from "@its/glowup-ui";
 
 import { SiteShell } from "../site/SiteShell";
+import { ThemeStatusBar } from "../site/ThemeStatusBar";
 
 /**
  * The provider chain plus the site chrome, mounted once for every route.
@@ -30,12 +29,10 @@ export default function RootLayout() {
     <ThemeProvider>
       <SafeAreaProvider>
         <AlertProvider>
-          <AlertProviderWrapper>
-            <ToastProvider>
-              <StatusBar />
-              <Navigator />
-            </ToastProvider>
-          </AlertProviderWrapper>
+          <ToastProvider>
+            <ThemeStatusBar />
+            <Navigator />
+          </ToastProvider>
         </AlertProvider>
       </SafeAreaProvider>
     </ThemeProvider>

@@ -14,7 +14,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-interface SpinnerProps {
+export interface SpinnerProps {
   label?: string;
   value: number;
   onChange: (val: number) => void;

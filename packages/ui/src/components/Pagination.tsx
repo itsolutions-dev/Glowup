@@ -4,7 +4,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-interface PaginationProps {
+export interface PaginationProps {
   /** Current page, 1-based. */
   page: number;
   totalPages: number;
@@ -166,9 +166,7 @@ const Pagination = ({
 
 export default Pagination;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

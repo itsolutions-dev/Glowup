@@ -12,7 +12,7 @@ interface EmptyStateAction {
   iconName?: MaterialCommunityIconsGlyphs;
 }
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   icon?: MaterialCommunityIconsGlyphs;
   title: string;
   description?: string;
@@ -60,9 +60,7 @@ const EmptyState = ({
 
 export default EmptyState;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       alignItems: "center",

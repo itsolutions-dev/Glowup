@@ -3,7 +3,8 @@ import { palettes, useTheme, type PaletteId } from "@its/glowup-ui";
 
 import { usePersistentState } from "./usePersistentState";
 
-const isPaletteId = (id: string): id is PaletteId => id in palettes;
+const isPaletteId = (id: string): id is PaletteId =>
+  Object.hasOwn(palettes, id);
 
 /**
  * Remembers the colour set the reader picked on /theming.

@@ -1,9 +1,8 @@
 import React, {
-  createContext,
-  useState,
-  useContext,
+  useCallback,
   useEffect,
   useMemo,
+  useState,
   ReactNode,
 } from "react";
 import {
@@ -25,18 +24,15 @@ type ShowAlert = (
   buttons?: AlertButton[],
 ) => void;
 
-interface AlertContextValue {
-  showAlert: ShowAlert;
-}
-
 interface AlertConfig {
   title: string;
   message?: string;
   buttons: AlertButton[];
 }
 
-const AlertContext = createContext<AlertContextValue | undefined>(undefined);
-
+// The provider that `Alert()` reaches. A module-level reference rather than a
+// context because `Alert` is called from outside React (a service, a catch
+// block), exactly like react-native's own `Alert.alert`.
 export const AlertProvider = ({ children }: { children: ReactNode }) => {
   const [visible, setVisible] = useState(false);
   const [config, setConfig] = useState<AlertConfig>({
@@ -47,7 +43,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const showAlert: ShowAlert = (title, message, buttons) => {
+  const showAlert: ShowAlert = useCallback((title, message, buttons) => {
     // If on Mobile (iOS/Android), use native system dialog
     if (Platform.OS !== "web") {
       RNAlert.alert(title, message, buttons);
@@ -57,12 +53,19 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
     // If on Web, trigger the custom Modal
     setConfig({ title, message, buttons: buttons || [{ text: "OK" }] });
     setVisible(true);
-  };
+  }, []);
+
+  useEffect(() => {
+    alertRef = showAlert;
+    return () => {
+      if (alertRef === showAlert) alertRef = undefined;
+    };
+  }, [showAlert]);
 
   const closeAlert = () => setVisible(false);
 
   return (
-    <AlertContext.Provider value={{ showAlert }}>
+    <>
       {children}
       {/* The Web-only Modal Component */}
       {Platform.OS === "web" && (
@@ -88,13 +91,11 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
           ))}
         </Modal>
       )}
-    </AlertContext.Provider>
+    </>
   );
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     messageContainer: { flex: 1, padding: 20 },
     message: {
@@ -114,16 +115,10 @@ export const Alert: ShowAlert = (title, message, buttons) => {
   }
 };
 
-// Update the reference inside the Provider
-export const AlertProviderWrapper = ({ children }: { children: ReactNode }) => {
-  const context = useContext(AlertContext);
-
-  useEffect(() => {
-    alertRef = context?.showAlert;
-    return () => {
-      alertRef = undefined;
-    };
-  }, [context?.showAlert]);
-
-  return <>{children}</>;
-};
+/**
+ * @deprecated `AlertProvider` now wires up `Alert()` by itself. This renders
+ * its children unchanged and will be removed in a later release.
+ */
+export const AlertProviderWrapper = ({ children }: { children: ReactNode }) => (
+  <>{children}</>
+);

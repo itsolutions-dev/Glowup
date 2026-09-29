@@ -1,214 +1,20 @@
-import React, { useState, useCallback, ReactNode } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  Pressable,
   ScrollView,
   ActivityIndicator,
   ViewStyle,
-  TextStyle,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
-import { PressableState } from "./types";
-
-// --- Sub-components ---
-
-interface TableProps {
-  children: ReactNode;
-  style?: ViewStyle;
-}
-const Table = ({ children, style }: TableProps) => {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.table,
-        {
-          backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.outlineVariant,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
-};
-
-interface TheadProps {
-  children: ReactNode;
-  style?: ViewStyle;
-}
-const Thead = ({ children, style }: TheadProps) => {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.thead,
-        {
-          backgroundColor: theme.colors.surfaceContainerLow,
-          borderBottomColor: theme.colors.outlineVariant,
-        },
-        style,
-      ]}
-    >
-      {children}
-    </View>
-  );
-};
-
-interface TfootProps {
-  children: ReactNode;
-  style?: ViewStyle;
-}
-const Tfoot = ({ children, style }: TfootProps) => (
-  <View style={[styles.tfoot, style]}>{children}</View>
-);
-
-interface TrProps {
-  children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
-}
-const Tr = ({ children, style }: TrProps) => {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.tr,
-        { borderBottomColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
-      ]}
-    >
-      {children}
-    </View>
-  );
-};
-
-interface ThProps {
-  children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
-  width?: number;
-  onPress?: () => void;
-  sortable?: boolean;
-  sortDirection?: "asc" | "desc" | null;
-  onMoveLeft?: () => void;
-  onMoveRight?: () => void;
-}
-const Th = ({
-  children,
-  style,
-  width,
-  onPress,
-  sortable,
-  sortDirection,
-  onMoveLeft,
-  onMoveRight,
-}: ThProps) => {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.th,
-        { width: width || 150, borderRightColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
-      ]}
-    >
-      <Pressable
-        onPress={onPress}
-        disabled={!onPress || !sortable}
-        style={({ hovered, pressed }: PressableState) => [
-          styles.thContent,
-          (hovered || pressed) && sortable && getGlowStyles(theme, true),
-          (hovered || pressed) &&
-            sortable && {
-              backgroundColor: theme.colors.surfaceContainerHigh,
-            },
-        ]}
-      >
-        <Text style={[styles.thText, { color: theme.colors.onSurface }]}>
-          {children}
-        </Text>
-        {sortable && (
-          <View style={styles.sortIconContainer}>
-            {sortDirection ? (
-              <Icons
-                name={sortDirection === "asc" ? "chevron-up" : "chevron-down"}
-                size={18}
-                color={theme.colors.primary}
-              />
-            ) : (
-              <Icons
-                name="chevron-up"
-                size={18}
-                color={theme.colors.outlineVariant}
-                style={{ opacity: 0.5 }}
-              />
-            )}
-          </View>
-        )}
-      </Pressable>
-
-      <View style={styles.reorderContainer}>
-        {onMoveLeft && (
-          <Pressable onPress={onMoveLeft} style={styles.reorderButton}>
-            <Icons
-              name="chevron-left"
-              size={14}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
-        )}
-        {onMoveRight && (
-          <Pressable onPress={onMoveRight} style={styles.reorderButton}>
-            <Icons
-              name="chevron-right"
-              size={14}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
-        )}
-      </View>
-    </View>
-  );
-};
-
-interface TdProps {
-  children: ReactNode;
-  style?: ViewStyle | ViewStyle[];
-  textStyle?: TextStyle;
-  width?: number;
-}
-const Td = ({ children, style, textStyle, width }: TdProps) => {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={[
-        styles.td,
-        { width: width || 150, borderRightColor: theme.colors.outlineVariant },
-        ...(Array.isArray(style) ? style : [style]),
-      ]}
-    >
-      {typeof children === "string" || typeof children === "number" ? (
-        <Text
-          style={[
-            styles.tdText,
-            { color: theme.colors.onSurface },
-            theme.typography.bodyMedium,
-            textStyle,
-          ]}
-          numberOfLines={1}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
-    </View>
-  );
-};
+import { useTheme } from "../providers/ThemeProvider";
+import Table, {
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+} from "./Table";
 
 // --- Main DataGrid Component ---
 
@@ -219,7 +25,7 @@ export interface ColumnDefinition {
   sortable?: boolean;
 }
 
-interface DataGridProps {
+export interface DataGridProps {
   data: any[];
   columns: ColumnDefinition[];
   loading?: boolean;
@@ -288,10 +94,10 @@ const DataGrid = ({
   };
 
   const renderHeader = () => (
-    <Thead style={headerStyle}>
-      <Tr>
+    <TableHead style={headerStyle}>
+      <TableRow>
         {orderedColumns.map((column, index) => (
-          <Th
+          <TableHeaderCell
             key={column.id}
             width={column.width}
             sortable={column.sortable}
@@ -312,16 +118,16 @@ const DataGrid = ({
             }
           >
             {column.label}
-          </Th>
+          </TableHeaderCell>
         ))}
-      </Tr>
-    </Thead>
+      </TableRow>
+    </TableHead>
   );
 
   const renderRow = ({ item, index }: { item: any; index: number }) => {
     const isOdd = index % 2 === 1;
     return (
-      <Tr
+      <TableRow
         style={[
           rowStyle || {},
           isOdd ? { backgroundColor: theme.colors.surfaceVariant + "20" } : {},
@@ -329,7 +135,7 @@ const DataGrid = ({
         ]}
       >
         {orderedColumns.map((column, colIndex) => (
-          <Td
+          <TableCell
             key={`${item.id || index}-${column.id}`}
             width={column.width}
             style={[
@@ -340,23 +146,23 @@ const DataGrid = ({
             ]}
           >
             {item[column.id]}
-          </Td>
+          </TableCell>
         ))}
-      </Tr>
+      </TableRow>
     );
   };
 
   const renderFooter = () => {
     if (!loading) return null;
     return (
-      <Tfoot>
+      <View style={styles.tfoot}>
         <ActivityIndicator color={theme.colors.primary} />
-      </Tfoot>
+      </View>
     );
   };
 
   return (
-    <Table style={style}>
+    <Table style={[styles.grid, style]}>
       <ScrollView horizontal bounces={false}>
         <View>
           {renderHeader()}
@@ -392,16 +198,8 @@ const DataGrid = ({
 };
 
 const styles = StyleSheet.create({
-  table: {
-    flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  thead: {
-    borderBottomWidth: 1,
-    zIndex: 10,
-  },
+  // The grid fills its container, so the FlatList inside it can scroll.
+  grid: { flex: 1 },
   tfoot: {
     paddingVertical: 16,
     alignItems: "center",
@@ -409,48 +207,6 @@ const styles = StyleSheet.create({
   emptyContainer: {
     paddingVertical: 24,
     alignItems: "center",
-  },
-  tr: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-  },
-  th: {
-    height: 48,
-    borderRightWidth: 1,
-    justifyContent: "center",
-  },
-  thContent: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 12,
-    paddingRight: 40,
-  },
-  thText: {
-    fontWeight: "700",
-  },
-  td: {
-    paddingHorizontal: 12,
-    borderRightWidth: 1,
-    justifyContent: "center",
-  },
-  tdText: {
-    fontSize: 14,
-  },
-  sortIconContainer: {
-    marginLeft: 4,
-  },
-  reorderContainer: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    bottom: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 4,
-  },
-  reorderButton: {
-    padding: 2,
   },
   listContent: {
     flexGrow: 1,

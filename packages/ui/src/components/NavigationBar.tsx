@@ -4,6 +4,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { activeGlyph } from "./internal/activeGlyph";
 
 export interface NavigationBarItem {
   id: string;
@@ -14,7 +15,7 @@ export interface NavigationBarItem {
   disabled?: boolean;
 }
 
-interface NavigationBarProps {
+export interface NavigationBarProps {
   items: NavigationBarItem[];
   activeId: string;
   onItemPress: (id: string) => void;
@@ -35,11 +36,7 @@ const NavigationBar = ({
     <View style={styles.container} accessibilityRole="tablist">
       {items.map((item) => {
         const active = item.id === activeId;
-        const iconName = (
-          active && item.icon.endsWith("-outline")
-            ? item.icon.replace(/-outline$/, "")
-            : item.icon
-        ) as MaterialCommunityIconsGlyphs;
+        const iconName = activeGlyph(item.icon, active);
         const showLabel = showLabels === "always" || active;
 
         return (
@@ -107,9 +104,7 @@ const NavigationBar = ({
 
 export default NavigationBar;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flexDirection: "row",

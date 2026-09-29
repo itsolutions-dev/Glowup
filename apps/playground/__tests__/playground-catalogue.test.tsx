@@ -1,12 +1,7 @@
 import React, { type ComponentType, type ReactNode } from "react";
 import { render } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import {
-  AlertProvider,
-  AlertProviderWrapper,
-  ThemeProvider,
-  ToastProvider,
-} from "@its/glowup-ui";
+import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 
 import ComponentPreview from "../catalogue/ComponentPreview";
 import { ComponentRegistry } from "../catalogue/registry";
@@ -39,9 +34,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
   >
     <ThemeProvider>
       <AlertProvider>
-        <AlertProviderWrapper>
-          <ToastProvider>{children}</ToastProvider>
-        </AlertProviderWrapper>
+        <ToastProvider>{children}</ToastProvider>
       </AlertProvider>
     </ThemeProvider>
   </SafeAreaProvider>
@@ -107,14 +100,16 @@ const CATALOGUE = [
   "ProgressButton",
   "IconButton",
   "Chip",
+  "ChipGroup",
   "FAB",
   "AnimatedFAB",
   "SpeedDial",
   "ToggleButton",
   "ToggleButtonGroup",
+  "ButtonGroup",
+  "SplitButton",
   // Inputs
   "Input",
-  "NumericInput",
   "Select",
   "Checkbox",
   "RadioButton",
@@ -131,7 +126,6 @@ const CATALOGUE = [
   "DatePickerInput",
   "DateRangePicker",
   "TimePicker",
-  "TimeSelect",
   "Calendar",
   "ClockPicker",
   "ClockDial",
@@ -140,9 +134,9 @@ const CATALOGUE = [
   // Data Display
   "Avatar",
   "Badge",
-  "IconBadge",
   "StatusBadge",
   "DataGrid",
+  "Table",
   "ListItem",
   "ListSection",
   "ListSubheader",
@@ -159,6 +153,7 @@ const CATALOGUE = [
   "ConfirmDialog",
   "Popover",
   "BottomSheet",
+  "SideSheet",
   "Menu",
   "Skeleton",
   "CircularProgress",
@@ -168,14 +163,16 @@ const CATALOGUE = [
   "Collapse",
   "Portal",
   // Navigation
+  "TopAppBar",
   "NavigationBar",
+  "NavigationRail",
+  "NavigationDrawer",
+  "Toolbar",
   "Tabs",
   "TabContent",
   "Breadcrumbs",
   "Pagination",
   "Stepper",
-  "LanguageSelector",
-  "DrawerPreferenceItem",
   // Layout
   "Box",
   "Stack",
@@ -513,6 +510,20 @@ describe("Playground catalogue", () => {
       off: { name: "Ada Lovelace" },
       on: { name: "" },
       props: ["icon"],
+    },
+    // `required` only guards the last selected chip of a single-select group.
+    {
+      component: "ChipGroup",
+      off: { multiSelect: true },
+      on: { multiSelect: false },
+      props: ["required"],
+    },
+    // Colour, orientation and the FAB belong to the floating toolbar.
+    {
+      component: "Toolbar",
+      off: { variant: "docked" },
+      on: { variant: "floating" },
+      props: ["color", "orientation", "withFab"],
     },
   ];
 

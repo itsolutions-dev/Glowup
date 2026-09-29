@@ -1,5 +1,5 @@
 import React from "react";
-import { AppBar, Avatar, Button, IconBadge } from "@its/glowup-ui";
+import { AppBar, Avatar, Button, IconButton } from "@its/glowup-ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
 
@@ -22,9 +22,9 @@ export const Default = () => (
         title: "Dashboard",
         headerRight: () => (
           <div style={trailing}>
-            <IconBadge
-              iconName="bell-outline"
-              badgeCount={4}
+            <IconButton
+              icon="bell-outline"
+              accessibilityLabel="Notifications"
               onPress={() => {}}
             />
             <Avatar name="Marta Rossi" size={32} />

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface SliderProps {
+export interface SliderProps {
   value: number;
   onValueChange: (value: number) => void;
   onSlidingComplete?: (value: number) => void;
@@ -210,9 +210,7 @@ const Slider = ({
 
 export default Slider;
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<any> = (
-  theme: Theme,
-) =>
+const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       width: "100%",

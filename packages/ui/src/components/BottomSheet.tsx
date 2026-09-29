@@ -18,7 +18,7 @@ import {
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Typography from "./Typography";
 
-interface BottomSheetProps {
+export interface BottomSheetProps {
   visible: boolean;
   onDismiss: () => void;
   children: React.ReactNode;

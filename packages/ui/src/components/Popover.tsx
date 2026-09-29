@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface PopoverProps {
+export interface PopoverProps {
   anchor: React.ReactElement;
   children: React.ReactNode;
   visible: boolean;
@@ -168,7 +168,7 @@ type PositionResult = {
   width: number;
 };
 
-export const getSafePosition = (
+const getSafePosition = (
   anchor: { x: number; y: number; width: number; height: number },
   popoverSize: { width: number; height: number },
   window: { width: number; height: number },

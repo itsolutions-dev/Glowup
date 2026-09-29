@@ -13,7 +13,6 @@ const PEERS = `npx expo install \\
 const PROVIDERS = `import {
   ThemeProvider,
   AlertProvider,
-  AlertProviderWrapper,
   ToastProvider,
 } from "@its/glowup-ui";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -23,11 +22,9 @@ export default function App() {
     <ThemeProvider>
       <SafeAreaProvider>
         <AlertProvider>
-          <AlertProviderWrapper>
             <ToastProvider>
               <Screens />
             </ToastProvider>
-          </AlertProviderWrapper>
         </AlertProvider>
       </SafeAreaProvider>
     </ThemeProvider>
@@ -78,7 +75,7 @@ export default function GettingStarted() {
 
       <Section
         title="3. Mount the providers"
-        description="ThemeProvider is required; AlertProvider and ToastProvider only if you call Alert() or useToast(). AlertProviderWrapper is what binds the Alert singleton to the web dialog — mount it inside AlertProvider."
+        description="ThemeProvider is required; AlertProvider and ToastProvider only if you call Alert() or useToast()."
       >
         <CodeBlock code={PROVIDERS} title="App.tsx" />
       </Section>

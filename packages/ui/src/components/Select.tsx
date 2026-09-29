@@ -25,7 +25,7 @@ export interface Option {
 
 type SelectVariant = "outlined" | "filled";
 
-interface SelectProps {
+export interface SelectProps {
   label?: string;
   error?: string;
   disabled?: boolean;

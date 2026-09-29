@@ -13,10 +13,10 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getGlowStyles, useTheme } from "../providers/ThemeProvider";
 import { useStateLayer } from "./TouchableRipple";
+import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
-type AnimatedFABPosition =
-  "bottom-right" | "bottom-left" | "top-right" | "top-left";
+type AnimatedFABPosition = Corner;
 
 export interface AnimatedFABProps {
   icon: MaterialCommunityIconsGlyphs;
@@ -132,21 +132,6 @@ const AnimatedFAB = ({
     outputRange: [0, 0, 1],
   });
 
-  const positionStyle = useCallback((): ViewStyle | null => {
-    if (placement === "inline") return null;
-
-    const margin = 16;
-    const placed: ViewStyle = { position: "absolute" };
-
-    if (position.startsWith("top")) placed.top = insets.top + margin;
-    else placed.bottom = insets.bottom + margin;
-
-    if (position.endsWith("right")) placed.right = insets.right + margin;
-    else placed.left = insets.left + margin;
-
-    return placed;
-  }, [placement, position, insets]);
-
   const growsFromRight = animateFrom === "right";
 
   return (
@@ -154,7 +139,7 @@ const AnimatedFAB = ({
       style={[
         styles.wrapper,
         placement === "floating" && styles.floating,
-        positionStyle(),
+        placement === "inline" ? null : cornerStyle(position, insets),
         { width },
         style,
       ]}

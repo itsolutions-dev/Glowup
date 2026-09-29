@@ -12,7 +12,7 @@ interface EmptyStateAction {
   iconName?: MaterialCommunityIconsGlyphs;
 }
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   icon?: MaterialCommunityIconsGlyphs;
   title: string;
   description?: string;

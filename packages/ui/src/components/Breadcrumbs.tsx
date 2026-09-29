@@ -11,7 +11,7 @@ export interface BreadcrumbItem {
   onPress?: () => void;
 }
 
-interface BreadcrumbsProps {
+export interface BreadcrumbsProps {
   items: BreadcrumbItem[];
   separator?: MaterialCommunityIconsGlyphs;
   /** Collapse middle items behind an ellipsis when exceeding this count. */

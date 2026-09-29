@@ -11,7 +11,7 @@ interface IconTabItem extends BaseTabItem {
   icon: string;
 }
 
-interface TabProps {
+export interface TabProps {
   tabs: IconTabItem[] | string[];
   activeTab: number;
   onChange: (index: number) => void;

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface BadgeProps {
+export interface BadgeProps {
   count?: number;
   size?: "small" | "large";
   visible?: boolean;

@@ -1,12 +1,7 @@
 import React, { type ComponentType, type ReactNode } from "react";
 import { render } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import {
-  AlertProvider,
-  AlertProviderWrapper,
-  ThemeProvider,
-  ToastProvider,
-} from "@its/glowup-ui";
+import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 
 import ComponentPreview from "../catalogue/ComponentPreview";
 import { ComponentRegistry } from "../catalogue/registry";
@@ -39,9 +34,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
   >
     <ThemeProvider>
       <AlertProvider>
-        <AlertProviderWrapper>
-          <ToastProvider>{children}</ToastProvider>
-        </AlertProviderWrapper>
+        <ToastProvider>{children}</ToastProvider>
       </AlertProvider>
     </ThemeProvider>
   </SafeAreaProvider>

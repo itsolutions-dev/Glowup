@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { View, Pressable, Modal, ScrollView, StyleSheet } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import PickerField from "./DateTimePicker.field";
-import PickerSurface, { PickerSelection } from "./DateTimePicker.surface";
-import { usePickerController } from "./DateTimePicker.hooks";
+import PickerSurface from "./DateTimePicker.surface";
+import { usePickerParts } from "./DateTimePicker.hooks";
 import { DateTimePickerProps } from "./DateTimePicker.shared";
 
 /**
@@ -14,80 +14,21 @@ import { DateTimePickerProps } from "./DateTimePicker.shared";
  * deferring to whatever picker the OS ships.
  */
 const DateTimePicker = (props: DateTimePickerProps) => {
-  const {
-    label,
-    placeholder,
-    mode = "date",
-    disabled,
-    required,
-    error,
-    helperText,
-    clearable,
-    onClear,
-    validRange,
-    isDateDisabled,
-    labels: labelOverrides,
-    firstDayOfWeek,
-    minuteInterval,
-    use24HourClock,
-    inputEnabled,
-    defaultInputType,
-    scrollMode,
-    startYear,
-    endYear,
-    style,
-    testID,
-    defaultOpen = false,
-  } = props;
-
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const controller = usePickerController(props);
-  const [open, setOpen] = useState(defaultOpen);
+  const { controller, open, setOpen, close, fieldProps, surfaceProps } =
+    usePickerParts(props);
 
   const openPicker = () => {
-    if (disabled) return;
+    if (props.disabled) return;
     // A half-typed value would otherwise reopen the dialog on stale text.
     controller.resetInput();
     setOpen(true);
   };
 
-  const close = () => setOpen(false);
-
-  const confirm = (selection: PickerSelection) => {
-    close();
-    controller.handleConfirm(selection);
-  };
-
   return (
     <>
-      <PickerField
-        label={label}
-        required={required}
-        displayValue={controller.displayValue}
-        placeholder={placeholder}
-        icon={mode === "time" ? "clock-outline" : "calendar-blank-outline"}
-        active={open}
-        disabled={disabled}
-        error={error ?? controller.inputError}
-        helperText={helperText}
-        clearable={clearable}
-        onClear={() => {
-          controller.resetInput();
-          onClear?.();
-        }}
-        clearAccessibilityLabel={controller.labels.clear}
-        onPress={openPicker}
-        accessibilityLabel={label ?? controller.labels.openPicker}
-        editable={controller.fieldEditable}
-        inputValue={controller.fieldText}
-        onInputChange={controller.handleInputChange}
-        onInputBlur={controller.handleInputBlur}
-        inputPlaceholder={controller.inputHint}
-        openAccessibilityLabel={controller.labels.openPicker}
-        style={style}
-        testID={testID}
-      />
+      <PickerField {...fieldProps} onPress={openPicker} />
 
       {/* Glowup's `Modal` is a fixed-width card with its own title bar and a
           single close action; the M3 picker needs a custom headline row and a
@@ -118,26 +59,7 @@ const DateTimePicker = (props: DateTimePickerProps) => {
               keyboardShouldPersistTaps="handled"
             >
               <View style={styles.dialogBody}>
-                <PickerSurface
-                  mode={mode}
-                  fieldLabel={label}
-                  selection={controller.selection}
-                  onConfirm={confirm}
-                  onCancel={close}
-                  validRange={validRange}
-                  isDateDisabled={isDateDisabled}
-                  locale={controller.locale}
-                  firstDayOfWeek={firstDayOfWeek}
-                  labels={labelOverrides}
-                  minuteInterval={minuteInterval}
-                  use24HourClock={use24HourClock}
-                  scrollMode={scrollMode}
-                  startYear={startYear}
-                  endYear={endYear}
-                  inputEnabled={inputEnabled}
-                  defaultInputType={defaultInputType}
-                  testID={testID ? `${testID}-surface` : undefined}
-                />
+                <PickerSurface {...surfaceProps} />
               </View>
             </ScrollView>
           </Pressable>

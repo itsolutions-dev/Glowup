@@ -5,7 +5,7 @@ import Modal from "./Modal";
 import Button from "../Button";
 import { IconSource } from "../Icon";
 
-interface ConfirmDialogProps {
+export interface ConfirmDialogProps {
   visible: boolean;
   title?: string;
   message?: string;

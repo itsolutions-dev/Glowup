@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { View, StyleSheet, Platform, StyleProp, ViewStyle } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
-interface PaperProps {
+export interface PaperProps {
   children: React.ReactNode;
   elevation?: number;
   style?: StyleProp<ViewStyle>;

@@ -18,7 +18,7 @@ import {
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface CarouselProps {
+export interface CarouselProps {
   children: React.ReactNode;
   showDots?: boolean;
   /** Overlay prev/next arrow buttons. */

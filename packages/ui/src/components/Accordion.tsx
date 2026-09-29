@@ -13,7 +13,7 @@ import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import Collapse from "./Collapse";
 
-interface AccordionProps {
+export interface AccordionProps {
   title: string;
   children: React.ReactNode;
   startExpanded?: boolean;

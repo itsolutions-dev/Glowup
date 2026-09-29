@@ -14,7 +14,7 @@ export interface NavigationBarItem {
   disabled?: boolean;
 }
 
-interface NavigationBarProps {
+export interface NavigationBarProps {
   items: NavigationBarItem[];
   activeId: string;
   onItemPress: (id: string) => void;

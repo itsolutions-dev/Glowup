@@ -10,7 +10,7 @@ import { useTheme } from "../providers/ThemeProvider";
 
 type SkeletonVariant = "rect" | "circle" | "text";
 
-interface SkeletonProps {
+export interface SkeletonProps {
   variant?: SkeletonVariant;
   width?: DimensionValue;
   height?: DimensionValue;

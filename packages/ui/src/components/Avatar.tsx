@@ -12,7 +12,7 @@ import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
-interface AvatarProps {
+export interface AvatarProps {
   source?: ImageSourcePropType;
   name?: string;
   size?: number;

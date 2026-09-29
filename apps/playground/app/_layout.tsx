@@ -8,7 +8,6 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   AlertProvider,
-  AlertProviderWrapper,
   ThemeProvider,
   ToastProvider,
   useTheme,
@@ -30,12 +29,10 @@ export default function RootLayout() {
     <ThemeProvider>
       <SafeAreaProvider>
         <AlertProvider>
-          <AlertProviderWrapper>
-            <ToastProvider>
-              <ThemeStatusBar />
-              <Navigator />
-            </ToastProvider>
-          </AlertProviderWrapper>
+          <ToastProvider>
+            <ThemeStatusBar />
+            <Navigator />
+          </ToastProvider>
         </AlertProvider>
       </SafeAreaProvider>
     </ThemeProvider>

@@ -13,7 +13,7 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import HelperText from "./HelperText";
 
-interface InputProps {
+export interface InputProps {
   label?: string;
   placeholder?: string;
   precision?: number;

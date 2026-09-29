@@ -4,7 +4,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
-interface RatingProps {
+export interface RatingProps {
   /** Current rating; halves are rendered (e.g. 3.5). */
   value: number;
   /** Interactive when provided; tapping a star sets a whole value. */

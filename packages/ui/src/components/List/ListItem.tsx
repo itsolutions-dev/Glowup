@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 import { PressableState } from "../types";
 
-interface ListItemProps {
+export interface ListItemProps {
   children: React.ReactNode;
   onPress?: () => void;
   /** Leading slot — an Avatar, an icon, a Checkbox. */

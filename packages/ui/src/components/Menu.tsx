@@ -28,7 +28,7 @@ export interface MenuItem {
   onPress: () => void;
 }
 
-interface MenuProps {
+export interface MenuProps {
   anchor: React.ReactElement;
   items: MenuItem[];
   visible: boolean;

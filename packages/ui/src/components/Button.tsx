@@ -82,7 +82,7 @@ export const getButtonColors = (
   }
 };
 
-interface ButtonProps {
+export interface ButtonProps {
   onPress?: () => void;
   iconName?: MaterialCommunityIconsGlyphs;
   size?: number;

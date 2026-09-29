@@ -11,7 +11,7 @@ export interface ToggleButtonOption {
   disabled?: boolean;
 }
 
-interface ToggleButtonGroupProps {
+export interface ToggleButtonGroupProps {
   options: ToggleButtonOption[];
   value: string | string[]; // Single string or array of strings
   onValueChange: (val: any) => void;

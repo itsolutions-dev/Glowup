@@ -25,7 +25,7 @@ export interface ColumnDefinition {
   sortable?: boolean;
 }
 
-interface DataGridProps {
+export interface DataGridProps {
   data: any[];
   columns: ColumnDefinition[];
   loading?: boolean;

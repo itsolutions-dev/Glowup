@@ -151,7 +151,8 @@ supports a manual toggle.
 
 - `ThemeProvider` — Material You theme derived from `theme.json` (see above).
 - `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom Modal on
-  web. Call the `Alert(title, message, buttons)` singleton; mount `AlertProviderWrapper` too.
+  web. Call the `Alert(title, message, buttons)` singleton; `AlertProvider` wires it up
+  (`AlertProviderWrapper` is a deprecated pass-through).
 - `ToastProvider` — imperative queued toasts via `useToast()`.
 
 ## apps/playground — the presentation app

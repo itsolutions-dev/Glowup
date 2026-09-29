@@ -12,7 +12,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
-interface SearchBarProps {
+export interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   onSubmit?: (text: string) => void;

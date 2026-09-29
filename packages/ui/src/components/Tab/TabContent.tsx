@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
 
-interface TabContentProps {
+export interface TabContentProps {
   activeTab: number;
   children: React.ReactNode;
   style?: object;

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
-interface SliderProps {
+export interface SliderProps {
   value: number;
   onValueChange: (value: number) => void;
   onSlidingComplete?: (value: number) => void;

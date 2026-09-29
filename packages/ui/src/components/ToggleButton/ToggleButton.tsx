@@ -11,7 +11,7 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
-interface ToggleButtonProps {
+export interface ToggleButtonProps {
   icon?: MaterialCommunityIconsGlyphs;
   label?: string;
   active: boolean;

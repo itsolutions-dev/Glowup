@@ -17,7 +17,7 @@ import Icon, { IconSource } from "../Icon";
 import IconButton from "../IconButton";
 import Title from "../Typography";
 
-interface ModalProps {
+export interface ModalProps {
   children: React.ReactNode | string;
   title?: string;
   /** Hero glyph above the title (M3 dialog icon). Centres the header. */

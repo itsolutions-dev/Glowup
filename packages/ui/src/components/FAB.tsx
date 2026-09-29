@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import {
   Pressable,
   Text,
@@ -10,11 +10,12 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { useStateLayer } from "./TouchableRipple";
+import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 type FABSize = "small" | "regular" | "large" | "extended";
 
-type FABPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
+type FABPosition = Corner;
 
 /**
  * `floating` pins the button to a screen corner (the default). `inline` drops
@@ -23,7 +24,7 @@ type FABPosition = "bottom-right" | "bottom-left" | "top-right" | "top-left";
  */
 type FABPlacement = "floating" | "inline";
 
-interface FABProps {
+export interface FABProps {
   icon: MaterialCommunityIconsGlyphs;
   label?: string;
   onPress: () => void;
@@ -51,27 +52,6 @@ const FAB = ({
     theme.colors.onPrimaryContainer,
   );
 
-  const getSafeStyle = useCallback(() => {
-    if (placement === "inline") return null;
-
-    const baseMargin = 16;
-    const style: ViewStyle = { position: "absolute" };
-
-    if (position.startsWith("top")) {
-      style.top = insets.top + baseMargin;
-    } else {
-      style.bottom = insets.bottom + baseMargin;
-    }
-
-    if (position.endsWith("right")) {
-      style.right = insets.right + baseMargin;
-    } else {
-      style.left = insets.left + baseMargin;
-    }
-
-    return style;
-  }, [placement, position, insets]);
-
   const isExtended = size === "extended";
 
   return (
@@ -85,7 +65,7 @@ const FAB = ({
         styles.fabBase,
         placement === "floating" && styles.floating,
         styles[size],
-        getSafeStyle(),
+        placement === "inline" ? null : cornerStyle(position, insets),
         // The M3 state layer, not a hex string with an alpha suffix glued on:
         // that only worked for 6-digit hex and skipped the press state.
         { backgroundColor: stateLayer(state, disabled) },

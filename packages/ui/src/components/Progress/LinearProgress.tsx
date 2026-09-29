@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
 
-interface LinearProgressProps {
+export interface LinearProgressProps {
   progress?: number;
   indeterminate?: boolean;
   /** Bar thickness. A percentage fills the parent — a progress surface. */

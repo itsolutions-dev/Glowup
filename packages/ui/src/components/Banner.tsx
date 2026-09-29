@@ -12,7 +12,7 @@ export interface BannerAction {
 
 type BannerType = "default" | "info" | "warning" | "error";
 
-interface BannerProps {
+export interface BannerProps {
   visible: boolean;
   message: string;
   icon?: MaterialCommunityIconsGlyphs;

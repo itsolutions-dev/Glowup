@@ -48,6 +48,15 @@ with provenance, and the manifest now carries `repository`, `homepage` and `bugs
 `thumbOffSizeRatio` and `thumbOnSizeRatio` are removed (nothing set them; the switch keeps
 its geometry). `width` and `height` stay.
 
+**Smaller changes.**
+
+- `AlertProvider` wires up `Alert()` itself; `AlertProviderWrapper` is now a deprecated
+  pass-through (keep it or drop it — both work).
+- `StatusBadge` takes its colours from the theme (error container, and fixed success and
+  warning hues) instead of hard-coded hex pairs, so it follows the palette and the scheme.
+- Every component's props type is exported (`ButtonProps`, `InputProps`, `ModalProps`…).
+- `getSafePosition` (a Popover internal) is no longer exported.
+
 **Breaking — theme aliases.** `theme.colors.accent`, `.text`, `.onAccent` and
 `.onSurfaceContainer` are removed; use `primary`, `onSurface`, `onPrimary` and `onSurface`.
 

@@ -10,7 +10,7 @@ import {
 } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
-interface ChipProps {
+export interface ChipProps {
   label: string;
   onPress?: () => void;
   onClose?: () => void;

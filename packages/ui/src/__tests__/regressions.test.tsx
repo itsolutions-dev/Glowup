@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import { Linking, Pressable, Text } from "react-native";
 import { act, fireEvent, render } from "@testing-library/react-native";
-import { Collapse, Input, Link, ThemeProvider, useTheme } from "../index";
+import {
+  Alert,
+  AlertProvider,
+  Collapse,
+  Input,
+  Link,
+  ThemeProvider,
+  useTheme,
+} from "../index";
 import type { Theme } from "../index";
 
 const wrap = (ui: React.ReactElement) =>
@@ -115,5 +123,29 @@ describe("Collapse", () => {
     });
     // …and gone once it has.
     expect(body()).toBeNull();
+  });
+});
+
+describe("Alert", () => {
+  it("reaches the mounted AlertProvider without a wrapper", async () => {
+    const { Alert: RNAlert } = jest.requireActual("react-native");
+    const spy = jest.spyOn(RNAlert, "alert").mockImplementation(() => {});
+    try {
+      await render(
+        <ThemeProvider>
+          <AlertProvider>
+            <Text>App</Text>
+          </AlertProvider>
+        </ThemeProvider>,
+      );
+      Alert("Saved", "All changes are stored.");
+      expect(spy).toHaveBeenCalledWith(
+        "Saved",
+        "All changes are stored.",
+        undefined,
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

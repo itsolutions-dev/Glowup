@@ -40,6 +40,12 @@ with provenance, and the manifest now carries `repository`, `homepage` and `bugs
 - `Link` opens only `http`, `https`, `mailto` and `tel` URLs by default; anything else —
   `javascript:`, `intent:`, another app's deep link — is ignored. New `allowedSchemes` to
   permit your own app's scheme.
+- `Tooltip` (web) opens on hover and on keyboard focus of the control it wraps. It listened
+  through a `Pressable`, which react-native-web does not notify when its child is itself
+  pressable (a `Button`, an `IconButton` — the usual anchor): hover never opened it, and focus
+  did only on the wrapper, an extra tab stop. The tip now has `role="tooltip"`.
+- `Calendar` (web) takes focus back when you return to the days from the month or year view,
+  so the arrow keys keep working after picking a year.
 - `Carousel` no longer calls `onIndexChange` (or scrolls) from inside a state updater,
   which ran twice under StrictMode. `Popover` cancels its pending animation frame.
   `BottomSheet` no longer replays its entrance when the window is resized.

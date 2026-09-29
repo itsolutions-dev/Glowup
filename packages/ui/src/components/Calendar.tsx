@@ -353,6 +353,19 @@ const Calendar = ({
     (rootRef.current as unknown as HTMLElement | null)?.focus();
   }, [autoFocus]);
 
+  // Picking a month or a year unmounts the button that had focus, which drops
+  // focus to the page and leaves the arrow keys with nothing to reach. Coming
+  // back to the days, focus returns to the calendar.
+  const previousView = useRef(view);
+  useEffect(() => {
+    const from = previousView.current;
+    previousView.current = view;
+    if (Platform.OS !== "web" || !keyboardNavigation) return;
+    if (view === "days" && from !== "days") {
+      (rootRef.current as unknown as HTMLElement | null)?.focus();
+    }
+  }, [view, keyboardNavigation]);
+
   useEffect(() => {
     if (Platform.OS !== "web" || !keyboardNavigation || view !== "days") return;
     const root = rootRef.current as unknown as HTMLElement | null;

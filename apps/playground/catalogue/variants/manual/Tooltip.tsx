@@ -72,6 +72,32 @@ const Delays = () => (
   </View>
 );
 
+const Rich = () => (
+  <View style={demo.row}>
+    <Tooltip
+      variant="rich"
+      title="Offline sync"
+      content="Changes are kept on this device and uploaded when the connection returns."
+    >
+      <IconButton
+        icon="cloud-sync-outline"
+        accessibilityLabel="Offline sync"
+        onPress={() => {}}
+      />
+    </Tooltip>
+    <Tooltip
+      variant="rich"
+      title="Two-step verification"
+      content="Adds a code from your phone to every sign-in."
+      action={{ label: "Learn more", onPress: () => {} }}
+    >
+      <Button mode="outlined" onPress={() => {}}>
+        Security
+      </Button>
+    </Tooltip>
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Positions",
@@ -81,4 +107,11 @@ export const variants: Variant[] = [
   },
   { name: "OnIconButtons", title: "On icon buttons", render: OnIconButtons },
   { name: "Delays", title: "Delays and disabled", render: Delays },
+  {
+    name: "Rich",
+    title: "Rich",
+    description:
+      "A title, a body and an optional action. With an action it stays open while you move into it — Tab reaches it from the anchor, Escape closes it.",
+    render: Rich,
+  },
 ];

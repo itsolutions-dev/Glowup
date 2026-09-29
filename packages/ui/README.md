@@ -122,7 +122,7 @@ Its public surface is the barrel `src/index.ts`. Layout:
 ```
 src/
 ├── index.ts          # public API barrel — everything importable from "@its/glowup-ui"
-├── components/        # ~60 Material You components
+├── components/        # the Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
 │   ├── Modal/         # Modal, ConfirmDialog
@@ -145,8 +145,10 @@ accessibility role/state and reacts to the light/dark theme automatically.
 
 > Icons: any prop typed _icon_ below takes a **MaterialCommunityIcons** name — a kebab-case
 > string like `"plus"` or `"bell-outline"` (outline variants append `-outline`).
-> The authoritative, always-current spec (with full defaults for every prop) lives at
-> [`src/components/components.md`](src/components/components.md).
+> The authoritative spec (with full defaults for every prop) is
+> [`components.md`](https://github.com/itsolutions-dev/Glowup/blob/master/packages/ui/src/components/components.md)
+> in the repository; the documentation site's per-component pages carry the prop tables
+> generated from the source.
 
 ## Component reference
 
@@ -156,11 +158,11 @@ Exported from the library alongside the components:
 
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
-- **`useTheme()`** → `{ theme, isDark, toggleTheme }`.
+- **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
 - **`getStateColor(bg, on, state)`** — composites a hover/press state-layer color over a base.
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native
-  `Alert.alert` on iOS/Android, custom `Modal` on web.
+  `Alert.alert` on iOS/Android, custom `Modal` on web. Mounting `AlertProvider` is enough.
 - **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 
@@ -501,6 +503,22 @@ one a set of `checkbox`es.
 | size     | `"small" \| "medium"` (small = 24px) | `medium` |
 | disabled | boolean                              | `false`  |
 
+#### `ButtonGroup`
+
+M3 Expressive button group — `type="standard"` or `"connected"` (the successor of segmented
+buttons), single or `multiSelect`, sizes `xs` / `s` / `m`. Same `options` / `value` /
+`onValueChange` shape as `ToggleButtonGroup`.
+
+#### `SplitButton`
+
+A primary action (`children`, `iconName`, `onPress`) joined to a trailing button that opens a
+`Menu` of `items`.
+
+#### `ChipGroup`
+
+Filter chips with the selection handled: single (optionally `required`) or `multiSelect`,
+wrapping or horizontally scrolling.
+
 ### Inputs & forms
 
 #### `Input`
@@ -684,7 +702,7 @@ React Native — no SVG, no native modules — so they render identically on web
 month scrolling and the keyboard navigation above; `ClockPicker` is the M3 hour/minute readout
 with its AM/PM switch, over `ClockDial` (the analog face, drag to set) or two text fields.
 Full prop tables in
-[`components.md`](src/components/components.md).
+[`components.md`](https://github.com/itsolutions-dev/Glowup/blob/master/packages/ui/src/components/components.md).
 
 #### `Autocomplete`
 
@@ -917,6 +935,11 @@ token-driven corner radius.
 | showLoader       | boolean                                                             | `true`                 |
 | onLoad / onError | () => void                                                          |                        |
 
+#### `Table`, `TableHead`, `TableRow`, `TableHeaderCell`, `TableCell`
+
+The primitives `DataGrid` is built from, for a table whose rows you lay out yourself; they carry
+the table / row / columnheader / cell roles.
+
 ### Feedback & overlays
 
 #### `Snackbar`
@@ -1105,6 +1128,11 @@ toast.hide(); // clears the queue
 | action         | `{ label, onPress }`                                                  |             |
 | id             | string — replaces a queued toast with the same id instead of stacking |             |
 
+#### `SideSheet`
+
+M3 side sheet: `modal` (over a scrim, from the `end` or `start` edge) or standard (inline beside
+the content), with back / close buttons and an `actions` row.
+
 ### Navigation
 
 > The library is **navigation-agnostic**: it ships navigation *widgets* (app bar, bottom bar,
@@ -1114,7 +1142,8 @@ toast.hide(); // clears the queue
 
 #### `AppBar`
 
-Top app bar (drawer/back button, title, right actions). Its props are navigator-shaped
+`TopAppBar` behind react-navigation's header contract (drawer/back button, title, right
+actions). Its props are navigator-shaped
 (`navigation`, `route`, `options`, `back`, `isPinned`) and structurally typed, so it drops
 into a React Navigation `header` renderer without the library depending on the navigator.
 
@@ -1172,6 +1201,26 @@ Horizontal progress steps.
 | steps       | `string[]` \| `{ label, icon? }[]` (required) | —       |
 | activeStep  | number (index, required)                      | —       |
 | onStepPress | (stepIndex) => void (makes steps tappable)    |         |
+
+#### `TopAppBar`
+
+The navigator-agnostic top app bar `AppBar` is built on: `small`, `center`, `medium`, `large`,
+with `leading` and `actions` slots and an `elevated` on-scroll state.
+
+#### `NavigationRail`
+
+The side-mounted counterpart of `NavigationBar` for medium and expanded windows — same item
+shape, `header` / `footer` slots for a menu button or a FAB.
+
+#### `NavigationDrawer`, `DrawerItem`, `DrawerSection`
+
+M3 navigation drawer, `variant="standard"` (inline) or `"modal"` (over a scrim; Escape and Android
+back close it).
+
+#### `Toolbar`
+
+M3 Expressive toolbar: `docked` along the bottom edge or `floating` (standard or vibrant,
+horizontal or vertical, with an optional FAB).
 
 ### System
 

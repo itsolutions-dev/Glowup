@@ -56,6 +56,8 @@ its geometry). `width` and `height` stay.
   warning hues) instead of hard-coded hex pairs, so it follows the palette and the scheme.
 - Every component's props type is exported (`ButtonProps`, `InputProps`, `ModalProps`…).
 - `getSafePosition` (a Popover internal) is no longer exported.
+- The nineteen Material palettes are built on first use instead of at import (about
+  1,400 tone searches the app paid for on startup even when it used one palette).
 
 **Breaking — theme aliases.** `theme.colors.accent`, `.text`, `.onAccent` and
 `.onSurfaceContainer` are removed; use `primary`, `onSurface`, `onPrimary` and `onSurface`.

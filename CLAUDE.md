@@ -86,8 +86,10 @@ This is the rule that keeps the split real:
 packages/ui/
 ├── src/
 │   ├── index.ts        # the public API barrel; nothing else is public
-│   ├── components/     # 85 components (CardParts/, List/, Modal/, Progress/,
+│   ├── components/     # the components (CardParts/, List/, Modal/, Progress/,
 │   │                   #   Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
+│   ├── components/internal/  # shared building blocks, never exported
+│   │                   #   (SideOverlay, cornerPlacement, useReduceMotion)
 │   ├── components/components.md  # authoritative per-component spec, all prop defaults
 │   ├── providers/      # ThemeProvider, AlertProvider, ToastProvider, theme.json
 │   └── __tests__/      # the library's own component tests (jest-expo)
@@ -222,10 +224,14 @@ takes react-navigation's header contract and a consumer still needs to see it.
   them by hand when the theme's primary colours change.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
-module, its name in the right group in `catalogue/categories.ts`, any special-casing in
-`ComponentPreview.tsx`, and its name in the `CATALOGUE` list in
-`__tests__/playground-catalogue.test.tsx` — the test pins that list against `FLAT_ORDER`, the
-registry and the generated docs, so a component catalogued without a working demo fails there.
+module, its name in the right group in `catalogue/categories.ts`, and its name in the
+`CATALOGUE` list in `__tests__/playground-catalogue.test.tsx`. When the stage needs more than
+`<Component {...props} />` (sample data, controlled state, an overlay behind a trigger), give the
+entry a `Demo` component (`catalogue/demos.tsx`) instead of adding a branch to
+`ComponentPreview.tsx`; a component with no authored preview can reuse that demo as its
+gallery (`catalogue/variants/manual/fromDemos.tsx`). The test pins the `CATALOGUE` list
+against `FLAT_ORDER`, the registry and the generated docs, so a component catalogued without a
+working demo fails there.
 It gets its page, its props table and its URL for free.
 
 ### Keyboard
@@ -259,7 +265,7 @@ layout that still believed it was on a phone.
 
 `apps/playground` is exported to static HTML (`expo-router` with `output: "static"`) and
 deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to `master`. Each
-route — including all 85 component pages — is prerendered to its own file with its own title
+route — including every component page — is prerendered to its own file with its own title
 and meta description, so a component URL is shareable and crawlable.
 
 Pages serves a project site from a subpath (`/<repo>/`), so the workflow sets

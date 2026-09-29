@@ -1,10 +1,6 @@
-# Dependabot version updates.
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
 updates:
-  # One entry covers every workspace: Dependabot reads the root package.json's
-  # `workspaces` and the committed package-lock.json.
+  # Regular version updates (existing config)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -14,9 +10,6 @@ updates:
       minor-and-patch:
         update-types: ["minor", "patch"]
     ignore:
-      # The Expo SDK pins these to one tested set (expo/bundledNativeModules.json).
-      # They move together with the SDK, through `npx expo install --fix`, never
-      # one at a time: a lone react-native or reanimated bump builds on no device.
       - dependency-name: "expo"
       - dependency-name: "expo-*"
       - dependency-name: "jest-expo"
@@ -31,11 +24,17 @@ updates:
       - dependency-name: "@expo/*"
       - dependency-name: "@types/react"
       - dependency-name: "@types/react-dom"
-      # Majors are held back by the toolchain, not by choice: jest-expo depends
-      # on jest 29, typescript-eslint supports TypeScript < 6.1, and
-      # eslint-plugin-import / eslint-plugin-react do not support ESLint 10.
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+
+  # Separate config for security updates - allows all dependencies and update types
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-type: "all" # Include transitive dependencies
+    # No ignore list - allow security patches for everything
 
   - package-ecosystem: "github-actions"
     directory: "/"

@@ -8,6 +8,6 @@
       "bundler": "metro",
       "output": "single"
     },
-    "plugins": ["expo-localization", "expo-status-bar"]
+    "plugins": ["expo-status-bar"]
   }
 }

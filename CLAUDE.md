@@ -65,8 +65,7 @@ component's props or a preview.
   expo-router depends on them, and without a direct dependency npm resolves releases outside
   the SDK (reanimated 4.7 + worklets 0.13, which expo-modules-core rejects). Keep them.
 - Held back on purpose: TypeScript 7 (no JS API; typescript-eslint supports < 6.1), ESLint 10
-  (eslint-plugin-import / eslint-plugin-react), Jest 30 (jest-expo depends on 29),
-  `@changesets/cli` 3 (its publish flow changed; unverified with `changesets/action@v1`).
+  (eslint-plugin-import / eslint-plugin-react), Jest 30 (jest-expo depends on 29).
 
 ## The library/app boundary
 
@@ -80,174 +79,8 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts` so an edit
   in the library is picked up live by Metro and `tsc`. That is the only mapping.
 
-## packages/ui — the library
-
-```
-packages/ui/
-├── src/
-│   ├── index.ts        # the public API barrel; nothing else is public
-│   ├── components/     # the components (CardParts/, List/, Modal/, Progress/,
-│   │                   #   Tab/, ToggleButton/, Layout/, types.ts, *.tsx)
-│   ├── components/internal/  # shared building blocks, never exported
-│   │                   #   (SideOverlay, cornerPlacement, useReduceMotion)
-│   ├── components/components.md  # authoritative per-component spec, all prop defaults
-│   ├── providers/      # ThemeProvider, AlertProvider, ToastProvider, theme.json
-│   └── __tests__/      # the library's own component tests (jest-expo)
-├── tsconfig.json       # type-check config (includes the tests)
-├── tsconfig.build.json # declaration emit: excludes tests, `types: []`
-└── package.json        # bob build → lib/{commonjs,module,typescript}
-```
-
-- Anything added under `src/components` must be exported from `src/index.ts` to exist for
-  consumers.
-- Native dependencies are **peerDependencies**, and every one of them is required except
-  `react-dom` (web only, and always there with `react-native-web`). An "optional" peer that a
-  barrel-reachable module imports is not optional — Metro resolves every static import — which
-  is why `expo-localization` (replaced by `Intl`) and `expo-status-bar` (the `StatusBar`
-  component moved into the playground) are gone. `polished` is the only real dependency.
-  The library is **navigation-agnostic**: it must never
-  depend on `@react-navigation/*`. It ships navigation widgets (`AppBar`, `NavigationBar`,
-  `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`) but no navigator — that belongs to the
-  consuming app.
-- Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
-  `.js.map` files; bob's typescript target hardcodes `--declarationMap`, so `npm run build`
-  chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
-  comments pointing at them. Don't "restore" either half without removing `!**/*.map` from
-  the package's `files` too, or the tarball will reference maps it does not ship.
-- The playground consumes `src`, never `lib`, so the published artefact is checked separately:
-  `npm run validate-package -w @its/glowup-ui` (a CI step) validates the tarball's manifest
-  and types statically, and `examples/consumer` exercises the published package at runtime
-  (its own CI workflow, `consumer-smoke.yml`, chains off Release, so it runs on every push to
-  master, plus weekly and on demand — never on a PR, which cannot change what is already
-  published). Run validate-package
-  after touching `package.json`, the export map or anything a `.d.ts` imports.
-
-### Theme system
-
-All colors, typography, spacing and shape tokens live in `packages/ui/src/providers/theme.json`
-— the runtime source of truth. The public `Theme` type spells the tokens out explicitly
-(`ThemeColorTokens`, `ThemeSpacingTokens`, `ThemeShapeTokens`, `TypographyVariant`) instead of
-deriving them with `typeof themeConfig`: a public type derived from the JSON makes the emitted
-`.d.ts` import `theme.json`, which is not shipped with the declarations. A type-level guard
-(`_ThemeTokensInSync` in `ThemeProvider.tsx`) fails `npm run type-check` if the explicit types
-and `theme.json` drift apart — **when you add or remove a token, update both.**
-
-**Styling pattern used throughout:** theme-reactive styles via `useMemo`:
-
-```tsx
-const styles = useMemo(() => makeStyles(theme), [theme]);
-// ...
-const makeStyles = (theme: Theme) => StyleSheet.create({ ... });
-```
-
-Colour sets live in `providers/palettes.ts`: `palettes` is the baseline plus the nineteen named
-Material hues, each built by `createPalette(seed)`; `useTheme().setPalette()` swaps them live.
-The tone math is in `providers/tonal.ts` and the fixed success roles (Button's `tone="success"`)
-in `providers/successRoles.ts` — both internal, not re-exported from the barrel.
-
-`useTheme()` exposes `{ theme, toggleTheme }`; `getStateColor()` and `getGlowStyles()` are
-exported for building theme-reactive components. The theme follows the OS color scheme and
-supports a manual toggle.
-
-### Providers
-
-- `ThemeProvider` — Material You theme derived from `theme.json` (see above).
-- `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom Modal on
-  web. Call the `Alert(title, message, buttons)` singleton; `AlertProvider` wires it up
-  (`AlertProviderWrapper` is a deprecated pass-through).
-- `ToastProvider` — imperative queued toasts via `useToast()`.
-
-## apps/playground — the presentation app
-
-The playground is also the **published documentation site**: the same Expo app runs on
-device and exports to static HTML for GitHub Pages.
-
-```
-apps/playground/
-├── app/               # expo-router routes — one file per URL, each prerendered
-│   ├── _layout.tsx    # provider chain + SiteShell, mounted for every route
-│   ├── index.tsx      # overview
-│   ├── getting-started.tsx
-│   ├── theming.tsx    # live token reference, read from the running theme
-│   ├── templates.tsx  # whole screens composed from the kit
-│   ├── +not-found.tsx # exported as 404.html by the deploy workflow
-│   └── components/
-│       ├── _layout.tsx  # catalogue sidebar (expanded and up) + the page
-│       ├── index.tsx    # the catalogue as a filterable grid
-│       └── [name].tsx   # one component: demo, controls, snippet, variants, API
-├── site/              # the site's own building blocks
-│   ├── breakpoints.ts   # M3 window size classes — the ONLY responsive source
-│   ├── SiteShell.tsx    # top bar + navigation (scrim drawer / rail / drawer)
-│   ├── CatalogueSidebar.tsx, Page.tsx, CodeBlock.tsx, PropsTable.tsx,
-│   ├── PropControls.tsx, ErrorBoundary.tsx, propsData.ts, siteNav.ts,
-│   └── usePersistentState.ts
-├── catalogue/         # the gallery's content
-│   ├── types.ts       # PropDefinition, ComponentMetadata, Category
-│   ├── categories.ts  # CATEGORIES + FLAT_ORDER + TOTAL_COUNT + CATEGORY_OF
-│   ├── registry/      # one module per category, merged into ComponentRegistry
-│   ├── ComponentPreview.tsx  # renders the selected entry with the panel's props
-│   ├── snippet.ts     # the JSX shown under the stage, built from live props
-│   └── variants/      # generate.mjs + generated/ (see below) + manual.ts
-├── docgen/            # extract-props.mjs + props.generated.json (see below)
-├── __tests__/         # catalogue coverage only
-├── scripts/           # generate-icons.mjs (see below)
-├── assets/            # generated app icons + splash
-├── public/            # copied to the export root verbatim (og-image.png)
-├── app.config.ts      # reads GLOWUP_BASE_URL; web output is "static"
-└── metro.config.js    # monorepo-aware Metro (watches the repo root)
-```
-
-The site is **English only** and carries no i18n layer: `i18n/` and the
-`@react-navigation`-based `navigation/` folder were removed once nothing rendered
-them. The navigator wiring survives as a snippet on /templates, because `AppBar`
-takes react-navigation's header contract and a consumer still needs to see it.
-
-### Three generated artefacts, all committed
-
-- `docgen/props.generated.json` — every exported component's prop table, read from the
-  library's TypeScript with ts-morph: name, type as written, optionality, JSDoc, and the
-  default taken from the destructuring pattern. `npm run docgen -w @its/glowup-playground`
-  regenerates it; CI regenerates and fails on a diff. **Never hand-edit it**, and never
-  hand-write a prop table beside it.
-- `catalogue/variants/generated/` — the variant galleries, rewritten from
-  `.design-sync/previews/*.tsx` (the authored demos) into React Native primitives by
-  `catalogue/variants/generate.mjs`. The previews stay in the browser dialect because the
-  design-sync converter cannot resolve `react-native`; **edit the preview, then run
-  `npm run variants -w @its/glowup-playground`**. Seven previews are excluded by name in the
-  generator, each with its reason; hand-written galleries live in
-  `catalogue/variants/manual/` and win over the generated entry for the same component.
-  A catalogued component with no gallery at all fails the playground test.
-- `assets/*.png` and `public/og-image.png` — the icon set and the share card, drawn from
-  `theme.json`'s primary colours by `scripts/generate-icons.mjs` (a hand-rolled PNG encoder;
-  no image dependency). `npm run icons -w @its/glowup-playground` regenerates them. Not checked
-  by CI — deflate output is not guaranteed byte-identical across zlib versions — so regenerate
-  them by hand when the theme's primary colours change.
-
-Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
-module, its name in the right group in `catalogue/categories.ts`, and its name in the
-`CATALOGUE` list in `__tests__/playground-catalogue.test.tsx`. When the stage needs more than
-`<Component {...props} />` (sample data, controlled state, an overlay behind a trigger), give the
-entry a `Demo` component (`catalogue/demos.tsx`) instead of adding a branch to
-`ComponentPreview.tsx`; a component with no authored preview can reuse that demo as its
-gallery (`catalogue/variants/manual/fromDemos.tsx`). The test pins the `CATALOGUE` list
-against `FLAT_ORDER`, the registry and the generated docs, so a component catalogued without a
-working demo fails there.
-It gets its page, its props table and its URL for free.
-
-### Keyboard
-
-`site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op
-on native. `SiteShell` owns the list — ⌘/Ctrl+K or `/` for the command palette, `[` and `]` to
-step through the catalogue, `t` for the scheme, `?` for the list itself — and `ShortcutsDialog`
-renders that same array, so a shortcut cannot exist without being documented.
-
-### Responsive
-
-`site/breakpoints.ts` holds the Material 3 window size classes (compact / medium / expanded /
-large / extraLarge) and `useLayout()` is the only way to ask about width. Do not compare
-`useWindowDimensions().width` to a number anywhere else: the previous screen switched layout at
-960 while the drawer switched at 840, and between the two you got a permanent drawer beside a
-layout that still believed it was on a phone.
+Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md` and
+`apps/playground/CLAUDE.md`, which load when you work under those folders.
 
 ## Tests
 
@@ -260,21 +93,6 @@ layout that still believed it was on a phone.
 - The playground tests only the playground: it renders every catalogue entry's demo directly
   (no router) and pins the catalogue against the registry, the categories and the generated
   prop tables.
-
-## Publishing the documentation site
-
-`apps/playground` is exported to static HTML (`expo-router` with `output: "static"`) and
-deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to `master`. Each
-route — including every component page — is prerendered to its own file with its own title
-and meta description, so a component URL is shareable and crawlable.
-
-Pages serves a project site from a subpath (`/<repo>/`), so the workflow sets
-`GLOWUP_BASE_URL` and `app.config.ts` feeds it to `experiments.baseUrl`. Locally the variable
-is unset and the site serves from the root. The workflow also writes `.nojekyll` (Jekyll would
-drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html`.
-
-The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
-private repository requires GitHub Enterprise Cloud.
 
 ## Releasing
 
@@ -289,4 +107,3 @@ user-visible change to the library needs a changeset (`npx changeset`). On push 
   regardless of `core.autocrlf`. `npm run lint` gates CI.
 - Icons: `@expo/vector-icons/MaterialCommunityIcons` — icon names are kebab-case strings;
   outline variants append `-outline`.
-- i18n keys are UPPER_SNAKE_CASE (e.g. `t("ADD")`, `t("LOGOUT")`) and live in the app only.

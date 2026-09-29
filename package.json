@@ -17,6 +17,7 @@
     "type-check": "npm run type-check --workspaces --if-present && tsc --noEmit -p .design-sync/tsconfig.json",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace @its/glowup-ui",
+    "version-packages": "changeset version && npm run docgen -w @its/glowup-playground",
     "release": "changeset publish"
   },
   "devDependencies": {

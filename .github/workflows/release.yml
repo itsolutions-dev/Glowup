@@ -46,10 +46,12 @@ jobs:
 
       # Opens/updates a "Version Packages" PR from pending changesets; when that PR is
       # merged, `npm run release` (changeset publish) publishes @its/glowup-ui to npm.
+      # The version script also regenerates the prop tables, which record the
+      # library version, so the PR does not fail CI's docgen diff check.
       - name: Create Release PR or publish
         uses: changesets/action@v2
         with:
-          version-script: npx changeset version
+          version-script: npm run version-packages
           publish-script: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

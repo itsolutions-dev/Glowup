@@ -1,6 +1,6 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.8.0",
+  "libraryVersion": "0.9.0",
   "generatedFrom": "packages/ui/src/index.ts",
   "componentCount": 102,
   "components": {

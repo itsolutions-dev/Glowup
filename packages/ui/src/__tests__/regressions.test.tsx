@@ -60,6 +60,8 @@ describe("Link", () => {
     "JavaScript:x",
     "java\nscript:x",
     "intent://x",
+    "my_app://orders",
+    " sms:+100?body=hi",
   ])("does nothing for %j", async (href) => {
     const { getByRole } = await wrap(<Link href={href}>Bad</Link>);
     await fireEvent.press(getByRole("link"));

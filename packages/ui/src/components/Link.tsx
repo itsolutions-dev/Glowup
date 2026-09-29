@@ -47,14 +47,24 @@ const DEFAULT_SCHEMES = ["http", "https", "mailto", "tel"];
 
 const isRemote = (href?: string) => !!href && SCHEME.test(href);
 
-/** A relative href has no scheme and stays inside the app; anything else must be allowed. */
+/**
+ * The scheme a URL parser would read, or `undefined` for a relative href.
+ * Anything before the first ":" counts, as long as no "/", "?" or "#" comes
+ * first — broader than RFC 3986's scheme characters on purpose, because
+ * Android's Uri.parse accepts "my_app:" too. URL parsers drop whitespace and
+ * control characters before reading the scheme, so "java\nscript:" is
+ * javascript: — read it the same way.
+ */
+const schemeOf = (href: string) =>
+  /^([^/?#]*?):/
+    .exec(href.replace(/[\u0000-\u0020\u007f]/g, ""))?.[1]
+    ?.toLowerCase();
+
+/** A relative href stays inside the app; anything with a scheme must be allowed. */
 const isAllowed = (href: string, allowed: string[]) => {
-  // URL parsers drop whitespace and control characters before reading the
-  // scheme, so "java\nscript:" is javascript: — read it the same way.
-  const scheme = SCHEME.exec(href.replace(/[\u0000-\u0020\u007f]/g, ""))?.[1];
+  const scheme = schemeOf(href);
   return (
-    scheme === undefined ||
-    allowed.some((a) => a.toLowerCase() === scheme.toLowerCase())
+    scheme === undefined || allowed.some((a) => a.toLowerCase() === scheme)
   );
 };
 

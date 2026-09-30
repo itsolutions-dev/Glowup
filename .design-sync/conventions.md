@@ -8,8 +8,9 @@ radius comes from the theme object at runtime. Class names you invent will not r
 ### Wrap the app, or nothing is styled
 
 Three providers, in this order. `ThemeProvider` supplies every token — without it
-components mount but render unthemed. `SafeAreaProvider` is required by `AppBar` and
-`SpeedDial` (they read insets and throw without it). `AlertProviderWrapper` is what binds
+components mount but render unthemed. `SafeAreaProvider` is required by `TopAppBar`
+(and `AppBar`, which wraps it), `Toolbar`, `FAB`, `AnimatedFAB`, `SpeedDial`, and the
+modal `NavigationDrawer` / `SideSheet` (they read insets and throw without it). `AlertProviderWrapper` is what binds
 the imperative `Alert()` singleton; omit it and every `Alert()` call is a no-op warning.
 
 ```tsx
@@ -34,13 +35,13 @@ const styles = useMemo(() => makeStyles(theme), [theme]);
 
 The real token vocabulary, all under `theme`:
 
-| Group | Names |
-|---|---|
-| `colors` | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, and the same four for `secondary` / `tertiary` / `error`; `background`, `onBackground`, `surface`, `onSurface`, `surfaceVariant`, `onSurfaceVariant`, `surfaceContainer`, `surfaceContainerLow`, `surfaceContainerHigh`, `surfaceContainerHighest`, `surfaceDim`, `outline`, `outlineVariant`, `shadow` |
-| `typography` | `displayLarge/Medium/Small`, `headlineLarge/Medium/Small`, `titleLarge/Medium/Small`, `bodyLarge/Medium/Small`, `labelLarge/Medium/Small` |
-| `spacing` | `xs` 4, `s` 8, `m` 16, `l` 24, `xl` 32 |
-| `shape` | `small` 8, `medium` 12, `large` 16, `extraLarge` 28 |
-| | `isDark` — boolean; the palette follows the OS scheme, `toggleTheme()` overrides it |
+| Group        | Names                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `colors`     | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`, and the same four for `secondary` / `tertiary` / `error`; `background`, `onBackground`, `surface`, `onSurface`, `surfaceVariant`, `onSurfaceVariant`, `surfaceContainer`, `surfaceContainerLow`, `surfaceContainerHigh`, `surfaceContainerHighest`, `surfaceDim`, `outline`, `outlineVariant`, `shadow` |
+| `typography` | `displayLarge/Medium/Small`, `headlineLarge/Medium/Small`, `titleLarge/Medium/Small`, `bodyLarge/Medium/Small`, `labelLarge/Medium/Small`                                                                                                                                                                                                                                 |
+| `spacing`    | `xs` 4, `s` 8, `m` 16, `l` 24, `xl` 32                                                                                                                                                                                                                                                                                                                                    |
+| `shape`      | `small` 8, `medium` 12, `large` 16, `extraLarge` 28                                                                                                                                                                                                                                                                                                                       |
+|              | `isDark` — boolean; the palette follows the OS scheme, `toggleTheme()` overrides it                                                                                                                                                                                                                                                                                       |
 
 Helpers: `getStateColor(base, on, "hover" | "press" | "focus")` for M3 state layers, and
 `getGlowStyles(theme, isActive, error?)` for the library's focus/error border treatment.
@@ -55,9 +56,9 @@ design in another colour set, pick it on the provider or switch it live; never o
 colours component by component:
 
 ```tsx
-<ThemeProvider initialPalette={palettes.teal}>{/* design */}</ThemeProvider>
+<ThemeProvider initialPalette={palettes.teal}>{/* design */}</ThemeProvider>;
 
-const { palette, setPalette } = useTheme();   // setPalette(palettes.indigo)
+const { palette, setPalette } = useTheme(); // setPalette(palettes.indigo)
 const brand = createPalette("#00639B", { id: "brand", name: "Brand" });
 ```
 
@@ -93,18 +94,37 @@ full token tables and type scale are in `_ds/<folder>/guidelines/design-system.m
 ```tsx
 const { theme } = useTheme();
 
-<div style={{ display: "flex", flexDirection: "column", gap: theme.spacing.m, padding: theme.spacing.l }}>
+<div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing.m,
+    padding: theme.spacing.l,
+  }}
+>
   <Typography variant="headlineSmall">Invoices</Typography>
-  <SearchBar value={query} onChangeText={setQuery} placeholder="Search invoices" />
+  <SearchBar
+    value={query}
+    onChangeText={setQuery}
+    placeholder="Search invoices"
+  />
   <div style={{ display: "flex", gap: theme.spacing.s, flexWrap: "wrap" }}>
     <Chip label="Paid" mode="tonal" selected onPress={() => {}} />
     <Chip label="Overdue" mode="outlined" onPress={() => {}} />
   </div>
   <Paper elevation={0} outline style={{ borderRadius: theme.shape.large }}>
-    <DataGrid data={rows} columns={columns} sortColumn="issued" sortDirection="asc" onSort={onSort} />
+    <DataGrid
+      data={rows}
+      columns={columns}
+      sortColumn="issued"
+      sortDirection="asc"
+      onSort={onSort}
+    />
   </Paper>
-  <Button mode="filled" iconName="plus" fullWidth onPress={() => {}}>New invoice</Button>
-</div>
+  <Button mode="filled" iconName="plus" fullWidth onPress={() => {}}>
+    New invoice
+  </Button>
+</div>;
 ```
 
 ### Two things worth knowing

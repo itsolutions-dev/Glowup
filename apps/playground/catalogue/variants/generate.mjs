@@ -88,9 +88,15 @@ const NOT_CATALOGUED = new Set([
   "ToastProvider",
   "SafeAreaProvider",
   "AppBar",
-  "StatusBar",
   "HStack",
   "VStack",
+  // Parts previewed inside their parent's catalogue entry.
+  "DrawerItem",
+  "DrawerSection",
+  "TableHead",
+  "TableRow",
+  "TableCell",
+  "TableHeaderCell",
 ]);
 
 /** `WithIcons` → `With icons`, `FullWidth` → `Full width`. */

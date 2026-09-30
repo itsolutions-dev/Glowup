@@ -110,8 +110,8 @@ because the script wipes that directory on every run.
 
 ## Install
 
-`package-lock.json` is **not committed** (see commit a4bfae7), so `npm ci` never applies
-here — use plain `npm install` from the repo root. A stale local lockfile that predates
+`package-lock.json` is committed again (it was not, around commit a4bfae7); `npm ci` works,
+and `npm install` from the repo root is fine locally. A stale local lockfile that predates
 `packages/ui`'s `@types/react-dom` devDependency makes `bob build` fail its typescript
 target with `TS7016: Could not find a declaration file for module 'react-dom'` on
 `DateTimePicker.web.tsx`, reported only as `Error: Failed to build definition files`.
@@ -615,3 +615,27 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 - **Chrome's `outline-style: auto` focus ring ignores `outlineWidth: 0`.** Use `outlineStyle: "none" as any` on web text inputs (SearchBar, Autocomplete).
 - `packages/ui/scripts/strip-declaration-maps.mjs` needed `fileURLToPath` to run on Windows.
 - Library fixes found only by grading sheets this run: SpeedDial corner anchor, Menu label width, Autocomplete focus ring, Spinner disabled fade, AspectRatio ignoring `width`, AlertProvider ignoring button `style` on web, Popover sub-pixel width.
+
+## 2026-09-29 re-sync
+
+- Staged `.ds-sync/` scripts were byte-identical to skill build 2.1.284 except the capture-clock
+  patch, so the `cp -r` was skipped again. Both override forks diff clean apart from prettier noise.
+- Delta: 15 added (ButtonGroup, ChipGroup, SplitButton, Toolbar, TopAppBar, NavigationRail,
+  NavigationDrawer, DrawerItem, DrawerSection, SideSheet, Table + TableHead / TableRow / TableCell /
+  TableHeaderCell), 6 removed (DrawerPreferenceItem, IconBadge, LanguageSelector, NumericInput,
+  StatusBar, TimeSelect), AppBar changed (now an adapter over TopAppBar). 97 components, all authored.
+- **`TableRow` is content-height.** Body rows need `style={{ minHeight: 48 }}` (DataGrid sets 40/56),
+  and `Table` stretches to its parent, so wrap it in a div exactly as wide as the column widths sum
+  (+2 for the border) or the header band runs past the last column.
+- **`Toolbar` defaults to `variant="docked"`** (full-width bar); the floating pill must be asked for.
+- **`ChipGroup` in the default `outlined` mode marks selection with a check only.** `mode="filled"`
+  shows the tertiary selected fill.
+- `SideSheet modal={false}` renders inline and ignores `visible`; that is the previewable form. The
+  modal drawer and modal sheet portal through `internal/SideOverlay` (RN-web Modal) and are not
+  previewed.
+- `DrawerItem`, `DrawerSection` and the four Table parts are previewed inside their parent (no
+  standalone meaning), each card sweeping the part's own props.
+- `conventions.md`: the SafeAreaProvider sentence now lists every inset reader. Re-check with
+  `grep -l useSafeAreaInsets packages/ui/src/components`.
+- Upload: 493 content files + sentinel + anchor, atomic path, 30 deletes (the six removed
+  components' `_preview/*.css` never existed remotely).

@@ -23,11 +23,15 @@ takes react-navigation's header contract and a consumer still needs to see it.
   generator, each with its reason; hand-written galleries live in
   `catalogue/variants/manual/` and win over the generated entry for the same component.
   A catalogued component with no gallery at all fails the playground test.
-- `assets/*.png` and `public/og-image.png` — the icon set and the share card, drawn from
-  `theme.json`'s primary colours by `scripts/generate-icons.mjs` (a hand-rolled PNG encoder;
-  no image dependency). `npm run icons -w @its/glowup-playground` regenerates them. Not checked
-  by CI — deflate output is not guaranteed byte-identical across zlib versions — so regenerate
-  them by hand when the theme's primary colours change.
+- `assets/*.png` and `public/og-image.png` — the icon set and the share card: a neon bolt
+  in a broken ring, drawn from `theme.json`'s dark-scheme colours by
+  `scripts/generate-icons.mjs` (a hand-rolled PNG encoder; no image dependency).
+  `npm run icons -w @its/glowup-playground` regenerates them (about 30 s). The shape lives in
+  `site/brandMark.json`, which `site/BrandMark.tsx` also reads for the header's flat SVG copy,
+  so edit the JSON, never the two drawings. Not checked by CI — deflate output is not
+  guaranteed byte-identical across zlib versions — so regenerate them by hand when the theme's
+  colours or the JSON change. `app.config.ts` hardcodes the dark `surfaceDim` as the splash
+  and adaptive-icon background; keep it in step.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
 module, its name in the right group in `catalogue/categories.ts`, and its name in the

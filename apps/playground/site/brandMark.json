@@ -1,0 +1,26 @@
+{
+  "$comment": "The Glowup mark, in a unit square (0..1, y down). Read by scripts/generate-icons.mjs for the PNGs and by site/BrandMark.tsx for the header, so the two cannot drift. Angles are degrees clockwise from east, as on screen.",
+  "bolt": [
+    [0.63, 0.19],
+    [0.32, 0.55],
+    [0.48, 0.55],
+    [0.39, 0.81],
+    [0.69, 0.44],
+    [0.53, 0.44]
+  ],
+  "ring": {
+    "cx": 0.5,
+    "cy": 0.5,
+    "r": 0.3,
+    "width": 0.048,
+    "arcs": [
+      [160, 290],
+      [340, 110]
+    ]
+  },
+  "streaks": [
+    { "from": [0.69, 0.31], "to": [0.84, 0.13], "width": [0.024, 0.004] },
+    { "from": [0.31, 0.69], "to": [0.16, 0.87], "width": [0.024, 0.004] },
+    { "from": [0.73, 0.2], "to": [0.79, 0.13], "width": [0.012, 0.002] }
+  ]
+}

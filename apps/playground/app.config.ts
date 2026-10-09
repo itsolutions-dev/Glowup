@@ -8,6 +8,11 @@ import type { ExpoConfig } from "expo/config";
 // exist. The deploy workflow sets GLOWUP_BASE_URL; nothing else does.
 const baseUrl = process.env.GLOWUP_BASE_URL ?? "";
 
+// The icons are drawn on the dark scheme's surfaceDim (scripts/generate-icons.mjs),
+// so the splash screen and the adaptive icon's background use the same colour
+// and the mark's square disappears into them.
+const ICON_BACKGROUND = "#0F0D13";
+
 const config: ExpoConfig = {
   name: "Glowup",
   slug: "glowup-playground",
@@ -22,7 +27,7 @@ const config: ExpoConfig = {
   android: {
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: ICON_BACKGROUND,
     },
     softwareKeyboardLayoutMode: "pan",
   },
@@ -43,7 +48,7 @@ const config: ExpoConfig = {
       {
         image: "./assets/splash-icon.png",
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
+        backgroundColor: ICON_BACKGROUND,
       },
     ],
   ],

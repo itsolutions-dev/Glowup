@@ -42,8 +42,10 @@ const styles = useMemo(() => makeStyles(theme), [theme]);
 const makeStyles = (theme: Theme) => StyleSheet.create({ ... });
 ```
 
-Colour sets live in `providers/palettes.ts`: `palettes` is the baseline plus the nineteen named
-Material hues, each built by `createPalette(seed)`; `useTheme().setPalette()` swaps them live.
+Colour sets live in `providers/palettes.ts`: `palettes` is the baseline, the two hand-authored
+brand sets `crm` and `siti` (`providers/brandPalettes.ts`, written out literally, never derived
+or adjusted) and the nineteen named Material hues, each built by `createPalette(seed)`;
+`useTheme().setPalette()` swaps them live.
 The tone math is in `providers/tonal.ts` and the fixed success roles (Button's `tone="success"`)
 in `providers/successRoles.ts` — both internal, not re-exported from the barrel.
 

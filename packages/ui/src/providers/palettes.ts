@@ -1,5 +1,6 @@
 import themeConfig from "./theme.json";
 import type { ThemeColorTokens } from "./ThemeProvider";
+import { BRAND_PALETTES } from "./brandPalettes";
 import { hexToLch, tone } from "./tonal";
 
 /**
@@ -224,7 +225,7 @@ const MATERIAL_SEEDS = {
 export type MaterialPaletteId = keyof typeof MATERIAL_SEEDS;
 
 /** The ids of the palettes this library ships. */
-export type PaletteId = "baseline" | MaterialPaletteId;
+export type PaletteId = "baseline" | "crm" | "siti" | MaterialPaletteId;
 
 /**
  * Ids earlier releases shipped, each now the Material hue it was seeded from.
@@ -255,6 +256,17 @@ const shipped = {
     light: themeConfig.colors.light,
     dark: themeConfig.colors.dark,
   },
+  // Hand-authored brand sets (see brandPalettes.ts), listed before the Material hues.
+  ...Object.fromEntries(
+    BRAND_PALETTES.map(({ light, dark, ...rest }) => [
+      rest.id,
+      {
+        ...rest,
+        light: { ...light, boxShadow: themeConfig.colors.light.boxShadow },
+        dark: { ...dark, boxShadow: themeConfig.colors.dark.boxShadow },
+      },
+    ]),
+  ),
 } as Record<PaletteId, ThemePalette>;
 
 // Built on first read, then cached: importing the library (which every screen
@@ -281,8 +293,9 @@ const shipped = {
 
 /**
  * The colour sets shipped with the library. `baseline` is the hand-authored
- * Material 3 baseline scheme — the one the library has always rendered; the
- * other nineteen are the named Material hues, derived from their seed with
+ * Material 3 baseline scheme — the one the library has always rendered; `crm`
+ * and `siti` are hand-authored brand sets, not derived from a seed; the other
+ * nineteen are the named Material hues, derived from their seed with
  * `createPalette`. Enumerate it for a picker: every entry is listed once.
  */
 export const palettes: Record<PaletteId, ThemePalette> &

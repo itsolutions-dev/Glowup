@@ -1,3 +1,4 @@
+import themeConfig from "../providers/theme.json";
 import {
   BASELINE_SEED,
   createPalette,
@@ -74,9 +75,28 @@ describe("palettes", () => {
     });
   });
 
-  it("ships the baseline plus the nineteen named Material hues", () => {
+  it("gives every shipped palette exactly the theme's tokens, listed once", () => {
+    const expected = Object.keys(themeConfig.colors.light).sort();
+    const all = Object.values(palettes);
+    all.forEach((palette) => {
+      expect([palette.id, Object.keys(palette.light).sort()]).toEqual([
+        palette.id,
+        expected,
+      ]);
+      expect([palette.id, Object.keys(palette.dark).sort()]).toEqual([
+        palette.id,
+        expected,
+      ]);
+    });
+    expect(new Set(all).size).toBe(all.length);
+    expect(new Set(all.map((p) => p.id)).size).toBe(all.length);
+  });
+
+  it("ships the baseline, the CRM and Siti brand sets and the nineteen Material hues", () => {
     expect(Object.keys(palettes)).toEqual([
       "baseline",
+      "crm",
+      "siti",
       "red",
       "pink",
       "purple",

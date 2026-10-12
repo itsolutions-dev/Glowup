@@ -79,7 +79,8 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 The token set above is the **baseline** palette. `ThemeProvider` renders one `ThemePalette`
 (`{ id, name, seed, light, dark }`) at a time and can switch it at runtime.
 
-- `palettes` — the shipped sets: `baseline` (the hand-authored M3 scheme above) plus the
+- `palettes` — the shipped sets: `baseline` (the hand-authored M3 scheme above), the
+  hand-authored brand sets `crm` and `siti` (written out, not derived), plus the
   nineteen named Material hues, keyed on their 500 swatch: `red`, `pink`, `purple`,
   `deepPurple`, `indigo`, `blue`, `lightBlue`, `cyan`, `teal`, `green`, `lightGreen`, `lime`,
   `yellow`, `amber`, `orange`, `deepOrange`, `brown`, `grey`, `blueGrey`. Material 3 publishes

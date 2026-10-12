@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Platform,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 
 import Popover from "./Popover";

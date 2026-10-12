@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "../Glyph";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 

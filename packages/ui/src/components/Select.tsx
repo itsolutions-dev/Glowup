@@ -8,7 +8,7 @@ import {
   Platform,
   LayoutChangeEvent,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 
 import Popover from "./Popover";

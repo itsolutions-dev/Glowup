@@ -1,5 +1,5 @@
 import themeConfig from "./theme.json";
-import type { ThemeColorTokens } from "./ThemeProvider";
+import type { Theme, ThemeColorTokens } from "./ThemeProvider";
 import { BRAND_PALETTES } from "./brandPalettes";
 import { hexToLch, tone } from "./tonal";
 
@@ -17,6 +17,19 @@ export interface ThemePalette {
   seed: string;
   light: ThemeColorTokens;
   dark: ThemeColorTokens;
+  /**
+   * Type-scale overrides, merged per variant over the theme's defaults — a
+   * brand's font and the sizes it sets differently. The library only names the
+   * font: the app loads it (expo-font), under exactly the `fontFamily` given
+   * here. Leave it out and the palette uses the default scale.
+   */
+  typography?: Partial<Theme["typography"]>;
+  /**
+   * The icon family. `"eva"` draws Eva Icons wherever the library has an
+   * equivalent for a Material name; anything without one stays Material.
+   * Defaults to `"material"`.
+   */
+  iconSet?: "material" | "eva";
 }
 
 /**

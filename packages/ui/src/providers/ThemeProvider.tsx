@@ -145,6 +145,20 @@ const ThemeContext = createContext<ThemeContextType>({
   setPalette: () => {},
 });
 
+const baseTypography = themeConfig.typography as Theme["typography"];
+
+/** The default scale with a palette's overrides spread over each variant. */
+const mergeTypography = (
+  overrides: ThemePalette["typography"],
+): Theme["typography"] => {
+  if (!overrides) return baseTypography;
+  const merged = { ...baseTypography };
+  (Object.keys(overrides) as TypographyVariant[]).forEach((variant) => {
+    merged[variant] = { ...baseTypography[variant], ...overrides[variant] };
+  });
+  return merged;
+};
+
 export const ThemeProvider = ({
   children,
   initialPalette = palettes.baseline,
@@ -173,7 +187,7 @@ export const ThemeProvider = ({
   const theme = useMemo<Theme>(
     () => ({
       colors: mode === "dark" ? palette.dark : palette.light,
-      typography: themeConfig.typography as Theme["typography"],
+      typography: mergeTypography(palette.typography),
       spacing: themeConfig.spacing,
       shape: themeConfig.shape,
       isDark: mode === "dark",

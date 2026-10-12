@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface AvatarProps {

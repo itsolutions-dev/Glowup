@@ -8,7 +8,7 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 

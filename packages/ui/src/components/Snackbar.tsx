@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useMemo, useState } from "react";
 import { Animated, StyleSheet, View, Text, Platform } from "react-native";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import Button from "./Button";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
 export interface SnackbarProps {

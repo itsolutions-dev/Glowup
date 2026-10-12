@@ -1,4 +1,9 @@
-import type { ThemeColorTokens } from "./ThemeProvider";
+import themeConfig from "./theme.json";
+import type {
+  Theme,
+  ThemeColorTokens,
+  TypographyVariant,
+} from "./ThemeProvider";
 
 /** A scheme as authored here: every token but `boxShadow`, which palettes.ts adds. */
 type BrandScheme = Omit<ThemeColorTokens, "boxShadow">;
@@ -9,19 +14,123 @@ interface BrandPalette {
   seed: string;
   light: BrandScheme;
   dark: BrandScheme;
+  typography: Theme["typography"];
+  iconSet: "material" | "eva";
 }
+
+type Weight = "400" | "500" | "600" | "700";
+
+/** One variant's changes to the default scale; `tracking` is in em. */
+interface TypeSpec {
+  fontSize?: number;
+  lineHeight?: number;
+  fontWeight?: Weight;
+  tracking?: number;
+}
+
+/**
+ * A full type scale in one font. `faces` names the font file for each weight
+ * (expo-google-fonts style, e.g. "Roboto_500Medium"): custom fonts are loaded
+ * one face per weight, so the weight is chosen by family and `fontWeight` stays
+ * "400" — otherwise web and Android add a synthetic bold on top. Variants a
+ * design file does not specify keep the default size, line height and tracking.
+ */
+const typeScale = (
+  faces: Partial<Record<Weight, string>>,
+  specs: Partial<Record<TypographyVariant, TypeSpec>>,
+): Theme["typography"] => {
+  const scale = {} as Theme["typography"];
+  (Object.keys(themeConfig.typography) as TypographyVariant[]).forEach((v) => {
+    const base = themeConfig.typography[v];
+    const spec = specs[v] ?? {};
+    const fontSize = spec.fontSize ?? base.fontSize;
+    scale[v] = {
+      fontFamily: faces[spec.fontWeight ?? (base.fontWeight as Weight)],
+      fontWeight: "400",
+      fontSize,
+      lineHeight: spec.lineHeight ?? base.lineHeight,
+      letterSpacing:
+        spec.tracking === undefined
+          ? base.letterSpacing
+          : +(spec.tracking * fontSize).toFixed(2),
+    };
+  });
+  return scale;
+};
+
+// Solaris UI, proposal A: Roboto, Material 3 scale with the CRM's weights.
+const CRM_TYPE = typeScale(
+  {
+    "400": "Roboto_400Regular",
+    "500": "Roboto_500Medium",
+    "700": "Roboto_700Bold",
+  },
+  {
+    headlineLarge: { fontSize: 32, lineHeight: 40, fontWeight: "700" },
+    headlineSmall: { fontSize: 24, lineHeight: 32, fontWeight: "700" },
+    titleLarge: { fontSize: 22, lineHeight: 28, fontWeight: "500" },
+    titleMedium: { fontSize: 16, lineHeight: 24, fontWeight: "500" },
+    bodyLarge: { fontSize: 16, lineHeight: 24, fontWeight: "400" },
+    bodyMedium: { fontSize: 14, lineHeight: 20, fontWeight: "400" },
+    labelLarge: { fontSize: 14, lineHeight: 20, fontWeight: "500" },
+    labelSmall: { fontSize: 11, lineHeight: 16, fontWeight: "500" },
+  },
+);
+
+// Solaris UI, proposal B: Geist, titles at 500–600 with -2% tracking. The
+// design file's H1/H2/H3 are marketing-page sizes; they land on display and
+// title roles and the app roles in between keep their default size.
+const INXPIRE_TYPE = typeScale(
+  {
+    "400": "Geist_400Regular",
+    "500": "Geist_500Medium",
+    "600": "Geist_600SemiBold",
+  },
+  {
+    displayLarge: {
+      fontSize: 56,
+      lineHeight: 67,
+      fontWeight: "500",
+      tracking: -0.02,
+    },
+    displayMedium: {
+      fontSize: 40,
+      lineHeight: 48,
+      fontWeight: "500",
+      tracking: -0.02,
+    },
+    displaySmall: { fontWeight: "500", tracking: -0.02 },
+    headlineLarge: { fontWeight: "500", tracking: -0.02 },
+    headlineMedium: { fontWeight: "500", tracking: -0.02 },
+    headlineSmall: { fontWeight: "500", tracking: -0.02 },
+    titleLarge: {
+      fontSize: 20,
+      lineHeight: 28,
+      fontWeight: "600",
+      tracking: -0.02,
+    },
+    bodyLarge: { fontSize: 16, lineHeight: 24, fontWeight: "400" },
+    bodyMedium: { fontSize: 14, lineHeight: 20, fontWeight: "400" },
+    bodySmall: { fontSize: 12, lineHeight: 16, fontWeight: "400" },
+    labelLarge: { fontSize: 14, lineHeight: 20, fontWeight: "500" },
+  },
+);
 
 /**
  * Hand-authored brand colour sets, not derived from a seed: every value is
  * written out as given, and `seed` only records the brand's main colour. Do
  * not run them through `createPalette` or adjust them to "fix" a tone — the
- * on-colour pairs were checked at ≥ 4.5:1 as authored.
+ * on-colour pairs were checked at ≥ 4.5:1 as authored. They also carry the
+ * brand's type scale and icon set (see `ThemePalette`): the app loads the
+ * fonts, `Roboto` for CRM and `Geist` for inXpire, under the names used here.
  */
 export const BRAND_PALETTES: readonly BrandPalette[] = [
   {
     id: "crm",
     name: "CRM",
     seed: "#1D5B9D",
+    typography: CRM_TYPE,
+    iconSet: "material",
     light: {
       primary: "#1D5B9D",
       onPrimary: "#FFFFFF",
@@ -101,6 +210,8 @@ export const BRAND_PALETTES: readonly BrandPalette[] = [
     id: "inxpire",
     name: "inXpire",
     seed: "#171717",
+    typography: INXPIRE_TYPE,
+    iconSet: "eva",
     light: {
       primary: "#171717",
       onPrimary: "#FFFFFF",

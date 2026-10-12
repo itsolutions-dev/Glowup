@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { useTheme } from "../providers/ThemeProvider";
 import { getSuccessRoles, getWarningRoles } from "../providers/successRoles";
 

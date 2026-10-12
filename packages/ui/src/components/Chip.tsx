@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 
 import {
   useTheme,

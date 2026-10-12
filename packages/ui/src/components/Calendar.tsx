@@ -18,7 +18,7 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import {

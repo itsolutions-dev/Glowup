@@ -4,7 +4,7 @@ import type { ThemeColorTokens } from "./ThemeProvider";
 type BrandScheme = Omit<ThemeColorTokens, "boxShadow">;
 
 interface BrandPalette {
-  id: "crm" | "siti";
+  id: "crm" | "inxpire";
   name: string;
   seed: string;
   light: BrandScheme;
@@ -98,8 +98,8 @@ export const BRAND_PALETTES: readonly BrandPalette[] = [
     },
   },
   {
-    id: "siti",
-    name: "Siti",
+    id: "inxpire",
+    name: "inXpire",
     seed: "#171717",
     light: {
       primary: "#171717",

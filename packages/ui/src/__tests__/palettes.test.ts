@@ -92,11 +92,11 @@ describe("palettes", () => {
     expect(new Set(all.map((p) => p.id)).size).toBe(all.length);
   });
 
-  it("ships the baseline, the CRM and Siti brand sets and the nineteen Material hues", () => {
+  it("ships the baseline, the CRM and inXpire brand sets and the nineteen Material hues", () => {
     expect(Object.keys(palettes)).toEqual([
       "baseline",
       "crm",
-      "siti",
+      "inxpire",
       "red",
       "pink",
       "purple",

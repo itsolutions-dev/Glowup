@@ -43,7 +43,7 @@ const makeStyles = (theme: Theme) => StyleSheet.create({ ... });
 ```
 
 Colour sets live in `providers/palettes.ts`: `palettes` is the baseline, the two hand-authored
-brand sets `crm` and `siti` (`providers/brandPalettes.ts`, written out literally, never derived
+brand sets `crm` and `inxpire` (`providers/brandPalettes.ts`, written out literally, never derived
 or adjusted) and the nineteen named Material hues, each built by `createPalette(seed)`;
 `useTheme().setPalette()` swaps them live.
 The tone math is in `providers/tonal.ts` and the fixed success roles (Button's `tone="success"`)

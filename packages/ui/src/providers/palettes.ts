@@ -225,7 +225,7 @@ const MATERIAL_SEEDS = {
 export type MaterialPaletteId = keyof typeof MATERIAL_SEEDS;
 
 /** The ids of the palettes this library ships. */
-export type PaletteId = "baseline" | "crm" | "siti" | MaterialPaletteId;
+export type PaletteId = "baseline" | "crm" | "inxpire" | MaterialPaletteId;
 
 /**
  * Ids earlier releases shipped, each now the Material hue it was seeded from.
@@ -294,7 +294,7 @@ const shipped = {
 /**
  * The colour sets shipped with the library. `baseline` is the hand-authored
  * Material 3 baseline scheme — the one the library has always rendered; `crm`
- * and `siti` are hand-authored brand sets, not derived from a seed; the other
+ * and `inxpire` are hand-authored brand sets, not derived from a seed; the other
  * nineteen are the named Material hues, derived from their seed with
  * `createPalette`. Enumerate it for a picker: every entry is listed once.
  */

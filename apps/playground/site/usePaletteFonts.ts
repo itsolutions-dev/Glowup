@@ -13,13 +13,13 @@ import { useTheme } from "@its/glowup-ui";
  * only names a font; loading it is the app's job, under exactly that name.
  */
 const FONTS: Record<string, Record<string, number>> = {
-  crm: { Roboto_400Regular, Roboto_500Medium, Roboto_700Bold },
+  databeasy: { Roboto_400Regular, Roboto_500Medium, Roboto_700Bold },
   inxpire: { Geist_400Regular, Geist_500Medium, Geist_600SemiBold },
 };
 
 /**
  * Loads a palette's fonts when it is first picked, so a reader who never opens
- * CRM or inXpire never downloads Roboto or Geist. Until the files arrive the
+ * Databeasy or inXpire never downloads Roboto or Geist. Until the files arrive the
  * text renders in the system font, then swaps; `loadAsync` is idempotent.
  */
 export const usePaletteFonts = () => {

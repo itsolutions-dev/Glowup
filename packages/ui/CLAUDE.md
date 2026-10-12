@@ -43,12 +43,12 @@ const makeStyles = (theme: Theme) => StyleSheet.create({ ... });
 ```
 
 Colour sets live in `providers/palettes.ts`: `palettes` is the baseline, the two hand-authored
-brand sets `crm` and `inxpire` (`providers/brandPalettes.ts`, written out literally, never derived
+brand sets `databeasy` and `inxpire` (`providers/brandPalettes.ts`, written out literally, never derived
 or adjusted) and the nineteen named Material hues, each built by `createPalette(seed)`;
 `useTheme().setPalette()` swaps them live. A palette can also carry an optional `typography`
 (per-variant overrides merged over `theme.json`'s scale) and `iconSet` (`"eva"` draws the Eva
 glyphs vendored in `providers/evaIcons.ts`, mapped from the Material names; unmapped names stay
-Material). The brand sets use both — Roboto for `crm`, Geist and Eva for `inxpire` — so every
+Material). The brand sets use both — Roboto for `databeasy`, Geist and Eva for `inxpire` — so every
 component draws icons through `components/Glyph.tsx`, never `@expo/vector-icons` directly. The
 library only *names* a font (expo-font stays the app's job: the playground's
 `site/usePaletteFonts.ts`).

@@ -47,8 +47,8 @@ describe("brand palettes: typography", () => {
     });
   });
 
-  it("applies CRM's Roboto scale", () => {
-    const theme = palettes.crm.typography!;
+  it("applies Databeasy's Roboto scale", () => {
+    const theme = palettes.databeasy.typography!;
     expect(theme.headlineLarge).toMatchObject({
       fontFamily: "Roboto_700Bold",
       fontWeight: "400",
@@ -72,7 +72,7 @@ describe("brand palettes: typography", () => {
   });
 
   it("names a font file for every variant, so no text falls back to the system font", () => {
-    (["crm", "inxpire"] as const).forEach((id) => {
+    (["databeasy", "inxpire"] as const).forEach((id) => {
       Object.entries(palettes[id].typography!).forEach(([variant, style]) => {
         expect([id, variant, typeof style.fontFamily]).toEqual([
           id,
@@ -96,7 +96,7 @@ describe("brand palettes: icon set", () => {
   });
 
   it("keeps Material icons on every other palette", async () => {
-    expect(await evaPaths(palettes.crm, "close")).toBe(0);
+    expect(await evaPaths(palettes.databeasy, "close")).toBe(0);
     expect(await evaPaths(palettes.baseline, "close")).toBe(0);
   });
 });

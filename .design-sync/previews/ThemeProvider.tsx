@@ -292,7 +292,7 @@ export const WrapsTheApp = () => (
 );
 
 // The palette picker. `palettes` holds the Material 3 baseline, the
-// hand-authored CRM and inXpire brand sets and the nineteen named Material hues, each generated from its seed with the M3 role
+// hand-authored Databeasy and inXpire brand sets and the nineteen named Material hues, each generated from its seed with the M3 role
 // mapping; `setPalette` swaps the whole token set at runtime and every
 // component below the provider follows. A custom brand colour goes through
 // `createPalette(seed)` the same way. Nested provider on purpose: picking here

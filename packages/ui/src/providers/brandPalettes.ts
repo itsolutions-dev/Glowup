@@ -9,7 +9,7 @@ import type {
 type BrandScheme = Omit<ThemeColorTokens, "boxShadow">;
 
 interface BrandPalette {
-  id: "crm" | "inxpire";
+  id: "databeasy" | "inxpire";
   name: string;
   seed: string;
   light: BrandScheme;
@@ -122,12 +122,12 @@ const INXPIRE_TYPE = typeScale(
  * not run them through `createPalette` or adjust them to "fix" a tone — the
  * on-colour pairs were checked at ≥ 4.5:1 as authored. They also carry the
  * brand's type scale and icon set (see `ThemePalette`): the app loads the
- * fonts, `Roboto` for CRM and `Geist` for inXpire, under the names used here.
+ * fonts, `Roboto` for Databeasy and `Geist` for inXpire, under the names used here.
  */
 export const BRAND_PALETTES: readonly BrandPalette[] = [
   {
-    id: "crm",
-    name: "CRM",
+    id: "databeasy",
+    name: "Databeasy",
     seed: "#1D5B9D",
     typography: CRM_TYPE,
     iconSet: "material",

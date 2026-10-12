@@ -80,7 +80,7 @@ The token set above is the **baseline** palette. `ThemeProvider` renders one `Th
 (`{ id, name, seed, light, dark }`) at a time and can switch it at runtime.
 
 - `palettes` — the shipped sets: `baseline` (the hand-authored M3 scheme above), the
-  hand-authored brand sets `crm` and `inxpire` (written out, not derived), plus the
+  hand-authored brand sets `databeasy` and `inxpire` (written out, not derived), plus the
   nineteen named Material hues, keyed on their 500 swatch: `red`, `pink`, `purple`,
   `deepPurple`, `indigo`, `blue`, `lightBlue`, `cyan`, `teal`, `green`, `lightGreen`, `lime`,
   `yellow`, `amber`, `orange`, `deepOrange`, `brown`, `grey`, `blueGrey`. Material 3 publishes
@@ -91,7 +91,7 @@ The token set above is the **baseline** palette. `ThemeProvider` renders one `Th
   deprecated, non-enumerable aliases of `blue`, `green` and `pink`.
 - A palette may also carry `typography` (per-variant `TextStyle` overrides merged over the
   default scale) and `iconSet: "eva"` (Eva Icons in place of Material wherever the library has
-  an equivalent). `crm` is Roboto + Material, `inxpire` is Geist + Eva. The library only names
+  an equivalent). `databeasy` is Roboto + Material, `inxpire` is Geist + Eva. The library only names
   the font files (`Roboto_500Medium`, `Geist_600SemiBold`, …): the app loads them with
   `expo-font`, e.g. from `@expo-google-fonts/roboto` and `@expo-google-fonts/geist`.
 - `createPalette(seed, { id?, name?, chroma? })` — the same derivation for a brand colour.

@@ -26,6 +26,18 @@ import {
 } from "./permissions";
 import { markResponseSeen } from "./responses";
 import { isNotificationsSupported } from "./support";
+import {
+  getWebPermission,
+  getWebPushToken,
+  isWebPushSupported,
+  listenToServiceWorker,
+  registerServiceWorker,
+  requestWebPermission,
+  showWebNotification,
+  takeLaunchResponseFromUrl,
+  toRawNotification,
+  toRawResponse,
+} from "./web/webPush";
 import type {
   AndroidChannel,
   AppNotification,
@@ -40,6 +52,7 @@ import type {
   PushToken,
   PushTokenStatus,
   PushTokenType,
+  WebPushConfig,
 } from "./types";
 
 export { isNotificationsSupported };
@@ -58,6 +71,11 @@ export interface NotificationsProviderProps<TData = NotificationData> {
   tokenType?: PushTokenType;
   /** EAS project id for Expo tokens. Defaults to the one in the app config. */
   projectId?: string;
+  /**
+   * Turns on Web Push in browsers that support it. Without it the provider
+   * reports `unsupported` on web and does nothing.
+   */
+  webPush?: WebPushConfig;
   /** Validates `data`; a rejected payload skips `onReceived` / `onResponse`. */
   parseData?: DataParser<TData>;
   /** A new token, on first fetch and on every rotation: register it with your backend here. */
@@ -92,8 +110,10 @@ export function NotificationsProvider<TData = NotificationData>(
     latest.current = props;
   });
 
+  // On web the real status is only known in the browser, after mount; the
+  // first render must match the prerendered HTML, so it starts as "unknown".
   const [permission, setPermission] = useState<PermissionState>(
-    isNotificationsSupported ? UNKNOWN : UNSUPPORTED,
+    isNotificationsSupported || props.webPush ? UNKNOWN : UNSUPPORTED,
   );
   const [token, setToken] = useState<PushToken | null>(null);
   const [tokenStatus, setTokenStatus] = useState<PushTokenStatus>("idle");
@@ -105,6 +125,14 @@ export function NotificationsProvider<TData = NotificationData>(
 
   const emit = useCallback((event: NotificationsEvent) => {
     latest.current.onEvent?.(event);
+  }, []);
+
+  /** The Web Push config, when this is a browser that can use it. Call-time only. */
+  const webConfig = useCallback((): WebPushConfig | null => {
+    const { webPush } = latest.current;
+    return !isNotificationsSupported && webPush && isWebPushSupported()
+      ? webPush
+      : null;
   }, []);
 
   const applyToken = useCallback(
@@ -122,12 +150,16 @@ export function NotificationsProvider<TData = NotificationData>(
   );
 
   const refreshToken = useCallback(async (): Promise<PushToken | null> => {
-    if (!isNotificationsSupported) return null;
+    const web = webConfig();
+    // Without a VAPID key a browser can still be asked for permission, but has
+    // nothing to subscribe to: the token stays idle rather than erroring.
+    if (!isNotificationsSupported && !web?.vapidPublicKey) return null;
     setTokenStatus("loading");
     try {
       const { tokenType = "expo", projectId } = latest.current;
-      const next =
-        tokenType === "device"
+      const next = web
+        ? await getWebPushToken(web)
+        : tokenType === "device"
           ? toPushToken(await Notifications.getDevicePushTokenAsync())
           : await Notifications.getExpoPushTokenAsync(
               projectId ? { projectId } : undefined,
@@ -140,7 +172,7 @@ export function NotificationsProvider<TData = NotificationData>(
       emit({ type: "token-error", error });
       return null;
     }
-  }, [applyToken, emit]);
+  }, [applyToken, emit, webConfig]);
 
   // Fetching the token here, on the transition into an allowed status, rather
   // than in an effect watching `permission`, keeps the state updates inside
@@ -167,15 +199,21 @@ export function NotificationsProvider<TData = NotificationData>(
   );
 
   const refreshPermission = useCallback(async () => {
-    if (!isNotificationsSupported) return UNSUPPORTED;
+    if (!isNotificationsSupported) {
+      return webConfig() ? applyPermission(getWebPermission()) : UNSUPPORTED;
+    }
     return applyPermission(
       toPermissionState(await Notifications.getPermissionsAsync()),
     );
-  }, [applyPermission]);
+  }, [applyPermission, webConfig]);
 
   const requestPermission = useCallback(
     async (options?: PermissionRequestOptions) => {
-      if (!isNotificationsSupported) return UNSUPPORTED;
+      if (!isNotificationsSupported) {
+        return webConfig()
+          ? applyPermission(await requestWebPermission())
+          : UNSUPPORTED;
+      }
       // Android 13+ only prompts once a channel exists. A setup failure was
       // already reported through onEvent; the request still goes ahead.
       await setupReady.current;
@@ -192,7 +230,42 @@ export function NotificationsProvider<TData = NotificationData>(
         ),
       );
     },
-    [applyPermission],
+    [applyPermission, webConfig],
+  );
+
+  // Shared by the native listeners and the service worker messages.
+  const handleReceived = useCallback(
+    (raw: Notifications.Notification) => {
+      const parsed = parseNotification(raw, latest.current.parseData);
+      const id = raw.request.identifier;
+      if (!parsed.ok) {
+        emit({ type: "invalid-payload", id, error: parsed.error });
+        return;
+      }
+      emit({ type: "received", id });
+      latest.current.onReceived?.(parsed.value);
+    },
+    [emit],
+  );
+
+  const deliverResponse = useCallback(
+    (raw: Notifications.NotificationResponse) => {
+      if (!markResponseSeen(raw)) return;
+      const parsed = parseResponse(raw, latest.current.parseData);
+      const id = raw.notification.request.identifier;
+      if (!parsed.ok) {
+        emit({ type: "invalid-payload", id, error: parsed.error });
+        return;
+      }
+      emit({
+        type: "response",
+        id,
+        actionIdentifier: raw.actionIdentifier,
+        isDefaultAction: parsed.value.isDefaultAction,
+      });
+      latest.current.onResponse?.(parsed.value);
+    },
+    [emit],
   );
 
   useEffect(() => {
@@ -222,35 +295,13 @@ export function NotificationsProvider<TData = NotificationData>(
       },
     });
 
-    const deliverResponse = (raw: Notifications.NotificationResponse) => {
-      if (!active || !markResponseSeen(raw)) return;
-      const parsed = parseResponse(raw, latest.current.parseData);
-      const id = raw.notification.request.identifier;
-      if (!parsed.ok) {
-        emit({ type: "invalid-payload", id, error: parsed.error });
-        return;
-      }
-      emit({
-        type: "response",
-        id,
-        actionIdentifier: raw.actionIdentifier,
-        isDefaultAction: parsed.value.isDefaultAction,
-      });
-      latest.current.onResponse?.(parsed.value);
+    const onResponse = (raw: Notifications.NotificationResponse) => {
+      if (active) deliverResponse(raw);
     };
 
     const subscriptions = [
-      Notifications.addNotificationReceivedListener((raw) => {
-        const parsed = parseNotification(raw, latest.current.parseData);
-        const id = raw.request.identifier;
-        if (!parsed.ok) {
-          emit({ type: "invalid-payload", id, error: parsed.error });
-          return;
-        }
-        emit({ type: "received", id });
-        latest.current.onReceived?.(parsed.value);
-      }),
-      Notifications.addNotificationResponseReceivedListener(deliverResponse),
+      Notifications.addNotificationReceivedListener(handleReceived),
+      Notifications.addNotificationResponseReceivedListener(onResponse),
       Notifications.addPushTokenListener((raw) => {
         if (!active) return;
         // The listener reports device tokens; an Expo token is derived from
@@ -271,7 +322,7 @@ export function NotificationsProvider<TData = NotificationData>(
     Notifications.getLastNotificationResponseAsync()
       .then((raw) => {
         if (!raw) return;
-        deliverResponse(raw);
+        onResponse(raw);
         return Notifications.clearLastNotificationResponseAsync();
       })
       .catch(noop);
@@ -285,7 +336,89 @@ export function NotificationsProvider<TData = NotificationData>(
       subscriptions.forEach((subscription) => subscription.remove());
       Notifications.setNotificationHandler(null);
     };
-  }, [applyPermission, applyToken, emit, refreshPermission, refreshToken]);
+  }, [
+    applyPermission,
+    applyToken,
+    deliverResponse,
+    emit,
+    handleReceived,
+    refreshPermission,
+    refreshToken,
+  ]);
+
+  useEffect(() => {
+    if (isNotificationsSupported || !latest.current.webPush) return;
+    let active = true;
+    const later = (run: () => void) =>
+      Promise.resolve().then(() => {
+        if (active) run();
+      });
+
+    const config = webConfig();
+    if (!config) {
+      // A browser without service workers or the Push API.
+      later(() => applyPermission(UNSUPPORTED));
+      return () => {
+        active = false;
+      };
+    }
+
+    registerServiceWorker(config).catch((error) =>
+      emit({ type: "web-push-error", error }),
+    );
+
+    const stop = listenToServiceWorker({
+      push: (notification) => {
+        if (!active) return;
+        const raw = toRawNotification(notification);
+        const { foreground, parseData } = latest.current;
+        const parsed = parseNotification(raw, parseData);
+        const behavior = resolveForeground(
+          foreground,
+          parsed.ok ? parsed.value : null,
+        );
+        if (behavior.shouldShowBanner || behavior.shouldShowList) {
+          showWebNotification(config, notification).catch((error) =>
+            emit({ type: "web-push-error", error }),
+          );
+        }
+        handleReceived(raw);
+      },
+      click: (notification, action) => {
+        if (active) deliverResponse(toRawResponse(notification, action));
+      },
+      subscriptionChange: () => {
+        if (active) void refreshToken();
+      },
+    });
+
+    const launch = takeLaunchResponseFromUrl();
+    if (launch) {
+      deliverResponse(toRawResponse(launch.notification, launch.action));
+    }
+
+    later(() => applyPermission(getWebPermission()));
+    // The user may have changed the site's permission in the browser meanwhile.
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        applyPermission(getWebPermission());
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      active = false;
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [
+    applyPermission,
+    deliverResponse,
+    emit,
+    handleReceived,
+    refreshToken,
+    webConfig,
+  ]);
 
   const value = useMemo<NotificationsContextValue>(
     () => ({

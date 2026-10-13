@@ -180,6 +180,42 @@ message), and a local notification with `categoryId` in `scheduleNotification()`
 
 These helpers reject on web. Check `isNotificationsSupported` before calling them.
 
+### Web Push
+
+In browsers with service workers and the Push API, the same provider, hooks and callbacks
+work on web once you pass `webPush`:
+
+```tsx
+<NotificationsProvider
+  webPush={{
+    vapidPublicKey: process.env.EXPO_PUBLIC_VAPID_PUBLIC_KEY,
+    serviceWorkerPath: "/glowup-push-sw.js", // default
+  }}
+  onTokenChange={(token) => api.registerDevice(token.data)} // web: the subscription JSON
+/>
+```
+
+1. Copy the service worker into the web app's public folder so it is served from the same
+   origin. It ships in the package as `@its/glowup-notifications/service-worker.js`
+   (`service-worker/glowup-push-sw.js`). If the app already has a service worker, use
+   `importScripts("/glowup-push-sw.js")` from it instead. If the site is served from a
+   subpath, include it in `serviceWorkerPath` and `scope`.
+2. Generate a VAPID pair (`npx web-push generate-vapid-keys`). The public key goes in
+   `webPush.vapidPublicKey`; the private key stays on the server that sends the pushes.
+   Without a public key the permission still works, but the token stays `idle`.
+3. Send JSON matching `WebPushPayload`: `{ id, title, body, data, icon, badge, url, actions }`.
+
+How a push is handled:
+
+- **A tab is visible:** the service worker hands the push to the page, where the
+  `foreground` policy decides whether to show it, and `onReceived` fires.
+- **No tab is visible:** the service worker shows the notification itself.
+- **Tap:** it is delivered to an open tab, or the worker opens `url` with the tap in the URL
+  hash. Either way it reaches `onResponse` once; `actions` arrive as `actionIdentifier`.
+
+Only on native: text replies, categories, scheduling, badge and the presented-notification
+helpers. Browsers prompt only from a user gesture, so call `request()` from a press handler.
+
 ## Testing
 
 `@its/glowup-notifications/testing` is an in-memory `expo-notifications`, so the provider,
@@ -215,5 +251,5 @@ Builders: `buildNotification` and `buildResponse`. The module's functions are `j
 
 ## Not included
 
-Web Push (VAPID and a service worker) is not built yet. Background tasks stay out on
-purpose, because they would add `expo-task-manager` as a required peer.
+Background tasks stay out on purpose, because they would add `expo-task-manager` as a
+required peer.

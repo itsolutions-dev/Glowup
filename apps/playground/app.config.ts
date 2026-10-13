@@ -46,6 +46,24 @@ const config: ExpoConfig = {
     // Push for the /notifications demo. Remote push also needs a development
     // build with APNs / FCM credentials; local notifications work without them.
     "expo-notifications",
+    // The /device pages. The package's plugin configures each capability
+    // through its Expo module's own plugin: foreground location only, and the
+    // microphone because the camera recipe records video with sound.
+    [
+      "@its/glowup-device",
+      {
+        location: {
+          whenInUsePermission: "Shows your position on the location demo page.",
+        },
+        camera: {
+          cameraPermission:
+            "Scans QR codes, takes photos and records videos on the camera demo page.",
+          microphonePermission:
+            "Records sound with the videos on the camera demo page.",
+          recordAudio: true,
+        },
+      },
+    ],
     [
       "expo-splash-screen",
       {

@@ -1,7 +1,8 @@
 name: Consumer smoke
 
-# Validates the PUBLISHED package, not the working tree: examples/consumer is
-# outside the npm workspaces and installs @its/glowup-ui from the registry. It
+# Validates the PUBLISHED packages, not the working tree: examples/consumer is
+# outside the npm workspaces and installs @its/glowup-ui and @its/glowup-device
+# from the registry. It
 # therefore does not run on pull requests — a PR cannot change what is already
 # published — and instead chains off Release.
 #
@@ -47,10 +48,10 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
-      # Smoke-test the version this commit says was released, not whatever a
+      # Smoke-test the versions this commit says were released, not whatever a
       # range happens to resolve to. In 0.x a caret never crosses a minor
       # (`^0.5.0` stops at 0.5.x), so a range in package.json silently kept this
-      # job testing an old release. On a master commit packages/ui's version is
+      # job testing an old release. On a master commit each package's version is
       # the one Release just published (or the last one it did), so pinning to
       # it also turns a failed publish into a failure here instead of a pass
       # against a stale version.
@@ -58,34 +59,43 @@ jobs:
       # A just-published version can take a minute to show up in the packument
       # that `npm install` reads, even though its version document is already
       # served. Poll instead of losing the race with the Release run.
-      - name: Wait for the released version to resolve on the registry
+      - name: Wait for the released versions to resolve on the registry
         id: version
         run: |
-          version=$(node -p "require('../../packages/ui/package.json').version")
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          for i in $(seq 1 20); do
-            if npm view "@its/glowup-ui@$version" version; then exit 0; fi
-            echo "not resolvable yet; retrying in 15s"
-            sleep 15
+          ui=$(node -p "require('../../packages/ui/package.json').version")
+          device=$(node -p "require('../../packages/device/package.json').version")
+          echo "ui=$ui" >> "$GITHUB_OUTPUT"
+          echo "device=$device" >> "$GITHUB_OUTPUT"
+          for spec in "@its/glowup-ui@$ui" "@its/glowup-device@$device"; do
+            for i in $(seq 1 20); do
+              if npm view "$spec" version; then continue 2; fi
+              echo "$spec not resolvable yet; retrying in 15s"
+              sleep 15
+            done
+            echo "::error::$spec never became resolvable"
+            exit 1
           done
-          echo "::error::@its/glowup-ui@$version never became resolvable"
-          exit 1
 
       # No lockfile here on purpose (see examples/consumer/README.md): the point
-      # is to resolve the published package and its peers the way a new app does.
-      # `npm install <pkg>@<version>` installs the rest of package.json with it.
+      # is to resolve the published packages and their peers the way a new app
+      # does. `npm install <pkg>@<version>` installs the rest of package.json with it.
       - name: Install from the registry
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: npm install --no-audit --no-fund --no-save "@its/glowup-ui@$VERSION"
+          UI_VERSION: ${{ steps.version.outputs.ui }}
+          DEVICE_VERSION: ${{ steps.version.outputs.device }}
+        run: >-
+          npm install --no-audit --no-fund --no-save
+          "@its/glowup-ui@$UI_VERSION" "@its/glowup-device@$DEVICE_VERSION"
 
       - name: Refuse a workspace symlink
         run: |
-          if [ -L node_modules/@its/glowup-ui ]; then
-            echo "::error::node_modules/@its/glowup-ui is a symlink to the local package. This app must consume the published one — do not add examples/ to the npm workspaces."
-            exit 1
-          fi
-          node -p "'consuming @its/glowup-ui@' + require('@its/glowup-ui/package.json').version"
+          for pkg in glowup-ui glowup-device; do
+            if [ -L "node_modules/@its/$pkg" ]; then
+              echo "::error::node_modules/@its/$pkg is a symlink to the local package. This app must consume the published one — do not add examples/ to the npm workspaces."
+              exit 1
+            fi
+            node -p "'consuming @its/$pkg@' + require('@its/$pkg/package.json').version"
+          done
 
       - name: Type-check against the published types
         run: npx tsc --noEmit

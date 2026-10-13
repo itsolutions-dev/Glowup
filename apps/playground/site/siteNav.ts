@@ -51,6 +51,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     icon: "bell-outline",
     summary: "The headless push companion package, running live.",
   },
+  {
+    href: "/device",
+    label: "Device",
+    icon: "cellphone-cog",
+    summary: "Device info, location and camera behind swappable adapters.",
+  },
 ];
 
 /** The section a pathname belongs to, for the navigation's selected state. */

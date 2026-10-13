@@ -13,6 +13,8 @@
  *    to import `theme.json`, which is not shipped; typing a value as
  *    `ThemeColorTokens` here fails the smoke test if that ever regresses,
  *  - the declared peer dependencies are enough to render.
+ *
+ * `Device.tsx` does the same for `@its/glowup-device`.
  */
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -37,6 +39,8 @@ import type {
   Theme,
   ThemeColorTokens,
 } from "@its/glowup-ui";
+
+import { DeviceSmoke } from "./Device";
 
 // Type-only assertions on the published surface: if the shipped .d.ts stops
 // resolving (or changes shape), `tsc --noEmit` fails here before anything renders.
@@ -102,6 +106,9 @@ const Showcase = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <Divider />
+      <DeviceSmoke />
     </ScrollView>
   );
 };

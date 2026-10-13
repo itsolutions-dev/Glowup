@@ -2,7 +2,7 @@
   "name": "glowup-consumer-smoke",
   "version": "0.0.0",
   "private": true,
-  "description": "Deliberately OUTSIDE the npm workspaces: installs @its/glowup-ui from the registry so the published artefact is exercised, not the local source.",
+  "description": "Deliberately OUTSIDE the npm workspaces: installs @its/glowup-ui and @its/glowup-device from the registry so the published artefacts are exercised, not the local source.",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -12,8 +12,13 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "@its/glowup-device": "0.x",
     "@its/glowup-ui": "0.x",
     "expo": "~57.0.25",
+    "expo-application": "~57.0.3",
+    "expo-camera": "~57.0.5",
+    "expo-device": "~57.0.2",
+    "expo-location": "~57.0.20",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

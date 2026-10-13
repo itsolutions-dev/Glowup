@@ -1,5 +1,4 @@
-import { useSyncExternalStore } from "react";
-import { Dimensions } from "react-native";
+import { useWindowSize } from "./useWindowSize";
 
 /**
  * Material 3 window size classes, in dp. One source of truth for every
@@ -51,27 +50,12 @@ export interface Layout {
   contentMaxWidth: number;
 }
 
-const subscribe = (onChange: () => void) => {
-  const subscription = Dimensions.addEventListener("change", onChange);
-  return () => subscription.remove();
-};
-const getWidth = () => Dimensions.get("window").width;
-const getHeight = () => Dimensions.get("window").height;
-// The prerender has no window: Node reports 0×0, so every exported page is
-// rendered compact. Hydration has to start from that same answer, or the
-// browser's real width puts a rail where the HTML has a menu button and React
-// throws #418 on every route. The server snapshot is that answer; React swaps
-// in the real size right after hydrating. Native never hydrates, so it never
-// asks for it.
-const getServerSize = () => 0;
-
 /**
  * The single responsive hook. Everything that used to compare `width >= 960`
  * by hand asks this instead, so a change of breakpoint is a change in one file.
  */
 export const useLayout = (): Layout => {
-  const width = useSyncExternalStore(subscribe, getWidth, getServerSize);
-  const height = useSyncExternalStore(subscribe, getHeight, getServerSize);
+  const { width, height } = useWindowSize();
   const sizeClass = sizeClassFor(width);
   const atLeast = (size: SizeClass) => width >= BREAKPOINTS[size];
 

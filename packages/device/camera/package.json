@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/camera/index.js",
+  "module": "../lib/module/camera/index.js",
+  "types": "../lib/typescript/camera/index.d.ts",
+  "react-native": "../src/camera/index.ts",
+  "source": "../src/camera/index.ts"
+}

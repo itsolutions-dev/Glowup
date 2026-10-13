@@ -1,8 +1,9 @@
-import React, { useMemo, useState, useSyncExternalStore } from "react";
-import { View, LayoutChangeEvent, Dimensions } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, LayoutChangeEvent } from "react-native";
 import Box, { BoxProps } from "./Box";
 import { useTheme } from "../../providers/ThemeProvider";
 import { SpacingValue, resolveSpacing } from "./tokens";
+import { useWindowWidth } from "../internal/useWindowWidth";
 
 export interface GridProps extends Omit<BoxProps, "row" | "wrap" | "gap"> {
   /** Fixed column count. Ignored when `minChildWidth` is set. */
@@ -15,17 +16,6 @@ export interface GridProps extends Omit<BoxProps, "row" | "wrap" | "gap"> {
   /** Gap between cells — a spacing token name or a raw value. */
   spacing?: SpacingValue;
 }
-
-const subscribeToWindow = (onChange: () => void) => {
-  const subscription = Dimensions.addEventListener("change", onChange);
-  return () => subscription.remove();
-};
-const getWindowWidth = () => Dimensions.get("window").width;
-// A server render has no window (react-native-web reports 0), so hydration
-// starts from that same width; otherwise a prerendered grid hydrates with a
-// different column count and React throws #418. The real width follows right
-// after hydrating. Native never hydrates, so it never asks for this snapshot.
-const getServerWindowWidth = () => 0;
 
 /**
  * Equal-width grid. `columns` for a fixed layout, `minChildWidth` to let the
@@ -44,11 +34,7 @@ const Grid = ({
   ...boxProps
 }: GridProps) => {
   const { theme } = useTheme();
-  const windowWidth = useSyncExternalStore(
-    subscribeToWindow,
-    getWindowWidth,
-    getServerWindowWidth,
-  );
+  const windowWidth = useWindowWidth();
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   const gap = resolveSpacing(theme, spacing) ?? 0;
 

@@ -38,6 +38,18 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
 - **Web.** The static export prerenders in Node. Read browser globals at call time
   (`hasDOM()`), never at module scope, and keep an `isSupported` / `assertSupported()`
   guard on every imperative API.
+- **Location** (`src/location`): the hooks run `ensureReady()` (support → permission →
+  services) before any read, so no adapter read ever prompts — on web, asking for a position
+  _is_ the prompt. Only `requestPermission` may prompt. Permission state lives in one store
+  per adapter (`permissionStore.ts`), so hooks agree and a request updates them all. The web
+  default is `web.ts` on `navigator.geolocation`, not expo-location's web build (see
+  `docs/device-package-plan.md`, phase 3). `useCurrentPosition` derives `isLoading` from a
+  request key: the React Compiler lint forbids a synchronous `setState` in an effect.
+- **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
+  plugin is required only when the app lists it; an unknown key throws. Its test
+  (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the
+  resulting Info.plist / AndroidManifest, not on the props passed along. `validate-package`
+  excludes it from attw (a script, not a typed module).
 - **`react` and `react-dom` are pinned dev dependencies** at the playground's versions. Without
   them, adding an Expo module whose peer is `expo` fails with ERESOLVE: npm resolves expo's
   optional `react-dom` peer to the latest release, whose `react` peer the tree cannot meet.

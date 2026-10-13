@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
 import type { DeviceInfoAdapter } from "../info/types";
+import type { LocationAdapter } from "../location/types";
 
 /**
  * Every capability's adapter contract. Type imports only: the root entry must
@@ -8,6 +9,7 @@ import type { DeviceInfoAdapter } from "../info/types";
  */
 export interface DeviceAdapters {
   info: DeviceInfoAdapter;
+  location: LocationAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -31,10 +33,14 @@ export function DeviceAdaptersProvider({
   const parent = useContext(DeviceAdaptersContext);
   // One dependency per adapter rather than `adapters`, which is usually an
   // inline literal: a new object every render must not reset the consumers.
-  const { info } = adapters;
+  const { info, location } = adapters;
   const value = useMemo(
-    () => ({ ...parent, ...(info && { info }) }),
-    [parent, info],
+    () => ({
+      ...parent,
+      ...(info && { info }),
+      ...(location && { location }),
+    }),
+    [parent, info, location],
   );
   return (
     <DeviceAdaptersContext.Provider value={value}>

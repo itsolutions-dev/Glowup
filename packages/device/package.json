@@ -44,6 +44,7 @@
       "types": "./lib/typescript/testing/index.d.ts",
       "default": "./lib/commonjs/testing/index.js"
     },
+    "./app.plugin.js": "./app.plugin.js",
     "./package.json": "./package.json"
   },
   "files": [
@@ -53,6 +54,7 @@
     "location",
     "camera",
     "testing",
+    "app.plugin.js",
     "!**/*.map",
     "!**/__tests__",
     "!**/__fixtures__",
@@ -62,7 +64,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "bob build && node ../../scripts/strip-declaration-maps.mjs",
-    "validate-package": "publint && attw --pack .",
+    "validate-package": "publint && attw --pack . --exclude-entrypoints ./app.plugin.js",
     "clean": "del-cli lib",
     "prepack": "npm run build",
     "type-check": "tsc --noEmit",
@@ -78,8 +80,10 @@
     "device-info"
   ],
   "peerDependencies": {
+    "expo": ">=57",
     "expo-application": ">=57",
     "expo-device": ">=57",
+    "expo-location": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"
   },
@@ -88,6 +92,9 @@
       "optional": true
     },
     "expo-device": {
+      "optional": true
+    },
+    "expo-location": {
       "optional": true
     }
   },
@@ -100,8 +107,10 @@
     "@types/react-dom": "~19.2",
     "babel-preset-expo": "~57.0.1",
     "del-cli": "^7.0.0",
+    "expo": "~57.0.25",
     "expo-application": "~57.0.3",
     "expo-device": "~57.0.2",
+    "expo-location": "~57.0.20",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
     "publint": "^0.3.25",

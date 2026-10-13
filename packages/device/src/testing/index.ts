@@ -8,3 +8,9 @@ export {
   MOCK_DEVICE_INFO,
   type DeviceInfoOverrides,
 } from "./deviceInfo";
+export {
+  buildPosition,
+  createMockLocationAdapter,
+  type MockLocationAdapter,
+  type MockLocationOptions,
+} from "./location";

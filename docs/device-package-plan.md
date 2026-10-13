@@ -76,7 +76,9 @@ plugins: [
 - **Default texts are placeholders.** App Store review rejects generic purpose strings; the
   README says so and the defaults are worded as development defaults.
 - **Least privilege**: microphone / `RECORD_AUDIO` only with `recordAudio: true`; location adds
-  no background permission.
+  no background permission. The iOS "Always" purpose strings stay (same text as when-in-use),
+  as expo-location's own plugin sets them: its binary references the Always APIs and App
+  Store Connect can flag a missing purpose string (ITMS-90683). They grant nothing.
 - `./app.plugin.js` goes in `exports` and `files`; it uses `expo/config-plugins`, so `expo`
   becomes a peer.
 
@@ -86,7 +88,7 @@ plugins: [
 | ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 1     | Scaffolding: workspace, export map + fallback folders, core (permission model, platform guards), ESLint boundaries, build, CI | **done** |
 | 2     | Device info: adapter contract, Expo adapter, `DeviceAdaptersProvider`, hooks, mock adapter                                    | **done** |
-| 3     | Location: permission, current position, watch; config plugin (location part)                                                  |          |
+| 3     | Location: permission, current position, watch; config plugin (location part)                                                  | **done** |
 | 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   |          |
 | 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      |          |
 | 6     | Release: drop `private`, first changeset, README, `examples/consumer` smoke                                                   |          |
@@ -115,6 +117,22 @@ provider and mock pattern before location and camera build on it.
   prerenders "unknown" and hydrates without a mismatch (tested with `react-dom/server`).
 - Known limit, documented: in Expo Go `app.*` describes Expo Go. Reading `expo-constants`
   instead would add a peer for a development-only case.
+
+### Phase 3 — what landed
+
+- `/location`: `useLocationPermission()` (shared per adapter, re-read on foreground, with
+  `precision`), `useCurrentPosition()` (`maxAge` → last known fix first, `timeout`, `refresh()`),
+  `useWatchPosition()`, `LocationError` with typed codes.
+- **The hooks never prompt** and run the checks in the order a user can fix them: support →
+  permission → device location services (`services-disabled`) → the read.
+- **Change from the plan: the web default is our own adapter** (`webLocationAdapter` on
+  `navigator.geolocation`), not expo-location's web build. Reading its source showed that it
+  drops watch errors (no error callback is passed to `watchPosition`), answers
+  `getCurrentPosition` with `maximumAge: Infinity` (a fix of any age as "current") and reports
+  a denial as askable again. Native stays on `expoLocationAdapter`; both are exported.
+- Config plugin: `app.plugin.js` with the location part, tested through Expo's mod compiler in
+  introspection mode (the Info.plist and AndroidManifest a prebuild would write).
+- `/testing`: `createMockLocationAdapter()`, `buildPosition()`.
 
 ### To verify in phase 4
 

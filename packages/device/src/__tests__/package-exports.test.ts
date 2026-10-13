@@ -10,10 +10,16 @@ const root = join(__dirname, "..", "..");
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 
 const subpaths = Object.keys(manifest.exports)
-  .filter((key) => key !== "." && key !== "./package.json")
+  .filter((key) => key.startsWith("./") && !key.slice(2).includes("."))
   .map((key) => key.slice(2));
 
 describe("package exports", () => {
+  it("ships the config plugin where Expo looks for it", () => {
+    expect(manifest.exports["./app.plugin.js"]).toBe("./app.plugin.js");
+    expect(manifest.files).toContain("app.plugin.js");
+    expect(existsSync(join(root, "app.plugin.js"))).toBe(true);
+  });
+
   it("lists the capability subpaths", () => {
     expect(subpaths).toEqual(["info", "location", "camera", "testing"]);
   });

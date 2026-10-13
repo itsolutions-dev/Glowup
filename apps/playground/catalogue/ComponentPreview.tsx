@@ -19,6 +19,7 @@ import {
 } from "@its/glowup-ui";
 import type { DateRange } from "@its/glowup-ui";
 import type { ComponentMetadata } from "./types";
+import { useHydrated } from "../site/useHydrated";
 
 interface ComponentPreviewProps {
   /** Registry key of the component on the stage. */
@@ -52,6 +53,7 @@ const ComponentPreview = ({
 }: ComponentPreviewProps) => {
   const { theme } = useTheme();
   const toast = useToast();
+  const hydrated = useHydrated();
 
   // Demo-only state: the stage keeps it across component switches, exactly as
   // the screen did when this lived inside it.
@@ -77,7 +79,8 @@ const ComponentPreview = ({
     [],
   );
 
-  const { Component, Demo, isContainer } = activeMeta;
+  const { Component, Demo, isContainer, clientOnly } = activeMeta;
+  if (clientOnly && !hydrated) return null;
   if (Demo) return <Demo props={componentProps} updateProp={updateProp} />;
   let props = { ...componentProps };
 

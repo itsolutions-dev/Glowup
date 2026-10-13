@@ -4,8 +4,9 @@ import React, {
   useContext,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react";
-import { useColorScheme, Platform, TextStyle } from "react-native";
+import { Appearance, Platform, TextStyle } from "react-native";
 
 import { mix } from "polished";
 import themeConfig from "./theme.json";
@@ -159,6 +160,18 @@ const mergeTypography = (
   return merged;
 };
 
+const subscribeToScheme = (onChange: () => void) => {
+  const subscription = Appearance.addChangeListener(onChange);
+  return () => subscription.remove();
+};
+const getScheme = () => Appearance.getColorScheme();
+// A server render has no OS to ask. `useColorScheme` answers anyway, with
+// whatever the platform module guesses in Node, and a reader on a dark OS then
+// hydrates dark components over light HTML: React throws #418 and rebuilds the
+// page. "No preference" on the server, the real scheme straight after
+// hydration. Native never hydrates, so it never asks for this snapshot.
+const getServerScheme = () => null;
+
 export const ThemeProvider = ({
   children,
   initialPalette = palettes.baseline,
@@ -171,7 +184,11 @@ export const ThemeProvider = ({
    */
   initialPalette?: ThemePalette;
 }) => {
-  const systemScheme = useColorScheme(); // Hook to listen to system changes
+  const systemScheme = useSyncExternalStore(
+    subscribeToScheme,
+    getScheme,
+    getServerScheme,
+  );
   const [palette, setPalette] = useState<ThemePalette>(initialPalette);
   // null = follow the OS color scheme; "light"/"dark" = manual override
   const [override, setOverride] = useState<"light" | "dark" | null>(null);

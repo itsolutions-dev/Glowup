@@ -97,6 +97,12 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `unknown: …`), and sends `strong` + passcode as biometrics only on API 28–29 (AndroidX rejects
   the combination and expo hangs). The status is a live store re-read on `active` only: Face ID's
   prompt takes the app through `inactive`.
+  `useAppLock` (`appLock.ts`) keeps one lock per adapter: `useAppLock` hooks register their
+  options and the strictest wins. It locks only on `active` after a `background` older than
+  `relockAfter` (never on `inactive`), and a `background` that starts while a prompt is open does
+  not count: Android pauses the activity behind the device-credential screen and delivers the
+  result before resuming, so the unlock would lock again. `promptOnLock` claims one prompt per
+  `lockId`.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

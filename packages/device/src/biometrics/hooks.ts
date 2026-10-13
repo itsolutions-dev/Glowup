@@ -21,6 +21,11 @@ import { webBiometricsAdapter } from "./web";
 const defaultBiometricsAdapter =
   Platform.OS === "web" ? webBiometricsAdapter : expoBiometricsAdapter;
 
+/** The provided adapter, or the platform's default. */
+export function useBiometricsAdapter(): BiometricsAdapter {
+  return useDeviceAdapter("biometrics") ?? defaultBiometricsAdapter;
+}
+
 const UNSUPPORTED: BiometricResult = { success: false, error: "unsupported" };
 const BUSY: BiometricResult = { success: false, error: "busy" };
 
@@ -65,7 +70,7 @@ function getStore(adapter: BiometricsAdapter): LiveStore<BiometricStatus> {
   return store;
 }
 
-interface Session {
+export interface Session {
   isRunning(): boolean;
   subscribe(listener: () => void): Unsubscribe;
   run(call: () => Promise<BiometricResult>): Promise<BiometricResult>;
@@ -78,7 +83,7 @@ const sessions = new WeakMap<BiometricsAdapter, Session>();
  * answers a second call with `app_cancel` and iOS starts a second
  * evaluation, so a double tap must be refused here, as `busy`.
  */
-function getSession(adapter: BiometricsAdapter): Session {
+export function getSession(adapter: BiometricsAdapter): Session {
   let session = sessions.get(adapter);
   if (!session) {
     let running = false;
@@ -146,7 +151,7 @@ const subscribeNothing = () => () => {};
  * result proves nothing to a backend.
  */
 export function useBiometrics(): UseBiometrics {
-  const adapter = useDeviceAdapter("biometrics") ?? defaultBiometricsAdapter;
+  const adapter = useBiometricsAdapter();
   const store = getStore(adapter);
   const session = getSession(adapter);
   const status = useLiveValue(store);

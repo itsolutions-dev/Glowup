@@ -37,7 +37,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
 | `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
 | `@its/glowup-device/haptics`     | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
-| `@its/glowup-device/biometrics`  | `expo-local-authentication`       | `useBiometrics`                                                     |
+| `@its/glowup-device/biometrics`  | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                       |
 | `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -457,6 +457,55 @@ function RevealCard({ onReveal }: { onReveal(): void }) {
   Without it iOS does not fail: it quietly falls back to the passcode, or resolves
   `unavailable` with `fallback: "none"`. In development the package warns once.
 - **Web:** unsupported (`isSupported` false, `authenticate()` resolves `unsupported`).
+
+### App lock
+
+`useAppLock()` decides when the whole app is locked; the app draws the lock screen.
+
+```tsx
+import { useAppLock } from "@its/glowup-device/biometrics";
+
+function Root() {
+  const [lockEnabled] = useSetting("appLock"); // the app's own preference
+  const lock = useAppLock({
+    enabled: lockEnabled,
+    relockAfter: 0,
+    prompt: { promptMessage: "Sblocca l'app", cancelLabel: "Annulla" },
+  });
+  if (lock.isLocked) {
+    return <LockScreen onUnlock={lock.unlock} busy={lock.isAuthenticating} />;
+  }
+  return <App />;
+}
+```
+
+- **When it locks:** at a cold start (until `unlock()` succeeds) and when the app comes back
+  from the background after `relockAfter` ms (default `0`: as soon as it leaves), or on `lock()`.
+  The time is measured from the `background` event, since timers do not run there.
+- **`inactive` never locks.** Face ID's own prompt takes the app through it, as do the control
+  centre and an incoming call banner.
+- **A trip to the background caused by a prompt does not count** (Android pauses the app behind
+  the device-credential screen), so a successful unlock does not lock again. The other side of
+  it: a user who leaves the app while a prompt is open finds it unlocked if it was.
+- **On Android** a permission dialog, a share sheet or a picker also sends the app to the
+  background: with `relockAfter: 0` the user unlocks again on return. Give it a few seconds if
+  your app opens them.
+- **One lock for the whole app.** Every component calling `useAppLock` shares it; the strictest
+  options win (enabled if any is, the shortest `relockAfter`, `stay-locked` if any asks). While
+  the status loads, `isLocked` is true: nothing shows behind a lock that is still deciding (and
+  a statically exported page renders locked).
+- **`promptOnLock: true`** shows the prompt by itself when the app locks and is in the
+  foreground, at most once per lock: a cancel is not asked again until the next lock.
+  Default false: the lock screen has an unlock button.
+- **A device with nothing to authenticate with** (no lock screen; with `prompt.fallback:
+"none"`, no enrolled biometrics) cannot be unlocked. `whenUnavailable: "unlock"` (default)
+  leaves the app open, with `isLockable` false so it can say so; `"stay-locked"` keeps it shut,
+  for apps that must not run unprotected.
+- **Turning it on from a settings screen:** call `unlock()` first and save the setting on
+  success. The lock state survives `enabled: false`, so enabling it without that would lock the
+  app at once if it was never unlocked.
+- Not covered: hiding the content in the iOS app switcher's snapshot (taken on `inactive`,
+  which the Face ID prompt also triggers).
 
 ## Config plugin
 

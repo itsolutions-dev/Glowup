@@ -370,7 +370,7 @@ Its source (57.0.3) was read before the contract was written:
 | Phase | Content                                                                                   | Status   |
 | ----- | ----------------------------------------------------------------------------------------- | -------- |
 | 12    | `/biometrics`: adapter, `useBiometrics()`, Expo and web adapters, mock, config plugin key | **done** |
-| 13    | `useAppLock` (B4)                                                                         |          |
+| 13    | `useAppLock` (B4)                                                                         | **done** |
 | 14    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release     |          |
 
 ### Phase 12 — what landed
@@ -394,6 +394,25 @@ Its source (57.0.3) was read before the contract was written:
   expo-local-authentication's own plugin (Android `USE_BIOMETRIC`).
 - Web: `webBiometricsAdapter`, unsupported. `/testing`: `createMockBiometricsAdapter()` with
   `setStatus`, `setResult`, `calls` and a `manual` mode (`resolve()`, `cancel()`).
+
+### Phase 13 — what landed
+
+- `useAppLock({ enabled, relockAfter, prompt, promptOnLock, whenUnavailable })` →
+  `{ isLocked, isLockable, isLoading, isAuthenticating, unlock, lock }`. Decided: one state per
+  adapter shared by the tree, locked at a cold start; `relockAfter` 0 by default; no automatic
+  prompt by default (`promptOnLock`, once per lock, never after a cancel); `whenUnavailable:
+"unlock"` by default, with `isLockable` to say the lock protects nothing.
+- Several hooks register their options; the strictest wins (enabled if any, the shortest
+  `relockAfter`, `stay-locked` if any). `isLocked` is true while the status loads, so nothing
+  shows behind the lock (and the static export renders locked).
+- **Found in React Native's source:** Android's `AppState` reports `background` on every
+  `onHostPause`, so any activity on top (the device-credential screen, a permission dialog, a
+  share sheet) counts. A `background` that starts while a prompt is open is ignored: otherwise
+  the unlock through the PIN screen would lock again, as Android delivers the activity result
+  before resuming. Permission dialogs and share sheets do count; the README says to raise
+  `relockAfter` when an app opens them.
+- Out of scope: hiding content in the iOS app switcher's snapshot (taken on `inactive`, which
+  Face ID's prompt also triggers).
 
 ## Open for later
 

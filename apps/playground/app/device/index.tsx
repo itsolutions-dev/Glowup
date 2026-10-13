@@ -11,7 +11,15 @@ import { CodeBlock } from "../../site/CodeBlock";
 import { Page, Section } from "../../site/Page";
 
 const CAPABILITIES: {
-  href: "/device/info" | "/device/location" | "/device/camera";
+  href:
+    | "/device/info"
+    | "/device/location"
+    | "/device/camera"
+    | "/device/network"
+    | "/device/battery"
+    | "/device/keep-awake"
+    | "/device/orientation"
+    | "/device/haptics";
   icon: MaterialCommunityIconsGlyphs;
   title: string;
   summary: string;
@@ -37,13 +45,53 @@ const CAPABILITIES: {
     summary:
       "Preview, photos, video and QR scanning, with a Material camera recipe — @its/glowup-device/camera",
   },
+  {
+    href: "/device/network",
+    icon: "wifi",
+    title: "Network",
+    summary:
+      "Online, internet reachable, type and metered, kept live — @its/glowup-device/network",
+  },
+  {
+    href: "/device/battery",
+    icon: "battery-charging-outline",
+    title: "Battery",
+    summary:
+      "Level, charging state and Low Power Mode, kept live — @its/glowup-device/battery",
+  },
+  {
+    href: "/device/keep-awake",
+    icon: "monitor-eye",
+    title: "Keep awake",
+    summary:
+      "Hold the screen on while a component is mounted — @its/glowup-device/keep-awake",
+  },
+  {
+    href: "/device/orientation",
+    icon: "phone-rotate-landscape",
+    title: "Orientation",
+    summary:
+      "The interface orientation, live, and stacked locks — @its/glowup-device/orientation",
+  },
+  {
+    href: "/device/haptics",
+    icon: "vibrate",
+    title: "Haptics",
+    summary:
+      "Haptic feedback, wired into every Glowup control — @its/glowup-device/haptics",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
 # then only the Expo modules of the subpaths you import:
 npx expo install expo-device expo-application   # /info
 npx expo install expo-location                  # /location
-npx expo install expo-camera                    # /camera`;
+npx expo install expo-camera                    # /camera
+npx expo install @react-native-community/netinfo # /network
+npx expo install expo-battery                   # /battery
+npx expo install expo-keep-awake                # /keep-awake
+npx expo install expo-screen-orientation        # /orientation
+npx expo install expo-haptics                   # /haptics`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -83,7 +131,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location and the camera, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation and haptics, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"

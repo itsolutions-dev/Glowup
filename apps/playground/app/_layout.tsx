@@ -8,13 +8,9 @@ import {
   ThemeProvider as NavigationThemeProvider,
 } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import {
-  AlertProvider,
-  ThemeProvider,
-  ToastProvider,
-  useTheme,
-} from "@its/glowup-ui";
+import { AlertProvider, ToastProvider, useTheme } from "@its/glowup-ui";
 
+import { HapticThemeProvider } from "../site/HapticsPreference";
 import { SiteShell } from "../site/SiteShell";
 import { ThemeStatusBar } from "../site/ThemeStatusBar";
 
@@ -36,7 +32,7 @@ export default function RootLayout() {
   useFonts(MaterialCommunityIcons.font);
 
   return (
-    <ThemeProvider>
+    <HapticThemeProvider>
       <SafeAreaProvider>
         <AlertProvider>
           <ToastProvider>
@@ -45,7 +41,7 @@ export default function RootLayout() {
           </ToastProvider>
         </AlertProvider>
       </SafeAreaProvider>
-    </ThemeProvider>
+    </HapticThemeProvider>
   );
 }
 

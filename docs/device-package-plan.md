@@ -225,7 +225,7 @@ module's source before its contract is written, as phases 3 and 4 did.
 | 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store | **done** |
 | 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             | **done** |
 | 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              | **done** |
-| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |          |
+| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             | **done** |
 
 ### Phase 7 — what landed
 
@@ -314,6 +314,23 @@ module's source before its contract is written, as phases 3 and 4 did.
   motor buzz) or, on iOS Safari, appends and clicks a hidden `<input type="checkbox" switch>`;
   the default adapter does neither, and an app can provide one that does.
 - `/testing`: `createMockHapticsAdapter()`.
+
+### Phase 11 — what landed
+
+- Playground: one page per capability (`/device/network`, `battery`, `keep-awake`,
+  `orientation`, `haptics`) and the overview's list. The keep-awake and orientation pages hold
+  their lock only while focused (a page left in the stack stays mounted). The whole site is
+  wired to `hapticFeedback` through its root `ThemeProvider`, with a persisted switch on the
+  haptics page (decided).
+- `examples/consumer` imports every new subpath and hands `hapticFeedback` to
+  `ThemeProvider onInteractionFeedback`, so the two packages' published types must agree.
+  Checked before release on `npm pack` tarballs of both packages: `tsc --noEmit` and
+  `expo export -p web` pass. Its CI job can only pass once the versions are on npm.
+- Changesets: `@its/glowup-device` minor, `@its/glowup-ui` minor.
+- **Versions.** `@its/glowup-device` has not been published yet: the v1 changeset is still
+  pending, so if both land in the same "Version Packages" PR, changesets folds the two minors
+  into one release, `0.1.0`, carrying v1 and v0.2 together. If v1 is released first, this one
+  is `0.2.0`.
 
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
 only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API

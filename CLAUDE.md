@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An **npm-workspaces monorepo** with four workspaces:
 
-| Workspace                | Package                     | Role                                                                                  |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------- |
-| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                      |
-| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.               |
-| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, device info) behind adapters. |
-| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                   |
+| Workspace                | Package                     | Role                                                                                        |
+| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------- |
+| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                            |
+| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                     |
+| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, haptics…) behind adapters. |
+| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                         |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on

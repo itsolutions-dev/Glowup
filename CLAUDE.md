@@ -42,6 +42,7 @@ npm test -w @its/glowup-ui                    # only the library's component tes
 npm test -w @its/glowup-notifications         # only the notifications package's tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
+npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
 
 # The documentation site (apps/playground)
 npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source

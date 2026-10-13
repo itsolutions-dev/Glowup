@@ -79,6 +79,19 @@ module.exports = defineConfig([
               message:
                 "Reach the library through the '@its/glowup-ui' package name, not through a path into packages/ui.",
             },
+            {
+              group: ["@its/glowup-notifications/*"],
+              message:
+                "Import from the '@its/glowup-notifications' barrel — deep imports are not part of the package's public API.",
+            },
+            {
+              group: [
+                "**/packages/notifications/**",
+                "packages/notifications/**",
+              ],
+              message:
+                "Reach the package through the '@its/glowup-notifications' name, not through a path into packages/notifications.",
+            },
           ],
         },
       ],
@@ -105,6 +118,44 @@ module.exports = defineConfig([
               group: ["@react-navigation/*"],
               message:
                 "The library is navigation-agnostic. Navigators live in the app (apps/playground/navigation).",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // `packages/notifications` is headless and stands alone: it knows no app,
+    // no navigator and no UI kit. Showing a notification with Glowup components
+    // is wiring the consuming app does, so either package can ship without the
+    // other.
+    files: [
+      "packages/notifications/**/*.ts",
+      "packages/notifications/**/*.tsx",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
+              message:
+                "The notifications package cannot depend on the playground app.",
+            },
+            {
+              group: [
+                "@its/glowup-ui",
+                "@its/glowup-ui/*",
+                "**/packages/ui/**",
+              ],
+              message:
+                "The notifications package is headless. Render notifications with @its/glowup-ui in the app, not here.",
+            },
+            {
+              group: ["@react-navigation/*", "expo-router", "expo-router/*"],
+              message:
+                "The notifications package is navigation-agnostic: route from the app's onResponse callback.",
             },
           ],
         },

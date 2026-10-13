@@ -45,6 +45,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     icon: "page-layout-body",
     summary: "Whole screens assembled from the kit.",
   },
+  {
+    href: "/notifications",
+    label: "Notifications",
+    icon: "bell-outline",
+    summary: "The headless push companion package, running live.",
+  },
 ];
 
 /** The section a pathname belongs to, for the navigation's selected state. */

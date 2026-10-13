@@ -43,6 +43,9 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-status-bar",
     "expo-font",
+    // Push for the /notifications demo. Remote push also needs a development
+    // build with APNs / FCM credentials; local notifications work without them.
+    "expo-notifications",
     [
       "expo-splash-screen",
       {
@@ -56,7 +59,7 @@ const config: ExpoConfig = {
     baseUrl,
     // Typed routes generate .expo/types/router.d.ts, which is build output and
     // not committed — turning them on makes `npm run type-check` depend on
-    // someone having started Metro first. Not worth it for five static routes.
+    // someone having started Metro first. Not worth it for six static routes.
     typedRoutes: false,
   },
 };

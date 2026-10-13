@@ -13,7 +13,7 @@
   consuming app.
 - Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
   `.js.map` files; bob's typescript target hardcodes `--declarationMap`, so `npm run build`
-  chains `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
+  chains the repo-root `scripts/strip-declaration-maps.mjs` to delete the `.d.ts.map` files and the
   comments pointing at them. Don't "restore" either half without removing `!**/*.map` from
   the package's `files` too, or the tarball will reference maps it does not ship.
 - The playground consumes `src`, never `lib`, so the published artefact is checked separately:

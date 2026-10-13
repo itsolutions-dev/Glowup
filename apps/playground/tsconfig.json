@@ -2,12 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "types": ["jest"],
-    // The library is consumed through its package name only — never through a
-    // deep path into packages/ui. The mapping points at the source barrel so
-    // Metro and tsc stay in sync with a live edit in packages/ui; ESLint's
-    // no-restricted-imports rule blocks every other route into the package.
+    // The packages are consumed through their package names only — never through
+    // a deep path into packages/*. Each mapping points at the source barrel so
+    // Metro and tsc stay in sync with a live edit in the package; ESLint's
+    // no-restricted-imports rule blocks every other route into them.
     "paths": {
-      "@its/glowup-ui": ["../../packages/ui/src/index.ts"]
+      "@its/glowup-ui": ["../../packages/ui/src/index.ts"],
+      "@its/glowup-notifications": ["../../packages/notifications/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

@@ -4,11 +4,13 @@
 // it. The maps are deliberately not published (the "!**/*.map" entry in the
 // package's "files"), which would leave every shipped .d.ts pointing at a file
 // consumers never receive. This removes both, so lib/ matches the tarball.
+//
+// Shared by every published workspace: it works on the package it is run from
+// (`npm run build -w <pkg>` sets the cwd to that package's folder).
 import { readdir, readFile, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const ROOT = fileURLToPath(new URL("../lib/typescript/", import.meta.url));
+const ROOT = join(process.cwd(), "lib", "typescript");
 const MAP_COMMENT = /\n?\/\/# sourceMappingURL=.*\.d\.ts\.map\s*$/;
 
 let stripped = 0;

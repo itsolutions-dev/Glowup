@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
+import Constants from "expo-constants";
 import {
   Banner,
   Button,
@@ -23,6 +24,7 @@ import {
   getBadgeCount,
   getPresentedNotifications,
   isNotificationsSupported,
+  isWebPushSupported,
   scheduleNotification,
   setBadgeCount,
   useNotificationPermission,
@@ -31,6 +33,8 @@ import {
   type NotificationCategory,
   type NotificationsEvent,
   type PermissionStatus,
+  type WebPushConfig,
+  type WebPushPayload,
 } from "@its/glowup-notifications";
 
 import { CodeBlock } from "../site/CodeBlock";
@@ -53,6 +57,41 @@ const DEMO_CATEGORIES: NotificationCategory[] = [
   },
 ];
 const LOG_LIMIT = 20;
+
+// GitHub Pages serves the site from /<repo>/ (app.config.ts → experiments.baseUrl),
+// so the service worker in public/ and its scope live under that prefix.
+const BASE_URL = Constants.expoConfig?.experiments?.baseUrl ?? "";
+const WEB_PUSH: WebPushConfig = {
+  serviceWorkerPath: `${BASE_URL}/glowup-push-sw.js`,
+  scope: `${BASE_URL}/`,
+  // Set by the Pages workflow from the VAPID_PUBLIC_KEY repository variable.
+  vapidPublicKey: process.env.EXPO_PUBLIC_VAPID_PUBLIC_KEY || undefined,
+};
+
+const SAMPLE_WEB_PUSH = JSON.stringify(
+  {
+    id: "order-42",
+    title: "Order #42 shipped",
+    body: "Click to open it, or use Track.",
+    data: { screen: "order", orderId: "42" },
+    url: `${BASE_URL}/notifications`,
+    actions: [{ action: "track", title: "Track" }],
+  } satisfies WebPushPayload,
+  null,
+  2,
+);
+
+const WEB_PUSH_SEND = `npx web-push send-notification \\
+  --endpoint="<endpoint>" --key="<keys.p256dh>" --auth="<keys.auth>" \\
+  --vapid-subject="mailto:you@example.com" \\
+  --vapid-pubkey="<public key>" --vapid-pvtkey="<private key>" \\
+  --payload='{"title":"Hello","body":"From web-push"}'`;
+
+// Browser APIs only exist after hydration: the server snapshot (prerender)
+// says "no", the client one checks, and React reconciles the two.
+const subscribeNever = () => () => {};
+const useWebPushSupport = () =>
+  useSyncExternalStore(subscribeNever, isWebPushSupported, () => false);
 
 const INSTALL = `npx expo install expo-notifications @its/glowup-notifications`;
 
@@ -191,6 +230,7 @@ export default function NotificationsPage() {
   const [presentation, setPresentation] =
     useState<ForegroundPresentation>(DEFAULT_FOREGROUND);
   const [events, setEvents] = useState<LoggedEvent[]>([]);
+  const webPush = useWebPushSupport();
 
   const onEvent = useCallback((event: NotificationsEvent) => {
     setEvents((previous) =>
@@ -212,6 +252,7 @@ export default function NotificationsPage() {
       ]}
       categories={DEMO_CATEGORIES}
       foreground={presentation}
+      webPush={WEB_PUSH}
       onEvent={onEvent}
     >
       <Page
@@ -226,7 +267,9 @@ export default function NotificationsPage() {
             message={
               isNotificationsSupported
                 ? "Remote push needs a development build with APNs / FCM credentials; Expo Go on Android cannot fetch a push token. The test notification below is local and works anywhere."
-                : "Push notifications need iOS or Android. On the web the provider reports “unsupported” and calls nothing, so this page shows the API rather than running it."
+                : webPush
+                  ? `Web Push runs in this browser. Allow notifications, then send a push as shown in “Try it”.${WEB_PUSH.vapidPublicKey ? "" : " This build has no VAPID key, so no subscription is created; pushes from DevTools still work."} Categories, scheduling and the badge are native only.`
+                  : "This browser has no service worker or Push API, so the provider reports “unsupported”. Push runs on iOS, Android, and in Chrome, Edge or Firefox."
             }
           />
         }
@@ -392,6 +435,26 @@ const TrySection = () => {
       setScheduled(false);
     }
   };
+
+  if (!isNotificationsSupported) {
+    return (
+      <Section
+        title="Try it"
+        description="Scheduling is native only. On web, send a push to this page's service worker: in Chrome DevTools open Application → Service workers, paste this JSON into the Push field and press Push. With this tab in front it lands in the event log (and shows if the switches above allow it); with the tab in the background the service worker shows it, and a click comes back as a tap."
+      >
+        <CodeBlock
+          code={SAMPLE_WEB_PUSH}
+          language="json"
+          title="Push payload"
+        />
+        <CodeBlock
+          code={WEB_PUSH_SEND}
+          language="bash"
+          title="Or a real push, with the subscription above and your VAPID pair"
+        />
+      </Section>
+    );
+  }
 
   return (
     <Section

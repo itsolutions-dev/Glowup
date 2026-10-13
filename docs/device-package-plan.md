@@ -167,8 +167,10 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
 - Verified beyond the unit tests: the static export prerenders the four pages, and in
   Chromium (Playwright, simulated geolocation and Chromium's fake camera) the exported pages
   hydrate, locate, follow the position, stream the preview and take a photo.
-- Found, not caused here: every exported page of the site, the home page included, logs
+- Found, not caused here: every exported page of the site, the home page included, logged
   React's hydration error #418 — also with the device pages and their nav entry removed.
+  Fixed separately in #61 (window size, icon font, current time, `Grid`; see
+  `apps/playground/CLAUDE.md`, "Hydration").
 
 ### Phase 6 — what landed
 
@@ -186,10 +188,53 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
   Packages" PR, master declares `@its/glowup-device@0.0.0`, which is not on the registry, so
   the consumer smoke fails after its wait. It turns green with the publish.
 
-## Open for v2 (to discuss at the end of v1)
+## v2 decisions
 
-- A `/camera/ui` subpath with MD3 camera components (it would need `@its/glowup-ui` as a peer).
-- Location: background and geofencing (`expo-task-manager`, development build), geocoding and
-  reverse geocoding, heading.
-- Gallery: `expo-image-picker` / `expo-media-library`.
-- Device: battery, network, haptics, sensors, biometrics, orientation, keep-awake.
+| #   | Question               | Decision                                                                                                             |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 gallery, biometrics · v0.4 advanced location, sensors |
+| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                |
+| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                    |
+| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                         |
+| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.              |
+| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                    |
+| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.     |
+| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.     |
+
+### V8 — haptics without coupling the packages
+
+- **`@its/glowup-ui` (minor).** `ThemeProvider` takes
+  `onInteractionFeedback?: (kind: "press" | "toggle" | "selection" | "longPress") => void`.
+  `Button`, `IconButton`, `FAB`, `Toggle`, `Checkbox`, `RadioButton`, `Chip`,
+  `ToggleButtonGroup` and `Slider` (per step) call it; a `feedback={false}` prop opts a single
+  component out. The library knows no native module and imports nothing from `device`.
+- **`@its/glowup-device/haptics`.** `useHaptics()` (impact, notification, selection) and a
+  ready-made `hapticFeedback` that maps the four kinds onto `expo-haptics`.
+- **The app wires them:** `<ThemeProvider onInteractionFeedback={hapticFeedback}>`. Nothing
+  vibrates until it does.
+
+## v0.2 phases
+
+Each phase is one commit with its tests, docs and `/testing` adapter; the release phase adds
+the playground pages and the changesets. Every web behaviour below is to be checked against the
+module's source before its contract is written, as phases 3 and 4 did.
+
+| Phase | Content                                                                                                                                     | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           |        |
+| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store |        |
+| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             |        |
+| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |        |
+| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |        |
+
+To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
+only Chromium has); the Battery Status API (Chromium only); the Wake Lock API (secure context,
+released when the tab is hidden); screen orientation lock on web (often only in fullscreen);
+haptics on web (no-op, or `navigator.vibrate` on Android Chrome).
+
+## Open for later
+
+- **Advanced location (v0.4):** background and geofencing, geocoding (and which web
+  provider), heading — to be decided before v0.4.
+- **Secure store:** a separate capability binding secrets to biometrics (`expo-secure-store`)
+  — to propose at the end of v2.

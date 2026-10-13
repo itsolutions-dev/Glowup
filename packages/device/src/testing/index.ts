@@ -14,3 +14,10 @@ export {
   type MockLocationAdapter,
   type MockLocationOptions,
 } from "./location";
+export {
+  createMockCameraAdapter,
+  MOCK_PICTURE,
+  MOCK_VIDEO,
+  type MockCameraAdapter,
+  type MockCameraOptions,
+} from "./camera";

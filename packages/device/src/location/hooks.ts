@@ -1,15 +1,12 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { AppState, Linking } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { Linking } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { usePermissionSnapshot } from "../core/permissionStore";
 import type { Unsubscribe } from "../core/types";
 import { defaultLocationAdapter } from "./defaultAdapter";
 import type { LocationError } from "./errors";
-import {
-  getPermissionStore,
-  UNKNOWN_LOCATION,
-  type PermissionStore,
-} from "./permissionStore";
+import { getPermissionStore, UNKNOWN_LOCATION } from "./permissionStore";
 import { ensureReady, resolvePosition, toError } from "./resolve";
 import type {
   GeoPosition,
@@ -22,8 +19,6 @@ import type {
 function useLocationAdapter(): LocationAdapter {
   return useDeviceAdapter("location") ?? defaultLocationAdapter;
 }
-
-const getServerSnapshot = () => null;
 
 export interface UseLocationPermission extends LocationPermissionState {
   /** True until the first read answers (`status` reads `"undetermined"` meanwhile). */
@@ -44,24 +39,8 @@ export interface UseLocationPermission extends LocationPermissionState {
  * a `request()` made in one updates them all.
  */
 export function useLocationPermission(): UseLocationPermission {
-  const store: PermissionStore = getPermissionStore(useLocationAdapter());
-  const state = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    getServerSnapshot,
-  );
-
-  useEffect(() => {
-    const refresh = () => {
-      store.refresh().catch(() => {});
-    };
-    if (store.getSnapshot() === null) refresh();
-    // The user may have changed it in the system settings meanwhile.
-    const subscription = AppState.addEventListener("change", (next) => {
-      if (next === "active") refresh();
-    });
-    return () => subscription.remove();
-  }, [store]);
+  const store = getPermissionStore(useLocationAdapter());
+  const state = usePermissionSnapshot(store);
 
   return {
     ...(state ?? UNKNOWN_LOCATION),

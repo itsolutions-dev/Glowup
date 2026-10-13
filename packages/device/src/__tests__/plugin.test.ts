@@ -34,7 +34,9 @@ async function prebuild(options: unknown) {
   const permissions: string[] = (
     results.android.manifest.manifest["uses-permission"] ?? []
   ).map((p: { $: Record<string, string> }) => p.$["android:name"]);
-  return { infoPlist, permissions };
+  const podfileProperties: Record<string, string> =
+    results.ios.podfileProperties ?? {};
+  return { infoPlist, permissions, podfileProperties };
 }
 
 let warn: jest.SpyInstance;
@@ -85,10 +87,62 @@ describe("location", () => {
   });
 });
 
+describe("camera", () => {
+  it("adds the camera only: no sound in videos by default", async () => {
+    const { infoPlist, permissions, podfileProperties } = await prebuild({
+      camera: { cameraPermission: "Scans your ticket." },
+    });
+    expect(infoPlist.NSCameraUsageDescription).toBe("Scans your ticket.");
+    expect(permissions).toContain("android.permission.CAMERA");
+    expect(permissions).not.toContain("android.permission.RECORD_AUDIO");
+    expect(podfileProperties["expo.camera.barcode-scanner-enabled"]).toBe(
+      undefined,
+    );
+    // Kept for the binary's audio APIs, never shown without recordAudio.
+    expect(infoPlist.NSMicrophoneUsageDescription).toEqual(expect.any(String));
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("adds the microphone with recordAudio", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      camera: {
+        cameraPermission: "Films your review.",
+        microphonePermission: "Records your voice in the review.",
+        recordAudio: true,
+      },
+    });
+    expect(infoPlist.NSMicrophoneUsageDescription).toBe(
+      "Records your voice in the review.",
+    );
+    expect(permissions).toContain("android.permission.RECORD_AUDIO");
+  });
+
+  it("warns for each purpose string left to the default", async () => {
+    await prebuild({ camera: { recordAudio: true } });
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("camera.cameraPermission is not set"),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("camera.microphonePermission is not set"),
+    );
+  });
+
+  it("can leave the scanner out of the build", async () => {
+    const { podfileProperties } = await prebuild({
+      camera: { cameraPermission: "x", barcodeScanner: false },
+    });
+    expect(podfileProperties["expo.camera.barcode-scanner-enabled"]).toBe(
+      "false",
+    );
+  });
+});
+
 it("configures nothing that is not listed", async () => {
   const { infoPlist, permissions } = await prebuild({});
   expect(infoPlist.NSLocationWhenInUseUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.ACCESS_FINE_LOCATION");
+  expect(infoPlist.NSCameraUsageDescription).toBeUndefined();
+  expect(permissions).not.toContain("android.permission.CAMERA");
 });
 
 it("rejects an unknown capability", () => {

@@ -89,7 +89,7 @@ plugins: [
 | 1     | Scaffolding: workspace, export map + fallback folders, core (permission model, platform guards), ESLint boundaries, build, CI | **done** |
 | 2     | Device info: adapter contract, Expo adapter, `DeviceAdaptersProvider`, hooks, mock adapter                                    | **done** |
 | 3     | Location: permission, current position, watch; config plugin (location part)                                                  | **done** |
-| 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   |          |
+| 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   | **done** |
 | 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      |          |
 | 6     | Release: drop `private`, first changeset, README, `examples/consumer` smoke                                                   |          |
 
@@ -134,10 +134,27 @@ provider and mock pattern before location and camera build on it.
   introspection mode (the Info.plist and AndroidManifest a prebuild would write).
 - `/testing`: `createMockLocationAdapter()`, `buildPosition()`.
 
-### To verify in phase 4
+### Phase 4 — what landed
 
-Whether `expo-camera` on web supports video recording and barcode scanning in SDK 57. If
-not, those APIs reject on web through `assertSupported()`.
+- `/camera`: `CameraView` (headless: children draw over the preview), `CameraHandle` through
+  its ref (`takePicture`, `recordVideo`, `stopRecording`), `useCameraPermission()` (camera,
+  then the microphone only once the camera is granted; `status` is the weaker), `CameraError`
+  with typed codes.
+- Decisions applied: `barcodeTypes` defaults to `["qr"]`; results are cache-file URIs, base64
+  only on request; `maxDuration` defaults to 60 s and `videoQuality` to `"720p"`.
+- Added: the same code is reported once per `scanInterval` (default 1000 ms), because
+  scanners fire on every frame; barcode types are normalised (iOS has reported UTIs such as
+  `org.iso.QRCode`).
+- The generic permission store moved to `src/core/permissionStore.ts`, shared by location and
+  camera.
+- Config plugin, camera part: camera text, `RECORD_AUDIO` only with `recordAudio: true`,
+  `barcodeScanner: false` to drop the scanning libraries.
+- `/testing`: `createMockCameraAdapter()`, `MOCK_PICTURE`, `MOCK_VIDEO`.
+
+**Verified on web (expo-camera 57.0.6 source):** preview, pictures and scanning work
+(`BarcodeDetector`, else the bundled `barcode-detector` polyfill); `record()` only warns and
+returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
+`recordVideo()` rejects with `unsupported` instead of resolving an empty file.
 
 ## Open for v2 (to discuss at the end of v1)
 

@@ -41,10 +41,22 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
 - **Location** (`src/location`): the hooks run `ensureReady()` (support → permission →
   services) before any read, so no adapter read ever prompts — on web, asking for a position
   _is_ the prompt. Only `requestPermission` may prompt. Permission state lives in one store
-  per adapter (`permissionStore.ts`), so hooks agree and a request updates them all. The web
+  per adapter, so hooks agree and a request updates them all. The web
   default is `web.ts` on `navigator.geolocation`, not expo-location's web build (see
   `docs/device-package-plan.md`, phase 3). `useCurrentPosition` derives `isLoading` from a
   request key: the React Compiler lint forbids a synchronous `setState` in an effect.
+- **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
+  permission's state between hooks (last call wins, concurrent refreshes share a read) and
+  `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each
+  capability keeps its stores in a `WeakMap` keyed by adapter (camera: one per kind).
+- **Camera** (`src/camera`): the adapter's `Preview` is a component (the camera is a native
+  view) whose ref exposes `CameraHandle`. `CameraView` owns everything adapter-independent:
+  defaults, scan dedupe (`scanInterval`), the stable `barcodeTypes` identity, the
+  `invalid-mode` / `unsupported` checks and error normalisation, so an adapter only maps
+  props. `isSupported()` is read through `useSyncExternalStore` with a `false` server
+  snapshot (`__tests__/camera-ssr.test.tsx`): never call it during render directly. The web
+  default stays expo-camera (preview, pictures and scanning work there); `supportsVideo()` is
+  false on web because its `record()` only warns and returns an empty uri.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

@@ -82,6 +82,7 @@
   "peerDependencies": {
     "expo": ">=57",
     "expo-application": ">=57",
+    "expo-camera": ">=57",
     "expo-device": ">=57",
     "expo-location": ">=57",
     "react": ">=19",
@@ -89,6 +90,9 @@
   },
   "peerDependenciesMeta": {
     "expo-application": {
+      "optional": true
+    },
+    "expo-camera": {
       "optional": true
     },
     "expo-device": {
@@ -109,6 +113,7 @@
     "del-cli": "^7.0.0",
     "expo": "~57.0.25",
     "expo-application": "~57.0.3",
+    "expo-camera": "~57.0.5",
     "expo-device": "~57.0.2",
     "expo-location": "~57.0.20",
     "jest": "~29.7.0",

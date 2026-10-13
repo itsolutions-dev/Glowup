@@ -3,18 +3,18 @@
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
 scanning) and device info, each behind an adapter the app can replace.
 
-> **Work in progress — not published yet.** `/info` and `/location` are implemented;
-> `/camera` is empty until its phase lands. See [`docs/device-package-plan.md`](../../docs/device-package-plan.md).
+> **Work in progress — not published yet.** Every entry point is implemented; the
+> playground pages and the first release are still to come. See [`docs/device-package-plan.md`](../../docs/device-package-plan.md).
 
 ## Entry points
 
-| Import                        | Needs                             | Status         |
-| ----------------------------- | --------------------------------- | -------------- |
-| `@its/glowup-device`          | nothing native                    | provider       |
-| `@its/glowup-device/info`     | `expo-device`, `expo-application` | ready          |
-| `@its/glowup-device/location` | `expo-location`                   | ready          |
-| `@its/glowup-device/camera`   | `expo-camera`                     | reserved       |
-| `@its/glowup-device/testing`  | nothing native                    | info, location |
+| Import                        | Needs                             | Status           |
+| ----------------------------- | --------------------------------- | ---------------- |
+| `@its/glowup-device`          | nothing native                    | provider         |
+| `@its/glowup-device/info`     | `expo-device`, `expo-application` | ready            |
+| `@its/glowup-device/location` | `expo-location`                   | ready            |
+| `@its/glowup-device/camera`   | `expo-camera`                     | ready            |
+| `@its/glowup-device/testing`  | nothing native                    | every capability |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -111,6 +111,73 @@ const { position } = useWatchPosition({
   localhost), cannot tell disabled services from a missing fix (both are `unavailable`) and
   does not report precision (`null`).
 
+## Camera
+
+A preview with no controls of its own — draw yours as its children — plus photos, video
+(iOS and Android) and barcode / QR scanning.
+
+```bash
+npx expo install expo-camera
+```
+
+```tsx
+import { useRef } from "react";
+import {
+  CameraView,
+  useCameraPermission,
+  type CameraHandle,
+} from "@its/glowup-device/camera";
+
+function TicketScanner({ onTicket }: { onTicket: (code: string) => void }) {
+  const permission = useCameraPermission();
+  if (permission.status !== "granted") {
+    return <Button title="Allow the camera" onPress={permission.request} />;
+  }
+  return (
+    <CameraView
+      style={{ flex: 1 }}
+      onBarcodeScanned={(barcode) => onTicket(barcode.data)}
+      // barcodeTypes defaults to ["qr"]; list others explicitly
+    />
+  );
+}
+
+function Recorder() {
+  const camera = useRef<CameraHandle>(null);
+  const permission = useCameraPermission({ microphone: true }); // sound in videos
+  const record = async () => {
+    const video = await camera.current?.recordVideo({ maxDuration: 30 }); // default 60 s
+    // video.uri: a cache file; move it to keep it
+  };
+  return (
+    <CameraView ref={camera} mode="video" style={{ flex: 1 }}>
+      {/* your controls: record, camera.current?.stopRecording(), takePicture() */}
+    </CameraView>
+  );
+}
+```
+
+- **`CameraView` never asks for the permission**: gate it on `useCameraPermission()`, whose
+  `status` is also where an unsupported platform shows (`"unsupported"`).
+- **`useCameraPermission({ microphone: true })`** asks for the camera, then — only once it is
+  granted — the microphone; `status` is the weaker of the two. Without the microphone, record
+  with `mute`.
+- **Captures** go through the ref: `takePicture({ quality, base64 })` (no base64 unless
+  asked: it is megabytes of string in JS memory), `recordVideo({ maxDuration, maxFileSize })`
+  (needs `mode="video"`; resolves on `stopRecording()` or a limit), `stopRecording()`.
+  Results are files in the cache directory. Errors are `CameraError`s with a `code`:
+  `permission-denied`, `unavailable`, `not-ready` (capture before `onReady`),
+  `invalid-mode`, `capture-failed`, `unsupported`.
+- **Scanning** is on while `onBarcodeScanned` is set. The same code is reported once per
+  `scanInterval` (default 1000 ms), because scanners fire on every frame the code stays in
+  view. `type` is normalised (`"qr"`, `"ean13"`, …, or `"unknown"` with `rawType`).
+- **`active={false}`** pauses the preview without unmounting it: do it when the screen loses
+  focus.
+- **Web**: preview, pictures (`uri` is a data URI) and scanning (`BarcodeDetector`, or a
+  bundled polyfill) work over HTTPS; **video recording does not** — `recordVideo()` rejects
+  with `unsupported`, and `microphone: true` is ignored. A statically exported page mounts the
+  preview after hydration.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -121,7 +188,15 @@ each Expo module's own plugin:
 plugins: [
   [
     "@its/glowup-device",
-    { location: { whenInUsePermission: "Shows the shops near you." } },
+    {
+      location: { whenInUsePermission: "Shows the shops near you." },
+      camera: {
+        cameraPermission: "Scans the QR code on your ticket.",
+        // Only to record sound with videos:
+        microphonePermission: "Records your voice in video reviews.",
+        recordAudio: true,
+      },
+    },
   ],
 ],
 ```
@@ -129,6 +204,10 @@ plugins: [
 - **Location** sets the iOS purpose strings to your text (also the "Always" ones, which
   expo-location's binary needs present; the package never asks for Always) and adds Android's
   coarse and fine location permissions only — no background location, no foreground service.
+- **Camera** sets the camera purpose string and Android's `CAMERA`. `recordAudio: true` adds
+  `RECORD_AUDIO` and makes the microphone text required (iOS always carries one, as
+  expo-camera's plugin does; without `recordAudio` the app never asks).
+  `barcodeScanner: false` leaves the scanning libraries out of the build.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -182,4 +261,19 @@ render(
 location.emit(buildPosition({ latitude: 45.46, longitude: 9.19 })); // to every watch
 location.fail("unavailable");
 location.setPosition("pending"); // getCurrentPosition never settles: test the timeout
+```
+
+`createMockCameraAdapter()` renders a plain `View` (`testID="mock-camera-preview"`) and
+captures without hardware:
+
+```tsx
+const camera = createMockCameraAdapter({ camera: "granted" });
+render(
+  <DeviceAdaptersProvider adapters={{ camera }}>
+    <TicketScanner onTicket={onTicket} />
+  </DeviceAdaptersProvider>,
+);
+camera.scan({ data: "TICKET-42" }); // reaches onBarcodeScanned if "qr" is scanned for
+camera.preview?.facing; // the props CameraView handed the preview
+camera.finishRecording(); // ends a recordVideo() with MOCK_VIDEO
 ```

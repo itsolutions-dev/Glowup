@@ -15,6 +15,9 @@ const TAG = `[${pkg.name}]`;
 // Generic on purpose: App Store review rejects purpose strings that do not say
 // why the app needs the data, so a missing text is a warning, not a default.
 const DEFAULT_LOCATION_TEXT = "Allow $(PRODUCT_NAME) to use your location.";
+const DEFAULT_CAMERA_TEXT = "Allow $(PRODUCT_NAME) to use your camera.";
+const DEFAULT_MICROPHONE_TEXT =
+  "Allow $(PRODUCT_NAME) to record sound with your videos.";
 
 function placeholder(option, text) {
   console.warn(
@@ -58,7 +61,34 @@ function withLocation(config, options) {
   });
 }
 
-const CAPABILITIES = { location: withLocation };
+/**
+ * Camera, photos and scanning; sound in videos only with `recordAudio: true`,
+ * which adds Android's RECORD_AUDIO and makes the microphone text required.
+ * iOS always keeps a microphone purpose string, as expo-camera's own plugin
+ * does (its binary references the audio capture APIs); without `recordAudio`
+ * the app never asks, so its text is never shown. `barcodeScanner: false`
+ * drops the scanning libraries from the build (expo-camera's
+ * `barcodeScannerEnabled`).
+ */
+function withCamera(config, options) {
+  const recordAudio = options.recordAudio === true;
+  const cameraText =
+    options.cameraPermission ??
+    placeholder("camera.cameraPermission", DEFAULT_CAMERA_TEXT);
+  const microphoneText =
+    options.microphonePermission ??
+    (recordAudio
+      ? placeholder("camera.microphonePermission", DEFAULT_MICROPHONE_TEXT)
+      : DEFAULT_MICROPHONE_TEXT);
+  return loadPlugin("expo-camera", "camera")(config, {
+    cameraPermission: cameraText,
+    microphonePermission: microphoneText,
+    recordAudioAndroid: recordAudio,
+    barcodeScannerEnabled: options.barcodeScanner !== false,
+  });
+}
+
+const CAPABILITIES = { location: withLocation, camera: withCamera };
 
 function withGlowupDevice(config, options = {}) {
   for (const key of Object.keys(options)) {

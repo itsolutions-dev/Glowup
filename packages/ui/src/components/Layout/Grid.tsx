@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { View, LayoutChangeEvent, useWindowDimensions } from "react-native";
+import { View, LayoutChangeEvent } from "react-native";
 import Box, { BoxProps } from "./Box";
 import { useTheme } from "../../providers/ThemeProvider";
 import { SpacingValue, resolveSpacing } from "./tokens";
+import { useWindowWidth } from "../internal/useWindowWidth";
 
 export interface GridProps extends Omit<BoxProps, "row" | "wrap" | "gap"> {
   /** Fixed column count. Ignored when `minChildWidth` is set. */
@@ -33,7 +34,7 @@ const Grid = ({
   ...boxProps
 }: GridProps) => {
   const { theme } = useTheme();
-  const { width: windowWidth } = useWindowDimensions();
+  const windowWidth = useWindowWidth();
   const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
   const gap = resolveSpacing(theme, spacing) ?? 0;
 

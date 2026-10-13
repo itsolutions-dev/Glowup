@@ -31,6 +31,14 @@ interface ComponentPreviewProps {
 }
 
 /**
+ * The instant the date and time stages open on — fixed, like the variant
+ * galleries' sample dates. Not `new Date()`: the static export prerenders the
+ * build's "now", and a visitor's "now" is a different time, so the field text
+ * would disagree on hydration (React error #418).
+ */
+const DEMO_DATE = new Date(2024, 4, 15, 10, 30);
+
+/**
  * Renders one catalogue entry with the props the panel currently holds.
  * Most entries are just `<Component {...props} />`; the ones below need a
  * controlled value, sample data or a coerced number, which is the whole
@@ -47,7 +55,7 @@ const ComponentPreview = ({
 
   // Demo-only state: the stage keeps it across component switches, exactly as
   // the screen did when this lived inside it.
-  const [dateValue, setDateValue] = useState<Date | null>(() => new Date());
+  const [dateValue, setDateValue] = useState<Date | null>(DEMO_DATE);
   const [dateRange, setDateRange] = useState<DateRange>(() => EMPTY_RANGE);
   const [dateList, setDateList] = useState<Date[]>([]);
   const [pinValue, setPinValue] = useState("");
@@ -273,7 +281,7 @@ const ComponentPreview = ({
     if (!props.locale) delete props.locale;
     props.minuteInterval = Number(props.minuteInterval) || 1;
     // The surface edits an instant, so it needs a non-null value.
-    props.value = dateValue ?? new Date();
+    props.value = dateValue ?? DEMO_DATE;
     props.onChange = (d: Date) => setDateValue(d);
     // The M3 time surface has an intrinsic ~278px width (it is sized for a
     // 328dp dialog); the stage is narrower than that below ~1400px, so let it
@@ -1020,7 +1028,7 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "ClockDial") {
-    const current = dateValue ?? new Date();
+    const current = dateValue ?? DEMO_DATE;
     props.minuteInterval = Number(props.minuteInterval) || 1;
     props.hours = current.getHours();
     props.minutes = current.getMinutes();

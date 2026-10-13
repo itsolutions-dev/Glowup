@@ -57,6 +57,30 @@ export default function App() {
 }
 ```
 
+### Static web export
+
+With Expo Router's `web.output: "static"` every page is prerendered in Node and hydrated in
+the browser, and the first client render must match the HTML. Two things to do in the app:
+
+- **Register the icon font in the root layout**, so the prerender draws the icons too (an
+  icon renders empty until its font counts as loaded, and in Node only `useFonts` /
+  `loadAsync` make it so — they also put the `@font-face` in the exported HTML):
+
+  ```tsx
+  import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+  import { useFonts } from "expo-font";
+
+  export default function RootLayout() {
+    useFonts(MaterialCommunityIcons.font);
+    // …providers and <Stack />
+  }
+  ```
+
+- **Render nothing from the window size or the current time on the first render.** Node's
+  window is 0 × 0 and its "now" is the build's. Read the size through `useSyncExternalStore`
+  with a server snapshot (as `Grid` does internally), and give date pickers a fixed or
+  user-chosen value rather than `new Date()`.
+
 ### Layout
 
 `Box`, `Stack`/`HStack`/`VStack`, `Center`, `Spacer`, `Grid` and `AspectRatio` take spacing,

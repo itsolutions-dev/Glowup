@@ -18,6 +18,7 @@ const DEFAULT_LOCATION_TEXT = "Allow $(PRODUCT_NAME) to use your location.";
 const DEFAULT_CAMERA_TEXT = "Allow $(PRODUCT_NAME) to use your camera.";
 const DEFAULT_MICROPHONE_TEXT =
   "Allow $(PRODUCT_NAME) to record sound with your videos.";
+const DEFAULT_FACE_ID_TEXT = "Allow $(PRODUCT_NAME) to use Face ID.";
 
 function placeholder(option, text) {
   console.warn(
@@ -88,7 +89,26 @@ function withCamera(config, options) {
   });
 }
 
-const CAPABILITIES = { location: withLocation, camera: withCamera };
+/**
+ * Face ID's purpose string, plus Android's USE_BIOMETRIC (and the deprecated
+ * USE_FINGERPRINT, which expo's plugin still adds for old devices). Without
+ * the purpose string iOS does not crash: Face ID quietly falls back to the
+ * passcode, or fails with `unavailable` when the prompt has no fallback.
+ */
+function withBiometrics(config, options) {
+  const text =
+    options.faceIDPermission ??
+    placeholder("biometrics.faceIDPermission", DEFAULT_FACE_ID_TEXT);
+  return loadPlugin("expo-local-authentication", "biometrics")(config, {
+    faceIDPermission: text,
+  });
+}
+
+const CAPABILITIES = {
+  location: withLocation,
+  camera: withCamera,
+  biometrics: withBiometrics,
+};
 
 function withGlowupDevice(config, options = {}) {
   for (const key of Object.keys(options)) {

@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
 import type { BatteryAdapter } from "../battery/types";
+import type { BiometricsAdapter } from "../biometrics/types";
 import type { CameraAdapter } from "../camera/types";
 import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
@@ -22,6 +23,7 @@ export interface DeviceAdapters {
   keepAwake: KeepAwakeAdapter;
   orientation: OrientationAdapter;
   haptics: HapticsAdapter;
+  biometrics: BiometricsAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -54,6 +56,7 @@ export function DeviceAdaptersProvider({
     keepAwake,
     orientation,
     haptics,
+    biometrics,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -66,6 +69,7 @@ export function DeviceAdaptersProvider({
       ...(keepAwake && { keepAwake }),
       ...(orientation && { orientation }),
       ...(haptics && { haptics }),
+      ...(biometrics && { biometrics }),
     }),
     [
       parent,
@@ -77,6 +81,7 @@ export function DeviceAdaptersProvider({
       keepAwake,
       orientation,
       haptics,
+      biometrics,
     ],
   );
   return (

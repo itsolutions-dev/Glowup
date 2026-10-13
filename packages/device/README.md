@@ -1,8 +1,8 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network, battery, keep-awake, screen orientation, haptics and device info, each behind an adapter the app can
-replace.
+scanning), network, battery, keep-awake, screen orientation, haptics, biometrics and device info, each
+behind an adapter the app can replace.
 
 ## Install
 
@@ -17,6 +17,7 @@ npx expo install expo-battery                   # /battery
 npx expo install expo-keep-awake                # /keep-awake
 npx expo install expo-screen-orientation        # /orientation
 npx expo install expo-haptics                   # /haptics
+npx expo install expo-local-authentication      # /biometrics
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -36,6 +37,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
 | `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
 | `@its/glowup-device/haptics`     | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
+| `@its/glowup-device/biometrics`  | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                       |
 | `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -395,6 +397,116 @@ interaction(kind) }`. Every call resolves, never rejects, and does nothing where
   `navigator.vibrate` (Android Chrome) or clicks a hidden `<input switch>` on iOS Safari. Pass
   your own adapter if you want that.
 
+## Biometrics
+
+A local gate: the device owner proves they are present with a fingerprint, a face or the
+device passcode before the app shows something.
+
+```bash
+npx expo install expo-local-authentication
+```
+
+```tsx
+import { useBiometrics } from "@its/glowup-device/biometrics";
+
+function RevealCard({ onReveal }: { onReveal(): void }) {
+  const biometrics = useBiometrics();
+  const reveal = async () => {
+    const result = await biometrics.authenticate({
+      promptMessage: "Mostra i dati della carta",
+      cancelLabel: "Annulla",
+    });
+    if (result.success) onReveal();
+    else if (result.error === "lockout")
+      showMessage("Sblocca il telefono e riprova.");
+  };
+  return (
+    <Button onPress={reveal} disabled={biometrics.level === "none"}>
+      Mostra
+    </Button>
+  );
+}
+```
+
+- **It is not authentication.** `success: true` says someone who can unlock this phone is
+  holding it; it proves nothing to a server, and a rooted device can skip it. To protect a
+  secret with biometrics, keep it in the keychain/keystore, not behind this gate.
+- **`useBiometrics()`** → the status (`hasHardware`, `isEnrolled`, `types`: `fingerprint` /
+  `face` / `iris`, `level`: `none` / `passcode` / `biometric-weak` / `biometric-strong`),
+  `isSupported`, `isLoading`, `isAuthenticating`, `authenticate(options)` and `cancel()`. The
+  status is read again when the app returns to the foreground (the user may have enrolled a
+  finger in the settings).
+- **`authenticate()` resolves with the outcome and never rejects for one:** a cancel is not an
+  exception. `{ success: false, error }` with `error` one of `cancelled`, `fallback`, `lockout`,
+  `not-enrolled`, `unavailable`, `busy`, `unsupported`, `failed`, plus a `detail` for logs. It
+  rejects only on a programming error (an empty `promptMessage` or `cancelLabel`).
+- **Labels are required.** `promptMessage` and `cancelLabel` have English defaults in
+  expo-local-authentication, which an app in another language would show.
+- **One prompt at a time.** While one is open, another `authenticate()` (from any component)
+  resolves `busy` at once: Android would answer `app_cancel` and iOS would stack a second
+  evaluation. `cancel()` dismisses it on Android; iOS has no such API.
+- **Fallback.** `fallback: "passcode"` (default) offers the device PIN, pattern or password
+  when biometrics fail or are missing, so `success` does not say a biometric was used.
+  `fallback: "none"` is biometrics only: the iOS "Enter Password" button resolves `fallback`,
+  and a user in `lockout` stays locked out, so the app needs its own way in.
+- **Android strength.** `strength: "weak"` (default) admits class 2 biometrics such as a
+  camera-based face unlock; `"strong"` only class 3. AndroidX cannot combine `strong` with the
+  passcode on Android 9 and 10 (and expo-local-authentication hangs when asked to), so there
+  `strong` prompts for biometrics only.
+- **Face ID** needs a purpose string (`biometrics.faceIDPermission` in the config plugin).
+  Without it iOS does not fail: it quietly falls back to the passcode, or resolves
+  `unavailable` with `fallback: "none"`. In development the package warns once.
+- **Web:** unsupported (`isSupported` false, `authenticate()` resolves `unsupported`).
+
+### App lock
+
+`useAppLock()` decides when the whole app is locked; the app draws the lock screen.
+
+```tsx
+import { useAppLock } from "@its/glowup-device/biometrics";
+
+function Root() {
+  const [lockEnabled] = useSetting("appLock"); // the app's own preference
+  const lock = useAppLock({
+    enabled: lockEnabled,
+    relockAfter: 0,
+    prompt: { promptMessage: "Sblocca l'app", cancelLabel: "Annulla" },
+  });
+  if (lock.isLocked) {
+    return <LockScreen onUnlock={lock.unlock} busy={lock.isAuthenticating} />;
+  }
+  return <App />;
+}
+```
+
+- **When it locks:** at a cold start (until `unlock()` succeeds) and when the app comes back
+  from the background after `relockAfter` ms (default `0`: as soon as it leaves), or on `lock()`.
+  The time is measured from the `background` event, since timers do not run there.
+- **`inactive` never locks.** Face ID's own prompt takes the app through it, as do the control
+  centre and an incoming call banner.
+- **A trip to the background caused by a prompt does not count** (Android pauses the app behind
+  the device-credential screen), so a successful unlock does not lock again. The other side of
+  it: a user who leaves the app while a prompt is open finds it unlocked if it was.
+- **On Android** a permission dialog, a share sheet or a picker also sends the app to the
+  background: with `relockAfter: 0` the user unlocks again on return. Give it a few seconds if
+  your app opens them.
+- **One lock for the whole app.** Every component calling `useAppLock` shares it; the strictest
+  options win (enabled if any is, the shortest `relockAfter`, `stay-locked` if any asks). While
+  the status loads, `isLocked` is true: nothing shows behind a lock that is still deciding (and
+  a statically exported page renders locked).
+- **`promptOnLock: true`** shows the prompt by itself when the app locks and is in the
+  foreground, at most once per lock: a cancel is not asked again until the next lock.
+  Default false: the lock screen has an unlock button.
+- **A device with nothing to authenticate with** (no lock screen; with `prompt.fallback:
+"none"`, no enrolled biometrics) cannot be unlocked. `whenUnavailable: "unlock"` (default)
+  leaves the app open, with `isLockable` false so it can say so; `"stay-locked"` keeps it shut,
+  for apps that must not run unprotected.
+- **Turning it on from a settings screen:** call `unlock()` first and save the setting on
+  success. The lock state survives `enabled: false`, so enabling it without that would lock the
+  app at once if it was never unlocked.
+- Not covered: hiding the content in the iOS app switcher's snapshot (taken on `inactive`,
+  which the Face ID prompt also triggers).
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -413,6 +525,7 @@ plugins: [
         microphonePermission: "Records your voice in video reviews.",
         recordAudio: true,
       },
+      biometrics: { faceIDPermission: "Unlocks your saved cards." },
     },
   ],
 ],
@@ -425,6 +538,8 @@ plugins: [
   `RECORD_AUDIO` and makes the microphone text required (iOS always carries one, as
   expo-camera's plugin does; without `recordAudio` the app never asks).
   `barcodeScanner: false` leaves the scanning libraries out of the build.
+- **Biometrics** sets Face ID's purpose string and adds Android's `USE_BIOMETRIC` (and the
+  deprecated `USE_FINGERPRINT`, which expo-local-authentication's plugin still adds).
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -508,3 +623,9 @@ for a browser that refuses every lock; `setOrientation("landscape-left")` rotate
 
 `createMockHapticsAdapter()` records every haptic in `events` (`{ type: "interaction", kind:
 "press" }`, …); `clear()` empties it.
+
+`createMockBiometricsAdapter()` starts with Face ID enrolled (`MOCK_BIOMETRICS`) and answers every
+prompt with `{ success: true }`; `setResult({ success: false, error: "lockout" })` changes the
+answer, `setStatus({ isEnrolled: false })` notifies every listening component, and `calls`
+records each prompt's options. `{ manual: true }` keeps a prompt open until `resolve()` or
+`cancel()`, to test what the app shows meanwhile.

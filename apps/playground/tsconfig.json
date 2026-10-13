@@ -34,6 +34,9 @@
       "@its/glowup-device/haptics": [
         "../../packages/device/src/haptics/index.ts"
       ],
+      "@its/glowup-device/biometrics": [
+        "../../packages/device/src/biometrics/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

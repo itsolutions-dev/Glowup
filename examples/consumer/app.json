@@ -18,6 +18,9 @@
           },
           "camera": {
             "cameraPermission": "Checks that the published camera capability configures the app."
+          },
+          "biometrics": {
+            "faceIDPermission": "Checks that the published biometrics capability configures the app."
           }
         }
       ]

@@ -62,6 +62,10 @@ const config: ExpoConfig = {
             "Records sound with the videos on the camera demo page.",
           recordAudio: true,
         },
+        biometrics: {
+          faceIDPermission:
+            "Unlocks the protected card on the biometrics demo page.",
+        },
       },
     ],
     [

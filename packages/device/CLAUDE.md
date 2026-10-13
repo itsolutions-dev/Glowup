@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -89,6 +89,20 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `InteractionKind` repeats ui's strings instead of importing them (the packages stay
   independent). Android interactions use `performAndroidHapticsAsync` with constants every API
   level has (newer ones throw below API 30 / 34). The web adapter is a no-op on purpose.
+- **Biometrics** (`src/biometrics`): a local gate, documented as such. `authenticate()` resolves
+  every outcome as `{ success: false, error }` and rejects only on an empty label (both labels are
+  required: expo's defaults are English). One prompt per adapter (`busy` otherwise), because
+  Android answers a second call with `app_cancel` and iOS stacks one. The Expo adapter maps
+  every native string, including the ones expo's type omits (`missing_usage_description`,
+  `unknown: …`), and sends `strong` + passcode as biometrics only on API 28–29 (AndroidX rejects
+  the combination and expo hangs). The status is a live store re-read on `active` only: Face ID's
+  prompt takes the app through `inactive`.
+  `useAppLock` (`appLock.ts`) keeps one lock per adapter: `useAppLock` hooks register their
+  options and the strictest wins. It locks only on `active` after a `background` older than
+  `relockAfter` (never on `inactive`), and a `background` that starts while a prompt is open does
+  not count: Android pauses the activity behind the device-credential screen and delivers the
+  result before resuming, so the unlock would lock again. `promptOnLock` claims one prompt per
+  `lockId`.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

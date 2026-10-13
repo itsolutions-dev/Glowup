@@ -190,16 +190,16 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
 
 ## v2 decisions
 
-| #   | Question               | Decision                                                                                                             |
-| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 gallery, biometrics · v0.4 advanced location, sensors |
-| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                |
-| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                    |
-| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                         |
-| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.              |
-| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                    |
-| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.     |
-| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.     |
+| #   | Question               | Decision                                                                                                                               |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 biometrics (alone, B1) · then gallery · v0.4 advanced location, sensors |
+| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                                  |
+| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                                      |
+| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                                           |
+| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.                                |
+| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                                      |
+| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.                       |
+| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.                       |
 
 ### V8 — haptics without coupling the packages
 
@@ -327,16 +327,103 @@ module's source before its contract is written, as phases 3 and 4 did.
   Checked before release on `npm pack` tarballs of both packages: `tsc --noEmit` and
   `expo export -p web` pass. Its CI job can only pass once the versions are on npm.
 - Changesets: `@its/glowup-device` minor, `@its/glowup-ui` minor.
-- **Versions.** `@its/glowup-device` has not been published yet: the v1 changeset is still
-  pending, so if both land in the same "Version Packages" PR, changesets folds the two minors
-  into one release, `0.1.0`, carrying v1 and v0.2 together. If v1 is released first, this one
-  is `0.2.0`.
+- **Versions.** v1 was released first, as `0.1.0`; this release is `0.2.0`.
 
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
 only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API
 (secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on
 web (only mobile Chromium in fullscreen) — done, phase 9; haptics on web (a no-op by
 default) — done, phase 10.
+
+## v0.3 — biometrics
+
+`/biometrics` on `expo-local-authentication` (V6: a local gate, not server authentication).
+Its source (57.0.3) was read before the contract was written:
+
+- The result says nothing of **how** the user got in: with the device fallback a PIN counts as
+  `success`.
+- **Concurrency:** Android answers a second call with `app_cancel` while a prompt is open; iOS
+  starts a second `evaluatePolicy`.
+- **Undeclared errors:** iOS resolves `missing_usage_description` (Face ID without a purpose
+  string, biometrics only) and `unknown: <code>, <message>`, neither in the TS union. With the
+  fallback, Face ID without a purpose string silently uses the passcode, and the result carries
+  a `warning` even on success.
+- **English defaults:** `promptMessage || "Authenticate"`, `cancelLabel || "Cancel"`: the JS
+  layer always sends a cancel label, so the system's localised one is never used.
+- **Android:** `cancelLabel` is shown only without the device fallback (negative button);
+  `biometricsSecurityLevel` defaults to `weak`; `BIOMETRIC_STRONG | DEVICE_CREDENTIAL` is not
+  supported by AndroidX on API 28–29 and `PromptInfo.Builder.build()` throws outside expo's
+  try, leaving `isAuthenticating` stuck (from the AndroidX documentation; not reproduced on a
+  device).
+- **iOS:** Face ID's prompt takes `AppState` through `inactive`; there is no cancel API.
+- **Web:** `authenticateAsync` does not exist (throws `UnavailabilityError`); the rest returns
+  false / none.
+
+| #   | Question     | Decision                                                                                              |
+| --- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| B1  | Release      | Biometrics alone in v0.3; the gallery follows on its own.                                             |
+| B2  | Result shape | A discriminated union; `authenticate()` never rejects for an outcome (a cancel is not an exception).  |
+| B3  | Fallback     | `fallback: "passcode"` by default, `"none"` for biometrics only.                                      |
+| B4  | App lock     | A headless `useAppLock({ relockAfter })` (phase 13): locks on `background` only, never on `inactive`. |
+| B5  | Labels, web  | `promptMessage` and `cancelLabel` required (English defaults); web unsupported, no WebAuthn gate.     |
+
+| Phase | Content                                                                                   | Status   |
+| ----- | ----------------------------------------------------------------------------------------- | -------- |
+| 12    | `/biometrics`: adapter, `useBiometrics()`, Expo and web adapters, mock, config plugin key | **done** |
+| 13    | `useAppLock` (B4)                                                                         | **done** |
+| 14    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release     | **done** |
+
+### Phase 12 — what landed
+
+- `useBiometrics()`: the status on the live store (read on first use and on every return to
+  `active`, plus pushes from an adapter's optional `subscribe`; `types` keeps its identity
+  while equal, so a re-read does not re-render), `isSupported` through a `false` server
+  snapshot, `isAuthenticating`, `authenticate(options)` and `cancel()`.
+- **One prompt per adapter** (a session in a `WeakMap`): a call while one is open resolves
+  `busy` without reaching the platform, whichever component made it.
+- **Errors normalised** to `cancelled`, `fallback`, `lockout`, `not-enrolled`, `unavailable`,
+  `busy`, `unsupported`, `failed`, with the platform's code in `detail`. An adapter that rejects
+  becomes `failed`; `not-enrolled` and `unavailable` read the status again.
+- `promptMessage` and `cancelLabel` are checked before prompting (a `TypeError`: the only
+  rejection). `cancelLabel` is required in both fallback modes because iOS shows it in both;
+  Android ignores it with the passcode fallback.
+- **Android 9–10:** `strength: "strong"` with the passcode fallback goes out as biometrics only
+  instead of building an unsupported prompt.
+- **Face ID's warning** is logged once in development. The config plugin gains
+  `biometrics: { faceIDPermission }` (warning when left to the default), through
+  expo-local-authentication's own plugin (Android `USE_BIOMETRIC`).
+- Web: `webBiometricsAdapter`, unsupported. `/testing`: `createMockBiometricsAdapter()` with
+  `setStatus`, `setResult`, `calls` and a `manual` mode (`resolve()`, `cancel()`).
+
+### Phase 13 — what landed
+
+- `useAppLock({ enabled, relockAfter, prompt, promptOnLock, whenUnavailable })` →
+  `{ isLocked, isLockable, isLoading, isAuthenticating, unlock, lock }`. Decided: one state per
+  adapter shared by the tree, locked at a cold start; `relockAfter` 0 by default; no automatic
+  prompt by default (`promptOnLock`, once per lock, never after a cancel); `whenUnavailable:
+"unlock"` by default, with `isLockable` to say the lock protects nothing.
+- Several hooks register their options; the strictest wins (enabled if any, the shortest
+  `relockAfter`, `stay-locked` if any). `isLocked` is true while the status loads, so nothing
+  shows behind the lock (and the static export renders locked).
+- **Found in React Native's source:** Android's `AppState` reports `background` on every
+  `onHostPause`, so any activity on top (the device-credential screen, a permission dialog, a
+  share sheet) counts. A `background` that starts while a prompt is open is ignored: otherwise
+  the unlock through the PIN screen would lock again, as Android delivers the activity result
+  before resuming. Permission dialogs and share sheets do count; the README says to raise
+  `relockAfter` when an app opens them.
+- Out of scope: hiding content in the iOS app switcher's snapshot (taken on `inactive`, which
+  Face ID's prompt also triggers).
+
+### Phase 14 — what landed
+
+- Playground: `/device/biometrics` (the status, a prompt with the fallback and strength options
+  and its last result, and `useAppLock` guarding one card while the page is focused) and the
+  overview's entry. `expo-local-authentication` is a playground dependency and its Face ID text
+  is set through the package's config plugin in `app.config.ts`.
+- `examples/consumer` imports `/biometrics` (`useBiometrics`, `useAppLock`) and lists the
+  `biometrics` key in its plugin config. Checked on `npm pack` tarballs: `tsc --noEmit` and
+  `expo export -p web` (which loads expo-local-authentication's plugin through ours) pass.
+- Changeset: `@its/glowup-device` minor (`0.3.0`).
 
 ## Open for later
 

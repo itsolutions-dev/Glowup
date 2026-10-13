@@ -48,9 +48,9 @@ It gets its page, its props table and its URL for free.
 
 `app/notifications.tsx` (/notifications) demos `@its/glowup-notifications`. The page mounts its
 own `NotificationsProvider` so the foreground switches and the event log can drive it; an app
-mounts it at the root instead. Its test notification calls `expo-notifications` directly
-(local scheduling is not in the package yet), which is why the playground depends on
-`expo-notifications` and lists its config plugin. On web the provider reports `unsupported`
+mounts it at the root instead. The page imports only the package. `expo-notifications` is a
+dependency of the playground because it is the package's peer, and its config plugin is
+listed in `app.config.ts`. On web the provider reports `unsupported`
 and the page still prerenders. Remote push needs a development build; Expo Go on Android
 cannot fetch a token.
 

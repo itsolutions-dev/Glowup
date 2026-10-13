@@ -7,8 +7,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { AppState, Platform } from "react-native";
+import { AppState } from "react-native";
 
+import { clearBadge } from "./badge";
+import { registerCategories } from "./categories";
 import { ensureAndroidChannels } from "./channels";
 import {
   NotificationsContext,
@@ -23,12 +25,14 @@ import {
   UNSUPPORTED,
 } from "./permissions";
 import { markResponseSeen } from "./responses";
+import { isNotificationsSupported } from "./support";
 import type {
   AndroidChannel,
   AppNotification,
   AppNotificationResponse,
   DataParser,
   ForegroundPolicy,
+  NotificationCategory,
   NotificationData,
   NotificationsEvent,
   PermissionRequestOptions,
@@ -38,12 +42,7 @@ import type {
   PushTokenType,
 } from "./types";
 
-/**
- * Push needs a native module: web gets a provider that reports `unsupported`
- * and touches nothing.
- */
-export const isNotificationsSupported =
-  Platform.OS === "ios" || Platform.OS === "android";
+export { isNotificationsSupported };
 
 export interface NotificationsProviderProps<TData = NotificationData> {
   children: ReactNode;
@@ -51,6 +50,10 @@ export interface NotificationsProviderProps<TData = NotificationData> {
   foreground?: ForegroundPolicy<TData>;
   /** Created on mount, before any permission request. Android only. */
   androidChannels?: readonly AndroidChannel[];
+  /** Action button sets, registered on mount. A notification picks one with `categoryId`. */
+  categories?: readonly NotificationCategory[];
+  /** Reset the app icon badge on mount and whenever the app returns to the foreground. */
+  clearBadgeOnForeground?: boolean;
   /** `"expo"` (default) for the Expo push service, `"device"` for raw FCM / APNs tokens. */
   tokenType?: PushTokenType;
   /** EAS project id for Expo tokens. Defaults to the one in the app config. */
@@ -96,7 +99,7 @@ export function NotificationsProvider<TData = NotificationData>(
   const [tokenStatus, setTokenStatus] = useState<PushTokenStatus>("idle");
   const [tokenError, setTokenError] = useState<unknown>(null);
 
-  const channelsReady = useRef<Promise<void>>(Promise.resolve());
+  const setupReady = useRef<Promise<void>>(Promise.resolve());
   const lastPermission = useRef<PermissionState["status"] | null>(null);
   const lastToken = useRef<string | null>(null);
 
@@ -173,9 +176,9 @@ export function NotificationsProvider<TData = NotificationData>(
   const requestPermission = useCallback(
     async (options?: PermissionRequestOptions) => {
       if (!isNotificationsSupported) return UNSUPPORTED;
-      // Android 13+ only prompts once a channel exists. A failure here was
-      // already reported as `channels-error`; the request still goes ahead.
-      await channelsReady.current.catch(noop);
+      // Android 13+ only prompts once a channel exists. A setup failure was
+      // already reported through onEvent; the request still goes ahead.
+      await setupReady.current;
       return applyPermission(
         toPermissionState(
           await Notifications.requestPermissionsAsync({
@@ -196,9 +199,20 @@ export function NotificationsProvider<TData = NotificationData>(
     if (!isNotificationsSupported) return;
     let active = true;
 
-    channelsReady.current = ensureAndroidChannels(
-      latest.current.androidChannels ?? [],
-    ).catch((error) => emit({ type: "channels-error", error }));
+    const { androidChannels = [], categories = [] } = latest.current;
+    setupReady.current = Promise.all([
+      ensureAndroidChannels(androidChannels).catch((error) =>
+        emit({ type: "channels-error", error }),
+      ),
+      registerCategories(categories).catch((error) =>
+        emit({ type: "categories-error", error }),
+      ),
+    ]).then(noop);
+
+    const resetBadge = () => {
+      if (latest.current.clearBadgeOnForeground) clearBadge().catch(noop);
+    };
+    resetBadge();
 
     Notifications.setNotificationHandler({
       handleNotification: async (raw) => {
@@ -216,7 +230,12 @@ export function NotificationsProvider<TData = NotificationData>(
         emit({ type: "invalid-payload", id, error: parsed.error });
         return;
       }
-      emit({ type: "response", id, actionIdentifier: raw.actionIdentifier });
+      emit({
+        type: "response",
+        id,
+        actionIdentifier: raw.actionIdentifier,
+        isDefaultAction: parsed.value.isDefaultAction,
+      });
       latest.current.onResponse?.(parsed.value);
     };
 
@@ -241,7 +260,9 @@ export function NotificationsProvider<TData = NotificationData>(
       }),
       // The user may have flipped the switch in system settings meanwhile.
       AppState.addEventListener("change", (state) => {
-        if (state === "active") refreshPermission().catch(noop);
+        if (state !== "active") return;
+        refreshPermission().catch(noop);
+        resetBadge();
       }),
     ];
 

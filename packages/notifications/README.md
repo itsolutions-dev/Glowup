@@ -74,20 +74,23 @@ function EnableNotifications() {
 
 ### `<NotificationsProvider>`
 
-| Prop              | Description                                                                                                                                   |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `androidChannels` | Channels created on mount. Android 13+ shows the permission prompt only after one exists, so `request()` waits for them.                      |
-| `foreground`      | `{ banner, list, sound, badge }`, or a function of the notification. Default: all `true`.                                                     |
-| `parseData`       | Validates `data`. Return `null` or throw to reject the payload: it then goes to `onEvent` as `invalid-payload` and skips the other callbacks. |
-| `tokenType`       | `"expo"` (default) or `"device"` for raw FCM / APNs tokens.                                                                                   |
-| `projectId`       | EAS project id for Expo tokens. Defaults to the one in the app config.                                                                        |
-| `onTokenChange`   | Called on the first token and on every rotation.                                                                                              |
-| `onReceived`      | A notification arrived while the app was open.                                                                                                |
-| `onResponse`      | The user tapped a notification or an action. Called once per tap, including the tap that launched the app.                                    |
-| `onEvent`         | Every event above plus `token-error` and `channels-error`, for logging.                                                                       |
+| Prop                     | Description                                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `androidChannels`        | Channels created on mount. Android 13+ shows the permission prompt only after one exists, so `request()` waits for them.                      |
+| `categories`             | Action button sets registered on mount (and before the permission prompt). A notification picks one with `categoryId`.                        |
+| `clearBadgeOnForeground` | Reset the app icon badge on mount and whenever the app returns to the foreground.                                                             |
+| `foreground`             | `{ banner, list, sound, badge }`, or a function of the notification. Default: all `true`.                                                     |
+| `parseData`              | Validates `data`. Return `null` or throw to reject the payload: it then goes to `onEvent` as `invalid-payload` and skips the other callbacks. |
+| `tokenType`              | `"expo"` (default) or `"device"` for raw FCM / APNs tokens.                                                                                   |
+| `projectId`              | EAS project id for Expo tokens. Defaults to the one in the app config.                                                                        |
+| `onTokenChange`          | Called on the first token and on every rotation.                                                                                              |
+| `onReceived`             | A notification arrived while the app was open.                                                                                                |
+| `onResponse`             | The user tapped a notification or an action. Called once per tap, including the tap that launched the app.                                    |
+| `onEvent`                | Every event above plus `token-error`, `channels-error` and `categories-error`, for logging.                                                   |
 
 Callbacks may be inline functions: the provider reads the latest one, so they never
-re-subscribe the native listeners.
+re-subscribe the native listeners. `androidChannels` and `categories` are applied once, on
+mount.
 
 ### `useNotificationPermission()`
 
@@ -107,8 +110,110 @@ always ends in `error`.
 
 `false` on web. There the provider reports `unsupported` and calls nothing.
 
-## Not included (yet)
+### Local notifications
 
-Local scheduling, badge helpers, interactive categories, presented-notification
-management, Web Push and test helpers are planned for v2. Background tasks stay out on
+```ts
+import {
+  scheduleNotification,
+  cancelScheduledNotification,
+} from "@its/glowup-notifications";
+
+const id = await scheduleNotification(
+  {
+    title: "Stand-up",
+    body: "In 5 minutes",
+    data: { room: "A" },
+    channelId: "default",
+  },
+  { type: "weekly", weekday: 2, hour: 9, minute: 25 },
+);
+await cancelScheduledNotification(id);
+```
+
+Triggers: `{ type: "date", date }`, `{ type: "interval", seconds, repeats? }`,
+`{ type: "daily", hour, minute }`, `{ type: "weekly", weekday, hour, minute }` (`weekday` 1 =
+Sunday). Without a trigger the notification is delivered immediately. `options.id` replaces a
+pending notification with the same id. `getScheduledNotifications(parseData?)` lists what is
+still pending, and `cancelAllScheduledNotifications()` clears it.
+
+### Actions
+
+```tsx
+<NotificationsProvider
+  categories={[
+    {
+      id: "message",
+      actions: [
+        { id: "read", title: "Mark as read", opensApp: false },
+        {
+          id: "reply",
+          title: "Reply",
+          textInput: { submitButtonTitle: "Send", placeholder: "Message" },
+        },
+      ],
+    },
+  ]}
+  onResponse={({
+    actionIdentifier,
+    userText,
+    isDefaultAction,
+    notification,
+  }) => {
+    if (actionIdentifier === "reply")
+      api.reply(notification.data.chatId, userText);
+  }}
+/>
+```
+
+A remote push picks the category with its `categoryId` (`categoryId` in an Expo push
+message), and a local notification with `categoryId` in `scheduleNotification()`.
+
+### Badge and delivered notifications
+
+- `getBadgeCount()`, `setBadgeCount(n)` and `clearBadge()`. `setBadgeCount` resolves to `false`
+  where the launcher has no badges.
+- `getPresentedNotifications(parseData?)`, `dismissNotification(id)` and
+  `dismissAllNotifications()`.
+- `dismissNotificationsWhere(predicate, parseData?)` dismisses the matching ones and resolves
+  to how many it dismissed. For example, when the user opens a chat:
+  `dismissNotificationsWhere((n) => n.data.chatId === chatId)`.
+
+These helpers reject on web. Check `isNotificationsSupported` before calling them.
+
+## Testing
+
+`@its/glowup-notifications/testing` is an in-memory `expo-notifications`, so the provider,
+the hooks and the helpers run under Jest with nothing native:
+
+```ts
+jest.mock(
+  "expo-notifications",
+  () => require("@its/glowup-notifications/testing").notificationsMock.module,
+);
+import { notificationsMock } from "@its/glowup-notifications/testing";
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  notificationsMock.reset();
+});
+
+it("opens the order on tap", async () => {
+  notificationsMock.setPermission("granted");
+  // …render your app…
+  await notificationsMock.deliver({ id: "n1", data: { orderId: "42" } });
+  notificationsMock.tap("n1");
+  expect(router.push).toHaveBeenCalledWith("/orders/42");
+});
+```
+
+Controls: `setPermission`, `answerPermissionPromptWith`, `setPushToken`, `failPushToken`,
+`rotatePushToken`, `setLaunchResponse`, `deliver`, `tap` (with `actionIdentifier` /
+`userText`) and `fireScheduled`. State: `scheduled`, `presented`, `badge`, `channels`,
+`categories`, `lastPresentation` (what the foreground policy decided) and `listenerCount`.
+Builders: `buildNotification` and `buildResponse`. The module's functions are `jest.fn`s, so
+`expect(...).toHaveBeenCalledWith` works on them.
+
+## Not included
+
+Web Push (VAPID and a service worker) is not built yet. Background tasks stay out on
 purpose, because they would add `expo-task-manager` as a required peer.

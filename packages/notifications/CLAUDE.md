@@ -7,14 +7,20 @@
   them are required. Metro resolves every static import reachable from the barrel, so a new
   native dependency (for example `expo-task-manager` for background tasks) is a new
   _required_ peer for every consumer. Put it in a separate package instead.
-- **Web.** `isNotificationsSupported` is false on web, and every native call is guarded by it.
-  Keep that guard on anything new.
+- **Web.** `isNotificationsSupported` (`src/support.ts`) is false on web. The provider skips
+  every native call there, and the imperative helpers (scheduling, badge, presented) call
+  `assertSupported()` and reject. Keep one of the two guards on anything new.
 - **Callbacks through `latest`.** The provider registers its native listeners once and reads
   props through a ref. Don't put callback props in effect dependencies.
 - **Response dedupe** (`src/responses.ts`) is module-scoped on purpose: it must survive a
   provider remount.
-- Tests (`src/__tests__`) mock `expo-notifications` with a small listener registry. RTL 14 is
-  async: `await renderHook(...)`, `await act(...)`.
+- **`/testing` subpath** (`src/testing`) is public API: an in-memory `expo-notifications` for
+  apps' tests. It must not import `expo-notifications` at runtime (it replaces it) or need
+  Jest. When the package starts calling a new `expo-notifications` function, add it to the
+  mock's `module` too, or every consumer test breaks. `testing/package.json` is the node10
+  fallback for the subpath (attw checks it); keep it beside the `exports` entry.
+- Tests (`src/__tests__`) run on that same mock. RTL 14 is async: `await renderHook(...)`,
+  `await act(...)`.
 - Build, `files`, source maps and `validate-package` work as in `packages/ui` (see its
   CLAUDE.md). The declaration-map stripper is shared at the repo root
   (`scripts/strip-declaration-maps.mjs`).

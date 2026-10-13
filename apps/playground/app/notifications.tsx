@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import * as Notifications from "expo-notifications";
 import {
   Banner,
   Button,
@@ -19,10 +18,17 @@ import {
 import {
   DEFAULT_FOREGROUND,
   NotificationsProvider,
+  clearBadge,
+  dismissAllNotifications,
+  getBadgeCount,
+  getPresentedNotifications,
   isNotificationsSupported,
+  scheduleNotification,
+  setBadgeCount,
   useNotificationPermission,
   usePushToken,
   type ForegroundPresentation,
+  type NotificationCategory,
   type NotificationsEvent,
   type PermissionStatus,
 } from "@its/glowup-notifications";
@@ -31,6 +37,21 @@ import { CodeBlock } from "../site/CodeBlock";
 import { Page, Section } from "../site/Page";
 
 const DEMO_CHANNEL = "demo";
+const DEMO_CATEGORY = "order";
+const DEMO_CATEGORIES: NotificationCategory[] = [
+  {
+    id: DEMO_CATEGORY,
+    actions: [
+      { id: "track", title: "Track" },
+      {
+        id: "reply",
+        title: "Reply",
+        opensApp: false,
+        textInput: { submitButtonTitle: "Send", placeholder: "Message" },
+      },
+    ],
+  },
+];
 const LOG_LIMIT = 20;
 
 const INSTALL = `npx expo install expo-notifications @its/glowup-notifications`;
@@ -126,6 +147,12 @@ const describeEvent = (
         title: "Channel error",
         detail: String(event.error),
       };
+    case "categories-error":
+      return {
+        icon: "alert-circle-outline",
+        title: "Category error",
+        detail: String(event.error),
+      };
     case "received":
       return {
         icon: "bell-ring-outline",
@@ -133,7 +160,13 @@ const describeEvent = (
         detail: event.id,
       };
     case "response":
-      return { icon: "gesture-tap", title: "Tapped", detail: event.id };
+      return event.isDefaultAction
+        ? { icon: "gesture-tap", title: "Tapped", detail: event.id }
+        : {
+            icon: "gesture-tap-button",
+            title: `Action “${event.actionIdentifier}”`,
+            detail: event.id,
+          };
     case "invalid-payload":
       return {
         icon: "file-alert-outline",
@@ -171,6 +204,7 @@ export default function NotificationsPage() {
       androidChannels={[
         { id: DEMO_CHANNEL, name: "Playground demo", importance: "high" },
       ]}
+      categories={DEMO_CATEGORIES}
       foreground={presentation}
       onEvent={onEvent}
     >
@@ -195,6 +229,7 @@ export default function NotificationsPage() {
         <TokenSection />
         <ForegroundSection value={presentation} onChange={setPresentation} />
         <TrySection />
+        <BadgeSection />
         <EventLogSection events={events} onClear={() => setEvents([])} />
 
         <Section
@@ -336,18 +371,17 @@ const TrySection = () => {
   const send = async () => {
     setScheduled(true);
     try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
+      await scheduleNotification(
+        {
           title: "Order #42 shipped",
-          body: "Tap to open it. Sent by the Glowup playground.",
+          body: "Tap to open it, or expand it for Track and Reply.",
           data: { screen: "order", orderId: "42" },
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds: 3,
+          categoryId: DEMO_CATEGORY,
           channelId: DEMO_CHANNEL,
+          badge: 1,
         },
-      });
+        { type: "interval", seconds: 3 },
+      );
     } finally {
       setScheduled(false);
     }
@@ -356,7 +390,7 @@ const TrySection = () => {
   return (
     <Section
       title="Try it"
-      description="Schedules a local notification in 3 seconds. Stay here to see the foreground switches at work, or leave the app and tap it to see the tap reach onResponse."
+      description="Schedules a local notification in 3 seconds with scheduleNotification(). It carries the “order” category, so expanding it shows Track and Reply; the action and any reply text reach onResponse. Stay here to see the foreground switches at work, or leave the app first."
     >
       <HStack>
         <Button
@@ -367,6 +401,80 @@ const TrySection = () => {
           onPress={send}
         >
           Send a test notification
+        </Button>
+      </HStack>
+    </Section>
+  );
+};
+
+const BadgeSection = () => {
+  const { theme } = useTheme();
+  const [badge, setBadge] = useState<number | null>(null);
+  const [delivered, setDelivered] = useState<number | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!isNotificationsSupported) return;
+    const [count, presented] = await Promise.all([
+      getBadgeCount(),
+      getPresentedNotifications(),
+    ]);
+    setBadge(count);
+    setDelivered(presented.length);
+  }, []);
+
+  const run = (action: () => Promise<unknown>) => async () => {
+    await action();
+    await refresh();
+  };
+
+  const summary =
+    badge === null || delivered === null
+      ? "Read the current badge and the notifications in Notification Center / the shade."
+      : `Badge ${badge} · ${delivered} delivered notification${delivered === 1 ? "" : "s"}`;
+
+  return (
+    <Section
+      title="Badge and delivered notifications"
+      description="setBadgeCount() / clearBadge() drive the app icon badge; getPresentedNotifications() and dismissNotificationsWhere() clean up what is already in the tray, for example when the user opens the chat a notification was about."
+    >
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {summary}
+      </Typography>
+      <HStack spacing="s" wrap>
+        <Button
+          mode="outlined"
+          iconName="refresh"
+          disabled={!isNotificationsSupported}
+          onPress={() => void refresh()}
+        >
+          Read
+        </Button>
+        <Button
+          mode="outlined"
+          iconName="numeric-3-circle-outline"
+          disabled={!isNotificationsSupported}
+          onPress={run(() => setBadgeCount(3))}
+        >
+          Set badge to 3
+        </Button>
+        <Button
+          mode="outlined"
+          iconName="close-circle-outline"
+          disabled={!isNotificationsSupported}
+          onPress={run(clearBadge)}
+        >
+          Clear badge
+        </Button>
+        <Button
+          mode="outlined"
+          iconName="notification-clear-all"
+          disabled={!isNotificationsSupported}
+          onPress={run(dismissAllNotifications)}
+        >
+          Dismiss delivered
         </Button>
       </HStack>
     </Section>

@@ -80,9 +80,13 @@ module.exports = defineConfig([
                 "Reach the library through the '@its/glowup-ui' package name, not through a path into packages/ui.",
             },
             {
-              group: ["@its/glowup-notifications/*"],
+              // "/testing" is the one public subpath (the Jest mock).
+              group: [
+                "@its/glowup-notifications/*",
+                "!@its/glowup-notifications/testing",
+              ],
               message:
-                "Import from the '@its/glowup-notifications' barrel — deep imports are not part of the package's public API.",
+                "Import from the '@its/glowup-notifications' barrel (or its '/testing' subpath) — other deep imports are not part of the package's public API.",
             },
             {
               group: [

@@ -44,6 +44,16 @@ against `FLAT_ORDER`, the registry and the generated docs, so a component catalo
 working demo fails there.
 It gets its page, its props table and its URL for free.
 
+## The notifications page
+
+`app/notifications.tsx` (/notifications) demos `@its/glowup-notifications`. The page mounts its
+own `NotificationsProvider` so the foreground switches and the event log can drive it; an app
+mounts it at the root instead. Its test notification calls `expo-notifications` directly
+(local scheduling is not in the package yet), which is why the playground depends on
+`expo-notifications` and lists its config plugin. On web the provider reports `unsupported`
+and the page still prerenders. Remote push needs a development build; Expo Go on Android
+cannot fetch a token.
+
 ## Keyboard
 
 `site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op

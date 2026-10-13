@@ -94,6 +94,64 @@ export type NotificationsEvent =
   | { type: "token"; token: PushToken }
   | { type: "token-error"; error: unknown }
   | { type: "channels-error"; error: unknown }
+  | { type: "categories-error"; error: unknown }
   | { type: "received"; id: string }
-  | { type: "response"; id: string; actionIdentifier: string }
+  | {
+      type: "response";
+      id: string;
+      actionIdentifier: string;
+      isDefaultAction: boolean;
+    }
   | { type: "invalid-payload"; id: string; error?: unknown };
+
+/** When a local notification fires. Omit it to deliver immediately. */
+export type LocalNotificationTrigger =
+  | { type: "date"; date: Date | number }
+  | { type: "interval"; seconds: number; repeats?: boolean }
+  | { type: "daily"; hour: number; minute: number }
+  /** `weekday`: 1 = Sunday … 7 = Saturday, as on iOS and Android. */
+  | { type: "weekly"; weekday: number; hour: number; minute: number };
+
+export interface LocalNotificationContent<TData = NotificationData> {
+  title?: string;
+  subtitle?: string;
+  body?: string;
+  data?: TData;
+  /** `true` for the default sound, a bundled file name, or `false` for silence. */
+  sound?: boolean | string;
+  /** The app icon badge to set when it is delivered (iOS). */
+  badge?: number;
+  /** A category registered through the provider's `categories` prop. */
+  categoryId?: string;
+  /** The Android channel to post to. Defaults to the system fallback channel. */
+  channelId?: string;
+}
+
+export interface ScheduledNotification<TData = NotificationData> {
+  id: string;
+  title: string | null;
+  body: string | null;
+  data: TData;
+  /** The trigger as expo-notifications reports it back, for display or debugging. */
+  trigger: unknown;
+}
+
+/** A button on a notification, grouped into a category. */
+export interface NotificationAction {
+  id: string;
+  title: string;
+  /** Bring the app to the foreground when tapped. Default `true`. */
+  opensApp?: boolean;
+  /** iOS: draw the button in red. */
+  destructive?: boolean;
+  /** iOS: require the device to be unlocked. */
+  authenticationRequired?: boolean;
+  /** Turn the button into a text reply; the text arrives as `userText`. */
+  textInput?: { submitButtonTitle: string; placeholder: string };
+}
+
+/** A named set of actions; a notification picks one with `categoryId`. */
+export interface NotificationCategory {
+  id: string;
+  actions: readonly NotificationAction[];
+}

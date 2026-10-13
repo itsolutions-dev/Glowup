@@ -10,12 +10,29 @@ export {
   type UsePushToken,
 } from "./hooks";
 export { DEFAULT_FOREGROUND } from "./foreground";
+export {
+  scheduleNotification,
+  cancelScheduledNotification,
+  cancelAllScheduledNotifications,
+  getScheduledNotifications,
+} from "./scheduling";
+export { getBadgeCount, setBadgeCount, clearBadge } from "./badge";
+export {
+  getPresentedNotifications,
+  dismissNotification,
+  dismissAllNotifications,
+  dismissNotificationsWhere,
+} from "./presented";
 export type {
   AndroidChannel,
   AndroidChannelImportance,
   AppNotification,
   AppNotificationResponse,
   DataParser,
+  LocalNotificationContent,
+  LocalNotificationTrigger,
+  NotificationAction,
+  NotificationCategory,
   ForegroundPolicy,
   ForegroundPresentation,
   NotificationData,
@@ -26,4 +43,5 @@ export type {
   PushToken,
   PushTokenStatus,
   PushTokenType,
+  ScheduledNotification,
 } from "./types";

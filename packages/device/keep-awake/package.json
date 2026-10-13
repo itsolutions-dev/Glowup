@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/keep-awake/index.js",
+  "module": "../lib/module/keep-awake/index.js",
+  "types": "../lib/typescript/keep-awake/index.d.ts",
+  "react-native": "../src/keep-awake/index.ts",
+  "source": "../src/keep-awake/index.ts"
+}

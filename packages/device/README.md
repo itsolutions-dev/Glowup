@@ -1,7 +1,8 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network and device info, each behind an adapter the app can replace.
+scanning), network, battery, keep-awake and device info, each behind an adapter the app can
+replace.
 
 ## Install
 
@@ -12,6 +13,8 @@ npx expo install expo-device expo-application   # /info
 npx expo install expo-location                  # /location
 npx expo install expo-camera                    # /camera
 npx expo install @react-native-community/netinfo # /network
+npx expo install expo-battery                   # /battery
+npx expo install expo-keep-awake                # /keep-awake
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -20,14 +23,16 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                        | Needs                             | Exports                                                           |
-| ----------------------------- | --------------------------------- | ----------------------------------------------------------------- |
-| `@its/glowup-device`          | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                       |
-| `@its/glowup-device/info`     | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
-| `@its/glowup-device/location` | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
-| `@its/glowup-device/camera`   | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
-| `@its/glowup-device/network`  | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                       |
-| `@its/glowup-device/testing`  | nothing native                    | in-memory adapters for every capability                           |
+| Import                          | Needs                             | Exports                                                           |
+| ------------------------------- | --------------------------------- | ----------------------------------------------------------------- |
+| `@its/glowup-device`            | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                       |
+| `@its/glowup-device/info`       | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
+| `@its/glowup-device/location`   | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
+| `@its/glowup-device/camera`     | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
+| `@its/glowup-device/network`    | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                       |
+| `@its/glowup-device/battery`    | `expo-battery`                    | `useBattery`                                                      |
+| `@its/glowup-device/keep-awake` | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                             |
+| `@its/glowup-device/testing`    | nothing native                    | in-memory adapters for every capability                           |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -231,6 +236,70 @@ function UploadButton() {
   netinfo's own web build is not used: it probes `HEAD /` on the page's origin every minute and
   counts anything but a 200 as offline, which is wrong for an app served under a subpath.
 
+## Battery
+
+Level, charging state and Low Power Mode, kept live (one shared subscription, like network).
+
+```bash
+npx expo install expo-battery
+```
+
+```tsx
+import { useBattery } from "@its/glowup-device/battery";
+
+function SyncSettings() {
+  const { level, charging, lowPowerMode } = useBattery();
+  // Defer the heavy sync on a low battery that is not charging.
+  const defer =
+    lowPowerMode === true ||
+    (charging === "unplugged" && level !== null && level < 0.2);
+  return <Text>{defer ? "Sync paused to save battery" : "Syncing"}</Text>;
+}
+```
+
+- **`isAvailable`** is false where there is nothing to read: a simulator, a browser without
+  the Battery Status API. `level` (0 to 1) and `lowPowerMode` are `null` when unknown;
+  `charging` is `"unknown" | "unplugged" | "charging" | "full"`.
+- **iOS and Android** use expo-battery. `lowPowerMode` is iOS Low Power Mode or Android
+  Battery Saver.
+- **Web** reads the Battery Status API directly (Chromium only; Firefox and Safari report
+  `isAvailable: false`). A desktop on mains power reads as `full`. `lowPowerMode` is always
+  `null`: no browser exposes it. expo-battery's web build is not used: its change listeners
+  throw in a browser and it reports Low Power Mode as `false` where it cannot know.
+
+## Keep awake
+
+Keep the screen on while a component is mounted: a scanner, a turn-by-turn screen, a recipe.
+
+```bash
+npx expo install expo-keep-awake
+```
+
+```tsx
+import { useKeepAwake } from "@its/glowup-device/keep-awake";
+
+function ScannerScreen() {
+  useKeepAwake();
+  return <CameraView mode="scan" />;
+}
+
+function Upload({ busy }: { busy: boolean }) {
+  useKeepAwake({ enabled: busy }); // only while the upload runs
+  return <LinearProgress indeterminate={busy} />;
+}
+```
+
+- **Each mounted hook holds its own tag**, so the screen sleeps again only once the last one
+  lets go.
+- **Imperative use.** In React, drive it with `enabled`. Outside React, call the adapter for
+  the platform yourself (`expoKeepAwakeAdapter` / `webKeepAwakeAdapter`, `activate(tag)` /
+  `deactivate(tag)`); `DeviceAdaptersProvider` does not reach that code.
+- **Web** holds a Screen Wake Lock (a secure context; every current browser). The browser drops
+  the lock whenever the tab is hidden, and the adapter takes it again when the tab shows.
+  `useKeepAwakeSupport()` says whether it can work here (false while a static page hydrates).
+  expo-keep-awake's web build is not used: it never re-acquires after a tab switch, and a
+  deactivation that beats the pending request leaks the lock.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -333,3 +402,7 @@ camera.finishRecording(); // ends a recordVideo() with MOCK_VIDEO
 
 `createMockNetworkAdapter()` starts online on Wi-Fi (`MOCK_NETWORK`); `setState(OFFLINE_NETWORK)`
 notifies every listening component, as a platform event would.
+
+`createMockBatteryAdapter()` starts at 80 % unplugged (`MOCK_BATTERY`); `setStatus({ level: 0.1 })`
+notifies every listening component. `createMockKeepAwakeAdapter()` records the active tags:
+assert on `isAwake` (`{ supported: false }` stands in for a browser without the API).

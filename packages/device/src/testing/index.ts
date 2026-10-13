@@ -27,3 +27,12 @@ export {
   OFFLINE_NETWORK,
   type MockNetworkAdapter,
 } from "./network";
+export {
+  createMockBatteryAdapter,
+  MOCK_BATTERY,
+  type MockBatteryAdapter,
+} from "./battery";
+export {
+  createMockKeepAwakeAdapter,
+  type MockKeepAwakeAdapter,
+} from "./keepAwake";

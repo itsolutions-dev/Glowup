@@ -222,7 +222,7 @@ module's source before its contract is written, as phases 3 and 4 did.
 | Phase | Content                                                                                                                                     | Status   |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           | **done** |
-| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store |          |
+| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store | **done** |
 | 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             |          |
 | 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |          |
 | 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |          |
@@ -243,9 +243,32 @@ module's source before its contract is written, as phases 3 and 4 did.
   `isInternetReachable: null` while online.
 - `/testing`: `createMockNetworkAdapter()`, `MOCK_NETWORK`, `OFFLINE_NETWORK`.
 
+### Phase 8 — what landed
+
+- `/battery`: `useBattery()` (`isAvailable`, `level` 0–1, `charging`, `lowPowerMode`; unknowns
+  are `null`) on phase 7's live store. Native on expo-battery `~57.0.3`, whose three events
+  (level, state, power mode) the adapter merges into one status; an event that beats the first
+  read is kept, not overwritten by the older read.
+- **Web battery: our own adapter.** expo-battery's web build has no `addListener`, so its
+  change listeners throw in a browser, and it answers `false` for Low Power Mode where nothing
+  can be known. `web.ts` reads `navigator.getBattery()` (Chromium only) and reports
+  `lowPowerMode: null`.
+- `/keep-awake`: `useKeepAwake({ enabled })` holds one tag per mounted hook;
+  `useKeepAwakeSupport()` reads support with a `false` server snapshot. "Imperative activate /
+  deactivate" is `enabled` in React and the exported adapters outside it: a module-level
+  function could not see `DeviceAdaptersProvider`, so tests would be back to mocking Expo.
+  Native on expo-keep-awake `~57.0.2`.
+- **Web keep-awake: our own adapter.** expo-keep-awake's web build (1) never re-acquires the
+  wake lock the browser releases when the tab is hidden, so the screen sleeps after a tab
+  switch while the hook is mounted, and (2) throws on a deactivation that beats the pending
+  request, after which the request lands and its lock is never released. `web.ts` re-acquires
+  on `visibilitychange`, keeps one request in flight per tag and releases a lock granted after
+  its deactivation.
+- `/testing`: `createMockBatteryAdapter()` + `MOCK_BATTERY`, `createMockKeepAwakeAdapter()`.
+
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
-only Chromium has); the Battery Status API (Chromium only); the Wake Lock API (secure context,
-released when the tab is hidden); screen orientation lock on web (often only in fullscreen);
+only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API
+(secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on web (often only in fullscreen);
 haptics on web (no-op, or `navigator.vibrate` on Android Chrome).
 
 ## Open for later

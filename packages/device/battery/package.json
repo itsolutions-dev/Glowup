@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/battery/index.js",
+  "module": "../lib/module/battery/index.js",
+  "types": "../lib/typescript/battery/index.d.ts",
+  "react-native": "../src/battery/index.ts",
+  "source": "../src/battery/index.ts"
+}

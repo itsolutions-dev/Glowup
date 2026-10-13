@@ -26,6 +26,8 @@ describe("package exports", () => {
       "location",
       "camera",
       "network",
+      "battery",
+      "keep-awake",
       "testing",
     ]);
   });

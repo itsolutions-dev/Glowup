@@ -216,7 +216,7 @@ export default function Theming() {
 
       <Section
         title="Colour sets"
-        description="Twenty Material 3 schemes: the baseline, and the nineteen named Material hues run through the same role mapping from their seed. Picking one re-themes the whole site — every page, every component demo — because the library resolves its tokens from the selected set."
+        description="Twenty-two colour sets: the Material 3 baseline, the hand-authored Databeasy and inXpire brand sets, and the nineteen named Material hues run through the same role mapping from their seed. Picking one re-themes the whole site — every page, every component demo — because the library resolves its tokens from the selected set."
       >
         <View style={styles.paletteGrid}>
           {Object.values(palettes).map((option) => (

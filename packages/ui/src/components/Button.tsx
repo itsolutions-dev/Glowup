@@ -15,7 +15,7 @@ import {
   type StyleProp,
   type TextStyle,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
 import { getSuccessRoles } from "../providers/successRoles";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";

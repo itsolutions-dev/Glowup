@@ -7,7 +7,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 
 export type HelperTextType = "info" | "error";

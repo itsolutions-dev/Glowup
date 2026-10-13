@@ -28,8 +28,10 @@ import {
   useKeyboardShortcuts,
   type Shortcut,
 } from "./useKeyboardShortcuts";
+import { BrandMark } from "./BrandMark";
 import { activeRouteFor, GITHUB_URL, NPM_URL, SITE_ROUTES } from "./siteNav";
 import { usePersistedPalette } from "./usePersistedPalette";
+import { usePaletteFonts } from "./usePaletteFonts";
 import { LIBRARY_NAME, LIBRARY_VERSION } from "./propsData";
 
 const RAIL_WIDTH = 80;
@@ -132,6 +134,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   // mounted for every route, so the colour set is restored wherever the reader
   // lands, not only on /theming.
   usePersistedPalette();
+  usePaletteFonts();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -152,13 +155,9 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
                 Slot shim (build/ui/Slot.js). */}
             <View style={styles.brand}>
               <View style={styles.brandMark}>
-                {/* The same four-pointed spark the favicon and app icons are
-                  drawn from, so the tab and the header carry one mark. */}
-                <Icons
-                  name="star-four-points"
-                  size={18}
-                  color={theme.colors.onPrimaryContainer}
-                />
+                {/* The same bolt and ring the favicon and app icons are drawn
+                  from, so the tab and the header carry one mark. */}
+                <BrandMark size={32} />
               </View>
               <View>
                 <Typography

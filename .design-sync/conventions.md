@@ -48,8 +48,8 @@ Helpers: `getStateColor(base, on, "hover" | "press" | "focus")` for M3 state lay
 
 ### Colour sets (palettes)
 
-The tokens above are the **baseline** set. `palettes` ships twenty: `baseline` plus the
-named Material hues `red`, `pink`, `purple`, `deepPurple`, `indigo`, `blue`, `lightBlue`,
+The tokens above are the **baseline** set. `palettes` ships twenty-two: `baseline`, the
+hand-authored brand sets `databeasy` and `inxpire`, plus the nineteen named Material hues `red`, `pink`, `purple`, `deepPurple`, `indigo`, `blue`, `lightBlue`,
 `cyan`, `teal`, `green`, `lightGreen`, `lime`, `yellow`, `amber`, `orange`, `deepOrange`,
 `brown`, `grey`, `blueGrey` — each the full M3 role set for light and dark. To render a
 design in another colour set, pick it on the provider or switch it live; never override

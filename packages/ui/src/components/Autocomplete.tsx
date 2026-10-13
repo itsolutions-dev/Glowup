@@ -17,7 +17,7 @@ import {
   ViewStyle,
   useWindowDimensions,
 } from "react-native";
-import Icons from "@expo/vector-icons/MaterialCommunityIcons";
+import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import CircularProgress from "./Progress/CircularProgress";
 import HelperText from "./HelperText";

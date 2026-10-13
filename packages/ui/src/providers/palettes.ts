@@ -1,5 +1,6 @@
 import themeConfig from "./theme.json";
-import type { ThemeColorTokens } from "./ThemeProvider";
+import type { Theme, ThemeColorTokens } from "./ThemeProvider";
+import { BRAND_PALETTES } from "./brandPalettes";
 import { hexToLch, tone } from "./tonal";
 
 /**
@@ -16,6 +17,19 @@ export interface ThemePalette {
   seed: string;
   light: ThemeColorTokens;
   dark: ThemeColorTokens;
+  /**
+   * Type-scale overrides, merged per variant over the theme's defaults — a
+   * brand's font and the sizes it sets differently. The library only names the
+   * font: the app loads it (expo-font), under exactly the `fontFamily` given
+   * here. Leave it out and the palette uses the default scale.
+   */
+  typography?: Partial<Theme["typography"]>;
+  /**
+   * The icon family. `"eva"` draws Eva Icons wherever the library has an
+   * equivalent for a Material name; anything without one stays Material.
+   * Defaults to `"material"`.
+   */
+  iconSet?: "material" | "eva";
 }
 
 /**
@@ -199,32 +213,33 @@ const MUTED: Partial<PaletteChroma> = {
 };
 
 const MATERIAL_SEEDS = {
-  red: { name: "Red", seed: "#F44336" },
-  pink: { name: "Pink", seed: "#E91E63" },
-  purple: { name: "Purple", seed: "#9C27B0" },
-  deepPurple: { name: "Deep purple", seed: "#673AB7" },
+  red: { name: "Cherry", seed: "#F44336" },
+  pink: { name: "Bubblegum", seed: "#E91E63" },
+  purple: { name: "Amethyst", seed: "#9C27B0" },
+  deepPurple: { name: "Violet night", seed: "#673AB7" },
   indigo: { name: "Indigo", seed: "#3F51B5" },
-  blue: { name: "Blue", seed: "#2196F3" },
-  lightBlue: { name: "Light blue", seed: "#03A9F4" },
-  cyan: { name: "Cyan", seed: "#00BCD4" },
-  teal: { name: "Teal", seed: "#009688" },
-  green: { name: "Green", seed: "#4CAF50" },
-  lightGreen: { name: "Light green", seed: "#8BC34A" },
-  lime: { name: "Lime", seed: "#CDDC39" },
-  yellow: { name: "Yellow", seed: "#FFEB3B" },
+  blue: { name: "Ultramarine", seed: "#2196F3" },
+  lightBlue: { name: "Sky", seed: "#03A9F4" },
+  cyan: { name: "Lagoon", seed: "#00BCD4" },
+  teal: { name: "Petrol", seed: "#009688" },
+  green: { name: "Forest", seed: "#4CAF50" },
+  lightGreen: { name: "Pistachio", seed: "#8BC34A" },
+  lime: { name: "Limoncello", seed: "#CDDC39" },
+  yellow: { name: "Sunflower", seed: "#FFEB3B" },
   amber: { name: "Amber", seed: "#FFC107" },
-  orange: { name: "Orange", seed: "#FF9800" },
-  deepOrange: { name: "Deep orange", seed: "#FF5722" },
-  brown: { name: "Brown", seed: "#795548", chroma: MUTED },
-  grey: { name: "Grey", seed: "#9E9E9E", chroma: MONOCHROME },
-  blueGrey: { name: "Blue grey", seed: "#607D8B", chroma: MUTED },
+  orange: { name: "Blood orange", seed: "#FF9800" },
+  deepOrange: { name: "Terracotta", seed: "#FF5722" },
+  brown: { name: "Espresso", seed: "#795548", chroma: MUTED },
+  grey: { name: "Graphite", seed: "#9E9E9E", chroma: MONOCHROME },
+  blueGrey: { name: "Slate", seed: "#607D8B", chroma: MUTED },
 } satisfies Record<string, MaterialSeed>;
 
 /** The named Material hues `palettes` carries, in the Material palette's order. */
 export type MaterialPaletteId = keyof typeof MATERIAL_SEEDS;
 
 /** The ids of the palettes this library ships. */
-export type PaletteId = "baseline" | MaterialPaletteId;
+export type PaletteId =
+  "baseline" | "databeasy" | "inxpire" | MaterialPaletteId;
 
 /**
  * Ids earlier releases shipped, each now the Material hue it was seeded from.
@@ -250,11 +265,22 @@ type DeprecatedPaletteAliases = {
 const shipped = {
   baseline: {
     id: "baseline",
-    name: "Baseline purple",
+    name: "Velvet violet",
     seed: BASELINE_SEED,
     light: themeConfig.colors.light,
     dark: themeConfig.colors.dark,
   },
+  // Hand-authored brand sets (see brandPalettes.ts), listed before the Material hues.
+  ...Object.fromEntries(
+    BRAND_PALETTES.map(({ light, dark, ...rest }) => [
+      rest.id,
+      {
+        ...rest,
+        light: { ...light, boxShadow: themeConfig.colors.light.boxShadow },
+        dark: { ...dark, boxShadow: themeConfig.colors.dark.boxShadow },
+      },
+    ]),
+  ),
 } as Record<PaletteId, ThemePalette>;
 
 // Built on first read, then cached: importing the library (which every screen
@@ -281,8 +307,9 @@ const shipped = {
 
 /**
  * The colour sets shipped with the library. `baseline` is the hand-authored
- * Material 3 baseline scheme — the one the library has always rendered; the
- * other nineteen are the named Material hues, derived from their seed with
+ * Material 3 baseline scheme — the one the library has always rendered; `databeasy`
+ * and `inxpire` are hand-authored brand sets, not derived from a seed; the other
+ * nineteen are the named Material hues, derived from their seed with
  * `createPalette`. Enumerate it for a picker: every entry is listed once.
  */
 export const palettes: Record<PaletteId, ThemePalette> &

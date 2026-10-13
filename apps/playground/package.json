@@ -17,6 +17,8 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
+    "@expo-google-fonts/geist": "^0.4.2",
+    "@expo-google-fonts/roboto": "^0.4.3",
     "@expo/vector-icons": "^15.1.1",
     "@its/glowup-ui": "*",
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -37,7 +39,8 @@
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.3",
-    "react-native-worklets": "0.10.1"
+    "react-native-worklets": "0.10.1",
+    "react-refresh": "^0.14.2"
   },
   "jest": {
     "preset": "jest-expo",

@@ -271,6 +271,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   DateTimePicker: {
     name: "DateTimePicker",
     Component: DateTimePicker,
+    clientOnly: true,
     props: {
       label: { type: "text", default: "Pick a date", label: "Label" },
       mode: {
@@ -378,6 +379,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   DatePicker: {
     name: "DatePicker",
     Component: DatePicker,
+    clientOnly: true,
     props: {
       label: { type: "text", default: "Service date", label: "Label" },
     },
@@ -385,6 +387,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   DatePickerInput: {
     name: "DatePickerInput",
     Component: DatePickerInput,
+    clientOnly: true,
     props: {
       label: { type: "text", default: "Date of birth", label: "Label" },
       placeholder: { type: "text", default: "Not set", label: "Placeholder" },
@@ -425,6 +428,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   DateRangePicker: {
     name: "DateRangePicker",
     Component: DateRangePicker,
+    clientOnly: true,
     props: {
       label: { type: "text", default: "Reporting period", label: "Label" },
       placeholder: { type: "text", default: "No period", label: "Placeholder" },
@@ -466,6 +470,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   TimePicker: {
     name: "TimePicker",
     Component: TimePicker,
+    clientOnly: true,
     props: {
       label: { type: "text", default: "Service time", label: "Label" },
     },
@@ -473,6 +478,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   Calendar: {
     name: "Calendar",
     Component: Calendar,
+    clientOnly: true,
     props: {
       selectionMode: {
         type: "select",
@@ -520,6 +526,7 @@ export const inputs: Record<string, ComponentMetadata> = {
   ClockPicker: {
     name: "ClockPicker",
     Component: ClockPicker,
+    clientOnly: true,
     props: {
       inputType: {
         type: "select",

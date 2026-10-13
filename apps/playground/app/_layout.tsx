@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useFonts } from "expo-font";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   DarkTheme,
   DefaultTheme,
@@ -25,6 +27,16 @@ import { ThemeStatusBar } from "../site/ThemeStatusBar";
  * navigator header on native and nothing on web.
  */
 export default function RootLayout() {
+  // The icon font, registered during the prerender. Every icon draws an empty
+  // <Text /> until `Font.isLoaded` says yes, and in Node it says no unless the
+  // font was loaded there; in the browser it says yes as soon as any icon has
+  // loaded it. Routes hydrate in their own Suspense boundary, after the shell's
+  // icons have done exactly that, so the page's icons became glyphs where the
+  // HTML had empty spans and React threw #418. On the server this call puts
+  // the @font-face rule into the exported <head>, where the browser finds it
+  // before hydrating — both sides then render the glyph from the start.
+  useFonts(Icons.font);
+
   return (
     <ThemeProvider>
       <SafeAreaProvider>

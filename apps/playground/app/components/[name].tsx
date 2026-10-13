@@ -28,6 +28,7 @@ import { PropControls } from "../../site/PropControls";
 import { PropsTable } from "../../site/PropsTable";
 import { docFor, requiredPropsOf } from "../../site/propsData";
 import { useLayout } from "../../site/breakpoints";
+import { useHydrated } from "../../site/useHydrated";
 import { GITHUB_URL } from "../../site/siteNav";
 
 /** Widths the stage can be pinned to, so a reader can see the mobile case. */
@@ -70,6 +71,7 @@ export default function ComponentPage() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const { theme } = useTheme();
   const layout = useLayout();
+  const hydrated = useHydrated();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const meta = entryFor(name);
@@ -289,7 +291,8 @@ export default function ComponentPage() {
                 ) : null}
                 <View style={styles.variantStage}>
                   <DemoErrorBoundary label={`${name} — ${variant.title}`}>
-                    <variant.render />
+                    {/* The same rule as the stage: see `clientOnly`. */}
+                    {(hydrated || !meta.clientOnly) && <variant.render />}
                   </DemoErrorBoundary>
                 </View>
               </View>

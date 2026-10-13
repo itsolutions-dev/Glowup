@@ -105,6 +105,35 @@ toast.success("Saved");
 toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
 ```
 
+### Interaction feedback (haptics)
+
+`ThemeProvider` reports what the user does through the library's controls, so the app can
+answer with a haptic (the library itself plays nothing and depends on no haptics module):
+
+```tsx
+import { hapticFeedback } from "@its/glowup-device/haptics";
+
+<ThemeProvider onInteractionFeedback={hapticFeedback}>
+  <App />
+</ThemeProvider>;
+```
+
+The handler gets one of `"press" | "toggle" | "selection" | "longPress"`:
+
+| Kind        | Reported by                                                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `press`     | `Button`, `IconButton`, `FAB`, an action `Chip` and a chip's close button                                                                |
+| `toggle`    | `Toggle`, `Checkbox`, a `selected` `IconButton`, a `"checkbox"` `Chip`, a multi-select `ToggleButtonGroup`                               |
+| `selection` | `RadioButton` / `RadioGroup`, a `"radio"` `Chip`, a single-choice `ToggleButtonGroup`, each step a `Slider` crosses (with a `step` only) |
+| `longPress` | nothing in the library yet: for your own components                                                                                      |
+
+- It is called before the control's own handler, only when the press does something (never for
+  a disabled, loading or handler-less control), and a handler that throws never cancels it.
+- `feedback={false}` silences one control. A nested `ThemeProvider` without the prop inherits
+  the outer one's handler.
+- `useInteractionFeedback()` returns the same function for a component of your own (stable
+  across renders; it reads the latest handler).
+
 ### Dates
 
 Month and weekday names, week start, 12h/24h and AM/PM labels all come from `Intl`, driven by the
@@ -183,6 +212,8 @@ Exported from the library alongside the components:
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
 - **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
+- **`onInteractionFeedback`** (a `ThemeProvider` prop) + **`useInteractionFeedback()`** — see
+  [Interaction feedback](#interaction-feedback-haptics).
 - **`getStateColor(bg, on, state)`** — composites a hover/press state-layer color over a base.
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native

@@ -2,7 +2,9 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -10,6 +12,11 @@ import { Appearance, Platform, TextStyle } from "react-native";
 
 import { mix } from "polished";
 import themeConfig from "./theme.json";
+import {
+  InteractionFeedbackContext,
+  type InteractionFeedbackHandler,
+  type InteractionFeedbackKind,
+} from "./InteractionFeedback";
 import { palettes, type ThemePalette } from "./palettes";
 
 /**
@@ -175,6 +182,7 @@ const getServerScheme = () => null;
 export const ThemeProvider = ({
   children,
   initialPalette = palettes.baseline,
+  onInteractionFeedback,
 }: {
   children: React.ReactNode;
   /**
@@ -183,6 +191,13 @@ export const ThemeProvider = ({
    * `useTheme()` to change it afterwards.
    */
   initialPalette?: ThemePalette;
+  /**
+   * Called when the user presses, toggles or selects through one of the
+   * library's controls: wire it to haptics (`@its/glowup-device/haptics`'s
+   * `hapticFeedback`) or anything else. A control opts out with
+   * `feedback={false}`. Without it a nested provider inherits the outer one's.
+   */
+  onInteractionFeedback?: InteractionFeedbackHandler;
 }) => {
   const systemScheme = useSyncExternalStore(
     subscribeToScheme,
@@ -217,8 +232,29 @@ export const ThemeProvider = ({
     [theme, toggleTheme, palette],
   );
 
+  // Its own context, and a stable function reading the latest handler: an
+  // inline `onInteractionFeedback` must not re-render every control (nor sit
+  // in the theme's value, which some seventy components depend on).
+  const handlerRef = useRef(onInteractionFeedback);
+  useEffect(() => {
+    handlerRef.current = onInteractionFeedback;
+  }, [onInteractionFeedback]);
+  const emit = useCallback((kind: InteractionFeedbackKind) => {
+    try {
+      handlerRef.current?.(kind);
+    } catch {
+      // Feedback decorates an interaction; it must never cancel the press.
+    }
+  }, []);
+  const parentFeedback = useContext(InteractionFeedbackContext);
+  const feedback = onInteractionFeedback ? emit : parentFeedback;
+
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>
+      <InteractionFeedbackContext.Provider value={feedback}>
+        {children}
+      </InteractionFeedbackContext.Provider>
+    </ThemeContext.Provider>
   );
 };
 

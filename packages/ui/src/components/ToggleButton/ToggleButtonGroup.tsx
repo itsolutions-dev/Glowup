@@ -3,6 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import ToggleButton from "./ToggleButton";
 import { MaterialCommunityIconsGlyphs } from "../types";
 import { isSelected, selectionRoles, toggleIn } from "../internal/selection";
+import { useInteractionFeedback } from "../../providers/InteractionFeedback";
 
 export interface ToggleButtonOption {
   label?: string;
@@ -26,6 +27,11 @@ export interface ToggleButtonGroupProps {
   /** Names the group for assistive tech — a group of choices needs a question. */
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Report each press (a toggle with `multiSelect`, else a selection) to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const ToggleButtonGroup = ({
@@ -38,10 +44,14 @@ const ToggleButtonGroup = ({
   showSelectedCheck = false,
   accessibilityLabel,
   style,
+  feedback = true,
 }: ToggleButtonGroupProps) => {
   const roles = selectionRoles(multiSelect);
-  const handlePress = (itemValue: string) =>
+  const emitFeedback = useInteractionFeedback(feedback);
+  const handlePress = (itemValue: string) => {
+    emitFeedback(multiSelect ? "toggle" : "selection");
     onValueChange(multiSelect ? toggleIn(value, itemValue) : itemValue);
+  };
 
   return (
     <View

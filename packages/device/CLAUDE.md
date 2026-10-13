@@ -6,9 +6,10 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   A user-visible change needs a changeset. `changeset publish` publishes any non-private
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
-- **One subpath per capability.** `./info`, `./location`, `./camera`, plus `./testing`. Each
-  capability owns its Expo modules (`expo-device` + `expo-application`, `expo-location`,
-  `expo-camera`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+- **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
+  `./keep-awake`, `./orientation`, `./haptics`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -57,6 +58,37 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   snapshot (`__tests__/camera-ssr.test.tsx`): never call it during render directly. The web
   default stays expo-camera (preview, pictures and scanning work there); `supportsVideo()` is
   false on web because its `record()` only warns and returns an empty uri.
+- **Live values** (`src/core/liveStore.ts`): `createLiveStore()` shares one platform
+  subscription between every hook (opened by the first listener, closed by the last), skips
+  shallow-equal updates (platforms re-send equal states), and `useLiveValue()` reads it with a
+  `null` server snapshot for the static export. Capabilities that push changes (network,
+  battery) build on it, one store per adapter in a `WeakMap`.
+- **Network** (`src/network`): netinfo on native; on web `web.ts` on `navigator.onLine` and
+  the Network Information API, not netinfo's web build (it probes `HEAD /` every minute and
+  reads anything but 200 as offline). `isInternetReachable` is `null` on web while online:
+  never report a reachability nobody checked.
+- **Battery** (`src/battery`): the Expo adapter merges expo-battery's three events into one
+  status (events that beat the first read are kept). On web `web.ts` on `navigator.getBattery()`,
+  not expo-battery's web build (no `addListener`, Low Power Mode `false` instead of unknown).
+- **Keep awake** (`src/keep-awake`): one tag per mounted `useKeepAwake` (`useId()`). On web
+  `web.ts` holds the Screen Wake Lock itself, not expo-keep-awake's web build: it re-acquires on
+  `visibilitychange`, sends one request per tag at a time and releases a lock granted after its
+  deactivation. Its holds are module state: its test loads it with `jest.isolateModules`.
+- **Orientation** (`src/orientation`): `useOrientation()` on the live store; locks go through
+  `lockStack.ts`, one stack per adapter: the most recent lock wins, platform calls run one at a
+  time against the stack as it is when they run (a screen replacing another never unlocks in
+  between), and the last release calls `adapter.unlock()`, which means "back to the app's own
+  orientation". The Expo adapter saves `getPlatformOrientationLockAsync()` before its first
+  lock and restores it, because expo's `unlockAsync()` lets a portrait-only app rotate; Android's
+  `SCREEN_ORIENTATION_LANDSCAPE` is 0, which `lockPlatformAsync` rejects, so it goes through
+  `lockAsync(LANDSCAPE_RIGHT)`. On web `web.ts` on `screen.orientation` (expo's web unlock is
+  `lock("natural")`).
+- **Haptics** (`src/haptics`): `useHaptics()` swallows every failure (haptics decorate an
+  action) and plays nothing where unsupported; `hapticFeedback` is the module-level bridge to
+  `@its/glowup-ui`'s `ThemeProvider onInteractionFeedback` on the default adapter. Its
+  `InteractionKind` repeats ui's strings instead of importing them (the packages stay
+  independent). Android interactions use `performAndroidHapticsAsync` with constants every API
+  level has (newer ones throw below API 30 / 34). The web adapter is a no-op on purpose.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

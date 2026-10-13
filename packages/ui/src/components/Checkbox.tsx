@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
 
 export interface CheckboxProps {
@@ -13,6 +14,11 @@ export interface CheckboxProps {
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
   error?: boolean;
+  /**
+   * Report the toggle to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const Checkbox = ({
@@ -23,8 +29,10 @@ const Checkbox = ({
   onValueChange,
   disabled,
   error,
+  feedback = true,
 }: CheckboxProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
 
   const filled = checked || !!indeterminate;
 
@@ -56,7 +64,10 @@ const Checkbox = ({
 
   return (
     <Pressable
-      onPress={() => onValueChange(!checked)}
+      onPress={() => {
+        emitFeedback("toggle");
+        onValueChange(!checked);
+      }}
       accessibilityLabel={label}
       accessibilityRole="checkbox"
       accessibilityState={{

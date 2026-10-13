@@ -38,6 +38,31 @@
       "types": "./lib/typescript/camera/index.d.ts",
       "default": "./lib/commonjs/camera/index.js"
     },
+    "./network": {
+      "source": "./src/network/index.ts",
+      "types": "./lib/typescript/network/index.d.ts",
+      "default": "./lib/commonjs/network/index.js"
+    },
+    "./battery": {
+      "source": "./src/battery/index.ts",
+      "types": "./lib/typescript/battery/index.d.ts",
+      "default": "./lib/commonjs/battery/index.js"
+    },
+    "./keep-awake": {
+      "source": "./src/keep-awake/index.ts",
+      "types": "./lib/typescript/keep-awake/index.d.ts",
+      "default": "./lib/commonjs/keep-awake/index.js"
+    },
+    "./orientation": {
+      "source": "./src/orientation/index.ts",
+      "types": "./lib/typescript/orientation/index.d.ts",
+      "default": "./lib/commonjs/orientation/index.js"
+    },
+    "./haptics": {
+      "source": "./src/haptics/index.ts",
+      "types": "./lib/typescript/haptics/index.d.ts",
+      "default": "./lib/commonjs/haptics/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -52,6 +77,11 @@
     "info",
     "location",
     "camera",
+    "network",
+    "battery",
+    "keep-awake",
+    "orientation",
+    "haptics",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -76,19 +106,35 @@
     "device",
     "location",
     "camera",
-    "device-info"
+    "device-info",
+    "network",
+    "battery",
+    "keep-awake",
+    "orientation",
+    "haptics"
   ],
   "peerDependencies": {
+    "@react-native-community/netinfo": ">=12",
     "expo": ">=57",
     "expo-application": ">=57",
+    "expo-battery": ">=57",
     "expo-camera": ">=57",
     "expo-device": ">=57",
+    "expo-haptics": ">=57",
+    "expo-keep-awake": ">=57",
     "expo-location": ">=57",
+    "expo-screen-orientation": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"
   },
   "peerDependenciesMeta": {
+    "@react-native-community/netinfo": {
+      "optional": true
+    },
     "expo-application": {
+      "optional": true
+    },
+    "expo-battery": {
       "optional": true
     },
     "expo-camera": {
@@ -97,12 +143,22 @@
     "expo-device": {
       "optional": true
     },
+    "expo-haptics": {
+      "optional": true
+    },
+    "expo-keep-awake": {
+      "optional": true
+    },
     "expo-location": {
+      "optional": true
+    },
+    "expo-screen-orientation": {
       "optional": true
     }
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@react-native-community/netinfo": "12.0.1",
     "@react-native/jest-preset": "^0.86.3",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "^29.5.14",
@@ -112,9 +168,13 @@
     "del-cli": "^7.0.0",
     "expo": "~57.0.25",
     "expo-application": "~57.0.3",
+    "expo-battery": "~57.0.3",
     "expo-camera": "~57.0.5",
     "expo-device": "~57.0.2",
+    "expo-haptics": "~57.0.3",
+    "expo-keep-awake": "~57.0.2",
     "expo-location": "~57.0.20",
+    "expo-screen-orientation": "~57.0.2",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
     "publint": "^0.3.25",

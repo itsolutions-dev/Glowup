@@ -8,6 +8,7 @@ import {
   getStateColor,
   getGlowStyles,
 } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface ChipProps {
@@ -27,6 +28,11 @@ export interface ChipProps {
    */
   accessibilityRole?: "button" | "radio" | "checkbox";
   style?: object;
+  /**
+   * Report presses: a `"checkbox"` chip toggles, a `"radio"` one selects to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const Chip = ({
@@ -40,8 +46,10 @@ const Chip = ({
   size = "medium",
   accessibilityRole,
   style = {},
+  feedback = true,
 }: ChipProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const { bg, on, border, rippleColor } = useMemo(() => {
@@ -124,7 +132,17 @@ const Chip = ({
       ]}
     >
       <Pressable
-        onPress={() => !disabled && onPress && onPress()}
+        onPress={() => {
+          if (disabled || !onPress) return;
+          emitFeedback(
+            accessibilityRole === "checkbox"
+              ? "toggle"
+              : accessibilityRole === "radio"
+                ? "selection"
+                : "press",
+          );
+          onPress();
+        }}
         onHoverIn={() => setBodyHovered(true)}
         onHoverOut={() => setBodyHovered(false)}
         onPressIn={() => setBodyPressed(true)}
@@ -172,7 +190,11 @@ const Chip = ({
       </Pressable>
       {onClose && (
         <Pressable
-          onPress={() => (!disabled && onClose ? onClose() : null)}
+          onPress={() => {
+            if (disabled || !onClose) return;
+            emitFeedback("press");
+            onClose();
+          }}
           disabled={disabled}
           accessibilityRole="button"
           accessibilityLabel={`Close ${label}`}

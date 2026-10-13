@@ -40,7 +40,7 @@ import type {
   ThemeColorTokens,
 } from "@its/glowup-ui";
 
-import { DeviceSmoke } from "./Device";
+import { DeviceSmoke, interactionFeedback } from "./Device";
 
 // Type-only assertions on the published surface: if the shipped .d.ts stops
 // resolving (or changes shape), `tsc --noEmit` fails here before anything renders.
@@ -115,7 +115,9 @@ const Showcase = () => {
 
 export default function App() {
   return (
-    <ThemeProvider>
+    // The two packages meet here, as in any app: ui's onInteractionFeedback
+    // takes device's hapticFeedback as it is.
+    <ThemeProvider onInteractionFeedback={interactionFeedback}>
       <SafeAreaProvider>
         <ToastProvider>
           <StatusBar style="auto" />

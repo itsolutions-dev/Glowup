@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An **npm-workspaces monorepo** with four workspaces:
 
-| Workspace                | Package                     | Role                                                                                  |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------- |
-| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                      |
-| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.               |
-| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, device info) behind adapters. |
-| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                   |
+| Workspace                | Package                     | Role                                                                                        |
+| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------- |
+| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                            |
+| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                     |
+| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, haptics…) behind adapters. |
+| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                         |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
@@ -84,7 +84,7 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint

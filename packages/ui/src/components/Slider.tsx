@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 
 export interface SliderProps {
   value: number;
@@ -24,6 +25,12 @@ export interface SliderProps {
   marks?: boolean;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Report each step the thumb crosses to `ThemeProvider`'s
+   * `onInteractionFeedback` (haptics), as a selection. Only with a `step`: a
+   * continuous slider would report every pixel. Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const THUMB_SIZE = 20;
@@ -41,8 +48,10 @@ const Slider = ({
   marks = false,
   disabled,
   style,
+  feedback = true,
 }: SliderProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const [trackWidth, setTrackWidth] = useState(0);
@@ -71,22 +80,31 @@ const Slider = ({
     [trackWidth, min, max, clamp, value],
   );
 
+  // One selection tick per step crossed, never for a continuous slider.
+  const change = useCallback(
+    (next: number) => {
+      if (step && step > 0 && next !== clamp(value)) emitFeedback("selection");
+      onValueChange(next);
+    },
+    [step, clamp, value, emitFeedback, onValueChange],
+  );
+
   const handleGrant = useCallback(
     (event: GestureResponderEvent) => {
       setDragging(true);
       trackRef.current?.measureInWindow((x) => {
         trackPageX.current = x;
       });
-      onValueChange(valueFromEvent(event));
+      change(valueFromEvent(event));
     },
-    [onValueChange, valueFromEvent],
+    [change, valueFromEvent],
   );
 
   const handleMove = useCallback(
     (event: GestureResponderEvent) => {
-      onValueChange(valueFromEvent(event));
+      change(valueFromEvent(event));
     },
-    [onValueChange, valueFromEvent],
+    [change, valueFromEvent],
   );
 
   const handleRelease = useCallback(

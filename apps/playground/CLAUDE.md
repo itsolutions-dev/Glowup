@@ -61,18 +61,32 @@ cannot fetch a token.
 ## The device pages
 
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
-capability (`info`, `location`, `camera`). They import only the package's public subpaths.
-`expo-device`, `expo-application`, `expo-location` and `expo-camera` are dependencies of the
-playground because they are the package's peers, and the package's config plugin is listed in
+capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
+`haptics`). They import only the package's public subpaths. Every capability's native module
+(`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
+`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`) is a dependency of the
+playground because it is the package's peer, and the package's config plugin is listed in
 `app.config.ts` with the playground's purpose strings (`recordAudio: true`: the camera recipe
 records video with sound). The camera page is the "recipe": `CameraView` with Material
 controls drawn as its children from Glowup components, paused through `useFocusEffect` when
 the page loses focus. Video is disabled on web, where expo-camera cannot record.
 `site/DevicePermission.tsx` renders a permission's badge and its one action for both pages.
+The keep-awake and orientation pages hold their wake lock / orientation lock only while
+`useIsFocused()`: a page left in the stack stays mounted, and its lock must not follow the
+reader to the next page.
 
-`__tests__/device-pages.test.tsx` renders the four pages with the package's in-memory
+**Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
+`app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to
+`onInteractionFeedback`, so every Glowup control on every page answers with the platform's
+feedback (nothing on web). The switch on /device/haptics turns it off, persisted with
+`usePersistentState`. That page's explicit "play one" buttons use `feedback={false}` so a press
+does not play twice.
+
+`__tests__/device-pages.test.tsx` renders the pages with the package's in-memory
 adapters (`@its/glowup-device/testing`) and drives them: permission, position, photo,
-recording, scan. It mocks `useFocusEffect` and `useRouter`, since no navigator is mounted.
+recording, scan, network and battery changes, wake lock, orientation lock, haptics. It mocks
+`useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
+`expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise
 to `onPress` (`() => void toggleRecording()`): RTL 14 awaits it and the test deadlocks.
 

@@ -167,8 +167,10 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
 - Verified beyond the unit tests: the static export prerenders the four pages, and in
   Chromium (Playwright, simulated geolocation and Chromium's fake camera) the exported pages
   hydrate, locate, follow the position, stream the preview and take a photo.
-- Found, not caused here: every exported page of the site, the home page included, logs
+- Found, not caused here: every exported page of the site, the home page included, logged
   React's hydration error #418 — also with the device pages and their nav entry removed.
+  Fixed separately in #61 (window size, icon font, current time, `Grid`; see
+  `apps/playground/CLAUDE.md`, "Hydration").
 
 ### Phase 6 — what landed
 
@@ -186,10 +188,159 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
   Packages" PR, master declares `@its/glowup-device@0.0.0`, which is not on the registry, so
   the consumer smoke fails after its wait. It turns green with the publish.
 
-## Open for v2 (to discuss at the end of v1)
+## v2 decisions
 
-- A `/camera/ui` subpath with MD3 camera components (it would need `@its/glowup-ui` as a peer).
-- Location: background and geofencing (`expo-task-manager`, development build), geocoding and
-  reverse geocoding, heading.
-- Gallery: `expo-image-picker` / `expo-media-library`.
-- Device: battery, network, haptics, sensors, biometrics, orientation, keep-awake.
+| #   | Question               | Decision                                                                                                             |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 gallery, biometrics · v0.4 advanced location, sensors |
+| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                |
+| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                    |
+| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                         |
+| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.              |
+| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                    |
+| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.     |
+| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.     |
+
+### V8 — haptics without coupling the packages
+
+- **`@its/glowup-ui` (minor).** `ThemeProvider` takes
+  `onInteractionFeedback?: (kind: "press" | "toggle" | "selection" | "longPress") => void`.
+  `Button`, `IconButton`, `FAB`, `Toggle`, `Checkbox`, `RadioButton`, `Chip`,
+  `ToggleButtonGroup` and `Slider` (per step) call it; a `feedback={false}` prop opts a single
+  component out. The library knows no native module and imports nothing from `device`.
+- **`@its/glowup-device/haptics`.** `useHaptics()` (impact, notification, selection) and a
+  ready-made `hapticFeedback` that maps the four kinds onto `expo-haptics`.
+- **The app wires them:** `<ThemeProvider onInteractionFeedback={hapticFeedback}>`. Nothing
+  vibrates until it does.
+
+## v0.2 phases
+
+Each phase is one commit with its tests, docs and `/testing` adapter; the release phase adds
+the playground pages and the changesets. Every web behaviour below is to be checked against the
+module's source before its contract is written, as phases 3 and 4 did.
+
+| Phase | Content                                                                                                                                     | Status   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           | **done** |
+| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store | **done** |
+| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             | **done** |
+| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              | **done** |
+| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             | **done** |
+
+### Phase 7 — what landed
+
+- `/network`: `useNetwork()` (connected, internet reachable, type, metered, cellular
+  generation; every unknown is `null`, never `false`) and `useIsOnline()`.
+- `src/core/liveStore.ts`: one platform subscription shared by every hook, opened by the first
+  listener and closed by the last, shallow-equal updates skipped, a `null` server snapshot for
+  the static export. Battery and keep-awake (phase 8) build on it.
+- Native on netinfo `12.0.1` (the exact pin of SDK 57; optional peer).
+- **Web: our own adapter, not netinfo's web build.** Its source shows the reachability check
+  is `HEAD /` on the page's origin every minute (every 5 s after a failure), with anything but
+  a 200 counted as offline: an app served under a subpath can read as offline while online, and
+  the polling is traffic nobody asked for. The web adapter reads `navigator.onLine`, the
+  `online` / `offline` events and the Network Information API, and reports
+  `isInternetReachable: null` while online.
+- `/testing`: `createMockNetworkAdapter()`, `MOCK_NETWORK`, `OFFLINE_NETWORK`.
+
+### Phase 8 — what landed
+
+- `/battery`: `useBattery()` (`isAvailable`, `level` 0–1, `charging`, `lowPowerMode`; unknowns
+  are `null`) on phase 7's live store. Native on expo-battery `~57.0.3`, whose three events
+  (level, state, power mode) the adapter merges into one status; an event that beats the first
+  read is kept, not overwritten by the older read.
+- **Web battery: our own adapter.** expo-battery's web build has no `addListener`, so its
+  change listeners throw in a browser, and it answers `false` for Low Power Mode where nothing
+  can be known. `web.ts` reads `navigator.getBattery()` (Chromium only) and reports
+  `lowPowerMode: null`.
+- `/keep-awake`: `useKeepAwake({ enabled })` holds one tag per mounted hook;
+  `useKeepAwakeSupport()` reads support with a `false` server snapshot. "Imperative activate /
+  deactivate" is `enabled` in React and the exported adapters outside it: a module-level
+  function could not see `DeviceAdaptersProvider`, so tests would be back to mocking Expo.
+  Native on expo-keep-awake `~57.0.2`.
+- **Web keep-awake: our own adapter.** expo-keep-awake's web build (1) never re-acquires the
+  wake lock the browser releases when the tab is hidden, so the screen sleeps after a tab
+  switch while the hook is mounted, and (2) throws on a deactivation that beats the pending
+  request, after which the request lands and its lock is never released. `web.ts` re-acquires
+  on `visibilitychange`, keeps one request in flight per tag and releases a lock granted after
+  its deactivation.
+- `/testing`: `createMockBatteryAdapter()` + `MOCK_BATTERY`, `createMockKeepAwakeAdapter()`.
+
+### Phase 9 — what landed
+
+- `/orientation`: `useOrientation()` (the interface orientation, live, with `isLandscape`),
+  `useOrientationLock(lock, { enabled })` scoped to the component and
+  `useOrientationLockSupport()`. Native on expo-screen-orientation `~57.0.2`.
+- **Interface orientation only** (decided): the device's physical orientation belongs to the
+  sensors (v0.4).
+- **Locks are stacked**, most recent wins (`src/orientation/lockStack.ts`): a video screen
+  inside a portrait-locked flow locks landscape and gives portrait back on unmount, and a screen
+  replacing another never unlocks in between.
+- **Unlock means "the app's own orientation".** Read in the source: expo-screen-orientation's
+  `unlockAsync()` is `lockAsync(DEFAULT)`, i.e. "all but upside down" on iOS and `UNSPECIFIED`
+  on Android, so a portrait-only app starts rotating after any lock is released. The adapter
+  saves `getPlatformOrientationLockAsync()` before the first lock and restores it with
+  `lockPlatformAsync()`; Android's landscape attribute is 0, which `lockPlatformAsync()` rejects
+  as "undefined", so that one case goes through `lockAsync(LANDSCAPE_RIGHT)` (expo maps it to
+  exactly that attribute). `portrait` locks `PORTRAIT_UP`: expo's `PORTRAIT` includes upside
+  down on iOS, which iPhones without a home button reject, failing the whole lock.
+- **Web: our own adapter.** expo-screen-orientation's web `unlockAsync()` goes through
+  `lockAsync(DEFAULT)` → `screen.orientation.lock("natural")`: another lock, which also rejects
+  outside fullscreen. `web.ts` reads `screen.orientation`, locks with its names (mapped as expo
+  maps them, so a value means the same everywhere) and unlocks with `unlock()`. A refused lock
+  is `OrientationError("unsupported")`, reported in the hook's `error` (decided).
+- Checked in Chromium (Playwright, desktop and mobile emulation): `screen.orientation.lock` is
+  a function in both and rejects with `NotSupportedError` outside fullscreen; `unlock()` does
+  not throw. So `useOrientationLockSupport()` means "the API exists", and the lock's `error`
+  is the real answer.
+- `/testing`: `createMockOrientationAdapter()`.
+
+### Phase 10 — what landed
+
+- `@its/glowup-ui` (minor): `ThemeProvider onInteractionFeedback` and `useInteractionFeedback()`.
+  `Button`, `IconButton`, `FAB`, `Toggle`, `Checkbox`, `RadioButton` / `RadioGroup`, `Chip`,
+  `ToggleButtonGroup` and `Slider` (each step crossed, with a `step` only) report
+  `press | toggle | selection`, before their own handler and only when the press does
+  something; `feedback={false}` opts one out. The handler lives in its own context behind a
+  stable function, so an inline handler re-renders no control. `longPress` is in the type for
+  the app's own components: no library control has a long press yet.
+- `/haptics`: `useHaptics()` (impact, notification, selection, interaction; never rejects) and
+  `hapticFeedback` for `onInteractionFeedback`. Native on expo-haptics `~57.0.3`.
+- Defaults (proposed and kept): iOS press / toggle → light impact, selection → selection tick,
+  long press → medium impact. Android interactions through `performAndroidHapticsAsync`
+  (read in the source: `View.performHapticFeedback`, which honours the touch-feedback setting,
+  where expo's impacts use the `Vibrator`), with constants available on every API level.
+- **Web: no haptics.** expo-haptics' web build calls `navigator.vibrate` (Android Chrome: a
+  motor buzz) or, on iOS Safari, appends and clicks a hidden `<input type="checkbox" switch>`;
+  the default adapter does neither, and an app can provide one that does.
+- `/testing`: `createMockHapticsAdapter()`.
+
+### Phase 11 — what landed
+
+- Playground: one page per capability (`/device/network`, `battery`, `keep-awake`,
+  `orientation`, `haptics`) and the overview's list. The keep-awake and orientation pages hold
+  their lock only while focused (a page left in the stack stays mounted). The whole site is
+  wired to `hapticFeedback` through its root `ThemeProvider`, with a persisted switch on the
+  haptics page (decided).
+- `examples/consumer` imports every new subpath and hands `hapticFeedback` to
+  `ThemeProvider onInteractionFeedback`, so the two packages' published types must agree.
+  Checked before release on `npm pack` tarballs of both packages: `tsc --noEmit` and
+  `expo export -p web` pass. Its CI job can only pass once the versions are on npm.
+- Changesets: `@its/glowup-device` minor, `@its/glowup-ui` minor.
+- **Versions.** `@its/glowup-device` has not been published yet: the v1 changeset is still
+  pending, so if both land in the same "Version Packages" PR, changesets folds the two minors
+  into one release, `0.1.0`, carrying v1 and v0.2 together. If v1 is released first, this one
+  is `0.2.0`.
+
+To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
+only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API
+(secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on
+web (only mobile Chromium in fullscreen) — done, phase 9; haptics on web (a no-op by
+default) — done, phase 10.
+
+## Open for later
+
+- **Advanced location (v0.4):** background and geofencing, geocoding (and which web
+  provider), heading — to be decided before v0.4.
+- **Secure store:** a separate capability binding secrets to biometrics (`expo-secure-store`)
+  — to propose at the end of v2.

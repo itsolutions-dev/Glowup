@@ -1,7 +1,8 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning) and device info, each behind an adapter the app can replace.
+scanning), network, battery, keep-awake, screen orientation, haptics and device info, each behind an adapter the app can
+replace.
 
 ## Install
 
@@ -11,6 +12,11 @@ npm install @its/glowup-device
 npx expo install expo-device expo-application   # /info
 npx expo install expo-location                  # /location
 npx expo install expo-camera                    # /camera
+npx expo install @react-native-community/netinfo # /network
+npx expo install expo-battery                   # /battery
+npx expo install expo-keep-awake                # /keep-awake
+npx expo install expo-screen-orientation        # /orientation
+npx expo install expo-haptics                   # /haptics
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -19,13 +25,18 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                        | Needs                             | Exports                                                           |
-| ----------------------------- | --------------------------------- | ----------------------------------------------------------------- |
-| `@its/glowup-device`          | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                       |
-| `@its/glowup-device/info`     | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
-| `@its/glowup-device/location` | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
-| `@its/glowup-device/camera`   | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
-| `@its/glowup-device/testing`  | nothing native                    | in-memory adapters for every capability                           |
+| Import                           | Needs                             | Exports                                                             |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `@its/glowup-device`             | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                         |
+| `@its/glowup-device/info`        | `expo-device`, `expo-application` | `useDeviceInfo`                                                     |
+| `@its/glowup-device/location`    | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`   |
+| `@its/glowup-device/camera`      | `expo-camera`                     | `CameraView`, `useCameraPermission`                                 |
+| `@its/glowup-device/network`     | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                         |
+| `@its/glowup-device/battery`     | `expo-battery`                    | `useBattery`                                                        |
+| `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
+| `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
+| `@its/glowup-device/haptics`     | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
+| `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -189,6 +200,201 @@ function Recorder() {
   with `unsupported`, and `microphone: true` is ignored. A statically exported page mounts the
   preview after hydration.
 
+## Network
+
+The connection, kept live. One platform subscription is shared by every component that asks,
+and closed when the last one unmounts.
+
+```bash
+npx expo install @react-native-community/netinfo
+```
+
+```tsx
+import { useIsOnline, useNetwork } from "@its/glowup-device/network";
+
+function SyncBanner() {
+  const online = useIsOnline(); // true / false, or null while unknown
+  if (online === false)
+    return <Banner message="You are offline: changes sync later." />;
+  return null;
+}
+
+function UploadButton() {
+  const { isExpensive, type } = useNetwork();
+  // Hold back on a metered connection.
+  return (
+    <Button disabled={isExpensive === true}>{`Upload over ${type}`}</Button>
+  );
+}
+```
+
+- **`null` means unknown, never "no".** Every field starts `null` (and `isLoading` true) until
+  the platform's first answer, and stays `null` where the platform cannot tell.
+- **`isConnected`** says a network interface is up; **`isInternetReachable`** says the internet
+  answers. `useIsOnline()` prefers the second and falls back to the first.
+- **iOS and Android** use netinfo, which probes reachability itself (tune its URL with
+  `NetInfo.configure()`; the adapter reads netinfo's global instance).
+- **Web** reads `navigator.onLine`, the `online` / `offline` events and the Network Information
+  API where there is one (Chromium: `type`, `saveData`). A browser cannot know whether the
+  internet answers without a request of its own, so `isInternetReachable` is `null` while online.
+  netinfo's own web build is not used: it probes `HEAD /` on the page's origin every minute and
+  counts anything but a 200 as offline, which is wrong for an app served under a subpath.
+
+## Battery
+
+Level, charging state and Low Power Mode, kept live (one shared subscription, like network).
+
+```bash
+npx expo install expo-battery
+```
+
+```tsx
+import { useBattery } from "@its/glowup-device/battery";
+
+function SyncSettings() {
+  const { level, charging, lowPowerMode } = useBattery();
+  // Defer the heavy sync on a low battery that is not charging.
+  const defer =
+    lowPowerMode === true ||
+    (charging === "unplugged" && level !== null && level < 0.2);
+  return <Text>{defer ? "Sync paused to save battery" : "Syncing"}</Text>;
+}
+```
+
+- **`isAvailable`** is false where there is nothing to read: a simulator, a browser without
+  the Battery Status API. `level` (0 to 1) and `lowPowerMode` are `null` when unknown;
+  `charging` is `"unknown" | "unplugged" | "charging" | "full"`.
+- **iOS and Android** use expo-battery. `lowPowerMode` is iOS Low Power Mode or Android
+  Battery Saver.
+- **Web** reads the Battery Status API directly (Chromium only; Firefox and Safari report
+  `isAvailable: false`). A desktop on mains power reads as `full`. `lowPowerMode` is always
+  `null`: no browser exposes it. expo-battery's web build is not used: its change listeners
+  throw in a browser and it reports Low Power Mode as `false` where it cannot know.
+
+## Keep awake
+
+Keep the screen on while a component is mounted: a scanner, a turn-by-turn screen, a recipe.
+
+```bash
+npx expo install expo-keep-awake
+```
+
+```tsx
+import { useKeepAwake } from "@its/glowup-device/keep-awake";
+
+function ScannerScreen() {
+  useKeepAwake();
+  return <CameraView mode="scan" />;
+}
+
+function Upload({ busy }: { busy: boolean }) {
+  useKeepAwake({ enabled: busy }); // only while the upload runs
+  return <LinearProgress indeterminate={busy} />;
+}
+```
+
+- **Each mounted hook holds its own tag**, so the screen sleeps again only once the last one
+  lets go.
+- **Imperative use.** In React, drive it with `enabled`. Outside React, call the adapter for
+  the platform yourself (`expoKeepAwakeAdapter` / `webKeepAwakeAdapter`, `activate(tag)` /
+  `deactivate(tag)`); `DeviceAdaptersProvider` does not reach that code.
+- **Web** holds a Screen Wake Lock (a secure context; every current browser). The browser drops
+  the lock whenever the tab is hidden, and the adapter takes it again when the tab shows.
+  `useKeepAwakeSupport()` says whether it can work here (false while a static page hydrates).
+  expo-keep-awake's web build is not used: it never re-acquires after a tab switch, and a
+  deactivation that beats the pending request leaks the lock.
+
+## Orientation
+
+The interface orientation, kept live, and locks that last as long as the component that asks.
+
+```bash
+npx expo install expo-screen-orientation
+```
+
+```tsx
+import {
+  useOrientation,
+  useOrientationLock,
+} from "@its/glowup-device/orientation";
+
+function Gallery() {
+  const { isLandscape } = useOrientation();
+  return <Grid columns={isLandscape ? 4 : 2} />;
+}
+
+function VideoPlayer() {
+  const { error } = useOrientationLock("landscape"); // until unmount
+  return <Video fullscreen hint={error ? "Rotate your phone" : undefined} />;
+}
+```
+
+- **The interface, not the device.** `orientation` is how the app is drawn
+  (`portrait-up | portrait-down | landscape-left | landscape-right | unknown`): an app held in
+  portrait reads portrait whichever way the phone is turned. Left and right follow iOS's names,
+  on every platform.
+- **Locks:** `any | portrait | landscape | landscape-left | landscape-right`. `portrait` is
+  upright only (iPhones without a home button refuse upside down, and with it the whole lock).
+- **Scoped and stacked.** A lock holds while its component is mounted (and `enabled`). The most
+  recent wins; when it lets go the previous one applies again, and after the last one the
+  orientation goes back to **the app's own configuration** (app.json `orientation`), not to
+  "anything goes": expo-screen-orientation's `unlockAsync()` would let a portrait-only app
+  rotate, so the adapter saves the app's lock before the first one and restores it.
+- **Errors are state.** A refused lock sets `error` (`OrientationError`, code `unsupported` or
+  `failed`); nothing is thrown.
+- **iPad:** iOS ignores orientation locks while the app supports multitasking (Split View, Slide
+  Over). Set `ios.requireFullScreen: true` in app.json for locks to apply there.
+- **Web** reads `screen.orientation` directly. Reading works in every current browser;
+  **locking almost never does**: only mobile Chromium in fullscreen allows it. Desktop Chromium
+  has the API and refuses every lock (`NotSupportedError`), so `useOrientationLockSupport()`
+  only says whether the API exists; the lock's `error` (`code: "unsupported"`) is the real
+  answer. expo-screen-orientation's web build is not used: its unlock calls `lock("natural")`,
+  a lock that also rejects outside fullscreen.
+
+## Haptics
+
+Haptic feedback, and the bridge to `@its/glowup-ui`'s controls.
+
+```bash
+npx expo install expo-haptics
+```
+
+```tsx
+import { hapticFeedback, useHaptics } from "@its/glowup-device/haptics";
+
+// Every Glowup button, switch, radio, chip and stepped slider answers with the
+// platform's own feedback:
+<ThemeProvider onInteractionFeedback={hapticFeedback}>
+  <App />
+</ThemeProvider>;
+
+function SaveButton() {
+  const haptics = useHaptics();
+  const save = async () => {
+    const ok = await submit();
+    haptics.notification(ok ? "success" : "error");
+  };
+  return <Button onPress={save}>Save</Button>;
+}
+```
+
+- **`useHaptics()`** → `{ isSupported, impact(style?), notification(type), selection(),
+interaction(kind) }`. Every call resolves, never rejects, and does nothing where unsupported;
+  the functions are stable across renders.
+- **`hapticFeedback(kind)`** plays `interaction(kind)` on the default adapter, ready for
+  `onInteractionFeedback`. It does not see `DeviceAdaptersProvider`: to route through a provided
+  adapter, pass `useHaptics().interaction` instead. The kinds (`press`, `toggle`, `selection`,
+  `longPress`) are the same strings as `@its/glowup-ui`'s; neither package imports the other.
+- **iOS:** press and toggle are a light impact, selection is the selection tick, long press a
+  medium impact.
+- **Android:** interactions go through `View.performHapticFeedback` (`VIRTUAL_KEY`,
+  `CONTEXT_CLICK`, `CLOCK_TICK`, `LONG_PRESS`), which honours the user's "touch feedback"
+  setting and exists on every API level. The explicit `impact`, `notification` and `selection`
+  use the vibrator (expo-haptics), which does not.
+- **Web:** nothing. Browsers have no haptics API; expo-haptics' web build buzzes
+  `navigator.vibrate` (Android Chrome) or clicks a hidden `<input switch>` on iOS Safari. Pass
+  your own adapter if you want that.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -288,3 +494,17 @@ camera.scan({ data: "TICKET-42" }); // reaches onBarcodeScanned if "qr" is scann
 camera.preview?.facing; // the props CameraView handed the preview
 camera.finishRecording(); // ends a recordVideo() with MOCK_VIDEO
 ```
+
+`createMockNetworkAdapter()` starts online on Wi-Fi (`MOCK_NETWORK`); `setState(OFFLINE_NETWORK)`
+notifies every listening component, as a platform event would.
+
+`createMockBatteryAdapter()` starts at 80 % unplugged (`MOCK_BATTERY`); `setStatus({ level: 0.1 })`
+notifies every listening component. `createMockKeepAwakeAdapter()` records the active tags:
+assert on `isAwake` (`{ supported: false }` stands in for a browser without the API).
+
+`createMockOrientationAdapter()` starts in `portrait-up`; a lock rotates it to match, as a device
+would, and `calls` records every lock and unlock (`"unlock"`). `{ lockable: false }` stands in
+for a browser that refuses every lock; `setOrientation("landscape-left")` rotates it by hand.
+
+`createMockHapticsAdapter()` records every haptic in `events` (`{ type: "interaction", kind:
+"press" }`, …); `clear()` empties it.

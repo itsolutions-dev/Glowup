@@ -1,8 +1,13 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
+import type { BatteryAdapter } from "../battery/types";
 import type { CameraAdapter } from "../camera/types";
+import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
+import type { KeepAwakeAdapter } from "../keep-awake/types";
 import type { LocationAdapter } from "../location/types";
+import type { NetworkAdapter } from "../network/types";
+import type { OrientationAdapter } from "../orientation/types";
 
 /**
  * Every capability's adapter contract. Type imports only: the root entry must
@@ -12,6 +17,11 @@ export interface DeviceAdapters {
   info: DeviceInfoAdapter;
   location: LocationAdapter;
   camera: CameraAdapter;
+  network: NetworkAdapter;
+  battery: BatteryAdapter;
+  keepAwake: KeepAwakeAdapter;
+  orientation: OrientationAdapter;
+  haptics: HapticsAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -35,15 +45,39 @@ export function DeviceAdaptersProvider({
   const parent = useContext(DeviceAdaptersContext);
   // One dependency per adapter rather than `adapters`, which is usually an
   // inline literal: a new object every render must not reset the consumers.
-  const { info, location, camera } = adapters;
+  const {
+    info,
+    location,
+    camera,
+    network,
+    battery,
+    keepAwake,
+    orientation,
+    haptics,
+  } = adapters;
   const value = useMemo(
     () => ({
       ...parent,
       ...(info && { info }),
       ...(location && { location }),
       ...(camera && { camera }),
+      ...(network && { network }),
+      ...(battery && { battery }),
+      ...(keepAwake && { keepAwake }),
+      ...(orientation && { orientation }),
+      ...(haptics && { haptics }),
     }),
-    [parent, info, location, camera],
+    [
+      parent,
+      info,
+      location,
+      camera,
+      network,
+      battery,
+      keepAwake,
+      orientation,
+      haptics,
+    ],
   );
   return (
     <DeviceAdaptersContext.Provider value={value}>

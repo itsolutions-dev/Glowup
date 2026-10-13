@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/network/index.js",
+  "module": "../lib/module/network/index.js",
+  "types": "../lib/typescript/network/index.d.ts",
+  "react-native": "../src/network/index.ts",
+  "source": "../src/network/index.ts"
+}

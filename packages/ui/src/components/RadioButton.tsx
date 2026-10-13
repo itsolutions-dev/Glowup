@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
 
 export interface RadioButtonProps {
@@ -10,6 +11,11 @@ export interface RadioButtonProps {
   onPress: () => void;
   disabled?: boolean;
   error?: boolean;
+  /**
+   * Report the selection to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const RadioButton = ({
@@ -19,8 +25,10 @@ const RadioButton = ({
   onPress,
   disabled,
   error,
+  feedback = true,
 }: RadioButtonProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
 
   const radioColor = useMemo(
     () =>
@@ -50,7 +58,10 @@ const RadioButton = ({
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        emitFeedback("selection");
+        onPress();
+      }}
       accessibilityLabel={label}
       accessibilityRole="radio"
       accessibilityState={{ selected, disabled }}
@@ -116,6 +127,11 @@ export interface RadioGroupProps {
   direction?: "column" | "row";
   disabled?: boolean;
   error?: string;
+  /**
+   * Report each selection to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 export const RadioGroup = ({
@@ -126,6 +142,7 @@ export const RadioGroup = ({
   direction = "column",
   disabled,
   error,
+  feedback = true,
 }: RadioGroupProps) => {
   const { theme } = useTheme();
 
@@ -155,6 +172,7 @@ export const RadioGroup = ({
               onPress={() => onValueChange(option.value)}
               disabled={disabled || option.disabled}
               error={!!error}
+              feedback={feedback}
             />
           </View>
         ))}

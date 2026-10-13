@@ -61,7 +61,13 @@ supports a manual toggle.
 
 ## Providers
 
-- `ThemeProvider` — Material You theme derived from `theme.json` (see above).
+- `ThemeProvider` — Material You theme derived from `theme.json` (see above). It also provides
+  `onInteractionFeedback` through its own context (`providers/InteractionFeedback.tsx`): a
+  stable `emit` reading the latest handler from a ref, so an inline handler re-renders nothing
+  and stays out of the theme's value. A control that reports feedback takes `feedback?: boolean`
+  (default true), calls `useInteractionFeedback(feedback)` and emits **before** its handler,
+  only on a press that does something. The library plays no haptic itself and must not depend on
+  a haptics module: `@its/glowup-device/haptics` is wired in by the app.
 - `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom Modal on
   web. Call the `Alert(title, message, buttons)` singleton; `AlertProvider` wires it up
   (`AlertProviderWrapper` is a deprecated pass-through).

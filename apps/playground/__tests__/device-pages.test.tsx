@@ -11,17 +11,35 @@ import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 import { DeviceAdaptersProvider } from "@its/glowup-device";
 import {
   buildPosition,
+  createMockBatteryAdapter,
   createMockCameraAdapter,
   createMockDeviceInfoAdapter,
+  createMockHapticsAdapter,
+  createMockKeepAwakeAdapter,
   createMockLocationAdapter,
+  createMockNetworkAdapter,
+  createMockOrientationAdapter,
+  OFFLINE_NETWORK,
+  type MockBatteryAdapter,
   type MockCameraAdapter,
+  type MockHapticsAdapter,
+  type MockKeepAwakeAdapter,
   type MockLocationAdapter,
+  type MockNetworkAdapter,
+  type MockOrientationAdapter,
 } from "@its/glowup-device/testing";
+import * as ExpoHaptics from "expo-haptics";
 
 import DeviceOverview from "../app/device";
+import BatteryPage from "../app/device/battery";
 import CameraPage from "../app/device/camera";
+import HapticsPage from "../app/device/haptics";
 import DeviceInfoPage from "../app/device/info";
+import KeepAwakePage from "../app/device/keep-awake";
 import LocationPage from "../app/device/location";
+import NetworkPage from "../app/device/network";
+import OrientationPage from "../app/device/orientation";
+import { HapticThemeProvider } from "../site/HapticsPreference";
 
 // The pages run on the package's in-memory adapters; the Expo modules behind
 // the defaults only need to load.
@@ -29,13 +47,37 @@ jest.mock("expo-location", () => ({ LocationAccuracy: {} }));
 jest.mock("expo-camera", () => ({ CameraView: () => null, Camera: {} }));
 jest.mock("expo-device", () => ({ DeviceType: {} }));
 jest.mock("expo-application", () => ({}));
+jest.mock("@react-native-community/netinfo", () => ({
+  __esModule: true,
+  default: {},
+}));
+jest.mock("expo-battery", () => ({ BatteryState: {} }));
+jest.mock("expo-keep-awake", () => ({}));
+jest.mock("expo-screen-orientation", () => ({
+  Orientation: {},
+  OrientationLock: {},
+}));
+// The site wires hapticFeedback, which plays on the default (Expo) adapter.
+jest.mock("expo-haptics", () => ({
+  ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
+  NotificationFeedbackType: {},
+  AndroidHaptics: {},
+  impactAsync: jest.fn(async () => {}),
+  selectionAsync: jest.fn(async () => {}),
+}));
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(async () => null),
+  setItem: jest.fn(async () => {}),
+}));
 
 // No navigator is mounted (as in the catalogue test): the focus effect runs
 // once, as on a page that is focused.
 const mockPush = jest.fn();
+let mockFocused = true;
 jest.mock("expo-router", () => ({
   ...jest.requireActual("expo-router"),
   useRouter: () => ({ push: mockPush }),
+  useIsFocused: () => mockFocused,
   useFocusEffect: (effect: () => void | (() => void)) => {
     const { useEffect: useMountEffect } = jest.requireActual("react");
     useMountEffect(effect, [effect]);
@@ -44,10 +86,22 @@ jest.mock("expo-router", () => ({
 
 let location: MockLocationAdapter;
 let camera: MockCameraAdapter;
+let network: MockNetworkAdapter;
+let battery: MockBatteryAdapter;
+let keepAwake: MockKeepAwakeAdapter;
+let orientation: MockOrientationAdapter;
+let haptics: MockHapticsAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
   camera = createMockCameraAdapter();
+  network = createMockNetworkAdapter();
+  battery = createMockBatteryAdapter();
+  keepAwake = createMockKeepAwakeAdapter();
+  orientation = createMockOrientationAdapter();
+  haptics = createMockHapticsAdapter();
+  mockFocused = true;
+  jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
 
 const Providers = ({ children }: { children: ReactNode }) => (
@@ -65,6 +119,11 @@ const Providers = ({ children }: { children: ReactNode }) => (
               info: createMockDeviceInfoAdapter({ model: "Pixel 8" }),
               location,
               camera,
+              network,
+              battery,
+              keepAwake,
+              orientation,
+              haptics,
             }}
           >
             {children}
@@ -81,6 +140,11 @@ it("links the overview to every capability", async () => {
     ["Device info", "/device/info"],
     ["Location", "/device/location"],
     ["Camera", "/device/camera"],
+    ["Network", "/device/network"],
+    ["Battery", "/device/battery"],
+    ["Keep awake", "/device/keep-awake"],
+    ["Orientation", "/device/orientation"],
+    ["Haptics", "/device/haptics"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -165,5 +229,93 @@ describe("camera", () => {
     });
     await act(async () => camera.scan({ data: "TICKET-42" }));
     expect(screen.getByText("TICKET-42")).toBeTruthy();
+  });
+});
+
+it("follows the network", async () => {
+  await render(<NetworkPage />, { wrapper: Providers });
+  await waitFor(() => expect(screen.getByText("Online")).toBeTruthy());
+  expect(screen.getByText("wifi")).toBeTruthy();
+  await act(async () => network.setState(OFFLINE_NETWORK));
+  expect(screen.getByText("Offline")).toBeTruthy();
+  await fireEvent.press(screen.getByText("Check again"));
+  await waitFor(() => expect(network.refreshCount).toBe(1));
+});
+
+it("follows the battery", async () => {
+  await render(<BatteryPage />, { wrapper: Providers });
+  await waitFor(() => expect(screen.getByText("80%")).toBeTruthy());
+  expect(screen.getAllByText("On battery").length).toBeGreaterThan(0);
+  await act(async () =>
+    battery.setStatus({ level: 1, charging: "full", lowPowerMode: true }),
+  );
+  expect(screen.getByText("100%")).toBeTruthy();
+  expect(screen.getByText("On")).toBeTruthy();
+});
+
+describe("keep awake", () => {
+  it("holds the screen while switched on and focused", async () => {
+    await render(<KeepAwakePage />, { wrapper: Providers });
+    expect(keepAwake.isAwake).toBe(false);
+    await fireEvent.press(screen.getByRole("switch"));
+    await waitFor(() => expect(keepAwake.isAwake).toBe(true));
+    expect(screen.getByText("Holding")).toBeTruthy();
+  });
+
+  it("lets go while another page is on screen", async () => {
+    mockFocused = false;
+    await render(<KeepAwakePage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByRole("switch"));
+    expect(keepAwake.isAwake).toBe(false);
+  });
+});
+
+describe("orientation", () => {
+  it("shows the orientation and locks on demand", async () => {
+    await render(<OrientationPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("portrait-up")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Landscape"));
+    await waitFor(() => expect(screen.getByText("Locked")).toBeTruthy());
+    expect(orientation.currentLock).toBe("landscape");
+    expect(screen.getByText("landscape-left")).toBeTruthy();
+    await fireEvent.press(screen.getByText("App's own"));
+    await waitFor(() => expect(orientation.currentLock).toBeNull());
+  });
+
+  it("reports a refused lock", async () => {
+    orientation = createMockOrientationAdapter({ lockable: false });
+    await render(<OrientationPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByRole("radio", { name: "Portrait" }));
+    await waitFor(() => expect(screen.getByText("Refused")).toBeTruthy());
+  });
+});
+
+describe("haptics", () => {
+  const SiteProviders = ({ children }: { children: ReactNode }) => (
+    <Providers>
+      <HapticThemeProvider>{children}</HapticThemeProvider>
+    </Providers>
+  );
+
+  it("plays through the provided adapter, without a second press feedback", async () => {
+    await render(<HapticsPage />, { wrapper: SiteProviders });
+    await fireEvent.press(screen.getByText("Impact heavy"));
+    await fireEvent.press(screen.getByText("Notify success"));
+    expect(haptics.events).toEqual([
+      { type: "impact", style: "heavy" },
+      { type: "notification", feedback: "success" },
+    ]);
+    expect(ExpoHaptics.impactAsync).not.toHaveBeenCalled();
+  });
+
+  it("wires every control to hapticFeedback until switched off", async () => {
+    await render(<HapticsPage />, { wrapper: SiteProviders });
+    const control = screen.getByRole("switch");
+    // Turning it off is itself a toggle, answered while still on.
+    await fireEvent.press(control);
+    expect(ExpoHaptics.impactAsync).toHaveBeenCalledWith("light");
+    jest.mocked(ExpoHaptics.impactAsync).mockClear();
+    await fireEvent.press(control);
+    expect(ExpoHaptics.impactAsync).not.toHaveBeenCalled();
   });
 });

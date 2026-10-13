@@ -21,7 +21,17 @@ describe("package exports", () => {
   });
 
   it("lists the capability subpaths", () => {
-    expect(subpaths).toEqual(["info", "location", "camera", "testing"]);
+    expect(subpaths).toEqual([
+      "info",
+      "location",
+      "camera",
+      "network",
+      "battery",
+      "keep-awake",
+      "orientation",
+      "haptics",
+      "testing",
+    ]);
   });
 
   it.each(subpaths)("./%s points at its source and build output", (name) => {

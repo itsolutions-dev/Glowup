@@ -10,6 +10,11 @@ const DEVICE_CAPABILITIES = {
   info: ["expo-device", "expo-application"],
   location: ["expo-location"],
   camera: ["expo-camera"],
+  network: ["@react-native-community/netinfo"],
+  battery: ["expo-battery"],
+  "keep-awake": ["expo-keep-awake"],
+  orientation: ["expo-screen-orientation"],
+  haptics: ["expo-haptics"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

@@ -1,6 +1,7 @@
 # Glowup consumer smoke test
 
-A minimal Expo app that consumes **`@its/glowup-ui` installed from the npm registry**.
+A minimal Expo app that consumes **`@its/glowup-ui` and `@its/glowup-device` installed from
+the npm registry**.
 
 ## Why this exists
 
@@ -15,6 +16,11 @@ tarball's manifest and types statically; this app is the runtime half:
   imported `theme.json`, a file the declaration build does not emit — `App.tsx` annotates a
   value as `ThemeColorTokens` so a regression like that fails here),
 - the **declared peer dependencies** are sufficient to render.
+
+`Device.tsx` does the same for `@its/glowup-device`: every subpath (`/info`, `/location`,
+`/camera`, `/testing`) resolves with its published types, the root entry loads without any
+Expo module, and the config plugin listed in `app.json` resolves from the published package
+(`expo export` reads the app config, so a broken `./app.plugin.js` export fails the job).
 
 ## Why it is NOT in the workspaces
 
@@ -38,9 +44,10 @@ npm run web          # or open it in a browser
 
 ## Which version it tests
 
-CI does not trust a range: it reads the version `packages/ui/package.json` declares at
-the commit being tested and installs exactly that (`npm install --no-save
-@its/glowup-ui@<version>`), waiting for it to appear on the registry first. On `master`
+CI does not trust a range: it reads the versions `packages/ui/package.json` and
+`packages/device/package.json` declare at the commit being tested and installs exactly those
+(`npm install --no-save @its/glowup-ui@<version> @its/glowup-device@<version>`), waiting for
+them to appear on the registry first. On `master`
 that is the version Release just published, so a publish that failed shows up here as a
 failure instead of a green run against an older release.
 

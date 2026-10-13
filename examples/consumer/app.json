@@ -8,6 +8,19 @@
       "bundler": "metro",
       "output": "single"
     },
-    "plugins": ["expo-status-bar"]
+    "plugins": [
+      "expo-status-bar",
+      [
+        "@its/glowup-device",
+        {
+          "location": {
+            "whenInUsePermission": "Checks that the published location capability configures the app."
+          },
+          "camera": {
+            "cameraPermission": "Checks that the published camera capability configures the app."
+          }
+        }
+      ]
+    ]
   }
 }

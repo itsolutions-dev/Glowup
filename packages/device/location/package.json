@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/location/index.js",
+  "module": "../lib/module/location/index.js",
+  "types": "../lib/typescript/location/index.d.ts",
+  "react-native": "../src/location/index.ts",
+  "source": "../src/location/index.ts"
+}

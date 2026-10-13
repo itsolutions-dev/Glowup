@@ -85,7 +85,7 @@ plugins: [
 | Phase | Content                                                                                                                       | Status   |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 1     | Scaffolding: workspace, export map + fallback folders, core (permission model, platform guards), ESLint boundaries, build, CI | **done** |
-| 2     | Device info: adapter contract, Expo adapter, `DeviceAdaptersProvider`, hooks, mock adapter                                    |          |
+| 2     | Device info: adapter contract, Expo adapter, `DeviceAdaptersProvider`, hooks, mock adapter                                    | **done** |
 | 3     | Location: permission, current position, watch; config plugin (location part)                                                  |          |
 | 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   |          |
 | 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      |          |
@@ -103,6 +103,18 @@ provider and mock pattern before location and camera build on it.
   guards (`isNativePlatform`, `hasDOM()`, `assertSupported()`).
 - Empty `info`, `location`, `camera`, `testing` entry points.
 - Root `build` script and CI's `validate-package` step include the package.
+
+### Phase 2 — what landed
+
+- `/info`: `useDeviceInfo()` and `expoDeviceInfoAdapter` over `expo-device` +
+  `expo-application` (optional peers). The contract is synchronous: the values are constants
+  the OS fixes at launch. Empty strings (expo-device on web) become `null`.
+- Root: `DeviceAdaptersProvider` (nested providers inherit unset adapters).
+- `/testing`: `createMockDeviceInfoAdapter()`, `MOCK_DEVICE_INFO`.
+- The hook uses `useSyncExternalStore` with a server snapshot, so the static export
+  prerenders "unknown" and hydrates without a mismatch (tested with `react-dom/server`).
+- Known limit, documented: in Expo Go `app.*` describes Expo Go. Reading `expo-constants`
+  instead would add a peer for a development-only case.
 
 ### To verify in phase 4
 

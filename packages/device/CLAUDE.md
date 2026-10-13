@@ -23,6 +23,14 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   ties the API to one implementation. The Expo adapter is the default (imported by its
   subpath); an app overrides it through the provider, and `/testing` supplies in-memory
   adapters the same way — no `jest.mock` of Expo modules.
+- **The provider** (`src/core/adapters.tsx`) lives in core and names each capability's adapter
+  by `import type` only. A new capability adds its key to `DeviceAdapters` and to the
+  provider's `useMemo` (one dependency per adapter, because `adapters` is usually an inline
+  literal). Hooks read `useDeviceAdapter(key) ?? <expo default>`.
+- **Static values go through `useSyncExternalStore`** with a server snapshot (see
+  `info/useDeviceInfo.ts`): the web export prerenders in Node, and rendering the adapter's
+  answer there would mismatch on hydration. `__tests__/info-ssr.test.tsx` pins it with
+  `react-dom/server`.
 - **Permissions.** Every capability reports `PermissionState` (`src/core/types.ts`).
   Expo adapters convert with `toPermissionState()`; a capability needing several
   permissions (camera + microphone) combines them with `combinePermissions()`. It is a copy
@@ -30,5 +38,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
 - **Web.** The static export prerenders in Node. Read browser globals at call time
   (`hasDOM()`), never at module scope, and keep an `isSupported` / `assertSupported()`
   guard on every imperative API.
+- **`react` and `react-dom` are pinned dev dependencies** at the playground's versions. Without
+  them, adding an Expo module whose peer is `expo` fails with ERESOLVE: npm resolves expo's
+  optional `react-dom` peer to the latest release, whose `react` peer the tree cannot meet.
+  Bump them with the Expo SDK, like every other native version.
 - Build, `files`, source maps and `validate-package` work as in `packages/ui` (see its
   CLAUDE.md).

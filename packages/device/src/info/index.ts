@@ -1,6 +1,7 @@
 /**
- * `@its/glowup-device/info` — reserved. The entry point ships empty until its
- * phase of docs/device-package-plan.md lands, so the export map, the node10
- * fallback folder and the type checks are in place before any code is.
+ * `@its/glowup-device/info` — model, OS, device type, emulator, app version
+ * and build. Needs `expo-device` and `expo-application`.
  */
-export {};
+export { useDeviceInfo } from "./useDeviceInfo";
+export { expoDeviceInfoAdapter } from "./expo";
+export type { DeviceInfo, DeviceInfoAdapter, DeviceType } from "./types";

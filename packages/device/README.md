@@ -1,7 +1,7 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network, battery, keep-awake and device info, each behind an adapter the app can
+scanning), network, battery, keep-awake, screen orientation and device info, each behind an adapter the app can
 replace.
 
 ## Install
@@ -15,6 +15,7 @@ npx expo install expo-camera                    # /camera
 npx expo install @react-native-community/netinfo # /network
 npx expo install expo-battery                   # /battery
 npx expo install expo-keep-awake                # /keep-awake
+npx expo install expo-screen-orientation        # /orientation
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -23,16 +24,17 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                          | Needs                             | Exports                                                           |
-| ------------------------------- | --------------------------------- | ----------------------------------------------------------------- |
-| `@its/glowup-device`            | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                       |
-| `@its/glowup-device/info`       | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
-| `@its/glowup-device/location`   | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
-| `@its/glowup-device/camera`     | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
-| `@its/glowup-device/network`    | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                       |
-| `@its/glowup-device/battery`    | `expo-battery`                    | `useBattery`                                                      |
-| `@its/glowup-device/keep-awake` | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                             |
-| `@its/glowup-device/testing`    | nothing native                    | in-memory adapters for every capability                           |
+| Import                           | Needs                             | Exports                                                             |
+| -------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `@its/glowup-device`             | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                         |
+| `@its/glowup-device/info`        | `expo-device`, `expo-application` | `useDeviceInfo`                                                     |
+| `@its/glowup-device/location`    | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`   |
+| `@its/glowup-device/camera`      | `expo-camera`                     | `CameraView`, `useCameraPermission`                                 |
+| `@its/glowup-device/network`     | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                         |
+| `@its/glowup-device/battery`     | `expo-battery`                    | `useBattery`                                                        |
+| `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
+| `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
+| `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -300,6 +302,53 @@ function Upload({ busy }: { busy: boolean }) {
   expo-keep-awake's web build is not used: it never re-acquires after a tab switch, and a
   deactivation that beats the pending request leaks the lock.
 
+## Orientation
+
+The interface orientation, kept live, and locks that last as long as the component that asks.
+
+```bash
+npx expo install expo-screen-orientation
+```
+
+```tsx
+import {
+  useOrientation,
+  useOrientationLock,
+} from "@its/glowup-device/orientation";
+
+function Gallery() {
+  const { isLandscape } = useOrientation();
+  return <Grid columns={isLandscape ? 4 : 2} />;
+}
+
+function VideoPlayer() {
+  const { error } = useOrientationLock("landscape"); // until unmount
+  return <Video fullscreen hint={error ? "Rotate your phone" : undefined} />;
+}
+```
+
+- **The interface, not the device.** `orientation` is how the app is drawn
+  (`portrait-up | portrait-down | landscape-left | landscape-right | unknown`): an app held in
+  portrait reads portrait whichever way the phone is turned. Left and right follow iOS's names,
+  on every platform.
+- **Locks:** `any | portrait | landscape | landscape-left | landscape-right`. `portrait` is
+  upright only (iPhones without a home button refuse upside down, and with it the whole lock).
+- **Scoped and stacked.** A lock holds while its component is mounted (and `enabled`). The most
+  recent wins; when it lets go the previous one applies again, and after the last one the
+  orientation goes back to **the app's own configuration** (app.json `orientation`), not to
+  "anything goes": expo-screen-orientation's `unlockAsync()` would let a portrait-only app
+  rotate, so the adapter saves the app's lock before the first one and restores it.
+- **Errors are state.** A refused lock sets `error` (`OrientationError`, code `unsupported` or
+  `failed`); nothing is thrown.
+- **iPad:** iOS ignores orientation locks while the app supports multitasking (Split View, Slide
+  Over). Set `ios.requireFullScreen: true` in app.json for locks to apply there.
+- **Web** reads `screen.orientation` directly. Reading works in every current browser;
+  **locking almost never does**: only mobile Chromium in fullscreen allows it. Desktop Chromium
+  has the API and refuses every lock (`NotSupportedError`), so `useOrientationLockSupport()`
+  only says whether the API exists; the lock's `error` (`code: "unsupported"`) is the real
+  answer. expo-screen-orientation's web build is not used: its unlock calls `lock("natural")`,
+  a lock that also rejects outside fullscreen.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -406,3 +455,7 @@ notifies every listening component, as a platform event would.
 `createMockBatteryAdapter()` starts at 80 % unplugged (`MOCK_BATTERY`); `setStatus({ level: 0.1 })`
 notifies every listening component. `createMockKeepAwakeAdapter()` records the active tags:
 assert on `isAwake` (`{ supported: false }` stands in for a browser without the API).
+
+`createMockOrientationAdapter()` starts in `portrait-up`; a lock rotates it to match, as a device
+would, and `calls` records every lock and unlock (`"unlock"`). `{ lockable: false }` stands in
+for a browser that refuses every lock; `setOrientation("landscape-left")` rotates it by hand.

@@ -28,6 +28,7 @@ describe("package exports", () => {
       "network",
       "battery",
       "keep-awake",
+      "orientation",
       "testing",
     ]);
   });

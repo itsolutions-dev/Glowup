@@ -223,7 +223,7 @@ module's source before its contract is written, as phases 3 and 4 did.
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           | **done** |
 | 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store | **done** |
-| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             |          |
+| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             | **done** |
 | 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |          |
 | 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |          |
 
@@ -266,10 +266,39 @@ module's source before its contract is written, as phases 3 and 4 did.
   its deactivation.
 - `/testing`: `createMockBatteryAdapter()` + `MOCK_BATTERY`, `createMockKeepAwakeAdapter()`.
 
+### Phase 9 — what landed
+
+- `/orientation`: `useOrientation()` (the interface orientation, live, with `isLandscape`),
+  `useOrientationLock(lock, { enabled })` scoped to the component and
+  `useOrientationLockSupport()`. Native on expo-screen-orientation `~57.0.2`.
+- **Interface orientation only** (decided): the device's physical orientation belongs to the
+  sensors (v0.4).
+- **Locks are stacked**, most recent wins (`src/orientation/lockStack.ts`): a video screen
+  inside a portrait-locked flow locks landscape and gives portrait back on unmount, and a screen
+  replacing another never unlocks in between.
+- **Unlock means "the app's own orientation".** Read in the source: expo-screen-orientation's
+  `unlockAsync()` is `lockAsync(DEFAULT)`, i.e. "all but upside down" on iOS and `UNSPECIFIED`
+  on Android, so a portrait-only app starts rotating after any lock is released. The adapter
+  saves `getPlatformOrientationLockAsync()` before the first lock and restores it with
+  `lockPlatformAsync()`; Android's landscape attribute is 0, which `lockPlatformAsync()` rejects
+  as "undefined", so that one case goes through `lockAsync(LANDSCAPE_RIGHT)` (expo maps it to
+  exactly that attribute). `portrait` locks `PORTRAIT_UP`: expo's `PORTRAIT` includes upside
+  down on iOS, which iPhones without a home button reject, failing the whole lock.
+- **Web: our own adapter.** expo-screen-orientation's web `unlockAsync()` goes through
+  `lockAsync(DEFAULT)` → `screen.orientation.lock("natural")`: another lock, which also rejects
+  outside fullscreen. `web.ts` reads `screen.orientation`, locks with its names (mapped as expo
+  maps them, so a value means the same everywhere) and unlocks with `unlock()`. A refused lock
+  is `OrientationError("unsupported")`, reported in the hook's `error` (decided).
+- Checked in Chromium (Playwright, desktop and mobile emulation): `screen.orientation.lock` is
+  a function in both and rejects with `NotSupportedError` outside fullscreen; `unlock()` does
+  not throw. So `useOrientationLockSupport()` means "the API exists", and the lock's `error`
+  is the real answer.
+- `/testing`: `createMockOrientationAdapter()`.
+
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
 only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API
-(secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on web (often only in fullscreen);
-haptics on web (no-op, or `navigator.vibrate` on Android Chrome).
+(secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on
+web (only mobile Chromium in fullscreen) — done, phase 9; haptics on web (no-op, or `navigator.vibrate` on Android Chrome).
 
 ## Open for later
 

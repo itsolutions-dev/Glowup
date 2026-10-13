@@ -36,3 +36,8 @@ export {
   createMockKeepAwakeAdapter,
   type MockKeepAwakeAdapter,
 } from "./keepAwake";
+export {
+  createMockOrientationAdapter,
+  type MockOrientationAdapter,
+  type MockOrientationOptions,
+} from "./orientation";

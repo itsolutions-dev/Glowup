@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -74,6 +74,15 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `web.ts` holds the Screen Wake Lock itself, not expo-keep-awake's web build: it re-acquires on
   `visibilitychange`, sends one request per tag at a time and releases a lock granted after its
   deactivation. Its holds are module state: its test loads it with `jest.isolateModules`.
+- **Orientation** (`src/orientation`): `useOrientation()` on the live store; locks go through
+  `lockStack.ts`, one stack per adapter: the most recent lock wins, platform calls run one at a
+  time against the stack as it is when they run (a screen replacing another never unlocks in
+  between), and the last release calls `adapter.unlock()`, which means "back to the app's own
+  orientation". The Expo adapter saves `getPlatformOrientationLockAsync()` before its first
+  lock and restores it, because expo's `unlockAsync()` lets a portrait-only app rotate; Android's
+  `SCREEN_ORIENTATION_LANDSCAPE` is 0, which `lockPlatformAsync` rejects, so it goes through
+  `lockAsync(LANDSCAPE_RIGHT)`. On web `web.ts` on `screen.orientation` (expo's web unlock is
+  `lock("natural")`).
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

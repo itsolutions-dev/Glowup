@@ -13,6 +13,7 @@ const DEVICE_CAPABILITIES = {
   network: ["@react-native-community/netinfo"],
   battery: ["expo-battery"],
   "keep-awake": ["expo-keep-awake"],
+  orientation: ["expo-screen-orientation"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

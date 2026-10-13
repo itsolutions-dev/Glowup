@@ -89,7 +89,31 @@ renders that same array, so a shortcut cannot exist without being documented.
 large / extraLarge) and `useLayout()` is the only way to ask about width. Do not compare
 `useWindowDimensions().width` to a number anywhere else: the previous screen switched layout at
 960 while the drawer switched at 840, and between the two you got a permanent drawer beside a
-layout that still believed it was on a phone.
+layout that still believed it was on a phone. `useLayout()` reads the window through
+`site/useWindowSize.ts`, never `useWindowDimensions()` directly (see Hydration).
+
+## Hydration
+
+Every page is prerendered in Node and hydrated in the browser, and the first client render has
+to match the HTML or React throws the page away and re-renders it (minified error #418, once
+on every page). Four causes were found and fixed; keep them fixed:
+
+- **The window size.** Node's window is 0 × 0 (compact layout); a desktop browser's is not.
+  `useWindowSize()` reports the server's size while hydrating and the real one right after.
+- **The icon font.** An icon renders empty until its font counts as loaded, and in Node that
+  only happens through `useFonts` / `loadAsync`. `app/_layout.tsx` calls
+  `useFonts(MaterialCommunityIcons.font)` so the prerender draws icons and the HTML carries the
+  `@font-face`; without it the page content (hydrated after the shell, whose icons had loaded
+  the font) drew glyphs where the HTML had none.
+- **The current time.** The export freezes the build's "now". Date and time stages start from
+  `DEMO_DATE` (`catalogue/ComponentPreview.tsx`), never `new Date()`.
+- **The library's `Grid`** (`minChildWidth`) falls back to the window width before its first
+  layout pass; it reads it through a server snapshot too (`packages/ui`,
+  `components/internal/useWindowWidth.ts`).
+
+To check: `EXPO_WEB_DEV_HYDRATE=1 npx expo start --web` hydrates in development, where React
+prints the actual diff instead of the minified code. Load pages at a desktop and a phone width,
+and once with the browser clock moved forward (Playwright's `page.clock`).
 
 ## Publishing the documentation site
 

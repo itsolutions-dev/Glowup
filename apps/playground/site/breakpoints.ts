@@ -1,4 +1,4 @@
-import { useWindowDimensions } from "react-native";
+import { useWindowSize } from "./useWindowSize";
 
 /**
  * Material 3 window size classes, in dp. One source of truth for every
@@ -55,7 +55,7 @@ export interface Layout {
  * by hand asks this instead, so a change of breakpoint is a change in one file.
  */
 export const useLayout = (): Layout => {
-  const { width, height } = useWindowDimensions();
+  const { width, height } = useWindowSize();
   const sizeClass = sizeClassFor(width);
   const atLeast = (size: SizeClass) => width >= BREAKPOINTS[size];
 

@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useFonts } from "expo-font";
 import {
   DarkTheme,
   DefaultTheme,
@@ -25,6 +27,14 @@ import { ThemeStatusBar } from "../site/ThemeStatusBar";
  * navigator header on native and nothing on web.
  */
 export default function RootLayout() {
+  // The icon font, registered during the static render too. An icon renders
+  // nothing until its font counts as loaded, and in Node that only happens
+  // through loadAsync / useFonts (which then puts the @font-face in the
+  // exported HTML). Without this the prerender drew every icon empty while the
+  // browser — hydrating the page after the shell, whose icons had loaded the
+  // font by then — drew them with glyphs: React's hydration error #418.
+  useFonts(MaterialCommunityIcons.font);
+
   return (
     <ThemeProvider>
       <SafeAreaProvider>

@@ -153,6 +153,12 @@ const describeEvent = (
         title: "Category error",
         detail: String(event.error),
       };
+    case "web-push-error":
+      return {
+        icon: "alert-circle-outline",
+        title: "Web Push error",
+        detail: String(event.error),
+      };
     case "received":
       return {
         icon: "bell-ring-outline",

@@ -82,10 +82,18 @@ export interface PermissionRequestOptions {
 
 export type PushTokenType = "expo" | "device";
 
-export interface PushToken {
-  type: "expo" | "ios" | "android";
-  data: string;
-}
+export type PushToken =
+  | {
+      type: "expo" | "ios" | "android";
+      data: string;
+    }
+  | {
+      /** A Web Push subscription. `data` is its JSON, ready to store and hand to `web-push`. */
+      type: "web";
+      data: string;
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+    };
 
 export type PushTokenStatus = "idle" | "loading" | "ready" | "error";
 
@@ -95,6 +103,7 @@ export type NotificationsEvent =
   | { type: "token-error"; error: unknown }
   | { type: "channels-error"; error: unknown }
   | { type: "categories-error"; error: unknown }
+  | { type: "web-push-error"; error: unknown }
   | { type: "received"; id: string }
   | {
       type: "response";
@@ -154,4 +163,38 @@ export interface NotificationAction {
 export interface NotificationCategory {
   id: string;
   actions: readonly NotificationAction[];
+}
+
+/** Web Push setup for the provider's `webPush` prop. */
+export interface WebPushConfig {
+  /**
+   * Where the app serves the service worker shipped as
+   * `@its/glowup-notifications/service-worker.js`. Default `"/glowup-push-sw.js"`.
+   */
+  serviceWorkerPath?: string;
+  /** Service worker scope. Default: the browser's, i.e. the worker file's folder. */
+  scope?: string;
+  /**
+   * The VAPID public key (URL-safe base64) of the server that sends the pushes.
+   * Without it the permission still works but no subscription is created.
+   */
+  vapidPublicKey?: string;
+}
+
+/**
+ * What the server sends as the body of a Web Push message (JSON). The service
+ * worker shows it, or hands it to an open tab.
+ */
+export interface WebPushPayload {
+  /** Stable id: a second push with the same id replaces the first. */
+  id?: string;
+  title?: string;
+  body?: string;
+  data?: Record<string, unknown>;
+  icon?: string;
+  badge?: string;
+  /** Page to open when the notification is tapped and no tab is open. Default "/". */
+  url?: string;
+  /** Buttons, where the browser supports them. The chosen `action` reaches onResponse. */
+  actions?: { action: string; title: string; icon?: string }[];
 }

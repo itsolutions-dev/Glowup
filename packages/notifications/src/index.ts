@@ -10,6 +10,7 @@ export {
   type UsePushToken,
 } from "./hooks";
 export { DEFAULT_FOREGROUND } from "./foreground";
+export { isWebPushSupported } from "./web/webPush";
 export {
   scheduleNotification,
   cancelScheduledNotification,
@@ -44,4 +45,6 @@ export type {
   PushTokenStatus,
   PushTokenType,
   ScheduledNotification,
+  WebPushConfig,
+  WebPushPayload,
 } from "./types";

@@ -28,12 +28,14 @@
       "types": "./lib/typescript/testing/index.d.ts",
       "default": "./lib/commonjs/testing/index.js"
     },
+    "./service-worker.js": "./service-worker/glowup-push-sw.js",
     "./package.json": "./package.json"
   },
   "files": [
     "src",
     "lib",
     "testing",
+    "service-worker",
     "!**/*.map",
     "!**/__tests__",
     "!**/__fixtures__",
@@ -43,7 +45,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "bob build && node ../../scripts/strip-declaration-maps.mjs",
-    "validate-package": "publint && attw --pack .",
+    "validate-package": "publint && attw --pack . --exclude-entrypoints ./service-worker.js",
     "clean": "del-cli lib",
     "prepack": "npm run build",
     "type-check": "tsc --noEmit",
@@ -54,7 +56,8 @@
     "expo",
     "expo-notifications",
     "push-notifications",
-    "headless"
+    "headless",
+    "web-push"
   ],
   "peerDependencies": {
     "expo-notifications": ">=57",

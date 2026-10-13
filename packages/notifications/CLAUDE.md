@@ -10,6 +10,12 @@
 - **Web.** `isNotificationsSupported` (`src/support.ts`) is false on web. The provider skips
   every native call there, and the imperative helpers (scheduling, badge, presented) call
   `assertSupported()` and reject. Keep one of the two guards on anything new.
+- **Web Push** (`src/web/webPush.ts`, `service-worker/glowup-push-sw.js`) uses browser APIs
+  directly, not expo-notifications. Browser globals are read at call time only: the static
+  export prerenders in Node. The worker is a plain script that consumers serve as is (no
+  imports, no build). It talks to the page with `postMessage` (`source: "glowup-notifications"`)
+  and through the URL hash when a tap opens a new tab, so change both sides together.
+  `validate-package` excludes `./service-worker.js` from attw because it is a script, not a module.
 - **Callbacks through `latest`.** The provider registers its native listeners once and reads
   props through a ref. Don't put callback props in effect dependencies.
 - **Response dedupe** (`src/responses.ts`) is module-scoped on purpose: it must survive a

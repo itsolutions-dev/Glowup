@@ -31,6 +31,9 @@
       "@its/glowup-device/orientation": [
         "../../packages/device/src/orientation/index.ts"
       ],
+      "@its/glowup-device/haptics": [
+        "../../packages/device/src/haptics/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

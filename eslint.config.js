@@ -14,6 +14,7 @@ const DEVICE_CAPABILITIES = {
   battery: ["expo-battery"],
   "keep-awake": ["expo-keep-awake"],
   orientation: ["expo-screen-orientation"],
+  haptics: ["expo-haptics"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

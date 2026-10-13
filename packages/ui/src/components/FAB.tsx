@@ -9,6 +9,7 @@ import {
 import Icons from "./Glyph";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { useStateLayer } from "./TouchableRipple";
 import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
@@ -33,6 +34,11 @@ export interface FABProps {
   placement?: FABPlacement;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  /**
+   * Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 const FAB = ({
@@ -44,8 +50,10 @@ const FAB = ({
   placement = "floating",
   disabled,
   style: customStyle,
+  feedback = true,
 }: FABProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const insets = useSafeAreaInsets();
   const stateLayer = useStateLayer(
     theme.colors.primaryContainer,
@@ -60,7 +68,10 @@ const FAB = ({
       accessibilityRole="button"
       disabled={disabled}
       accessibilityState={{ disabled }}
-      onPress={onPress}
+      onPress={() => {
+        emitFeedback("press");
+        onPress();
+      }}
       style={(state: PressableState) => [
         styles.fabBase,
         placement === "floating" && styles.floating,

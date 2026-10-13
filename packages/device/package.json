@@ -1,7 +1,7 @@
 {
   "name": "@its/glowup-device",
   "version": "0.0.0",
-  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, keep-awake, screen orientation and device info behind swappable adapters",
+  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, keep-awake, screen orientation, haptics and device info behind swappable adapters",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -58,6 +58,11 @@
       "types": "./lib/typescript/orientation/index.d.ts",
       "default": "./lib/commonjs/orientation/index.js"
     },
+    "./haptics": {
+      "source": "./src/haptics/index.ts",
+      "types": "./lib/typescript/haptics/index.d.ts",
+      "default": "./lib/commonjs/haptics/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -76,6 +81,7 @@
     "battery",
     "keep-awake",
     "orientation",
+    "haptics",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -104,7 +110,8 @@
     "network",
     "battery",
     "keep-awake",
-    "orientation"
+    "orientation",
+    "haptics"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",
@@ -113,6 +120,7 @@
     "expo-battery": ">=57",
     "expo-camera": ">=57",
     "expo-device": ">=57",
+    "expo-haptics": ">=57",
     "expo-keep-awake": ">=57",
     "expo-location": ">=57",
     "expo-screen-orientation": ">=57",
@@ -133,6 +141,9 @@
       "optional": true
     },
     "expo-device": {
+      "optional": true
+    },
+    "expo-haptics": {
       "optional": true
     },
     "expo-keep-awake": {
@@ -160,6 +171,7 @@
     "expo-battery": "~57.0.3",
     "expo-camera": "~57.0.5",
     "expo-device": "~57.0.2",
+    "expo-haptics": "~57.0.3",
     "expo-keep-awake": "~57.0.2",
     "expo-location": "~57.0.20",
     "expo-screen-orientation": "~57.0.2",

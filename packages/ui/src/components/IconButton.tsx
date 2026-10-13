@@ -6,6 +6,7 @@ import {
   getStateColor,
   getGlowStyles,
 } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import CircularProgress from "./Progress/CircularProgress";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
@@ -32,6 +33,11 @@ export interface IconButtonProps {
   accessibilityLabel: string;
   style?: StyleProp<ViewStyle>;
   testID?: string;
+  /**
+   * Report the press (a toggle when `selected` is set) to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 /**
@@ -49,8 +55,10 @@ const IconButton = ({
   accessibilityLabel,
   style,
   testID,
+  feedback = true,
 }: IconButtonProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const { box, icon: iconSize } = SIZES[size];
 
   const { background, foreground, borderColor } = useMemo(() => {
@@ -115,7 +123,14 @@ const IconButton = ({
         selected,
       }}
       disabled={!isInteractive}
-      onPress={isInteractive ? onPress : undefined}
+      onPress={
+        isInteractive && onPress
+          ? () => {
+              emitFeedback(selected === undefined ? "press" : "toggle");
+              onPress();
+            }
+          : undefined
+      }
       testID={testID}
       style={({ hovered, pressed, focused }: PressableState) => [
         styles.container,

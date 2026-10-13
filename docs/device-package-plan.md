@@ -224,7 +224,7 @@ module's source before its contract is written, as phases 3 and 4 did.
 | 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           | **done** |
 | 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store | **done** |
 | 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             | **done** |
-| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |          |
+| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              | **done** |
 | 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |          |
 
 ### Phase 7 — what landed
@@ -295,10 +295,31 @@ module's source before its contract is written, as phases 3 and 4 did.
   is the real answer.
 - `/testing`: `createMockOrientationAdapter()`.
 
+### Phase 10 — what landed
+
+- `@its/glowup-ui` (minor): `ThemeProvider onInteractionFeedback` and `useInteractionFeedback()`.
+  `Button`, `IconButton`, `FAB`, `Toggle`, `Checkbox`, `RadioButton` / `RadioGroup`, `Chip`,
+  `ToggleButtonGroup` and `Slider` (each step crossed, with a `step` only) report
+  `press | toggle | selection`, before their own handler and only when the press does
+  something; `feedback={false}` opts one out. The handler lives in its own context behind a
+  stable function, so an inline handler re-renders no control. `longPress` is in the type for
+  the app's own components: no library control has a long press yet.
+- `/haptics`: `useHaptics()` (impact, notification, selection, interaction; never rejects) and
+  `hapticFeedback` for `onInteractionFeedback`. Native on expo-haptics `~57.0.3`.
+- Defaults (proposed and kept): iOS press / toggle → light impact, selection → selection tick,
+  long press → medium impact. Android interactions through `performAndroidHapticsAsync`
+  (read in the source: `View.performHapticFeedback`, which honours the touch-feedback setting,
+  where expo's impacts use the `Vibrator`), with constants available on every API level.
+- **Web: no haptics.** expo-haptics' web build calls `navigator.vibrate` (Android Chrome: a
+  motor buzz) or, on iOS Safari, appends and clicks a hidden `<input type="checkbox" switch>`;
+  the default adapter does neither, and an app can provide one that does.
+- `/testing`: `createMockHapticsAdapter()`.
+
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
 only Chromium has) — done, phase 7; the Battery Status API (Chromium only) and the Wake Lock API
 (secure context, released when the tab is hidden) — done, phase 8; screen orientation lock on
-web (only mobile Chromium in fullscreen) — done, phase 9; haptics on web (no-op, or `navigator.vibrate` on Android Chrome).
+web (only mobile Chromium in fullscreen) — done, phase 9; haptics on web (a no-op by
+default) — done, phase 10.
 
 ## Open for later
 

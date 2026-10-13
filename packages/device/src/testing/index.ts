@@ -41,3 +41,8 @@ export {
   type MockOrientationAdapter,
   type MockOrientationOptions,
 } from "./orientation";
+export {
+  createMockHapticsAdapter,
+  type HapticEvent,
+  type MockHapticsAdapter,
+} from "./haptics";

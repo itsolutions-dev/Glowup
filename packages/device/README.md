@@ -1,7 +1,7 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network, battery, keep-awake, screen orientation and device info, each behind an adapter the app can
+scanning), network, battery, keep-awake, screen orientation, haptics and device info, each behind an adapter the app can
 replace.
 
 ## Install
@@ -16,6 +16,7 @@ npx expo install @react-native-community/netinfo # /network
 npx expo install expo-battery                   # /battery
 npx expo install expo-keep-awake                # /keep-awake
 npx expo install expo-screen-orientation        # /orientation
+npx expo install expo-haptics                   # /haptics
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -34,6 +35,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/battery`     | `expo-battery`                    | `useBattery`                                                        |
 | `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
 | `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
+| `@its/glowup-device/haptics`     | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
 | `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -349,6 +351,50 @@ function VideoPlayer() {
   answer. expo-screen-orientation's web build is not used: its unlock calls `lock("natural")`,
   a lock that also rejects outside fullscreen.
 
+## Haptics
+
+Haptic feedback, and the bridge to `@its/glowup-ui`'s controls.
+
+```bash
+npx expo install expo-haptics
+```
+
+```tsx
+import { hapticFeedback, useHaptics } from "@its/glowup-device/haptics";
+
+// Every Glowup button, switch, radio, chip and stepped slider answers with the
+// platform's own feedback:
+<ThemeProvider onInteractionFeedback={hapticFeedback}>
+  <App />
+</ThemeProvider>;
+
+function SaveButton() {
+  const haptics = useHaptics();
+  const save = async () => {
+    const ok = await submit();
+    haptics.notification(ok ? "success" : "error");
+  };
+  return <Button onPress={save}>Save</Button>;
+}
+```
+
+- **`useHaptics()`** → `{ isSupported, impact(style?), notification(type), selection(),
+interaction(kind) }`. Every call resolves, never rejects, and does nothing where unsupported;
+  the functions are stable across renders.
+- **`hapticFeedback(kind)`** plays `interaction(kind)` on the default adapter, ready for
+  `onInteractionFeedback`. It does not see `DeviceAdaptersProvider`: to route through a provided
+  adapter, pass `useHaptics().interaction` instead. The kinds (`press`, `toggle`, `selection`,
+  `longPress`) are the same strings as `@its/glowup-ui`'s; neither package imports the other.
+- **iOS:** press and toggle are a light impact, selection is the selection tick, long press a
+  medium impact.
+- **Android:** interactions go through `View.performHapticFeedback` (`VIRTUAL_KEY`,
+  `CONTEXT_CLICK`, `CLOCK_TICK`, `LONG_PRESS`), which honours the user's "touch feedback"
+  setting and exists on every API level. The explicit `impact`, `notification` and `selection`
+  use the vibrator (expo-haptics), which does not.
+- **Web:** nothing. Browsers have no haptics API; expo-haptics' web build buzzes
+  `navigator.vibrate` (Android Chrome) or clicks a hidden `<input switch>` on iOS Safari. Pass
+  your own adapter if you want that.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -459,3 +505,6 @@ assert on `isAwake` (`{ supported: false }` stands in for a browser without the 
 `createMockOrientationAdapter()` starts in `portrait-up`; a lock rotates it to match, as a device
 would, and `calls` records every lock and unlock (`"unlock"`). `{ lockable: false }` stands in
 for a browser that refuses every lock; `setOrientation("landscape-left")` rotates it by hand.
+
+`createMockHapticsAdapter()` records every haptic in `events` (`{ type: "interaction", kind:
+"press" }`, …); `clear()` empties it.

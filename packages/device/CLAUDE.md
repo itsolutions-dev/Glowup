@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -83,6 +83,12 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `SCREEN_ORIENTATION_LANDSCAPE` is 0, which `lockPlatformAsync` rejects, so it goes through
   `lockAsync(LANDSCAPE_RIGHT)`. On web `web.ts` on `screen.orientation` (expo's web unlock is
   `lock("natural")`).
+- **Haptics** (`src/haptics`): `useHaptics()` swallows every failure (haptics decorate an
+  action) and plays nothing where unsupported; `hapticFeedback` is the module-level bridge to
+  `@its/glowup-ui`'s `ThemeProvider onInteractionFeedback` on the default adapter. Its
+  `InteractionKind` repeats ui's strings instead of importing them (the packages stay
+  independent). Android interactions use `performAndroidHapticsAsync` with constants every API
+  level has (newer ones throw below API 30 / 34). The web adapter is a no-op on purpose.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

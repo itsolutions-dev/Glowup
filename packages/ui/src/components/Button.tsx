@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { getSuccessRoles } from "../providers/successRoles";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
@@ -119,6 +120,11 @@ export interface ButtonProps {
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
+  /**
+   * Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
   children?: React.ReactNode;
 }
 
@@ -142,9 +148,11 @@ const Button = ({
   accessibilityLabel,
   accessibilityHint,
   testID,
+  feedback = true,
   children,
 }: ButtonProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const {
@@ -171,7 +179,15 @@ const Button = ({
       // A no-op rather than undefined while busy: the Pressable stays enabled,
       // and an undefined handler leaves the press free to be answered by
       // whatever is listening further up.
-      onPress={isInteractive ? onPress : noop}
+      onPress={
+        isInteractive
+          ? onPress &&
+            (() => {
+              emitFeedback("press");
+              onPress();
+            })
+          : noop
+      }
       // A busy button stays focusable — `disabled` would drop it from the tab
       // order and announce it as unavailable, when it is working — so it only
       // stops answering presses.

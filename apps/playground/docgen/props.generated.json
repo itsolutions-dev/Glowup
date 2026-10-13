@@ -827,6 +827,14 @@
           "deprecated": false
         },
         {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
           "name": "fullWidth",
           "type": "boolean",
           "required": false,
@@ -1600,6 +1608,14 @@
           "deprecated": false
         },
         {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the toggle to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
           "name": "indeterminate",
           "type": "boolean",
           "required": false,
@@ -1654,6 +1670,14 @@
           "type": "boolean",
           "required": false,
           "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report presses: a `\"checkbox\"` chip toggles, a `\"radio\"` one selects to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
           "deprecated": false
         },
         {
@@ -2997,6 +3021,14 @@
           "deprecated": false
         },
         {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
           "name": "label",
           "type": "string",
           "required": false,
@@ -3262,6 +3294,14 @@
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the press (a toggle when `selected` is set) to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
           "deprecated": false
         },
         {
@@ -4829,6 +4869,14 @@
           "deprecated": false
         },
         {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the selection to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
           "name": "label",
           "type": "string",
           "required": false,
@@ -5233,6 +5281,14 @@
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report each step the thumb crosses to `ThemeProvider`'s\n`onInteractionFeedback` (haptics), as a selection. Only with a `step`: a\ncontinuous slider would report every pixel. Defaults to true.",
           "deprecated": false
         },
         {
@@ -6005,6 +6061,14 @@
           "deprecated": false
         },
         {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
           "name": "height",
           "type": "number",
           "required": false,
@@ -6145,6 +6209,14 @@
           "required": false,
           "default": "false",
           "description": "Disables every segment.",
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report each press (a toggle with `multiSelect`, else a selection) to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
           "deprecated": false
         },
         {
@@ -6538,6 +6610,13 @@
           "default": "palettes.baseline",
           "description": "The colour set to start on — one of `palettes`, or anything\n`createPalette` returns. Read once, on mount: call `setPalette` from\n`useTheme()` to change it afterwards.",
           "deprecated": false
+        },
+        {
+          "name": "onInteractionFeedback",
+          "type": "InteractionFeedbackHandler",
+          "required": false,
+          "description": "Called when the user presses, toggles or selects through one of the\nlibrary's controls: wire it to haptics (`@its/glowup-device/haptics`'s\n`hapticFeedback`) or anything else. A control opts out with\n`feedback={false}`. Without it a nested provider inherits the outer one's.",
+          "deprecated": false
         }
       ]
     },
@@ -6723,6 +6802,14 @@
           "name": "error",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report each selection to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
           "deprecated": false
         },
         {

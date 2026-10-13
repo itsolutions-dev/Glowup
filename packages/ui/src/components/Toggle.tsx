@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
 
 export interface ToggleProps {
@@ -21,6 +22,11 @@ export interface ToggleProps {
   width?: number;
   /** Track height; the thumb scales with it. Defaults to 18. */
   height?: number;
+  /**
+   * Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics).
+   * Defaults to true.
+   */
+  feedback?: boolean;
 }
 
 // Fixed parts of the switch geometry: the track's outline and how much of the
@@ -37,8 +43,10 @@ const Toggle = ({
   containerStyle = {},
   width = 32,
   height = 18,
+  feedback = true,
 }: ToggleProps) => {
   const { theme } = useTheme();
+  const emitFeedback = useInteractionFeedback(feedback);
   const TRACK_WIDTH = width;
   const TRACK_HEIGHT = height;
 
@@ -132,7 +140,10 @@ const Toggle = ({
   return (
     <Pressable
       disabled={disabled}
-      onPress={() => onValueChange(!value)}
+      onPress={() => {
+        emitFeedback("toggle");
+        onValueChange(!value);
+      }}
       style={({ hovered }: PressableState) => [
         styles.container,
         containerStyle,

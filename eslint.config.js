@@ -2,6 +2,49 @@ const { defineConfig } = require("eslint/config");
 const expoConfig = require("eslint-config-expo/flat");
 const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommended");
 
+// `packages/device` ships one subpath per capability, and each capability owns
+// its Expo modules. Metro resolves every static import reachable from an entry
+// point, so a native import outside its capability's folder would make that
+// module a required peer of every app importing the other entry points.
+const DEVICE_CAPABILITIES = {
+  info: ["expo-device", "expo-application"],
+  location: ["expo-location"],
+  camera: ["expo-camera"],
+};
+const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
+
+// What no file of packages/device may import, whatever folder it is in.
+const DEVICE_BASE_PATTERNS = [
+  {
+    group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
+    message: "The device package cannot depend on the playground app.",
+  },
+  {
+    group: [
+      "@its/glowup-ui",
+      "@its/glowup-ui/*",
+      "**/packages/ui/**",
+      "@its/glowup-notifications",
+      "@its/glowup-notifications/*",
+      "**/packages/notifications/**",
+    ],
+    message:
+      "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
+  },
+  {
+    group: ["@react-navigation/*", "expo-router", "expo-router/*"],
+    message: "The device package is navigation-agnostic.",
+  },
+];
+
+const deviceNativePatterns = (except) =>
+  Object.entries(DEVICE_CAPABILITIES)
+    .filter(([capability]) => capability !== except)
+    .map(([capability, modules]) => ({
+      group: modules.flatMap((m) => [m, `${m}/*`]),
+      message: `Only packages/device/src/${capability} may import ${modules.join(" / ")}: anywhere else it becomes a required peer of every other entry point.`,
+    }));
+
 module.exports = defineConfig([
   expoConfig,
   eslintPluginPrettierRecommended,
@@ -96,6 +139,18 @@ module.exports = defineConfig([
               message:
                 "Reach the package through the '@its/glowup-notifications' name, not through a path into packages/notifications.",
             },
+            {
+              group: [
+                "@its/glowup-device/*",
+                ...DEVICE_SUBPATHS.map((s) => `!@its/glowup-device/${s}`),
+              ],
+              message: `Import from '@its/glowup-device' or one of its public subpaths (${DEVICE_SUBPATHS.join(", ")}) — other deep imports are not part of the package's public API.`,
+            },
+            {
+              group: ["**/packages/device/**", "packages/device/**"],
+              message:
+                "Reach the package through the '@its/glowup-device' name, not through a path into packages/device.",
+            },
           ],
         },
       ],
@@ -122,6 +177,15 @@ module.exports = defineConfig([
               group: ["@react-navigation/*"],
               message:
                 "The library is navigation-agnostic. Navigators live in the app (apps/playground/navigation).",
+            },
+            {
+              group: [
+                "@its/glowup-device",
+                "@its/glowup-device/*",
+                "**/packages/device/**",
+              ],
+              message:
+                "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
             },
           ],
         },
@@ -160,6 +224,85 @@ module.exports = defineConfig([
               group: ["@react-navigation/*", "expo-router", "expo-router/*"],
               message:
                 "The notifications package is navigation-agnostic: route from the app's onResponse callback.",
+            },
+            {
+              group: [
+                "@its/glowup-device",
+                "@its/glowup-device/*",
+                "**/packages/device/**",
+              ],
+              message:
+                "The notifications package stands alone and cannot depend on @its/glowup-device.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // `packages/device` is headless and standalone, like notifications. Tests
+    // may reach any Expo module (to drive its jest-expo mock).
+    files: ["packages/device/**/*.ts", "packages/device/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: DEVICE_BASE_PATTERNS }],
+    },
+  },
+  {
+    // The root entry, core/ and testing/ import no native module at all.
+    files: ["packages/device/src/**/*.ts", "packages/device/src/**/*.tsx"],
+    ignores: ["packages/device/src/**/__tests__/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: [...DEVICE_BASE_PATTERNS, ...deviceNativePatterns()] },
+      ],
+    },
+  },
+  // Each capability may import its own Expo modules and nobody else's, and
+  // never another capability: importing `/camera` must not pull in location.
+  ...Object.keys(DEVICE_CAPABILITIES).map((capability) => ({
+    files: [
+      `packages/device/src/${capability}/**/*.ts`,
+      `packages/device/src/${capability}/**/*.tsx`,
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...DEVICE_BASE_PATTERNS,
+            ...deviceNativePatterns(capability),
+            {
+              group: DEVICE_SUBPATHS.filter((s) => s !== capability).flatMap(
+                (s) => [`**/${s}`, `**/${s}/**`],
+              ),
+              message:
+                "A capability cannot import another one: each subpath must load on its own. Shared code belongs in src/core.",
+            },
+          ],
+        },
+      ],
+    },
+  })),
+  {
+    // The root barrel and core/ may name a capability's types (the adapter
+    // contracts) but never load its code, or the root entry would require
+    // every capability's Expo peer.
+    files: [
+      "packages/device/src/index.ts",
+      "packages/device/src/core/**/*.ts",
+      "packages/device/src/core/**/*.tsx",
+    ],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: DEVICE_SUBPATHS.flatMap((s) => [`**/${s}`, `**/${s}/**`]),
+              allowTypeImports: true,
+              message:
+                "The root entry and core/ may only `import type` from a capability: a value import would load its native module.",
             },
           ],
         },

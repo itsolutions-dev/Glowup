@@ -1,6 +1,6 @@
 {
   "name": "@its/glowup-notifications",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Headless push notification layer for Expo apps: permissions, push tokens, foreground policy, taps and Android channels",
   "license": "MIT",
   "repository": {

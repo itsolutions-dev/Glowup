@@ -18,7 +18,7 @@
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspace @its/glowup-ui --workspace @its/glowup-notifications",
     "push:test": "node scripts/send-test-push.mjs",
-    "version-packages": "changeset version && npm run docgen -w @its/glowup-playground",
+    "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts --no-audit --no-fund && npm run docgen -w @its/glowup-playground",
     "release": "changeset publish"
   },
   "devDependencies": {

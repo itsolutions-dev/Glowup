@@ -96,7 +96,7 @@ layout that still believed it was on a phone. `useLayout()` reads the window thr
 
 Every page is prerendered in Node and hydrated in the browser, and the first client render has
 to match the HTML or React throws the page away and re-renders it (minified error #418, once
-on every page). Four causes were found and fixed; keep them fixed:
+on every page). Six causes were found and fixed; keep them fixed:
 
 - **The window size.** Node's window is 0 × 0 (compact layout); a desktop browser's is not.
   `useWindowSize()` reports the server's size while hydrating and the real one right after.
@@ -110,10 +110,17 @@ on every page). Four causes were found and fixed; keep them fixed:
 - **The library's `Grid`** (`minChildWidth`) falls back to the window width before its first
   layout pass; it reads it through a server snapshot too (`packages/ui`,
   `components/internal/useWindowWidth.ts`).
+- **The OS colour scheme.** Node has none, a browser may be dark. The library's `ThemeProvider`
+  reads `Appearance` through a server snapshot ("no preference") rather than `useColorScheme`.
+- **The reader's locale.** The date and time components format weekday names, 12- or 24-hour
+  and placeholders with the runtime's locale: Node's in the HTML, the reader's in the browser.
+  Their catalogue entries set `clientOnly`, so the stage and the variants render after
+  hydration (`site/useHydrated.ts`). `DEMO_DATE` alone does not cover this.
 
 To check: `EXPO_WEB_DEV_HYDRATE=1 npx expo start --web` hydrates in development, where React
 prints the actual diff instead of the minified code. Load pages at a desktop and a phone width,
-and once with the browser clock moved forward (Playwright's `page.clock`).
+once with the browser clock moved forward (Playwright's `page.clock`), and once with a dark
+scheme and a browser locale other than the build machine's.
 
 ## Publishing the documentation site
 

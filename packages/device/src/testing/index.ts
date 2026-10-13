@@ -46,3 +46,9 @@ export {
   type HapticEvent,
   type MockHapticsAdapter,
 } from "./haptics";
+export {
+  createMockBiometricsAdapter,
+  MOCK_BIOMETRICS,
+  type MockBiometricsAdapter,
+  type MockBiometricsOptions,
+} from "./biometrics";

@@ -137,12 +137,35 @@ describe("camera", () => {
   });
 });
 
+describe("biometrics", () => {
+  it("writes Face ID's purpose string and Android's permission", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      biometrics: { faceIDPermission: "Unlocks your wallet." },
+    });
+    expect(infoPlist.NSFaceIDUsageDescription).toBe("Unlocks your wallet.");
+    expect(permissions).toContain("android.permission.USE_BIOMETRIC");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("warns when the purpose string is left to the default", async () => {
+    const { infoPlist } = await prebuild({ biometrics: true });
+    expect(infoPlist.NSFaceIDUsageDescription).toBe(
+      "Allow $(PRODUCT_NAME) to use Face ID.",
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("biometrics.faceIDPermission is not set"),
+    );
+  });
+});
+
 it("configures nothing that is not listed", async () => {
   const { infoPlist, permissions } = await prebuild({});
   expect(infoPlist.NSLocationWhenInUseUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.ACCESS_FINE_LOCATION");
   expect(infoPlist.NSCameraUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.CAMERA");
+  expect(infoPlist.NSFaceIDUsageDescription).toBeUndefined();
+  expect(permissions).not.toContain("android.permission.USE_BIOMETRIC");
 });
 
 it("rejects an unknown capability", () => {

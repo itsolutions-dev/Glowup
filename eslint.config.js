@@ -15,6 +15,7 @@ const DEVICE_CAPABILITIES = {
   "keep-awake": ["expo-keep-awake"],
   orientation: ["expo-screen-orientation"],
   haptics: ["expo-haptics"],
+  biometrics: ["expo-local-authentication"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

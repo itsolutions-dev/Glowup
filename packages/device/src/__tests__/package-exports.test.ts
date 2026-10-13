@@ -30,6 +30,7 @@ describe("package exports", () => {
       "keep-awake",
       "orientation",
       "haptics",
+      "biometrics",
       "testing",
     ]);
   });

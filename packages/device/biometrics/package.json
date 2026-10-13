@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/biometrics/index.js",
+  "module": "../lib/module/biometrics/index.js",
+  "types": "../lib/typescript/biometrics/index.d.ts",
+  "react-native": "../src/biometrics/index.ts",
+  "source": "../src/biometrics/index.ts"
+}

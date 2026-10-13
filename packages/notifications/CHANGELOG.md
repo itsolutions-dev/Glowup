@@ -1,5 +1,24 @@
 # @its/glowup-notifications
 
+## 0.3.0
+
+### Minor Changes
+
+- ecd582c: Web Push. Pass `webPush={{ vapidPublicKey, serviceWorkerPath?, scope? }}` to
+  `NotificationsProvider` and, in browsers with service workers and the Push API, the same
+  hooks and callbacks work on web: `useNotificationPermission` asks the browser,
+  `usePushToken` returns the push subscription (`type: "web"`, `data` is its JSON), and
+  `onReceived` / `onResponse` fire for pushes and taps, including the tap that opens a new tab.
+  The service worker ships as `@its/glowup-notifications/service-worker.js`; serve it from
+  the app's origin. New `isWebPushSupported()` export, `WebPushConfig` and `WebPushPayload`
+  types, and a `web-push-error` event.
+
+### Patch Changes
+
+- 84876f3: Web Push: a push that reaches a visible tab is no longer shown with `showNotification`
+  when the browser permission is not granted (the browser refused it and a
+  `web-push-error` was reported). `onReceived` still fires.
+
 ## 0.2.0
 
 ### Minor Changes

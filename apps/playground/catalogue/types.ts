@@ -39,6 +39,13 @@ export interface ComponentMetadata {
    * ComponentPreview.
    */
   Demo?: ComponentType<DemoProps>;
+  /**
+   * Render the stage and the variants only after hydration. For components
+   * that read the reader's clock or locale (today, the current time, weekday
+   * names, 12- or 24-hour): the exported HTML would carry the build's date and
+   * Node's locale, and hydrating over it throws #418.
+   */
+  clientOnly?: boolean;
 }
 
 export interface Category {

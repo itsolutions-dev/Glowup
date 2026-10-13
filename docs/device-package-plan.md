@@ -190,16 +190,16 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
 
 ## v2 decisions
 
-| #   | Question               | Decision                                                                                                                               |
-| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 biometrics (alone, B1) · then gallery · v0.4 advanced location, sensors |
-| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                                  |
-| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                                      |
-| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                                           |
-| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.                                |
-| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                                      |
-| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.                       |
-| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.                       |
+| #   | Question               | Decision                                                                                                                                                  |
+| --- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V1  | Release order          | v0.2 network, battery, keep-awake, haptics, orientation · v0.3 biometrics (alone, B1) · v0.4 secure store (S5) · then gallery, advanced location, sensors |
+| V2  | `/camera/ui`           | No. The camera recipe stays in the playground as the example to copy.                                                                                     |
+| V3  | Gallery                | Both: pick (`expo-image-picker`) and save (`expo-media-library`).                                                                                         |
+| V4  | Gallery permission     | `access: "all" \| "limited"` on the media permission state, as `precision` is on location's.                                                              |
+| V5  | Network                | `@react-native-community/netinfo` (pinned exactly by SDK 57: `12.0.1`), for real internet reachability.                                                   |
+| V6  | Biometrics             | A local gate only (`authenticate()`, `useBiometrics()`), documented as not server authentication.                                                         |
+| V7  | Sensors                | Hooks with explicit `enabled` and `interval`, a conservative default, paused while the app is in the background.                                          |
+| V8  | Haptics and the UI kit | `@its/glowup-ui` gets a generic `onInteractionFeedback` on `ThemeProvider`; `/haptics` ships the implementation.                                          |
 
 ### V8 — haptics without coupling the packages
 
@@ -425,9 +425,69 @@ Its source (57.0.3) was read before the contract was written:
   `expo export -p web` (which loads expo-local-authentication's plugin through ours) pass.
 - Changeset: `@its/glowup-device` minor (`0.3.0`).
 
+## v0.4 — secure store
+
+`/secure-store` on `expo-secure-store` (asked for at the end of v2 as its own capability). Its
+source (57.0.4) was read before the contract was written:
+
+- **Invalidation is silent.** An item protected by biometrics reads `null` once the enrolment
+  changes (Android catches `KeyPermanentlyInvalidatedException` and logs; iOS uses
+  `.biometryCurrentSet`), exactly like an item never written.
+- **Android, re-writing an invalidated protected item** deletes every protected item of the same
+  `keychainService` (`removeAllEntriesUnderKeychainService`).
+- **Protected items differ by platform:** iOS biometrics only (no passcode), a prompt to read
+  and update but not to create; Android `BIOMETRIC_STRONG` only, a prompt for every operation
+  including the first write, a system-localised cancel button.
+- **Prompt errors:** Android throws `AuthenticationException` with an English message and no
+  code; iOS throws `OSStatus` messages (`errSecUserCanceled`, `errSecInteractionNotAllowed`).
+- **iOS accessibility** defaults to `WHEN_UNLOCKED`: a read while the device is locked throws.
+  An existing item is written with `SecItemUpdate`, which keeps its old accessibility.
+- **The iOS Keychain outlives the app**; Android's store goes with it. There is no API to list
+  or clear every item.
+- **Android Auto Backup:** expo's plugin excludes the store; a restored item cannot be decrypted
+  (`BadPaddingException`), is deleted and reads `null`.
+- **Sync APIs** (`getItem`, `setItem`) block the JS thread, prompts included. **Web:** an empty
+  module, every call throws a `TypeError`. Both expo-secure-store and expo-local-authentication
+  write `NSFaceIDUsageDescription`.
+
+| #   | Question     | Decision                                                                                                        |
+| --- | ------------ | --------------------------------------------------------------------------------------------------------------- |
+| S1  | API          | Imperative `useSecureStore()` plus a reactive `useSecureValue(key)`, for plain items only (no prompt on mount). |
+| S2  | Invalidation | Detected: a protected item is written with an unprotected marker; `null` with a marker reads `invalidated`.     |
+| S3  | Errors       | Plain operations reject with `SecureStoreError`; protected ones resolve a union (a cancel is an outcome).       |
+| S4  | iOS defaults | `accessible: "when-unlocked"`, `thisDeviceOnly: true` (stricter than expo, in line with Android's backups).     |
+| S5  | Release      | After #65 merged, as its own PR (`0.4.0`).                                                                      |
+
+Applied without objection: strings plus JSON helpers; web unsupported with no `localStorage`
+fallback; the iOS reinstall case documented as a recipe (detecting it needs a second, non-Keychain
+storage).
+
+| Phase | Content                                                                                        | Status   |
+| ----- | ---------------------------------------------------------------------------------------------- | -------- |
+| 15    | `/secure-store` plain items: adapter, `useSecureStore`, `useSecureValue`, errors, mock, plugin | **done** |
+| 16    | Protected items (biometrics), invalidation detection (S2, S3)                                  |          |
+| 17    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release          |          |
+
+### Phase 15 — what landed
+
+- `useSecureStore()` → `{ isSupported, get, set, remove, getJSON, setJSON }`, stable. Keys and
+  values are validated before the adapter; every failure is a `SecureStoreError` (`invalid-key`,
+  `invalid-value`, `locked`, `unsupported`, `failed`), `locked` matched on expo's message for
+  `errSecInteractionNotAllowed`.
+- `useSecureValue(key, options)`: one store per adapter, service and key (a `null` server
+  snapshot for the static export, last call wins), updated by every write made through the
+  package; a failed read is tried again on `active`, a successful one is not.
+- The Expo adapter maps `accessible` / `thisDeviceOnly` to the Keychain constants and deletes an
+  iOS item before writing it, so the accessibility asked for always applies (a crash between the
+  two loses the item; documented).
+- Config plugin: `secureStore: true | { faceIDPermission, androidBackupRules }`, through
+  expo-secure-store's plugin (Android backup rules on by default). With `biometrics` listed,
+  its Face ID text, written first, is kept.
+- Web: `webSecureStoreAdapter` rejects `unsupported`. `/testing`: `createMockSecureStoreAdapter()`
+  with `items`, `writes` and `failNext`.
+
 ## Open for later
 
 - **Advanced location (v0.4):** background and geofencing, geocoding (and which web
   provider), heading — to be decided before v0.4.
-- **Secure store:** a separate capability binding secrets to biometrics (`expo-secure-store`)
-  — to propose at the end of v2.
+- **Secure store:** proposed and started, see v0.4.

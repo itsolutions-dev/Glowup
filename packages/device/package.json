@@ -1,7 +1,7 @@
 {
   "name": "@its/glowup-device",
   "version": "0.2.0",
-  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, haptics, biometrics and more behind swappable adapters",
+  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, haptics, biometrics, secure storage and more behind swappable adapters",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -68,6 +68,11 @@
       "types": "./lib/typescript/biometrics/index.d.ts",
       "default": "./lib/commonjs/biometrics/index.js"
     },
+    "./secure-store": {
+      "source": "./src/secure-store/index.ts",
+      "types": "./lib/typescript/secure-store/index.d.ts",
+      "default": "./lib/commonjs/secure-store/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -88,6 +93,7 @@
     "orientation",
     "haptics",
     "biometrics",
+    "secure-store",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -118,7 +124,8 @@
     "keep-awake",
     "orientation",
     "haptics",
-    "biometrics"
+    "biometrics",
+    "secure-store"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",
@@ -132,6 +139,7 @@
     "expo-local-authentication": ">=57",
     "expo-location": ">=57",
     "expo-screen-orientation": ">=57",
+    "expo-secure-store": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"
   },
@@ -165,6 +173,9 @@
     },
     "expo-screen-orientation": {
       "optional": true
+    },
+    "expo-secure-store": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -187,6 +198,7 @@
     "expo-local-authentication": "~57.0.3",
     "expo-location": "~57.0.20",
     "expo-screen-orientation": "~57.0.2",
+    "expo-secure-store": "~57.0.4",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
     "publint": "^0.3.25",

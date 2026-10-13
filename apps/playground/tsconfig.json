@@ -37,6 +37,9 @@
       "@its/glowup-device/biometrics": [
         "../../packages/device/src/biometrics/index.ts"
       ],
+      "@its/glowup-device/secure-store": [
+        "../../packages/device/src/secure-store/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

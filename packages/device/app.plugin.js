@@ -104,10 +104,25 @@ function withBiometrics(config, options) {
   });
 }
 
+/**
+ * Android: leaves the store out of Auto Backup (expo-secure-store's own
+ * rules), since its Keystore keys never leave the device and a restored
+ * item could not be decrypted. iOS: Face ID's purpose string, used by
+ * protected items. Listed with `biometrics`, whose text is written first,
+ * expo-secure-store keeps that text when this one is not set.
+ */
+function withSecureStore(config, options) {
+  return loadPlugin("expo-secure-store", "secureStore")(config, {
+    faceIDPermission: options.faceIDPermission,
+    configureAndroidBackup: options.androidBackupRules !== false,
+  });
+}
+
 const CAPABILITIES = {
   location: withLocation,
   camera: withCamera,
   biometrics: withBiometrics,
+  secureStore: withSecureStore,
 };
 
 function withGlowupDevice(config, options = {}) {

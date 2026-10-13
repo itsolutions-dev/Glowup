@@ -52,3 +52,7 @@ export {
   type MockBiometricsAdapter,
   type MockBiometricsOptions,
 } from "./biometrics";
+export {
+  createMockSecureStoreAdapter,
+  type MockSecureStoreAdapter,
+} from "./secureStore";

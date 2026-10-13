@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -103,6 +103,12 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   not count: Android pauses the activity behind the device-credential screen and delivers the
   result before resuming, so the unlock would lock again. `promptOnLock` claims one prompt per
   `lockId`.
+- **Secure store** (`src/secure-store`): plain values reject with `SecureStoreError` (keys and
+  values are validated before the adapter; `locked` is iOS's errSecInteractionNotAllowed, matched
+  on expo's message). `useSecureValue` keeps one store per adapter, service and key (last call
+  wins, writes through the package reach every reader) and re-reads on `active` only after a
+  failed read. The Expo adapter deletes before an iOS write because `SecItemUpdate` keeps the
+  old accessibility. No `localStorage` fallback on web, on purpose.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

@@ -22,6 +22,7 @@
     "expo-device": "~57.0.2",
     "expo-haptics": "~57.0.3",
     "expo-keep-awake": "~57.0.2",
+    "expo-local-authentication": "~57.0.3",
     "expo-location": "~57.0.20",
     "expo-screen-orientation": "~57.0.2",
     "expo-status-bar": "~57.0.1",

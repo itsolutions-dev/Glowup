@@ -12,6 +12,7 @@ import { DeviceAdaptersProvider } from "@its/glowup-device";
 import {
   buildPosition,
   createMockBatteryAdapter,
+  createMockBiometricsAdapter,
   createMockCameraAdapter,
   createMockDeviceInfoAdapter,
   createMockHapticsAdapter,
@@ -21,6 +22,7 @@ import {
   createMockOrientationAdapter,
   OFFLINE_NETWORK,
   type MockBatteryAdapter,
+  type MockBiometricsAdapter,
   type MockCameraAdapter,
   type MockHapticsAdapter,
   type MockKeepAwakeAdapter,
@@ -32,6 +34,7 @@ import * as ExpoHaptics from "expo-haptics";
 
 import DeviceOverview from "../app/device";
 import BatteryPage from "../app/device/battery";
+import BiometricsPage from "../app/device/biometrics";
 import CameraPage from "../app/device/camera";
 import HapticsPage from "../app/device/haptics";
 import DeviceInfoPage from "../app/device/info";
@@ -65,6 +68,7 @@ jest.mock("expo-haptics", () => ({
   impactAsync: jest.fn(async () => {}),
   selectionAsync: jest.fn(async () => {}),
 }));
+jest.mock("expo-local-authentication", () => ({ SecurityLevel: { NONE: 0 } }));
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => {}),
@@ -91,6 +95,7 @@ let battery: MockBatteryAdapter;
 let keepAwake: MockKeepAwakeAdapter;
 let orientation: MockOrientationAdapter;
 let haptics: MockHapticsAdapter;
+let biometrics: MockBiometricsAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -100,6 +105,7 @@ beforeEach(() => {
   keepAwake = createMockKeepAwakeAdapter();
   orientation = createMockOrientationAdapter();
   haptics = createMockHapticsAdapter();
+  biometrics = createMockBiometricsAdapter();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
@@ -124,6 +130,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               keepAwake,
               orientation,
               haptics,
+              biometrics,
             }}
           >
             {children}
@@ -145,6 +152,7 @@ it("links the overview to every capability", async () => {
     ["Keep awake", "/device/keep-awake"],
     ["Orientation", "/device/orientation"],
     ["Haptics", "/device/haptics"],
+    ["Biometrics", "/device/biometrics"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -317,5 +325,58 @@ describe("haptics", () => {
     jest.mocked(ExpoHaptics.impactAsync).mockClear();
     await fireEvent.press(control);
     expect(ExpoHaptics.impactAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("biometrics", () => {
+  it("shows the device's status and the prompt's outcome", async () => {
+    await render(<BiometricsPage />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(screen.getByText("biometric-strong")).toBeTruthy(),
+    );
+    expect(screen.getByText("face")).toBeTruthy();
+
+    await fireEvent.press(
+      screen.getByRole("radio", { name: "Biometrics only" }),
+    );
+    await fireEvent.press(screen.getByText("Authenticate"));
+    await waitFor(() => expect(screen.getByText("Success")).toBeTruthy());
+    expect(biometrics.calls).toEqual([
+      expect.objectContaining({ fallback: "none", strength: "weak" }),
+    ]);
+
+    biometrics.setResult({
+      success: false,
+      error: "lockout",
+      detail: "lockout: Too many attempts",
+    });
+    await fireEvent.press(screen.getByText("Authenticate"));
+    await waitFor(() => expect(screen.getByText("lockout")).toBeTruthy());
+    expect(screen.getByText("lockout: Too many attempts")).toBeTruthy();
+  });
+
+  it("locks the card behind the app lock", async () => {
+    await render(<BiometricsPage />, { wrapper: Providers });
+    expect(screen.getByText("4242 4242 4242 4242")).toBeTruthy();
+    await fireEvent.press(screen.getByRole("switch"));
+    await waitFor(() =>
+      expect(screen.getByText("•••• •••• •••• ••••")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Unlock"));
+    await waitFor(() =>
+      expect(screen.getByText("4242 4242 4242 4242")).toBeTruthy(),
+    );
+    expect(biometrics.calls).toEqual([
+      expect.objectContaining({ promptMessage: "Unlock the protected card" }),
+    ]);
+    await fireEvent.press(screen.getByText("Lock now"));
+    expect(screen.getByText("•••• •••• •••• ••••")).toBeTruthy();
+  });
+
+  it("does not lock while another page is on screen", async () => {
+    mockFocused = false;
+    await render(<BiometricsPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByRole("switch"));
+    expect(screen.getByText("4242 4242 4242 4242")).toBeTruthy();
   });
 });

@@ -56,7 +56,7 @@ export const SITE_ROUTES: SiteRoute[] = [
     label: "Device",
     icon: "cellphone-cog",
     summary:
-      "Device info, location, camera, network, battery, orientation and haptics behind swappable adapters.",
+      "Device info, location, camera, network, battery, orientation, haptics and biometrics behind swappable adapters.",
   },
 ];
 

@@ -18,7 +18,7 @@ tarball's manifest and types statically; this app is the runtime half:
 - the **declared peer dependencies** are sufficient to render.
 
 `Device.tsx` does the same for `@its/glowup-device`: every subpath (`/info`, `/location`,
-`/camera`, `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/testing`)
+`/camera`, `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/testing`)
 resolves with its published types, `App.tsx` hands `hapticFeedback` to `ThemeProvider`'s
 `onInteractionFeedback` (both packages' published types have to agree), the root entry loads without any
 Expo module, and the config plugin listed in `app.json` resolves from the published package

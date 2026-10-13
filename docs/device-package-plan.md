@@ -371,7 +371,7 @@ Its source (57.0.3) was read before the contract was written:
 | ----- | ----------------------------------------------------------------------------------------- | -------- |
 | 12    | `/biometrics`: adapter, `useBiometrics()`, Expo and web adapters, mock, config plugin key | **done** |
 | 13    | `useAppLock` (B4)                                                                         | **done** |
-| 14    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release     |          |
+| 14    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release     | **done** |
 
 ### Phase 12 — what landed
 
@@ -413,6 +413,17 @@ Its source (57.0.3) was read before the contract was written:
   `relockAfter` when an app opens them.
 - Out of scope: hiding content in the iOS app switcher's snapshot (taken on `inactive`, which
   Face ID's prompt also triggers).
+
+### Phase 14 — what landed
+
+- Playground: `/device/biometrics` (the status, a prompt with the fallback and strength options
+  and its last result, and `useAppLock` guarding one card while the page is focused) and the
+  overview's entry. `expo-local-authentication` is a playground dependency and its Face ID text
+  is set through the package's config plugin in `app.config.ts`.
+- `examples/consumer` imports `/biometrics` (`useBiometrics`, `useAppLock`) and lists the
+  `biometrics` key in its plugin config. Checked on `npm pack` tarballs: `tsc --noEmit` and
+  `expo export -p web` (which loads expo-local-authentication's plugin through ours) pass.
+- Changeset: `@its/glowup-device` minor (`0.3.0`).
 
 ## Open for later
 

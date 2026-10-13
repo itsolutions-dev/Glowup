@@ -4,7 +4,7 @@
  *
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
- *    `/orientation`, `/haptics`, `/testing`), with its own published
+ *    `/orientation`, `/haptics`, `/biometrics`, `/testing`), with its own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
  *  - the root entry loads without any capability's Expo module,
@@ -17,6 +17,11 @@ import {
   type PermissionState,
 } from "@its/glowup-device";
 import { useBattery, type BatteryStatus } from "@its/glowup-device/battery";
+import {
+  useAppLock,
+  useBiometrics,
+  type BiometricErrorCode,
+} from "@its/glowup-device/biometrics";
 import { CameraView, useCameraPermission } from "@its/glowup-device/camera";
 import type { CameraHandle } from "@its/glowup-device/camera";
 import {
@@ -40,6 +45,7 @@ import { useRef } from "react";
 const FIRST_CODE: LocationErrorCode = "permission-denied";
 const LOCK: OrientationLock = "portrait";
 const KIND: InteractionKind = "press";
+const BUSY: BiometricErrorCode = "busy";
 
 /** The bridge `App.tsx` passes to `ThemeProvider onInteractionFeedback`. */
 export const interactionFeedback: (kind: InteractionKind) => void =
@@ -55,6 +61,11 @@ const Readout = () => {
   const battery: BatteryStatus = useBattery();
   const { orientation } = useOrientation();
   useKeepAwake({ enabled: false });
+  const { level } = useBiometrics();
+  const { isLocked } = useAppLock({
+    enabled: false,
+    prompt: { promptMessage: "Unlock", cancelLabel: "Cancel" },
+  });
 
   return (
     <>
@@ -75,6 +86,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Online ${String(online)} · battery ${battery.level ?? "?"} · ${orientation} (${LOCK}) · ${KIND}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Biometrics ${level} · locked ${String(isLocked)} · ${BUSY}`}
       </Typography>
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />

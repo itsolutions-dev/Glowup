@@ -1,5 +1,31 @@
 # @its/glowup-ui
 
+## 0.11.0
+
+### Minor Changes
+
+- 068f98a: `ThemeProvider` takes `onInteractionFeedback(kind)`, called when the user presses, toggles or
+  selects through a library control, so an app can answer with a haptic
+  (`@its/glowup-device/haptics`'s `hapticFeedback` plugs in as it is; the library itself plays
+  nothing and depends on no haptics module).
+
+  - `Button`, `IconButton`, `FAB` and action `Chip`s report `press`; `Toggle`, `Checkbox`, a
+    `selected` `IconButton`, a `"checkbox"` `Chip` and a multi-select `ToggleButtonGroup` report
+    `toggle`; `RadioButton` / `RadioGroup`, a `"radio"` `Chip`, a single-choice
+    `ToggleButtonGroup` and a `Slider` crossing a step (with `step` only) report `selection`.
+  - It runs before the control's own handler and only when the press does something; a handler
+    that throws never cancels the press. Each of these controls takes `feedback={false}` to opt
+    out, and a nested `ThemeProvider` without the prop inherits the outer handler.
+  - `useInteractionFeedback()` gives the same function to an app's own components.
+
+### Patch Changes
+
+- 536159d: `ThemeProvider` hydrates cleanly over server-rendered HTML for a reader on a dark OS. The
+  colour scheme is read with `useSyncExternalStore` and a server snapshot ("no preference",
+  what a prerender sees) instead of `useColorScheme`, so the first client render matches the
+  light prerender instead of React discarding the page (minified error #418); the dark scheme
+  applies right after hydration. Native is unaffected.
+
 ## 0.10.1
 
 ### Patch Changes

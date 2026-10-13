@@ -377,7 +377,10 @@ export function NotificationsProvider<TData = NotificationData>(
           foreground,
           parsed.ok ? parsed.value : null,
         );
-        if (behavior.shouldShowBanner || behavior.shouldShowList) {
+        // Without the permission the browser refuses to show it anyway;
+        // onReceived below still fires.
+        const canShow = getWebPermission().status === "granted";
+        if (canShow && (behavior.shouldShowBanner || behavior.shouldShowList)) {
           showWebNotification(config, notification).catch((error) =>
             emit({ type: "web-push-error", error }),
           );

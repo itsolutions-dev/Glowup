@@ -8,7 +8,20 @@
     // no-restricted-imports rule blocks every other route into them.
     "paths": {
       "@its/glowup-ui": ["../../packages/ui/src/index.ts"],
-      "@its/glowup-notifications": ["../../packages/notifications/src/index.ts"]
+      "@its/glowup-notifications": [
+        "../../packages/notifications/src/index.ts"
+      ],
+      "@its/glowup-device": ["../../packages/device/src/index.ts"],
+      "@its/glowup-device/info": ["../../packages/device/src/info/index.ts"],
+      "@its/glowup-device/location": [
+        "../../packages/device/src/location/index.ts"
+      ],
+      "@its/glowup-device/camera": [
+        "../../packages/device/src/camera/index.ts"
+      ],
+      "@its/glowup-device/testing": [
+        "../../packages/device/src/testing/index.ts"
+      ]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

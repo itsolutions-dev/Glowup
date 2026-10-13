@@ -81,9 +81,11 @@ This is the rule that keeps the split real:
 - The library must never import the app — also an ESLint error.
 - Inside a workspace, use **relative** imports. There is no root-relative `baseUrl` mapping
   any more; `import Button from "components/Button"` no longer resolves anywhere.
-- `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts` and
-  `@its/glowup-notifications` to `packages/notifications/src/index.ts`, so an edit in either
-  package is picked up live by Metro and `tsc`. Those are the only mappings.
+- `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
+  `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
+  `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
+  `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint
 error), so each can ship alone and the app wires them together. `packages/device` follows the

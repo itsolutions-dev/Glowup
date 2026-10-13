@@ -58,6 +58,24 @@ variable in `pages.yml`). Browser support is read with `useSyncExternalStore` so
 prerendered HTML still hydrates. Remote push needs a development build; Expo Go on Android
 cannot fetch a token.
 
+## The device pages
+
+`app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
+capability (`info`, `location`, `camera`). They import only the package's public subpaths.
+`expo-device`, `expo-application`, `expo-location` and `expo-camera` are dependencies of the
+playground because they are the package's peers, and the package's config plugin is listed in
+`app.config.ts` with the playground's purpose strings (`recordAudio: true`: the camera recipe
+records video with sound). The camera page is the "recipe": `CameraView` with Material
+controls drawn as its children from Glowup components, paused through `useFocusEffect` when
+the page loses focus. Video is disabled on web, where expo-camera cannot record.
+`site/DevicePermission.tsx` renders a permission's badge and its one action for both pages.
+
+`__tests__/device-pages.test.tsx` renders the four pages with the package's in-memory
+adapters (`@its/glowup-device/testing`) and drives them: permission, position, photo,
+recording, scan. It mocks `useFocusEffect` and `useRouter`, since no navigator is mounted.
+A camera control whose handler awaits the end of a recording must not return that promise
+to `onPress` (`() => void toggleRecording()`): RTL 14 awaits it and the test deadlocks.
+
 ## Keyboard
 
 `site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op

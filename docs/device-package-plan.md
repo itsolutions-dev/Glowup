@@ -90,7 +90,7 @@ plugins: [
 | 2     | Device info: adapter contract, Expo adapter, `DeviceAdaptersProvider`, hooks, mock adapter                                    | **done** |
 | 3     | Location: permission, current position, watch; config plugin (location part)                                                  | **done** |
 | 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   | **done** |
-| 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      |          |
+| 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      | **done** |
 | 6     | Release: drop `private`, first changeset, README, `examples/consumer` smoke                                                   |          |
 
 Device info comes first because it is the simplest capability and proves the adapter,
@@ -155,6 +155,20 @@ provider and mock pattern before location and camera build on it.
 (`BarcodeDetector`, else the bundled `barcode-detector` polyfill); `record()` only warns and
 returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
 `recordVideo()` rejects with `unsupported` instead of resolving an empty file.
+
+### Phase 5 — what landed
+
+- `/device` (overview), `/device/info`, `/device/location`, `/device/camera` in the playground,
+  in the site navigation; the camera page carries the Material camera recipe (scan, photo,
+  video with a timer, flash and flip as `IconButton`s over the preview).
+- `app.config.ts` lists the package's plugin with the playground's purpose strings; checked
+  with `expo config --type introspect` (location when-in-use, camera, microphone; Android
+  COARSE/FINE, CAMERA, RECORD_AUDIO, nothing in the background).
+- Verified beyond the unit tests: the static export prerenders the four pages, and in
+  Chromium (Playwright, simulated geolocation and Chromium's fake camera) the exported pages
+  hydrate, locate, follow the position, stream the preview and take a photo.
+- Found, not caused here: every exported page of the site, the home page included, logs
+  React's hydration error #418 — also with the device pages and their nav entry removed.
 
 ## Open for v2 (to discuss at the end of v1)
 

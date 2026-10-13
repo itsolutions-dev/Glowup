@@ -6,18 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An **npm-workspaces monorepo** with four workspaces:
 
-| Workspace                | Package                     | Role                                                                                        |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------- |
-| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                            |
-| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                     |
-| `packages/device`        | `@its/glowup-device`        | Headless device hardware (location, camera, device info) behind adapters. Private until v1. |
-| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                         |
+| Workspace                | Package                     | Role                                                                                  |
+| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------- |
+| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                      |
+| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.               |
+| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, device info) behind adapters. |
+| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                   |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
-`@its/glowup-ui` **from the npm registry** and is the runtime check on the published artefact
-(the playground, being a workspace, always runs the local source). Never add it to the
-`workspaces` array — npm would link the local package and the check would silently test
-nothing; its CI job fails if `node_modules/@its/glowup-ui` is a symlink. See
+`@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
+the published artefacts (the playground, being a workspace, always runs the local source).
+Never add it to the `workspaces` array — npm would link the local packages and the check would
+silently test nothing; its CI job fails if either is a symlink in its `node_modules`. See
 `examples/consumer/README.md`.
 
 The library targets iOS, Android and Web through Expo + `react-native-web`. The playground is
@@ -37,7 +37,7 @@ npm run web            # playground on Web
 npm run lint           # ESLint across the repo (gates CI)
 npm run type-check     # tsc --noEmit in every workspace + the design-sync tsconfig
 npm test               # tests in every workspace
-npm run build          # build the packages with react-native-builder-bob
+npm run build          # build the published packages with react-native-builder-bob
 
 npm test -w @its/glowup-ui                    # only the library's component tests
 npm test -w @its/glowup-notifications         # only the notifications package's tests
@@ -108,9 +108,10 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 
 ## Releasing
 
-Changesets. `@its/glowup-ui` and `@its/glowup-notifications` are published (versioned independently); `@its/glowup-playground` is private and ignored. `@its/glowup-device` is private until its v1
-(`docs/device-package-plan.md`), so it gets no changeset yet. A
-user-visible change to either package needs a changeset (`npx changeset`). On push to `master`,
+Changesets. `@its/glowup-ui`, `@its/glowup-notifications` and `@its/glowup-device` are
+published (versioned independently); `@its/glowup-playground` is private and ignored. A
+user-visible change to any of them needs a changeset (`npx changeset`). Each package needs its
+own trusted publisher on npmjs.com (see `release.yml`). On push to `master`,
 `release.yml` opens a "Version Packages" PR; merging it publishes to npm.
 
 ## Code style

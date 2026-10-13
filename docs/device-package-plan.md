@@ -91,7 +91,7 @@ plugins: [
 | 3     | Location: permission, current position, watch; config plugin (location part)                                                  | **done** |
 | 4     | Camera: `CameraView`, photo, video, barcode/QR; config plugin (camera part)                                                   | **done** |
 | 5     | Playground: pages, camera recipe, `app.config.ts` plugin, tsconfig paths                                                      | **done** |
-| 6     | Release: drop `private`, first changeset, README, `examples/consumer` smoke                                                   |          |
+| 6     | Release: drop `private`, first changeset, README, `examples/consumer` smoke                                                   | **done** |
 
 Device info comes first because it is the simplest capability and proves the adapter,
 provider and mock pattern before location and camera build on it.
@@ -169,6 +169,22 @@ returns `{ uri: "" }`. So the adapter reports `supportsVideo()` false on web and
   hydrate, locate, follow the position, stream the preview and take a photo.
 - Found, not caused here: every exported page of the site, the home page included, logs
   React's hydration error #418 — also with the device pages and their nav entry removed.
+
+### Phase 6 — what landed
+
+- `"private"` removed; `.changeset/glowup-device-initial.md` ships the first release as
+  `0.1.0` (minor from `0.0.0`) when the "Version Packages" PR is merged.
+- README rewritten for npm (install, entry points and their exports, absolute links).
+- `examples/consumer` installs `@its/glowup-device` from the registry too: `Device.tsx` imports
+  every subpath with its published types, and `app.json` lists the config plugin.
+  `consumer-smoke.yml` pins, waits for and checks both packages. Rehearsed locally on
+  `npm pack` tarballs outside the workspace: install, `tsc --noEmit`, `expo export -p web`
+  and the introspected native config all pass.
+- **Before the first publish**: npm trusted publishing is configured per package, so
+  `@its/glowup-device` needs its own trusted publisher on npmjs.com (see `release.yml`).
+- **Expected red run**: between the merge of this work and the merge of the "Version
+  Packages" PR, master declares `@its/glowup-device@0.0.0`, which is not on the registry, so
+  the consumer smoke fails after its wait. It turns green with the publish.
 
 ## Open for v2 (to discuss at the end of v1)
 

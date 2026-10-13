@@ -3,18 +3,29 @@
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
 scanning) and device info, each behind an adapter the app can replace.
 
-> **Work in progress — not published yet.** Every entry point is implemented; the
-> playground pages and the first release are still to come. See [`docs/device-package-plan.md`](../../docs/device-package-plan.md).
+## Install
+
+```bash
+npm install @its/glowup-device
+# then the Expo modules of the subpaths you import:
+npx expo install expo-device expo-application   # /info
+npx expo install expo-location                  # /location
+npx expo install expo-camera                    # /camera
+```
+
+Expo SDK 57 or later. The design and its trade-offs are recorded in the
+[plan](https://github.com/itsolutions-dev/Glowup/blob/master/docs/device-package-plan.md); the
+[documentation site](https://itsolutions-dev.github.io/Glowup/device) runs every capability.
 
 ## Entry points
 
-| Import                        | Needs                             | Status           |
-| ----------------------------- | --------------------------------- | ---------------- |
-| `@its/glowup-device`          | nothing native                    | provider         |
-| `@its/glowup-device/info`     | `expo-device`, `expo-application` | ready            |
-| `@its/glowup-device/location` | `expo-location`                   | ready            |
-| `@its/glowup-device/camera`   | `expo-camera`                     | ready            |
-| `@its/glowup-device/testing`  | nothing native                    | every capability |
+| Import                        | Needs                             | Exports                                                           |
+| ----------------------------- | --------------------------------- | ----------------------------------------------------------------- |
+| `@its/glowup-device`          | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                       |
+| `@its/glowup-device/info`     | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
+| `@its/glowup-device/location` | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
+| `@its/glowup-device/camera`   | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
+| `@its/glowup-device/testing`  | nothing native                    | in-memory adapters for every capability                           |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.

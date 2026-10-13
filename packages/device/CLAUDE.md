@@ -2,10 +2,10 @@
 
 Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a capability.
 
-- **Private until v1.** `"private": true` keeps `changeset publish` (which publishes any
-  non-private package whose version is not on npm, changeset or not) from shipping a
-  half-built package on the next push to `master`. Phase 6 removes it and adds the first
-  changeset; do not add one before.
+- **Published** from `release.yml` like the other packages (changesets, trusted publishing).
+  A user-visible change needs a changeset. `changeset publish` publishes any non-private
+  package whose version is not on npm yet, so a new package must stay `"private": true`
+  until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, plus `./testing`. Each
   capability owns its Expo modules (`expo-device` + `expo-application`, `expo-location`,
   `expo-camera`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves

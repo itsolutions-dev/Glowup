@@ -21,3 +21,9 @@ export {
   type MockCameraAdapter,
   type MockCameraOptions,
 } from "./camera";
+export {
+  createMockNetworkAdapter,
+  MOCK_NETWORK,
+  OFFLINE_NETWORK,
+  type MockNetworkAdapter,
+} from "./network";

@@ -1,7 +1,7 @@
 {
   "name": "@its/glowup-device",
   "version": "0.0.0",
-  "description": "Headless device hardware layer for Expo apps: location, camera and device info behind swappable adapters",
+  "description": "Headless device hardware layer for Expo apps: location, camera, network and device info behind swappable adapters",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -38,6 +38,11 @@
       "types": "./lib/typescript/camera/index.d.ts",
       "default": "./lib/commonjs/camera/index.js"
     },
+    "./network": {
+      "source": "./src/network/index.ts",
+      "types": "./lib/typescript/network/index.d.ts",
+      "default": "./lib/commonjs/network/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -52,6 +57,7 @@
     "info",
     "location",
     "camera",
+    "network",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -76,9 +82,11 @@
     "device",
     "location",
     "camera",
-    "device-info"
+    "device-info",
+    "network"
   ],
   "peerDependencies": {
+    "@react-native-community/netinfo": ">=12",
     "expo": ">=57",
     "expo-application": ">=57",
     "expo-camera": ">=57",
@@ -88,6 +96,9 @@
     "react-native": ">=0.86"
   },
   "peerDependenciesMeta": {
+    "@react-native-community/netinfo": {
+      "optional": true
+    },
     "expo-application": {
       "optional": true
     },
@@ -103,6 +114,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
+    "@react-native-community/netinfo": "12.0.1",
     "@react-native/jest-preset": "^0.86.3",
     "@testing-library/react-native": "^14.1.0",
     "@types/jest": "^29.5.14",

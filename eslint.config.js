@@ -10,6 +10,7 @@ const DEVICE_CAPABILITIES = {
   info: ["expo-device", "expo-application"],
   location: ["expo-location"],
   camera: ["expo-camera"],
+  network: ["@react-native-community/netinfo"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

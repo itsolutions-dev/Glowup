@@ -219,13 +219,29 @@ Each phase is one commit with its tests, docs and `/testing` adapter; the releas
 the playground pages and the changesets. Every web behaviour below is to be checked against the
 module's source before its contract is written, as phases 3 and 4 did.
 
-| Phase | Content                                                                                                                                     | Status |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           |        |
-| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store |        |
-| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             |        |
-| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |        |
-| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |        |
+| Phase | Content                                                                                                                                     | Status   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 7     | `/network` on netinfo: `useNetwork()` (connected, internet reachable, type), the shared "live value" store with a server snapshot           | **done** |
+| 8     | `/battery` (level, charging state, low-power mode) and `/keep-awake` (`useKeepAwake`, imperative activate / deactivate), on phase 7's store |          |
+| 9     | `/orientation` on `expo-screen-orientation`: current orientation, lock / unlock                                                             |          |
+| 10    | `/haptics` and `@its/glowup-ui`'s `onInteractionFeedback` (V8)                                                                              |          |
+| 11    | Playground pages, `examples/consumer`, changesets (`@its/glowup-device` minor, `@its/glowup-ui` minor), release                             |          |
+
+### Phase 7 — what landed
+
+- `/network`: `useNetwork()` (connected, internet reachable, type, metered, cellular
+  generation; every unknown is `null`, never `false`) and `useIsOnline()`.
+- `src/core/liveStore.ts`: one platform subscription shared by every hook, opened by the first
+  listener and closed by the last, shallow-equal updates skipped, a `null` server snapshot for
+  the static export. Battery and keep-awake (phase 8) build on it.
+- Native on netinfo `12.0.1` (the exact pin of SDK 57; optional peer).
+- **Web: our own adapter, not netinfo's web build.** Its source shows the reachability check
+  is `HEAD /` on the page's origin every minute (every 5 s after a failure), with anything but
+  a 200 counted as offline: an app served under a subpath can read as offline while online, and
+  the polling is traffic nobody asked for. The web adapter reads `navigator.onLine`, the
+  `online` / `offline` events and the Network Information API, and reports
+  `isInternetReachable: null` while online.
+- `/testing`: `createMockNetworkAdapter()`, `MOCK_NETWORK`, `OFFLINE_NETWORK`.
 
 To verify per phase: netinfo on web (`navigator.onLine` and the Network Information API, which
 only Chromium has); the Battery Status API (Chromium only); the Wake Lock API (secure context,

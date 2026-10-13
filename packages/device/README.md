@@ -1,7 +1,7 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning) and device info, each behind an adapter the app can replace.
+scanning), network and device info, each behind an adapter the app can replace.
 
 ## Install
 
@@ -11,6 +11,7 @@ npm install @its/glowup-device
 npx expo install expo-device expo-application   # /info
 npx expo install expo-location                  # /location
 npx expo install expo-camera                    # /camera
+npx expo install @react-native-community/netinfo # /network
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -25,6 +26,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/info`     | `expo-device`, `expo-application` | `useDeviceInfo`                                                   |
 | `@its/glowup-device/location` | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition` |
 | `@its/glowup-device/camera`   | `expo-camera`                     | `CameraView`, `useCameraPermission`                               |
+| `@its/glowup-device/network`  | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                       |
 | `@its/glowup-device/testing`  | nothing native                    | in-memory adapters for every capability                           |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -189,6 +191,46 @@ function Recorder() {
   with `unsupported`, and `microphone: true` is ignored. A statically exported page mounts the
   preview after hydration.
 
+## Network
+
+The connection, kept live. One platform subscription is shared by every component that asks,
+and closed when the last one unmounts.
+
+```bash
+npx expo install @react-native-community/netinfo
+```
+
+```tsx
+import { useIsOnline, useNetwork } from "@its/glowup-device/network";
+
+function SyncBanner() {
+  const online = useIsOnline(); // true / false, or null while unknown
+  if (online === false)
+    return <Banner message="You are offline: changes sync later." />;
+  return null;
+}
+
+function UploadButton() {
+  const { isExpensive, type } = useNetwork();
+  // Hold back on a metered connection.
+  return (
+    <Button disabled={isExpensive === true}>{`Upload over ${type}`}</Button>
+  );
+}
+```
+
+- **`null` means unknown, never "no".** Every field starts `null` (and `isLoading` true) until
+  the platform's first answer, and stays `null` where the platform cannot tell.
+- **`isConnected`** says a network interface is up; **`isInternetReachable`** says the internet
+  answers. `useIsOnline()` prefers the second and falls back to the first.
+- **iOS and Android** use netinfo, which probes reachability itself (tune its URL with
+  `NetInfo.configure()`; the adapter reads netinfo's global instance).
+- **Web** reads `navigator.onLine`, the `online` / `offline` events and the Network Information
+  API where there is one (Chromium: `type`, `saveData`). A browser cannot know whether the
+  internet answers without a request of its own, so `isInternetReachable` is `null` while online.
+  netinfo's own web build is not used: it probes `HEAD /` on the page's origin every minute and
+  counts anything but a 200 as offline, which is wrong for an app served under a subpath.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -288,3 +330,6 @@ camera.scan({ data: "TICKET-42" }); // reaches onBarcodeScanned if "qr" is scann
 camera.preview?.facing; // the props CameraView handed the preview
 camera.finishRecording(); // ends a recordVideo() with MOCK_VIDEO
 ```
+
+`createMockNetworkAdapter()` starts online on Wi-Fi (`MOCK_NETWORK`); `setState(OFFLINE_NETWORK)`
+notifies every listening component, as a platform event would.

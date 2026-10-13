@@ -57,6 +57,15 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   snapshot (`__tests__/camera-ssr.test.tsx`): never call it during render directly. The web
   default stays expo-camera (preview, pictures and scanning work there); `supportsVideo()` is
   false on web because its `record()` only warns and returns an empty uri.
+- **Live values** (`src/core/liveStore.ts`): `createLiveStore()` shares one platform
+  subscription between every hook (opened by the first listener, closed by the last), skips
+  shallow-equal updates (platforms re-send equal states), and `useLiveValue()` reads it with a
+  `null` server snapshot for the static export. Capabilities that push changes (network now;
+  battery and keep-awake next) build on it, one store per adapter in a `WeakMap`.
+- **Network** (`src/network`): netinfo on native; on web `web.ts` on `navigator.onLine` and
+  the Network Information API, not netinfo's web build (it probes `HEAD /` every minute and
+  reads anything but 200 as offline). `isInternetReachable` is `null` on web while online:
+  never report a reachability nobody checked.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

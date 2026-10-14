@@ -8,6 +8,21 @@ The site is **English only** and carries no i18n layer: `i18n/` and the
 them. The navigator wiring survives as a snippet on /templates, because `AppBar`
 takes react-navigation's header contract and a consumer still needs to see it.
 
+## The templates
+
+`templates/*.tsx` are whole screens (sign in, sign up, dashboard, inbox, profile, settings,
+checkout, pricing), one self-contained file each: they import only `react`, `react-native`
+and `@its/glowup-ui`, never `site/` or `catalogue/`, because the page shows the file as the
+code to copy. `templates/index.ts` lists them with their slug, copy and design width;
+`app/templates/index.tsx` is the gallery (each card renders its screen live, scaled from that
+width) and `app/templates/[slug].tsx` the page: stage, "built with" chips, full source.
+The source is embedded by `templates/generate.mjs` into `templates/sources.generated.ts`
+(committed; never hand-edit it) — **after editing a template, run
+`npm run templates -w @its/glowup-playground`**; `__tests__/templates.test.tsx` fails when
+the embedded source differs from the file. A template that switches layout measures its own
+container with `onLayout`, never the window: it must reflow on the stage's 360 / 720 widths,
+and a first render at width 0 matches the prerendered HTML.
+
 ## Three generated artefacts, all committed
 
 - `docgen/props.generated.json` — every exported component's prop table, read from the

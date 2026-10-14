@@ -35,7 +35,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | ---------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `@its/glowup-device`               | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
 | `@its/glowup-device/info`          | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
-| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                          |
+| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`                            |
 | `@its/glowup-device/camera`        | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
 | `@its/glowup-device/network`       | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
 | `@its/glowup-device/battery`       | `expo-battery`                    | `useBattery`                                                                                               |
@@ -89,7 +89,7 @@ the browser's values arrive right after hydration.
 
 ## Location
 
-Foreground only: the permission, one position, a watch.
+Foreground only: the permission, one position, a watch, the compass.
 
 ```bash
 npx expo install expo-location
@@ -143,6 +143,36 @@ const { position } = useWatchPosition({
 - **Web** uses `navigator.geolocation` directly. It needs a secure context (HTTPS or
   localhost), cannot tell disabled services from a missing fix (both are `unavailable`) and
   does not report precision (`null`).
+
+### Compass
+
+```tsx
+import { useHeading } from "@its/glowup-device/location";
+
+function CompassNeedle() {
+  const { heading, error } = useHeading(); // { enabled } pauses it
+  if (error) return null; // "permission-denied" | "unsupported" | "unavailable"
+  if (!heading) return <Spinner />;
+  const degrees = heading.trueHeading ?? heading.magneticHeading;
+  return (
+    <Needle rotation={-degrees} calibrate={heading.accuracy === "unreliable"} />
+  );
+}
+```
+
+- **Where the top edge of the device points**, in degrees from 0 up to 360: `magneticHeading`
+  always, `trueHeading` (geographic north) or `null` while the platform cannot compute it
+  (Android needs a position to take the declination from). `accuracy` is `high`, `medium`,
+  `low` or `unreliable` (time to calibrate). Android does not adjust for the display's rotation
+  and reports a change of about 2° or more.
+- **It needs the location permission** (not the location services: the compass is the
+  magnetometer) and never prompts: without it the hook ends in `permission-denied`.
+- **One native watch** for every component that reads it (Android keeps a single one), stopped
+  while the app is in the background and closed with the last reader. A failure reaches every
+  reader; the watch reopens when a component subscribes again.
+- **No compass:** iOS reports `unavailable`; an Android device without a magnetometer never
+  emits, so `heading` stays `null`. The web is `unsupported`, and so is an adapter without the
+  optional `watchHeading` method.
 
 ## Camera
 
@@ -934,7 +964,11 @@ render(
 location.emit(buildPosition({ latitude: 45.46, longitude: 9.19 })); // to every watch
 location.fail("unavailable");
 location.setPosition("pending"); // getCurrentPosition never settles: test the timeout
+location.emitHeading({ magneticHeading: 90 }); // to the compass
+location.failHeading("unavailable");
 ```
+
+`createMockLocationAdapter({ heading: false })` has no compass, as on the web.
 
 `createMockCameraAdapter()` renders a plain `View` (`testID="mock-camera-preview"`) and
 captures without hardware:

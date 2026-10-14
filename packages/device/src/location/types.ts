@@ -58,6 +58,27 @@ export interface LastKnownPositionOptions {
 }
 
 /**
+ * How far a heading can be trusted: iOS's uncertainty (high under 20°,
+ * medium under 35°, low under 50°) or Android's magnetometer calibration.
+ * `unreliable`: the compass needs calibrating (a figure-eight motion).
+ */
+export type HeadingAccuracy = "high" | "medium" | "low" | "unreliable";
+
+/** Where the top edge of the device points, clockwise from north. */
+export interface Heading {
+  /** Degrees from magnetic north, from 0 up to (not including) 360. */
+  magneticHeading: number;
+  /**
+   * Degrees from true north; `null` until the platform knows the magnetic
+   * declination where the device is (it needs a location fix first).
+   */
+  trueHeading: number | null;
+  accuracy: HeadingAccuracy;
+  /** When the reading arrived (`Date.now()`). */
+  timestamp: number;
+}
+
+/**
  * The contract between the location hooks and whatever reads the position.
  * Every rejection and every `onError` call carries a `LocationError`.
  *
@@ -82,6 +103,17 @@ export interface LocationAdapter {
   watchPosition(
     options: WatchPositionOptions,
     onPosition: (position: GeoPosition) => void,
+    onError: (error: LocationError) => void,
+  ): Unsubscribe;
+  /**
+   * Optional: the compass. The package opens one watch per adapter however
+   * many components read it, only once the permission is granted, and stops
+   * it while the app is in the background. An adapter without it (the web,
+   * an adapter written before 0.7) has no heading: `useHeading` reports
+   * `unsupported`. A failure that ends the watch goes to `onError`.
+   */
+  watchHeading?(
+    onHeading: (heading: Heading) => void,
     onError: (error: LocationError) => void,
   ): Unsubscribe;
 }

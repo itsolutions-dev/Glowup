@@ -46,6 +46,13 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   default is `web.ts` on `navigator.geolocation`, not expo-location's web build (see
   `docs/device-package-plan.md`, phase 3). `useCurrentPosition` derives `isLoading` from a
   request key: the React Compiler lint forbids a synchronous `setState` in an effect.
+  The compass (`heading.ts`, `useHeading`) uses the optional `adapter.watchHeading` (absent
+  on the web): one native watch per adapter (Android keeps one, a second steals the
+  events), stopped on `background` (not `inactive`), closed with the last reader (it
+  subscribes after an async permission read, so a grace period would buy nothing). It
+  checks support and permission, not the services; expo's `-1` true heading becomes `null`.
+  The mock assigns `watchHeading` after building the object: Babel's object spread copies
+  getters as values, so a spread in a literal with getters freezes them.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

@@ -2,6 +2,7 @@ import * as Location from "expo-location";
 
 import {
   expoLocationAdapter,
+  toHeading,
   toLocationError,
   toLocationPermissionState,
 } from "../location/expo";
@@ -21,6 +22,7 @@ jest.mock("expo-location", () => ({
   getCurrentPositionAsync: jest.fn(),
   getLastKnownPositionAsync: jest.fn(),
   watchPositionAsync: jest.fn(),
+  watchHeadingAsync: jest.fn(),
 }));
 
 const mocked = jest.mocked(Location);
@@ -198,5 +200,109 @@ describe("watchPosition", () => {
     expect(native.remove).toHaveBeenCalled();
     native.callback()(raw as never);
     expect(onPosition).not.toHaveBeenCalled();
+  });
+});
+
+describe("heading", () => {
+  it.each([
+    [{ magHeading: 90, trueHeading: 92.5, accuracy: 3 }, 90, 92.5, "high"],
+    [{ magHeading: 360, trueHeading: 0, accuracy: 2 }, 0, 0, "medium"],
+    [{ magHeading: -10, trueHeading: 725, accuracy: 1 }, 350, 5, "low"],
+    [{ magHeading: 12, trueHeading: -1, accuracy: 0 }, 12, null, "unreliable"],
+  ])("maps %j", (raw, magneticHeading, trueHeading, accuracy) => {
+    expect(toHeading(raw)).toEqual({
+      magneticHeading,
+      trueHeading,
+      accuracy,
+      timestamp: expect.any(Number),
+    });
+  });
+
+  function nativeWatch() {
+    const remove = jest.fn();
+    let resolve!: (sub: { remove: () => void }) => void;
+    let reject!: (error: unknown) => void;
+    mocked.watchHeadingAsync.mockImplementation(
+      () =>
+        new Promise((done, fail) => {
+          resolve = done;
+          reject = fail;
+        }) as never,
+    );
+    return {
+      remove,
+      created: () => resolve({ remove }),
+      failed: (error: unknown) => reject(error),
+      callback: () => mocked.watchHeadingAsync.mock.calls[0][0],
+      errorHandler: () => mocked.watchHeadingAsync.mock.calls[0][1]!,
+    };
+  }
+
+  const rawHeading = { magHeading: 45, trueHeading: 47, accuracy: 3 };
+
+  beforeEach(() => mocked.watchHeadingAsync.mockReset());
+
+  it("forwards readings and errors while subscribed", async () => {
+    const native = nativeWatch();
+    const onHeading = jest.fn();
+    const onError = jest.fn();
+    const stop = expoLocationAdapter.watchHeading!(onHeading, onError);
+    native.created();
+    await Promise.resolve();
+    native.callback()(rawHeading);
+    native.errorHandler()("no magnetometer");
+    expect(onHeading).toHaveBeenCalledWith(
+      expect.objectContaining({ magneticHeading: 45, trueHeading: 47 }),
+    );
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: "unavailable",
+        message: "no magnetometer",
+      }),
+    );
+    stop();
+    expect(native.remove).toHaveBeenCalled();
+    native.callback()(rawHeading);
+    native.errorHandler()("late");
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it("turns a refused watch into a LocationError", async () => {
+    const native = nativeWatch();
+    const onError = jest.fn();
+    expoLocationAdapter.watchHeading!(jest.fn(), onError);
+    native.failed(coded("ERR_LOCATION_UNAUTHORIZED"));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "LocationError",
+        code: "permission-denied",
+      }),
+    );
+  });
+
+  it("stays silent about a refusal after unsubscribing", async () => {
+    const native = nativeWatch();
+    const onError = jest.fn();
+    const stop = expoLocationAdapter.watchHeading!(jest.fn(), onError);
+    stop();
+    native.failed(coded("ERR_LOCATION_UNAUTHORIZED"));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("removes a subscription that resolves after unsubscribing", async () => {
+    const native = nativeWatch();
+    const onHeading = jest.fn();
+    const stop = expoLocationAdapter.watchHeading!(onHeading, jest.fn());
+    stop();
+    native.created();
+    await Promise.resolve();
+    expect(native.remove).toHaveBeenCalled();
+    native.callback()(rawHeading);
+    expect(onHeading).not.toHaveBeenCalled();
   });
 });

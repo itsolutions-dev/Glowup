@@ -3,8 +3,11 @@ import * as Location from "expo-location";
 import { hasDOM, isNativePlatform } from "../core/support";
 import { toPermissionState } from "../core/permissions";
 import { isLocationError, LocationError } from "./errors";
+import type { Unsubscribe } from "../core/types";
 import type {
   GeoPosition,
+  Heading,
+  HeadingAccuracy,
   LocationAccuracy,
   LocationAdapter,
   LocationPermissionState,
@@ -53,6 +56,30 @@ export function toGeoPosition(raw: Location.LocationObject): GeoPosition {
       speed: coords.speed ?? null,
     },
     timestamp,
+  };
+}
+
+const HEADING_ACCURACY: Record<number, HeadingAccuracy> = {
+  3: "high",
+  2: "medium",
+  1: "low",
+};
+
+/** 0 up to (not including) 360, whatever the platform sent. */
+function toDegrees(value: number): number {
+  return ((value % 360) + 360) % 360;
+}
+
+/**
+ * expo sends `-1` for a true heading it cannot compute (no permission, or on
+ * Android no fix yet to take the declination from), and accuracy as 0–3.
+ */
+export function toHeading(raw: Location.LocationHeadingObject): Heading {
+  return {
+    magneticHeading: toDegrees(raw.magHeading),
+    trueHeading: raw.trueHeading >= 0 ? toDegrees(raw.trueHeading) : null,
+    accuracy: HEADING_ACCURACY[raw.accuracy] ?? "unreliable",
+    timestamp: Date.now(),
   };
 }
 
@@ -146,4 +173,38 @@ export const expoLocationAdapter: LocationAdapter = {
       subscription?.remove();
     };
   },
+
+  // expo's web build warns and never emits: no heading there. Android keeps
+  // one native heading watch (a second takes the events away from the
+  // first); the hooks open one per adapter, so this is called once at a time.
+  ...(isNativePlatform && {
+    watchHeading(
+      onHeading: (heading: Heading) => void,
+      onError: (error: LocationError) => void,
+    ): Unsubscribe {
+      let active = true;
+      let subscription: Location.LocationSubscription | null = null;
+      Location.watchHeadingAsync(
+        (raw) => {
+          if (active) onHeading(toHeading(raw));
+        },
+        // iOS without a magnetometer, or CoreLocation failing.
+        (reason) => {
+          if (active) onError(new LocationError("unavailable", reason));
+        },
+      ).then(
+        (created) => {
+          if (active) subscription = created;
+          else created.remove();
+        },
+        (error) => {
+          if (active) onError(toLocationError(error));
+        },
+      );
+      return () => {
+        active = false;
+        subscription?.remove();
+      };
+    },
+  }),
 };

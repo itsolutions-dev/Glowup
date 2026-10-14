@@ -9,6 +9,7 @@ export {
   type DeviceInfoOverrides,
 } from "./deviceInfo";
 export {
+  buildHeading,
   buildPosition,
   createMockLocationAdapter,
   type MockLocationAdapter,

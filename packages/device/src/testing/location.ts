@@ -3,6 +3,7 @@ import { LocationError, type LocationErrorCode } from "../location/errors";
 import type {
   GeoCoordinates,
   GeoPosition,
+  Heading,
   LocationAdapter,
   LocationPermissionState,
   LocationPrecision,
@@ -29,7 +30,23 @@ export function buildPosition(
   };
 }
 
+/** Pointing north-east, well calibrated, read now. */
+export function buildHeading(overrides: Partial<Heading> = {}): Heading {
+  return {
+    magneticHeading: 45,
+    trueHeading: 48,
+    accuracy: "high",
+    timestamp: Date.now(),
+    ...overrides,
+  };
+}
+
 export interface MockLocationOptions {
+  /**
+   * Whether the adapter has a compass (`watchHeading`). Default true; false
+   * stands in for the web, or an adapter written before 0.7.
+   */
+  heading?: boolean;
   /** Default `"undetermined"`. */
   permission?: PermissionStatus;
   /** Reported once granted. Default `"precise"`. */
@@ -63,6 +80,18 @@ export interface MockLocationAdapter extends LocationAdapter {
   fail(error: LocationError | LocationErrorCode): void;
   /** Active watches and the options each was opened with. */
   readonly watches: readonly WatchPositionOptions[];
+  /** Delivers a heading to every open heading watch. */
+  emitHeading(heading?: Partial<Heading>): void;
+  /**
+   * Reports an error to every open heading watch, as a platform failure
+   * would. The watches stay open, as on the platform: closing them is the
+   * package's job.
+   */
+  failHeading(error: LocationError | LocationErrorCode): void;
+  /** How many heading watches are open (the package keeps at most one). */
+  readonly headingWatches: number;
+  /** How many heading watches were ever opened. */
+  readonly headingWatchesOpened: number;
   /** How many times `requestPermission()` was called. */
   readonly requestCount: number;
 }
@@ -92,6 +121,11 @@ export function createMockLocationAdapter(
     }
   >();
   let nextWatch = 0;
+  const headingWatchers = new Set<{
+    onHeading: (heading: Heading) => void;
+    onError: (error: LocationError) => void;
+  }>();
+  let headingWatchesOpened = 0;
 
   function setPermission(
     status: PermissionStatus,
@@ -111,7 +145,19 @@ export function createMockLocationAdapter(
     canAskAgain: options.canAskAgain,
   });
 
-  return {
+  const watchHeading: LocationAdapter["watchHeading"] = (
+    onHeading,
+    onError,
+  ) => {
+    const watcher = { onHeading, onError };
+    headingWatchers.add(watcher);
+    headingWatchesOpened++;
+    return () => {
+      headingWatchers.delete(watcher);
+    };
+  };
+
+  const adapter: MockLocationAdapter = {
     isSupported: () => options.supported ?? true,
     getPermission: async () => permission,
     async requestPermission() {
@@ -162,6 +208,21 @@ export function createMockLocationAdapter(
         typeof error === "string" ? new LocationError(error) : error;
       [...watchers.values()].forEach((watcher) => watcher.onError(failure));
     },
+    emitHeading(overrides) {
+      const next = buildHeading(overrides);
+      [...headingWatchers].forEach((watcher) => watcher.onHeading(next));
+    },
+    failHeading(error) {
+      const failure =
+        typeof error === "string" ? new LocationError(error) : error;
+      [...headingWatchers].forEach((watcher) => watcher.onError(failure));
+    },
+    get headingWatches() {
+      return headingWatchers.size;
+    },
+    get headingWatchesOpened() {
+      return headingWatchesOpened;
+    },
     get watches() {
       return [...watchers.values()].map((watcher) => watcher.options);
     },
@@ -169,4 +230,8 @@ export function createMockLocationAdapter(
       return requestCount;
     },
   };
+  // Assigned, not spread into the literal: Babel's object spread would read
+  // the getters above once, at creation, and freeze their values.
+  if (options.heading !== false) adapter.watchHeading = watchHeading;
+  return adapter;
 }

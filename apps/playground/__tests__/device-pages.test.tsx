@@ -10,8 +10,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 import { DeviceAdaptersProvider } from "@its/glowup-device";
 import {
+  buildGeocodedAddress,
   buildPosition,
   createMockBatteryAdapter,
+  createMockGeocoderAdapter,
   createMockBiometricsAdapter,
   createMockCameraAdapter,
   createMockDeviceInfoAdapter,
@@ -27,6 +29,7 @@ import {
   buildPickedMedia,
   OFFLINE_NETWORK,
   type MockBatteryAdapter,
+  type MockGeocoderAdapter,
   type MockBiometricsAdapter,
   type MockCameraAdapter,
   type MockHapticsAdapter,
@@ -106,6 +109,7 @@ jest.mock("expo-router", () => ({
 }));
 
 let location: MockLocationAdapter;
+let geocoder: MockGeocoderAdapter;
 let camera: MockCameraAdapter;
 let network: MockNetworkAdapter;
 let battery: MockBatteryAdapter;
@@ -120,6 +124,7 @@ let mediaLibrary: MockMediaLibraryAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
+  geocoder = createMockGeocoderAdapter();
   camera = createMockCameraAdapter();
   network = createMockNetworkAdapter();
   battery = createMockBatteryAdapter();
@@ -149,6 +154,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
             adapters={{
               info: createMockDeviceInfoAdapter({ model: "Pixel 8" }),
               location,
+              geocoder,
               camera,
               network,
               battery,
@@ -216,6 +222,62 @@ describe("location", () => {
     await waitFor(() => expect(screen.getByText("Approximate")).toBeTruthy());
     await fireEvent.press(screen.getByText("Locate me"));
     await waitFor(() => expect(screen.getByText("45.464211")).toBeTruthy());
+  });
+
+  it("follows the compass once started", async () => {
+    location.setPermission("granted");
+    await render(<LocationPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Start the compass"));
+    await waitFor(() => expect(location.headingWatches).toBe(1));
+    await act(async () => {
+      location.emitHeading({
+        magneticHeading: 90,
+        trueHeading: null,
+        accuracy: "unreliable",
+      });
+    });
+    expect(screen.getAllByText("90° E")).toHaveLength(2);
+    expect(screen.getByText("Needs a location fix first")).toBeTruthy();
+    expect(screen.getByText("Unreliable")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop the compass"));
+    await waitFor(() => expect(location.headingWatches).toBe(0));
+  });
+
+  it("geocodes an address and the current position", async () => {
+    location.setPermission("granted");
+    geocoder.setReverseGeocode([
+      buildGeocodedAddress({ formattedAddress: "Via Roma 1, Milano" }),
+    ]);
+    await render(<LocationPage />, { wrapper: Providers });
+    await fireEvent.changeText(screen.getByLabelText("Address"), " Roma ");
+    await fireEvent.press(screen.getByText("Find"));
+    await waitFor(() =>
+      expect(screen.getByText("41.895900, 12.482300")).toBeTruthy(),
+    );
+    expect(geocoder.geocodeCalls).toEqual(["Roma"]);
+    await fireEvent.press(screen.getByText("What is here?"));
+    await waitFor(() =>
+      expect(screen.getByText("Via Roma 1, Milano")).toBeTruthy(),
+    );
+    expect(geocoder.reverseGeocodeCalls).toHaveLength(1);
+  });
+
+  it("says when nothing is found, and when there is no geocoder", async () => {
+    geocoder.setGeocode([]);
+    const { unmount } = await render(<LocationPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Find"));
+    await waitFor(() =>
+      expect(screen.getByText("No place matches that address.")).toBeTruthy(),
+    );
+    await unmount();
+    geocoder = createMockGeocoderAdapter({ supported: false });
+    await render(<LocationPage />, { wrapper: Providers });
+    expect(
+      screen.getByText(
+        "No geocoder here. An app supplies its own provider through the geocoder adapter.",
+      ),
+    ).toBeTruthy();
   });
 });
 

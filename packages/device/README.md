@@ -35,7 +35,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | ---------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `@its/glowup-device`               | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
 | `@its/glowup-device/info`          | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
-| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                          |
+| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`, `useGeocoder`             |
 | `@its/glowup-device/camera`        | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
 | `@its/glowup-device/network`       | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
 | `@its/glowup-device/battery`       | `expo-battery`                    | `useBattery`                                                                                               |
@@ -89,7 +89,7 @@ the browser's values arrive right after hydration.
 
 ## Location
 
-Foreground only: the permission, one position, a watch.
+Foreground only: the permission, one position, a watch, the compass, geocoding.
 
 ```bash
 npx expo install expo-location
@@ -143,6 +143,118 @@ const { position } = useWatchPosition({
 - **Web** uses `navigator.geolocation` directly. It needs a secure context (HTTPS or
   localhost), cannot tell disabled services from a missing fix (both are `unavailable`) and
   does not report precision (`null`).
+
+### Compass
+
+```tsx
+import { useHeading } from "@its/glowup-device/location";
+
+function CompassNeedle() {
+  const { heading, error } = useHeading(); // { enabled } pauses it
+  if (error) return null; // "permission-denied" | "unsupported" | "unavailable"
+  if (!heading) return <Spinner />;
+  const degrees = heading.trueHeading ?? heading.magneticHeading;
+  return (
+    <Needle rotation={-degrees} calibrate={heading.accuracy === "unreliable"} />
+  );
+}
+```
+
+- **Where the top edge of the device points**, in degrees from 0 up to 360: `magneticHeading`
+  always, `trueHeading` (geographic north) or `null` while the platform cannot compute it
+  (Android needs a position to take the declination from). `accuracy` is `high`, `medium`,
+  `low` or `unreliable` (time to calibrate). Android does not adjust for the display's rotation
+  and reports a change of about 2° or more.
+- **It needs the location permission** (not the location services: the compass is the
+  magnetometer) and never prompts: without it the hook ends in `permission-denied`.
+- **One native watch** for every component that reads it (Android keeps a single one), stopped
+  while the app is in the background and closed with the last reader. A failure reaches every
+  reader; the watch reopens when a component subscribes again.
+- **No compass:** iOS reports `unavailable`; an Android device without a magnetometer never
+  emits, so `heading` stays `null`. The web is `unsupported`, and so is an adapter without the
+  optional `watchHeading` method.
+
+### Geocoding
+
+```tsx
+import { useGeocoder } from "@its/glowup-device/location";
+
+function AddressSearch() {
+  const geocoder = useGeocoder();
+  if (!geocoder.isSupported) return null; // the web, unless you supply a provider
+
+  const search = async (text: string) => {
+    try {
+      const places = await geocoder.geocode(text); // [] when nothing matches
+      // places[0]: { latitude, longitude, accuracy }
+    } catch (error) {
+      // LocationError: "permission-denied" (Android), "unavailable", "timeout", "unsupported"
+    }
+  };
+
+  // The other way, from a position:
+  // const [address] = await geocoder.reverseGeocode(position.coords);
+  // address?.city, address?.street, address?.formattedAddress (Android) …
+}
+```
+
+- **The platform's own geocoder:** Apple's on iOS, `android.location.Geocoder` on Android. Not a
+  search box: one result on Android, a few on iOS, and Apple limits the request rate, so
+  debounce what the user types. Nothing is cached.
+- **Android needs the location permission** (iOS does not): without it a call rejects with
+  `permission-denied`; ask with `useLocationPermission().request()`. It also refuses while the
+  app is in the background (`unavailable`) and has no geocoder at all without Google Play
+  services (`unsupported`).
+- **Nothing found is `[]`**, never an error. Network failures and Apple's throttling are both
+  `unavailable` (iOS reports them as one error). A call rejects with `timeout` after
+  `{ timeout }` ms (default 15000); an empty address or a point off the globe throws a
+  `TypeError` / `RangeError` before anything is sent.
+- **Addresses** have the same parts on both platforms, `null` where unknown: `timezone` is iOS
+  only, `formattedAddress` Android only, and Android's `name` is often just the street number.
+  `accuracy` (metres) is iOS only.
+- **The web has no geocoder** (expo's web build answers `[]`, which would read as "nothing
+  found"). Supply your own provider, on the web or everywhere, as a `GeocoderAdapter`:
+
+```tsx
+import { Platform } from "react-native";
+import { DeviceAdaptersProvider } from "@its/glowup-device";
+import {
+  expoGeocoderAdapter,
+  LocationError,
+  type GeocoderAdapter,
+} from "@its/glowup-device/location";
+
+const myGeocoder: GeocoderAdapter = {
+  isSupported: () => true,
+  async geocode(address) {
+    const response = await fetch(
+      `https://geo.example.com/search?q=${encodeURIComponent(address)}`,
+    );
+    if (!response.ok)
+      throw new LocationError("unavailable", `HTTP ${response.status}`);
+    const hits: { lat: number; lon: number }[] = await response.json();
+    return hits.map(({ lat, lon }) => ({
+      latitude: lat,
+      longitude: lon,
+      accuracy: null,
+    }));
+  },
+  async reverseGeocode({ latitude, longitude }) {
+    // The same, into GeocodedAddress objects (every part, null where unknown).
+    return [];
+  },
+};
+
+<DeviceAdaptersProvider
+  adapters={{
+    geocoder: Platform.OS === "web" ? myGeocoder : expoGeocoderAdapter,
+  }}
+>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
+Any other error the adapter throws reaches the app as `unavailable`.
 
 ## Camera
 
@@ -934,7 +1046,30 @@ render(
 location.emit(buildPosition({ latitude: 45.46, longitude: 9.19 })); // to every watch
 location.fail("unavailable");
 location.setPosition("pending"); // getCurrentPosition never settles: test the timeout
+location.emitHeading({ magneticHeading: 90 }); // to the compass
+location.failHeading("unavailable");
 ```
+
+`createMockLocationAdapter({ heading: false })` has no compass, as on the web.
+
+`createMockGeocoderAdapter()` answers one place and one address in Rome until told otherwise:
+
+```tsx
+const geocoder = createMockGeocoderAdapter();
+render(
+  <DeviceAdaptersProvider adapters={{ geocoder }}>
+    <AddressSearch />
+  </DeviceAdaptersProvider>,
+);
+geocoder.setGeocode([
+  buildGeocodedLocation({ latitude: 45.46, longitude: 9.19 }),
+]);
+geocoder.setGeocode([]); // nothing found
+geocoder.setReverseGeocode("unavailable"); // or a LocationError, or "pending"
+expect(geocoder.geocodeCalls).toEqual(["Milano"]);
+```
+
+`createMockGeocoderAdapter({ supported: false })` has no geocoder, as on the web.
 
 `createMockCameraAdapter()` renders a plain `View` (`testID="mock-camera-preview"`) and
 captures without hardware:

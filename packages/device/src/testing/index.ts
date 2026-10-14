@@ -9,11 +9,20 @@ export {
   type DeviceInfoOverrides,
 } from "./deviceInfo";
 export {
+  buildHeading,
   buildPosition,
   createMockLocationAdapter,
   type MockLocationAdapter,
   type MockLocationOptions,
 } from "./location";
+export {
+  buildGeocodedAddress,
+  buildGeocodedLocation,
+  createMockGeocoderAdapter,
+  type MockGeocoderAdapter,
+  type MockGeocoderAnswer,
+  type MockGeocoderOptions,
+} from "./geocoder";
 export {
   createMockCameraAdapter,
   MOCK_PICTURE,

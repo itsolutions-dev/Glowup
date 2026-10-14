@@ -16,7 +16,8 @@ import type {
   WatchPositionOptions,
 } from "./types";
 
-function useLocationAdapter(): LocationAdapter {
+/** The provided adapter, or the platform's default. */
+export function useLocationAdapter(): LocationAdapter {
   return useDeviceAdapter("location") ?? defaultLocationAdapter;
 }
 

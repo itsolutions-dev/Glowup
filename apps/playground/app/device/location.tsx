@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Platform } from "react-native";
 import {
   Banner,
   Button,
   HStack,
+  Icon,
+  Input,
   ListItem,
   ListSection,
   Skeleton,
@@ -15,12 +17,18 @@ import {
   useTheme,
 } from "@its/glowup-ui";
 import {
+  isLocationError,
+  LocationError,
   useCurrentPosition,
+  useGeocoder,
+  useHeading,
   useLocationPermission,
   useWatchPosition,
+  type GeocodedAddress,
+  type GeocodedLocation,
   type GeoPosition,
+  type HeadingAccuracy,
   type LocationAccuracy,
-  type LocationError,
   type LocationErrorCode,
 } from "@its/glowup-device/location";
 
@@ -42,6 +50,35 @@ const ERROR_COPY: Record<LocationErrorCode, string> = {
   unavailable: "No fix could be obtained. Try again near a window or outdoors.",
   timeout: "No fix within 15 seconds.",
   unsupported: "This platform cannot locate.",
+};
+
+const HEADING_ACCURACY: Record<
+  HeadingAccuracy,
+  { label: string; type: "success" | "warning" | "error" }
+> = {
+  high: { label: "High", type: "success" },
+  medium: { label: "Medium", type: "success" },
+  low: { label: "Low", type: "warning" },
+  unreliable: { label: "Unreliable", type: "error" },
+};
+
+const HEADING_ERROR_COPY: Record<LocationErrorCode, string> = {
+  ...ERROR_COPY,
+  "permission-denied":
+    "The compass needs the location permission: use the button above.",
+  unavailable: "This device has no compass.",
+  unsupported: "There is no compass in a browser.",
+};
+
+const GEOCODE_ERROR_COPY: Record<LocationErrorCode, string> = {
+  ...ERROR_COPY,
+  "permission-denied":
+    "Android geocodes only with the location permission: use the button above.",
+  unavailable:
+    "No answer: offline, too many requests (Apple limits the rate), or no geocoder service on this device.",
+  timeout: "No answer within 15 seconds.",
+  unsupported:
+    "No geocoder here. An app supplies its own provider through the geocoder adapter.",
 };
 
 const USAGE = `import {
@@ -66,6 +103,20 @@ function NearbyShops() {
   }
   if (error?.code === "services-disabled") return <TurnOnLocation />;
   return <ShopList near={position?.coords} loading={isLoading} onRetry={refresh} />;
+}`;
+
+const GEOCODING_USAGE = `import { useGeocoder } from "@its/glowup-device/location";
+
+function AddressOf({ coords }: { coords: GeoPoint }) {
+  const { reverseGeocode } = useGeocoder();
+  const [address, setAddress] = useState<GeocodedAddress | null>(null);
+
+  useEffect(() => {
+    // [] is "nothing known here", not an error.
+    reverseGeocode(coords).then(([first]) => setAddress(first ?? null), () => {});
+  }, [coords, reverseGeocode]);
+
+  return <Text>{address?.city ?? "…"}</Text>;
 }`;
 
 const PLUGIN = `["@its/glowup-device", {
@@ -100,14 +151,43 @@ const PositionList = ({ position }: { position: GeoPosition }) => {
   );
 };
 
-const ErrorLine = ({ error }: { error: LocationError }) => {
+const ErrorLine = ({
+  error,
+  copy = ERROR_COPY,
+}: {
+  error: LocationError;
+  copy?: Record<LocationErrorCode, string>;
+}) => {
   const { theme } = useTheme();
   return (
     <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
-      {ERROR_COPY[error.code]}
+      {copy[error.code]}
     </Typography>
   );
 };
+
+const CARDINALS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+const cardinal = (degrees: number) =>
+  CARDINALS[Math.round(degrees / 45) % CARDINALS.length];
+
+const formatDegrees = (degrees: number | null) =>
+  degrees === null ? "—" : `${Math.round(degrees)}° ${cardinal(degrees)}`;
+
+const formatAddress = (address: GeocodedAddress) =>
+  address.formattedAddress ??
+  ([
+    [address.street, address.streetNumber].filter(Boolean).join(" "),
+    [address.postalCode, address.city].filter(Boolean).join(" "),
+    address.country,
+  ]
+    .filter(Boolean)
+    .join(", ") ||
+    address.name ||
+    "Unnamed place");
+
+const toLocationError = (error: unknown) =>
+  isLocationError(error) ? error : new LocationError("unavailable");
 
 export default function LocationPage() {
   const permission = useLocationPermission();
@@ -117,7 +197,7 @@ export default function LocationPage() {
     <Page
       eyebrow="@its/glowup-device/location"
       title="Location"
-      description="Foreground location: the permission (with the precision the user chose), one position, and a live watch. The hooks never prompt — only the button below shows the OS dialog."
+      description="Foreground location: the permission (with the precision the user chose), one position, a live watch, the compass and geocoding. The hooks never prompt — only the button below shows the OS dialog."
       banner={
         <Banner
           visible
@@ -125,7 +205,7 @@ export default function LocationPage() {
           icon="information-outline"
           message={
             Platform.OS === "web"
-              ? "In a browser the position comes from navigator.geolocation: it needs HTTPS, does not report precision, and cannot tell disabled location services from a missing fix."
+              ? "In a browser the position comes from navigator.geolocation: it needs HTTPS, does not report precision, and cannot tell disabled location services from a missing fix. There is no compass or geocoder."
               : "Works in Expo Go. Try “Approximate” in the iOS prompt (or Android 12+) to see the precision change."
           }
         />
@@ -156,6 +236,8 @@ export default function LocationPage() {
 
       <CurrentPositionSection granted={granted} />
       <WatchSection granted={granted} />
+      <CompassSection granted={granted} />
+      <GeocodingSection granted={granted} />
 
       <Section
         title="Wire it up"
@@ -168,6 +250,7 @@ export default function LocationPage() {
         />
         <CodeBlock code={PLUGIN} title="app.config.ts → plugins" />
         <CodeBlock code={USAGE} title="NearbyShops.tsx" />
+        <CodeBlock code={GEOCODING_USAGE} title="AddressOf.tsx" />
       </Section>
     </Page>
   );
@@ -267,6 +350,252 @@ const WatchSection = ({ granted }: { granted: boolean }) => {
           </Typography>
         </VStack>
       ) : null}
+    </Section>
+  );
+};
+
+const CompassSection = ({ granted }: { granted: boolean }) => {
+  const { theme } = useTheme();
+  const [following, setFollowing] = useState(false);
+  // The default web adapter has no compass: say so before any permission.
+  const noCompass = Platform.OS === "web";
+  const { heading, error } = useHeading({ enabled: following && granted });
+  const accuracy = heading ? HEADING_ACCURACY[heading.accuracy] : null;
+
+  return (
+    <Section
+      title="Compass"
+      description="useHeading() follows where the top edge of the device points. Every reader shares one native watch, paused while the app is in the background. It needs the location permission, not the location services."
+    >
+      <HStack>
+        <Button
+          iconName={following ? "compass-off-outline" : "compass-outline"}
+          mode={following ? "outlined" : "filled"}
+          disabled={!granted || noCompass}
+          onPress={() => setFollowing((value) => !value)}
+        >
+          {following ? "Stop the compass" : "Start the compass"}
+        </Button>
+      </HStack>
+      {noCompass ? (
+        <ErrorLine
+          error={new LocationError("unsupported")}
+          copy={HEADING_ERROR_COPY}
+        />
+      ) : null}
+      {error ? <ErrorLine error={error} copy={HEADING_ERROR_COPY} /> : null}
+      {heading && accuracy ? (
+        <VStack spacing="m">
+          <HStack spacing="m" style={{ alignItems: "center" }}>
+            <Icon
+              source="navigation"
+              size={theme.spacing.xl * 2}
+              color={theme.colors.primary}
+              // The arrow points up; turning it back by the heading keeps it on north.
+              style={{
+                transform: [{ rotate: `${-heading.magneticHeading}deg` }],
+              }}
+            />
+            <Typography variant="headlineMedium">
+              {formatDegrees(heading.magneticHeading)}
+            </Typography>
+          </HStack>
+          <ListSection>
+            <ListItem secondary={formatDegrees(heading.magneticHeading)}>
+              Magnetic north
+            </ListItem>
+            <ListItem
+              secondary={
+                heading.trueHeading === null
+                  ? "Needs a location fix first"
+                  : formatDegrees(heading.trueHeading)
+              }
+            >
+              True north
+            </ListItem>
+            <ListItem
+              secondary={
+                heading.accuracy === "unreliable"
+                  ? "Move the device in a figure eight to calibrate."
+                  : undefined
+              }
+              trailing={
+                <StatusBadge label={accuracy.label} type={accuracy.type} />
+              }
+            >
+              Accuracy
+            </ListItem>
+          </ListSection>
+        </VStack>
+      ) : following && granted && !error ? (
+        <Typography
+          variant="bodySmall"
+          style={{ color: theme.colors.onSurfaceVariant }}
+        >
+          Waiting for the first reading… On Android a device without a
+          magnetometer never sends one.
+        </Typography>
+      ) : null}
+    </Section>
+  );
+};
+
+type Lookup<T> =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "done"; results: T[] }
+  | { status: "failed"; error: LocationError };
+
+const LookupState = <T,>({
+  lookup,
+  empty,
+  render,
+}: {
+  lookup: Lookup<T>;
+  empty: string;
+  render: (result: T, index: number) => ReactNode;
+}) => {
+  const { theme } = useTheme();
+  if (lookup.status === "failed") {
+    return <ErrorLine error={lookup.error} copy={GEOCODE_ERROR_COPY} />;
+  }
+  if (lookup.status !== "done") return null;
+  if (lookup.results.length === 0) {
+    return (
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {empty}
+      </Typography>
+    );
+  }
+  return <ListSection>{lookup.results.map(render)}</ListSection>;
+};
+
+const GeocodingSection = ({ granted }: { granted: boolean }) => {
+  const { isSupported, geocode, reverseGeocode } = useGeocoder();
+  const [address, setAddress] = useState("Piazza Venezia, Roma");
+  const [places, setPlaces] = useState<Lookup<GeocodedLocation>>({
+    status: "idle",
+  });
+  // The answer for one fix: a newer fix reads as loading until its own lands.
+  const [answer, setAnswer] = useState<{
+    position: GeoPosition;
+    lookup: Lookup<GeocodedAddress>;
+  } | null>(null);
+  const here = useCurrentPosition({
+    enabled: false,
+    accuracy: "balanced",
+    maxAge: 60_000,
+  });
+  const position = here.position;
+  const addresses: Lookup<GeocodedAddress> = !position
+    ? { status: "idle" }
+    : answer?.position === position
+      ? answer.lookup
+      : { status: "loading" };
+
+  const search = () => {
+    setPlaces({ status: "loading" });
+    geocode(address).then(
+      (results) => setPlaces({ status: "done", results }),
+      (error) => setPlaces({ status: "failed", error: toLocationError(error) }),
+    );
+  };
+
+  // Each fix the button asks for is looked up once it arrives.
+  useEffect(() => {
+    if (!position) return;
+    let live = true;
+    reverseGeocode(position.coords).then(
+      (results) => {
+        if (live) setAnswer({ position, lookup: { status: "done", results } });
+      },
+      (error) => {
+        if (live) {
+          setAnswer({
+            position,
+            lookup: { status: "failed", error: toLocationError(error) },
+          });
+        }
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [position, reverseGeocode]);
+
+  return (
+    <Section
+      title="Geocoding"
+      description="useGeocoder() turns an address into coordinates and back, with the platform's geocoder: CLGeocoder on iOS (no permission, rate-limited by Apple), Geocoder on Android (needs the permission and Google Play services). “Nothing found” is an empty list, not an error."
+    >
+      {isSupported === false ? (
+        <ErrorLine
+          error={new LocationError("unsupported")}
+          copy={GEOCODE_ERROR_COPY}
+        />
+      ) : null}
+      <Input
+        label="Address"
+        value={address}
+        onChangeText={setAddress}
+        leadingIcon="map-search-outline"
+        disabled={isSupported === false}
+      />
+      <HStack>
+        <Button
+          iconName="magnify"
+          disabled={isSupported === false || address.trim() === ""}
+          loading={places.status === "loading"}
+          onPress={search}
+        >
+          Find
+        </Button>
+      </HStack>
+      <LookupState
+        lookup={places}
+        empty="No place matches that address."
+        render={(place, index) => (
+          <ListItem
+            key={index}
+            secondary={
+              place.accuracy === null
+                ? "Accuracy unknown"
+                : `± ${Math.round(place.accuracy)} m`
+            }
+          >
+            {`${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
+          </ListItem>
+        )}
+      />
+      <HStack>
+        <Button
+          iconName="map-marker-question-outline"
+          mode="outlined"
+          disabled={isSupported === false || !granted}
+          loading={here.isLoading || addresses.status === "loading"}
+          onPress={here.refresh}
+        >
+          What is here?
+        </Button>
+      </HStack>
+      {here.error ? <ErrorLine error={here.error} /> : null}
+      <LookupState
+        lookup={addresses}
+        empty="No address is known at this position."
+        render={(found, index) => (
+          <ListItem
+            key={index}
+            secondary={[found.region, found.isoCountryCode, found.timezone]
+              .filter(Boolean)
+              .join(" · ")}
+          >
+            {formatAddress(found)}
+          </ListItem>
+        )}
+      />
     </Section>
   );
 };

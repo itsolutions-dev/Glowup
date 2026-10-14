@@ -33,7 +33,11 @@ import {
 import { useDeviceInfo, type DeviceInfo } from "@its/glowup-device/info";
 import { useKeepAwake } from "@its/glowup-device/keep-awake";
 import {
+  useGeocoder,
+  useHeading,
   useLocationPermission,
+  type GeocodedAddress,
+  type HeadingAccuracy,
   type LocationErrorCode,
 } from "@its/glowup-device/location";
 import { useIsOnline, type NetworkState } from "@its/glowup-device/network";
@@ -64,6 +68,8 @@ import { createMockDeviceInfoAdapter } from "@its/glowup-device/testing";
 import { useRef } from "react";
 
 const FIRST_CODE: LocationErrorCode = "permission-denied";
+const CALIBRATE: HeadingAccuracy = "unreliable";
+const NO_ADDRESS: GeocodedAddress["formattedAddress"] = null;
 const LOCK: OrientationLock = "portrait";
 const KIND: InteractionKind = "press";
 const BUSY: BiometricErrorCode = "busy";
@@ -80,6 +86,8 @@ const Readout = () => {
   const { theme } = useTheme();
   const info: DeviceInfo = useDeviceInfo();
   const location: PermissionState = useLocationPermission();
+  const { heading } = useHeading({ enabled: false });
+  const geocoder = useGeocoder();
   const camera = useCameraPermission();
   const handle = useRef<CameraHandle>(null);
   const online: NetworkState["isConnected"] = useIsOnline();
@@ -112,6 +120,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Location ${location.status} · camera ${camera.status} · ${FIRST_CODE}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Heading ${heading?.magneticHeading ?? "off"} (${CALIBRATE}) · geocoder ${String(geocoder.isSupported)} · ${NO_ADDRESS ?? "no address"}`}
       </Typography>
       <Typography
         variant="bodyMedium"

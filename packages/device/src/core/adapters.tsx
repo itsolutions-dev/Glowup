@@ -6,7 +6,7 @@ import type { CameraAdapter } from "../camera/types";
 import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
 import type { KeepAwakeAdapter } from "../keep-awake/types";
-import type { LocationAdapter } from "../location/types";
+import type { GeocoderAdapter, LocationAdapter } from "../location/types";
 import type { MediaLibraryAdapter } from "../media-library/types";
 import type { MediaPickerAdapter } from "../media-picker/types";
 import type { NetworkAdapter } from "../network/types";
@@ -21,6 +21,7 @@ import type { SensorsAdapter } from "../sensors/types";
 export interface DeviceAdapters {
   info: DeviceInfoAdapter;
   location: LocationAdapter;
+  geocoder: GeocoderAdapter;
   camera: CameraAdapter;
   network: NetworkAdapter;
   battery: BatteryAdapter;
@@ -58,6 +59,7 @@ export function DeviceAdaptersProvider({
   const {
     info,
     location,
+    geocoder,
     camera,
     network,
     battery,
@@ -75,6 +77,7 @@ export function DeviceAdaptersProvider({
       ...parent,
       ...(info && { info }),
       ...(location && { location }),
+      ...(geocoder && { geocoder }),
       ...(camera && { camera }),
       ...(network && { network }),
       ...(battery && { battery }),
@@ -91,6 +94,7 @@ export function DeviceAdaptersProvider({
       parent,
       info,
       location,
+      geocoder,
       camera,
       network,
       battery,

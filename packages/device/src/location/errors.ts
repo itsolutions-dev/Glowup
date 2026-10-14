@@ -2,9 +2,11 @@
  * - `permission-denied`: location is not granted (never asked, or refused).
  *   The hooks never prompt: ask with `useLocationPermission().request()`.
  * - `services-disabled`: location is switched off for the whole device.
- * - `unavailable`: no fix could be obtained (indoors, no signal, a provider error).
- * - `timeout`: no fix within the requested time.
- * - `unsupported`: this platform cannot locate (a browser without geolocation).
+ * - `unavailable`: no fix could be obtained (indoors, no signal, a provider
+ *   error); for geocoding, no network or too many requests.
+ * - `timeout`: no fix (or geocoding answer) within the requested time.
+ * - `unsupported`: this platform cannot locate (a browser without
+ *   geolocation), or has no geocoder (the web, Android without one).
  */
 export type LocationErrorCode =
   | "permission-denied"

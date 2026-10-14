@@ -805,9 +805,135 @@ maximum; whether `UIImagePickerController` (editing) works without
 `NSPhotoLibraryUsageDescription`; what `shouldDownloadFromNetwork` changes for an iCloud-only
 photo.
 
+## v0.7 / v0.8 — advanced location
+
+Heading and geocoding (`expo-location` 57.0.21), then background updates and geofencing
+(`expo-task-manager` 57.0.20). The sources were read before the contract was written:
+
+- **Heading.** Android keeps one native heading watch (`mHeadingId`): a second
+  `watchHeadingAsync` takes the events away from the first. iOS opens one `CLLocationManager`
+  per watch. Both need the foreground location permission: iOS throws, Android silently never
+  emits. `trueHeading` is `-1` without the permission, and on Android until a fix arrives (the
+  declination comes from a location). `accuracy` is 0–3. Android reports the azimuth of the
+  device's top edge (no remapping for the display's rotation) and only when it moves by about 2°.
+  Without a magnetometer iOS sends an error event, while Android never emits (its
+  `getHeadingAsync` then waits forever). Removing a watch after the permission was revoked
+  rejects inside expo's subscriber, unhandled (Android kills an app whose permission is revoked,
+  so it is only reachable on iOS, where `removeWatchAsync` does not throw). The web build warns
+  and emits nothing.
+- **Geocoding.** iOS (`CLGeocoder`) needs no permission, is rate-limited by Apple, reads "no
+  result" as `[]` and a network failure as an error. Android (`Geocoder`) requires the
+  foreground permission (expo's check, not the platform's), uses the deprecated synchronous
+  API with one result, leaves an `IOException` uncaught, answers "Geocoder is not running" while
+  the app is in the background, and has no geocoder without Google Play services. The web
+  returns `[]`, indistinguishable from "not found".
+- **Background and geofencing.** Both run through `expo-task-manager`: a task is defined at
+  module scope with `defineTask` and runs without React (headless on Android, relaunched on
+  iOS). Android background updates either run as a foreground service with a notification
+  (foreground permission only, started while the app is open) or with
+  `ACCESS_BACKGROUND_LOCATION`, which Google Play accepts only with a declaration. iOS needs
+  When-in-use plus the `location` background mode; Always for relaunches. Geofencing needs the
+  background permission on both, with at most 20 regions on iOS (more fail silently) and 100 on
+  Android. expo-task-manager's plugin always adds `UIBackgroundModes: fetch`, applied by
+  prebuild even when unlisted. Expo Go has no background on Android.
+
+| #   | Question           | Decision                                                                                                                            |
+| --- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| L1  | Subpaths           | Heading and geocoding in `/location` (no new peer); background and geofencing in `/background-location` (`expo-task-manager`).      |
+| L2  | Heading            | `useHeading({ enabled })`: magnetic, true (`null`, never `-1`), accuracy as a label; one shared native watch, paused in background. |
+| L3  | Geocoding          | `useGeocoder()`: `geocode` / `reverseGeocode`, normalised addresses, `LocationError` codes; "not found" is an empty list.           |
+| L4  | Geocoding provider | None bundled: the adapter is replaceable for an app's own provider; the default answers `unsupported` on the web.                   |
+| L5  | Background         | `defineLocationTask` at module scope plus `useBackgroundLocation(name)`; Android defaults to the foreground service.                |
+| L6  | Geofencing         | `defineGeofenceTask` plus `useGeofencing(name)`; region counts above the platform's limit are refused up front.                     |
+| L7  | Background consent | `useBackgroundLocationPermission()`, separate, asked only after the foreground one (Android 11+ sends the user to settings).        |
+| L8  | Plugin             | `backgroundLocation: { mode, geofencing }` adds only that mode's permissions and removes task-manager's `fetch` mode.               |
+| L9  | Web                | Heading, background and geofencing unsupported; geocoding only through an adapter the app supplies.                                 |
+
+| Phase | Content                                                                                | Release | Status  |
+| ----- | -------------------------------------------------------------------------------------- | ------- | ------- |
+| 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
+| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
+| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
+| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | planned |
+| 28    | Geofencing                                                                             | `0.8.0` | planned |
+| 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
+
+### Phase 24 — what landed
+
+- `useHeading({ enabled })` in `/location`: `magneticHeading` and `trueHeading` normalised to
+  0 up to 360, `trueHeading` `null` for expo's `-1`, accuracy 3/2/1/0 as
+  `high`/`medium`/`low`/`unreliable`. `watchHeading` is an optional method of
+  `LocationAdapter`: the Expo adapter has it on native only, so the web (and any custom adapter
+  without it) reads `unsupported`.
+- `heading.ts` keeps one stream per adapter: one native watch for every reader, stopped on
+  `background` (not `inactive`) and reopened on return, the last reading handed to a reader that
+  joins (never one from before a pause or a failure). A failure stops the watch and reaches every
+  reader; only a new subscription reopens it. It closes with the last reader, without the
+  sensors' microtask: a reader subscribes after an asynchronous permission read, so the grace
+  period would never have kept the watch open for it.
+- The hook checks support and the permission (never a prompt), not the services.
+- `/testing`: `emitHeading`, `failHeading` (the watches stay open, as on the platform),
+  `headingWatches`, `headingWatchesOpened`, `buildHeading`, and `heading: false` for an adapter
+  without a compass. The mock assigns `watchHeading` after building the object: Babel's object
+  spread copied the counters' getters as values.
+- **Departs from L2:** an Android device without a magnetometer cannot be detected through
+  expo-location (it never emits), so `heading` stays `null` there instead of an
+  `isAvailable: false`. Documented on the hook and in the README.
+- Mutation-tested by hand: every mutant in `heading.ts` and in the Expo adapter's heading code
+  is killed.
+
+**To verify on a device:** the time to the first reading on iOS and Android; `trueHeading`
+turning from `null` to a number on Android once a fix arrives.
+
+### Phase 25 — what landed
+
+- `useGeocoder()` in `/location`: `geocode(address, { timeout })` and
+  `reverseGeocode(point, { timeout })`, `isSupported` through `useSyncExternalStore` (`null`
+  while a static page renders). Nothing found resolves `[]`; failures reject with a
+  `LocationError`; an empty address throws a `TypeError`, a point off the globe a `TypeError` or
+  `RangeError`, before the adapter. The timeout (15 s by default, as `useCurrentPosition`)
+  rejects with `timeout`; the native request runs on, its answer dropped.
+- **Its own adapter key, `geocoder`** (`GeocoderAdapter`), rather than methods on
+  `LocationAdapter`: an app that brings its own provider swaps only that, and keeps expo's
+  positions. Any error such an adapter throws that is not a `LocationError` reads `unavailable`.
+- `expoGeocoderAdapter` (exported, to fall back to on native): unsupported on the web (expo's
+  web build answers `[]`, indistinguishable from "not found"); iOS placemarks without a location
+  are dropped; Android's accuracy of 0 (a point it never measured, altitude 0 likewise) becomes
+  `null` and the altitude is left out; blank strings become `null`. Native codes:
+  `ERR_LOCATION_UNAUTHORIZED` → `permission-denied` (Android), `ERR_NO_GEOCODE` →
+  `unsupported` (no Google Play services), `ERR_GEOCODE` ("Geocoder is not running", the app in
+  the background), `ERR_GEOCODING_NETWORK` (iOS: offline and throttled alike) and anything else
+  → `unavailable`. No new `LocationErrorCode`: iOS cannot tell a rate limit from a lost
+  network, so a `rate-limited` code would promise what it cannot keep.
+- No permission check in the hook: iOS needs none, a custom provider needs none, and Android's
+  own refusal maps to `permission-denied`.
+- `/testing`: `createMockGeocoderAdapter({ supported })` with `setGeocode` /
+  `setReverseGeocode` (results, an error code, a `LocationError` or `"pending"`), the calls it
+  received, `buildGeocodedLocation`, `buildGeocodedAddress`.
+- Mutation-tested by hand: every mutant in `geocoder.ts` and in the Expo adapter's geocoding is
+  killed.
+
+**To verify on a device:** what Android's `IOException` (offline) reaches JS as (expo rejects
+with `ERR_UNEXPECTED`, read as `unavailable`); whether iOS returns more than one place for an
+ambiguous address.
+
+### Phase 26 — what landed
+
+- Playground: `/device/location` gains a **Compass** section (start and stop, a needle turned
+  back by the magnetic heading, magnetic and true north with the cardinal point, the accuracy
+  with a calibration hint) and a **Geocoding** section (an address to coordinates, and "What is
+  here?", which reads a position and reverse-geocodes it). The web says up front that it has no
+  compass or geocoder. Three new page tests run on the mock adapters.
+- `examples/consumer` calls `useHeading` and `useGeocoder` and annotates `HeadingAccuracy` and
+  `GeocodedAddress`, so the published `.d.ts` must carry them.
+- Changeset: `@its/glowup-device` minor (`0.7.0`).
+- Consumer smoke on `npm pack` tarballs: `tsc --noEmit` and `expo export -p web` pass.
+- Chromium at 1440 and 390 px on the static export, without errors or horizontal scroll: both
+  sections read unsupported on the web.
+- **Expected red run**, as for every release that adds API: until the "Version Packages" merge,
+  master's consumer smoke installs `0.6.0`, which has neither hook, and fails its type-check.
+
 ## Open for later
 
-- **Advanced location:** background and geofencing, geocoding (and which web provider),
-  heading (`watchHeadingAsync`, Z6) — to be decided before it starts.
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's
   photo and video permissions policy.

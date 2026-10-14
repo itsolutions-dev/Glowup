@@ -16,6 +16,14 @@ export {
   type MockLocationOptions,
 } from "./location";
 export {
+  buildGeocodedAddress,
+  buildGeocodedLocation,
+  createMockGeocoderAdapter,
+  type MockGeocoderAdapter,
+  type MockGeocoderAnswer,
+  type MockGeocoderOptions,
+} from "./geocoder";
+export {
   createMockCameraAdapter,
   MOCK_PICTURE,
   MOCK_VIDEO,

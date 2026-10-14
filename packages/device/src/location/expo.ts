@@ -5,6 +5,9 @@ import { toPermissionState } from "../core/permissions";
 import { isLocationError, LocationError } from "./errors";
 import type { Unsubscribe } from "../core/types";
 import type {
+  GeocodedAddress,
+  GeocodedLocation,
+  GeocoderAdapter,
   GeoPosition,
   Heading,
   HeadingAccuracy,
@@ -98,6 +101,10 @@ export function toLocationError(error: unknown): LocationError {
   }
   if (/SERVICES_DISABLED|SETTINGS_UNSATISFIED/.test(code)) {
     return new LocationError("services-disabled", message, error);
+  }
+  // Android without a geocoder (no Google Play services).
+  if (/NO_GEOCODE/.test(code)) {
+    return new LocationError("unsupported", message, error);
   }
   return new LocationError("unavailable", message, error);
 }
@@ -207,4 +214,87 @@ export const expoLocationAdapter: LocationAdapter = {
       };
     },
   }),
+};
+
+function text(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+/**
+ * `null` for an iOS placemark without a location. Android sends an accuracy
+ * (and an altitude) of 0 for a point it never measured: neither means
+ * anything, so the accuracy becomes `null` and the altitude is dropped.
+ */
+export function toGeocodedLocation(
+  raw: Location.LocationGeocodedLocation,
+): GeocodedLocation | null {
+  if (!Number.isFinite(raw.latitude) || !Number.isFinite(raw.longitude)) {
+    return null;
+  }
+  return {
+    latitude: raw.latitude,
+    longitude: raw.longitude,
+    accuracy:
+      typeof raw.accuracy === "number" && raw.accuracy > 0
+        ? raw.accuracy
+        : null,
+  };
+}
+
+/** iOS leaves `formattedAddress` out and Android `timezone`: both read `null`. */
+export function toGeocodedAddress(
+  raw: Location.LocationGeocodedAddress,
+): GeocodedAddress {
+  return {
+    name: text(raw.name),
+    street: text(raw.street),
+    streetNumber: text(raw.streetNumber),
+    district: text(raw.district),
+    city: text(raw.city),
+    subregion: text(raw.subregion),
+    region: text(raw.region),
+    postalCode: text(raw.postalCode),
+    country: text(raw.country),
+    isoCountryCode: text(raw.isoCountryCode),
+    timezone: text(raw.timezone),
+    formattedAddress: text(raw.formattedAddress),
+  };
+}
+
+const isGeocodedLocation = (
+  value: GeocodedLocation | null,
+): value is GeocodedLocation => value !== null;
+
+/**
+ * The platforms' own geocoders: `CLGeocoder` on iOS (no permission,
+ * rate-limited by Apple), `android.location.Geocoder` on Android (one result,
+ * the foreground permission, not while the app is in the background, absent
+ * without Google Play services). The web has none: expo's web build answers
+ * `[]`, which would read as "not found".
+ */
+export const expoGeocoderAdapter: GeocoderAdapter = {
+  isSupported: () => isNativePlatform,
+
+  async geocode(address) {
+    if (!isNativePlatform) throw new LocationError("unsupported");
+    try {
+      const results = await Location.geocodeAsync(address);
+      return results.map(toGeocodedLocation).filter(isGeocodedLocation);
+    } catch (error) {
+      throw toLocationError(error);
+    }
+  },
+
+  async reverseGeocode({ latitude, longitude }) {
+    if (!isNativePlatform) throw new LocationError("unsupported");
+    try {
+      const results = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+      return results.map(toGeocodedAddress);
+    } catch (error) {
+      throw toLocationError(error);
+    }
+  },
 };

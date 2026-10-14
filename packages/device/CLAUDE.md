@@ -53,6 +53,14 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   checks support and permission, not the services; expo's `-1` true heading becomes `null`.
   The mock assigns `watchHeading` after building the object: Babel's object spread copies
   getters as values, so a spread in a literal with getters freezes them.
+  Geocoding (`geocoder.ts`, `useGeocoder`) has its own adapter key, `geocoder`
+  (`GeocoderAdapter`), so an app swaps only that for its own provider. The hook validates the
+  input (`TypeError` / `RangeError` before the adapter), checks support, applies a timeout
+  (15 s; the native request is not cancelled) and turns anything but a `LocationError` into
+  `unavailable`. No permission check: iOS needs none, Android's error maps to
+  `permission-denied`, and a custom provider needs none. `expoGeocoderAdapter` is unsupported
+  on the web on purpose (expo answers `[]` there, which reads as "not found"); it drops iOS
+  placemarks without a location and Android's meaningless 0 accuracy, and blanks become `null`.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

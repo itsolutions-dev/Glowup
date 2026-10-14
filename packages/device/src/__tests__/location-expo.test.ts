@@ -1,7 +1,10 @@
 import * as Location from "expo-location";
 
 import {
+  expoGeocoderAdapter,
   expoLocationAdapter,
+  toGeocodedAddress,
+  toGeocodedLocation,
   toHeading,
   toLocationError,
   toLocationPermissionState,
@@ -23,6 +26,8 @@ jest.mock("expo-location", () => ({
   getLastKnownPositionAsync: jest.fn(),
   watchPositionAsync: jest.fn(),
   watchHeadingAsync: jest.fn(),
+  geocodeAsync: jest.fn(),
+  reverseGeocodeAsync: jest.fn(),
 }));
 
 const mocked = jest.mocked(Location);
@@ -105,6 +110,10 @@ describe("errors", () => {
     ["ERR_LOCATION_SERVICES_DISABLED", "services-disabled"],
     ["ERR_LOCATION_SETTINGS_UNSATISFIED", "services-disabled"],
     ["ERR_CURRENT_LOCATION_IS_UNAVAILABLE", "unavailable"],
+    ["ERR_NO_GEOCODE", "unsupported"],
+    ["ERR_GEOCODE", "unavailable"],
+    ["ERR_GEOCODING_NETWORK", "unavailable"],
+    ["ERR_GEOCODING_FAILED", "unavailable"],
     ["ERR_SOMETHING_NEW", "unavailable"],
   ])("maps %s to %s", (code, expected) => {
     const error = toLocationError(coded(code, "native message"));
@@ -304,5 +313,130 @@ describe("heading", () => {
     expect(native.remove).toHaveBeenCalled();
     native.callback()(rawHeading);
     expect(onHeading).not.toHaveBeenCalled();
+  });
+});
+
+describe("geocoding", () => {
+  const ios = {
+    city: "Roma",
+    district: "Municipio I",
+    streetNumber: "",
+    street: "Piazza Venezia",
+    region: "Lazio",
+    subregion: "Roma Capitale",
+    country: "Italia",
+    postalCode: "00186",
+    name: "  Piazza Venezia ",
+    isoCountryCode: "IT",
+    timezone: "Europe/Rome",
+  };
+
+  it("normalises an iOS address: blanks and the missing line read null", () => {
+    expect(toGeocodedAddress(ios as never)).toEqual({
+      ...ios,
+      name: "Piazza Venezia",
+      streetNumber: null,
+      formattedAddress: null,
+    });
+  });
+
+  it("normalises an Android address: no time zone", () => {
+    const android = {
+      ...ios,
+      name: "12",
+      timezone: null,
+      formattedAddress: "Piazza Venezia, 12, 00186 Roma RM, Italia",
+    };
+    expect(toGeocodedAddress(android as never)).toMatchObject({
+      name: "12",
+      timezone: null,
+      formattedAddress: "Piazza Venezia, 12, 00186 Roma RM, Italia",
+    });
+  });
+
+  it.each([
+    [{ latitude: 41.9, longitude: 12.5, accuracy: 70.5 }, 70.5],
+    [{ latitude: 41.9, longitude: 12.5, accuracy: 0, altitude: 0 }, null],
+    [{ latitude: 41.9, longitude: 12.5, accuracy: -1 }, null],
+    [{ latitude: 41.9, longitude: 12.5 }, null],
+  ])("keeps a meaningful accuracy only: %j", (raw, accuracy) => {
+    expect(toGeocodedLocation(raw)).toEqual({
+      latitude: 41.9,
+      longitude: 12.5,
+      accuracy,
+    });
+  });
+
+  it.each([
+    [{ latitude: null, longitude: 12.5 }],
+    [{ latitude: 41.9, longitude: undefined }],
+    [{ latitude: Number.NaN, longitude: 12.5 }],
+  ])("drops a placemark without a location: %j", (raw) => {
+    expect(toGeocodedLocation(raw as never)).toBeNull();
+  });
+
+  it("geocodes through expo and drops unusable results", async () => {
+    mocked.geocodeAsync.mockResolvedValue([
+      { latitude: 41.9, longitude: 12.5, accuracy: 0, altitude: 0 },
+      { latitude: null, longitude: null },
+    ] as never);
+    await expect(expoGeocoderAdapter.geocode("Roma")).resolves.toEqual([
+      { latitude: 41.9, longitude: 12.5, accuracy: null },
+    ]);
+    expect(mocked.geocodeAsync).toHaveBeenCalledWith("Roma");
+  });
+
+  it("reverse-geocodes only the point through expo", async () => {
+    mocked.reverseGeocodeAsync.mockResolvedValue([ios] as never);
+    const results = await expoGeocoderAdapter.reverseGeocode({
+      latitude: 41.9,
+      longitude: 12.5,
+      accuracy: 5,
+    } as never);
+    expect(mocked.reverseGeocodeAsync).toHaveBeenCalledWith({
+      latitude: 41.9,
+      longitude: 12.5,
+    });
+    expect(results[0].city).toBe("Roma");
+  });
+
+  it("turns expo's rejections into LocationErrors", async () => {
+    mocked.geocodeAsync.mockRejectedValue(coded("ERR_LOCATION_UNAUTHORIZED"));
+    await expect(expoGeocoderAdapter.geocode("Roma")).rejects.toMatchObject({
+      name: "LocationError",
+      code: "permission-denied",
+    });
+    mocked.reverseGeocodeAsync.mockRejectedValue(coded("ERR_NO_GEOCODE"));
+    await expect(
+      expoGeocoderAdapter.reverseGeocode({ latitude: 0, longitude: 0 }),
+    ).rejects.toMatchObject({ code: "unsupported" });
+  });
+
+  it("is supported on native", () => {
+    expect(expoGeocoderAdapter.isSupported()).toBe(true);
+  });
+
+  it("is unsupported on the web, where expo would answer not found", async () => {
+    let web!: typeof expoGeocoderAdapter;
+    jest.isolateModules(() => {
+      jest.doMock("../core/support", () => ({
+        ...jest.requireActual("../core/support"),
+        isNativePlatform: false,
+      }));
+      // isolateModules needs require(): the platform is read at import.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      web = require("../location/expo").expoGeocoderAdapter;
+    });
+    mocked.geocodeAsync.mockClear();
+    mocked.reverseGeocodeAsync.mockClear();
+    expect(web.isSupported()).toBe(false);
+    await expect(web.geocode("Roma")).rejects.toMatchObject({
+      code: "unsupported",
+    });
+    await expect(
+      web.reverseGeocode({ latitude: 0, longitude: 0 }),
+    ).rejects.toMatchObject({ code: "unsupported" });
+    expect(mocked.geocodeAsync).not.toHaveBeenCalled();
+    expect(mocked.reverseGeocodeAsync).not.toHaveBeenCalled();
   });
 });

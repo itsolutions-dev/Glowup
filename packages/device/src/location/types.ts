@@ -117,3 +117,57 @@ export interface LocationAdapter {
     onError: (error: LocationError) => void,
   ): Unsubscribe;
 }
+
+/** A place found for an address. */
+export interface GeocodedLocation {
+  latitude: number;
+  longitude: number;
+  /**
+   * Radius in metres of the area the result stands for (a building, a
+   * street, a whole city). `null` where the platform does not say (Android).
+   */
+  accuracy: number | null;
+}
+
+/**
+ * A postal address found for a point. Every part is `null` where the
+ * platform does not know it; none is ever an empty string.
+ */
+export interface GeocodedAddress {
+  /** The place's name ("Tower Bridge"); on Android often just the street number. */
+  name: string | null;
+  street: string | null;
+  streetNumber: string | null;
+  /** Below the city: a neighbourhood or district. */
+  district: string | null;
+  city: string | null;
+  /** Between the city and the region: a county or province. */
+  subregion: string | null;
+  /** A state or region. */
+  region: string | null;
+  postalCode: string | null;
+  /** The country's name, in the device's language. */
+  country: string | null;
+  /** ISO 3166-1 alpha-2 ("IT"). */
+  isoCountryCode: string | null;
+  /** An IANA time zone ("Europe/Rome"). iOS only. */
+  timezone: string | null;
+  /** The address as one line, in the local format. Android only. */
+  formattedAddress: string | null;
+}
+
+/** The point `reverseGeocode` looks up: a `GeoCoordinates` fits. */
+export type GeoPoint = Pick<GeoCoordinates, "latitude" | "longitude">;
+
+/**
+ * Turns addresses into places and points into addresses. Separate from
+ * `LocationAdapter` so an app can swap only this one for its own provider
+ * (a web service on the web, where the default has none). Results arrive
+ * normalised; "nothing found" resolves an empty list; failures reject with a
+ * `LocationError` (anything else is reported as `unavailable`).
+ */
+export interface GeocoderAdapter {
+  isSupported(): boolean;
+  geocode(address: string): Promise<GeocodedLocation[]>;
+  reverseGeocode(point: GeoPoint): Promise<GeocodedAddress[]>;
+}

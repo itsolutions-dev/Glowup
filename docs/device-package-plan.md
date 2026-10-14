@@ -852,7 +852,7 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | Phase | Content                                                                                | Release | Status  |
 | ----- | -------------------------------------------------------------------------------------- | ------- | ------- |
 | 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
-| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | planned |
+| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
 | 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | planned |
 | 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | planned |
 | 28    | Geofencing                                                                             | `0.8.0` | planned |
@@ -884,6 +884,38 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 
 **To verify on a device:** the time to the first reading on iOS and Android; `trueHeading`
 turning from `null` to a number on Android once a fix arrives.
+
+### Phase 25 — what landed
+
+- `useGeocoder()` in `/location`: `geocode(address, { timeout })` and
+  `reverseGeocode(point, { timeout })`, `isSupported` through `useSyncExternalStore` (`null`
+  while a static page renders). Nothing found resolves `[]`; failures reject with a
+  `LocationError`; an empty address throws a `TypeError`, a point off the globe a `TypeError` or
+  `RangeError`, before the adapter. The timeout (15 s by default, as `useCurrentPosition`)
+  rejects with `timeout`; the native request runs on, its answer dropped.
+- **Its own adapter key, `geocoder`** (`GeocoderAdapter`), rather than methods on
+  `LocationAdapter`: an app that brings its own provider swaps only that, and keeps expo's
+  positions. Any error such an adapter throws that is not a `LocationError` reads `unavailable`.
+- `expoGeocoderAdapter` (exported, to fall back to on native): unsupported on the web (expo's
+  web build answers `[]`, indistinguishable from "not found"); iOS placemarks without a location
+  are dropped; Android's accuracy of 0 (a point it never measured, altitude 0 likewise) becomes
+  `null` and the altitude is left out; blank strings become `null`. Native codes:
+  `ERR_LOCATION_UNAUTHORIZED` → `permission-denied` (Android), `ERR_NO_GEOCODE` →
+  `unsupported` (no Google Play services), `ERR_GEOCODE` ("Geocoder is not running", the app in
+  the background), `ERR_GEOCODING_NETWORK` (iOS: offline and throttled alike) and anything else
+  → `unavailable`. No new `LocationErrorCode`: iOS cannot tell a rate limit from a lost
+  network, so a `rate-limited` code would promise what it cannot keep.
+- No permission check in the hook: iOS needs none, a custom provider needs none, and Android's
+  own refusal maps to `permission-denied`.
+- `/testing`: `createMockGeocoderAdapter({ supported })` with `setGeocode` /
+  `setReverseGeocode` (results, an error code, a `LocationError` or `"pending"`), the calls it
+  received, `buildGeocodedLocation`, `buildGeocodedAddress`.
+- Mutation-tested by hand: every mutant in `geocoder.ts` and in the Expo adapter's geocoding is
+  killed.
+
+**To verify on a device:** what Android's `IOException` (offline) reaches JS as (expo rejects
+with `ERR_UNEXPECTED`, read as `unavailable`); whether iOS returns more than one place for an
+ambiguous address.
 
 ## Open for later
 

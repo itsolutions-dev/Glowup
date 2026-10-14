@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -133,8 +133,21 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `DeviceMotionEvent.requestPermission()` (Safari grants only inside the gesture).
   `useDeviceOrientation` classifies gravity with a 35°/55° hysteresis and keeps its last answer
   in a ref (an updater returning the same value still renders once).
+- **Media picker** (`src/media-picker`): `pick()` checks its options (`toPickRequest`, a
+  `TypeError` before anything opens) and stays synchronous down to the adapter: the web opens its
+  file dialog only inside the user's gesture. It runs inside core's `systemSheet`, which
+  `useAppLock` reads (Android stops the app behind the picker; that background must not lock).
+  One pick at a time is the adapter's job: the Expo adapter answers `busy` (expo keeps one
+  picking context: a second call orphans the first promise on iOS and answers `canceled` on
+  Android); the web adapter cannot know when a dialog closed without `cancel`, so a new pick
+  settles the old one as `cancelled`. The web default is `web.ts` on a file input, not
+  expo-image-picker's web build (durations in seconds, `selectionLimit` ignored, a pending
+  promise without `cancel`). `edit` with `exif` is refused: on iOS it reads the photo library
+  (PhotoKit), which prompts for full library access, with expo's generic purpose string.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
-  plugin is required only when the app lists it; an unknown key throws. Its test
+  plugin is required only when the app lists it; an unknown key throws. Each capability's
+  function receives every option as a third argument (`mediaPicker` keeps `CAMERA` and
+  `RECORD_AUDIO` when `camera` needs them). Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the
   resulting Info.plist / AndroidManifest, not on the props passed along. `validate-package`
   excludes it from attw (a script, not a typed module).

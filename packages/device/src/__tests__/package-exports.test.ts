@@ -33,6 +33,7 @@ describe("package exports", () => {
       "biometrics",
       "secure-store",
       "sensors",
+      "media-picker",
       "testing",
     ]);
   });

@@ -153,12 +153,36 @@ function withSensors(config, options) {
   return config;
 }
 
+/**
+ * Picking needs no permission on either platform. Android: removes CAMERA,
+ * which expo-image-picker's manifest declares for its camera capture (not
+ * exposed here), and RECORD_AUDIO, which its plugin adds — unless `camera`
+ * is listed and needs them (RECORD_AUDIO with `recordAudio: true`). iOS
+ * keeps expo's purpose strings for the photo library, the camera and the
+ * microphone (or `camera`'s texts): its binary references those APIs, which
+ * App Store Connect flags without them (ITMS-90683), though picking never
+ * prompts.
+ */
+function withMediaPicker(config, _options, all) {
+  const camera = all.camera !== undefined && all.camera !== false;
+  const recordAudio = camera && all.camera.recordAudio === true;
+  config = loadPlugin("expo-image-picker", "mediaPicker")(config, {});
+  return AndroidConfig.Permissions.withBlockedPermissions(
+    config,
+    [
+      !camera && "android.permission.CAMERA",
+      !recordAudio && "android.permission.RECORD_AUDIO",
+    ].filter(Boolean),
+  );
+}
+
 const CAPABILITIES = {
   location: withLocation,
   camera: withCamera,
   biometrics: withBiometrics,
   secureStore: withSecureStore,
   sensors: withSensors,
+  mediaPicker: withMediaPicker,
 };
 
 function withGlowupDevice(config, options = {}) {
@@ -172,7 +196,7 @@ function withGlowupDevice(config, options = {}) {
   for (const [key, apply] of Object.entries(CAPABILITIES)) {
     const value = options[key];
     if (value === undefined || value === false) continue;
-    config = apply(config, value === true ? {} : value);
+    config = apply(config, value === true ? {} : value, options);
   }
   return config;
 }

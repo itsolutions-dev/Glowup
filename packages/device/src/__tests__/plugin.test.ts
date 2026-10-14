@@ -253,6 +253,55 @@ describe("sensors", () => {
   });
 });
 
+describe("mediaPicker", () => {
+  it("removes the camera and microphone the picker never uses", async () => {
+    const { infoPlist, permissions, removedPermissions } = await prebuild({
+      mediaPicker: true,
+    });
+    expect(removedPermissions).toEqual([
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO",
+    ]);
+    expect(permissions).not.toContain("android.permission.READ_MEDIA_IMAGES");
+    // Kept for App Store Connect: the binary references these APIs.
+    expect(infoPlist.NSPhotoLibraryUsageDescription).toEqual(
+      expect.any(String),
+    );
+    expect(infoPlist.NSCameraUsageDescription).toEqual(expect.any(String));
+    expect(infoPlist.NSMicrophoneUsageDescription).toEqual(expect.any(String));
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("leaves the camera's permissions to the camera", async () => {
+    const { infoPlist, permissions, removedPermissions } = await prebuild({
+      camera: { cameraPermission: "Scans tickets." },
+      mediaPicker: true,
+    });
+    expect(permissions).toContain("android.permission.CAMERA");
+    expect(removedPermissions).toEqual(["android.permission.RECORD_AUDIO"]);
+    expect(infoPlist.NSCameraUsageDescription).toBe("Scans tickets.");
+  });
+
+  it("keeps the microphone for a camera that records sound", async () => {
+    const { infoPlist, permissions, removedPermissions } = await prebuild({
+      camera: {
+        cameraPermission: "Records reviews.",
+        microphonePermission: "Records your voice.",
+        recordAudio: true,
+      },
+      mediaPicker: true,
+    });
+    expect(permissions).toEqual(
+      expect.arrayContaining([
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+      ]),
+    );
+    expect(removedPermissions).toEqual([]);
+    expect(infoPlist.NSMicrophoneUsageDescription).toBe("Records your voice.");
+  });
+});
+
 it("configures nothing that is not listed", async () => {
   const { infoPlist, permissions, manifestApplication, removedPermissions } =
     await prebuild({});
@@ -264,6 +313,7 @@ it("configures nothing that is not listed", async () => {
   expect(permissions).not.toContain("android.permission.USE_BIOMETRIC");
   expect(manifestApplication["android:dataExtractionRules"]).toBeUndefined();
   expect(infoPlist.NSMotionUsageDescription).toBeUndefined();
+  expect(infoPlist.NSPhotoLibraryUsageDescription).toBeUndefined();
   expect(removedPermissions).toEqual([]);
 });
 

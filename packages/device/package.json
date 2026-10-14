@@ -78,6 +78,11 @@
       "types": "./lib/typescript/sensors/index.d.ts",
       "default": "./lib/commonjs/sensors/index.js"
     },
+    "./media-picker": {
+      "source": "./src/media-picker/index.ts",
+      "types": "./lib/typescript/media-picker/index.d.ts",
+      "default": "./lib/commonjs/media-picker/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -100,6 +105,7 @@
     "biometrics",
     "secure-store",
     "sensors",
+    "media-picker",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -132,7 +138,8 @@
     "haptics",
     "biometrics",
     "secure-store",
-    "sensors"
+    "sensors",
+    "media-picker"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",
@@ -142,6 +149,7 @@
     "expo-camera": ">=57",
     "expo-device": ">=57",
     "expo-haptics": ">=57",
+    "expo-image-picker": ">=57",
     "expo-keep-awake": ">=57",
     "expo-local-authentication": ">=57",
     "expo-location": ">=57",
@@ -168,6 +176,9 @@
       "optional": true
     },
     "expo-haptics": {
+      "optional": true
+    },
+    "expo-image-picker": {
       "optional": true
     },
     "expo-keep-awake": {
@@ -205,6 +216,7 @@
     "expo-camera": "~57.0.5",
     "expo-device": "~57.0.2",
     "expo-haptics": "~57.0.3",
+    "expo-image-picker": "~57.0.20",
     "expo-keep-awake": "~57.0.2",
     "expo-local-authentication": "~57.0.3",
     "expo-location": "~57.0.20",

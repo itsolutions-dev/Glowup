@@ -667,9 +667,94 @@ landscape-right | face-up | face-down` from the accelerometer alone (works witho
   merge, master declares `0.4.0`, which has no `/sensors`, so the consumer smoke fails its
   type-check. It turns green with the publish.
 
+## v0.6 — gallery
+
+Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the device's library
+(`expo-media-library` 57.0.5). Both sources were read before the contract was written:
+
+- **Picking needs no permission.** iOS uses `PHPickerViewController` (`UIImagePickerController`
+  when editing), Android the system Photo Picker (`PickVisualMedia`, with androidx's fallback on
+  devices without it). image-picker's "media library" permission reads `granted` on Android 13+
+  whatever happens and gates nothing on iOS.
+- **One picker at a time, enforced by nobody.** iOS stores one picking context: a second
+  `launchImageLibraryAsync` replaces it and the first promise never settles. Android answers a
+  second call with `canceled: true` at once.
+- **Android may kill the app behind the picker.** The result is kept for
+  `getPendingResultAsync()`, which only a restarted app that asks receives. Picked files are
+  copied into the app's cache (`file://`, images re-encoded at `quality`); deleting them is the
+  app's job.
+- **The picker takes an Android app to the background.** `useAppLock` would lock on the way
+  back (`relockAfter` documents it).
+- **Web:** a hidden `<input type="file">` clicked from JS (a user gesture is required). Video
+  `duration` is in seconds (milliseconds on native), `selectionLimit` is ignored, and a browser
+  without the input's `cancel` event leaves the promise pending and the input in the DOM.
+- **Saving.** In SDK 57 `expo-media-library`'s default entry is the object API (`Asset.create`);
+  in a browser it throws at import (`requireNativeModule('ExpoMediaLibraryNext')`), so a subpath
+  importing it would break every web page that loads it. Only `expo-media-library/legacy` has a
+  web stub. `Asset.create(file)` keeps the original file; on iOS it needs the add-only
+  permission granted beforehand and never prompts. Android 10+ saves without a permission.
+  Named albums need full library access on iOS.
+- **Config.** prebuild applies both modules' plugins even when unlisted. image-picker's adds
+  `RECORD_AUDIO` and English camera, microphone and photo-library strings; its Android manifest
+  declares `CAMERA` and the storage permissions. media-library's plugin always adds
+  `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO` and the storage permissions, which
+  Google Play refuses to apps that only pick or save.
+
+| #   | Question   | Decision                                                                                                                                                                                               |
+| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| G1  | Scope      | Pick and save. No library browsing (its `all` / `limited` access and Play's media policy come with it), no albums, no camera capture.                                                                  |
+| G2  | Subpaths   | `/media-picker` (`expo-image-picker`) and `/media-library` (`expo-media-library`): an app that only picks installs one module.                                                                         |
+| G3  | Pick API   | `pick(options)` resolves every outcome (`picked`, `cancelled`, `busy`, `unsupported`, `failed`); invalid options reject.                                                                               |
+| G4  | Save API   | `save(uri)` may prompt (always a user's action) and resolves `saved`, `denied`, `unsupported` or `failed`.                                                                                             |
+| G5  | Web        | Our own picker adapter on `<input type="file">` (ms durations, `limit` applied, a new pick settles the old one); no save on web.                                                                       |
+| G6  | Web import | media-library's object API behind a `.native.ts` / `.web.ts` split, so the web never loads it.                                                                                                         |
+| G7  | Plugin     | `mediaPicker`, `mediaLibrary`: Android permissions the app does not use removed (`CAMERA`, `RECORD_AUDIO` unless `/camera` needs them; `READ_MEDIA_*`); iOS keeps expo's purpose strings (ITMS-90683). |
+| G8  | App lock   | A system sheet the package opens (the picker) is marked in core; `useAppLock` ignores a background that starts while one is open.                                                                      |
+
+| Phase | Content                                                                                                                       | Status   |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 21    | `/media-picker`: Expo and web adapters, `useMediaPicker`, one pick at a time, pending result, app lock (G8), mock, plugin key | **done** |
+| 22    | `/media-library`: save, its permission, the platform split (G6), mock, plugin key                                             | planned  |
+| 23    | Playground pages, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.6.0`), release                               | planned  |
+
+### Phase 21 — what landed
+
+- `/media-picker`: `useMediaPicker()` → `{ isSupported, isPicking, pick, getPendingResult }`.
+  `pick(options)` checks `mediaTypes`, `multiple` + `limit`, `edit` + `aspect`, `quality` and
+  `exif` (a `TypeError` before anything opens) and resolves `picked`, `cancelled`, `busy`,
+  `unsupported` or `failed`. Assets are normalised: `type`, sizes, `mimeType`, `fileName`,
+  `fileSize`, `duration` in ms, `assetId`, `exif`, and the web's `File`.
+- **`edit` with `exif` is refused.** Read in the source: on iOS the editing path reads EXIF from
+  the photo library (`PHAsset.fetchAssets(withALAssetURLs:)`), which prompts for full library
+  access just for that.
+- Expo adapter: one picking context, so a second pick answers `busy`; `orderedSelection` with
+  `multiple`; `shouldDownloadFromNetwork: true`; Android's `getPendingResultAsync()` mapped,
+  error results included.
+- Web adapter on a file input: clicked synchronously, `accept` and `multiple` from the request,
+  files of another type skipped, `limit` applied, sizes from an `Image` / `<video>`, durations
+  in ms; `cancel` or an empty choice is `cancelled`, and a new pick settles an unanswered one as
+  `cancelled` (no timer guessing when a dialog closed).
+- **G8:** `core/systemSheet.ts`; `useAppLock` ignores a background that starts while the picker
+  is open. Tested end to end with both mocks.
+- **Config plugin `mediaPicker`:** removes `CAMERA` (expo-image-picker's manifest) and
+  `RECORD_AUDIO` (its plugin) unless `camera` needs them; capability functions now receive
+  every option. **A change from the proposal:** iOS keeps expo's photo library, camera and
+  microphone purpose strings, since its binary references those APIs (ITMS-90683), as the
+  location plugin keeps the "Always" strings.
+- `/testing`: `createMockMediaPickerAdapter()` (`respondWith`, `holdNext` / `close`,
+  `setPending`, `requests`) and `buildPickedMedia()`.
+- Mutation checks: 59 mutations; four survivors closed (a list-like `mediaTypes` and the error's
+  prefix, a rejecting `getPendingResult`, the reported type against the MIME type) and one
+  equivalent guard removed from the web adapter (settling twice changes nothing).
+
+**To verify on a device:** whether `PickMultipleVisualMedia(limit)` throws above the system's
+maximum; whether `UIImagePickerController` (editing) works without
+`NSPhotoLibraryUsageDescription`; what `shouldDownloadFromNetwork` changes for an iCloud-only
+photo; whether Android 7–9 needs `WRITE_EXTERNAL_STORAGE` to save.
+
 ## Open for later
 
 - **Advanced location:** background and geofencing, geocoding (and which web provider),
   heading (`watchHeadingAsync`, Z6) — to be decided before it starts.
-- **Gallery:** picking and saving media, with the `all` / `limited` access the platforms
-  report.
+- **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's
+  photo and video permissions policy.

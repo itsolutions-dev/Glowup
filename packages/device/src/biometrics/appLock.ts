@@ -9,6 +9,7 @@ import { AppState, type AppStateStatus } from "react-native";
 
 import type { Unsubscribe } from "../core/types";
 import { promptSession, type PromptSession } from "../core/promptSession";
+import { systemSheet, type SystemSheet } from "../core/systemSheet";
 import { useBiometrics, useBiometricsAdapter } from "./hooks";
 import type {
   AuthenticateOptions,
@@ -71,7 +72,10 @@ function sameConfig(a: LockConfig, b: LockConfig): boolean {
   );
 }
 
-function createAppLockStore(session: PromptSession): AppLockStore {
+function createAppLockStore(
+  session: PromptSession,
+  sheet: SystemSheet,
+): AppLockStore {
   let state = INITIAL_STATE;
   let backgroundAt: number | null = null;
   let promptedLockId = 0;
@@ -111,9 +115,10 @@ function createAppLockStore(session: PromptSession): AppLockStore {
   function onAppStateChange(next: AppStateStatus) {
     if (next === "background") {
       // A prompt can take the app to the background (Android pauses the
-      // activity behind the device-credential screen): such a trip never
-      // counts, or a successful unlock would lock the app again.
-      backgroundAt = session.isRunning() ? null : Date.now();
+      // activity behind the device-credential screen), and so can a system
+      // sheet such as the media picker: such a trip never counts, or a
+      // successful unlock (or a picked photo) would lock the app again.
+      backgroundAt = session.isRunning() || sheet.isOpen() ? null : Date.now();
       set({ isActive: false });
     } else if (next === "active") {
       const since = backgroundAt;
@@ -169,7 +174,7 @@ const lockStores = new WeakMap<BiometricsAdapter, AppLockStore>();
 function getLockStore(adapter: BiometricsAdapter): AppLockStore {
   let store = lockStores.get(adapter);
   if (!store) {
-    store = createAppLockStore(promptSession);
+    store = createAppLockStore(promptSession, systemSheet);
     lockStores.set(adapter, store);
   }
   return store;
@@ -183,7 +188,8 @@ export interface AppLockOptions {
   /**
    * How long the app may stay in the background before it locks, in ms.
    * Default 0: as soon as it leaves. On Android a permission dialog, a share
-   * sheet or a picker also sends the app to the background.
+   * sheet or another app's picker also sends the app to the background; the
+   * package's own prompts and `/media-picker` do not count.
    */
   relockAfter?: number;
   /** The prompt `unlock()` shows. */

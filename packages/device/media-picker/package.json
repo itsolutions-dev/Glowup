@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/media-picker/index.js",
+  "module": "../lib/module/media-picker/index.js",
+  "types": "../lib/typescript/media-picker/index.d.ts",
+  "react-native": "../src/media-picker/index.ts",
+  "source": "../src/media-picker/index.ts"
+}

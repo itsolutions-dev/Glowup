@@ -1,7 +1,8 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network, battery, keep-awake, screen orientation, haptics, biometrics, secure storage, motion and environment sensors and device info, each
+scanning), network, battery, keep-awake, screen orientation, haptics, biometrics, secure storage, motion and environment sensors, the photo and video
+picker and device info, each
 behind an adapter the app can replace.
 
 ## Install
@@ -20,6 +21,7 @@ npx expo install expo-haptics                   # /haptics
 npx expo install expo-local-authentication      # /biometrics
 npx expo install expo-secure-store              # /secure-store
 npx expo install expo-sensors                   # /sensors
+npx expo install expo-image-picker              # /media-picker
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -42,6 +44,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/biometrics`   | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                              |
 | `@its/glowup-device/secure-store` | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
 | `@its/glowup-device/sensors`      | `expo-sensors`                    | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
+| `@its/glowup-device/media-picker` | `expo-image-picker`               | `useMediaPicker`                                                                                           |
 | `@its/glowup-device/testing`      | nothing native                    | in-memory adapters for every capability                                                                    |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -491,9 +494,9 @@ function Root() {
 - **A trip to the background caused by a prompt does not count** (Android pauses the app behind
   the device-credential screen), so a successful unlock does not lock again. The other side of
   it: a user who leaves the app while a prompt is open finds it unlocked if it was.
-- **On Android** a permission dialog, a share sheet or a picker also sends the app to the
-  background: with `relockAfter: 0` the user unlocks again on return. Give it a few seconds if
-  your app opens them.
+- **On Android** a permission dialog, a share sheet or another library's picker also sends the
+  app to the background: with `relockAfter: 0` the user unlocks again on return. Give it a few
+  seconds if your app opens them. `/media-picker`'s picker does not count, like a prompt.
 - **One lock for the whole app.** Every component calling `useAppLock` shares it; the strictest
   options win (enabled if any is, the shortest `relockAfter`, `stay-locked` if any asks). While
   the status loads, `isLocked` is true: nothing shows behind a lock that is still deciding (and
@@ -721,6 +724,56 @@ function Altimeter() {
 - **iOS needs `NSMotionUsageDescription`** (the config plugin's `sensors.motionPermission`):
   expo-sensors' permission check crashes the app without it.
 
+## Media picker
+
+The system photo and video picker. No permission on any platform: iOS shows `PHPicker`, Android
+its Photo Picker, the web a file dialog.
+
+```bash
+npx expo install expo-image-picker
+```
+
+```tsx
+import { useMediaPicker } from "@its/glowup-device/media-picker";
+
+function AvatarButton() {
+  const { pick, isPicking } = useMediaPicker();
+  return (
+    <Button
+      disabled={isPicking}
+      // On the web, straight from the press: a browser opens its dialog only in the gesture.
+      onPress={async () => {
+        const result = await pick({ edit: true, aspect: [1, 1], quality: 0.8 });
+        if (result.status === "picked") upload(result.assets[0]);
+      }}
+    >
+      Change photo
+    </Button>
+  );
+}
+```
+
+- **Options:** `mediaTypes` (`["image"]` by default, `"video"` too), `multiple` with `limit`
+  (0: the platform's maximum), `edit` (the crop screen, one item only: iOS crops a square,
+  Android to `aspect`), `quality` (0 to 1, native) and `exif` (native). Invalid combinations
+  reject with a `TypeError` before anything opens (`edit` with `multiple`, `limit` without
+  `multiple`, `edit` with `exif`: iOS would ask for full photo library access just to read it).
+- **Every outcome resolves:** `{ status: "picked", assets }`, `cancelled`, `busy` (another pick
+  is open; expo would otherwise leave the first one unanswered on iOS), `unsupported` (a static
+  page in Node) or `failed` with a `detail` for logs.
+- **Each asset:** `uri`, `type` (`"image"` or `"video"`), `width`, `height`, `mimeType`,
+  `fileName`, `fileSize` (bytes), `duration` (ms, videos), `assetId` (the library's id, `null` on
+  the web) and `exif`. On native `uri` is a copy in the app's cache, which the app deletes when
+  done; on the web it is a `blob:` URL and `file` is the `File`, ready for `FormData`.
+- **Android can stop the app behind the picker** on a low-memory device. Call
+  `getPendingResult()` once at start-up to receive what the user picked meanwhile (`null`
+  elsewhere).
+- **The app lock** (`useAppLock`) does not lock on the way back from the picker, although Android
+  sends the app to the background behind it.
+- **Web:** the dialog cannot be capped, so `limit` keeps the first files, and files of another
+  type (the dialog's "All files") are skipped. A browser that never tells when its dialog was
+  dismissed leaves the pick open until the next one, which settles it as `cancelled`.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -742,6 +795,7 @@ plugins: [
       biometrics: { faceIDPermission: "Unlocks your saved cards." },
       secureStore: true,
       sensors: { motionPermission: "Counts the floors you climb." },
+      mediaPicker: true,
     },
   ],
 ],
@@ -766,6 +820,11 @@ plugins: [
   a pedometer this package does not expose. `highSamplingRate: true` adds
   `HIGH_SAMPLING_RATE_SENSORS`, without which Android 12 and later deliver no faster than every
   200 ms. Unlisted, prebuild still applies expo-sensors' own plugin with its English text.
+- **Media picker** removes Android's `CAMERA`, which expo-image-picker's manifest declares for
+  a camera capture this package does not expose, and `RECORD_AUDIO`, which its plugin adds,
+  unless `camera` is listed and uses them. iOS keeps expo's photo library, camera and microphone
+  purpose strings: picking never shows them, but expo-image-picker's binary references those APIs
+  and App Store Connect flags a binary that does so without them.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -870,3 +929,9 @@ package asked for and `isActive("gyroscope")` whether it is listening. `{ gated:
 permission: "undetermined" }` makes a sensor wait for the motion permission; a request answers
 `requestAnswer` (default `"granted"`), `setPermission("denied")` changes it as the settings would
 and `permissionRequests` counts the prompts.
+
+`createMockMediaPickerAdapter()` answers every pick with one image (`buildPickedMedia()`, which
+also builds videos: `buildPickedMedia({ type: "video" })`); `respondWith({ status: "cancelled" })`
+changes the answer and `requests` records each pick's checked options. `holdNext()` keeps the next
+pick open until `close(result?)`, meanwhile another resolves `busy`; `{ pending }` or
+`setPending()` sets what `getPendingResult()` answers once.

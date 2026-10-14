@@ -32,6 +32,7 @@ describe("package exports", () => {
       "haptics",
       "biometrics",
       "secure-store",
+      "sensors",
       "testing",
     ]);
   });

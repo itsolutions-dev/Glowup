@@ -17,6 +17,7 @@ const DEVICE_CAPABILITIES = {
   haptics: ["expo-haptics"],
   biometrics: ["expo-local-authentication"],
   "secure-store": ["expo-secure-store"],
+  sensors: ["expo-sensors"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

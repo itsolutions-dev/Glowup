@@ -62,19 +62,25 @@ cannot fetch a token.
 
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
 capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
-`haptics`, `biometrics`, `secure-store`). They import only the package's public subpaths. Every capability's native module
+`haptics`, `biometrics`, `secure-store`, `sensors`). They import only the package's public subpaths. Every capability's native module
 (`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`) is a dependency of the
+`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`) is a dependency of the
 playground because it is the package's peer, and the package's config plugin is listed in
 `app.config.ts` with the playground's purpose strings (`recordAudio: true`: the camera recipe
-records video with sound). The camera page is the "recipe": `CameraView` with Material
+records video with sound; `sensors.highSamplingRate: true`: the sensors page's level reads every
+50 ms, which Android 12+ caps at 200 without it). The camera page is the "recipe": `CameraView` with Material
 controls drawn as its children from Glowup components, paused through `useFocusEffect` when
 the page loses focus. Video is disabled on web, where expo-camera cannot record.
-`site/DevicePermission.tsx` renders a permission's badge and its one action for both pages.
+`site/DevicePermission.tsx` renders a permission's badge and its one action (no settings button
+without `openSettings`: the web has none).
 The keep-awake and orientation pages hold their wake lock / orientation lock only while
 `useIsFocused()`: a page left in the stack stays mounted, and its lock must not follow the
 reader to the next page. The biometrics page does the same with `useAppLock`, which there guards
-one card rather than the site (the playground has no app lock of its own).
+one card rather than the site (the playground has no app lock of its own). The sensors page
+reads only while `useIsFocused()` and its switch are on; its level moves an `Animated.ValueXY`
+from `useSensorListener`, so a reading renders nothing. Its motion-access section appears only
+where a sensor is gated (iOS's barometer, iOS Safari), and its button must stay synchronous
+down to `request()`.
 
 **Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
 `app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to
@@ -85,7 +91,8 @@ does not play twice.
 
 `__tests__/device-pages.test.tsx` renders the pages with the package's in-memory
 adapters (`@its/glowup-device/testing`) and drives them: permission, position, photo,
-recording, scan, network and battery changes, wake lock, orientation lock, haptics, biometric prompt and app lock, secure store items (plain and protected). It mocks
+recording, scan, network and battery changes, wake lock, orientation lock, haptics, biometric prompt and app lock, secure store items (plain and protected), sensor readings,
+intervals and motion access. It mocks
 `useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
 `expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise

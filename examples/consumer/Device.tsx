@@ -4,7 +4,8 @@
  *
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
- *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/testing`), with its
+ *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`,
+ *    `/testing`), with its
  *    own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
@@ -45,6 +46,12 @@ import {
   useSecureValue,
   type ProtectedReadResult,
 } from "@its/glowup-device/secure-store";
+import {
+  useAccelerometer,
+  useDeviceOrientation,
+  useSensorPermission,
+  type DeviceOrientation,
+} from "@its/glowup-device/sensors";
 import { createMockDeviceInfoAdapter } from "@its/glowup-device/testing";
 import { useRef } from "react";
 
@@ -53,6 +60,7 @@ const LOCK: OrientationLock = "portrait";
 const KIND: InteractionKind = "press";
 const BUSY: BiometricErrorCode = "busy";
 const INVALIDATED: ProtectedReadResult["status"] = "invalidated";
+const FACE_UP: DeviceOrientation = "face-up";
 
 /** The bridge `App.tsx` passes to `ThemeProvider onInteractionFeedback`. */
 export const interactionFeedback: (kind: InteractionKind) => void =
@@ -75,6 +83,9 @@ const Readout = () => {
     enabled: false,
     prompt: { promptMessage: "Unlock", cancelLabel: "Cancel" },
   });
+  const accelerometer = useAccelerometer({ interval: 1000 });
+  const held = useDeviceOrientation();
+  const motion = useSensorPermission("barometer");
 
   return (
     <>
@@ -107,6 +118,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Secure store ${String(secureStore.isSupported)} · ${token.value ?? token.error?.code ?? "…"} · ${INVALIDATED}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Sensors ${String(accelerometer.isAvailable)} · z ${accelerometer.reading?.z.toFixed(2) ?? "…"} · ${held.orientation ?? FACE_UP} · motion ${motion.status}`}
       </Typography>
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />

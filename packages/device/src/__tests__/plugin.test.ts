@@ -38,7 +38,21 @@ async function prebuild(options: unknown) {
     results.ios.podfileProperties ?? {};
   const manifestApplication: Record<string, string> =
     results.android.manifest.manifest.application?.[0]?.$ ?? {};
-  return { infoPlist, permissions, podfileProperties, manifestApplication };
+  // Entries the manifest merger removes from the libraries' manifests.
+  const removedPermissions: string[] = (
+    results.android.manifest.manifest["uses-permission"] ?? []
+  )
+    .filter(
+      (p: { $: Record<string, string> }) => p.$["tools:node"] === "remove",
+    )
+    .map((p: { $: Record<string, string> }) => p.$["android:name"]);
+  return {
+    infoPlist,
+    permissions,
+    podfileProperties,
+    manifestApplication,
+    removedPermissions,
+  };
 }
 
 let warn: jest.SpyInstance;
@@ -194,8 +208,54 @@ describe("secureStore", () => {
   });
 });
 
+describe("sensors", () => {
+  it("writes the motion purpose string and removes the pedometer's permission", async () => {
+    const { infoPlist, permissions, removedPermissions } = await prebuild({
+      sensors: { motionPermission: "Measures the floors you climb." },
+    });
+    expect(infoPlist.NSMotionUsageDescription).toBe(
+      "Measures the floors you climb.",
+    );
+    expect(removedPermissions).toEqual([
+      "android.permission.ACTIVITY_RECOGNITION",
+    ]);
+    expect(permissions).not.toContain(
+      "android.permission.HIGH_SAMPLING_RATE_SENSORS",
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("can leave the motion purpose string out", async () => {
+    const { infoPlist, podfileProperties } = await prebuild({
+      sensors: { motionPermission: false },
+    });
+    expect(infoPlist.NSMotionUsageDescription).toBeUndefined();
+    expect(podfileProperties.MOTION_PERMISSION).toBe("false");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("warns when the purpose string is left to the default", async () => {
+    const { infoPlist } = await prebuild({ sensors: true });
+    expect(infoPlist.NSMotionUsageDescription).toBe(
+      "Allow $(PRODUCT_NAME) to use your motion and fitness data.",
+    );
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("sensors.motionPermission");
+  });
+
+  it("adds the high sampling rate permission on request", async () => {
+    const { permissions } = await prebuild({
+      sensors: { motionPermission: false, highSamplingRate: true },
+    });
+    expect(permissions).toContain(
+      "android.permission.HIGH_SAMPLING_RATE_SENSORS",
+    );
+  });
+});
+
 it("configures nothing that is not listed", async () => {
-  const { infoPlist, permissions, manifestApplication } = await prebuild({});
+  const { infoPlist, permissions, manifestApplication, removedPermissions } =
+    await prebuild({});
   expect(infoPlist.NSLocationWhenInUseUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.ACCESS_FINE_LOCATION");
   expect(infoPlist.NSCameraUsageDescription).toBeUndefined();
@@ -203,6 +263,8 @@ it("configures nothing that is not listed", async () => {
   expect(infoPlist.NSFaceIDUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.USE_BIOMETRIC");
   expect(manifestApplication["android:dataExtractionRules"]).toBeUndefined();
+  expect(infoPlist.NSMotionUsageDescription).toBeUndefined();
+  expect(removedPermissions).toEqual([]);
 });
 
 it("rejects an unknown capability", () => {

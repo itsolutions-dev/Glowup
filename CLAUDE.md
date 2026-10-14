@@ -10,7 +10,7 @@ An **npm-workspaces monorepo** with four workspaces:
 | ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                        |
 | `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                 |
-| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, haptics, biometrics…) behind adapters. |
+| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters. |
 | `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                     |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
@@ -84,7 +84,7 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint

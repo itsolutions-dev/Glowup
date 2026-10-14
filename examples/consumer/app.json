@@ -22,7 +22,10 @@
           "biometrics": {
             "faceIDPermission": "Checks that the published biometrics capability configures the app."
           },
-          "secureStore": true
+          "secureStore": true,
+          "sensors": {
+            "motionPermission": "Checks that the published sensors capability configures the app."
+          }
         }
       ]
     ]

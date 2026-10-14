@@ -1054,7 +1054,7 @@ it over GATT (covered), or the clock broadcasts a beacon the phone detects (cove
 clock detects it (the peripheral role, not covered: another library). Ask the vendor which, and
 for the GATT UUIDs.
 
-## v0.10 — RFID (proposed, open questions)
+## v0.10 — RFID (partly decided)
 
 UHF RFID through a handheld reader, starting with Honeywell's **IH40**: two ways to read, a
 **single read** and a **multiple scan** that collects every tag in range with how near each one
@@ -1100,9 +1100,20 @@ Proposed decisions (to confirm, see the open questions below):
 | 36    | `@its/glowup-rfid-honeywell`: Kotlin Expo module around the AAR, its adapter, config plugin (AAR, Bluetooth permissions) | `0.10.0` | proposed |
 | 37    | Playground (on the mock), `examples/consumer`, changesets, release; a check on the real IH40                             | `0.10.0` | proposed |
 
-**Open questions:** what "single read" means (one tag, or finding a given tag); the host device
-and the link (Bluetooth or USB); whether iOS is needed; the AAR's licence and where it may live;
-whether tags are written; whether this comes before Bluetooth (v0.9).
+**Answered:**
+
+- **Both single modes.** "Single search" means reading the one tag in front of the reader
+  (`readSingle`) and finding a given tag by its proximity (`locate`): R4 keeps both, next to
+  the multiple scan.
+- **Host:** a Honeywell CT40 first, but nothing in `/rfid` may assume it: the contract names no
+  vendor or device, and the CT40 is only where the Honeywell adapter is checked.
+- **Android only** (R8).
+- **Writing, locking and killing tags** stay out of the first release (R9).
+- **GS1 decoding** of the EPC comes later, as a helper (R9).
+
+**Still open:** the link to the reader (Bluetooth or the CT40 mounted over USB, which would also
+need Honeywell's Mobility SDK); the AAR's licence and where it may live; whether RFID comes
+before Bluetooth (v0.9); the SDK and its Javadoc for the spike (phase 34).
 
 ## Open for later
 

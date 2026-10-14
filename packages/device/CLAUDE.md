@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -61,6 +61,24 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `permission-denied`, and a custom provider needs none. `expoGeocoderAdapter` is unsupported
   on the web on purpose (expo answers `[]` there, which reads as "not found"); it drops iOS
   placemarks without a location and Android's meaningless 0 accuracy, and blanks become `null`.
+- **Background location** (`src/background-location`): `/location`'s positions, permission and
+  `LocationError` live in `core/geo.ts`, re-exported by both subpaths (one class, so
+  `instanceof` and `isLocationError` agree), because a capability may not import another. Both
+  import `expo-location`: `DEVICE_CAPABILITIES` lists it for each, and a module is forbidden only
+  to capabilities that do not list it. `defineLocationTask` registers the handler in `tasks.ts`
+  (plain JavaScript: the hooks check a task exists before `start`, and the mock's `deliver()` runs
+  it) and, on native, with expo-task-manager. The hook checks support, the task, the foreground
+  permission and the services; the Android-only checks (background permission without a
+  foreground service, a service started from the background) are left to expo's native code,
+  which `toStartError` maps, so the hook stays platform-free. `foregroundService` is required
+  (an object or `false`): the Android choice is written at every call. The Expo adapter sends
+  `pausesUpdatesAutomatically: false` unless asked (expo's iOS consumer defaults it to true),
+  stops only after `hasStartedLocationUpdatesAsync` (Android throws `TaskNotFoundException`), and
+  runs the background request inside `systemSheet` (Android 11+ opens the settings page).
+  `isRunning` is one store per adapter and name; a read that began before a `start` / `stop` is
+  dropped. The plugin key `backgroundLocation` passes its flags through `withLocation`
+  (expo-location's plugin runs once per prebuild) and removes task-manager's `fetch` mode with an
+  Info.plist mod registered _before_ task-manager's plugin: those mods run in reverse order.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

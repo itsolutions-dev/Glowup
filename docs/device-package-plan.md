@@ -854,7 +854,7 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
 | 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
 | 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
-| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | planned |
+| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | done    |
 | 28    | Geofencing                                                                             | `0.8.0` | planned |
 | 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
 
@@ -932,6 +932,55 @@ ambiguous address.
   sections read unsupported on the web.
 - **Expected red run**, as for every release that adds API: until the "Version Packages" merge,
   master's consumer smoke installs `0.6.0`, which has neither hook, and fails its type-check.
+
+### Phase 27 — what landed
+
+Sources read beyond the plan's notes (`expo-location` 57.0.20, `expo-task-manager` 57.0.21):
+iOS's `startLocationUpdatesAsync` checks the services, the foreground permission and the
+`location` background mode (`ERR_LOCATION_UPDATES_UNAVAILABLE` without it); its consumer sets
+`pausesLocationUpdatesAutomatically` to **true** unless told otherwise, though expo's docs say
+false. Android's checks the foreground permission, the background one when there is no
+foreground service (`ERR_LOCATION_BACKGROUND_UNAUTHORIZED`), that a foreground service starts
+from the foreground (`ERR_FOREGROUND_SERVICE_START_NOT_ALLOWED`) and its manifest permissions
+(`ERR_FOREGROUND_SERVICE_PERMISSIONS`); `unregisterTask` throws `TaskNotFoundException` for a
+task that is not running. iOS sends a CoreLocation failure to the task as the `NSError`'s
+numeric code; Android sends positions only. iOS's background permission reads `undetermined`
+for "While Using" until it is asked in this launch (expo keeps `_wasAsked` in memory), then
+`denied`. Prebuild applies task-manager's plugin by itself after the app's plugins, and
+Info.plist mods run in reverse order of registration.
+
+- `/background-location` (`expo-location` + `expo-task-manager`, the latter a new optional
+  peer): `defineLocationTask(name, handler)`, `useBackgroundLocation(name)` (`start`, `stop`,
+  `isRunning`, `isSupported`, `refresh`) and `useBackgroundLocationPermission()` (L5, L7).
+- **Shared code moved to core:** `GeoPosition` and the other position types, the location
+  permission state, `LocationError` and the expo converters now live in `core/geo.ts`; `/location`
+  re-exports them unchanged. `DEVICE_CAPABILITIES` lists `expo-location` for both subpaths, and
+  the lint rule now forbids a module only to the capabilities that do not list it.
+- **`foregroundService` is required** (an object, or `false` for background updates with the
+  background permission), so the Android choice is visible at every call; the plugin's
+  `backgroundLocation.mode` matches it.
+- The hook checks support, the task's definition, the foreground permission and the services;
+  the Android-only checks stay in expo's native code, mapped by `toStartError` (a build without
+  the setup reads `unsupported`, with how to fix it). No new `LocationErrorCode`.
+- The background request runs inside `systemSheet`, so Android 11+'s trip to the settings page
+  does not lock the app (`useAppLock`); it asks nothing until the foreground permission is
+  granted.
+- Plugin: `backgroundLocation: { mode, alwaysPermission }`, through `withLocation` (one call to
+  expo-location's run-once plugin); iOS's `location` background mode and Always strings, Android's
+  permissions of that mode only; task-manager's `fetch` removed unless the app declares it or uses
+  expo-background-fetch / expo-background-task, with a warning when expo-task-manager is listed
+  before the package (its mod would run last).
+- `/testing`: `createMockBackgroundLocationAdapter()` with `deliver()` / `deliverError()`, which
+  run the handler `defineLocationTask` registered, `stopBySystem()`, `failNextStart()` and
+  `running`.
+- Mutation-tested by hand: every mutant in the hooks, options, tasks, the Expo adapter, the mock
+  and the plugin key is killed but one equivalent (an early return that only skips a
+  notification `useSyncExternalStore` would drop anyway).
+
+**To verify on a device:** a relaunch on iOS after the app was terminated (Always granted);
+Android's headless delivery after the app was swiped away with `stopWithApp: false`; whether
+batching (`batchInterval`) delivers on time while the device sleeps; Android 11+'s settings
+page and the app lock.
 
 ## v0.9 — Bluetooth
 

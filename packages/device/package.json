@@ -88,6 +88,11 @@
       "types": "./lib/typescript/media-library/index.d.ts",
       "default": "./lib/commonjs/media-library/index.js"
     },
+    "./background-location": {
+      "source": "./src/background-location/index.ts",
+      "types": "./lib/typescript/background-location/index.d.ts",
+      "default": "./lib/commonjs/background-location/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -112,6 +117,7 @@
     "sensors",
     "media-picker",
     "media-library",
+    "background-location",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -146,7 +152,8 @@
     "secure-store",
     "sensors",
     "media-picker",
-    "media-library"
+    "media-library",
+    "background-location"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",
@@ -164,6 +171,7 @@
     "expo-screen-orientation": ">=57",
     "expo-secure-store": ">=57",
     "expo-sensors": ">=57",
+    "expo-task-manager": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"
   },
@@ -209,6 +217,9 @@
     },
     "expo-sensors": {
       "optional": true
+    },
+    "expo-task-manager": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -235,6 +246,7 @@
     "expo-screen-orientation": "~57.0.2",
     "expo-secure-store": "~57.0.4",
     "expo-sensors": "~57.0.3",
+    "expo-task-manager": "~57.0.20",
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
     "publint": "^0.3.25",

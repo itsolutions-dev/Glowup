@@ -82,3 +82,8 @@ export {
   type MockMediaLibraryAdapter,
   type MockMediaLibraryOptions,
 } from "./mediaLibrary";
+export {
+  createMockBackgroundLocationAdapter,
+  type MockBackgroundLocationAdapter,
+  type MockBackgroundLocationOptions,
+} from "./backgroundLocation";

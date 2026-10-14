@@ -20,6 +20,8 @@ const DEVICE_CAPABILITIES = {
   sensors: ["expo-sensors"],
   "media-picker": ["expo-image-picker"],
   "media-library": ["expo-media-library"],
+  // Starts expo-location's updates, so it shares that module with /location.
+  "background-location": ["expo-location", "expo-task-manager"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
@@ -47,13 +49,21 @@ const DEVICE_BASE_PATTERNS = [
   },
 ];
 
-const deviceNativePatterns = (except) =>
-  Object.entries(DEVICE_CAPABILITIES)
-    .filter(([capability]) => capability !== except)
-    .map(([capability, modules]) => ({
-      group: modules.flatMap((m) => [m, `${m}/*`]),
-      message: `Only packages/device/src/${capability} may import ${modules.join(" / ")}: anywhere else it becomes a required peer of every other entry point.`,
-    }));
+// Every module but the capability's own: two capabilities may share one
+// (location and background-location both use expo-location).
+const deviceNativePatterns = (except) => {
+  const own = new Set(DEVICE_CAPABILITIES[except] ?? []);
+  const owners = new Map();
+  for (const [capability, modules] of Object.entries(DEVICE_CAPABILITIES)) {
+    for (const m of modules) {
+      if (!own.has(m)) owners.set(m, [...(owners.get(m) ?? []), capability]);
+    }
+  }
+  return [...owners].map(([m, capabilities]) => ({
+    group: [m, `${m}/*`],
+    message: `Only ${capabilities.map((c) => `packages/device/src/${c}`).join(" and ")} may import ${m}: anywhere else it becomes a required peer of every other entry point.`,
+  }));
+};
 
 module.exports = defineConfig([
   expoConfig,

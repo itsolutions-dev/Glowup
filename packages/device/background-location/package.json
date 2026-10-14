@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/background-location/index.js",
+  "module": "../lib/module/background-location/index.js",
+  "types": "../lib/typescript/background-location/index.d.ts",
+  "react-native": "../src/background-location/index.ts",
+  "source": "../src/background-location/index.ts"
+}

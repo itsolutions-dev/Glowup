@@ -23,6 +23,7 @@ npx expo install expo-secure-store              # /secure-store
 npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
+npx expo install expo-location expo-task-manager # /background-location
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -31,23 +32,24 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                             | Needs                             | Exports                                                                                                    |
-| ---------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `@its/glowup-device`               | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
-| `@its/glowup-device/info`          | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
-| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`, `useGeocoder`             |
-| `@its/glowup-device/camera`        | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
-| `@its/glowup-device/network`       | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
-| `@its/glowup-device/battery`       | `expo-battery`                    | `useBattery`                                                                                               |
-| `@its/glowup-device/keep-awake`    | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                                                                      |
-| `@its/glowup-device/orientation`   | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                        |
-| `@its/glowup-device/haptics`       | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                                                             |
-| `@its/glowup-device/biometrics`    | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                              |
-| `@its/glowup-device/secure-store`  | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
-| `@its/glowup-device/sensors`       | `expo-sensors`                    | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
-| `@its/glowup-device/media-picker`  | `expo-image-picker`               | `useMediaPicker`                                                                                           |
-| `@its/glowup-device/media-library` | `expo-media-library`              | `useMediaLibrary`                                                                                          |
-| `@its/glowup-device/testing`       | nothing native                    | in-memory adapters for every capability                                                                    |
+| Import                                   | Needs                                | Exports                                                                                                    |
+| ---------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `@its/glowup-device`                     | nothing native                       | `DeviceAdaptersProvider`, `PermissionState`                                                                |
+| `@its/glowup-device/info`                | `expo-device`, `expo-application`    | `useDeviceInfo`                                                                                            |
+| `@its/glowup-device/location`            | `expo-location`                      | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`, `useGeocoder`             |
+| `@its/glowup-device/camera`              | `expo-camera`                        | `CameraView`, `useCameraPermission`                                                                        |
+| `@its/glowup-device/network`             | `@react-native-community/netinfo`    | `useNetwork`, `useIsOnline`                                                                                |
+| `@its/glowup-device/battery`             | `expo-battery`                       | `useBattery`                                                                                               |
+| `@its/glowup-device/keep-awake`          | `expo-keep-awake`                    | `useKeepAwake`, `useKeepAwakeSupport`                                                                      |
+| `@its/glowup-device/orientation`         | `expo-screen-orientation`            | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                        |
+| `@its/glowup-device/haptics`             | `expo-haptics`                       | `useHaptics`, `hapticFeedback`                                                                             |
+| `@its/glowup-device/biometrics`          | `expo-local-authentication`          | `useBiometrics`, `useAppLock`                                                                              |
+| `@its/glowup-device/secure-store`        | `expo-secure-store`                  | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
+| `@its/glowup-device/sensors`             | `expo-sensors`                       | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
+| `@its/glowup-device/media-picker`        | `expo-image-picker`                  | `useMediaPicker`                                                                                           |
+| `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                          |
+| `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `useBackgroundLocationPermission`                           |
+| `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                    |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -934,6 +936,108 @@ function SaveButton({ uri }: { uri: string }) {
 - **Web:** unsupported (`isSupported: false`). The web build never loads expo-media-library,
   whose default entry throws at import in a browser.
 
+## Background location
+
+Positions that keep coming while the app is in the background: a trip, a delivery round, a
+run. They go to a **task** defined at module scope, not to a component, because the platform
+may deliver them with no React tree at all (iOS relaunches the app, Android runs it headless).
+
+```bash
+npx expo install expo-location expo-task-manager
+```
+
+It needs a development build and `backgroundLocation` in the [config plugin](#config-plugin);
+the web has none.
+
+```tsx
+// tasks.ts: imported by the app's entry file, before anything renders.
+import { defineLocationTask } from "@its/glowup-device/background-location";
+
+defineLocationTask("trip", async (event) => {
+  if (event.type === "positions")
+    await saveTrip(event.positions); // oldest first
+  else log(event.error); // a LocationError
+});
+```
+
+```tsx
+import { useLocationPermission } from "@its/glowup-device/location";
+import { useBackgroundLocation } from "@its/glowup-device/background-location";
+
+function TripButton() {
+  const permission = useLocationPermission();
+  const trip = useBackgroundLocation("trip");
+  if (!trip.isSupported) return null;
+  if (permission.status !== "granted") {
+    return <Button onPress={permission.request}>Use my location</Button>;
+  }
+  return trip.isRunning ? (
+    <Button onPress={trip.stop}>Stop recording</Button>
+  ) : (
+    <Button
+      onPress={() =>
+        trip.start({
+          accuracy: "high",
+          distanceInterval: 20,
+          // Android: a notification while it runs, and no background permission needed.
+          foregroundService: {
+            title: "Recording your trip",
+            body: "Tap to open",
+          },
+        })
+      }
+    >
+      Record my trip
+    </Button>
+  );
+}
+```
+
+- **`defineLocationTask(name, handler)`** at module scope, once per name (a second call replaces
+  the handler). The handler receives `{ type: "positions", positions }` (several at once when
+  batching) or `{ type: "error", error }` (iOS: `permission-denied` when the permission is taken
+  away, otherwise `unavailable`). Return the promise of its work: the platform waits for it.
+- **`useBackgroundLocation(name)`**: `start(options)`, `stop()`, `isRunning` (`null` until read)
+  and `isSupported`. The updates **outlive the app**: they keep running after the component
+  unmounts and after the app restarts, until `stop()`. `isRunning` is read again on every return
+  to the foreground, since the system may have stopped them.
+- **`start()` never prompts.** It rejects with `permission-denied` until the foreground
+  permission is granted, with `services-disabled` while location is off, and with `unsupported`
+  on the web or in a build without the plugin's `backgroundLocation`. Invalid options throw a
+  `TypeError` before anything starts; a name no `defineLocationTask` defined throws an `Error`.
+- **Android: the foreground service or the background permission.** `foregroundService` is
+  required, so the choice is written at every call. `{ title, body, color?, stopWithApp? }` runs
+  a foreground service with that notification: the foreground permission suffices, but it can
+  only start while the app is in the foreground (`unavailable` otherwise). `false` runs plain
+  background updates, which need the background permission and a Google Play declaration. The
+  plugin's `backgroundLocation.mode` must match (`"foreground-service"`, the default, or
+  `"background"`).
+- **Options:** `accuracy`, `distanceInterval`, `timeInterval` (Android), `batchInterval` /
+  `batchDistance` (hold positions back and deliver them together, to save battery),
+  `activityType`, `showsIndicator` (the blue status bar pill; with "While Using" alone iOS shows
+  it anyway) and `pausesAutomatically` on iOS. The last one
+  defaults to `false`: expo's iOS default is `true`, whatever its docs say, and paused updates
+  resume only when the user moves again.
+- **iOS** needs only the foreground ("While Using") permission to keep updates going that started
+  in the foreground. "Always" is what lets it relaunch a terminated app to deliver them.
+
+### Background permission
+
+```tsx
+import { useBackgroundLocationPermission } from "@its/glowup-device/background-location";
+
+const always = useBackgroundLocationPermission();
+// always.status, always.canAskAgain, always.request(), always.openSettings()
+```
+
+- `request()` does nothing until the foreground permission is granted: ask for that first.
+- iOS shows the "Change to Always Allow" prompt once per install; afterwards `request()` resolves
+  `denied` without a prompt. Before it is asked in a launch, iOS reads `undetermined`, even if the
+  user answered on an earlier launch.
+- Android 11 and later open the app's settings page instead of a dialog. The app goes to the
+  background meanwhile, which `useAppLock` does not count.
+- The state is read again whenever the app returns to the foreground.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -957,14 +1061,26 @@ plugins: [
       sensors: { motionPermission: "Counts the floors you climb." },
       mediaPicker: true,
       mediaLibrary: { savePermission: "Saves your edited photos." },
+      backgroundLocation: {
+        mode: "foreground-service", // or "background"
+        alwaysPermission: "Records your trip while the app is closed.",
+      },
     },
   ],
 ],
 ```
 
 - **Location** sets the iOS purpose strings to your text (also the "Always" ones, which
-  expo-location's binary needs present; the package never asks for Always) and adds Android's
-  coarse and fine location permissions only — no background location, no foreground service.
+  expo-location's binary needs present; without `backgroundLocation` the package never asks for
+  Always) and adds Android's coarse and fine location permissions only — no background location,
+  no foreground service.
+- **Background location** needs `location` too. It adds iOS's `location` background mode, the
+  "Always" purpose strings (`alwaysPermission`) and, on Android, the permissions of its `mode`:
+  `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_LOCATION` for `"foreground-service"` (the
+  default), `ACCESS_BACKGROUND_LOCATION` for `"background"`, never both. It removes the `fetch`
+  background mode expo-task-manager's plugin adds, which nothing here uses and App Review asks
+  about, unless the app declares it or uses expo-background-fetch / expo-background-task. Do not
+  list expo-task-manager before this plugin: its `fetch` would stay (the plugin warns).
 - **Camera** sets the camera purpose string and Android's `CAMERA`. `recordAudio: true` adds
   `RECORD_AUDIO` and makes the microphone text required (iOS always carries one, as
   expo-camera's plugin does; without `recordAudio` the app never asks).
@@ -1051,6 +1167,30 @@ location.failHeading("unavailable");
 ```
 
 `createMockLocationAdapter({ heading: false })` has no compass, as on the web.
+
+`createMockBackgroundLocationAdapter()` starts with the foreground permission granted and the
+background one undetermined; `deliver()` runs the handler `defineLocationTask` registered, as the
+platform would:
+
+```tsx
+defineLocationTask("trip", handler); // as in the app
+const backgroundLocation = createMockBackgroundLocationAdapter();
+render(
+  <DeviceAdaptersProvider adapters={{ backgroundLocation }}>
+    <TripButton />
+  </DeviceAdaptersProvider>,
+);
+// …press "Record my trip", then:
+expect(backgroundLocation.running.get("trip")).toMatchObject({
+  accuracy: "high",
+});
+await backgroundLocation.deliver("trip", [buildPosition({ latitude: 45.46 })]);
+await backgroundLocation.deliverError("trip", "permission-denied");
+backgroundLocation.stopBySystem("trip"); // as a revoked permission would
+backgroundLocation.failNextStart("unavailable");
+```
+
+`deliver()` throws while nothing runs under that name: the platform would deliver nothing.
 
 `createMockGeocoderAdapter()` answers one place and one address in Rome until told otherwise:
 

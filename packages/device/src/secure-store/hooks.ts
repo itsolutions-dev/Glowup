@@ -2,15 +2,24 @@ import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { AppState, Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { promptSession } from "../core/promptSession";
 import type { Unsubscribe } from "../core/types";
 import {
   assertValidKey,
   assertValidValue,
+  isProtectedAccessError,
   SecureStoreError,
   toSecureStoreError,
 } from "./errors";
 import { expoSecureStoreAdapter } from "./expo";
-import type { SecureStoreAdapter, SecureStoreOptions } from "./types";
+import type {
+  AdapterProtectedOptions,
+  ProtectedOptions,
+  ProtectedReadResult,
+  ProtectedWriteResult,
+  SecureStoreAdapter,
+  SecureStoreOptions,
+} from "./types";
 import { webSecureStoreAdapter } from "./web";
 
 const defaultSecureStoreAdapter =
@@ -144,6 +153,27 @@ export interface UseSecureStore {
     value: unknown,
     options?: SecureStoreOptions,
   ): Promise<void>;
+  /**
+   * Reads an item only the enrolled biometrics open: shows the system
+   * prompt (no passcode fallback). Resolves every outcome as `{ status }`,
+   * telling `invalidated` (the biometrics changed since it was written)
+   * from `missing`; rejects only on an invalid key or an empty prompt.
+   */
+  getProtected(
+    key: string,
+    options: ProtectedOptions,
+  ): Promise<ProtectedReadResult>;
+  /** Writes one. Android shows the prompt for it; iOS does not. */
+  setProtected(
+    key: string,
+    value: string,
+    options: ProtectedOptions,
+  ): Promise<ProtectedWriteResult>;
+  /** Removes one, without a prompt. Rejects like `remove`. */
+  removeProtected(
+    key: string,
+    options?: Omit<ProtectedOptions, "prompt">,
+  ): Promise<void>;
 }
 
 const getServerFalse = () => false;
@@ -151,6 +181,43 @@ const subscribeNothing = () => () => {};
 
 function useSecureStoreAdapter(): SecureStoreAdapter {
   return useDeviceAdapter("secureStore") ?? defaultSecureStoreAdapter;
+}
+
+/**
+ * Each protected item gets a service of its own: on Android, writing an
+ * item again after it was invalidated deletes every protected item of its
+ * service, which must not take other secrets with it.
+ */
+const protectedService = (key: string, service?: string) =>
+  `glowup.protected.${service ?? "default"}.${key}`;
+
+/**
+ * A plain item written beside each protected one, under its service. A
+ * protected read that finds nothing while the marker is there means the
+ * platform destroyed the item: both platforms report that as "no item".
+ */
+const MARKER = "glowup-protected-marker";
+
+const BUSY = { status: "busy" } as const;
+const UNSUPPORTED = { status: "unsupported" } as const;
+
+function assertPrompt(prompt: unknown): void {
+  if (typeof prompt !== "string" || prompt.length === 0) {
+    throw new TypeError(
+      "Protected items need a non-empty prompt (Android shows a blank title without one).",
+    );
+  }
+}
+
+function toFailure(error: unknown) {
+  if (isProtectedAccessError(error)) {
+    return { status: error.status, detail: error.message };
+  }
+  const normalised = toSecureStoreError(error);
+  return {
+    status: normalised.code === "locked" ? "locked" : "failed",
+    detail: normalised.message,
+  } as const;
 }
 
 async function run<T>(call: () => Promise<T>): Promise<T> {
@@ -205,11 +272,62 @@ export function useSecureStore(): UseSecureStore {
         await adapter.deleteItem(key, options);
         notify(adapter, key, options.service, null);
       });
+    const protectedTarget = (
+      key: string,
+      { prompt, service }: ProtectedOptions,
+    ): AdapterProtectedOptions => {
+      assertValidKey(key);
+      assertPrompt(prompt);
+      return { prompt, service: protectedService(key, service) };
+    };
     return {
       isSupported,
       get,
       set,
       remove,
+      async getProtected(key, options) {
+        const target = protectedTarget(key, options);
+        if (!adapter.isSupported()) return UNSUPPORTED;
+        return promptSession.run<ProtectedReadResult>(BUSY, async () => {
+          let value: string | null;
+          try {
+            value = await adapter.getProtectedItem(key, target);
+          } catch (error) {
+            return toFailure(error);
+          }
+          if (value !== null) return { status: "ok", value };
+          const marker = await adapter
+            .getItem(MARKER, { service: target.service })
+            .catch(() => null);
+          return { status: marker === null ? "missing" : "invalidated" };
+        });
+      },
+      async setProtected(key, value, options) {
+        const target = protectedTarget(key, options);
+        assertValidValue(value);
+        if (!adapter.isSupported()) return UNSUPPORTED;
+        return promptSession.run<ProtectedWriteResult>(BUSY, async () => {
+          try {
+            await adapter.setProtectedItem(key, value, target);
+          } catch (error) {
+            return toFailure(error);
+          }
+          // Without the marker an invalidation reads as "missing": a lost
+          // marker costs that distinction, not the item.
+          await adapter
+            .setItem(MARKER, "1", { service: target.service })
+            .catch(() => {});
+          return { status: "ok" };
+        });
+      },
+      removeProtected: (key, options = {}) =>
+        run(async () => {
+          assertValidKey(key);
+          ensureSupported();
+          const service = protectedService(key, options.service);
+          await adapter.deleteItem(key, { service });
+          await adapter.deleteItem(MARKER, { service });
+        }),
       async getJSON<T>(key: string, options?: SecureStoreOptions) {
         const text = await get(key, options);
         if (text === null) return null;

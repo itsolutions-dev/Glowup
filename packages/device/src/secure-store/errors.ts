@@ -1,3 +1,5 @@
+import type { ProtectedErrorStatus } from "./types";
+
 /**
  * - `invalid-key`: keys must be non-empty and contain only letters, digits,
  *   `.`, `-` and `_`.
@@ -48,6 +50,31 @@ export function toSecureStoreError(error: unknown): SecureStoreError {
     ? "locked"
     : "failed";
   return new SecureStoreError(code, message, error);
+}
+
+/**
+ * A prompt's outcome, thrown by an adapter's protected calls and resolved
+ * by the hooks as `{ status }`. Adapters normalise the platform's errors
+ * into it.
+ */
+export class ProtectedAccessError extends Error {
+  readonly status: ProtectedErrorStatus;
+
+  constructor(status: ProtectedErrorStatus, message?: string) {
+    super(message ?? status);
+    this.name = "ProtectedAccessError";
+    this.status = status;
+  }
+}
+
+export function isProtectedAccessError(
+  error: unknown,
+): error is ProtectedAccessError {
+  return (
+    error instanceof Error &&
+    error.name === "ProtectedAccessError" &&
+    typeof (error as ProtectedAccessError).status === "string"
+  );
 }
 
 const KEY = /^[\w.-]+$/;

@@ -465,7 +465,7 @@ storage).
 | Phase | Content                                                                                        | Status   |
 | ----- | ---------------------------------------------------------------------------------------------- | -------- |
 | 15    | `/secure-store` plain items: adapter, `useSecureStore`, `useSecureValue`, errors, mock, plugin | **done** |
-| 16    | Protected items (biometrics), invalidation detection (S2, S3)                                  |          |
+| 16    | Protected items (biometrics), invalidation detection (S2, S3)                                  | **done** |
 | 17    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release          |          |
 
 ### Phase 15 — what landed
@@ -485,6 +485,31 @@ storage).
   its Face ID text, written first, is kept.
 - Web: `webSecureStoreAdapter` rejects `unsupported`. `/testing`: `createMockSecureStoreAdapter()`
   with `items`, `writes` and `failNext`.
+
+### Phase 16 — what landed
+
+Applied as proposed (the four phase-16 questions, accepted without changes):
+
+- **A service per protected item** (`glowup.protected.<service>.<key>`), so Android's "re-write
+  after invalidation deletes the service's protected items" cannot take other secrets along.
+- **One prompt session for the package** (`core/promptSession.ts`), shared by `/biometrics` and
+  the protected items: a second prompt from either resolves `busy`, `isAuthenticating` covers
+  both, and `useAppLock`'s "a background a prompt caused does not count" covers both. It moved
+  out of `/biometrics`, which no other capability may import.
+- **Android outcomes read from expo's English messages** (`PROTECTED_MESSAGES` in the Expo
+  adapter, pinned by tests on 57.0.4's strings); an unknown one stays `failed` with `detail`.
+- **Methods on `useSecureStore()`:** `getProtected`, `setProtected`, `removeProtected`, resolving
+  `{ status }` (`ok`, `missing`, `invalidated`, `cancelled`, `lockout`, `unavailable`, `locked`,
+  `busy`, `unsupported`, `failed`); they reject only on an invalid key or value and an empty
+  `prompt`.
+- **Invalidation:** a plain marker beside each protected item (written after it, best effort);
+  `null` with the marker reads `invalidated`. `removeProtected` deletes both, without a prompt.
+- The Expo adapter writes a fresh iOS item (delete, then add: no prompt, the access control
+  asked for) with `WHEN_UNLOCKED_THIS_DEVICE_ONLY`.
+- `/testing`: `protectedItems`, `prompts`, `denyNext(status)`, `invalidate()`.
+- **Not verified on a device:** that iOS reports an invalidated `.biometryCurrentSet` item as not
+  found (Apple documents it as no longer accessible; if it surfaced as an error, the read would
+  resolve `failed` rather than `invalidated`), and the Android messages themselves.
 
 ## Open for later
 

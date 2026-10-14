@@ -91,8 +91,10 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   level has (newer ones throw below API 30 / 34). The web adapter is a no-op on purpose.
 - **Biometrics** (`src/biometrics`): a local gate, documented as such. `authenticate()` resolves
   every outcome as `{ success: false, error }` and rejects only on an empty label (both labels are
-  required: expo's defaults are English). One prompt per adapter (`busy` otherwise), because
-  Android answers a second call with `app_cancel` and iOS stacks one. The Expo adapter maps
+  required: expo's defaults are English). One system prompt at a time (`busy` otherwise), because
+  Android answers a second call with `app_cancel` and iOS stacks one: the session is
+  `core/promptSession.ts`, shared with `/secure-store`'s protected items (a capability may not
+  import another, core may serve both). The Expo adapter maps
   every native string, including the ones expo's type omits (`missing_usage_description`,
   `unknown: …`), and sends `strong` + passcode as biometrics only on API 28–29 (AndroidX rejects
   the combination and expo hangs). The status is a live store re-read on `active` only: Face ID's
@@ -108,7 +110,13 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   on expo's message). `useSecureValue` keeps one store per adapter, service and key (last call
   wins, writes through the package reach every reader) and re-reads on `active` only after a
   failed read. The Expo adapter deletes before an iOS write because `SecItemUpdate` keeps the
-  old accessibility. No `localStorage` fallback on web, on purpose.
+  old accessibility. No `localStorage` fallback on web, on purpose. Protected items
+  (`getProtected` / `setProtected` / `removeProtected`) resolve `{ status }` through the shared
+  prompt session; each lives under its own derived service (`glowup.protected.<service>.<key>`:
+  Android deletes every protected item of a service when one invalidated item is written again)
+  with a plain marker beside it, so `null` + marker reads `invalidated`. The Expo adapter turns
+  expo's English messages into `ProtectedAccessError` statuses (`PROTECTED_MESSAGES`, pinned by
+  tests on 57.0.4's strings); `/testing` builds the same error by shape (it may not import it).
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

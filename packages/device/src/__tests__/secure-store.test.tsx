@@ -5,6 +5,7 @@ import { AppState, Platform } from "react-native";
 import { renderToString } from "react-dom/server";
 
 import { DeviceAdaptersProvider } from "..";
+import { useBiometrics } from "../biometrics";
 import {
   expoSecureStoreAdapter,
   isSecureStoreError,
@@ -15,8 +16,12 @@ import {
   type SecureStoreAdapter,
 } from "../secure-store";
 import { toSecureStoreError } from "../secure-store/errors";
-import { createMockSecureStoreAdapter } from "../testing";
+import {
+  createMockBiometricsAdapter,
+  createMockSecureStoreAdapter,
+} from "../testing";
 
+jest.mock("expo-local-authentication", () => ({ SecurityLevel: { NONE: 0 } }));
 jest.mock("expo-secure-store", () => ({
   AFTER_FIRST_UNLOCK: 0,
   AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 1,
@@ -362,5 +367,281 @@ describe("useSecureValue", () => {
     );
     expect(html).toBe("true|null|false");
     expect(getItem).not.toHaveBeenCalled();
+  });
+});
+
+const PROMPT = { prompt: "Unlock your wallet", service: "auth" };
+const DERIVED = "glowup.protected.auth.token";
+
+describe("expoSecureStoreAdapter, protected items", () => {
+  it("reads with the prompt, under the derived service", async () => {
+    await expoSecureStoreAdapter.getProtectedItem("token", {
+      service: DERIVED,
+      prompt: "Unlock",
+    });
+    expect(native.getItemAsync).toHaveBeenCalledWith("token", {
+      keychainService: DERIVED,
+      requireAuthentication: true,
+      authenticationPrompt: "Unlock",
+    });
+  });
+
+  it("writes a fresh item on iOS, in place on Android", async () => {
+    Platform.OS = "ios";
+    await expoSecureStoreAdapter.setProtectedItem("token", "v", {
+      service: DERIVED,
+      prompt: "Unlock",
+    });
+    expect(native.deleteItemAsync).toHaveBeenCalledWith("token", {
+      keychainService: DERIVED,
+    });
+    expect(native.setItemAsync).toHaveBeenCalledWith("token", "v", {
+      keychainService: DERIVED,
+      requireAuthentication: true,
+      authenticationPrompt: "Unlock",
+      keychainAccessible: 6,
+    });
+    jest.clearAllMocks();
+    Platform.OS = "android";
+    await expoSecureStoreAdapter.setProtectedItem("token", "v", {
+      service: DERIVED,
+      prompt: "Unlock",
+    });
+    expect(native.deleteItemAsync).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      "Could not Authenticate the user: User canceled the authentication. Cancel",
+      "cancelled",
+    ],
+    ["User canceled the operation.", "cancelled"],
+    [
+      "Could not Authenticate the user: Authentication is already in progress",
+      "busy",
+    ],
+    ["Could not Authenticate the user: Lockout. Too many attempts", "lockout"],
+    ["Could not Authenticate the user: Lockout permanent. x", "lockout"],
+    [
+      "Could not Authenticate the user: No biometrics are currently enrolled",
+      "unavailable",
+    ],
+    [
+      "Could not Authenticate the user: No hardware available for biometric authentication.",
+      "unavailable",
+    ],
+    [
+      "You must set `NSFaceIDUsageDescription` in your Info.plist file to use the `requireAuthentication` option",
+      "unavailable",
+    ],
+    ["User interaction is not allowed.", "locked"],
+  ])("normalises %j to %s", async (message, status) => {
+    native.getItemAsync.mockRejectedValueOnce(new Error(message));
+    await expect(
+      expoSecureStoreAdapter.getProtectedItem("token", {
+        service: DERIVED,
+        prompt: "Unlock",
+      }),
+    ).rejects.toMatchObject({ name: "ProtectedAccessError", status });
+  });
+
+  it("leaves an unknown failure as it is", async () => {
+    const error = new Error("I/O error.");
+    native.setItemAsync.mockRejectedValueOnce(error);
+    await expect(
+      expoSecureStoreAdapter.setProtectedItem("token", "v", {
+        service: DERIVED,
+        prompt: "Unlock",
+      }),
+    ).rejects.toBe(error);
+  });
+});
+
+describe("useSecureStore, protected items", () => {
+  async function setup(adapter = createMockSecureStoreAdapter()) {
+    const { result } = await renderHook(() => useSecureStore(), {
+      wrapper: wrapperFor(adapter),
+    });
+    return { secureStore: adapter, store: () => result.current };
+  }
+
+  it("writes and reads through the prompt, apart from plain items", async () => {
+    const { secureStore, store } = await setup();
+    await expect(store().setProtected("token", "abc", PROMPT)).resolves.toEqual(
+      { status: "ok" },
+    );
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "ok",
+      value: "abc",
+    });
+    expect(secureStore.prompts).toEqual([
+      "Unlock your wallet",
+      "Unlock your wallet",
+    ]);
+    expect(secureStore.protectedItems.get(`${DERIVED}/token`)).toBe("abc");
+    // A service per item, and the marker beside it.
+    expect(secureStore.items.get(`${DERIVED}/glowup-protected-marker`)).toBe(
+      "1",
+    );
+    await expect(store().get("token", { service: "auth" })).resolves.toBeNull();
+  });
+
+  it("reads an empty value as a value", async () => {
+    const { store } = await setup();
+    await store().setProtected("token", "", PROMPT);
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "ok",
+      value: "",
+    });
+  });
+
+  it("tells an invalidated item from a missing one", async () => {
+    const { secureStore, store } = await setup();
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "missing",
+    });
+    await store().setProtected("token", "abc", PROMPT);
+    secureStore.invalidate();
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "invalidated",
+    });
+    // Written again, it reads again.
+    await store().setProtected("token", "def", PROMPT);
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "ok",
+      value: "def",
+    });
+  });
+
+  it("removes the item and its marker, without a prompt", async () => {
+    const { secureStore, store } = await setup();
+    await store().setProtected("token", "abc", PROMPT);
+    await store().removeProtected("token", { service: "auth" });
+    expect(secureStore.items.size).toBe(0);
+    expect(secureStore.protectedItems.size).toBe(0);
+    expect(secureStore.prompts).toHaveLength(1);
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "missing",
+    });
+  });
+
+  it.each(["cancelled", "lockout", "unavailable"] as const)(
+    "resolves a prompt's %s",
+    async (status) => {
+      const { secureStore, store } = await setup();
+      secureStore.denyNext(status);
+      await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+        status,
+        detail: status,
+      });
+      secureStore.denyNext(status);
+      await expect(
+        store().setProtected("token", "abc", PROMPT),
+      ).resolves.toMatchObject({ status });
+      // A failed write leaves no marker behind.
+      expect(secureStore.items.size).toBe(0);
+    },
+  );
+
+  it("resolves locked and failed from the platform's other errors", async () => {
+    const { secureStore, store } = await setup();
+    secureStore.failNext(LOCKED);
+    await expect(store().getProtected("token", PROMPT)).resolves.toMatchObject({
+      status: "locked",
+    });
+    secureStore.failNext(new Error("I/O error."));
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "failed",
+      detail: "I/O error.",
+    });
+  });
+
+  it("keeps the item when only its marker cannot be written", async () => {
+    const secureStore = createMockSecureStoreAdapter();
+    jest
+      .spyOn(secureStore, "setItem")
+      .mockRejectedValueOnce(new Error("Disk full"));
+    const { store } = await setup(secureStore);
+    await expect(store().setProtected("token", "abc", PROMPT)).resolves.toEqual(
+      { status: "ok" },
+    );
+    await expect(store().getProtected("token", PROMPT)).resolves.toMatchObject({
+      status: "ok",
+    });
+  });
+
+  it("rejects an invalid key or an empty prompt before any prompt", async () => {
+    const { secureStore, store } = await setup();
+    await expect(store().getProtected("a b", PROMPT)).rejects.toMatchObject({
+      code: "invalid-key",
+    });
+    await expect(
+      store().setProtected("token", "abc", { prompt: "" }),
+    ).rejects.toThrow("non-empty prompt");
+    await expect(
+      store().setProtected("token", 1 as unknown as string, PROMPT),
+    ).rejects.toMatchObject({ code: "invalid-value" });
+    expect(secureStore.prompts).toHaveLength(0);
+  });
+
+  it("answers unsupported on web", async () => {
+    const { store } = await setup(
+      createMockSecureStoreAdapter({ supported: false }),
+    );
+    await expect(store().getProtected("token", PROMPT)).resolves.toEqual({
+      status: "unsupported",
+    });
+    await expect(store().setProtected("token", "abc", PROMPT)).resolves.toEqual(
+      { status: "unsupported" },
+    );
+  });
+
+  it("shares one prompt with /biometrics: the second caller is busy", async () => {
+    const secureStore = createMockSecureStoreAdapter();
+    const biometrics = createMockBiometricsAdapter({ manual: true });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <DeviceAdaptersProvider adapters={{ secureStore, biometrics }}>
+        {children}
+      </DeviceAdaptersProvider>
+    );
+    const { result } = await renderHook(
+      () => ({ store: useSecureStore(), biometrics: useBiometrics() }),
+      { wrapper },
+    );
+    let pending!: Promise<unknown>;
+    await act(async () => {
+      pending = result.current.biometrics.authenticate({
+        promptMessage: "Unlock",
+        cancelLabel: "Cancel",
+      });
+    });
+    await expect(
+      result.current.store.getProtected("token", PROMPT),
+    ).resolves.toEqual({ status: "busy" });
+    expect(secureStore.prompts).toHaveLength(0);
+
+    await act(async () => biometrics.resolve());
+    await pending;
+    // And the other way round.
+    let read!: (value: string | null) => void;
+    jest.spyOn(secureStore, "getProtectedItem").mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          read = resolve;
+        }),
+    );
+    let reading!: Promise<unknown>;
+    await act(async () => {
+      reading = result.current.store.getProtected("token", PROMPT);
+    });
+    expect(result.current.biometrics.isAuthenticating).toBe(true);
+    await expect(
+      result.current.biometrics.authenticate({
+        promptMessage: "Unlock",
+        cancelLabel: "Cancel",
+      }),
+    ).resolves.toEqual({ success: false, error: "busy" });
+    await act(async () => read("abc"));
+    await expect(reading).resolves.toEqual({ status: "ok", value: "abc" });
   });
 });

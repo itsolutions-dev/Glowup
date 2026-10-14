@@ -11,10 +11,20 @@ export {
   type UseSecureValue,
 } from "./hooks";
 export {
+  isProtectedAccessError,
   isSecureStoreError,
+  ProtectedAccessError,
   SecureStoreError,
   type SecureStoreErrorCode,
 } from "./errors";
 export { expoSecureStoreAdapter } from "./expo";
 export { webSecureStoreAdapter } from "./web";
-export type { SecureStoreAdapter, SecureStoreOptions } from "./types";
+export type {
+  AdapterProtectedOptions,
+  ProtectedErrorStatus,
+  ProtectedOptions,
+  ProtectedReadResult,
+  ProtectedWriteResult,
+  SecureStoreAdapter,
+  SecureStoreOptions,
+} from "./types";

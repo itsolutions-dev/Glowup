@@ -14,4 +14,6 @@ export const webSecureStoreAdapter: SecureStoreAdapter = {
   getItem: unsupported,
   setItem: unsupported,
   deleteItem: unsupported,
+  getProtectedItem: unsupported,
+  setProtectedItem: unsupported,
 };

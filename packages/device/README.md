@@ -444,9 +444,9 @@ function RevealCard({ onReveal }: { onReveal(): void }) {
   rejects only on a programming error (an empty `promptMessage` or `cancelLabel`).
 - **Labels are required.** `promptMessage` and `cancelLabel` have English defaults in
   expo-local-authentication, which an app in another language would show.
-- **One prompt at a time.** While one is open, another `authenticate()` (from any component)
-  resolves `busy` at once: Android would answer `app_cancel` and iOS would stack a second
-  evaluation. `cancel()` dismisses it on Android; iOS has no such API.
+- **One prompt at a time, across the package.** While one is open, another `authenticate()`
+  (from any component) or a protected secure-store item resolves `busy` at once: Android would
+  answer `app_cancel` and iOS would stack a second evaluation. `cancel()` dismisses it on Android; iOS has no such API.
 - **Fallback.** `fallback: "passcode"` (default) offers the device PIN, pattern or password
   when biometrics fail or are missing, so `success` does not say a biometric was used.
   `fallback: "none"` is biometrics only: the iOS "Enter Password" button resolves `fallback`,
@@ -557,6 +557,62 @@ async function signOut(store: ReturnType<typeof useSecureStore>) {
   missing.
 - **Web:** unsupported, with no `localStorage` fallback (any script on the origin could read
   it). Provide your own adapter if that trade-off is yours to make.
+
+### Protected items
+
+An item only the enrolled biometrics open: reading it shows the system prompt. This is what
+binds a secret to biometrics, which `/biometrics` alone cannot do.
+
+```tsx
+const store = useSecureStore();
+
+const saved = await store.setProtected("refreshToken", token, {
+  prompt: "Ricorda l'accesso con Face ID",
+  service: "auth",
+});
+
+const read = await store.getProtected("refreshToken", {
+  prompt: "Accedi con Face ID",
+  service: "auth",
+});
+switch (read.status) {
+  case "ok":
+    return signInWith(read.value);
+  case "invalidated": // a finger or a face was added or removed since
+    return askToSignInAgain("Le tue biometrie sono cambiate: accedi di nuovo.");
+  case "missing":
+  case "cancelled":
+    return showPasswordForm();
+  default:
+    return showPasswordForm(read.status); // lockout, unavailable, locked, busy, failed
+}
+```
+
+- **Every outcome resolves** as `{ status }`: `ok` (with `value`), `missing`, `invalidated`,
+  `cancelled`, `lockout`, `unavailable`, `locked`, `busy`, `unsupported`, `failed` (with the
+  platform's message in `detail`). It rejects only on an invalid key or value and an empty
+  `prompt` (required: expo-secure-store shows a blank title on Android without one).
+  `removeProtected()` shows no prompt and rejects like `remove()`.
+- **`invalidated`.** Both platforms destroy a protected item when the enrolled biometrics change,
+  and both report it as "no item". The package writes a plain marker beside each protected
+  item, so a read that finds the marker but no item says `invalidated` rather than `missing`.
+- **Biometrics only, no passcode.** iOS uses the current biometry set; Android requires class 3
+  (strong) biometrics. A device without enrolled biometrics gets `unavailable`: keep a way in
+  that does not depend on them.
+- **When the prompt shows:** iOS asks to read, not to write; Android asks for both, the first
+  write included.
+- **A service per item.** Each protected item lives under a service derived from `service` and
+  its key: on Android, writing an item again after it was invalidated deletes every protected
+  item sharing its service, which must not take other secrets with it. (Items written with
+  expo-secure-store directly are therefore not found here.)
+- **One prompt at a time**, shared with `/biometrics`: while one is open, a protected call
+  resolves `busy` without reaching the platform, and `useAppLock` does not count a trip to the
+  background it causes.
+- **Android's outcomes are read from text:** expo-secure-store throws them as English messages
+  with no code. The package matches its 57.0.4 messages; one it does not know resolves `failed`
+  with the message in `detail`.
+- **Face ID** needs its purpose string: `secureStore.faceIDPermission` in the config plugin (or
+  the `biometrics` one). Without it, writing a protected item resolves `unavailable`.
 
 ## Config plugin
 
@@ -688,4 +744,7 @@ records each prompt's options. `{ manual: true }` keeps a prompt open until `res
 
 `createMockSecureStoreAdapter({ items: { "auth/token": "abc" } })` keeps items in memory by
 `"<service>/<key>"` (`"/<key>"` without a service); `writes` records each write's options and
-`failNext(error)` makes the next call reject, as a locked device would.
+`failNext(error)` makes the next call reject, as a locked device would. Protected items live in
+`protectedItems` and record their prompt texts in `prompts`; `denyNext("cancelled")` ends the
+next prompt with that outcome, and `invalidate()` destroys every protected item as a change of
+enrolled biometrics would.

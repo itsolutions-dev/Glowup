@@ -8,12 +8,8 @@ import {
 import { AppState, type AppStateStatus } from "react-native";
 
 import type { Unsubscribe } from "../core/types";
-import {
-  getSession,
-  useBiometrics,
-  useBiometricsAdapter,
-  type Session,
-} from "./hooks";
+import { promptSession, type PromptSession } from "../core/promptSession";
+import { useBiometrics, useBiometricsAdapter } from "./hooks";
 import type {
   AuthenticateOptions,
   BiometricResult,
@@ -75,7 +71,7 @@ function sameConfig(a: LockConfig, b: LockConfig): boolean {
   );
 }
 
-function createAppLockStore(session: Session): AppLockStore {
+function createAppLockStore(session: PromptSession): AppLockStore {
   let state = INITIAL_STATE;
   let backgroundAt: number | null = null;
   let promptedLockId = 0;
@@ -173,7 +169,7 @@ const lockStores = new WeakMap<BiometricsAdapter, AppLockStore>();
 function getLockStore(adapter: BiometricsAdapter): AppLockStore {
   let store = lockStores.get(adapter);
   if (!store) {
-    store = createAppLockStore(getSession(adapter));
+    store = createAppLockStore(promptSession);
     lockStores.set(adapter, store);
   }
   return store;

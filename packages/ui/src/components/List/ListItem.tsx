@@ -37,47 +37,55 @@ function ListItem({
   // With no slots filled this stays the original single-line centred tile.
   const isRow = !!leading || !!trailing || !!secondary;
 
+  const content = (
+    <View style={[styles.content, isRow && styles.row]}>
+      {!!leading && <View style={styles.leading}>{leading}</View>}
+
+      <View style={isRow ? styles.textBlock : undefined}>
+        <Text
+          style={[styles.itemText, isRow && styles.itemTextRow, itemTextStyle]}
+          numberOfLines={1}
+        >
+          {children}
+        </Text>
+        {!!secondary && (
+          <Text
+            style={[styles.secondaryText, itemSecondaryTextStyle]}
+            numberOfLines={2}
+          >
+            {secondary}
+          </Text>
+        )}
+      </View>
+
+      {!!trailing && <View style={styles.trailing}>{trailing}</View>}
+    </View>
+  );
+
   return (
     <View style={styles.outerContainer}>
-      <Pressable
-        onPress={onPress}
-        disabled={!onPress}
-        accessibilityRole={onPress ? "button" : undefined}
-        style={({ hovered, pressed }: PressableState) => [
-          styles.itemContainer,
-          itemContainerStyle,
-          (hovered || pressed) && getGlowStyles(theme, true),
-          hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
-          pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
-        ]}
-      >
-        <View style={[styles.content, isRow && styles.row]}>
-          {!!leading && <View style={styles.leading}>{leading}</View>}
-
-          <View style={isRow ? styles.textBlock : undefined}>
-            <Text
-              style={[
-                styles.itemText,
-                isRow && styles.itemTextRow,
-                itemTextStyle,
-              ]}
-              numberOfLines={1}
-            >
-              {children}
-            </Text>
-            {!!secondary && (
-              <Text
-                style={[styles.secondaryText, itemSecondaryTextStyle]}
-                numberOfLines={2}
-              >
-                {secondary}
-              </Text>
-            )}
-          </View>
-
-          {!!trailing && <View style={styles.trailing}>{trailing}</View>}
+      {onPress ? (
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          style={({ hovered, pressed }: PressableState) => [
+            styles.itemContainer,
+            itemContainerStyle,
+            (hovered || pressed) && getGlowStyles(theme, true),
+            hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
+            pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
+          ]}
+        >
+          {content}
+        </Pressable>
+      ) : (
+        // Not a disabled Pressable: that marks the row disabled for screen
+        // readers (aria-disabled on the web), and with it the controls in
+        // its slots, such as a Toggle in `trailing`.
+        <View style={[styles.itemContainer, itemContainerStyle]}>
+          {content}
         </View>
-      </Pressable>
+      )}
     </View>
   );
 }

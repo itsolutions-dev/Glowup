@@ -849,14 +849,14 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | L8  | Plugin             | `backgroundLocation: { mode, geofencing }` adds only that mode's permissions and removes task-manager's `fetch` mode.               |
 | L9  | Web                | Heading, background and geofencing unsupported; geocoding only through an adapter the app supplies.                                 |
 
-| Phase | Content                                                                                | Release | Status  |
-| ----- | -------------------------------------------------------------------------------------- | ------- | ------- |
-| 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
-| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
-| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
-| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | planned |
-| 28    | Geofencing                                                                             | `0.8.0` | planned |
-| 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
+| Phase | Content                                                                                | Release | Status |
+| ----- | -------------------------------------------------------------------------------------- | ------- | ------ |
+| 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done   |
+| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done   |
+| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done   |
+| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | done   |
+| 28    | Geofencing                                                                             | `0.8.0` | done   |
+| 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | done   |
 
 ### Phase 24 — what landed
 
@@ -933,7 +933,255 @@ ambiguous address.
 - **Expected red run**, as for every release that adds API: until the "Version Packages" merge,
   master's consumer smoke installs `0.6.0`, which has neither hook, and fails its type-check.
 
+### Phase 27 — what landed
+
+Sources read beyond the plan's notes (`expo-location` 57.0.20, `expo-task-manager` 57.0.21):
+iOS's `startLocationUpdatesAsync` checks the services, the foreground permission and the
+`location` background mode (`ERR_LOCATION_UPDATES_UNAVAILABLE` without it); its consumer sets
+`pausesLocationUpdatesAutomatically` to **true** unless told otherwise, though expo's docs say
+false. Android's checks the foreground permission, the background one when there is no
+foreground service (`ERR_LOCATION_BACKGROUND_UNAUTHORIZED`), that a foreground service starts
+from the foreground (`ERR_FOREGROUND_SERVICE_START_NOT_ALLOWED`) and its manifest permissions
+(`ERR_FOREGROUND_SERVICE_PERMISSIONS`); `unregisterTask` throws `TaskNotFoundException` for a
+task that is not running. iOS sends a CoreLocation failure to the task as the `NSError`'s
+numeric code; Android sends positions only. iOS's background permission reads `undetermined`
+for "While Using" until it is asked in this launch (expo keeps `_wasAsked` in memory), then
+`denied`. Prebuild applies task-manager's plugin by itself after the app's plugins, and
+Info.plist mods run in reverse order of registration.
+
+- `/background-location` (`expo-location` + `expo-task-manager`, the latter a new optional
+  peer): `defineLocationTask(name, handler)`, `useBackgroundLocation(name)` (`start`, `stop`,
+  `isRunning`, `isSupported`, `refresh`) and `useBackgroundLocationPermission()` (L5, L7).
+- **Shared code moved to core:** `GeoPosition` and the other position types, the location
+  permission state, `LocationError` and the expo converters now live in `core/geo.ts`; `/location`
+  re-exports them unchanged. `DEVICE_CAPABILITIES` lists `expo-location` for both subpaths, and
+  the lint rule now forbids a module only to the capabilities that do not list it.
+- **`foregroundService` is required** (an object, or `false` for background updates with the
+  background permission), so the Android choice is visible at every call; the plugin's
+  `backgroundLocation.mode` matches it.
+- The hook checks support, the task's definition, the foreground permission and the services;
+  the Android-only checks stay in expo's native code, mapped by `toStartError` (a build without
+  the setup reads `unsupported`, with how to fix it). No new `LocationErrorCode`.
+- The background request runs inside `systemSheet`, so Android 11+'s trip to the settings page
+  does not lock the app (`useAppLock`); it asks nothing until the foreground permission is
+  granted.
+- Plugin: `backgroundLocation: { mode, alwaysPermission }`, through `withLocation` (one call to
+  expo-location's run-once plugin); iOS's `location` background mode and Always strings, Android's
+  permissions of that mode only; task-manager's `fetch` removed unless the app declares it or uses
+  expo-background-fetch / expo-background-task, with a warning when expo-task-manager is listed
+  before the package (its mod would run last).
+- `/testing`: `createMockBackgroundLocationAdapter()` with `deliver()` / `deliverError()`, which
+  run the handler `defineLocationTask` registered, `stopBySystem()`, `failNextStart()` and
+  `running`.
+- Mutation-tested by hand: every mutant in the hooks, options, tasks, the Expo adapter, the mock
+  and the plugin key is killed but one equivalent (an early return that only skips a
+  notification `useSyncExternalStore` would drop anyway).
+
+**To verify on a device:** a relaunch on iOS after the app was terminated (Always granted);
+Android's headless delivery after the app was swiped away with `stopWithApp: false`; whether
+batching (`batchInterval`) delivers on time while the device sleeps; Android 11+'s settings
+page and the app lock.
+
+### Phase 28 — what landed
+
+Sources read beyond the plan's notes: iOS's `startGeofencingAsync` checks the background
+permission ("Always") and the `location` background mode; Android's checks the background
+permission, and so does its `hasStartedGeofencingAsync`, which throws without it. iOS's consumer
+reads the enter flag as `notifyOnEntry` while expo's type and Android say `notifyOnEnter`, and it
+reports each region's determined state (`didDetermineState`) without looking at the flags: once
+when monitoring starts (an `exit` for every region the device is outside of) and again later.
+Android adds its geofences with `INITIAL_TRIGGER_ENTER | INITIAL_TRIGGER_EXIT`, so both report
+the starting state. A region without `identifier` gets a random UUID on both. Android reports
+failures as a message alone (`"Geofencing not available."` when location is off, `"Too many
+geofences."`); iOS as the `NSError`'s code. Android's region record keeps `identifier`,
+`notifyOnEnter` and `notifyOnExit`, so the task's options read them back.
+
+- `defineGeofenceTask(name, handler)` and `useGeofencing(name)` (`start(regions)`, `stop`,
+  `isRunning`, `isSupported`, `limit`) in `/background-location` (L6). One task registry for both
+  kinds: a name holds one, and defining it as the other kind throws.
+- Regions need a unique `id` and are checked before anything starts (`TypeError`), with a
+  `RangeError` above the platform's limit (20 on iOS, 100 on Android, `adapter.geofenceLimit`).
+  `start()` needs the foreground permission, the services and the background permission.
+- The Expo adapter sends `notifyOnEntry` beside `notifyOnEnter`, and the task drops a transition
+  its region turned off, read back from the task's options (`getTaskOptionsAsync`), which outlive
+  the app. The starting state is documented, not hidden: it is the region's state, and the app
+  may need it.
+- Plugin: `backgroundLocation.geofencing: true` adds `ACCESS_BACKGROUND_LOCATION` in any mode;
+  the new `mode: "none"` configures geofencing alone (no foreground-service permissions), and
+  without `geofencing` it is refused.
+- `/testing`: the mock watches regions (`geofences`, `geofenceLimit`), and `deliverGeofence()` /
+  `deliverGeofenceError()` run the handler; `stopBySystem()` stops both kinds.
+- Mutation-tested by hand: every mutant is killed but two equivalent ones (the kind check inside
+  `runLocationTask` / `runGeofenceTask`, unreachable because a name holds one kind).
+
+**To verify on a device:** the starting events on both platforms; how late a transition arrives
+with the screen off; iOS dropping a disabled `exit` through the task's options; Android after a
+reboot (expo-task-manager re-registers the geofences, not verified here).
+
+### Phase 29 — what landed
+
+- Playground: `/device/background-location` (both permissions, recording through the
+  foreground service, a 150 m circle watched around the current position, and the log of what
+  the tasks received), linked from the overview. The tasks live in `site/backgroundTasks.ts`,
+  imported by the playground's own entry file before `expo-router/entry`: a task defined in a
+  route or in `_layout` would be missing when Android runs it headless, and expo unregisters a
+  task it cannot find. The README says the same for apps on Expo Router. `expo-task-manager` is
+  a playground dependency, with `backgroundLocation` (foreground service, geofencing) in its
+  config plugin.
+- Found on the way: the Expo adapter read `LocationActivityType` at module scope, so a test that
+  mocks expo-location partially (the playground's did) failed at import. The enums are now read
+  when the options are converted.
+- `examples/consumer` defines both kinds of task, calls the three hooks and annotates
+  `GeofenceRegion` and `LocationTaskEvent`, and lists `backgroundLocation` in its plugin.
+- Changeset: `@its/glowup-device` minor (`0.8.0`).
+- Consumer smoke on `npm pack` tarballs: `tsc --noEmit`, `expo export -p web`, and
+  `expo config --type introspect`, which applies prebuild's own plugins too: `UIBackgroundModes`
+  is `["location"]` (task-manager's `fetch` removed), with `ACCESS_BACKGROUND_LOCATION`,
+  `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_LOCATION` on Android.
+- Chromium at 1440 and 390 px on the static export, without errors or horizontal scroll: the page
+  reads unsupported on the web.
+- **Expected red run**, as for every release that adds a subpath: until the "Version Packages"
+  merge, master's consumer smoke installs `0.7.0`, which has no `/background-location`.
+
+## v0.9 — Bluetooth
+
+Bluetooth Low Energy with the phone as **central** (GATT client): scan, connect, read, write and
+notifications. It is the one Bluetooth standard every platform the package targets opens to apps,
+and the one that sensors, wearables, scales, badge readers and industrial gateways speak today
+(serial data over BLE is, in practice, the Nordic UART Service: one write and one notify
+characteristic, usable through plain GATT). Expo has no Bluetooth module, so the native side is a
+third-party library. `react-native-ble-manager` 12.5.3 and `react-native-ble-plx` 3.5.1 were
+read before the contract was written:
+
+- **No Expo Go.** Both need a development build. `react-native-ble-manager` throws at import
+  when its native module is missing (its module-level `new BleManager()` throws
+  `BleManagerModule not found`), so the subpath must load it lazily or Expo Go and the web would
+  crash on import.
+- **ble-manager** is a TurboModule (`codegenConfig`; from RN 0.76 it supports the New
+  Architecture only), published September 2026, with its own Expo plugin (`neverForLocation`,
+  `companionDeviceEnabled`). Android serialises GATT operations in a per-peripheral command
+  queue (`Peripheral.java`), as the platform requires. It has bonding, MTU, connection priority,
+  companion devices and iOS state restoration; data travels as `number[]`. It has **no
+  advertising API** (no peripheral role).
+- **ble-plx** is a legacy bridge module (no codegen), its compatibility table stops at RN 0.74 /
+  Expo 51, last published February 2026. On RN 0.86 it would run only through the interop layer,
+  untested here. Observable API, no bonding, central only.
+- **iOS permission.** The prompt appears when the central manager is created (ble-manager's
+  `start()`), and there is no read before that: `checkState()` answers only once a manager
+  exists (before `start()` its callback is never called). So the permission cannot be read on
+  iOS without the risk of a prompt: it reads `undetermined` until the app asks, and asking again
+  after an answer shows nothing and returns the state at once. `NSBluetoothAlwaysUsageDescription`
+  is required.
+- **Android permissions.** ble-manager requests none at runtime. Android 12+ needs
+  `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT` (with `neverForLocation`, no location; some beacons
+  are then filtered out of scans); Android 11 and earlier need `ACCESS_FINE_LOCATION`, and scans
+  return nothing while the location services are off. React Native's `PermissionsAndroid` can
+  ask for them with no new dependency, but tells "blocked" (`never_ask_again`) only from a
+  request, never from a check.
+- **State.** ble-manager reports `on`, `off`, `unauthorized`, `unsupported`, and on iOS
+  `unknown` and `resetting`. Only Android can ask the user to switch Bluetooth on
+  (`enableBluetooth()`, a system dialog); iOS can only show its own power alert.
+- **Known platform behaviour, not verified here:** Android silently returns no results to an
+  app that starts more than about five scans in 30 seconds; a device's id is a per-app UUID on
+  iOS and its MAC address on Android, portable on neither; iOS reports SIG-assigned UUIDs in their
+  short form (`180D`), Android in full 128-bit form.
+- **Web Bluetooth** exists on Chromium only (not Safari, not Firefox) and only as
+  `requestDevice()`, a browser chooser opened from a user gesture: no free scan, so it would need
+  a different API from the native one.
+
+| #   | Question     | Decision                                                                                                                                                                                                                 |
+| --- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1  | Scope        | BLE central: scan, connect, GATT read / write / notify. No Bluetooth Classic (iOS opens it to MFi hardware only), no peripheral role (advertising), no Bluetooth Mesh.                                                   |
+| B2  | Subpath      | `/bluetooth`, on `react-native-ble-manager` (an optional peer), loaded lazily so a missing native module reads `unsupported` instead of throwing.                                                                        |
+| B3  | Data         | Values are `Uint8Array`; UUIDs come out lowercase 128-bit and go in short or long. Errors are `BluetoothError`: `unsupported`, `permission-denied`, `powered-off`, `timeout`, `not-connected`, `disconnected`, `failed`. |
+| B4  | Permission   | `useBluetoothPermission()` reports the usual `PermissionState`; iOS reads `undetermined` until a request (see above), Android learns `canAskAgain: false` from a request.                                                |
+| B5  | Connections  | Explicit `connect()` / `disconnect()`, kept in one store per adapter so every component on a peripheral shares the connection; `disconnectOnUnmount` as an option. Notifications are shared and counted per reader.      |
+| B6  | Scan         | Filtered by service, deduplicated with the latest RSSI and advertising data (manufacturer data included, for beacons), stopped in the background, guarded against Android's throttling.                                  |
+| B7  | SIG profiles | Parsers for Device Information (`0x180A`) and Battery (`0x180F`) only; other profiles when a real device needs them.                                                                                                     |
+| B8  | Plugin       | `bluetooth: { permission, neverForLocation }` in the package's plugin; `neverForLocation` defaults to `true` and must be `false` for beacon-based presence.                                                              |
+| B9  | Web          | Unsupported in the first release.                                                                                                                                                                                        |
+| B10 | Background   | Not in the first release (connections kept alive, iOS state restoration, background scanning).                                                                                                                           |
+
+| Phase | Content                                                                                                                                                                                      | Release | Status  |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | planned |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
+| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+
+**Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
+it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with
+`neverForLocation: false`; detection in the background is B10), or the phone broadcasts and the
+clock detects it (the peripheral role, not covered: another library). Ask the vendor which, and
+for the GATT UUIDs.
+
+## v0.10 — RFID (partly decided)
+
+UHF RFID through a handheld reader, starting with Honeywell's **IH40**: two ways to read, a
+**single read** and a **multiple scan** that collects every tag in range with how near each one
+is. What was found before the contract (Honeywell's datasheet, product pages, the IH40 / IH45 SDK
+quick start guides and support articles, through search; the PDFs themselves could not be opened
+from the build environment):
+
+- **The reader.** UHF, EPC Class 1 Gen 2 / ISO 18000-63, read range about 6 m and write range
+  about 3 m (tag-dependent), Bluetooth 5.0 to a host, USB when a mobile computer is mounted on it.
+  Its datasheet advertises a **Tag Finder** mode to pinpoint one tag. The host is an Android
+  device: Honeywell lists the CT40, CT60 and EDA51.
+- **The SDK.** Android only: an AAR (`RfidManager`, then `RfidReader`, with a tag-read listener,
+  `read` and `stopRead`), Android 10 or later, for the Bluetooth link; the **Mobility SDK** when
+  the reader is reached over USB. It is downloaded from Honeywell's Technical Support Downloads
+  Portal, behind a login. **No iOS SDK was found** for the IH40.
+- **Not verified:** how the SDK reports RSSI, whether Tag Finder is part of its API or only of
+  the HonRFID demo app, the hardware trigger's events, and the AAR's licence (whether it may be
+  redistributed, for example inside a package on npm).
+- **Distance.** UHF RFID gives no distance: a reader measures the signal strength (RSSI, in dBm)
+  and some report the phase. RSSI follows distance only roughly (tag orientation, materials and
+  reflections move it by several dB), so "how near" can be a smoothed proximity, not metres.
+- **No module exists** to reuse: unlike every capability so far, this one needs native code of
+  ours (a Kotlin Expo module around the AAR).
+
+Proposed decisions (to confirm, see the open questions below):
+
+| #   | Question    | Proposal                                                                                                                                                                                                                         |
+| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Scope       | UHF EPC Gen2 readers attached to the device (handhelds, sleds) through their vendor's SDK. Not NFC (the phone's own HF reader, another capability).                                                                              |
+| R2  | Split       | `@its/glowup-device/rfid`: the vendor-neutral contract, hooks and mock, no native module and no default adapter. Each vendor in its own package with the native code: `@its/glowup-rfid-honeywell` first, Zebra or others later. |
+| R3  | Data        | Gen2 terms: `epc` (hex), `tid` when read, `rssi` (dBm), `antenna`, `readCount`, first and last seen; plus `proximity` (0–1) derived from a smoothed RSSI.                                                                        |
+| R4  | Modes       | `inventory` (continuous, deduplicated, sorted by proximity), `readSingle` (one tag: the strongest in a short window), `locate(epc)` (a proximity stream for one tag, through Tag Finder when the SDK has it).                    |
+| R5  | Distance    | A relative proximity, never metres; the raw RSSI stays available.                                                                                                                                                                |
+| R6  | Trigger     | The reader's trigger starts and stops the mode on screen; its presses are exposed.                                                                                                                                               |
+| R7  | Settings    | Transmit power and Gen2 session (they decide how many tags a scan sees); region read-only.                                                                                                                                       |
+| R8  | Platforms   | Android only; iOS and the web read `unsupported`.                                                                                                                                                                                |
+| R9  | Out for now | Writing, locking and killing tags; GS1 decoding of the EPC (SGTIN and the others) as a later helper.                                                                                                                             |
+
+| Phase | Content                                                                                                                  | Release  | Status   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | -------- | -------- |
+| 34    | Spike on the real SDK: its API (RSSI, Tag Finder, trigger, discovery), its licence, a build with the AAR                 | —        | proposed |
+| 35    | `/rfid`: types, `RfidError`, the reader connection, `useRfidInventory`, `useRfidSingleRead`, `useRfidLocate`, mock       | `0.10.0` | proposed |
+| 36    | `@its/glowup-rfid-honeywell`: Kotlin Expo module around the AAR, its adapter, config plugin (AAR, Bluetooth permissions) | `0.10.0` | proposed |
+| 37    | Playground (on the mock), `examples/consumer`, changesets, release; a check on the real IH40                             | `0.10.0` | proposed |
+
+**Answered:**
+
+- **Both single modes.** "Single search" means reading the one tag in front of the reader
+  (`readSingle`) and finding a given tag by its proximity (`locate`): R4 keeps both, next to
+  the multiple scan.
+- **Host:** a Honeywell CT40 first, but nothing in `/rfid` may assume it: the contract names no
+  vendor or device, and the CT40 is only where the Honeywell adapter is checked.
+- **Android only** (R8).
+- **Writing, locking and killing tags** stay out of the first release (R9).
+- **GS1 decoding** of the EPC comes later, as a helper (R9).
+
+**Still open:** the link to the reader (Bluetooth or the CT40 mounted over USB, which would also
+need Honeywell's Mobility SDK); the AAR's licence and where it may live; whether RFID comes
+before Bluetooth (v0.9); the SDK and its Javadoc for the spike (phase 34).
+
 ## Open for later
 
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's
   photo and video permissions policy.
+- **Bluetooth in the background:** connections kept alive, iOS state restoration
+  (`bluetooth-central` background mode), background scanning and beacon regions.
+- **Bluetooth peripheral role** (the phone advertising, e.g. as a badge) and **Bluetooth
+  Classic** (SPP: Android only, or MFi hardware on iOS): each needs another native library.
+- **Web Bluetooth:** a `pickDevice()` on Chromium's chooser.

@@ -1,21 +1,24 @@
 import * as Location from "expo-location";
 
 import { hasDOM, isNativePlatform } from "../core/support";
-import { toPermissionState } from "../core/permissions";
-import { isLocationError, LocationError } from "./errors";
+import {
+  toGeoPosition,
+  toLocationError,
+  toLocationPermissionState,
+} from "../core/geo";
+import { LocationError } from "./errors";
 import type { Unsubscribe } from "../core/types";
 import type {
   GeocodedAddress,
   GeocodedLocation,
   GeocoderAdapter,
-  GeoPosition,
   Heading,
   HeadingAccuracy,
   LocationAccuracy,
   LocationAdapter,
-  LocationPermissionState,
-  LocationPrecision,
 } from "./types";
+
+export { toGeoPosition, toLocationError, toLocationPermissionState };
 
 const ACCURACY: Record<LocationAccuracy, Location.LocationAccuracy> = {
   low: Location.LocationAccuracy.Low,
@@ -23,44 +26,6 @@ const ACCURACY: Record<LocationAccuracy, Location.LocationAccuracy> = {
   high: Location.LocationAccuracy.High,
   best: Location.LocationAccuracy.Highest,
 };
-
-function toPrecision(
-  raw: Location.LocationPermissionResponse,
-): LocationPrecision | null {
-  if (raw.ios)
-    return raw.ios.accuracy === "reduced" ? "approximate" : "precise";
-  if (raw.android) {
-    if (raw.android.accuracy === "fine") return "precise";
-    if (raw.android.accuracy === "coarse") return "approximate";
-  }
-  return null;
-}
-
-export function toLocationPermissionState(
-  raw: Location.LocationPermissionResponse,
-): LocationPermissionState {
-  const state = toPermissionState(raw);
-  return {
-    ...state,
-    precision: state.status === "granted" ? toPrecision(raw) : null,
-  };
-}
-
-export function toGeoPosition(raw: Location.LocationObject): GeoPosition {
-  const { coords, timestamp } = raw;
-  return {
-    coords: {
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      altitude: coords.altitude ?? null,
-      accuracy: coords.accuracy ?? null,
-      altitudeAccuracy: coords.altitudeAccuracy ?? null,
-      heading: coords.heading ?? null,
-      speed: coords.speed ?? null,
-    },
-    timestamp,
-  };
-}
 
 const HEADING_ACCURACY: Record<number, HeadingAccuracy> = {
   3: "high",
@@ -84,29 +49,6 @@ export function toHeading(raw: Location.LocationHeadingObject): Heading {
     accuracy: HEADING_ACCURACY[raw.accuracy] ?? "unreliable",
     timestamp: Date.now(),
   };
-}
-
-/**
- * expo-location's errors carry a code derived from the native exception's
- * name (`ERR_LOCATION_UNAUTHORIZED` on Android, `ERR_DENIED_FOREGROUND_…` and
- * `ERR_LOCATION_SERVICES_DISABLED` on iOS…). Match on the words rather than on
- * an exact list, which changes between SDKs.
- */
-export function toLocationError(error: unknown): LocationError {
-  if (isLocationError(error)) return error;
-  const code = String((error as { code?: unknown })?.code ?? "");
-  const message = error instanceof Error ? error.message : undefined;
-  if (/UNAUTHORIZED|DENIED|PERMISSION/.test(code)) {
-    return new LocationError("permission-denied", message, error);
-  }
-  if (/SERVICES_DISABLED|SETTINGS_UNSATISFIED/.test(code)) {
-    return new LocationError("services-disabled", message, error);
-  }
-  // Android without a geocoder (no Google Play services).
-  if (/NO_GEOCODE/.test(code)) {
-    return new LocationError("unsupported", message, error);
-  }
-  return new LocationError("unavailable", message, error);
 }
 
 /** The native default: expo-location on iOS and Android. */

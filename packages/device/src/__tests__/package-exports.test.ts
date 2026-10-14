@@ -35,6 +35,7 @@ describe("package exports", () => {
       "sensors",
       "media-picker",
       "media-library",
+      "background-location",
       "testing",
     ]);
   });

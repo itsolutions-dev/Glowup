@@ -6,7 +6,11 @@
  *
  * Runs in Node at prebuild, not in the app: plain CommonJS, no build step.
  */
-const { AndroidConfig, createRunOncePlugin } = require("expo/config-plugins");
+const {
+  AndroidConfig,
+  createRunOncePlugin,
+  withInfoPlist,
+} = require("expo/config-plugins");
 
 const pkg = require("./package.json");
 
@@ -22,6 +26,8 @@ const DEFAULT_FACE_ID_TEXT = "Allow $(PRODUCT_NAME) to use Face ID.";
 const DEFAULT_MOTION_TEXT =
   "Allow $(PRODUCT_NAME) to use your motion and fitness data.";
 const DEFAULT_SAVE_TEXT = "Allow $(PRODUCT_NAME) to save photos and videos.";
+const DEFAULT_ALWAYS_TEXT =
+  "Allow $(PRODUCT_NAME) to use your location in the background.";
 
 function placeholder(option, text) {
   console.warn(
@@ -43,26 +49,107 @@ function loadPlugin(moduleName, capability) {
   return plugin.default ?? plugin;
 }
 
+// How Android keeps continuous updates going; "none" for geofencing alone.
+const BACKGROUND_MODES = ["foreground-service", "background", "none"];
+
 /**
- * Foreground location only. iOS keeps the "Always" purpose strings (with the
- * same text), as expo-location's own plugin does: its binary references the
- * Always APIs, and App Store Connect can flag a binary that does so without
- * the purpose string (ITMS-90683). They grant nothing; this package never
- * requests Always. Android gets no background or foreground-service
- * permission.
+ * Foreground location, plus what `backgroundLocation` asks for: expo-location's
+ * plugin runs once per prebuild, so both keys go through this one call.
+ *
+ * Without `backgroundLocation`, iOS still gets the "Always" purpose strings
+ * (with the when-in-use text), as expo-location's own plugin writes them: its
+ * binary references the Always APIs, and App Store Connect can flag a binary
+ * that does so without the purpose string (ITMS-90683). They grant nothing.
+ * Android then gets no background or foreground-service permission.
  */
-function withLocation(config, options) {
+function withLocation(config, options, all) {
   const text =
     options.whenInUsePermission ??
     placeholder("location.whenInUsePermission", DEFAULT_LOCATION_TEXT);
+  const background = all.backgroundLocation || null;
+  const always = background
+    ? (background.alwaysPermission ??
+      placeholder("backgroundLocation.alwaysPermission", DEFAULT_ALWAYS_TEXT))
+    : text;
+  const mode = background ? (background.mode ?? "foreground-service") : null;
+  // Geofencing needs the background permission whatever the mode.
+  const geofencing = background?.geofencing === true;
   return loadPlugin("expo-location", "location")(config, {
     locationWhenInUsePermission: text,
-    locationAlwaysAndWhenInUsePermission: text,
-    locationAlwaysPermission: text,
-    isIosBackgroundLocationEnabled: false,
-    isAndroidBackgroundLocationEnabled: false,
-    isAndroidForegroundServiceEnabled: false,
+    locationAlwaysAndWhenInUsePermission: always,
+    locationAlwaysPermission: always,
+    isIosBackgroundLocationEnabled: background !== null,
+    isAndroidBackgroundLocationEnabled: mode === "background" || geofencing,
+    isAndroidForegroundServiceEnabled: mode === "foreground-service",
   });
+}
+
+const FETCH_PLUGINS = ["expo-background-fetch", "expo-background-task"];
+
+function usesBackgroundFetch(config) {
+  const declared = config.ios?.infoPlist?.UIBackgroundModes ?? [];
+  const plugins = (config.plugins ?? []).map((plugin) =>
+    Array.isArray(plugin) ? plugin[0] : plugin,
+  );
+  return (
+    declared.includes("fetch") ||
+    plugins.some((name) => FETCH_PLUGINS.includes(name))
+  );
+}
+
+/**
+ * Background updates and geofencing (`/background-location`). The location
+ * side (iOS's `location` background mode, Android's permissions for the
+ * chosen `mode`, and the background permission for `geofencing`) is written
+ * by `withLocation`; this adds expo-task-manager, which runs the
+ * task. Its plugin always adds iOS's `fetch` background mode, which nothing
+ * here uses and App Review asks about: it is removed, unless the app declares
+ * it or uses expo-background-fetch / expo-background-task. The removal is
+ * registered before task-manager's plugin runs, because Info.plist mods run
+ * in reverse order: it then sees the mode task-manager added. An app that
+ * lists expo-task-manager before this plugin gets a warning instead.
+ */
+function withBackgroundLocation(config, options, all) {
+  if (all.location === undefined || all.location === false) {
+    throw new Error(
+      `${TAG} "backgroundLocation" needs "location" too: its purpose string and permissions are the same.`,
+    );
+  }
+  const mode = options.mode ?? "foreground-service";
+  if (!BACKGROUND_MODES.includes(mode)) {
+    throw new Error(
+      `${TAG} backgroundLocation.mode must be ${BACKGROUND_MODES.map((m) => `"${m}"`).join(", ")}, not ${JSON.stringify(options.mode)}.`,
+    );
+  }
+  if (
+    options.geofencing !== undefined &&
+    typeof options.geofencing !== "boolean"
+  ) {
+    throw new Error(`${TAG} backgroundLocation.geofencing must be a boolean.`);
+  }
+  if (mode === "none" && options.geofencing !== true) {
+    throw new Error(
+      `${TAG} backgroundLocation.mode "none" leaves nothing to configure: set geofencing: true, or pick a mode.`,
+    );
+  }
+  if (config._internal?.pluginHistory?.["expo-task-manager"]) {
+    // Its Info.plist mod was registered first, so it runs last: too late.
+    console.warn(
+      `${TAG} expo-task-manager is listed before @its/glowup-device, so iOS keeps its "fetch" background mode. ` +
+        "List it after, or not at all: the backgroundLocation key adds it.",
+    );
+  } else if (!usesBackgroundFetch(config)) {
+    config = withInfoPlist(config, (config) => {
+      const modes = config.modResults.UIBackgroundModes;
+      if (Array.isArray(modes)) {
+        config.modResults.UIBackgroundModes = modes.filter(
+          (m) => m !== "fetch",
+        );
+      }
+      return config;
+    });
+  }
+  return loadPlugin("expo-task-manager", "backgroundLocation")(config, {});
 }
 
 /**
@@ -214,6 +301,7 @@ const CAPABILITIES = {
   sensors: withSensors,
   mediaPicker: withMediaPicker,
   mediaLibrary: withMediaLibrary,
+  backgroundLocation: withBackgroundLocation,
 };
 
 function withGlowupDevice(config, options = {}) {

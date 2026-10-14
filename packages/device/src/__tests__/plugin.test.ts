@@ -14,15 +14,29 @@ const PLUGIN = "../../app.plugin.js";
 type Plugin = (config: ExpoConfig, options?: unknown) => ExpoConfig;
 const loadPlugin = (): Plugin => jest.requireActual(PLUGIN);
 
-async function prebuild(options: unknown) {
+interface PrebuildExtras {
+  /** Merged into the app config before the plugin runs. */
+  app?: Partial<ExpoConfig>;
+  /** Plugins applied before / after this one, as an app's list would. */
+  before?: ((config: ExpoConfig) => ExpoConfig)[];
+  after?: ((config: ExpoConfig) => ExpoConfig)[];
+}
+
+async function prebuild(
+  options: unknown,
+  { app, before = [], after = [] }: PrebuildExtras = {},
+) {
   const projectRoot = mkdtempSync(join(tmpdir(), "glowup-device-plugin-"));
   let config: ExpoConfig = {
     name: "Example",
     slug: "example",
-    ios: { bundleIdentifier: "com.example.app" },
+    ...app,
+    ios: { bundleIdentifier: "com.example.app", ...app?.ios },
     android: { package: "com.example.app" },
   };
+  config = before.reduce((c, plugin) => plugin(c), config);
   config = loadPlugin()(config, options);
+  config = after.reduce((c, plugin) => plugin(c), config);
   config = await compileModsAsync(config, {
     projectRoot,
     introspect: true,
@@ -100,6 +114,182 @@ describe("location", () => {
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining("location.whenInUsePermission is not set"),
     );
+  });
+});
+
+describe("backgroundLocation", () => {
+  // What prebuild applies on its own when expo-task-manager is installed,
+  // after the app's plugins (`withLegacyExpoPlugins`).
+  const taskManagerPlugin = (config: ExpoConfig): ExpoConfig =>
+    jest.requireActual("expo-task-manager/app.plugin").default(config);
+
+  const LOCATION = { whenInUsePermission: "To record your trips." };
+
+  it("defaults to Android's foreground service", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: {
+        alwaysPermission: "To record trips in the background.",
+      },
+    });
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+    expect(infoPlist.NSLocationAlwaysAndWhenInUseUsageDescription).toBe(
+      "To record trips in the background.",
+    );
+    expect(infoPlist.NSLocationAlwaysUsageDescription).toBe(
+      "To record trips in the background.",
+    );
+    expect(infoPlist.NSLocationWhenInUseUsageDescription).toBe(
+      "To record your trips.",
+    );
+    expect(permissions).toEqual(
+      expect.arrayContaining([
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+      ]),
+    );
+    expect(permissions).not.toContain(
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
+    );
+  });
+
+  it("asks for Android's background permission in background mode only", async () => {
+    const { permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: { mode: "background", alwaysPermission: "Trips." },
+    });
+    expect(permissions).toContain(
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
+    );
+    expect(permissions).not.toContain("android.permission.FOREGROUND_SERVICE");
+    expect(permissions).not.toContain(
+      "android.permission.FOREGROUND_SERVICE_LOCATION",
+    );
+  });
+
+  it("removes task-manager's fetch mode, also when prebuild applies it again", async () => {
+    const { infoPlist } = await prebuild(
+      {
+        location: LOCATION,
+        backgroundLocation: { alwaysPermission: "Trips." },
+      },
+      { after: [taskManagerPlugin] },
+    );
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+  });
+
+  it("warns, and keeps fetch, when expo-task-manager is listed first", async () => {
+    const { infoPlist } = await prebuild(
+      {
+        location: LOCATION,
+        backgroundLocation: { alwaysPermission: "Trips." },
+      },
+      { before: [taskManagerPlugin] },
+    );
+    expect(infoPlist.UIBackgroundModes).toEqual(
+      expect.arrayContaining(["fetch", "location"]),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("expo-task-manager is listed before"),
+    );
+  });
+
+  it("keeps fetch for an app that declares it or fetches in the background", async () => {
+    const declared = await prebuild(
+      {
+        location: LOCATION,
+        backgroundLocation: { alwaysPermission: "Trips." },
+      },
+      { app: { ios: { infoPlist: { UIBackgroundModes: ["fetch"] } } } },
+    );
+    expect(declared.infoPlist.UIBackgroundModes).toEqual(
+      expect.arrayContaining(["fetch", "location"]),
+    );
+    const task = await prebuild(
+      {
+        location: LOCATION,
+        backgroundLocation: { alwaysPermission: "Trips." },
+      },
+      { app: { plugins: ["expo-background-task"] } },
+    );
+    expect(task.infoPlist.UIBackgroundModes).toEqual(
+      expect.arrayContaining(["fetch", "location"]),
+    );
+  });
+
+  it("warns when the Always purpose string is left to the default", async () => {
+    const { infoPlist } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: true,
+    });
+    expect(infoPlist.NSLocationAlwaysUsageDescription).toBe(
+      "Allow $(PRODUCT_NAME) to use your location in the background.",
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("backgroundLocation.alwaysPermission is not set"),
+    );
+  });
+
+  it("needs location, and a known mode", () => {
+    expect(() =>
+      loadPlugin()({ name: "x", slug: "x" }, { backgroundLocation: true }),
+    ).toThrow('"backgroundLocation" needs "location" too');
+    expect(() =>
+      loadPlugin()(
+        { name: "x", slug: "x" },
+        { location: true, backgroundLocation: { mode: "always" } },
+      ),
+    ).toThrow(
+      'backgroundLocation.mode must be "foreground-service", "background", "none"',
+    );
+  });
+
+  it("adds the background permission for geofencing, whatever the mode", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: { geofencing: true, alwaysPermission: "Sites." },
+    });
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+    expect(permissions).toEqual(
+      expect.arrayContaining([
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+      ]),
+    );
+  });
+
+  it("configures geofencing alone with mode none", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: {
+        mode: "none",
+        geofencing: true,
+        alwaysPermission: "Sites.",
+      },
+    });
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+    expect(permissions).toContain(
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
+    );
+    expect(permissions).not.toContain("android.permission.FOREGROUND_SERVICE");
+    expect(permissions).not.toContain(
+      "android.permission.FOREGROUND_SERVICE_LOCATION",
+    );
+  });
+
+  it("refuses mode none without geofencing, and a geofencing that is not a boolean", () => {
+    expect(() =>
+      loadPlugin()(
+        { name: "x", slug: "x" },
+        { location: true, backgroundLocation: { mode: "none" } },
+      ),
+    ).toThrow('mode "none" leaves nothing to configure');
+    expect(() =>
+      loadPlugin()(
+        { name: "x", slug: "x" },
+        { location: true, backgroundLocation: { geofencing: "yes" } },
+      ),
+    ).toThrow("backgroundLocation.geofencing must be a boolean");
   });
 });
 

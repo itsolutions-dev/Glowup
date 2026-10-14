@@ -5,7 +5,7 @@
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
  *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`,
- *    `/media-picker`, `/media-library`, `/testing`), with its
+ *    `/media-picker`, `/media-library`, `/background-location`, `/testing`), with its
  *    own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
@@ -18,6 +18,15 @@ import {
   DeviceAdaptersProvider,
   type PermissionState,
 } from "@its/glowup-device";
+import {
+  defineGeofenceTask,
+  defineLocationTask,
+  useBackgroundLocation,
+  useBackgroundLocationPermission,
+  useGeofencing,
+  type GeofenceRegion,
+  type LocationTaskEvent,
+} from "@its/glowup-device/background-location";
 import { useBattery, type BatteryStatus } from "@its/glowup-device/battery";
 import {
   useAppLock,
@@ -68,6 +77,20 @@ import { createMockDeviceInfoAdapter } from "@its/glowup-device/testing";
 import { useRef } from "react";
 
 const FIRST_CODE: LocationErrorCode = "permission-denied";
+const SITE: GeofenceRegion = {
+  id: "hq",
+  latitude: 45,
+  longitude: 9,
+  radius: 150,
+};
+
+// At module scope, as the platform needs them.
+defineLocationTask("smoke-trip", (event: LocationTaskEvent) => {
+  if (event.type === "positions") console.log(event.positions.length);
+});
+defineGeofenceTask("smoke-sites", (event) => {
+  if (event.type !== "error") console.log(event.region.id);
+});
 const CALIBRATE: HeadingAccuracy = "unreliable";
 const NO_ADDRESS: GeocodedAddress["formattedAddress"] = null;
 const LOCK: OrientationLock = "portrait";
@@ -89,6 +112,9 @@ const Readout = () => {
   const { heading } = useHeading({ enabled: false });
   const geocoder = useGeocoder();
   const camera = useCameraPermission();
+  const trip = useBackgroundLocation("smoke-trip");
+  const sites = useGeofencing("smoke-sites");
+  const always = useBackgroundLocationPermission();
   const handle = useRef<CameraHandle>(null);
   const online: NetworkState["isConnected"] = useIsOnline();
   const battery: BatteryStatus = useBattery();
@@ -126,6 +152,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Heading ${heading?.magneticHeading ?? "off"} (${CALIBRATE}) · geocoder ${String(geocoder.isSupported)} · ${NO_ADDRESS ?? "no address"}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Background ${String(trip.isSupported)} ${String(trip.isRunning)} · sites ${String(sites.isRunning)} of ${sites.limit} (${SITE.id}) · always ${always.status}`}
       </Typography>
       <Typography
         variant="bodyMedium"

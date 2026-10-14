@@ -85,7 +85,7 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint

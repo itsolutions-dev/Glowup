@@ -1,43 +1,20 @@
-import type { PermissionState, Unsubscribe } from "../core/types";
+import type {
+  GeoCoordinates,
+  GeoPosition,
+  LocationAccuracy,
+  LocationPermissionState,
+} from "../core/geo";
+import type { Unsubscribe } from "../core/types";
 import type { LocationError } from "./errors";
 
-/**
- * Whether the user let the app see where they are exactly. iOS 14+ ("Precise
- * Location" off) and Android 12+ let them grant an approximate location only:
- * coordinates then arrive kilometres off, without any error.
- */
-export type LocationPrecision = "precise" | "approximate";
-
-export interface LocationPermissionState extends PermissionState {
-  /** Set once granted. `null` while not granted, and on web (browsers do not say). */
-  precision: LocationPrecision | null;
-}
-
-/**
- * How hard the device tries: `low` (~km, cell towers, cheapest), `balanced`
- * (~100 m), `high` (~10 m, GPS), `best` (the most the hardware gives).
- */
-export type LocationAccuracy = "low" | "balanced" | "high" | "best";
-
-export interface GeoCoordinates {
-  latitude: number;
-  longitude: number;
-  /** Metres above the WGS 84 ellipsoid. */
-  altitude: number | null;
-  /** Radius of uncertainty in metres. */
-  accuracy: number | null;
-  altitudeAccuracy: number | null;
-  /** Direction of travel in degrees from true north (not the compass). */
-  heading: number | null;
-  /** Metres per second. */
-  speed: number | null;
-}
-
-export interface GeoPosition {
-  coords: GeoCoordinates;
-  /** Milliseconds since the epoch, when the fix was taken. */
-  timestamp: number;
-}
+// Shared with `/background-location`, so they live in core.
+export type {
+  GeoCoordinates,
+  GeoPosition,
+  LocationAccuracy,
+  LocationPermissionState,
+  LocationPrecision,
+} from "../core/geo";
 
 export interface PositionOptions {
   accuracy?: LocationAccuracy;

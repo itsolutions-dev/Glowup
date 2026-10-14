@@ -62,9 +62,9 @@ cannot fetch a token.
 
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
 capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
-`haptics`, `biometrics`, `secure-store`, `sensors`). They import only the package's public subpaths. Every capability's native module
+`haptics`, `biometrics`, `secure-store`, `sensors`, `media-picker`, `media-library`). They import only the package's public subpaths. Every capability's native module
 (`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`) is a dependency of the
+`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`) is a dependency of the
 playground because it is the package's peer, and the package's config plugin is listed in
 `app.config.ts` with the playground's purpose strings (`recordAudio: true`: the camera recipe
 records video with sound; `sensors.highSamplingRate: true`: the sensors page's level reads every
@@ -80,7 +80,10 @@ one card rather than the site (the playground has no app lock of its own). The s
 reads only while `useIsFocused()` and its switch are on; its level moves an `Animated.ValueXY`
 from `useSensorListener`, so a reading renders nothing. Its motion-access section appears only
 where a sensor is gated (iOS's barometer, iOS Safari), and its button must stay synchronous
-down to `request()`.
+down to `request()`. The media picker page calls `pick()` straight from the press (the web
+opens its file dialog only inside the gesture) and shows `getPendingResult()` at mount; the
+media library page saves a photo chosen through the picker, and on the web shows its section
+as unsupported (the package's `expo.web.ts` keeps expo-media-library out of the web bundle).
 
 **Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
 `app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to
@@ -92,7 +95,8 @@ does not play twice.
 `__tests__/device-pages.test.tsx` renders the pages with the package's in-memory
 adapters (`@its/glowup-device/testing`) and drives them: permission, position, photo,
 recording, scan, network and battery changes, wake lock, orientation lock, haptics, biometric prompt and app lock, secure store items (plain and protected), sensor readings,
-intervals and motion access. It mocks
+intervals and motion access, picks (options, cancel, the pending result) and saves (permission
+prompt, refusal, no library). It mocks
 `useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
 `expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise

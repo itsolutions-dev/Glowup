@@ -715,7 +715,7 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
 | ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 21    | `/media-picker`: Expo and web adapters, `useMediaPicker`, one pick at a time, pending result, app lock (G8), mock, plugin key | **done** |
 | 22    | `/media-library`: save, its permission, the platform split (G6), mock, plugin key                                             | **done** |
-| 23    | Playground pages, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.6.0`), release                               | planned  |
+| 23    | Playground pages, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.6.0`), release                               | **done** |
 
 ### Phase 21 — what landed
 
@@ -774,6 +774,31 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
   unsupported, no permission read where none is needed, no prompt for a permission reported
   granted) and one equivalent kept: `granularPermissions: []` in the plugin, since the removals
   cover the same permissions whatever order the mods run in.
+
+### Phase 23 — what landed
+
+- Playground: `/device/media-picker` (media types, several at once with a limit of three, crop,
+  the outcome and a card per picked item; the pending result shown at mount) and
+  `/device/media-library` (the save permission, then a photo chosen through the picker and saved
+  back). Both are linked from the overview and the nav. `expo-image-picker` and
+  `expo-media-library` are playground dependencies, with `mediaPicker` and `mediaLibrary` in its
+  config plugin.
+- `examples/consumer` imports `/media-picker` and `/media-library` and lists both plugin keys.
+- Changeset: `@its/glowup-device` minor (`0.6.0`).
+- **G6 checked in a real web bundle:** the static export has no `ExpoMediaLibraryNext` anywhere,
+  and neither does the consumer's `expo export -p web` on the packed tarball (the tarball ships
+  `expo.web` in `src` and `lib`; Metro reads `src` through the subpath's `react-native` field).
+- Chromium at 1440 and 390 px, without errors: a real file chooser opens synchronously from the
+  press with the right `accept` and `multiple`; one PNG, then two PNGs and a `.txt` (skipped),
+  come back with their sizes; no input is left in the page. The library page reads unsupported
+  with the save button disabled.
+- Consumer smoke on `npm pack` tarballs: `tsc --noEmit`, `expo export -p web`, and an
+  introspected config with the add-only string and `RECORD_AUDIO`, `READ_MEDIA_*` and
+  `ACCESS_MEDIA_LOCATION` removed (`CAMERA` kept for `/camera`).
+- Found on the way, outside this work: `@its/glowup-ui`'s `ListItem` without `onPress` puts
+  `aria-disabled` on its whole row, so a `Toggle` in `trailing` is exposed as disabled.
+- **Expected red run**, as for every new subpath: until the "Version Packages" merge, master
+  declares `0.5.0`, which has neither subpath, so the consumer smoke fails its type-check.
 
 **To verify on a device:** whether `PickMultipleVisualMedia(limit)` throws above the system's
 maximum; whether `UIImagePickerController` (editing) works without

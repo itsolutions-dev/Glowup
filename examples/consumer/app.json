@@ -25,6 +25,10 @@
           "secureStore": true,
           "sensors": {
             "motionPermission": "Checks that the published sensors capability configures the app."
+          },
+          "mediaPicker": true,
+          "mediaLibrary": {
+            "savePermission": "Checks that the published media library capability configures the app."
           }
         }
       ]

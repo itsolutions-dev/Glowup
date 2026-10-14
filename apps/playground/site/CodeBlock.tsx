@@ -1,7 +1,15 @@
 import { useCallback, useMemo, useState } from "react";
-import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type TextStyle,
+} from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { IconButton, Typography, useTheme, type Theme } from "@its/glowup-ui";
+import { highlight, type TokenKind } from "./highlight";
 
 interface CodeBlockProps {
   code: string;
@@ -29,6 +37,10 @@ export const CodeBlock = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [copied, setCopied] = useState(false);
+  const tokens = useMemo(
+    () => (language === "tsx" ? highlight(code) : [{ text: code }]),
+    [code, language],
+  );
 
   const copy = useCallback(async () => {
     await Clipboard.setStringAsync(code);
@@ -59,7 +71,15 @@ export const CodeBlock = ({
           sample at a phone width makes it unreadable. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <Text selectable style={styles.code}>
-          {code}
+          {tokens.map((token, index) =>
+            token.kind ? (
+              <Text key={index} style={styles[token.kind]}>
+                {token.text}
+              </Text>
+            ) : (
+              token.text
+            ),
+          )}
         </Text>
       </ScrollView>
     </View>
@@ -93,6 +113,17 @@ const makeStyles = (theme: Theme) =>
       color: theme.colors.onSurface,
       padding: theme.spacing.m,
     },
+    // Token colours, all theme roles, so a snippet follows the palette and the
+    // scheme like every other surface on the site.
+    ...({
+      comment: { color: theme.colors.outline, fontStyle: "italic" },
+      string: { color: theme.colors.tertiary },
+      keyword: { color: theme.colors.primary, fontStyle: "italic" },
+      tag: { color: theme.colors.primary, fontWeight: "700" },
+      attribute: { color: theme.colors.secondary },
+      type: { color: theme.colors.primary },
+      number: { color: theme.colors.tertiary },
+    } satisfies Record<TokenKind, TextStyle>),
   });
 
 export default CodeBlock;

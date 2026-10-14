@@ -14,6 +14,7 @@
     "docgen": "node docgen/extract-props.mjs",
     "export:web": "expo export --platform web",
     "variants": "node catalogue/variants/generate.mjs",
+    "templates": "node templates/generate.mjs",
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {

@@ -933,7 +933,84 @@ ambiguous address.
 - **Expected red run**, as for every release that adds API: until the "Version Packages" merge,
   master's consumer smoke installs `0.6.0`, which has neither hook, and fails its type-check.
 
+## v0.9 — Bluetooth
+
+Bluetooth Low Energy with the phone as **central** (GATT client): scan, connect, read, write and
+notifications. It is the one Bluetooth standard every platform the package targets opens to apps,
+and the one that sensors, wearables, scales, badge readers and industrial gateways speak today
+(serial data over BLE is, in practice, the Nordic UART Service: one write and one notify
+characteristic, usable through plain GATT). Expo has no Bluetooth module, so the native side is a
+third-party library. `react-native-ble-manager` 12.5.3 and `react-native-ble-plx` 3.5.1 were
+read before the contract was written:
+
+- **No Expo Go.** Both need a development build. `react-native-ble-manager` throws at import
+  when its native module is missing (its module-level `new BleManager()` throws
+  `BleManagerModule not found`), so the subpath must load it lazily or Expo Go and the web would
+  crash on import.
+- **ble-manager** is a TurboModule (`codegenConfig`; from RN 0.76 it supports the New
+  Architecture only), published September 2026, with its own Expo plugin (`neverForLocation`,
+  `companionDeviceEnabled`). Android serialises GATT operations in a per-peripheral command
+  queue (`Peripheral.java`), as the platform requires. It has bonding, MTU, connection priority,
+  companion devices and iOS state restoration; data travels as `number[]`. It has **no
+  advertising API** (no peripheral role).
+- **ble-plx** is a legacy bridge module (no codegen), its compatibility table stops at RN 0.74 /
+  Expo 51, last published February 2026. On RN 0.86 it would run only through the interop layer,
+  untested here. Observable API, no bonding, central only.
+- **iOS permission.** The prompt appears when the central manager is created (ble-manager's
+  `start()`), and there is no read before that: `checkState()` answers only once a manager
+  exists (before `start()` its callback is never called). So the permission cannot be read on
+  iOS without the risk of a prompt: it reads `undetermined` until the app asks, and asking again
+  after an answer shows nothing and returns the state at once. `NSBluetoothAlwaysUsageDescription`
+  is required.
+- **Android permissions.** ble-manager requests none at runtime. Android 12+ needs
+  `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT` (with `neverForLocation`, no location; some beacons
+  are then filtered out of scans); Android 11 and earlier need `ACCESS_FINE_LOCATION`, and scans
+  return nothing while the location services are off. React Native's `PermissionsAndroid` can
+  ask for them with no new dependency, but tells "blocked" (`never_ask_again`) only from a
+  request, never from a check.
+- **State.** ble-manager reports `on`, `off`, `unauthorized`, `unsupported`, and on iOS
+  `unknown` and `resetting`. Only Android can ask the user to switch Bluetooth on
+  (`enableBluetooth()`, a system dialog); iOS can only show its own power alert.
+- **Known platform behaviour, not verified here:** Android silently returns no results to an
+  app that starts more than about five scans in 30 seconds; a device's id is a per-app UUID on
+  iOS and its MAC address on Android, portable on neither; iOS reports SIG-assigned UUIDs in their
+  short form (`180D`), Android in full 128-bit form.
+- **Web Bluetooth** exists on Chromium only (not Safari, not Firefox) and only as
+  `requestDevice()`, a browser chooser opened from a user gesture: no free scan, so it would need
+  a different API from the native one.
+
+| #   | Question     | Decision                                                                                                                                                                                                                 |
+| --- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1  | Scope        | BLE central: scan, connect, GATT read / write / notify. No Bluetooth Classic (iOS opens it to MFi hardware only), no peripheral role (advertising), no Bluetooth Mesh.                                                   |
+| B2  | Subpath      | `/bluetooth`, on `react-native-ble-manager` (an optional peer), loaded lazily so a missing native module reads `unsupported` instead of throwing.                                                                        |
+| B3  | Data         | Values are `Uint8Array`; UUIDs come out lowercase 128-bit and go in short or long. Errors are `BluetoothError`: `unsupported`, `permission-denied`, `powered-off`, `timeout`, `not-connected`, `disconnected`, `failed`. |
+| B4  | Permission   | `useBluetoothPermission()` reports the usual `PermissionState`; iOS reads `undetermined` until a request (see above), Android learns `canAskAgain: false` from a request.                                                |
+| B5  | Connections  | Explicit `connect()` / `disconnect()`, kept in one store per adapter so every component on a peripheral shares the connection; `disconnectOnUnmount` as an option. Notifications are shared and counted per reader.      |
+| B6  | Scan         | Filtered by service, deduplicated with the latest RSSI and advertising data (manufacturer data included, for beacons), stopped in the background, guarded against Android's throttling.                                  |
+| B7  | SIG profiles | Parsers for Device Information (`0x180A`) and Battery (`0x180F`) only; other profiles when a real device needs them.                                                                                                     |
+| B8  | Plugin       | `bluetooth: { permission, neverForLocation }` in the package's plugin; `neverForLocation` defaults to `true` and must be `false` for beacon-based presence.                                                              |
+| B9  | Web          | Unsupported in the first release.                                                                                                                                                                                        |
+| B10 | Background   | Not in the first release (connections kept alive, iOS state restoration, background scanning).                                                                                                                           |
+
+| Phase | Content                                                                                                                                                                                      | Release | Status  |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | planned |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
+| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+
+**Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
+it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with
+`neverForLocation: false`; detection in the background is B10), or the phone broadcasts and the
+clock detects it (the peripheral role, not covered: another library). Ask the vendor which, and
+for the GATT UUIDs.
+
 ## Open for later
 
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's
   photo and video permissions policy.
+- **Bluetooth in the background:** connections kept alive, iOS state restoration
+  (`bluetooth-central` background mode), background scanning and beacon regions.
+- **Bluetooth peripheral role** (the phone advertising, e.g. as a badge) and **Bluetooth
+  Classic** (SPP: Android only, or MFi hardware on iOS): each needs another native library.
+- **Web Bluetooth:** a `pickDevice()` on Chromium's chooser.

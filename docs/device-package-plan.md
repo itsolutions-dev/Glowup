@@ -565,7 +565,7 @@ Applied as proposed (the four phase-16 questions, accepted without changes):
 | ----- | ------------------------------------------------------------------------------------------------------------ | -------- |
 | 18    | `/sensors`: shared stream, normalised Expo adapter, web adapter, five value hooks, `useSensorListener`, mock | **done** |
 | 19    | `useDeviceMotion`, `useDeviceOrientation` (physical, from gravity), `useSensorPermission`, plugin key        | **done** |
-| 20    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.5.0`), release               | planned  |
+| 20    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.5.0`), release               | **done** |
 
 ### Phase 18 — what landed
 
@@ -644,8 +644,32 @@ landscape-right | face-up | face-down` from the accelerometer alone (works witho
   pedometer's authorisation, whether desktop Safari exposes `requestPermission` (it would read
   available and deliver nothing).
 
+### Phase 20 — what landed
+
+- Playground: `/device/sensors` (how the device is held, a spirit level moved by
+  `useSensorListener` through an `Animated.ValueXY` at 50 ms, every sensor's reading with its
+  availability, device motion, an interval selector and a switch; motion access where a sensor
+  is gated) and the overview's entry. `expo-sensors` is a playground dependency; its config
+  plugin lists `sensors` with `highSamplingRate: true`, which the level's 50 ms needs on
+  Android 12+.
+- `useSensorPermission` gains `openSettings()`, as the location and camera permissions have:
+  a refused iOS barometer is turned back on only in the settings. The playground's
+  `DevicePermission` shows no settings button without it (the web has none).
+- `examples/consumer` imports `/sensors` and lists `sensors` in its plugin config. Checked on
+  `npm pack` tarballs: `tsc --noEmit` and `expo export -p web` pass, and the introspected config
+  carries `NSMotionUsageDescription` and removes `ACTIVITY_RECOGNITION`.
+- Static export checked in Chromium at 1440 and 390 px, without hydration errors: a desktop
+  reads every sensor as missing (the probe times out); synthetic `devicemotion` events fill the
+  readings, the orientation and device motion; with a stubbed `requestPermission` (iOS Safari)
+  the motion access section shows, one tap calls it once and the readings start.
+- Changeset: `@its/glowup-device` minor (`0.5.0`).
+- **Expected red run**, as for every new subpath: between the merge and the "Version Packages"
+  merge, master declares `0.4.0`, which has no `/sensors`, so the consumer smoke fails its
+  type-check. It turns green with the publish.
+
 ## Open for later
 
-- **Advanced location (v0.4):** background and geofencing, geocoding (and which web
-  provider), heading — to be decided before v0.4.
-- **Secure store:** proposed and started, see v0.4.
+- **Advanced location:** background and geofencing, geocoding (and which web provider),
+  heading (`watchHeadingAsync`, Z6) — to be decided before it starts.
+- **Gallery:** picking and saving media, with the `all` / `limited` access the platforms
+  report.

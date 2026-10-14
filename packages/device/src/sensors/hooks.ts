@@ -5,7 +5,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
 import { usePermissionSnapshot } from "../core/permissionStore";
@@ -101,7 +101,15 @@ export interface UseSensorPermission extends PermissionState {
   request: () => Promise<PermissionState>;
   /** Re-reads it. The hook already does when the app returns to the foreground. */
   refresh: () => Promise<PermissionState>;
+  /**
+   * Opens this app's page in the system settings (native only), where a
+   * denied permission is turned back on: `request()` cannot once
+   * `canAskAgain` is false.
+   */
+  openSettings: () => Promise<void>;
 }
+
+const openSettings = () => Linking.openSettings();
 
 /**
  * The motion permission a sensor needs, if any, shared by every component.
@@ -129,6 +137,7 @@ export function useSensorPermission(sensor: SensorName): UseSensorPermission {
       isLoading: false,
       request: resolveGranted,
       refresh: resolveGranted,
+      openSettings,
     };
   }
   return {
@@ -137,6 +146,7 @@ export function useSensorPermission(sensor: SensorName): UseSensorPermission {
     isLoading: state === null,
     request: store.request,
     refresh: store.refresh,
+    openSettings,
   };
 }
 

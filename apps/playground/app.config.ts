@@ -68,6 +68,12 @@ const config: ExpoConfig = {
         },
         // Android backup rules, and the Face ID text above for protected items.
         secureStore: true,
+        // Motion & Fitness for the iOS barometer; Android 12+ delivers faster
+        // than every 200 ms only with HIGH_SAMPLING_RATE_SENSORS (the level).
+        sensors: {
+          motionPermission: "Reads the barometer on the sensors demo page.",
+          highSamplingRate: true,
+        },
       },
     ],
     [

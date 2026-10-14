@@ -713,6 +713,8 @@ function Altimeter() {
 - **The sensor hooks never prompt.** A sensor that needs the permission opens once it is
   granted and reads nothing until then; it is read again when the app returns to the
   foreground.
+- **Refused:** once `canAskAgain` is false only the system settings turn it back on:
+  `openSettings()` opens the app's page there (native only).
 - **On the web, `request()` must run in the user's gesture:** Safari refuses it otherwise. The
   package calls Safari synchronously, so pass `request` as the press handler or call it before
   any `await`. Safari cannot be asked what it answered: a page reload forgets it.

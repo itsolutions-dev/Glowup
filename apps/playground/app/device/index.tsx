@@ -21,7 +21,8 @@ const CAPABILITIES: {
     | "/device/orientation"
     | "/device/haptics"
     | "/device/biometrics"
-    | "/device/secure-store";
+    | "/device/secure-store"
+    | "/device/sensors";
   icon: MaterialCommunityIconsGlyphs;
   title: string;
   summary: string;
@@ -96,6 +97,13 @@ const CAPABILITIES: {
     summary:
       "Secrets in the Keychain / Keystore, plain or bound to biometrics — @its/glowup-device/secure-store",
   },
+  {
+    href: "/device/sensors",
+    icon: "axis-arrow",
+    title: "Sensors",
+    summary:
+      "Accelerometer, gyroscope, magnetometer, barometer, light, device motion and how it is held — @its/glowup-device/sensors",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
@@ -109,7 +117,8 @@ npx expo install expo-keep-awake                # /keep-awake
 npx expo install expo-screen-orientation        # /orientation
 npx expo install expo-haptics                   # /haptics
 npx expo install expo-local-authentication      # /biometrics
-npx expo install expo-secure-store              # /secure-store`;
+npx expo install expo-secure-store              # /secure-store
+npx expo install expo-sensors                   # /sensors`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -124,6 +133,7 @@ plugins: [
       },
       biometrics: { faceIDPermission: "Unlocks your saved cards." },
       secureStore: true,
+      sensors: { motionPermission: "Counts the floors you climb." },
     },
   ],
 ],`;
@@ -151,7 +161,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics and a secure store, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store and the motion sensors, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"
@@ -186,7 +196,7 @@ export default function DeviceOverview() {
 
       <Section
         title="Install"
-        description="The package's config plugin writes the purpose strings and permissions of the capabilities you list, and nothing else: foreground location only, the microphone only with recordAudio."
+        description="The package's config plugin writes the purpose strings and permissions of the capabilities you list, and nothing else: foreground location only, the microphone only with recordAudio, no activity recognition for the sensors."
       >
         <CodeBlock code={INSTALL} language="bash" title="Terminal" />
         <CodeBlock code={PLUGIN} title="app.config.ts" />

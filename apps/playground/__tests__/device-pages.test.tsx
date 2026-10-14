@@ -21,6 +21,7 @@ import {
   createMockNetworkAdapter,
   createMockOrientationAdapter,
   createMockSecureStoreAdapter,
+  createMockSensorsAdapter,
   OFFLINE_NETWORK,
   type MockBatteryAdapter,
   type MockBiometricsAdapter,
@@ -31,6 +32,7 @@ import {
   type MockNetworkAdapter,
   type MockOrientationAdapter,
   type MockSecureStoreAdapter,
+  type MockSensorsAdapter,
 } from "@its/glowup-device/testing";
 import * as ExpoHaptics from "expo-haptics";
 
@@ -45,6 +47,7 @@ import LocationPage from "../app/device/location";
 import NetworkPage from "../app/device/network";
 import OrientationPage from "../app/device/orientation";
 import SecureStorePage from "../app/device/secure-store";
+import SensorsPage from "../app/device/sensors";
 import { HapticThemeProvider } from "../site/HapticsPreference";
 
 // The pages run on the package's in-memory adapters; the Expo modules behind
@@ -73,6 +76,7 @@ jest.mock("expo-haptics", () => ({
 }));
 jest.mock("expo-local-authentication", () => ({ SecurityLevel: { NONE: 0 } }));
 jest.mock("expo-secure-store", () => ({}));
+jest.mock("expo-sensors", () => ({}));
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => {}),
@@ -101,6 +105,7 @@ let orientation: MockOrientationAdapter;
 let haptics: MockHapticsAdapter;
 let biometrics: MockBiometricsAdapter;
 let secureStore: MockSecureStoreAdapter;
+let sensors: MockSensorsAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -112,6 +117,7 @@ beforeEach(() => {
   haptics = createMockHapticsAdapter();
   biometrics = createMockBiometricsAdapter();
   secureStore = createMockSecureStoreAdapter();
+  sensors = createMockSensorsAdapter();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
@@ -138,6 +144,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               haptics,
               biometrics,
               secureStore,
+              sensors,
             }}
           >
             {children}
@@ -161,6 +168,7 @@ it("links the overview to every capability", async () => {
     ["Haptics", "/device/haptics"],
     ["Biometrics", "/device/biometrics"],
     ["Secure store", "/device/secure-store"],
+    ["Sensors", "/device/sensors"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -429,5 +437,79 @@ describe("secure store", () => {
     await waitFor(() =>
       expect(screen.getAllByText("cancelled")).toHaveLength(2),
     );
+  });
+});
+
+describe("sensors", () => {
+  const FACE_UP = { x: 0, y: 0, z: 9.81 };
+
+  it("shows the readings, how the device is held and device motion", async () => {
+    await render(<SensorsPage />, { wrapper: Providers });
+    await waitFor(() => expect(sensors.isActive("accelerometer")).toBe(true));
+    // The level asks for 50 ms; the rows share that subscription.
+    expect(sensors.intervals.accelerometer).toBe(50);
+    expect(sensors.intervals.gyroscope).toBe(200);
+
+    await act(async () => sensors.emit("accelerometer", FACE_UP));
+    expect(screen.getByText("Lying face up")).toBeTruthy();
+    expect(screen.getByText("x 0.00 · y 0.00 · z 9.81 m/s²")).toBeTruthy();
+
+    await act(async () =>
+      sensors.emit("barometer", { pressure: 1013.25, relativeAltitude: null }),
+    );
+    expect(screen.getByText("1013.3 hPa")).toBeTruthy();
+
+    await act(async () =>
+      sensors.emit("deviceMotion", {
+        acceleration: { x: 0.5, y: 0, z: 0 },
+        gravity: FACE_UP,
+        rotationRate: { x: 0, y: 0, z: 1 },
+      }),
+    );
+    expect(screen.getByText("x 0.50 · y 0.00 · z 0.00 m/s²")).toBeTruthy();
+    expect(screen.getByText("x 0.00 · y 0.00 · z 1.00 rad/s")).toBeTruthy();
+  });
+
+  it("changes the interval and stops on the switch", async () => {
+    await render(<SensorsPage />, { wrapper: Providers });
+    await waitFor(() => expect(sensors.isActive("gyroscope")).toBe(true));
+    await fireEvent.press(screen.getByRole("radio", { name: "1 s" }));
+    await waitFor(() => expect(sensors.intervals.gyroscope).toBe(1000));
+
+    await fireEvent.press(screen.getByRole("switch"));
+    await waitFor(() => expect(sensors.isActive("accelerometer")).toBe(false));
+    expect(sensors.isActive("gyroscope")).toBe(false);
+    expect(sensors.isActive("deviceMotion")).toBe(false);
+  });
+
+  it("reads nothing while another page is on screen", async () => {
+    mockFocused = false;
+    await render(<SensorsPage />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(screen.getAllByText("Paused").length).toBeGreaterThan(0),
+    );
+    expect(sensors.isActive("accelerometer")).toBe(false);
+  });
+
+  it("says why a sensor is missing", async () => {
+    sensors = createMockSensorsAdapter({ available: { light: false } });
+    await render(<SensorsPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("Android only.")).toBeTruthy());
+    expect(sensors.isActive("light")).toBe(false);
+  });
+
+  it("opens a gated sensor once motion access is allowed", async () => {
+    sensors = createMockSensorsAdapter({ gated: ["barometer"] });
+    await render(<SensorsPage />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(screen.getByText("Allow motion access")).toBeTruthy(),
+    );
+    expect(screen.getByText("Needs motion access")).toBeTruthy();
+    expect(sensors.isActive("barometer")).toBe(false);
+
+    await fireEvent.press(screen.getByText("Allow motion access"));
+    await waitFor(() => expect(sensors.isActive("barometer")).toBe(true));
+    expect(sensors.permissionRequests).toBe(1);
+    expect(screen.queryByText("Allow motion access")).toBeNull();
   });
 });

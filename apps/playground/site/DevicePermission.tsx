@@ -17,7 +17,8 @@ interface DevicePermissionProps {
   canAskAgain: boolean;
   isLoading: boolean;
   request: () => Promise<unknown>;
-  openSettings: () => Promise<void>;
+  /** Where a refused permission is turned back on; none on the web. */
+  openSettings?: () => Promise<void>;
   /** The button that shows the OS prompt. */
   requestLabel: string;
   /** Badges after the status (precision, the microphone). */
@@ -26,7 +27,8 @@ interface DevicePermissionProps {
 
 /**
  * The status of a @its/glowup-device permission and the one action that can
- * change it: the prompt while the OS still shows it, the settings once not.
+ * change it: the prompt while the OS still shows it, the settings once not
+ * (where there are settings to open).
  */
 export function DevicePermission({
   status,
@@ -62,7 +64,7 @@ export function DevicePermission({
         <Button iconName="shield-check-outline" loading={busy} onPress={ask}>
           {requestLabel}
         </Button>
-      ) : (
+      ) : openSettings ? (
         <Button
           mode="outlined"
           iconName="cog-outline"
@@ -70,7 +72,7 @@ export function DevicePermission({
         >
           Open settings
         </Button>
-      )}
+      ) : null}
     </HStack>
   );
 }

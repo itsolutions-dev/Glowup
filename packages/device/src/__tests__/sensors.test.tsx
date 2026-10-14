@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import type { ReactNode } from "react";
-import { AppState } from "react-native";
+import { AppState, Linking } from "react-native";
 import { renderToString } from "react-dom/server";
 
 import { DeviceAdaptersProvider } from "..";
@@ -515,6 +515,14 @@ describe("motion permission", () => {
       canAskAgain: false,
     });
     expect(adapter.isActive("barometer")).toBe(false);
+
+    // Only the settings can turn it back on.
+    const openSettings = jest
+      .spyOn(Linking, "openSettings")
+      .mockResolvedValue(undefined);
+    await result.current.openSettings();
+    expect(openSettings).toHaveBeenCalledTimes(1);
+    openSettings.mockRestore();
   });
 
   it("stops when the permission is revoked in the settings", async () => {

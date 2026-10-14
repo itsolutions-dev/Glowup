@@ -1054,6 +1054,56 @@ it over GATT (covered), or the clock broadcasts a beacon the phone detects (cove
 clock detects it (the peripheral role, not covered: another library). Ask the vendor which, and
 for the GATT UUIDs.
 
+## v0.10 — RFID (proposed, open questions)
+
+UHF RFID through a handheld reader, starting with Honeywell's **IH40**: two ways to read, a
+**single read** and a **multiple scan** that collects every tag in range with how near each one
+is. What was found before the contract (Honeywell's datasheet, product pages, the IH40 / IH45 SDK
+quick start guides and support articles, through search; the PDFs themselves could not be opened
+from the build environment):
+
+- **The reader.** UHF, EPC Class 1 Gen 2 / ISO 18000-63, read range about 6 m and write range
+  about 3 m (tag-dependent), Bluetooth 5.0 to a host, USB when a mobile computer is mounted on it.
+  Its datasheet advertises a **Tag Finder** mode to pinpoint one tag. The host is an Android
+  device: Honeywell lists the CT40, CT60 and EDA51.
+- **The SDK.** Android only: an AAR (`RfidManager`, then `RfidReader`, with a tag-read listener,
+  `read` and `stopRead`), Android 10 or later, for the Bluetooth link; the **Mobility SDK** when
+  the reader is reached over USB. It is downloaded from Honeywell's Technical Support Downloads
+  Portal, behind a login. **No iOS SDK was found** for the IH40.
+- **Not verified:** how the SDK reports RSSI, whether Tag Finder is part of its API or only of
+  the HonRFID demo app, the hardware trigger's events, and the AAR's licence (whether it may be
+  redistributed, for example inside a package on npm).
+- **Distance.** UHF RFID gives no distance: a reader measures the signal strength (RSSI, in dBm)
+  and some report the phase. RSSI follows distance only roughly (tag orientation, materials and
+  reflections move it by several dB), so "how near" can be a smoothed proximity, not metres.
+- **No module exists** to reuse: unlike every capability so far, this one needs native code of
+  ours (a Kotlin Expo module around the AAR).
+
+Proposed decisions (to confirm, see the open questions below):
+
+| #   | Question    | Proposal                                                                                                                                                                                                                         |
+| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Scope       | UHF EPC Gen2 readers attached to the device (handhelds, sleds) through their vendor's SDK. Not NFC (the phone's own HF reader, another capability).                                                                              |
+| R2  | Split       | `@its/glowup-device/rfid`: the vendor-neutral contract, hooks and mock, no native module and no default adapter. Each vendor in its own package with the native code: `@its/glowup-rfid-honeywell` first, Zebra or others later. |
+| R3  | Data        | Gen2 terms: `epc` (hex), `tid` when read, `rssi` (dBm), `antenna`, `readCount`, first and last seen; plus `proximity` (0–1) derived from a smoothed RSSI.                                                                        |
+| R4  | Modes       | `inventory` (continuous, deduplicated, sorted by proximity), `readSingle` (one tag: the strongest in a short window), `locate(epc)` (a proximity stream for one tag, through Tag Finder when the SDK has it).                    |
+| R5  | Distance    | A relative proximity, never metres; the raw RSSI stays available.                                                                                                                                                                |
+| R6  | Trigger     | The reader's trigger starts and stops the mode on screen; its presses are exposed.                                                                                                                                               |
+| R7  | Settings    | Transmit power and Gen2 session (they decide how many tags a scan sees); region read-only.                                                                                                                                       |
+| R8  | Platforms   | Android only; iOS and the web read `unsupported`.                                                                                                                                                                                |
+| R9  | Out for now | Writing, locking and killing tags; GS1 decoding of the EPC (SGTIN and the others) as a later helper.                                                                                                                             |
+
+| Phase | Content                                                                                                                  | Release  | Status   |
+| ----- | ------------------------------------------------------------------------------------------------------------------------ | -------- | -------- |
+| 34    | Spike on the real SDK: its API (RSSI, Tag Finder, trigger, discovery), its licence, a build with the AAR                 | —        | proposed |
+| 35    | `/rfid`: types, `RfidError`, the reader connection, `useRfidInventory`, `useRfidSingleRead`, `useRfidLocate`, mock       | `0.10.0` | proposed |
+| 36    | `@its/glowup-rfid-honeywell`: Kotlin Expo module around the AAR, its adapter, config plugin (AAR, Bluetooth permissions) | `0.10.0` | proposed |
+| 37    | Playground (on the mock), `examples/consumer`, changesets, release; a check on the real IH40                             | `0.10.0` | proposed |
+
+**Open questions:** what "single read" means (one tag, or finding a given tag); the host device
+and the link (Bluetooth or USB); whether iOS is needed; the AAR's licence and where it may live;
+whether tags are written; whether this comes before Bluetooth (v0.9).
+
 ## Open for later
 
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's

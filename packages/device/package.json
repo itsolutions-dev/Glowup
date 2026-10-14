@@ -1,6 +1,6 @@
 {
   "name": "@its/glowup-device",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, haptics, biometrics, secure storage, sensors and more behind swappable adapters",
   "license": "MIT",
   "repository": {

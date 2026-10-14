@@ -853,7 +853,7 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | ----- | -------------------------------------------------------------------------------------- | ------- | ------- |
 | 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
 | 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
-| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | planned |
+| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
 | 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | planned |
 | 28    | Geofencing                                                                             | `0.8.0` | planned |
 | 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
@@ -916,6 +916,22 @@ turning from `null` to a number on Android once a fix arrives.
 **To verify on a device:** what Android's `IOException` (offline) reaches JS as (expo rejects
 with `ERR_UNEXPECTED`, read as `unavailable`); whether iOS returns more than one place for an
 ambiguous address.
+
+### Phase 26 — what landed
+
+- Playground: `/device/location` gains a **Compass** section (start and stop, a needle turned
+  back by the magnetic heading, magnetic and true north with the cardinal point, the accuracy
+  with a calibration hint) and a **Geocoding** section (an address to coordinates, and "What is
+  here?", which reads a position and reverse-geocodes it). The web says up front that it has no
+  compass or geocoder. Three new page tests run on the mock adapters.
+- `examples/consumer` calls `useHeading` and `useGeocoder` and annotates `HeadingAccuracy` and
+  `GeocodedAddress`, so the published `.d.ts` must carry them.
+- Changeset: `@its/glowup-device` minor (`0.7.0`).
+- Consumer smoke on `npm pack` tarballs: `tsc --noEmit` and `expo export -p web` pass.
+- Chromium at 1440 and 390 px on the static export, without errors or horizontal scroll: both
+  sections read unsupported on the web.
+- **Expected red run**, as for every release that adds API: until the "Version Packages" merge,
+  master's consumer smoke installs `0.6.0`, which has neither hook, and fails its type-check.
 
 ## Open for later
 

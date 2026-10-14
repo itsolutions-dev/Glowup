@@ -20,7 +20,8 @@ const CAPABILITIES: {
     | "/device/keep-awake"
     | "/device/orientation"
     | "/device/haptics"
-    | "/device/biometrics";
+    | "/device/biometrics"
+    | "/device/secure-store";
   icon: MaterialCommunityIconsGlyphs;
   title: string;
   summary: string;
@@ -88,6 +89,13 @@ const CAPABILITIES: {
     summary:
       "A local gate with fingerprint, face or passcode, and an app lock — @its/glowup-device/biometrics",
   },
+  {
+    href: "/device/secure-store",
+    icon: "shield-key-outline",
+    title: "Secure store",
+    summary:
+      "Secrets in the Keychain / Keystore, plain or bound to biometrics — @its/glowup-device/secure-store",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
@@ -100,7 +108,8 @@ npx expo install expo-battery                   # /battery
 npx expo install expo-keep-awake                # /keep-awake
 npx expo install expo-screen-orientation        # /orientation
 npx expo install expo-haptics                   # /haptics
-npx expo install expo-local-authentication      # /biometrics`;
+npx expo install expo-local-authentication      # /biometrics
+npx expo install expo-secure-store              # /secure-store`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -114,6 +123,7 @@ plugins: [
         recordAudio: true, // omit it if videos need no sound
       },
       biometrics: { faceIDPermission: "Unlocks your saved cards." },
+      secureStore: true,
     },
   ],
 ],`;
@@ -141,7 +151,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics and biometrics, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics and a secure store, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"

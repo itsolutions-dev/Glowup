@@ -20,6 +20,7 @@ import {
   createMockLocationAdapter,
   createMockNetworkAdapter,
   createMockOrientationAdapter,
+  createMockSecureStoreAdapter,
   OFFLINE_NETWORK,
   type MockBatteryAdapter,
   type MockBiometricsAdapter,
@@ -29,6 +30,7 @@ import {
   type MockLocationAdapter,
   type MockNetworkAdapter,
   type MockOrientationAdapter,
+  type MockSecureStoreAdapter,
 } from "@its/glowup-device/testing";
 import * as ExpoHaptics from "expo-haptics";
 
@@ -42,6 +44,7 @@ import KeepAwakePage from "../app/device/keep-awake";
 import LocationPage from "../app/device/location";
 import NetworkPage from "../app/device/network";
 import OrientationPage from "../app/device/orientation";
+import SecureStorePage from "../app/device/secure-store";
 import { HapticThemeProvider } from "../site/HapticsPreference";
 
 // The pages run on the package's in-memory adapters; the Expo modules behind
@@ -69,6 +72,7 @@ jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn(async () => {}),
 }));
 jest.mock("expo-local-authentication", () => ({ SecurityLevel: { NONE: 0 } }));
+jest.mock("expo-secure-store", () => ({}));
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => {}),
@@ -96,6 +100,7 @@ let keepAwake: MockKeepAwakeAdapter;
 let orientation: MockOrientationAdapter;
 let haptics: MockHapticsAdapter;
 let biometrics: MockBiometricsAdapter;
+let secureStore: MockSecureStoreAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -106,6 +111,7 @@ beforeEach(() => {
   orientation = createMockOrientationAdapter();
   haptics = createMockHapticsAdapter();
   biometrics = createMockBiometricsAdapter();
+  secureStore = createMockSecureStoreAdapter();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
@@ -131,6 +137,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               orientation,
               haptics,
               biometrics,
+              secureStore,
             }}
           >
             {children}
@@ -153,6 +160,7 @@ it("links the overview to every capability", async () => {
     ["Orientation", "/device/orientation"],
     ["Haptics", "/device/haptics"],
     ["Biometrics", "/device/biometrics"],
+    ["Secure store", "/device/secure-store"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -378,5 +386,48 @@ describe("biometrics", () => {
     await render(<BiometricsPage />, { wrapper: Providers });
     await fireEvent.press(screen.getByRole("switch"));
     expect(screen.getByText("4242 4242 4242 4242")).toBeTruthy();
+  });
+});
+
+describe("secure store", () => {
+  it("shares a plain item between its readers", async () => {
+    await render(<SecureStorePage />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(screen.getAllByText("Nothing stored")).toHaveLength(2),
+    );
+    await fireEvent.changeText(screen.getByLabelText("Note"), "hello");
+    await fireEvent.press(screen.getByText("Save"));
+    await waitFor(() => expect(screen.getAllByText("hello")).toHaveLength(2));
+    expect(secureStore.items.get("playground/note")).toBe("hello");
+
+    await fireEvent.press(screen.getAllByText("Remove")[0]);
+    await waitFor(() =>
+      expect(screen.getAllByText("Nothing stored")).toHaveLength(2),
+    );
+  });
+
+  it("writes and reads a protected item, and shows its invalidation", async () => {
+    await render(<SecureStorePage />, { wrapper: Providers });
+    await fireEvent.changeText(screen.getByLabelText("Secret"), "s3cret");
+    await fireEvent.press(screen.getByText("Save protected"));
+    await waitFor(() => expect(screen.getByText("ok")).toBeTruthy());
+
+    await fireEvent.press(screen.getByText("Read"));
+    await waitFor(() => expect(screen.getByText("ok: s3cret")).toBeTruthy());
+    expect(secureStore.prompts).toEqual([
+      "Open the playground's secret",
+      "Open the playground's secret",
+    ]);
+
+    secureStore.invalidate();
+    await fireEvent.press(screen.getByText("Read"));
+    await waitFor(() => expect(screen.getByText("invalidated")).toBeTruthy());
+
+    secureStore.denyNext("cancelled");
+    await fireEvent.press(screen.getByText("Read"));
+    // The badge, and the detail (the mock's message is the status).
+    await waitFor(() =>
+      expect(screen.getAllByText("cancelled")).toHaveLength(2),
+    );
   });
 });

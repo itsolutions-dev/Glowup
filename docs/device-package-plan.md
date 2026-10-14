@@ -466,7 +466,7 @@ storage).
 | ----- | ---------------------------------------------------------------------------------------------- | -------- |
 | 15    | `/secure-store` plain items: adapter, `useSecureStore`, `useSecureValue`, errors, mock, plugin | **done** |
 | 16    | Protected items (biometrics), invalidation detection (S2, S3)                                  | **done** |
-| 17    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release          |          |
+| 17    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor), release          | **done** |
 
 ### Phase 15 — what landed
 
@@ -510,6 +510,17 @@ Applied as proposed (the four phase-16 questions, accepted without changes):
 - **Not verified on a device:** that iOS reports an invalidated `.biometryCurrentSet` item as not
   found (Apple documents it as no longer accessible; if it surfaced as an error, the read would
   resolve `failed` rather than `invalidated`), and the Android messages themselves.
+
+### Phase 17 — what landed
+
+- Playground: `/device/secure-store` (a plain item read by two cards through `useSecureValue`,
+  and a protected item with its last outcome) and the overview's entry. `expo-secure-store` is a
+  playground dependency and `secureStore: true` is in its config plugin (Face ID text shared with
+  `biometrics`).
+- `examples/consumer` imports `/secure-store` and lists `secureStore` in its plugin config.
+  Checked on `npm pack` tarballs: `tsc --noEmit` and `expo export -p web` pass.
+- Changeset: `@its/glowup-device` minor (`0.4.0`), naming the shared prompt session's effect on
+  `/biometrics`.
 
 ## Open for later
 

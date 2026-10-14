@@ -66,6 +66,8 @@ const config: ExpoConfig = {
           faceIDPermission:
             "Unlocks the protected card on the biometrics demo page.",
         },
+        // Android backup rules, and the Face ID text above for protected items.
+        secureStore: true,
       },
     ],
     [

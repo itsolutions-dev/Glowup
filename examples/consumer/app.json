@@ -21,7 +21,8 @@
           },
           "biometrics": {
             "faceIDPermission": "Checks that the published biometrics capability configures the app."
-          }
+          },
+          "secureStore": true
         }
       ]
     ]

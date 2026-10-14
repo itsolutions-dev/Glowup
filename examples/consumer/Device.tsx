@@ -4,7 +4,8 @@
  *
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
- *    `/orientation`, `/haptics`, `/biometrics`, `/testing`), with its own published
+ *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/testing`), with its
+ *    own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
  *  - the root entry loads without any capability's Expo module,
@@ -39,6 +40,11 @@ import {
   useOrientation,
   type OrientationLock,
 } from "@its/glowup-device/orientation";
+import {
+  useSecureStore,
+  useSecureValue,
+  type ProtectedReadResult,
+} from "@its/glowup-device/secure-store";
 import { createMockDeviceInfoAdapter } from "@its/glowup-device/testing";
 import { useRef } from "react";
 
@@ -46,6 +52,7 @@ const FIRST_CODE: LocationErrorCode = "permission-denied";
 const LOCK: OrientationLock = "portrait";
 const KIND: InteractionKind = "press";
 const BUSY: BiometricErrorCode = "busy";
+const INVALIDATED: ProtectedReadResult["status"] = "invalidated";
 
 /** The bridge `App.tsx` passes to `ThemeProvider onInteractionFeedback`. */
 export const interactionFeedback: (kind: InteractionKind) => void =
@@ -62,6 +69,8 @@ const Readout = () => {
   const { orientation } = useOrientation();
   useKeepAwake({ enabled: false });
   const { level } = useBiometrics();
+  const secureStore = useSecureStore();
+  const token = useSecureValue("token", { service: "smoke" });
   const { isLocked } = useAppLock({
     enabled: false,
     prompt: { promptMessage: "Unlock", cancelLabel: "Cancel" },
@@ -92,6 +101,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Biometrics ${level} · locked ${String(isLocked)} · ${BUSY}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Secure store ${String(secureStore.isSupported)} · ${token.value ?? token.error?.code ?? "…"} · ${INVALIDATED}`}
       </Typography>
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />

@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/secure-store/index.js",
+  "module": "../lib/module/secure-store/index.js",
+  "types": "../lib/typescript/secure-store/index.d.ts",
+  "react-native": "../src/secure-store/index.ts",
+  "source": "../src/secure-store/index.ts"
+}

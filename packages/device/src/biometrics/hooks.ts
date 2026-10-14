@@ -7,7 +7,7 @@ import {
   useLiveValue,
   type LiveStore,
 } from "../core/liveStore";
-import type { Unsubscribe } from "../core/types";
+import { promptSession } from "../core/promptSession";
 import { expoBiometricsAdapter } from "./expo";
 import { UNAVAILABLE_BIOMETRICS } from "./status";
 import type {
@@ -70,51 +70,6 @@ function getStore(adapter: BiometricsAdapter): LiveStore<BiometricStatus> {
   return store;
 }
 
-export interface Session {
-  isRunning(): boolean;
-  subscribe(listener: () => void): Unsubscribe;
-  run(call: () => Promise<BiometricResult>): Promise<BiometricResult>;
-}
-
-const sessions = new WeakMap<BiometricsAdapter, Session>();
-
-/**
- * One prompt at a time per adapter, whichever component asks: Android
- * answers a second call with `app_cancel` and iOS starts a second
- * evaluation, so a double tap must be refused here, as `busy`.
- */
-export function getSession(adapter: BiometricsAdapter): Session {
-  let session = sessions.get(adapter);
-  if (!session) {
-    let running = false;
-    const listeners = new Set<() => void>();
-    const set = (next: boolean) => {
-      running = next;
-      listeners.forEach((listener) => listener());
-    };
-    session = {
-      isRunning: () => running,
-      subscribe(listener) {
-        listeners.add(listener);
-        return () => {
-          listeners.delete(listener);
-        };
-      },
-      async run(call) {
-        if (running) return BUSY;
-        set(true);
-        try {
-          return await call();
-        } finally {
-          set(false);
-        }
-      },
-    };
-    sessions.set(adapter, session);
-  }
-  return session;
-}
-
 function assertLabel(name: string, value: unknown): void {
   if (typeof value !== "string" || value.length === 0) {
     throw new TypeError(
@@ -128,7 +83,7 @@ export interface UseBiometrics extends BiometricStatus {
   isSupported: boolean;
   /** True until the first status answer (every field reads absent). */
   isLoading: boolean;
-  /** A prompt is open, from this component or any other. */
+  /** A system prompt is open: this hook's, another component's or a protected secure-store item's. */
   isAuthenticating: boolean;
   /**
    * Shows the system prompt. Resolves with the outcome, never rejects for
@@ -153,7 +108,6 @@ const subscribeNothing = () => () => {};
 export function useBiometrics(): UseBiometrics {
   const adapter = useBiometricsAdapter();
   const store = getStore(adapter);
-  const session = getSession(adapter);
   const status = useLiveValue(store);
   const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
   const isSupported = useSyncExternalStore(
@@ -162,8 +116,8 @@ export function useBiometrics(): UseBiometrics {
     getServerFalse,
   );
   const isAuthenticating = useSyncExternalStore(
-    session.subscribe,
-    session.isRunning,
+    promptSession.subscribe,
+    promptSession.isRunning,
     getServerFalse,
   );
 
@@ -172,7 +126,7 @@ export function useBiometrics(): UseBiometrics {
       assertLabel("promptMessage", options.promptMessage);
       assertLabel("cancelLabel", options.cancelLabel);
       if (!adapter.isSupported()) return UNSUPPORTED;
-      return session.run(async () => {
+      return promptSession.run(BUSY, async () => {
         const result = await adapter
           .authenticate(options)
           .catch((error: unknown): BiometricResult => ({
@@ -190,7 +144,7 @@ export function useBiometrics(): UseBiometrics {
         return result;
       });
     },
-    [adapter, session, store],
+    [adapter, store],
   );
 
   const cancel = useCallback(

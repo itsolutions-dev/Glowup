@@ -1,7 +1,7 @@
 # @its/glowup-device
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
-scanning), network, battery, keep-awake, screen orientation, haptics, biometrics and device info, each
+scanning), network, battery, keep-awake, screen orientation, haptics, biometrics, secure storage and device info, each
 behind an adapter the app can replace.
 
 ## Install
@@ -18,6 +18,7 @@ npx expo install expo-keep-awake                # /keep-awake
 npx expo install expo-screen-orientation        # /orientation
 npx expo install expo-haptics                   # /haptics
 npx expo install expo-local-authentication      # /biometrics
+npx expo install expo-secure-store              # /secure-store
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -26,19 +27,20 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                           | Needs                             | Exports                                                             |
-| -------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
-| `@its/glowup-device`             | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                         |
-| `@its/glowup-device/info`        | `expo-device`, `expo-application` | `useDeviceInfo`                                                     |
-| `@its/glowup-device/location`    | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`   |
-| `@its/glowup-device/camera`      | `expo-camera`                     | `CameraView`, `useCameraPermission`                                 |
-| `@its/glowup-device/network`     | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                         |
-| `@its/glowup-device/battery`     | `expo-battery`                    | `useBattery`                                                        |
-| `@its/glowup-device/keep-awake`  | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
-| `@its/glowup-device/orientation` | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
-| `@its/glowup-device/haptics`     | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
-| `@its/glowup-device/biometrics`  | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                       |
-| `@its/glowup-device/testing`     | nothing native                    | in-memory adapters for every capability                             |
+| Import                            | Needs                             | Exports                                                             |
+| --------------------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `@its/glowup-device`              | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                         |
+| `@its/glowup-device/info`         | `expo-device`, `expo-application` | `useDeviceInfo`                                                     |
+| `@its/glowup-device/location`     | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`   |
+| `@its/glowup-device/camera`       | `expo-camera`                     | `CameraView`, `useCameraPermission`                                 |
+| `@its/glowup-device/network`      | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                         |
+| `@its/glowup-device/battery`      | `expo-battery`                    | `useBattery`                                                        |
+| `@its/glowup-device/keep-awake`   | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                               |
+| `@its/glowup-device/orientation`  | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport` |
+| `@its/glowup-device/haptics`      | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                      |
+| `@its/glowup-device/biometrics`   | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                       |
+| `@its/glowup-device/secure-store` | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`              |
+| `@its/glowup-device/testing`      | nothing native                    | in-memory adapters for every capability                             |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -442,9 +444,9 @@ function RevealCard({ onReveal }: { onReveal(): void }) {
   rejects only on a programming error (an empty `promptMessage` or `cancelLabel`).
 - **Labels are required.** `promptMessage` and `cancelLabel` have English defaults in
   expo-local-authentication, which an app in another language would show.
-- **One prompt at a time.** While one is open, another `authenticate()` (from any component)
-  resolves `busy` at once: Android would answer `app_cancel` and iOS would stack a second
-  evaluation. `cancel()` dismisses it on Android; iOS has no such API.
+- **One prompt at a time, across the package.** While one is open, another `authenticate()`
+  (from any component) or a protected secure-store item resolves `busy` at once: Android would
+  answer `app_cancel` and iOS would stack a second evaluation. `cancel()` dismisses it on Android; iOS has no such API.
 - **Fallback.** `fallback: "passcode"` (default) offers the device PIN, pattern or password
   when biometrics fail or are missing, so `success` does not say a biometric was used.
   `fallback: "none"` is biometrics only: the iOS "Enter Password" button resolves `fallback`,
@@ -507,6 +509,111 @@ function Root() {
 - Not covered: hiding the content in the iOS app switcher's snapshot (taken on `inactive`,
   which the Face ID prompt also triggers).
 
+## Secure store
+
+Small secrets — tokens, keys — in the Keychain on iOS and in Keystore-encrypted storage on
+Android.
+
+```bash
+npx expo install expo-secure-store
+```
+
+```tsx
+import {
+  useSecureStore,
+  useSecureValue,
+} from "@its/glowup-device/secure-store";
+
+function SessionGate() {
+  const token = useSecureValue("token", { service: "auth" });
+  if (token.isLoading) return <Spinner />;
+  return token.value ? <Home /> : <SignIn onToken={token.set} />;
+}
+
+async function signOut(store: ReturnType<typeof useSecureStore>) {
+  await store.remove("token", { service: "auth" }); // every reader sees null
+}
+```
+
+- **`useSecureStore()`** → `{ isSupported, get, set, remove, getJSON, setJSON }`, stable across
+  renders. Every function rejects with a `SecureStoreError` whose `code` is `invalid-key`,
+  `invalid-value`, `locked`, `unsupported` or `failed` (`isSecureStoreError()` checks it).
+- **`useSecureValue(key, options?)`** → `{ value, isLoading, error, set, remove }`. One read per
+  key and service, shared by every component; a write through the package (either hook)
+  reaches every reader at once. A failed read is tried again when the app returns to the
+  foreground. It never shows a prompt.
+- **Keys** contain only letters, digits, `.`, `-` and `_`. **Values** are strings; the JSON
+  helpers serialise for you.
+- **`service`** is a namespace: an item is read under the service it was written with.
+- **iOS accessibility** (applied when writing): `accessible: "when-unlocked"` (default) can be
+  read only while the device is unlocked, so a background task gets `locked`;
+  `"after-first-unlock"` can be read while locked, once the device has been unlocked since boot.
+  `thisDeviceOnly: true` (default; expo's is false) keeps the item out of backups and device
+  migration. To make sure an existing item takes the options asked for, iOS writes delete it
+  first (expo's update would keep the old accessibility): a crash between the two loses it.
+- **The iOS Keychain outlives the app:** an item is still there after the app is deleted and
+  installed again; on Android it goes with the app. To start clean after a reinstall, keep a
+  "first run" flag in ordinary storage (it does not survive) and remove your items when it is
+  missing.
+- **Web:** unsupported, with no `localStorage` fallback (any script on the origin could read
+  it). Provide your own adapter if that trade-off is yours to make.
+
+### Protected items
+
+An item only the enrolled biometrics open: reading it shows the system prompt. This is what
+binds a secret to biometrics, which `/biometrics` alone cannot do.
+
+```tsx
+const store = useSecureStore();
+
+const saved = await store.setProtected("refreshToken", token, {
+  prompt: "Ricorda l'accesso con Face ID",
+  service: "auth",
+});
+
+const read = await store.getProtected("refreshToken", {
+  prompt: "Accedi con Face ID",
+  service: "auth",
+});
+switch (read.status) {
+  case "ok":
+    return signInWith(read.value);
+  case "invalidated": // a finger or a face was added or removed since
+    return askToSignInAgain("Le tue biometrie sono cambiate: accedi di nuovo.");
+  case "missing":
+  case "cancelled":
+    return showPasswordForm();
+  default:
+    return showPasswordForm(read.status); // lockout, unavailable, locked, busy, failed
+}
+```
+
+- **Every outcome resolves** as `{ status }`: `ok` (with `value`), `missing`, `invalidated`,
+  `cancelled`, `lockout`, `unavailable`, `locked`, `busy`, `unsupported`, `failed` (with the
+  platform's message in `detail`). It rejects only on an invalid key or value and an empty
+  `prompt` (required: expo-secure-store shows a blank title on Android without one).
+  `removeProtected()` shows no prompt and rejects like `remove()`.
+- **`invalidated`.** Both platforms destroy a protected item when the enrolled biometrics change,
+  and both report it as "no item". The package writes a plain marker beside each protected
+  item, so a read that finds the marker but no item says `invalidated` rather than `missing`.
+- **Biometrics only, no passcode.** iOS uses the current biometry set; Android requires class 3
+  (strong) biometrics. A device without enrolled biometrics gets `unavailable`: keep a way in
+  that does not depend on them.
+- **When the prompt shows:** iOS asks to read, not to write; Android asks for both, the first
+  write included.
+- **A service per item.** Each protected item lives under a service derived from `service` and
+  its key: on Android, writing an item again after it was invalidated deletes every protected
+  item sharing its service, which must not take other secrets with it. (Items written with
+  expo-secure-store directly are therefore not found here.)
+- **One prompt at a time**, shared with `/biometrics`: while one is open, a protected call
+  resolves `busy` without reaching the platform, and `useAppLock` does not count a trip to the
+  background it causes.
+- **Android's outcomes are read from text:** expo-secure-store throws them as English messages
+  with no code. The package matches its 57.0.4 messages; one it does not know resolves `failed`
+  with the message in `detail`.
+- **Face ID** needs its purpose string: `secureStore.faceIDPermission` in the config plugin (or
+  the `biometrics` one). Without it, writing a protected item resolves `unavailable`.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -526,6 +633,7 @@ plugins: [
         recordAudio: true,
       },
       biometrics: { faceIDPermission: "Unlocks your saved cards." },
+      secureStore: true,
     },
   ],
 ],
@@ -540,6 +648,10 @@ plugins: [
   `barcodeScanner: false` leaves the scanning libraries out of the build.
 - **Biometrics** sets Face ID's purpose string and adds Android's `USE_BIOMETRIC` (and the
   deprecated `USE_FINGERPRINT`, which expo-local-authentication's plugin still adds).
+- **Secure store** leaves the store out of Android's Auto Backup (expo-secure-store's rules:
+  a restored item could not be decrypted, its key never leaves the device);
+  `androidBackupRules: false` leaves the backup rules to you. On iOS it writes Face ID's purpose
+  string for protected items: `faceIDPermission`, or the `biometrics` one when both are listed.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -629,3 +741,10 @@ prompt with `{ success: true }`; `setResult({ success: false, error: "lockout" }
 answer, `setStatus({ isEnrolled: false })` notifies every listening component, and `calls`
 records each prompt's options. `{ manual: true }` keeps a prompt open until `resolve()` or
 `cancel()`, to test what the app shows meanwhile.
+
+`createMockSecureStoreAdapter({ items: { "auth/token": "abc" } })` keeps items in memory by
+`"<service>/<key>"` (`"/<key>"` without a service); `writes` records each write's options and
+`failNext(error)` makes the next call reject, as a locked device would. Protected items live in
+`protectedItems` and record their prompt texts in `prompts`; `denyNext("cancelled")` ends the
+next prompt with that outcome, and `invalidate()` destroys every protected item as a change of
+enrolled biometrics would.

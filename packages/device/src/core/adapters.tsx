@@ -9,6 +9,7 @@ import type { KeepAwakeAdapter } from "../keep-awake/types";
 import type { LocationAdapter } from "../location/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
+import type { SecureStoreAdapter } from "../secure-store/types";
 
 /**
  * Every capability's adapter contract. Type imports only: the root entry must
@@ -24,6 +25,7 @@ export interface DeviceAdapters {
   orientation: OrientationAdapter;
   haptics: HapticsAdapter;
   biometrics: BiometricsAdapter;
+  secureStore: SecureStoreAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -57,6 +59,7 @@ export function DeviceAdaptersProvider({
     orientation,
     haptics,
     biometrics,
+    secureStore,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -70,6 +73,7 @@ export function DeviceAdaptersProvider({
       ...(orientation && { orientation }),
       ...(haptics && { haptics }),
       ...(biometrics && { biometrics }),
+      ...(secureStore && { secureStore }),
     }),
     [
       parent,
@@ -82,6 +86,7 @@ export function DeviceAdaptersProvider({
       orientation,
       haptics,
       biometrics,
+      secureStore,
     ],
   );
   return (

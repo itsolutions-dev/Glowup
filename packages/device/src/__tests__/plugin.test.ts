@@ -36,7 +36,9 @@ async function prebuild(options: unknown) {
   ).map((p: { $: Record<string, string> }) => p.$["android:name"]);
   const podfileProperties: Record<string, string> =
     results.ios.podfileProperties ?? {};
-  return { infoPlist, permissions, podfileProperties };
+  const manifestApplication: Record<string, string> =
+    results.android.manifest.manifest.application?.[0]?.$ ?? {};
+  return { infoPlist, permissions, podfileProperties, manifestApplication };
 }
 
 let warn: jest.SpyInstance;
@@ -158,14 +160,49 @@ describe("biometrics", () => {
   });
 });
 
+describe("secureStore", () => {
+  it("leaves the store out of Android's backups", async () => {
+    const { manifestApplication } = await prebuild({ secureStore: true });
+    expect(manifestApplication["android:dataExtractionRules"]).toBe(
+      "@xml/secure_store_data_extraction_rules",
+    );
+    expect(manifestApplication["android:fullBackupContent"]).toBe(
+      "@xml/secure_store_backup_rules",
+    );
+  });
+
+  it("can leave the backup rules to the app", async () => {
+    const { manifestApplication } = await prebuild({
+      secureStore: { androidBackupRules: false },
+    });
+    expect(manifestApplication["android:dataExtractionRules"]).toBeUndefined();
+  });
+
+  it("keeps the biometrics text for Face ID", async () => {
+    const { infoPlist } = await prebuild({
+      biometrics: { faceIDPermission: "Unlocks your wallet." },
+      secureStore: true,
+    });
+    expect(infoPlist.NSFaceIDUsageDescription).toBe("Unlocks your wallet.");
+  });
+
+  it("takes its own Face ID text", async () => {
+    const { infoPlist } = await prebuild({
+      secureStore: { faceIDPermission: "Reads your saved token." },
+    });
+    expect(infoPlist.NSFaceIDUsageDescription).toBe("Reads your saved token.");
+  });
+});
+
 it("configures nothing that is not listed", async () => {
-  const { infoPlist, permissions } = await prebuild({});
+  const { infoPlist, permissions, manifestApplication } = await prebuild({});
   expect(infoPlist.NSLocationWhenInUseUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.ACCESS_FINE_LOCATION");
   expect(infoPlist.NSCameraUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.CAMERA");
   expect(infoPlist.NSFaceIDUsageDescription).toBeUndefined();
   expect(permissions).not.toContain("android.permission.USE_BIOMETRIC");
+  expect(manifestApplication["android:dataExtractionRules"]).toBeUndefined();
 });
 
 it("rejects an unknown capability", () => {

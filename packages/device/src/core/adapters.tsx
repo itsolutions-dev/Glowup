@@ -7,6 +7,7 @@ import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
 import type { KeepAwakeAdapter } from "../keep-awake/types";
 import type { LocationAdapter } from "../location/types";
+import type { MediaLibraryAdapter } from "../media-library/types";
 import type { MediaPickerAdapter } from "../media-picker/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
@@ -30,6 +31,7 @@ export interface DeviceAdapters {
   secureStore: SecureStoreAdapter;
   sensors: SensorsAdapter;
   mediaPicker: MediaPickerAdapter;
+  mediaLibrary: MediaLibraryAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -66,6 +68,7 @@ export function DeviceAdaptersProvider({
     secureStore,
     sensors,
     mediaPicker,
+    mediaLibrary,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -82,6 +85,7 @@ export function DeviceAdaptersProvider({
       ...(secureStore && { secureStore }),
       ...(sensors && { sensors }),
       ...(mediaPicker && { mediaPicker }),
+      ...(mediaLibrary && { mediaLibrary }),
     }),
     [
       parent,
@@ -97,6 +101,7 @@ export function DeviceAdaptersProvider({
       secureStore,
       sensors,
       mediaPicker,
+      mediaLibrary,
     ],
   );
   return (

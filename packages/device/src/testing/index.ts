@@ -68,3 +68,8 @@ export {
   type MockMediaPickerAdapter,
   type MockMediaPickerOptions,
 } from "./mediaPicker";
+export {
+  createMockMediaLibraryAdapter,
+  type MockMediaLibraryAdapter,
+  type MockMediaLibraryOptions,
+} from "./mediaLibrary";

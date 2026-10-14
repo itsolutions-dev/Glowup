@@ -19,6 +19,7 @@ const DEVICE_CAPABILITIES = {
   "secure-store": ["expo-secure-store"],
   sensors: ["expo-sensors"],
   "media-picker": ["expo-image-picker"],
+  "media-library": ["expo-media-library"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

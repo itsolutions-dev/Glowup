@@ -83,6 +83,11 @@
       "types": "./lib/typescript/media-picker/index.d.ts",
       "default": "./lib/commonjs/media-picker/index.js"
     },
+    "./media-library": {
+      "source": "./src/media-library/index.ts",
+      "types": "./lib/typescript/media-library/index.d.ts",
+      "default": "./lib/commonjs/media-library/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -106,6 +111,7 @@
     "secure-store",
     "sensors",
     "media-picker",
+    "media-library",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -139,7 +145,8 @@
     "biometrics",
     "secure-store",
     "sensors",
-    "media-picker"
+    "media-picker",
+    "media-library"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",
@@ -153,6 +160,7 @@
     "expo-keep-awake": ">=57",
     "expo-local-authentication": ">=57",
     "expo-location": ">=57",
+    "expo-media-library": ">=57",
     "expo-screen-orientation": ">=57",
     "expo-secure-store": ">=57",
     "expo-sensors": ">=57",
@@ -190,6 +198,9 @@
     "expo-location": {
       "optional": true
     },
+    "expo-media-library": {
+      "optional": true
+    },
     "expo-screen-orientation": {
       "optional": true
     },
@@ -220,6 +231,7 @@
     "expo-keep-awake": "~57.0.2",
     "expo-local-authentication": "~57.0.3",
     "expo-location": "~57.0.20",
+    "expo-media-library": "~57.0.5",
     "expo-screen-orientation": "~57.0.2",
     "expo-secure-store": "~57.0.4",
     "expo-sensors": "~57.0.3",

@@ -302,6 +302,44 @@ describe("mediaPicker", () => {
   });
 });
 
+describe("mediaLibrary", () => {
+  it("writes the save purpose string and removes every media read permission", async () => {
+    const { infoPlist, permissions, removedPermissions } = await prebuild({
+      mediaLibrary: { savePermission: "Saves your edited photos." },
+    });
+    expect(infoPlist.NSPhotoLibraryAddUsageDescription).toBe(
+      "Saves your edited photos.",
+    );
+    // Kept for App Store Connect: the binary references the library APIs.
+    expect(infoPlist.NSPhotoLibraryUsageDescription).toEqual(
+      expect.any(String),
+    );
+    expect(removedPermissions).toEqual([
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.READ_MEDIA_VIDEO",
+      "android.permission.READ_MEDIA_AUDIO",
+      "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+      "android.permission.ACCESS_MEDIA_LOCATION",
+    ]);
+    // Only the removal entries: nothing adds them back.
+    for (const name of removedPermissions) {
+      expect(permissions.filter((p) => p === name)).toHaveLength(1);
+    }
+    // Android 10 and earlier save with it.
+    expect(permissions).toContain("android.permission.WRITE_EXTERNAL_STORAGE");
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("warns when the purpose string is left to the default", async () => {
+    const { infoPlist } = await prebuild({ mediaLibrary: true });
+    expect(infoPlist.NSPhotoLibraryAddUsageDescription).toBe(
+      "Allow $(PRODUCT_NAME) to save photos and videos.",
+    );
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toContain("mediaLibrary.savePermission");
+  });
+});
+
 it("configures nothing that is not listed", async () => {
   const { infoPlist, permissions, manifestApplication, removedPermissions } =
     await prebuild({});
@@ -314,6 +352,7 @@ it("configures nothing that is not listed", async () => {
   expect(manifestApplication["android:dataExtractionRules"]).toBeUndefined();
   expect(infoPlist.NSMotionUsageDescription).toBeUndefined();
   expect(infoPlist.NSPhotoLibraryUsageDescription).toBeUndefined();
+  expect(infoPlist.NSPhotoLibraryAddUsageDescription).toBeUndefined();
   expect(removedPermissions).toEqual([]);
 });
 

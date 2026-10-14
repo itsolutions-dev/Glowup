@@ -714,7 +714,7 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
 | Phase | Content                                                                                                                       | Status   |
 | ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 21    | `/media-picker`: Expo and web adapters, `useMediaPicker`, one pick at a time, pending result, app lock (G8), mock, plugin key | **done** |
-| 22    | `/media-library`: save, its permission, the platform split (G6), mock, plugin key                                             | planned  |
+| 22    | `/media-library`: save, its permission, the platform split (G6), mock, plugin key                                             | **done** |
 | 23    | Playground pages, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.6.0`), release                               | planned  |
 
 ### Phase 21 — what landed
@@ -747,10 +747,38 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
   prefix, a rejecting `getPendingResult`, the reported type against the MIME type) and one
   equivalent guard removed from the web adapter (settling twice changes nothing).
 
+### Phase 22 — what landed
+
+- `/media-library`: `useMediaLibrary()` → the save permission (`status`, `canAskAgain`,
+  `isRequired`, `isLoading`, `request`, `refresh`, `openSettings`), `isSupported` and
+  `save(uri)`, which refreshes the permission, asks only while `canAskAgain` and resolves
+  `saved` (with the library's `assetId`), `denied`, `unsupported` or `failed`. A missing URI
+  rejects with a `TypeError`.
+- **Android's permission, read in the source (closes a "to verify"):** below Android 11 the
+  object API uses `AssetLegacyFactory`, which copies the file into shared storage and requires
+  `WRITE_EXTERNAL_STORAGE` granted (and a `file://` URI); from 11 `AssetModernFactory` writes
+  through MediaStore with no permission check and accepts `content://` too. expo's write-only
+  request still asks for `WRITE_EXTERNAL_STORAGE` up to Android 12, so the adapter does not call
+  it from 11: there the permission reads `granted`, `isRequired: false`.
+- **G6:** `expo.ts` imports the object API; `expo.web.ts` stands in for it in a web bundle (a type
+  import of `./expo` only, checked in the built `lib`). bob emits both, with their `.d.ts`.
+- **Config plugin `mediaLibrary`:** `savePermission` (warned when left generic: the save prompt
+  shows it, and iOS crashes on that prompt without one); expo's plugin called with no granular
+  permissions and no media location, then `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`,
+  `READ_MEDIA_AUDIO`, `READ_MEDIA_VISUAL_USER_SELECTED` and `ACCESS_MEDIA_LOCATION` removed.
+  `WRITE_EXTERNAL_STORAGE` stays for Android 10 and earlier; iOS keeps expo's full-library string
+  (ITMS-90683).
+- `/testing`: `createMockMediaLibraryAdapter()` (`gated`, `permission`, `requestAnswer`,
+  `setPermission`, `permissionRequests`, `saved`, `failNext`).
+- Mutation checks: 33 mutations; three survivors closed (`isRequired` where saving is
+  unsupported, no permission read where none is needed, no prompt for a permission reported
+  granted) and one equivalent kept: `granularPermissions: []` in the plugin, since the removals
+  cover the same permissions whatever order the mods run in.
+
 **To verify on a device:** whether `PickMultipleVisualMedia(limit)` throws above the system's
 maximum; whether `UIImagePickerController` (editing) works without
 `NSPhotoLibraryUsageDescription`; what `shouldDownloadFromNetwork` changes for an iCloud-only
-photo; whether Android 7–9 needs `WRITE_EXTERNAL_STORAGE` to save.
+photo.
 
 ## Open for later
 

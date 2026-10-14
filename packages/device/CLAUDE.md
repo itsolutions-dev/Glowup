@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -144,6 +144,16 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   expo-image-picker's web build (durations in seconds, `selectionLimit` ignored, a pending
   promise without `cancel`). `edit` with `exif` is refused: on iOS it reads the photo library
   (PhotoKit), which prompts for full library access, with expo's generic purpose string.
+- **Media library** (`src/media-library`): saving only. `expo.ts` imports expo-media-library's
+  object API (`Asset.create`, which keeps the original file); `expo.web.ts` replaces it in a web
+  bundle, because that entry throws at import in a browser (`requireNativeModule`). It is the
+  package's only platform split: bob builds both files, Metro picks `.web.js`, and `tsc` and
+  jest see `expo.ts`. Keep `expo.web.ts` free of any runtime import of `./expo` (a type import
+  only). The permission is required on iOS (add-only, never asked for by `Asset.create`) and
+  Android before 11 (storage); from 11 the adapter answers `granted` without calling expo, whose
+  write-only request would still ask for `WRITE_EXTERNAL_STORAGE` on 11 and 12, where it grants
+  nothing. `save()` refreshes the
+  permission, asks only while `canAskAgain`, then saves.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Each capability's
   function receives every option as a third argument (`mediaPicker` keeps `CAMERA` and

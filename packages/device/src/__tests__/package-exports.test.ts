@@ -34,6 +34,7 @@ describe("package exports", () => {
       "secure-store",
       "sensors",
       "media-picker",
+      "media-library",
       "testing",
     ]);
   });

@@ -2,7 +2,7 @@
 
 Headless device hardware for Expo apps: location, camera (photo, video, barcode and QR
 scanning), network, battery, keep-awake, screen orientation, haptics, biometrics, secure storage, motion and environment sensors, the photo and video
-picker and device info, each
+picker, saving to the photo library and device info, each
 behind an adapter the app can replace.
 
 ## Install
@@ -22,6 +22,7 @@ npx expo install expo-local-authentication      # /biometrics
 npx expo install expo-secure-store              # /secure-store
 npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
+npx expo install expo-media-library             # /media-library
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -30,22 +31,23 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                            | Needs                             | Exports                                                                                                    |
-| --------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `@its/glowup-device`              | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
-| `@its/glowup-device/info`         | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
-| `@its/glowup-device/location`     | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                          |
-| `@its/glowup-device/camera`       | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
-| `@its/glowup-device/network`      | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
-| `@its/glowup-device/battery`      | `expo-battery`                    | `useBattery`                                                                                               |
-| `@its/glowup-device/keep-awake`   | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                                                                      |
-| `@its/glowup-device/orientation`  | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                        |
-| `@its/glowup-device/haptics`      | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                                                             |
-| `@its/glowup-device/biometrics`   | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                              |
-| `@its/glowup-device/secure-store` | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
-| `@its/glowup-device/sensors`      | `expo-sensors`                    | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
-| `@its/glowup-device/media-picker` | `expo-image-picker`               | `useMediaPicker`                                                                                           |
-| `@its/glowup-device/testing`      | nothing native                    | in-memory adapters for every capability                                                                    |
+| Import                             | Needs                             | Exports                                                                                                    |
+| ---------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `@its/glowup-device`               | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
+| `@its/glowup-device/info`          | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
+| `@its/glowup-device/location`      | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                          |
+| `@its/glowup-device/camera`        | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
+| `@its/glowup-device/network`       | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
+| `@its/glowup-device/battery`       | `expo-battery`                    | `useBattery`                                                                                               |
+| `@its/glowup-device/keep-awake`    | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                                                                      |
+| `@its/glowup-device/orientation`   | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                        |
+| `@its/glowup-device/haptics`       | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                                                             |
+| `@its/glowup-device/biometrics`    | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                              |
+| `@its/glowup-device/secure-store`  | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
+| `@its/glowup-device/sensors`       | `expo-sensors`                    | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
+| `@its/glowup-device/media-picker`  | `expo-image-picker`               | `useMediaPicker`                                                                                           |
+| `@its/glowup-device/media-library` | `expo-media-library`              | `useMediaLibrary`                                                                                          |
+| `@its/glowup-device/testing`       | nothing native                    | in-memory adapters for every capability                                                                    |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -774,6 +776,52 @@ function AvatarButton() {
   type (the dialog's "All files") are skipped. A browser that never tells when its dialog was
   dismissed leaves the pick open until the next one, which settles it as `cancelled`.
 
+## Media library
+
+Saving a photo or video to the device's photo library: a picture from `CameraView`, an edited
+image, a downloaded file.
+
+```bash
+npx expo install expo-media-library
+```
+
+```tsx
+import { useMediaLibrary } from "@its/glowup-device/media-library";
+
+function SaveButton({ uri }: { uri: string }) {
+  const library = useMediaLibrary();
+  if (!library.isSupported) return null; // the web has no photo library
+  if (library.status === "denied") {
+    return (
+      <Button onPress={library.openSettings}>Allow saving in Settings</Button>
+    );
+  }
+  return (
+    <Button
+      onPress={async () => {
+        const result = await library.save(uri); // asks the first time
+        if (result.status === "saved") toast("Saved to Photos");
+      }}
+    >
+      Save to Photos
+    </Button>
+  );
+}
+```
+
+- **`save(uri)`** takes a local `file://` URI, as the camera and the picker return, and keeps
+  the file as it is (no re-encoding). It resolves `{ status: "saved", assetId }`, `denied`,
+  `unsupported` or `failed` with a `detail` for logs; a missing URI rejects with a `TypeError`.
+- **The permission:** iOS asks for add-only access (the app can add but never read), Android
+  10 and earlier for storage. `save()` asks by itself the first time, so call it from the
+  user's action; once refused it answers `denied` without a prompt, and `openSettings()` is the
+  way back. Android 11 and later save without asking: there the permission reads `granted` with
+  `isRequired: false`.
+- **No reading:** browsing the library, albums and "limited" access are not part of this
+  package; picking goes through `/media-picker`, which needs no permission at all.
+- **Web:** unsupported (`isSupported: false`). The web build never loads expo-media-library,
+  whose default entry throws at import in a browser.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -796,6 +844,7 @@ plugins: [
       secureStore: true,
       sensors: { motionPermission: "Counts the floors you climb." },
       mediaPicker: true,
+      mediaLibrary: { savePermission: "Saves your edited photos." },
     },
   ],
 ],
@@ -825,6 +874,13 @@ plugins: [
   unless `camera` is listed and uses them. iOS keeps expo's photo library, camera and microphone
   purpose strings: picking never shows them, but expo-image-picker's binary references those APIs
   and App Store Connect flags a binary that does so without them.
+- **Media library** sets the add-only purpose string, which the save prompt shows (iOS
+  crashes on that prompt without it), and removes Android's `READ_MEDIA_IMAGES`,
+  `READ_MEDIA_VIDEO`, `READ_MEDIA_AUDIO`, `READ_MEDIA_VISUAL_USER_SELECTED` and
+  `ACCESS_MEDIA_LOCATION`. expo-media-library adds them for reading the library, which saving
+  does not need, and Google Play accepts them only from apps whose core feature is browsing
+  photos. Prebuild applies expo-media-library's plugin even when it is not listed, so list
+  `mediaLibrary` whenever the module is installed.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -935,3 +991,8 @@ also builds videos: `buildPickedMedia({ type: "video" })`); `respondWith({ statu
 changes the answer and `requests` records each pick's checked options. `holdNext()` keeps the next
 pick open until `close(result?)`, meanwhile another resolves `busy`; `{ pending }` or
 `setPending()` sets what `getPendingResult()` answers once.
+
+`createMockMediaLibraryAdapter()` needs the permission (`{ gated: false }` stands in for
+Android 11+) and starts undetermined; a request answers `requestAnswer` (default `"granted"`),
+`setPermission("denied")` changes it as the settings would and `permissionRequests` counts the
+prompts. `saved` lists every saved URI; `failNext(detail?)` makes the next save fail.

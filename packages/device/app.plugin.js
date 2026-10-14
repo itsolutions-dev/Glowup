@@ -21,6 +21,7 @@ const DEFAULT_MICROPHONE_TEXT =
 const DEFAULT_FACE_ID_TEXT = "Allow $(PRODUCT_NAME) to use Face ID.";
 const DEFAULT_MOTION_TEXT =
   "Allow $(PRODUCT_NAME) to use your motion and fitness data.";
+const DEFAULT_SAVE_TEXT = "Allow $(PRODUCT_NAME) to save photos and videos.";
 
 function placeholder(option, text) {
   console.warn(
@@ -176,6 +177,35 @@ function withMediaPicker(config, _options, all) {
   );
 }
 
+/**
+ * iOS: the add-only purpose string, which the save prompt shows (and whose
+ * absence crashes it). The full-library string stays expo's: the binary
+ * references those APIs (ITMS-90683), though saving never asks for them.
+ * Android: no media read permission. expo-media-library's plugin adds
+ * READ_MEDIA_IMAGES, READ_MEDIA_VIDEO and READ_MEDIA_AUDIO by default and
+ * its manifest READ_MEDIA_VISUAL_USER_SELECTED; Google Play accepts them
+ * only for apps whose core feature is browsing the library. Saving needs
+ * none of them (WRITE_EXTERNAL_STORAGE, which Android 10 and earlier need,
+ * stays).
+ */
+function withMediaLibrary(config, options) {
+  const text =
+    options.savePermission ??
+    placeholder("mediaLibrary.savePermission", DEFAULT_SAVE_TEXT);
+  config = loadPlugin("expo-media-library", "mediaLibrary")(config, {
+    savePhotosPermission: text,
+    granularPermissions: [],
+    isAccessMediaLocationEnabled: false,
+  });
+  return AndroidConfig.Permissions.withBlockedPermissions(config, [
+    "android.permission.READ_MEDIA_IMAGES",
+    "android.permission.READ_MEDIA_VIDEO",
+    "android.permission.READ_MEDIA_AUDIO",
+    "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+    "android.permission.ACCESS_MEDIA_LOCATION",
+  ]);
+}
+
 const CAPABILITIES = {
   location: withLocation,
   camera: withCamera,
@@ -183,6 +213,7 @@ const CAPABILITIES = {
   secureStore: withSecureStore,
   sensors: withSensors,
   mediaPicker: withMediaPicker,
+  mediaLibrary: withMediaLibrary,
 };
 
 function withGlowupDevice(config, options = {}) {

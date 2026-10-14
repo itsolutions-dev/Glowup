@@ -101,7 +101,7 @@ subpath and you install only its modules — an app that reads device info never
 | `/sensors`             | Accelerometer, gyroscope, magnetometer, barometer, light sensor and device motion, normalised to SI units on every platform; physical orientation (`useDeviceOrientation`); the motion permission. |
 | `/media-picker`        | The system photo and video picker, with no permission on any platform; the web uses a file dialog.                                                                                                 |
 | `/media-library`       | Saving photos and videos to the device's library with the least permission (add-only on iOS, none on Android 11+).                                                                                 |
-| `/background-location` | Location updates that continue in the background, delivered to a task; Android's foreground service or background permission, chosen at every start.                                               |
+| `/background-location` | Location updates that continue in the background, and geofencing (entering and leaving regions), delivered to tasks; Android's foreground service or background permission, chosen at every start. |
 | `/testing`             | In-memory adapters for every capability, so tests never mock Expo modules.                                                                                                                         |
 
 The package also ships a **config plugin** (`"@its/glowup-device"` in `app.config.ts`) that

@@ -81,6 +81,45 @@ export type LocationTaskHandler = (
   event: LocationTaskEvent,
 ) => void | Promise<void>;
 
+/** A circle to watch. */
+export interface GeofenceRegion {
+  /** The app's own name for it, unique in a start: events carry it back. */
+  id: string;
+  latitude: number;
+  longitude: number;
+  /**
+   * Metres. Both platforms work best from about 100 m (Android recommends
+   * 100–150 m); smaller circles fire late or not at all.
+   */
+  radius: number;
+  /** Report entering. Default true. */
+  notifyOnEnter?: boolean;
+  /** Report leaving. Default true. */
+  notifyOnExit?: boolean;
+}
+
+/** The region an event is about, as the platform reports it. */
+export interface GeofenceEventRegion {
+  id: string;
+  latitude: number;
+  longitude: number;
+  radius: number;
+}
+
+/**
+ * What a geofence task receives. When monitoring starts, each region first
+ * reports where the device already is: `enter` when inside, `exit` when
+ * outside (for the transitions the region asked for).
+ */
+export type GeofenceEvent =
+  | { type: "enter" | "exit"; region: GeofenceEventRegion }
+  | { type: "error"; error: LocationError };
+
+/** Runs without React, like a location task: keep it short. */
+export type GeofenceTaskHandler = (
+  event: GeofenceEvent,
+) => void | Promise<void>;
+
 /**
  * The contract between the hooks and whatever runs the updates. The hooks
  * check support, the task's definition, the permissions and the services
@@ -102,4 +141,15 @@ export interface BackgroundLocationAdapter {
   stop(name: string): Promise<void>;
   /** Whether updates run under `name`, started by this launch or an earlier one. */
   hasStarted(name: string): Promise<boolean>;
+  /**
+   * How many regions the platform watches for the app at once: 20 on iOS,
+   * 100 on Android. The hooks refuse more up front (iOS would drop the
+   * extra ones silently).
+   */
+  readonly geofenceLimit: number;
+  /** Watches `regions` under `name`, replacing what it watched before. */
+  startGeofencing(name: string, regions: GeofenceRegion[]): Promise<void>;
+  /** Resolves when nothing is watched under `name`, already stopped or not. */
+  stopGeofencing(name: string): Promise<void>;
+  hasStartedGeofencing(name: string): Promise<boolean>;
 }

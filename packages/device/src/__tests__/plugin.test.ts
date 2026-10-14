@@ -240,8 +240,56 @@ describe("backgroundLocation", () => {
         { location: true, backgroundLocation: { mode: "always" } },
       ),
     ).toThrow(
-      'backgroundLocation.mode must be "foreground-service" or "background"',
+      'backgroundLocation.mode must be "foreground-service", "background", "none"',
     );
+  });
+
+  it("adds the background permission for geofencing, whatever the mode", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: { geofencing: true, alwaysPermission: "Sites." },
+    });
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+    expect(permissions).toEqual(
+      expect.arrayContaining([
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+      ]),
+    );
+  });
+
+  it("configures geofencing alone with mode none", async () => {
+    const { infoPlist, permissions } = await prebuild({
+      location: LOCATION,
+      backgroundLocation: {
+        mode: "none",
+        geofencing: true,
+        alwaysPermission: "Sites.",
+      },
+    });
+    expect(infoPlist.UIBackgroundModes).toEqual(["location"]);
+    expect(permissions).toContain(
+      "android.permission.ACCESS_BACKGROUND_LOCATION",
+    );
+    expect(permissions).not.toContain("android.permission.FOREGROUND_SERVICE");
+    expect(permissions).not.toContain(
+      "android.permission.FOREGROUND_SERVICE_LOCATION",
+    );
+  });
+
+  it("refuses mode none without geofencing, and a geofencing that is not a boolean", () => {
+    expect(() =>
+      loadPlugin()(
+        { name: "x", slug: "x" },
+        { location: true, backgroundLocation: { mode: "none" } },
+      ),
+    ).toThrow('mode "none" leaves nothing to configure');
+    expect(() =>
+      loadPlugin()(
+        { name: "x", slug: "x" },
+        { location: true, backgroundLocation: { geofencing: "yes" } },
+      ),
+    ).toThrow("backgroundLocation.geofencing must be a boolean");
   });
 });
 

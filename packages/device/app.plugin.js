@@ -49,7 +49,8 @@ function loadPlugin(moduleName, capability) {
   return plugin.default ?? plugin;
 }
 
-const BACKGROUND_MODES = ["foreground-service", "background"];
+// How Android keeps continuous updates going; "none" for geofencing alone.
+const BACKGROUND_MODES = ["foreground-service", "background", "none"];
 
 /**
  * Foreground location, plus what `backgroundLocation` asks for: expo-location's
@@ -71,12 +72,14 @@ function withLocation(config, options, all) {
       placeholder("backgroundLocation.alwaysPermission", DEFAULT_ALWAYS_TEXT))
     : text;
   const mode = background ? (background.mode ?? "foreground-service") : null;
+  // Geofencing needs the background permission whatever the mode.
+  const geofencing = background?.geofencing === true;
   return loadPlugin("expo-location", "location")(config, {
     locationWhenInUsePermission: text,
     locationAlwaysAndWhenInUsePermission: always,
     locationAlwaysPermission: always,
     isIosBackgroundLocationEnabled: background !== null,
-    isAndroidBackgroundLocationEnabled: mode === "background",
+    isAndroidBackgroundLocationEnabled: mode === "background" || geofencing,
     isAndroidForegroundServiceEnabled: mode === "foreground-service",
   });
 }
@@ -95,9 +98,10 @@ function usesBackgroundFetch(config) {
 }
 
 /**
- * Background updates (`/background-location`). The location side (iOS's
- * `location` background mode, Android's permissions for the chosen `mode`)
- * is written by `withLocation`; this adds expo-task-manager, which runs the
+ * Background updates and geofencing (`/background-location`). The location
+ * side (iOS's `location` background mode, Android's permissions for the
+ * chosen `mode`, and the background permission for `geofencing`) is written
+ * by `withLocation`; this adds expo-task-manager, which runs the
  * task. Its plugin always adds iOS's `fetch` background mode, which nothing
  * here uses and App Review asks about: it is removed, unless the app declares
  * it or uses expo-background-fetch / expo-background-task. The removal is
@@ -114,7 +118,18 @@ function withBackgroundLocation(config, options, all) {
   const mode = options.mode ?? "foreground-service";
   if (!BACKGROUND_MODES.includes(mode)) {
     throw new Error(
-      `${TAG} backgroundLocation.mode must be ${BACKGROUND_MODES.map((m) => `"${m}"`).join(" or ")}, not ${JSON.stringify(options.mode)}.`,
+      `${TAG} backgroundLocation.mode must be ${BACKGROUND_MODES.map((m) => `"${m}"`).join(", ")}, not ${JSON.stringify(options.mode)}.`,
+    );
+  }
+  if (
+    options.geofencing !== undefined &&
+    typeof options.geofencing !== "boolean"
+  ) {
+    throw new Error(`${TAG} backgroundLocation.geofencing must be a boolean.`);
+  }
+  if (mode === "none" && options.geofencing !== true) {
+    throw new Error(
+      `${TAG} backgroundLocation.mode "none" leaves nothing to configure: set geofencing: true, or pick a mode.`,
     );
   }
   if (config._internal?.pluginHistory?.["expo-task-manager"]) {

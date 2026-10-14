@@ -1,7 +1,10 @@
 import * as Location from "expo-location";
 
+import { Platform } from "react-native";
+
 import {
   expoBackgroundLocationAdapter,
+  toLocationRegions,
   toLocationTaskOptions,
   toStartError,
 } from "../background-location/expo";
@@ -30,6 +33,9 @@ jest.mock("expo-location", () => ({
   startLocationUpdatesAsync: jest.fn(),
   stopLocationUpdatesAsync: jest.fn(),
   hasStartedLocationUpdatesAsync: jest.fn(),
+  startGeofencingAsync: jest.fn(),
+  stopGeofencingAsync: jest.fn(),
+  hasStartedGeofencingAsync: jest.fn(),
 }));
 
 const mocked = jest.mocked(Location);
@@ -133,6 +139,7 @@ describe("toStartError", () => {
     ["ERR_LOCATION_UPDATES_UNAVAILABLE", "unsupported"],
     ["ERR_FOREGROUND_SERVICE_PERMISSIONS", "unsupported"],
     ["ERR_FOREGROUND_SERVICE_START_NOT_ALLOWED", "unavailable"],
+    ["ERR_GEOFENCING_UNAVAILABLE", "unsupported"],
     ["ERR_LOCATION_BACKGROUND_UNAUTHORIZED", "permission-denied"],
     ["ERR_DENIED_FOREGROUND_LOCATION_PERMISSION", "permission-denied"],
     ["ERR_LOCATION_SERVICES_DISABLED", "services-disabled"],
@@ -274,5 +281,101 @@ it("is unsupported on the web", () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded after the mock above
     const expo = require("../background-location/expo");
     expect(expo.expoBackgroundLocationAdapter.isSupported()).toBe(false);
+  });
+});
+
+describe("geofencing", () => {
+  const OFFICE = { id: "office", latitude: 45, longitude: 9, radius: 150 };
+
+  it("sends both spellings of the enter flag: iOS reads notifyOnEntry", () => {
+    expect(
+      toLocationRegions([
+        OFFICE,
+        { ...OFFICE, id: "depot", notifyOnEnter: false, notifyOnExit: false },
+      ]),
+    ).toEqual([
+      {
+        identifier: "office",
+        latitude: 45,
+        longitude: 9,
+        radius: 150,
+        notifyOnEnter: true,
+        notifyOnEntry: true,
+        notifyOnExit: true,
+      },
+      {
+        identifier: "depot",
+        latitude: 45,
+        longitude: 9,
+        radius: 150,
+        notifyOnEnter: false,
+        notifyOnEntry: false,
+        notifyOnExit: false,
+      },
+    ]);
+  });
+
+  it("starts with expo's regions and converts its failures", async () => {
+    mocked.startGeofencingAsync.mockResolvedValue();
+    await expoBackgroundLocationAdapter.startGeofencing("sites", [OFFICE]);
+    expect(mocked.startGeofencingAsync).toHaveBeenCalledWith("sites", [
+      expect.objectContaining({ identifier: "office", notifyOnEntry: true }),
+    ]);
+    mocked.startGeofencingAsync.mockRejectedValue(
+      coded("ERR_GEOFENCING_UNAVAILABLE"),
+    );
+    await expect(
+      expoBackgroundLocationAdapter.startGeofencing("sites", [OFFICE]),
+    ).rejects.toMatchObject({
+      code: "unsupported",
+      message: "This device cannot monitor regions.",
+    });
+    mocked.startGeofencingAsync.mockRejectedValue(
+      coded("ERR_LOCATION_BACKGROUND_UNAUTHORIZED"),
+    );
+    await expect(
+      expoBackgroundLocationAdapter.startGeofencing("sites", [OFFICE]),
+    ).rejects.toMatchObject({ code: "permission-denied" });
+  });
+
+  it("stops only what is watched", async () => {
+    mocked.hasStartedGeofencingAsync.mockResolvedValue(false);
+    await expoBackgroundLocationAdapter.stopGeofencing("sites");
+    expect(mocked.stopGeofencingAsync).not.toHaveBeenCalled();
+    mocked.hasStartedGeofencingAsync.mockResolvedValue(true);
+    await expoBackgroundLocationAdapter.stopGeofencing("sites");
+    expect(mocked.stopGeofencingAsync).toHaveBeenCalledWith("sites");
+    mocked.stopGeofencingAsync.mockRejectedValue(coded("ERR_UNEXPECTED"));
+    await expect(
+      expoBackgroundLocationAdapter.stopGeofencing("sites"),
+    ).rejects.toMatchObject({ name: "LocationError", code: "unavailable" });
+  });
+
+  it("reads not started where Android refuses for want of the background permission", async () => {
+    mocked.hasStartedGeofencingAsync.mockRejectedValue(
+      coded("ERR_LOCATION_BACKGROUND_UNAUTHORIZED"),
+    );
+    await expect(
+      expoBackgroundLocationAdapter.hasStartedGeofencing("sites"),
+    ).resolves.toBe(false);
+    mocked.hasStartedGeofencingAsync.mockRejectedValue(
+      coded("ERR_TASK_MANAGER_UNAVAILABLE"),
+    );
+    await expect(
+      expoBackgroundLocationAdapter.hasStartedGeofencing("sites"),
+    ).rejects.toMatchObject({ code: "unavailable" });
+  });
+
+  it("watches 20 regions on iOS and 100 on Android", () => {
+    expect(Platform.OS).toBe("ios");
+    expect(expoBackgroundLocationAdapter.geofenceLimit).toBe(20);
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- this registry's copy
+      const { Platform: isolated } = require("react-native");
+      jest.replaceProperty(isolated, "OS", "android");
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded after the swap above
+      const android = require("../background-location/expo");
+      expect(android.expoBackgroundLocationAdapter.geofenceLimit).toBe(100);
+    });
   });
 });

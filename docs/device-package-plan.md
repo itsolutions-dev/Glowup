@@ -855,7 +855,7 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
 | 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
 | 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | done    |
-| 28    | Geofencing                                                                             | `0.8.0` | planned |
+| 28    | Geofencing                                                                             | `0.8.0` | done    |
 | 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
 
 ### Phase 24 — what landed
@@ -981,6 +981,42 @@ Info.plist mods run in reverse order of registration.
 Android's headless delivery after the app was swiped away with `stopWithApp: false`; whether
 batching (`batchInterval`) delivers on time while the device sleeps; Android 11+'s settings
 page and the app lock.
+
+### Phase 28 — what landed
+
+Sources read beyond the plan's notes: iOS's `startGeofencingAsync` checks the background
+permission ("Always") and the `location` background mode; Android's checks the background
+permission, and so does its `hasStartedGeofencingAsync`, which throws without it. iOS's consumer
+reads the enter flag as `notifyOnEntry` while expo's type and Android say `notifyOnEnter`, and it
+reports each region's determined state (`didDetermineState`) without looking at the flags: once
+when monitoring starts (an `exit` for every region the device is outside of) and again later.
+Android adds its geofences with `INITIAL_TRIGGER_ENTER | INITIAL_TRIGGER_EXIT`, so both report
+the starting state. A region without `identifier` gets a random UUID on both. Android reports
+failures as a message alone (`"Geofencing not available."` when location is off, `"Too many
+geofences."`); iOS as the `NSError`'s code. Android's region record keeps `identifier`,
+`notifyOnEnter` and `notifyOnExit`, so the task's options read them back.
+
+- `defineGeofenceTask(name, handler)` and `useGeofencing(name)` (`start(regions)`, `stop`,
+  `isRunning`, `isSupported`, `limit`) in `/background-location` (L6). One task registry for both
+  kinds: a name holds one, and defining it as the other kind throws.
+- Regions need a unique `id` and are checked before anything starts (`TypeError`), with a
+  `RangeError` above the platform's limit (20 on iOS, 100 on Android, `adapter.geofenceLimit`).
+  `start()` needs the foreground permission, the services and the background permission.
+- The Expo adapter sends `notifyOnEntry` beside `notifyOnEnter`, and the task drops a transition
+  its region turned off, read back from the task's options (`getTaskOptionsAsync`), which outlive
+  the app. The starting state is documented, not hidden: it is the region's state, and the app
+  may need it.
+- Plugin: `backgroundLocation.geofencing: true` adds `ACCESS_BACKGROUND_LOCATION` in any mode;
+  the new `mode: "none"` configures geofencing alone (no foreground-service permissions), and
+  without `geofencing` it is refused.
+- `/testing`: the mock watches regions (`geofences`, `geofenceLimit`), and `deliverGeofence()` /
+  `deliverGeofenceError()` run the handler; `stopBySystem()` stops both kinds.
+- Mutation-tested by hand: every mutant is killed but two equivalent ones (the kind check inside
+  `runLocationTask` / `runGeofenceTask`, unreachable because a name holds one kind).
+
+**To verify on a device:** the starting events on both platforms; how late a transition arrives
+with the screen off; iOS dropping a disabled `exit` through the task's options; Android after a
+reboot (expo-task-manager re-registers the geofences, not verified here).
 
 ## v0.9 — Bluetooth
 

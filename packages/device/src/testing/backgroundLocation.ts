@@ -6,12 +6,15 @@ import {
 } from "../core/geo";
 import type { PermissionState, PermissionStatus } from "../core/types";
 import {
-  isLocationTaskDefined,
+  isTaskDefined,
+  runGeofenceTask,
   runLocationTask,
+  type TaskKind,
 } from "../background-location/tasks";
 import type {
   BackgroundLocationAdapter,
   BackgroundLocationOptions,
+  GeofenceRegion,
 } from "../background-location/types";
 import { buildPosition } from "./location";
 
@@ -26,6 +29,8 @@ export interface MockBackgroundLocationOptions {
   requestResult?: "granted" | "denied";
   /** Default true. */
   servicesEnabled?: boolean;
+  /** How many regions it watches at once. Default 20, iOS's limit. */
+  geofenceLimit?: number;
 }
 
 export interface MockBackgroundLocationAdapter extends BackgroundLocationAdapter {
@@ -35,7 +40,7 @@ export interface MockBackgroundLocationAdapter extends BackgroundLocationAdapter
   ): void;
   setForegroundPermission(status: PermissionStatus): void;
   setServicesEnabled(enabled: boolean): void;
-  /** Makes the next `start()` reject, as the platform would. */
+  /** Makes the next `start()` or `startGeofencing()` reject, as the platform would. */
   failNextStart(error: LocationError | LocationErrorCode): void;
   /**
    * Runs the handler `defineLocationTask(name, …)` registered with positions
@@ -49,10 +54,30 @@ export interface MockBackgroundLocationAdapter extends BackgroundLocationAdapter
     name: string,
     error: LocationError | LocationErrorCode,
   ): Promise<void>;
-  /** Stops the updates as the system would (a revoked permission), without the app asking. */
+  /**
+   * Runs the handler `defineGeofenceTask(name, …)` registered with an
+   * `enter` or `exit` of the watched region `regionId`. Throws when nothing
+   * is watched under `name`, or `regionId` is not among its regions.
+   */
+  deliverGeofence(
+    name: string,
+    type: "enter" | "exit",
+    regionId: string,
+  ): Promise<void>;
+  /** Runs the geofence handler with a failure. */
+  deliverGeofenceError(
+    name: string,
+    error: LocationError | LocationErrorCode,
+  ): Promise<void>;
+  /**
+   * Stops the updates and the regions watched under `name`, as the system
+   * would (a revoked permission), without the app asking.
+   */
   stopBySystem(name: string): void;
   /** What runs, by task name, with the options it was started with. */
   readonly running: ReadonlyMap<string, BackgroundLocationOptions>;
+  /** The regions watched, by task name. */
+  readonly geofences: ReadonlyMap<string, readonly GeofenceRegion[]>;
   /** How many times `requestPermission()` was called. */
   readonly requestCount: number;
 }
@@ -91,16 +116,20 @@ export function createMockBackgroundLocationAdapter(
   let nextStartError: LocationError | null = null;
   let requestCount = 0;
   const running = new Map<string, BackgroundLocationOptions>();
+  const geofences = new Map<string, GeofenceRegion[]>();
 
-  function assertRunning(name: string) {
-    if (!running.has(name)) {
+  function assertRunning(name: string, kind: TaskKind) {
+    const active = kind === "location" ? running : geofences;
+    if (!active.has(name)) {
       throw new Error(
-        `MockBackgroundLocationAdapter: no updates run under "${name}", so the platform would deliver nothing. Start them first.`,
+        `MockBackgroundLocationAdapter: nothing runs under "${name}", so the platform would deliver nothing. Start it first.`,
       );
     }
-    if (!isLocationTaskDefined(name)) {
+    if (!isTaskDefined(name, kind)) {
+      const define =
+        kind === "location" ? "defineLocationTask" : "defineGeofenceTask";
       throw new Error(
-        `MockBackgroundLocationAdapter: no task "${name}": call defineLocationTask("${name}", …) first.`,
+        `MockBackgroundLocationAdapter: no ${kind} task "${name}": call ${define}("${name}", …) first.`,
       );
     }
   }
@@ -129,6 +158,22 @@ export function createMockBackgroundLocationAdapter(
       running.delete(name);
     },
     hasStarted: async (name) => running.has(name),
+    geofenceLimit: options.geofenceLimit ?? 20,
+    async startGeofencing(name, regions) {
+      if (nextStartError) {
+        const error = nextStartError;
+        nextStartError = null;
+        throw error;
+      }
+      geofences.set(
+        name,
+        regions.map((region) => ({ ...region })),
+      );
+    },
+    async stopGeofencing(name) {
+      geofences.delete(name);
+    },
+    hasStartedGeofencing: async (name) => geofences.has(name),
 
     setPermission(status, extra = {}) {
       permission = toState(status, extra.canAskAgain);
@@ -143,18 +188,40 @@ export function createMockBackgroundLocationAdapter(
       nextStartError = toError(error);
     },
     async deliver(name, positions = [buildPosition()]) {
-      assertRunning(name);
+      assertRunning(name, "location");
       await runLocationTask(name, { type: "positions", positions });
     },
     async deliverError(name, error) {
-      assertRunning(name);
+      assertRunning(name, "location");
       await runLocationTask(name, { type: "error", error: toError(error) });
+    },
+    async deliverGeofence(name, type, regionId) {
+      assertRunning(name, "geofence");
+      const region = geofences.get(name)!.find(({ id }) => id === regionId);
+      if (!region) {
+        throw new Error(
+          `MockBackgroundLocationAdapter: "${name}" watches no region "${regionId}".`,
+        );
+      }
+      const { id, latitude, longitude, radius } = region;
+      await runGeofenceTask(name, {
+        type,
+        region: { id, latitude, longitude, radius },
+      });
+    },
+    async deliverGeofenceError(name, error) {
+      assertRunning(name, "geofence");
+      await runGeofenceTask(name, { type: "error", error: toError(error) });
     },
     stopBySystem(name) {
       running.delete(name);
+      geofences.delete(name);
     },
     get running() {
       return new Map(running);
+    },
+    get geofences() {
+      return new Map(geofences);
     },
     get requestCount() {
       return requestCount;

@@ -12,10 +12,12 @@ import { UNKNOWN, UNSUPPORTED } from "../core/permissions";
 import type { PermissionState, Unsubscribe } from "../core/types";
 import { expoBackgroundLocationAdapter } from "./expo";
 import { checkOptions } from "./options";
-import { checkTaskName, isLocationTaskDefined } from "./tasks";
+import { checkRegions } from "./regions";
+import { checkTaskName, isTaskDefined, type TaskKind } from "./tasks";
 import type {
   BackgroundLocationAdapter,
   BackgroundLocationOptions,
+  GeofenceRegion,
 } from "./types";
 
 /** The provided adapter, or expo-location's. */
@@ -98,6 +100,9 @@ export function useBackgroundLocationPermission(): UseBackgroundLocationPermissi
   };
 }
 
+const subscribeNothing = () => () => {};
+const getServerValue = () => null;
+
 interface RunningStore {
   getSnapshot(): boolean | null;
   subscribe(listener: () => void): Unsubscribe;
@@ -106,8 +111,8 @@ interface RunningStore {
 }
 
 function createRunningStore(
-  adapter: BackgroundLocationAdapter,
-  name: string,
+  isSupported: () => boolean,
+  read: () => Promise<boolean>,
 ): RunningStore {
   let running: boolean | null = null;
   let pending: Promise<boolean> | null = null;
@@ -132,10 +137,7 @@ function createRunningStore(
     refresh() {
       if (!pending) {
         const at = version;
-        const read = adapter.isSupported()
-          ? adapter.hasStarted(name)
-          : Promise.resolve(false);
-        pending = read
+        pending = (isSupported() ? read() : Promise.resolve(false))
           .then((next) => {
             if (version === at) apply(next);
             return next;
@@ -153,6 +155,7 @@ function createRunningStore(
   };
 }
 
+// One store per adapter, kind and name, so every component agrees.
 const runningStores = new WeakMap<
   BackgroundLocationAdapter,
   Map<string, RunningStore>
@@ -160,23 +163,87 @@ const runningStores = new WeakMap<
 
 function getRunningStore(
   adapter: BackgroundLocationAdapter,
+  kind: TaskKind,
   name: string,
 ): RunningStore {
-  let byName = runningStores.get(adapter);
-  if (!byName) {
-    byName = new Map();
-    runningStores.set(adapter, byName);
+  let stores = runningStores.get(adapter);
+  if (!stores) {
+    stores = new Map();
+    runningStores.set(adapter, stores);
   }
-  let store = byName.get(name);
+  const key = `${kind}:${name}`;
+  let store = stores.get(key);
   if (!store) {
-    store = createRunningStore(adapter, name);
-    byName.set(name, store);
+    store = createRunningStore(
+      () => adapter.isSupported(),
+      kind === "location"
+        ? () => adapter.hasStarted(name)
+        : () => adapter.hasStartedGeofencing(name),
+    );
+    stores.set(key, store);
   }
   return store;
 }
 
-const subscribeNothing = () => () => {};
-const getServerValue = () => null;
+/** `isRunning` read on mount and again on every return to the foreground. */
+function useRunning(store: RunningStore): boolean | null {
+  const running = useSyncExternalStore(
+    store.subscribe,
+    store.getSnapshot,
+    getServerValue,
+  );
+
+  useEffect(() => {
+    const refresh = () => {
+      store.refresh().catch(() => {});
+    };
+    if (store.getSnapshot() === null) refresh();
+    // The system may have stopped it meanwhile (a revoked permission).
+    const subscription = AppState.addEventListener("change", (next) => {
+      if (next === "active") refresh();
+    });
+    return () => subscription.remove();
+  }, [store]);
+
+  return running;
+}
+
+function useSupport(adapter: BackgroundLocationAdapter): boolean | null {
+  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
+  return useSyncExternalStore(subscribeNothing, getSupport, getServerValue);
+}
+
+function checkDefined(
+  name: string,
+  kind: TaskKind,
+  api: string,
+  define: string,
+): void {
+  if (!isTaskDefined(name, kind)) {
+    throw new Error(
+      `${api}: no ${kind} task "${name}". Call ${define}("${name}", handler) at module scope first.`,
+    );
+  }
+}
+
+/** Support, then the foreground permission and the services: what both kinds need. */
+async function ensureLocationReady(
+  adapter: BackgroundLocationAdapter,
+): Promise<void> {
+  const foreground = await adapter.getForegroundPermission();
+  if (foreground.status === "unsupported") {
+    throw new LocationError("unsupported");
+  }
+  if (foreground.status !== "granted") {
+    throw new LocationError(
+      "permission-denied",
+      "Background location needs the foreground location permission first.",
+    );
+  }
+  if (!(await adapter.hasServicesEnabled())) {
+    throw new LocationError("services-disabled");
+  }
+}
 
 export interface UseBackgroundLocation {
   /** `null` while a static page hydrates; `false` on the web. */
@@ -212,54 +279,21 @@ export interface UseBackgroundLocation {
 export function useBackgroundLocation(name: string): UseBackgroundLocation {
   checkTaskName(name, "useBackgroundLocation()");
   const adapter = useBackgroundLocationAdapter();
-  const store = getRunningStore(adapter, name);
-
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerValue,
-  );
-  const isRunning = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    getServerValue,
-  );
-
-  useEffect(() => {
-    const refresh = () => {
-      store.refresh().catch(() => {});
-    };
-    if (store.getSnapshot() === null) refresh();
-    // The system may have stopped them meanwhile (a revoked permission).
-    const subscription = AppState.addEventListener("change", (next) => {
-      if (next === "active") refresh();
-    });
-    return () => subscription.remove();
-  }, [store]);
+  const store = getRunningStore(adapter, "location", name);
+  const isSupported = useSupport(adapter);
+  const isRunning = useRunning(store);
 
   const start = useCallback(
     async (options: BackgroundLocationOptions) => {
       const checked = checkOptions(options);
       if (!adapter.isSupported()) throw new LocationError("unsupported");
-      if (!isLocationTaskDefined(name)) {
-        throw new Error(
-          `useBackgroundLocation("${name}").start(): no task "${name}". Call defineLocationTask("${name}", handler) at module scope first.`,
-        );
-      }
-      const foreground = await adapter.getForegroundPermission();
-      if (foreground.status === "unsupported") {
-        throw new LocationError("unsupported");
-      }
-      if (foreground.status !== "granted") {
-        throw new LocationError(
-          "permission-denied",
-          "Background updates need the foreground location permission first.",
-        );
-      }
-      if (!(await adapter.hasServicesEnabled())) {
-        throw new LocationError("services-disabled");
-      }
+      checkDefined(
+        name,
+        "location",
+        `useBackgroundLocation("${name}").start()`,
+        "defineLocationTask",
+      );
+      await ensureLocationReady(adapter);
       try {
         await adapter.start(name, checked);
       } catch (error) {
@@ -283,5 +317,91 @@ export function useBackgroundLocation(name: string): UseBackgroundLocation {
   return useMemo(
     () => ({ isSupported, isRunning, start, stop, refresh: store.refresh }),
     [isSupported, isRunning, start, stop, store],
+  );
+}
+
+export interface UseGeofencing {
+  /** `null` while a static page hydrates; `false` on the web. */
+  isSupported: boolean | null;
+  /** Whether regions are watched under this name. `null` until the first read. */
+  isRunning: boolean | null;
+  /** How many regions the platform watches for the app at once (20 on iOS, 100 on Android). */
+  limit: number;
+  /**
+   * Watches `regions`, replacing what this name watched before. Never
+   * prompts. Rejects with a `LocationError`: `unsupported`,
+   * `permission-denied` (the foreground permission, then the background one:
+   * geofencing needs both on every platform), `services-disabled`. A
+   * `TypeError` for an invalid region, a `RangeError` for more than `limit`,
+   * an `Error` when no geofence task of that name was defined.
+   */
+  start: (regions: GeofenceRegion[]) => Promise<void>;
+  /** Stops watching; resolves too when nothing was watched. */
+  stop: () => Promise<void>;
+  /** Re-reads `isRunning`. The hook does it on mount and on every return to the foreground. */
+  refresh: () => Promise<boolean>;
+}
+
+/**
+ * Watches circular regions and reports entering and leaving them to the
+ * task `name` (see `defineGeofenceTask`), with the app in the background or
+ * not running. The regions outlive the app: stop them explicitly. The limit
+ * is the app's, shared by every name.
+ */
+export function useGeofencing(name: string): UseGeofencing {
+  checkTaskName(name, "useGeofencing()");
+  const adapter = useBackgroundLocationAdapter();
+  const store = getRunningStore(adapter, "geofence", name);
+  const isSupported = useSupport(adapter);
+  const isRunning = useRunning(store);
+
+  const start = useCallback(
+    async (regions: GeofenceRegion[]) => {
+      const checked = checkRegions(regions, adapter.geofenceLimit);
+      if (!adapter.isSupported()) throw new LocationError("unsupported");
+      checkDefined(
+        name,
+        "geofence",
+        `useGeofencing("${name}").start()`,
+        "defineGeofenceTask",
+      );
+      await ensureLocationReady(adapter);
+      const background = await adapter.getPermission();
+      if (background.status !== "granted") {
+        throw new LocationError(
+          "permission-denied",
+          "Geofencing needs the background location permission (useBackgroundLocationPermission).",
+        );
+      }
+      try {
+        await adapter.startGeofencing(name, checked);
+      } catch (error) {
+        throw toError(error);
+      }
+      store.set(true);
+    },
+    [adapter, name, store],
+  );
+
+  const stop = useCallback(async () => {
+    if (!adapter.isSupported()) return;
+    try {
+      await adapter.stopGeofencing(name);
+    } catch (error) {
+      throw toError(error);
+    }
+    store.set(false);
+  }, [adapter, name, store]);
+
+  return useMemo(
+    () => ({
+      isSupported,
+      isRunning,
+      limit: adapter.geofenceLimit,
+      start,
+      stop,
+      refresh: store.refresh,
+    }),
+    [adapter, isSupported, isRunning, start, stop, store],
   );
 }

@@ -1,4 +1,5 @@
 import * as Location from "expo-location";
+import { Platform } from "react-native";
 
 import {
   LocationError,
@@ -12,6 +13,7 @@ import { systemSheet } from "../core/systemSheet";
 import type {
   BackgroundLocationAdapter,
   BackgroundLocationOptions,
+  GeofenceRegion,
   LocationActivityType,
 } from "./types";
 
@@ -72,6 +74,14 @@ export function toStartError(error: unknown): LocationError {
       error,
     );
   }
+  // iOS: the device cannot monitor regions at all.
+  if (/GEOFENCING_UNAVAILABLE/.test(code)) {
+    return new LocationError(
+      "unsupported",
+      "This device cannot monitor regions.",
+      error,
+    );
+  }
   if (/FOREGROUND_SERVICE_START_NOT_ALLOWED/.test(code)) {
     return new LocationError(
       "unavailable",
@@ -81,6 +91,31 @@ export function toStartError(error: unknown): LocationError {
   }
   return toLocationError(error);
 }
+
+/**
+ * The regions as expo-location takes them. iOS's consumer reads
+ * `notifyOnEntry`, not the `notifyOnEnter` expo's type and Android use, so
+ * both are sent.
+ */
+export function toLocationRegions(
+  regions: GeofenceRegion[],
+): Location.LocationRegion[] {
+  return regions.map((region) => {
+    const notifyOnEnter = region.notifyOnEnter ?? true;
+    return {
+      identifier: region.id,
+      latitude: region.latitude,
+      longitude: region.longitude,
+      radius: region.radius,
+      notifyOnEnter,
+      notifyOnEntry: notifyOnEnter,
+      notifyOnExit: region.notifyOnExit ?? true,
+    } as Location.LocationRegion;
+  });
+}
+
+// iOS monitors 20 regions per app, Android 100.
+const GEOFENCE_LIMIT = Platform.OS === "ios" ? 20 : 100;
 
 /** The native default: expo-location's updates, run by expo-task-manager. */
 export const expoBackgroundLocationAdapter: BackgroundLocationAdapter = {
@@ -132,6 +167,37 @@ export const expoBackgroundLocationAdapter: BackgroundLocationAdapter = {
       return await Location.hasStartedLocationUpdatesAsync(name);
     } catch (error) {
       throw toLocationError(error);
+    }
+  },
+
+  geofenceLimit: GEOFENCE_LIMIT,
+
+  async startGeofencing(name, regions) {
+    try {
+      await Location.startGeofencingAsync(name, toLocationRegions(regions));
+    } catch (error) {
+      throw toStartError(error);
+    }
+  },
+
+  async stopGeofencing(name) {
+    try {
+      if (await expoBackgroundLocationAdapter.hasStartedGeofencing(name)) {
+        await Location.stopGeofencingAsync(name);
+      }
+    } catch (error) {
+      throw toLocationError(error);
+    }
+  },
+
+  // Android throws without the background permission: nothing can fire then.
+  async hasStartedGeofencing(name) {
+    try {
+      return await Location.hasStartedGeofencingAsync(name);
+    } catch (error) {
+      const failure = toLocationError(error);
+      if (failure.code === "permission-denied") return false;
+      throw failure;
     }
   },
 };

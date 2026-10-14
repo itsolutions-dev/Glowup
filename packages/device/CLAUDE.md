@@ -79,6 +79,19 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   dropped. The plugin key `backgroundLocation` passes its flags through `withLocation`
   (expo-location's plugin runs once per prebuild) and removes task-manager's `fetch` mode with an
   Info.plist mod registered _before_ task-manager's plugin: those mods run in reverse order.
+  Geofencing (`defineGeofenceTask`, `useGeofencing`) shares the subpath: `tasks.ts` keeps one
+  registry for both kinds (a name is one task on the platform, so a name holds one kind) and the
+  `isRunning` stores are keyed by kind and name. `start()` checks the regions (`regions.ts`:
+  required unique `id`, a `RangeError` above `adapter.geofenceLimit`, 20 on iOS and 100 on
+  Android), the foreground permission, the services and the background permission, which both
+  platforms require. The Expo adapter sends `notifyOnEntry` beside `notifyOnEnter` (expo's iOS
+  consumer reads that name), and `defineGeofenceTask`'s executor drops a transition the region
+  turned off, read back through `getTaskOptionsAsync` (iOS reports determined states without
+  the flags); unreadable options let the event through. Android's `hasStartedGeofencingAsync`
+  throws without the background permission: the adapter reads that as not started. Android sends
+  geofencing failures as a message alone (`"Geofencing not available."` is location switched
+  off). The plugin's `geofencing: true` adds the background permission in any `mode`, and
+  `mode: "none"` is geofencing alone.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

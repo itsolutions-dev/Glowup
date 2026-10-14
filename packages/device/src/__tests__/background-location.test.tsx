@@ -6,12 +6,16 @@ import { AppState, Linking } from "react-native";
 
 import { DeviceAdaptersProvider } from "..";
 import {
+  defineGeofenceTask,
   defineLocationTask,
   LocationError,
   useBackgroundLocation,
   useBackgroundLocationPermission,
+  useGeofencing,
   type BackgroundLocationAdapter,
   type BackgroundLocationOptions,
+  type GeofenceEvent,
+  type GeofenceRegion,
   type LocationTaskEvent,
 } from "../background-location";
 import {
@@ -25,7 +29,10 @@ jest.mock("expo-location", () => ({
   LocationAccuracy: {},
   LocationActivityType: {},
 }));
-jest.mock("expo-task-manager", () => ({ defineTask: jest.fn() }));
+jest.mock("expo-task-manager", () => ({
+  defineTask: jest.fn(),
+  getTaskOptionsAsync: jest.fn(),
+}));
 
 // jest-expo's AppState.addEventListener is a jest.fn: swap it for one that
 // lets the test move the app between states.
@@ -220,7 +227,7 @@ describe("useBackgroundLocation", () => {
     const handler = jest.fn();
     const name = defineTask(handler);
     const { adapter, result } = await setup(name);
-    await expect(adapter.deliver(name)).rejects.toThrow("no updates run");
+    await expect(adapter.deliver(name)).rejects.toThrow("nothing runs under");
     await act(() => result.current.start(SERVICE));
     const fix = buildPosition({ latitude: 45 });
     await adapter.deliver(name, [fix]);
@@ -547,4 +554,372 @@ it("is the same LocationError class as /location's", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- the other subpath, loaded as an app would
   const location = require("../location");
   expect(location.LocationError).toBe(LocationError);
+});
+
+// The executor expo-task-manager received for the latest defineTask call.
+function lastExecutor() {
+  return jest.mocked(TaskManager.defineTask).mock.calls.at(-1)![1];
+}
+
+const EXECUTION = { eventId: "1", taskName: "x" };
+
+function geofenceBody(eventType: number, identifier = "office") {
+  return {
+    data: {
+      eventType,
+      region: { identifier, latitude: 45, longitude: 9, radius: 150, state: 1 },
+    },
+    error: null,
+    executionInfo: EXECUTION,
+  };
+}
+
+describe("defineGeofenceTask", () => {
+  beforeEach(() => {
+    jest.mocked(TaskManager.getTaskOptionsAsync).mockReset();
+  });
+
+  it("delivers enter and exit with the region's id", async () => {
+    const handler = jest.fn();
+    defineGeofenceTask("geo-events", handler);
+    jest.mocked(TaskManager.getTaskOptionsAsync).mockResolvedValue({
+      regions: [{ identifier: "office" }],
+    });
+    await lastExecutor()(geofenceBody(1));
+    await lastExecutor()(geofenceBody(2));
+    expect(handler.mock.calls.map(([event]) => event)).toEqual([
+      {
+        type: "enter",
+        region: { id: "office", latitude: 45, longitude: 9, radius: 150 },
+      },
+      {
+        type: "exit",
+        region: { id: "office", latitude: 45, longitude: 9, radius: 150 },
+      },
+    ]);
+    expect(TaskManager.getTaskOptionsAsync).toHaveBeenCalledWith("geo-events");
+  });
+
+  it("drops a transition the region turned off (iOS reports it anyway)", async () => {
+    const handler = jest.fn();
+    defineGeofenceTask("geo-filter", handler);
+    jest.mocked(TaskManager.getTaskOptionsAsync).mockResolvedValue({
+      regions: [
+        { identifier: "office", notifyOnEnter: true, notifyOnExit: false },
+        { identifier: "depot", notifyOnEnter: false, notifyOnExit: true },
+      ],
+    });
+    await lastExecutor()(geofenceBody(2, "office"));
+    await lastExecutor()(geofenceBody(1, "depot"));
+    expect(handler).not.toHaveBeenCalled();
+    await lastExecutor()(geofenceBody(1, "office"));
+    await lastExecutor()(geofenceBody(2, "depot"));
+    expect(
+      handler.mock.calls.map(([event]) => [event.type, event.region.id]),
+    ).toEqual([
+      ["enter", "office"],
+      ["exit", "depot"],
+    ]);
+  });
+
+  it("delivers when the options cannot be read or do not name the region", async () => {
+    const handler = jest.fn();
+    defineGeofenceTask("geo-open", handler);
+    jest
+      .mocked(TaskManager.getTaskOptionsAsync)
+      .mockRejectedValueOnce(new Error("no options"))
+      .mockResolvedValueOnce({ regions: [{ identifier: "elsewhere" }] })
+      .mockResolvedValueOnce(null);
+    await lastExecutor()(geofenceBody(2));
+    await lastExecutor()(geofenceBody(2));
+    await lastExecutor()(geofenceBody(2));
+    expect(handler).toHaveBeenCalledTimes(3);
+  });
+
+  it("reads the failures each platform reports", async () => {
+    const handler = jest.fn();
+    defineGeofenceTask("geo-errors", handler);
+    for (const error of [
+      { code: 1, message: "denied" },
+      { message: "Geofencing not available." },
+      { message: "Too many geofences." },
+    ]) {
+      // Android sends a message alone, though expo's type declares a code.
+      await lastExecutor()({
+        data: null,
+        error: error as never,
+        executionInfo: EXECUTION,
+      });
+    }
+    expect(handler.mock.calls.map(([event]) => event.error.code)).toEqual([
+      "permission-denied",
+      "services-disabled",
+      "unavailable",
+    ]);
+    expect(TaskManager.getTaskOptionsAsync).not.toHaveBeenCalled();
+  });
+
+  it("keeps a name to one kind of task", () => {
+    defineLocationTask("taken-by-location", () => {});
+    expect(() => defineGeofenceTask("taken-by-location", () => {})).toThrow(
+      '"taken-by-location" is already a location task',
+    );
+    defineGeofenceTask("taken-by-geofence", () => {});
+    expect(() => defineLocationTask("taken-by-geofence", () => {})).toThrow(
+      '"taken-by-geofence" is already a geofence task',
+    );
+  });
+
+  it("refuses a bad name or handler", () => {
+    expect(() => defineGeofenceTask("", () => {})).toThrow(TypeError);
+    expect(() => defineGeofenceTask("geo-no-handler", 1 as never)).toThrow(
+      "defineGeofenceTask(): the handler must be a function",
+    );
+  });
+});
+
+const OFFICE: GeofenceRegion = {
+  id: "office",
+  latitude: 45.4642,
+  longitude: 9.19,
+  radius: 150,
+};
+
+let geofenceCount = 0;
+function defineGeofence(handler: (event: GeofenceEvent) => void = () => {}) {
+  const name = `sites-${++geofenceCount}`;
+  defineGeofenceTask(name, handler);
+  return name;
+}
+
+describe("useGeofencing", () => {
+  async function setupGeofencing(
+    name: string,
+    options: MockBackgroundLocationOptions = { permission: "granted" },
+    adapter: MockBackgroundLocationAdapter = createMockBackgroundLocationAdapter(
+      options,
+    ),
+  ) {
+    const { result } = await renderHook(() => useGeofencing(name), {
+      wrapper: wrapperFor(adapter),
+    });
+    await waitFor(() => expect(result.current.isRunning).not.toBeNull());
+    return { adapter, result };
+  }
+
+  it("watches regions, delivers their events and stops", async () => {
+    const handler = jest.fn();
+    const name = defineGeofence(handler);
+    const { adapter, result } = await setupGeofencing(name);
+    expect(result.current).toMatchObject({
+      isSupported: true,
+      isRunning: false,
+      limit: 20,
+    });
+    await act(() =>
+      result.current.start([
+        { ...OFFICE, extra: true } as GeofenceRegion,
+        { ...OFFICE, id: "depot", notifyOnExit: false },
+      ]),
+    );
+    expect(result.current.isRunning).toBe(true);
+    expect(adapter.geofences.get(name)).toEqual([
+      { ...OFFICE, notifyOnEnter: undefined, notifyOnExit: undefined },
+      { ...OFFICE, id: "depot", notifyOnEnter: undefined, notifyOnExit: false },
+    ]);
+    await adapter.deliverGeofence(name, "enter", "office");
+    expect(handler).toHaveBeenCalledWith({
+      type: "enter",
+      region: { id: "office", latitude: 45.4642, longitude: 9.19, radius: 150 },
+    });
+    await expect(
+      adapter.deliverGeofence(name, "exit", "nowhere"),
+    ).rejects.toThrow('watches no region "nowhere"');
+    await adapter.deliverGeofenceError(name, "unavailable");
+    expect(handler).toHaveBeenLastCalledWith({
+      type: "error",
+      error: expect.objectContaining({ code: "unavailable" }),
+    });
+    await act(() => result.current.stop());
+    expect(result.current.isRunning).toBe(false);
+    await expect(
+      adapter.deliverGeofence(name, "enter", "office"),
+    ).rejects.toThrow("nothing runs under");
+  });
+
+  it("keeps its state apart from the location updates of another name", async () => {
+    const name = defineGeofence();
+    const adapter = createMockBackgroundLocationAdapter({
+      permission: "granted",
+    });
+    await adapter.startGeofencing(name, [OFFICE]);
+    const { result } = await setupGeofencing(name, undefined, adapter);
+    expect(result.current.isRunning).toBe(true);
+    adapter.stopBySystem(name);
+    await moveTo("active");
+    await waitFor(() => expect(result.current.isRunning).toBe(false));
+  });
+
+  it("needs the background permission", async () => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name, {
+      permission: "denied",
+    });
+    await expect(result.current.start([OFFICE])).rejects.toMatchObject({
+      code: "permission-denied",
+      message: expect.stringContaining("background location permission"),
+    });
+    expect(adapter.geofences.size).toBe(0);
+  });
+
+  it.each<[string, MockBackgroundLocationOptions, string]>([
+    ["unsupported", { supported: false, permission: "granted" }, "unsupported"],
+    [
+      "without the foreground permission",
+      { foregroundPermission: "denied", permission: "granted" },
+      "permission-denied",
+    ],
+    [
+      "with location switched off",
+      { servicesEnabled: false, permission: "granted" },
+      "services-disabled",
+    ],
+  ])("rejects %s, before the adapter", async (_label, options, code) => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name, options);
+    await expect(result.current.start([OFFICE])).rejects.toMatchObject({
+      code,
+    });
+    expect(adapter.geofences.size).toBe(0);
+  });
+
+  it("refuses a task nobody defined, or one of the other kind", async () => {
+    const location = defineTask();
+    const { result } = await setupGeofencing(location);
+    await expect(result.current.start([OFFICE])).rejects.toThrow(
+      `no geofence task "${location}". Call defineGeofenceTask("${location}", handler)`,
+    );
+  });
+
+  it.each<[string, unknown, string]>([
+    ["no regions", [], "non-empty array"],
+    ["a non-array", "office", "non-empty array"],
+    ["a region that is not an object", [null], "regions[0] must be an object"],
+    ["an empty id", [{ ...OFFICE, id: " " }], "regions[0].id"],
+    ["a latitude off the globe", [{ ...OFFICE, latitude: 91 }], "latitude"],
+    ["a string latitude", [{ ...OFFICE, latitude: "45" }], "latitude"],
+    [
+      "a longitude off the globe",
+      [{ ...OFFICE, longitude: -181 }],
+      "longitude",
+    ],
+    [
+      "an infinite longitude",
+      [{ ...OFFICE, longitude: Infinity }],
+      "longitude",
+    ],
+    ["a zero radius", [{ ...OFFICE, radius: 0 }], "radius"],
+    ["a NaN radius", [{ ...OFFICE, radius: Number.NaN }], "radius"],
+    [
+      "a bad flag",
+      [{ ...OFFICE, notifyOnExit: "no" }],
+      "notifyOnExit must be a boolean",
+    ],
+    [
+      "a region that reports nothing",
+      [{ ...OFFICE, notifyOnEnter: false, notifyOnExit: false }],
+      "reports nothing",
+    ],
+    [
+      "a duplicate id",
+      [OFFICE, { ...OFFICE, latitude: 0 }],
+      'the region id "office" appears twice',
+    ],
+  ])("refuses %s with a TypeError", async (_label, regions, message) => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name);
+    const call = result.current.start(regions as never);
+    await expect(call).rejects.toBeInstanceOf(TypeError);
+    await expect(call).rejects.toThrow(message);
+    expect(adapter.geofences.size).toBe(0);
+  });
+
+  it("accepts the edges of the globe and up to the limit", async () => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name, {
+      permission: "granted",
+      geofenceLimit: 2,
+    });
+    await act(() =>
+      result.current.start([
+        { id: "a", latitude: -90, longitude: 180, radius: 0.5 },
+        { id: "b", latitude: 90, longitude: -180, radius: 100 },
+      ]),
+    );
+    expect(adapter.geofences.get(name)).toHaveLength(2);
+  });
+
+  it("refuses more regions than the platform watches, with a RangeError", async () => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name, {
+      permission: "granted",
+      geofenceLimit: 2,
+    });
+    expect(result.current.limit).toBe(2);
+    const call = result.current.start(
+      ["a", "b", "c"].map((id) => ({ ...OFFICE, id })),
+    );
+    await expect(call).rejects.toBeInstanceOf(RangeError);
+    await expect(call).rejects.toThrow("at most 2");
+    expect(adapter.geofences.size).toBe(0);
+  });
+
+  it("passes the adapter's errors on, and anything else as unavailable", async () => {
+    const name = defineGeofence();
+    const { adapter, result } = await setupGeofencing(name);
+    adapter.failNextStart("unsupported");
+    await expect(result.current.start([OFFICE])).rejects.toMatchObject({
+      code: "unsupported",
+    });
+    const failing: BackgroundLocationAdapter = {
+      ...createMockBackgroundLocationAdapter({ permission: "granted" }),
+      startGeofencing: () => Promise.reject(new Error("native crash")),
+      stopGeofencing: () => Promise.reject(new Error("stop crash")),
+    };
+    const other = await setupGeofencing(name, undefined, failing as never);
+    await expect(other.result.current.start([OFFICE])).rejects.toMatchObject({
+      code: "unavailable",
+      message: "native crash",
+    });
+    await expect(other.result.current.stop()).rejects.toMatchObject({
+      code: "unavailable",
+      message: "stop crash",
+    });
+  });
+
+  it("stops nothing where unsupported", async () => {
+    const name = defineGeofence();
+    const stopGeofencing = jest.fn(() => Promise.reject(new Error("web")));
+    const web: BackgroundLocationAdapter = {
+      ...createMockBackgroundLocationAdapter({ supported: false }),
+      stopGeofencing,
+    };
+    const { result } = await setupGeofencing(name, undefined, web as never);
+    expect(result.current.isSupported).toBe(false);
+    expect(result.current.isRunning).toBe(false);
+    await expect(result.current.stop()).resolves.toBeUndefined();
+    expect(stopGeofencing).not.toHaveBeenCalled();
+  });
+
+  it("refuses an empty name while rendering", async () => {
+    const error = jest.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      renderHook(() => useGeofencing(" "), {
+        wrapper: wrapperFor(createMockBackgroundLocationAdapter()),
+      }),
+    ).rejects.toThrow(
+      "useGeofencing(): the task name must be a non-empty string",
+    );
+    error.mockRestore();
+  });
 });

@@ -11,6 +11,7 @@ import {
   Modal,
   Portal,
   ThemeProvider,
+  Toggle,
   ToggleButtonGroup,
   TouchableRipple,
   useTheme,
@@ -179,6 +180,57 @@ describe("Card compound parts", () => {
     expect(getByText("Manutenzione")).toBeTruthy();
     expect(getByText("Next service")).toBeTruthy();
     expect(getByText("Confirm")).toBeTruthy();
+  });
+});
+
+type HostNode = {
+  props: Record<string, unknown>;
+  children: (HostNode | string)[] | null;
+};
+
+/** Every host node marked disabled, the way a screen reader reads it. */
+function disabledNodes(node: HostNode | HostNode[] | null): HostNode[] {
+  if (!node) return [];
+  if (Array.isArray(node)) return node.flatMap(disabledNodes);
+  const state = node.props.accessibilityState as
+    { disabled?: boolean } | undefined;
+  const own =
+    state?.disabled === true || node.props["aria-disabled"] === true
+      ? [node]
+      : [];
+  const children = (node.children ?? []).filter(
+    (child): child is HostNode => typeof child !== "string",
+  );
+  return [...own, ...children.flatMap(disabledNodes)];
+}
+
+describe("ListItem", () => {
+  it("does not mark a row without onPress, or its controls, as disabled", async () => {
+    const { toJSON, getByRole } = await wrap(
+      <ListItem
+        secondary="Keeps the screen on"
+        trailing={<Toggle value onValueChange={() => {}} />}
+      >
+        Keep awake
+      </ListItem>,
+    );
+    expect(getByRole("switch")).toBeTruthy();
+    expect(disabledNodes(toJSON() as HostNode)).toEqual([]);
+    // Not a button either: the row itself does nothing.
+    expect(() => getByRole("button", { name: /Keep awake/ })).toThrow();
+  });
+
+  it("is a button that presses when it has onPress", async () => {
+    const onPress = jest.fn();
+    const { getByRole } = await wrap(
+      <ListItem onPress={onPress} secondary="Settings">
+        Account
+      </ListItem>,
+    );
+    const row = getByRole("button");
+    expect(row.props.accessibilityState?.disabled).not.toBe(true);
+    await fireEvent.press(row);
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
 

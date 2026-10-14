@@ -56,3 +56,9 @@ export {
   createMockSecureStoreAdapter,
   type MockSecureStoreAdapter,
 } from "./secureStore";
+export {
+  createMockSensorsAdapter,
+  type MockReading,
+  type MockSensorsAdapter,
+  type MockSensorsOptions,
+} from "./sensors";

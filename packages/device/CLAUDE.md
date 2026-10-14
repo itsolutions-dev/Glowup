@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -117,6 +117,15 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   with a plain marker beside it, so `null` + marker reads `invalidated`. The Expo adapter turns
   expo's English messages into `ProtectedAccessError` statuses (`PROTECTED_MESSAGES`, pinned by
   tests on 57.0.4's strings); `/testing` builds the same error by shape (it may not import it).
+- **Sensors** (`src/sensors`): adapters deliver readings already normalised (SI units, device
+  axes, W3C/Android signs, ms timestamps: see `types.ts`); the Expo adapter inverts iOS's
+  accelerometer and scales it from g. `stream.ts` keeps one platform subscription per adapter
+  and sensor: opened only after `isAvailable` answered true (asked once), run at the fastest
+  interval asked for, each reader throttled to its own with a 10% tolerance, stopped on
+  `background` (not `inactive`), closed a microtask after the last reader leaves so a reader
+  replaced in the same commit does not restart it. On web `web.ts` on `devicemotion`, not
+  expo-sensors' web build (it sends orientation angles as the accelerometer and acceleration
+  as the gyroscope); availability there is a probe for an event carrying the sensor's data.
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

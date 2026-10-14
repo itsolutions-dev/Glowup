@@ -10,6 +10,7 @@ import type { LocationAdapter } from "../location/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
 import type { SecureStoreAdapter } from "../secure-store/types";
+import type { SensorsAdapter } from "../sensors/types";
 
 /**
  * Every capability's adapter contract. Type imports only: the root entry must
@@ -26,6 +27,7 @@ export interface DeviceAdapters {
   haptics: HapticsAdapter;
   biometrics: BiometricsAdapter;
   secureStore: SecureStoreAdapter;
+  sensors: SensorsAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -60,6 +62,7 @@ export function DeviceAdaptersProvider({
     haptics,
     biometrics,
     secureStore,
+    sensors,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -74,6 +77,7 @@ export function DeviceAdaptersProvider({
       ...(haptics && { haptics }),
       ...(biometrics && { biometrics }),
       ...(secureStore && { secureStore }),
+      ...(sensors && { sensors }),
     }),
     [
       parent,
@@ -87,6 +91,7 @@ export function DeviceAdaptersProvider({
       haptics,
       biometrics,
       secureStore,
+      sensors,
     ],
   );
   return (

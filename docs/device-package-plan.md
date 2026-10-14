@@ -272,7 +272,7 @@ module's source before its contract is written, as phases 3 and 4 did.
   `useOrientationLock(lock, { enabled })` scoped to the component and
   `useOrientationLockSupport()`. Native on expo-screen-orientation `~57.0.2`.
 - **Interface orientation only** (decided): the device's physical orientation belongs to the
-  sensors (v0.4).
+  sensors (v0.5).
 - **Locks are stacked**, most recent wins (`src/orientation/lockStack.ts`): a video screen
   inside a portrait-locked flow locks landscape and gives portrait back on unmount, and a screen
   replacing another never unlocks in between.
@@ -521,6 +521,79 @@ Applied as proposed (the four phase-16 questions, accepted without changes):
   Checked on `npm pack` tarballs: `tsc --noEmit` and `expo export -p web` pass.
 - Changeset: `@its/glowup-device` minor (`0.4.0`), naming the shared prompt session's effect on
   `/biometrics`.
+
+## v0.5 — sensors
+
+`/sensors` on `expo-sensors` (V7). Its source (57.0.3) was read before the contract was written:
+
+- **Units and axes differ by platform.** The accelerometer is in g with opposite signs: Android
+  divides the raw value by 9.81 (lying face up, z = +1), iOS passes CoreMotion's (z = -1).
+  `DeviceMotion.rotationRate` maps alpha/beta/gamma onto x/y/z on Android and z/y/x on iOS (the
+  web a third way); its `interval` is ms on Android, seconds on iOS; its `orientation` is the
+  interface's rotation on Android and `UIDevice.orientation` on iOS. `DeviceMotion` on Android
+  is unavailable unless all five underlying sensors exist. Timestamps are seconds since boot
+  (web: since the page loaded).
+- **Web:** `Accelerometer` sends `deviceorientation`'s angles in radians, `Gyroscope` sends
+  `accelerationIncludingGravity`; the availability probe tests `!isIOS` (the function, always
+  truthy), `startObserving` does not await its permission check (an unhandled rejection), and
+  `setUpdateInterval` warns on every call. `DeviceMotion.rotation` is missing.
+- **Rate and battery.** The modules are singletons: `setUpdateInterval` is global per sensor
+  and the last call wins. Android below 12 registers every sensor at `SENSOR_DELAY_FASTEST` and
+  throttles in software whatever the interval; from 12, `SENSOR_DELAY_NORMAL` (200 ms nominal)
+  unless the manifest declares `HIGH_SAMPLING_RATE_SENSORS`, then `FASTEST` again. The power
+  cost is not controllable from JS: only how long a sensor stays open is. Android Int-converts
+  the interval. The iOS barometer ignores it.
+- **Background.** Android stops its sensors with the activity; iOS does not (CoreMotion keeps
+  running while the app is alive in the background), except the pedometer.
+- **Permissions.** expo-sensors' Android manifest always adds `ACTIVITY_RECOGNITION`, and its
+  config plugin always adds an English `NSMotionUsageDescription` unless passed `false`. The
+  iOS barometer starts CMAltimeter, which asks for Motion & Fitness on first use. iOS Safari
+  sends no motion event before `DeviceMotionEvent.requestPermission()`, which must run in a
+  user gesture. The iOS light sensor is a JS stub whose `addListener` returns nothing.
+
+| #   | Question   | Decision                                                                                                               |
+| --- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Z1  | Scope      | Accelerometer, gyroscope, magnetometer, barometer, light (Android), device motion, physical orientation. No pedometer. |
+| Z2  | Units      | Normalised: SI (m/s², rad/s, µT, hPa, lux), device axes `{ x, y, z }`, W3C/Android signs, `timestamp` in ms.           |
+| Z3  | Interval   | `DEFAULT_SENSOR_INTERVAL` 200 ms (what Android 12+ guarantees without a permission); faster is opt-in.                 |
+| Z4  | API        | A value hook per sensor (re-renders at its interval) and `useSensorListener` (a callback, no render) for high rates.   |
+| Z5  | Background | Paused on `background`, resumed on `active`, never on `inactive` (as `useAppLock`). No opt-out.                        |
+| Z6  | Heading    | Not here: the compass stays with advanced location (`watchHeadingAsync`, calibrated, true north).                      |
+| Z7  | Web        | Our own adapter on `devicemotion`; magnetometer, barometer and light unavailable; iOS Safari's permission in phase 19. |
+
+| Phase | Content                                                                                                      | Status   |
+| ----- | ------------------------------------------------------------------------------------------------------------ | -------- |
+| 18    | `/sensors`: shared stream, normalised Expo adapter, web adapter, five value hooks, `useSensorListener`, mock | **done** |
+| 19    | `useDeviceMotion`, `useDeviceOrientation` (physical, from gravity), `useMotionPermission`, plugin key        | planned  |
+| 20    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.5.0`), release               | planned  |
+
+### Phase 18 — what landed
+
+- `/sensors`: `useAccelerometer`, `useGyroscope`, `useMagnetometer`, `useBarometer`,
+  `useLightSensor` (`{ enabled, interval }` → `{ isAvailable, reading }`), `useSensorListener`
+  (a callback, the latest one called, no re-render) and `useSensorAvailability`. An interval
+  that is not a finite number ≥ 0 throws a `TypeError`.
+- `src/sensors/stream.ts`: one platform subscription per adapter and sensor. It opens only once
+  `isAvailable` answered true (asked once), runs at the fastest interval asked for and
+  throttles each reader to its own with a 10% tolerance (Android's own throttle drops events
+  against a millisecond clock), stops on `background` and reopens on `active`. It closes a
+  microtask after the last reader leaves, so a new interval or a screen swapped for another in
+  the same commit does not restart the sensor (a test caught the restart).
+- **Expo adapter:** iOS's accelerometer inverted and both scaled to m/s² (`-0` turned into
+  `0`), timestamps to ms, the interval rounded, the barometer's `relativeAltitude` `null` on
+  Android, a missing subscription (iOS's light stub) tolerated, a failed availability check
+  read as unavailable.
+- **Web adapter:** `accelerationIncludingGravity` as the accelerometer; `rotationRate` mapped
+  onto the device axes (beta → x, gamma → y, alpha → z) in rad/s; partial or null data
+  skipped. Availability is a probe: true once an event carries that sensor's data, false after
+  `PROBE_TIMEOUT` (1 s), so iOS Safari reads unavailable until its permission (phase 19).
+- `/testing`: `createMockSensorsAdapter()` with `emit()` (the timestamp advances by the
+  sensor's interval unless given), `intervals` and `isActive()`.
+- Mutation checks: 39 mutations on the stream, both adapters, the hooks and the mock, all
+  killed (5 survivors in the web adapter first, closed with tests).
+- **Not checked on a device:** the iOS accelerometer's sign (from Apple's documented
+  convention and expo's source), Safari's signs on iOS, the rates Android actually delivers
+  at `SENSOR_DELAY_NORMAL`, whether a phone without a gyroscope reports the others correctly.
 
 ## Open for later
 

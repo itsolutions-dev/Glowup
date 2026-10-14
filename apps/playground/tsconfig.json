@@ -40,6 +40,9 @@
       "@its/glowup-device/secure-store": [
         "../../packages/device/src/secure-store/index.ts"
       ],
+      "@its/glowup-device/sensors": [
+        "../../packages/device/src/sensors/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

@@ -49,12 +49,13 @@ npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in 
 # The documentation site (apps/playground)
 npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source
 npm run variants -w @its/glowup-playground    # regenerate the variant galleries from .design-sync/previews
+npm run templates -w @its/glowup-playground   # re-embed the templates' source after editing one
 npm run icons -w @its/glowup-playground       # redraw the icon set from theme.json
 npm run export:web -w @its/glowup-playground  # static export to apps/playground/dist
 ```
 
-Both generators write committed files and CI fails on a diff, so run them after touching a
-component's props or a preview.
+These generators write committed files and CI fails on a diff (the templates' through
+their test), so run them after touching a component's props, a preview or a template.
 
 ## Dependencies
 

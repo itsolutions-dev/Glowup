@@ -43,6 +43,12 @@
       "@its/glowup-device/sensors": [
         "../../packages/device/src/sensors/index.ts"
       ],
+      "@its/glowup-device/media-picker": [
+        "../../packages/device/src/media-picker/index.ts"
+      ],
+      "@its/glowup-device/media-library": [
+        "../../packages/device/src/media-library/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

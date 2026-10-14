@@ -22,6 +22,9 @@ import {
   createMockOrientationAdapter,
   createMockSecureStoreAdapter,
   createMockSensorsAdapter,
+  createMockMediaPickerAdapter,
+  createMockMediaLibraryAdapter,
+  buildPickedMedia,
   OFFLINE_NETWORK,
   type MockBatteryAdapter,
   type MockBiometricsAdapter,
@@ -33,6 +36,8 @@ import {
   type MockOrientationAdapter,
   type MockSecureStoreAdapter,
   type MockSensorsAdapter,
+  type MockMediaPickerAdapter,
+  type MockMediaLibraryAdapter,
 } from "@its/glowup-device/testing";
 import * as ExpoHaptics from "expo-haptics";
 
@@ -48,6 +53,8 @@ import NetworkPage from "../app/device/network";
 import OrientationPage from "../app/device/orientation";
 import SecureStorePage from "../app/device/secure-store";
 import SensorsPage from "../app/device/sensors";
+import MediaPickerPage from "../app/device/media-picker";
+import MediaLibraryPage from "../app/device/media-library";
 import { HapticThemeProvider } from "../site/HapticsPreference";
 
 // The pages run on the package's in-memory adapters; the Expo modules behind
@@ -77,6 +84,8 @@ jest.mock("expo-haptics", () => ({
 jest.mock("expo-local-authentication", () => ({ SecurityLevel: { NONE: 0 } }));
 jest.mock("expo-secure-store", () => ({}));
 jest.mock("expo-sensors", () => ({}));
+jest.mock("expo-image-picker", () => ({}));
+jest.mock("expo-media-library", () => ({}));
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => {}),
@@ -106,6 +115,8 @@ let haptics: MockHapticsAdapter;
 let biometrics: MockBiometricsAdapter;
 let secureStore: MockSecureStoreAdapter;
 let sensors: MockSensorsAdapter;
+let mediaPicker: MockMediaPickerAdapter;
+let mediaLibrary: MockMediaLibraryAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -118,6 +129,8 @@ beforeEach(() => {
   biometrics = createMockBiometricsAdapter();
   secureStore = createMockSecureStoreAdapter();
   sensors = createMockSensorsAdapter();
+  mediaPicker = createMockMediaPickerAdapter();
+  mediaLibrary = createMockMediaLibraryAdapter();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
@@ -145,6 +158,8 @@ const Providers = ({ children }: { children: ReactNode }) => (
               biometrics,
               secureStore,
               sensors,
+              mediaPicker,
+              mediaLibrary,
             }}
           >
             {children}
@@ -169,6 +184,8 @@ it("links the overview to every capability", async () => {
     ["Biometrics", "/device/biometrics"],
     ["Secure store", "/device/secure-store"],
     ["Sensors", "/device/sensors"],
+    ["Media picker", "/device/media-picker"],
+    ["Media library", "/device/media-library"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -511,5 +528,103 @@ describe("sensors", () => {
     await waitFor(() => expect(sensors.isActive("barometer")).toBe(true));
     expect(sensors.permissionRequests).toBe(1);
     expect(screen.queryByText("Allow motion access")).toBeNull();
+  });
+});
+
+describe("media picker", () => {
+  it("picks with the chosen options and shows what came back", async () => {
+    mediaPicker.respondWith({
+      status: "picked",
+      assets: [
+        buildPickedMedia({ fileName: "beach.jpg" }),
+        buildPickedMedia({ type: "video", uri: "file:///clip.mp4" }),
+      ],
+    });
+    await render(<MediaPickerPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByRole("radio", { name: "Both" }));
+    await fireEvent.press(screen.getAllByRole("switch")[0]);
+    await fireEvent.press(screen.getAllByRole("switch")[1]);
+    await fireEvent.press(screen.getByText("Choose"));
+    await waitFor(() => expect(screen.getByText("Picked (2)")).toBeTruthy());
+    expect(mediaPicker.requests).toEqual([
+      expect.objectContaining({
+        mediaTypes: ["image", "video"],
+        multiple: true,
+        limit: 3,
+        edit: false,
+      }),
+    ]);
+    expect(screen.getByText("beach.jpg")).toBeTruthy();
+    expect(
+      screen.getByText("1080 × 1440 · 4.2 MB · 12.0 s · video/mp4"),
+    ).toBeTruthy();
+  });
+
+  it("crops one photo, and reports a cancel", async () => {
+    mediaPicker.respondWith({ status: "cancelled" });
+    await render(<MediaPickerPage />, { wrapper: Providers });
+    // Single item: the third switch is the crop.
+    await fireEvent.press(screen.getAllByRole("switch")[1]);
+    await fireEvent.press(screen.getByText("Choose"));
+    await waitFor(() => expect(screen.getByText("Cancelled")).toBeTruthy());
+    expect(mediaPicker.requests).toEqual([
+      expect.objectContaining({ multiple: false, edit: true }),
+    ]);
+  });
+
+  it("shows the result of a pick Android interrupted", async () => {
+    mediaPicker.setPending({
+      status: "picked",
+      assets: [buildPickedMedia({ fileName: "recovered.jpg" })],
+    });
+    await render(<MediaPickerPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("recovered.jpg")).toBeTruthy());
+  });
+});
+
+describe("media library", () => {
+  it("saves a chosen photo, asking for the permission the first time", async () => {
+    await render(<MediaLibraryPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("Not asked")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Choose a photo"));
+    await waitFor(() =>
+      expect(screen.getByText("Choose another")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Save to Photos"));
+    await waitFor(() => expect(screen.getByText("Saved")).toBeTruthy());
+    expect(screen.getByText("mock-asset-1")).toBeTruthy();
+    expect(mediaLibrary.saved).toEqual([buildPickedMedia().uri]);
+    expect(mediaLibrary.permissionRequests).toBe(1);
+  });
+
+  it("answers denied once refused, and points to the settings", async () => {
+    mediaLibrary = createMockMediaLibraryAdapter({ permission: "denied" });
+    await render(<MediaLibraryPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getByText("Open settings")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Choose a photo"));
+    await waitFor(() =>
+      expect(screen.getByText("Choose another")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Save to Photos"));
+    await waitFor(() =>
+      expect(screen.getAllByText("Denied").length).toBeGreaterThan(0),
+    );
+    expect(mediaLibrary.saved).toEqual([]);
+    expect(mediaLibrary.permissionRequests).toBe(0);
+  });
+
+  it("says where no permission is needed, and where there is no library", async () => {
+    mediaLibrary = createMockMediaLibraryAdapter({ gated: false });
+    const { unmount } = await render(<MediaLibraryPage />, {
+      wrapper: Providers,
+    });
+    expect(
+      screen.getByText("Not required on this device: isRequired is false."),
+    ).toBeTruthy();
+    await unmount();
+
+    mediaLibrary = createMockMediaLibraryAdapter({ supported: false });
+    await render(<MediaLibraryPage />, { wrapper: Providers });
+    expect(screen.getByText("No photo library here")).toBeTruthy();
   });
 });

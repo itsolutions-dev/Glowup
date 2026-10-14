@@ -21,6 +21,7 @@ const DEFAULT_MICROPHONE_TEXT =
 const DEFAULT_FACE_ID_TEXT = "Allow $(PRODUCT_NAME) to use Face ID.";
 const DEFAULT_MOTION_TEXT =
   "Allow $(PRODUCT_NAME) to use your motion and fitness data.";
+const DEFAULT_SAVE_TEXT = "Allow $(PRODUCT_NAME) to save photos and videos.";
 
 function placeholder(option, text) {
   console.warn(
@@ -153,12 +154,66 @@ function withSensors(config, options) {
   return config;
 }
 
+/**
+ * Picking needs no permission on either platform. Android: removes CAMERA,
+ * which expo-image-picker's manifest declares for its camera capture (not
+ * exposed here), and RECORD_AUDIO, which its plugin adds — unless `camera`
+ * is listed and needs them (RECORD_AUDIO with `recordAudio: true`). iOS
+ * keeps expo's purpose strings for the photo library, the camera and the
+ * microphone (or `camera`'s texts): its binary references those APIs, which
+ * App Store Connect flags without them (ITMS-90683), though picking never
+ * prompts.
+ */
+function withMediaPicker(config, _options, all) {
+  const camera = all.camera !== undefined && all.camera !== false;
+  const recordAudio = camera && all.camera.recordAudio === true;
+  config = loadPlugin("expo-image-picker", "mediaPicker")(config, {});
+  return AndroidConfig.Permissions.withBlockedPermissions(
+    config,
+    [
+      !camera && "android.permission.CAMERA",
+      !recordAudio && "android.permission.RECORD_AUDIO",
+    ].filter(Boolean),
+  );
+}
+
+/**
+ * iOS: the add-only purpose string, which the save prompt shows (and whose
+ * absence crashes it). The full-library string stays expo's: the binary
+ * references those APIs (ITMS-90683), though saving never asks for them.
+ * Android: no media read permission. expo-media-library's plugin adds
+ * READ_MEDIA_IMAGES, READ_MEDIA_VIDEO and READ_MEDIA_AUDIO by default and
+ * its manifest READ_MEDIA_VISUAL_USER_SELECTED; Google Play accepts them
+ * only for apps whose core feature is browsing the library. Saving needs
+ * none of them (WRITE_EXTERNAL_STORAGE, which Android 10 and earlier need,
+ * stays).
+ */
+function withMediaLibrary(config, options) {
+  const text =
+    options.savePermission ??
+    placeholder("mediaLibrary.savePermission", DEFAULT_SAVE_TEXT);
+  config = loadPlugin("expo-media-library", "mediaLibrary")(config, {
+    savePhotosPermission: text,
+    granularPermissions: [],
+    isAccessMediaLocationEnabled: false,
+  });
+  return AndroidConfig.Permissions.withBlockedPermissions(config, [
+    "android.permission.READ_MEDIA_IMAGES",
+    "android.permission.READ_MEDIA_VIDEO",
+    "android.permission.READ_MEDIA_AUDIO",
+    "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+    "android.permission.ACCESS_MEDIA_LOCATION",
+  ]);
+}
+
 const CAPABILITIES = {
   location: withLocation,
   camera: withCamera,
   biometrics: withBiometrics,
   secureStore: withSecureStore,
   sensors: withSensors,
+  mediaPicker: withMediaPicker,
+  mediaLibrary: withMediaLibrary,
 };
 
 function withGlowupDevice(config, options = {}) {
@@ -172,7 +227,7 @@ function withGlowupDevice(config, options = {}) {
   for (const [key, apply] of Object.entries(CAPABILITIES)) {
     const value = options[key];
     if (value === undefined || value === false) continue;
-    config = apply(config, value === true ? {} : value);
+    config = apply(config, value === true ? {} : value, options);
   }
   return config;
 }

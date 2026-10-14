@@ -74,6 +74,12 @@ const config: ExpoConfig = {
           motionPermission: "Reads the barometer on the sensors demo page.",
           highSamplingRate: true,
         },
+        // Picking needs no permission; this removes the camera and microphone
+        // permissions expo-image-picker adds (the camera page keeps its own).
+        mediaPicker: true,
+        mediaLibrary: {
+          savePermission: "Saves a copy on the media library demo page.",
+        },
       },
     ],
     [

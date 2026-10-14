@@ -4,6 +4,7 @@ import {
   UNKNOWN,
   UNSUPPORTED,
 } from "../core";
+import { createSystemSheet } from "../core/systemSheet";
 
 describe("toPermissionState", () => {
   it("maps a granted response", () => {
@@ -66,5 +67,33 @@ describe("combinePermissions", () => {
 
   it("treats no parts as unasked", () => {
     expect(combinePermissions()).toEqual(UNKNOWN);
+  });
+});
+
+describe("createSystemSheet", () => {
+  it("counts a sheet open from the synchronous call until it settles", async () => {
+    const sheet = createSystemSheet();
+    let finish!: () => void;
+    let openWhileCalled: boolean | undefined;
+    const running = sheet.run(() => {
+      openWhileCalled = sheet.isOpen();
+      return new Promise<void>((resolve) => (finish = resolve));
+    });
+    // Reached synchronously, already counted.
+    expect(openWhileCalled).toBe(true);
+    const second = sheet.run(async () => "x");
+    await expect(second).resolves.toBe("x");
+    expect(sheet.isOpen()).toBe(true);
+    finish();
+    await running;
+    expect(sheet.isOpen()).toBe(false);
+  });
+
+  it("closes after a failure", async () => {
+    const sheet = createSystemSheet();
+    await expect(
+      sheet.run(() => Promise.reject(new Error("no"))),
+    ).rejects.toThrow("no");
+    expect(sheet.isOpen()).toBe(false);
   });
 });

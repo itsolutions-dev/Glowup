@@ -5,7 +5,7 @@
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
  *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`,
- *    `/testing`), with its
+ *    `/media-picker`, `/media-library`, `/testing`), with its
  *    own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
@@ -52,6 +52,14 @@ import {
   useSensorPermission,
   type DeviceOrientation,
 } from "@its/glowup-device/sensors";
+import {
+  useMediaLibrary,
+  type SaveResult,
+} from "@its/glowup-device/media-library";
+import {
+  useMediaPicker,
+  type PickResult,
+} from "@its/glowup-device/media-picker";
 import { createMockDeviceInfoAdapter } from "@its/glowup-device/testing";
 import { useRef } from "react";
 
@@ -61,6 +69,8 @@ const KIND: InteractionKind = "press";
 const BUSY: BiometricErrorCode = "busy";
 const INVALIDATED: ProtectedReadResult["status"] = "invalidated";
 const FACE_UP: DeviceOrientation = "face-up";
+const BUSY_PICK: PickResult["status"] = "busy";
+const SAVED: SaveResult["status"] = "saved";
 
 /** The bridge `App.tsx` passes to `ThemeProvider onInteractionFeedback`. */
 export const interactionFeedback: (kind: InteractionKind) => void =
@@ -86,6 +96,8 @@ const Readout = () => {
   const accelerometer = useAccelerometer({ interval: 1000 });
   const held = useDeviceOrientation();
   const motion = useSensorPermission("barometer");
+  const picker = useMediaPicker();
+  const library = useMediaLibrary();
 
   return (
     <>
@@ -124,6 +136,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Sensors ${String(accelerometer.isAvailable)} · z ${accelerometer.reading?.z.toFixed(2) ?? "…"} · ${held.orientation ?? FACE_UP} · motion ${motion.status}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Picker ${String(picker.isSupported)} · picking ${String(picker.isPicking)} · ${BUSY_PICK} · library ${String(library.isSupported)} ${library.status} · ${SAVED}`}
       </Typography>
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />

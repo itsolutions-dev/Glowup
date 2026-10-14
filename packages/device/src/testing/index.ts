@@ -62,3 +62,14 @@ export {
   type MockSensorsAdapter,
   type MockSensorsOptions,
 } from "./sensors";
+export {
+  buildPickedMedia,
+  createMockMediaPickerAdapter,
+  type MockMediaPickerAdapter,
+  type MockMediaPickerOptions,
+} from "./mediaPicker";
+export {
+  createMockMediaLibraryAdapter,
+  type MockMediaLibraryAdapter,
+  type MockMediaLibraryOptions,
+} from "./mediaLibrary";

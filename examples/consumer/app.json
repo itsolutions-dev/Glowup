@@ -29,6 +29,11 @@
           "mediaPicker": true,
           "mediaLibrary": {
             "savePermission": "Checks that the published media library capability configures the app."
+          },
+          "backgroundLocation": {
+            "mode": "foreground-service",
+            "geofencing": true,
+            "alwaysPermission": "Checks that the published background location capability configures the app."
           }
         }
       ]

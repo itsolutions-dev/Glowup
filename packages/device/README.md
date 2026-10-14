@@ -993,6 +993,10 @@ function TripButton() {
 }
 ```
 
+- **With Expo Router**, import the tasks from your own entry file, before the router's:
+  `"main": "./index.ts"` in `package.json`, and in `index.ts` `import "./tasks";` then
+  `import "expo-router/entry";`. A task defined in a route or in `_layout` is missing when the
+  platform runs it without the UI, and expo then unregisters it.
 - **`defineLocationTask(name, handler)`** at module scope, once per name (a second call replaces
   the handler). The handler receives `{ type: "positions", positions }` (several at once when
   batching) or `{ type: "error", error }` (iOS: `permission-denied` when the permission is taken

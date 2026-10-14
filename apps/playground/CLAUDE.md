@@ -77,9 +77,10 @@ cannot fetch a token.
 
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
 capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
-`haptics`, `biometrics`, `secure-store`, `sensors`, `media-picker`, `media-library`). They import only the package's public subpaths. Every capability's native module
+`haptics`, `biometrics`, `secure-store`, `sensors`, `media-picker`, `media-library`,
+`background-location`). They import only the package's public subpaths. Every capability's native module
 (`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`) is a dependency of the
+`expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`) is a dependency of the
 playground because it is the package's peer, and the package's config plugin is listed in
 `app.config.ts` with the playground's purpose strings (`recordAudio: true`: the camera recipe
 records video with sound; `sensors.highSamplingRate: true`: the sensors page's level reads every
@@ -99,6 +100,13 @@ down to `request()`. The media picker page calls `pick()` straight from the pres
 opens its file dialog only inside the gesture) and shows `getPendingResult()` at mount; the
 media library page saves a photo chosen through the picker, and on the web shows its section
 as unsupported (the package's `expo.web.ts` keeps expo-media-library out of the web bundle).
+The background location page's two tasks are defined in `site/backgroundTasks.ts`, imported by
+the playground's own entry file (`index.ts`, `"main"` in `package.json`) before
+`expo-router/entry`: Android runs a task headless and iOS relaunches the app for one, with no
+route mounted, so a task defined in a page or in `_layout` would be missing then (expo
+unregisters a task it cannot find). The handlers write to `site/backgroundLog.ts`, an
+in-memory log the page reads; the plugin lists `backgroundLocation` with the foreground
+service and geofencing.
 
 **Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
 `app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to

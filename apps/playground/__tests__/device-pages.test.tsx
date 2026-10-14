@@ -12,6 +12,7 @@ import { DeviceAdaptersProvider } from "@its/glowup-device";
 import {
   buildGeocodedAddress,
   buildPosition,
+  createMockBackgroundLocationAdapter,
   createMockBatteryAdapter,
   createMockGeocoderAdapter,
   createMockBiometricsAdapter,
@@ -28,6 +29,7 @@ import {
   createMockMediaLibraryAdapter,
   buildPickedMedia,
   OFFLINE_NETWORK,
+  type MockBackgroundLocationAdapter,
   type MockBatteryAdapter,
   type MockGeocoderAdapter,
   type MockBiometricsAdapter,
@@ -58,6 +60,9 @@ import SecureStorePage from "../app/device/secure-store";
 import SensorsPage from "../app/device/sensors";
 import MediaPickerPage from "../app/device/media-picker";
 import MediaLibraryPage from "../app/device/media-library";
+import BackgroundLocationPage from "../app/device/background-location";
+import { clearTaskLog } from "../site/backgroundLog";
+import { SITES_TASK, TRIP_TASK } from "../site/backgroundTasks";
 import { HapticThemeProvider } from "../site/HapticsPreference";
 
 // The pages run on the package's in-memory adapters; the Expo modules behind
@@ -89,6 +94,10 @@ jest.mock("expo-secure-store", () => ({}));
 jest.mock("expo-sensors", () => ({}));
 jest.mock("expo-image-picker", () => ({}));
 jest.mock("expo-media-library", () => ({}));
+jest.mock("expo-task-manager", () => ({
+  defineTask: jest.fn(),
+  getTaskOptionsAsync: jest.fn(),
+}));
 jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => {}),
@@ -121,6 +130,7 @@ let secureStore: MockSecureStoreAdapter;
 let sensors: MockSensorsAdapter;
 let mediaPicker: MockMediaPickerAdapter;
 let mediaLibrary: MockMediaLibraryAdapter;
+let backgroundLocation: MockBackgroundLocationAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -136,6 +146,8 @@ beforeEach(() => {
   sensors = createMockSensorsAdapter();
   mediaPicker = createMockMediaPickerAdapter();
   mediaLibrary = createMockMediaLibraryAdapter();
+  backgroundLocation = createMockBackgroundLocationAdapter();
+  clearTaskLog();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
 });
@@ -166,6 +178,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               sensors,
               mediaPicker,
               mediaLibrary,
+              backgroundLocation,
             }}
           >
             {children}
@@ -192,6 +205,7 @@ it("links the overview to every capability", async () => {
     ["Sensors", "/device/sensors"],
     ["Media picker", "/device/media-picker"],
     ["Media library", "/device/media-library"],
+    ["Background location", "/device/background-location"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -688,5 +702,107 @@ describe("media library", () => {
     mediaLibrary = createMockMediaLibraryAdapter({ supported: false });
     await render(<MediaLibraryPage />, { wrapper: Providers });
     expect(screen.getByText("No photo library here")).toBeTruthy();
+  });
+});
+
+describe("background location", () => {
+  it("records positions through the task and stops", async () => {
+    location.setPermission("granted");
+    await render(<BackgroundLocationPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getAllByText("Stopped")).toHaveLength(2));
+    expect(
+      screen.getByText("Nothing yet. Start one of the two above, then move."),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByText("Start recording"));
+    await waitFor(() =>
+      expect(screen.getByText("Stop recording")).toBeTruthy(),
+    );
+    expect(backgroundLocation.running.get(TRIP_TASK)).toMatchObject({
+      distanceInterval: 10,
+      foregroundService: { title: "Glowup playground" },
+    });
+    await act(() =>
+      backgroundLocation.deliver(TRIP_TASK, [
+        buildPosition({ latitude: 45.46421, longitude: 9.19, accuracy: 12 }),
+      ]),
+    );
+    expect(screen.getByText("45.46421, 9.19000 ± 12 m")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop recording"));
+    await waitFor(() => expect(backgroundLocation.running.size).toBe(0));
+    await fireEvent.press(screen.getByText("Clear"));
+    expect(
+      screen.getByText("Nothing yet. Start one of the two above, then move."),
+    ).toBeTruthy();
+  });
+
+  it("watches a circle around the current position once both permissions are granted", async () => {
+    location.setPermission("granted");
+    location.setPosition(buildPosition({ latitude: 41.9, longitude: 12.5 }));
+    backgroundLocation.setPermission("denied");
+    await render(<BackgroundLocationPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Locate me"));
+    await waitFor(() =>
+      expect(screen.getByText("Centre: 41.90000, 12.50000")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Watch 150 m around me"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Not allowed yet: grant the permissions above (geofencing needs the background one too).",
+        ),
+      ).toBeTruthy(),
+    );
+    backgroundLocation.setPermission("granted");
+    await fireEvent.press(screen.getByText("Watch 150 m around me"));
+    await waitFor(() => expect(screen.getByText("Stop watching")).toBeTruthy());
+    expect(backgroundLocation.geofences.get(SITES_TASK)).toEqual([
+      expect.objectContaining({ id: "here", latitude: 41.9, radius: 150 }),
+    ]);
+    await act(() =>
+      backgroundLocation.deliverGeofence(SITES_TASK, "enter", "here"),
+    );
+    expect(screen.getByText('Entered "here"')).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop watching"));
+    await waitFor(() => expect(backgroundLocation.geofences.size).toBe(0));
+  });
+
+  it("asks for the background permission only after the foreground one", async () => {
+    // The two mocks stand for one OS permission: keep them in step.
+    backgroundLocation = createMockBackgroundLocationAdapter({
+      foregroundPermission: "undetermined",
+    });
+    await render(<BackgroundLocationPage />, { wrapper: Providers });
+    await waitFor(() =>
+      expect(
+        screen.getByText("Asked only after the foreground one"),
+      ).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Allow always"));
+    expect(backgroundLocation.requestCount).toBe(0);
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() =>
+      expect(screen.getByText("Also with the app closed")).toBeTruthy(),
+    );
+  });
+
+  it("says why it cannot start where unsupported", async () => {
+    location.setPermission("granted");
+    backgroundLocation = createMockBackgroundLocationAdapter({
+      supported: false,
+    });
+    await render(<BackgroundLocationPage />, { wrapper: Providers });
+    await waitFor(() => expect(screen.getAllByText("Stopped")).toHaveLength(2));
+    expect(screen.getByText("Start recording")).toBeTruthy();
+    backgroundLocation = createMockBackgroundLocationAdapter();
+    backgroundLocation.failNextStart("unsupported");
+    await render(<BackgroundLocationPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getAllByText("Start recording").at(-1)!);
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Not here: the web has no background location, and a native build needs backgroundLocation in the config plugin.",
+        ),
+      ).toBeTruthy(),
+    );
   });
 });

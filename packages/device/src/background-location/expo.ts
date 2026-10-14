@@ -17,19 +17,22 @@ import type {
   LocationActivityType,
 } from "./types";
 
-const ACCURACY: Record<LocationAccuracy, Location.LocationAccuracy> = {
-  low: Location.LocationAccuracy.Low,
-  balanced: Location.LocationAccuracy.Balanced,
-  high: Location.LocationAccuracy.High,
-  best: Location.LocationAccuracy.Highest,
-};
+// Enum names, read at call time: importing this subpath must not depend on
+// expo-location's enums (an app's test may mock the module partially).
+const ACCURACY: Record<
+  LocationAccuracy,
+  keyof typeof Location.LocationAccuracy
+> = { low: "Low", balanced: "Balanced", high: "High", best: "Highest" };
 
-const ACTIVITY: Record<LocationActivityType, Location.LocationActivityType> = {
-  other: Location.LocationActivityType.Other,
-  automotive: Location.LocationActivityType.AutomotiveNavigation,
-  fitness: Location.LocationActivityType.Fitness,
-  navigation: Location.LocationActivityType.OtherNavigation,
-  airborne: Location.LocationActivityType.Airborne,
+const ACTIVITY: Record<
+  LocationActivityType,
+  keyof typeof Location.LocationActivityType
+> = {
+  other: "Other",
+  automotive: "AutomotiveNavigation",
+  fitness: "Fitness",
+  navigation: "OtherNavigation",
+  airborne: "Airborne",
 };
 
 export function toLocationTaskOptions(
@@ -37,14 +40,16 @@ export function toLocationTaskOptions(
 ): Location.LocationTaskOptions {
   const { foregroundService } = options;
   return {
-    accuracy: ACCURACY[options.accuracy ?? "balanced"],
+    accuracy:
+      Location.LocationAccuracy[ACCURACY[options.accuracy ?? "balanced"]],
     distanceInterval: options.distanceInterval,
     timeInterval: options.timeInterval,
     deferredUpdatesInterval: options.batchInterval,
     deferredUpdatesDistance: options.batchDistance,
     // Said explicitly: expo's iOS consumer defaults it to true.
     pausesUpdatesAutomatically: options.pausesAutomatically ?? false,
-    activityType: ACTIVITY[options.activityType ?? "other"],
+    activityType:
+      Location.LocationActivityType[ACTIVITY[options.activityType ?? "other"]],
     showsBackgroundLocationIndicator: options.showsIndicator ?? false,
     ...(foregroundService && {
       foregroundService: {

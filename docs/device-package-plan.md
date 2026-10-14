@@ -849,14 +849,14 @@ Heading and geocoding (`expo-location` 57.0.21), then background updates and geo
 | L8  | Plugin             | `backgroundLocation: { mode, geofencing }` adds only that mode's permissions and removes task-manager's `fetch` mode.               |
 | L9  | Web                | Heading, background and geofencing unsupported; geocoding only through an adapter the app supplies.                                 |
 
-| Phase | Content                                                                                | Release | Status  |
-| ----- | -------------------------------------------------------------------------------------- | ------- | ------- |
-| 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done    |
-| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done    |
-| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done    |
-| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | done    |
-| 28    | Geofencing                                                                             | `0.8.0` | done    |
-| 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | planned |
+| Phase | Content                                                                                | Release | Status |
+| ----- | -------------------------------------------------------------------------------------- | ------- | ------ |
+| 24    | Heading in `/location`: shared watch, normalisation, mock                              | `0.7.0` | done   |
+| 25    | Geocoding in `/location`: replaceable adapter, normalised errors, mock                 | `0.7.0` | done   |
+| 26    | Playground, `examples/consumer`, changeset, release                                    | `0.7.0` | done   |
+| 27    | `/background-location`: tasks, background updates, background permission, plugin, mock | `0.8.0` | done   |
+| 28    | Geofencing                                                                             | `0.8.0` | done   |
+| 29    | Playground, `examples/consumer`, changeset, release                                    | `0.8.0` | done   |
 
 ### Phase 24 — what landed
 
@@ -1017,6 +1017,31 @@ geofences."`); iOS as the `NSError`'s code. Android's region record keeps `ident
 **To verify on a device:** the starting events on both platforms; how late a transition arrives
 with the screen off; iOS dropping a disabled `exit` through the task's options; Android after a
 reboot (expo-task-manager re-registers the geofences, not verified here).
+
+### Phase 29 — what landed
+
+- Playground: `/device/background-location` (both permissions, recording through the
+  foreground service, a 150 m circle watched around the current position, and the log of what
+  the tasks received), linked from the overview. The tasks live in `site/backgroundTasks.ts`,
+  imported by the playground's own entry file before `expo-router/entry`: a task defined in a
+  route or in `_layout` would be missing when Android runs it headless, and expo unregisters a
+  task it cannot find. The README says the same for apps on Expo Router. `expo-task-manager` is
+  a playground dependency, with `backgroundLocation` (foreground service, geofencing) in its
+  config plugin.
+- Found on the way: the Expo adapter read `LocationActivityType` at module scope, so a test that
+  mocks expo-location partially (the playground's did) failed at import. The enums are now read
+  when the options are converted.
+- `examples/consumer` defines both kinds of task, calls the three hooks and annotates
+  `GeofenceRegion` and `LocationTaskEvent`, and lists `backgroundLocation` in its plugin.
+- Changeset: `@its/glowup-device` minor (`0.8.0`).
+- Consumer smoke on `npm pack` tarballs: `tsc --noEmit`, `expo export -p web`, and
+  `expo config --type introspect`, which applies prebuild's own plugins too: `UIBackgroundModes`
+  is `["location"]` (task-manager's `fetch` removed), with `ACCESS_BACKGROUND_LOCATION`,
+  `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_LOCATION` on Android.
+- Chromium at 1440 and 390 px on the static export, without errors or horizontal scroll: the page
+  reads unsupported on the web.
+- **Expected red run**, as for every release that adds a subpath: until the "Version Packages"
+  merge, master's consumer smoke installs `0.7.0`, which has no `/background-location`.
 
 ## v0.9 — Bluetooth
 

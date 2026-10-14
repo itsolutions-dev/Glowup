@@ -47,8 +47,8 @@ const config: ExpoConfig = {
     // build with APNs / FCM credentials; local notifications work without them.
     "expo-notifications",
     // The /device pages. The package's plugin configures each capability
-    // through its Expo module's own plugin: foreground location only, and the
-    // microphone because the camera recipe records video with sound.
+    // through its Expo module's own plugin, and the microphone because the
+    // camera recipe records video with sound.
     [
       "@its/glowup-device",
       {
@@ -79,6 +79,14 @@ const config: ExpoConfig = {
         mediaPicker: true,
         mediaLibrary: {
           savePermission: "Saves a copy on the media library demo page.",
+        },
+        // The background location page: updates through Android's
+        // foreground service, and geofencing (the background permission).
+        backgroundLocation: {
+          mode: "foreground-service",
+          geofencing: true,
+          alwaysPermission:
+            "Records positions and watches a circle on the background location demo page, also with the app closed.",
         },
       },
     ],

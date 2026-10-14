@@ -6,7 +6,7 @@
  *
  * Runs in Node at prebuild, not in the app: plain CommonJS, no build step.
  */
-const { createRunOncePlugin } = require("expo/config-plugins");
+const { AndroidConfig, createRunOncePlugin } = require("expo/config-plugins");
 
 const pkg = require("./package.json");
 
@@ -19,6 +19,8 @@ const DEFAULT_CAMERA_TEXT = "Allow $(PRODUCT_NAME) to use your camera.";
 const DEFAULT_MICROPHONE_TEXT =
   "Allow $(PRODUCT_NAME) to record sound with your videos.";
 const DEFAULT_FACE_ID_TEXT = "Allow $(PRODUCT_NAME) to use Face ID.";
+const DEFAULT_MOTION_TEXT =
+  "Allow $(PRODUCT_NAME) to use your motion and fitness data.";
 
 function placeholder(option, text) {
   console.warn(
@@ -118,11 +120,45 @@ function withSecureStore(config, options) {
   });
 }
 
+/**
+ * iOS: the Motion & Fitness purpose string, which the barometer needs (and
+ * expo-sensors' permission requester, which crashes the app without it).
+ * `motionPermission: false` leaves it out for an app that never uses the
+ * barometer, which then reads `denied` there. Android: removes
+ * ACTIVITY_RECOGNITION, which expo-sensors' manifest adds for a pedometer
+ * this package does not expose. `highSamplingRate: true` adds
+ * HIGH_SAMPLING_RATE_SENSORS, without which Android 12 and later deliver no
+ * faster than every 200 ms (with it, expo-sensors runs every sensor at full
+ * speed and drops readings in software).
+ */
+function withSensors(config, options) {
+  let motionPermission = options.motionPermission;
+  if (motionPermission === undefined) {
+    console.warn(
+      `${TAG} sensors.motionPermission is not set: using "${DEFAULT_MOTION_TEXT}". ` +
+        "Say why the app reads the barometer before you submit (App Store review " +
+        "rejects generic purpose strings), or set it to false if the app does not.",
+    );
+    motionPermission = DEFAULT_MOTION_TEXT;
+  }
+  config = loadPlugin("expo-sensors", "sensors")(config, { motionPermission });
+  config = AndroidConfig.Permissions.withBlockedPermissions(config, [
+    "android.permission.ACTIVITY_RECOGNITION",
+  ]);
+  if (options.highSamplingRate === true) {
+    config = AndroidConfig.Permissions.withPermissions(config, [
+      "android.permission.HIGH_SAMPLING_RATE_SENSORS",
+    ]);
+  }
+  return config;
+}
+
 const CAPABILITIES = {
   location: withLocation,
   camera: withCamera,
   biometrics: withBiometrics,
   secureStore: withSecureStore,
+  sensors: withSensors,
 };
 
 function withGlowupDevice(config, options = {}) {

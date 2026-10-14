@@ -1,7 +1,12 @@
-import type { Unsubscribe } from "../core/types";
+import type { PermissionState, Unsubscribe } from "../core/types";
 
 export type SensorName =
-  "accelerometer" | "gyroscope" | "magnetometer" | "barometer" | "light";
+  | "accelerometer"
+  | "gyroscope"
+  | "magnetometer"
+  | "barometer"
+  | "light"
+  | "deviceMotion";
 
 /**
  * Every reading carries one. Milliseconds on a monotonic clock that is not
@@ -47,12 +52,27 @@ export interface LightReading extends SensorSample {
   illuminance: number;
 }
 
+/**
+ * The platform's sensor fusion: the accelerometer split into the device's
+ * own movement and gravity, with the rotation rate. Same axes and signs as
+ * the single sensors.
+ */
+export interface DeviceMotionReading extends SensorSample {
+  /** What the user does to the device, without gravity, in m/s². */
+  acceleration: Vector3;
+  /** Gravity alone, in m/s²: lying face up, about `{ x: 0, y: 0, z: 9.81 }`. */
+  gravity: Vector3;
+  /** Rotation rate in rad/s, as `GyroscopeReading`. */
+  rotationRate: Vector3;
+}
+
 export interface SensorReadings {
   accelerometer: AccelerometerReading;
   gyroscope: GyroscopeReading;
   magnetometer: MagnetometerReading;
   barometer: BarometerReading;
   light: LightReading;
+  deviceMotion: DeviceMotionReading;
 }
 
 /**
@@ -76,4 +96,17 @@ export interface SensorsAdapter {
     sensor: S,
     listener: (reading: SensorReadings[S]) => void,
   ): Unsubscribe;
+  /**
+   * Whether the sensor needs the motion permission here (iOS's barometer,
+   * every sensor in iOS Safari). The package opens such a sensor only once
+   * it is granted, and reads the permission for no other.
+   */
+  requiresPermission(sensor: SensorName): boolean;
+  /** Reads the motion permission without prompting. */
+  getPermission(): Promise<PermissionState>;
+  /**
+   * Prompts. On the web it must run in the user's gesture: call it
+   * synchronously from the press handler.
+   */
+  requestPermission(): Promise<PermissionState>;
 }

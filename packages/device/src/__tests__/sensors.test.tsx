@@ -8,6 +8,9 @@ import {
   DEFAULT_SENSOR_INTERVAL,
   useAccelerometer,
   useBarometer,
+  useDeviceMotion,
+  useDeviceOrientation,
+  useSensorPermission,
   useGyroscope,
   useLightSensor,
   useMagnetometer,
@@ -15,8 +18,16 @@ import {
   useSensorListener,
   type SensorsAdapter,
 } from "../sensors";
+import {
+  classifyOrientation,
+  type DeviceOrientation,
+} from "../sensors/deviceOrientation";
 import { getSensorStream } from "../sensors/stream";
-import { createMockSensorsAdapter, type MockSensorsAdapter } from "../testing";
+import {
+  createMockSensorsAdapter,
+  type MockReading,
+  type MockSensorsAdapter,
+} from "../testing";
 
 jest.mock("expo-sensors", () => ({}));
 
@@ -65,7 +76,7 @@ const FLAT = { x: 0, y: 0, z: 9.81 };
 
 async function emit(
   adapter: MockSensorsAdapter,
-  ...readings: Parameters<MockSensorsAdapter["emit"]>[1][]
+  ...readings: MockReading<"accelerometer">[]
 ) {
   await act(async () => {
     readings.forEach((reading) => adapter.emit("accelerometer", reading));
@@ -418,6 +429,197 @@ describe("in the background", () => {
   });
 });
 
+describe("useDeviceMotion", () => {
+  it("reads the fused motion", async () => {
+    const adapter = createMockSensorsAdapter();
+    const { result } = await renderHook(() => useDeviceMotion(), {
+      wrapper: wrapperFor(adapter),
+    });
+    await waitFor(() => expect(adapter.isActive("deviceMotion")).toBe(true));
+    const motion = {
+      acceleration: { x: 0.5, y: 0, z: 0 },
+      gravity: FLAT,
+      rotationRate: { x: 0, y: 0, z: 1 },
+    };
+    await act(async () => adapter.emit("deviceMotion", motion));
+    expect(result.current.reading).toEqual({ ...motion, timestamp: 200 });
+  });
+});
+
+describe("motion permission", () => {
+  const barometer = { pressure: 1000, relativeAltitude: 0 };
+
+  it("opens a gated sensor only once the permission is granted", async () => {
+    const adapter = createMockSensorsAdapter({ gated: ["barometer"] });
+    const { result } = await renderHook(
+      () => ({
+        reading: useBarometer().reading,
+        permission: useSensorPermission("barometer"),
+      }),
+      { wrapper: wrapperFor(adapter) },
+    );
+    await waitFor(() =>
+      expect(result.current.permission.status).toBe("undetermined"),
+    );
+    expect(result.current.permission).toMatchObject({
+      isRequired: true,
+      isLoading: false,
+      canAskAgain: true,
+    });
+    expect(adapter.isActive("barometer")).toBe(false);
+    // Reading it never prompts.
+    expect(adapter.permissionRequests).toBe(0);
+
+    await act(async () => {
+      await result.current.permission.request();
+    });
+    expect(result.current.permission.status).toBe("granted");
+    expect(adapter.isActive("barometer")).toBe(true);
+    await act(async () => adapter.emit("barometer", barometer));
+    expect(result.current.reading?.pressure).toBe(1000);
+  });
+
+  it("prompts synchronously, inside the press that asked", async () => {
+    const adapter = createMockSensorsAdapter({ gated: ["accelerometer"] });
+    const { result } = await renderHook(
+      () => useSensorPermission("accelerometer"),
+      { wrapper: wrapperFor(adapter) },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => {
+      const pending = result.current.request();
+      // Before any await: Safari grants only inside the gesture.
+      expect(adapter.permissionRequests).toBe(1);
+      await pending;
+    });
+  });
+
+  it("never opens a gated sensor that was denied", async () => {
+    const adapter = createMockSensorsAdapter({
+      gated: ["barometer"],
+      requestAnswer: "denied",
+    });
+    const { result } = await renderHook(
+      () => {
+        useBarometer();
+        return useSensorPermission("barometer");
+      },
+      { wrapper: wrapperFor(adapter) },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await act(async () => {
+      await result.current.request();
+    });
+    expect(result.current).toMatchObject({
+      status: "denied",
+      canAskAgain: false,
+    });
+    expect(adapter.isActive("barometer")).toBe(false);
+  });
+
+  it("stops when the permission is revoked in the settings", async () => {
+    const adapter = createMockSensorsAdapter({
+      gated: ["barometer"],
+      permission: "granted",
+    });
+    await renderHook(() => useBarometer(), { wrapper: wrapperFor(adapter) });
+    await waitFor(() => expect(adapter.isActive("barometer")).toBe(true));
+
+    adapter.setPermission("denied");
+    await moveTo("background", "active");
+    await waitFor(() => expect(adapter.isActive("barometer")).toBe(false));
+  });
+
+  it("reads no permission for a sensor that needs none", async () => {
+    const adapter = createMockSensorsAdapter({ gated: ["barometer"] });
+    const getPermission = jest.spyOn(adapter, "getPermission");
+    const { result } = await renderHook(
+      () => ({
+        reading: useAccelerometer({ interval: 0 }),
+        permission: useSensorPermission("accelerometer"),
+      }),
+      { wrapper: wrapperFor(adapter) },
+    );
+    await waitFor(() => expect(adapter.isActive("accelerometer")).toBe(true));
+    expect(result.current.permission).toMatchObject({
+      status: "granted",
+      isRequired: false,
+      isLoading: false,
+    });
+    await expect(result.current.permission.request()).resolves.toEqual({
+      status: "granted",
+      canAskAgain: false,
+    });
+    expect(getPermission).not.toHaveBeenCalled();
+    expect(adapter.permissionRequests).toBe(0);
+  });
+});
+
+describe("useDeviceOrientation", () => {
+  const G = 9.81;
+
+  it("follows how the device is held, re-rendering only on a change", async () => {
+    const adapter = createMockSensorsAdapter();
+    let renders = 0;
+    const { result } = await renderHook(
+      () => {
+        renders++;
+        return useDeviceOrientation();
+      },
+      { wrapper: wrapperFor(adapter) },
+    );
+    await waitFor(() => expect(adapter.isActive("accelerometer")).toBe(true));
+    expect(result.current).toEqual({ isAvailable: true, orientation: null });
+
+    await emit(adapter, { x: 0, y: G, z: 0 });
+    expect(result.current.orientation).toBe("portrait-up");
+    const before = renders;
+    await emit(adapter, { x: 0.3, y: G, z: 0.2 });
+    expect(renders).toBe(before);
+
+    await emit(adapter, { x: G, y: 0, z: 0 });
+    expect(result.current.orientation).toBe("landscape-right");
+  });
+});
+
+describe("classifyOrientation", () => {
+  const G = 9.81;
+  const at = (x: number, y: number, z: number) => ({ x, y, z, timestamp: 0 });
+  const tilt = (degrees: number) => {
+    const r = (degrees * Math.PI) / 180;
+    // From face up towards portrait-up.
+    return at(0, G * Math.sin(r), G * Math.cos(r));
+  };
+
+  it.each<[string, ReturnType<typeof at>, DeviceOrientation]>([
+    ["lying face up", at(0, 0, G), "face-up"],
+    ["lying face down", at(0, 0, -G), "face-down"],
+    ["upright", at(0, G, 0), "portrait-up"],
+    ["upside down", at(0, -G, 0), "portrait-down"],
+    ["on its left edge (right edge up)", at(G, 0, 0), "landscape-right"],
+    ["on its right edge", at(-G, 0, 0), "landscape-left"],
+  ])("reads %s", (_name, reading, expected) => {
+    expect(classifyOrientation(reading, null)).toBe(expected);
+  });
+
+  it("enters within 35° of an axis and keeps the previous answer between", () => {
+    expect(classifyOrientation(tilt(30), null)).toBe("face-up");
+    expect(classifyOrientation(tilt(45), "face-up")).toBe("face-up");
+    expect(classifyOrientation(tilt(45), "portrait-up")).toBe("portrait-up");
+    expect(classifyOrientation(tilt(45), null)).toBeNull();
+    expect(classifyOrientation(tilt(60), "face-up")).toBe("portrait-up");
+  });
+
+  it("ignores a shaken device", () => {
+    expect(classifyOrientation(at(0, 0, 2 * G), "portrait-up")).toBe(
+      "portrait-up",
+    );
+    expect(classifyOrientation(at(0, 0, 0.3 * G), "portrait-up")).toBe(
+      "portrait-up",
+    );
+  });
+});
+
 describe("the mock", () => {
   it("advances the timestamp by the interval and sends nothing while stopped", async () => {
     const adapter = createMockSensorsAdapter();
@@ -435,6 +637,15 @@ describe("the mock", () => {
     expect(seen).toEqual([250, 500, 2000]);
     expect(adapter.isActive("accelerometer")).toBe(false);
     await expect(adapter.isAvailable("light")).resolves.toBe(true);
+  });
+
+  it("keeps a refusal: a request does not ask again", async () => {
+    const adapter = createMockSensorsAdapter({ permission: "denied" });
+    await expect(adapter.requestPermission()).resolves.toEqual({
+      status: "denied",
+      canAskAgain: false,
+    });
+    expect(adapter.permissionRequests).toBe(1);
   });
 });
 
@@ -454,5 +665,26 @@ describe("static export", () => {
     );
     expect(seen).toEqual({ isAvailable: null, reading: null });
     expect(isAvailable).not.toHaveBeenCalled();
+  });
+
+  it("renders the permission as loading on the server", () => {
+    const adapter = createMockSensorsAdapter({ gated: ["barometer"] });
+    const getPermission = jest.spyOn(adapter, "getPermission");
+    let seen: unknown;
+    function Probe() {
+      seen = useSensorPermission("accelerometer");
+      return null;
+    }
+    renderToString(
+      <DeviceAdaptersProvider adapters={{ sensors: adapter }}>
+        <Probe />
+      </DeviceAdaptersProvider>,
+    );
+    expect(seen).toMatchObject({
+      status: "undetermined",
+      isRequired: null,
+      isLoading: true,
+    });
+    expect(getPermission).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 import {
   Accelerometer,
   Barometer,
+  DeviceMotion,
   Gyroscope,
   LightSensor,
   Magnetometer,
@@ -8,7 +9,11 @@ import {
 import { Platform } from "react-native";
 
 import { expoSensorsAdapter } from "../sensors/expo";
-import { PROBE_TIMEOUT, webSensorsAdapter } from "../sensors/web";
+import {
+  createWebSensorsAdapter,
+  PROBE_TIMEOUT,
+  webSensorsAdapter,
+} from "../sensors/web";
 
 jest.mock("expo-sensors", () => {
   const sensor = () => {
@@ -29,6 +34,19 @@ jest.mock("expo-sensors", () => {
     Magnetometer: sensor(),
     Barometer: sensor(),
     LightSensor: sensor(),
+    DeviceMotion: {
+      ...sensor(),
+      getPermissionsAsync: jest.fn(async () => ({
+        status: "undetermined",
+        granted: false,
+        canAskAgain: true,
+      })),
+      requestPermissionsAsync: jest.fn(async () => ({
+        status: "granted",
+        granted: true,
+        canAskAgain: false,
+      })),
+    },
   };
 });
 
@@ -119,6 +137,124 @@ describe("expoSensorsAdapter", () => {
       .mockReturnValueOnce(undefined as never);
     const stop = expoSensorsAdapter.subscribe("light", () => {});
     expect(stop).not.toThrow();
+  });
+
+  describe("device motion", () => {
+    // A phone lying face up, pushed along +x at 1 m/s², turning around z
+    // at 90 deg/s, as each platform's expo build reports it.
+    const ios = {
+      acceleration: { x: -1, y: 0, z: 0, timestamp: 4 },
+      accelerationIncludingGravity: { x: -1, y: 0, z: -9.80665, timestamp: 4 },
+      rotationRate: { alpha: 90, beta: 0, gamma: 0, timestamp: 4 },
+    };
+    const android = {
+      acceleration: { x: 1, y: 0, z: 0, timestamp: 4 },
+      // accel - 2 * gravity
+      accelerationIncludingGravity: { x: 1, y: 0, z: -9.80665, timestamp: 4 },
+      rotationRate: { alpha: 0, beta: 0, gamma: 90, timestamp: 4 },
+    };
+    const expected = {
+      acceleration: { x: 1, y: 0, z: 0 },
+      gravity: { x: 0, y: 0, z: 9.80665 },
+      rotationRate: { x: 0, y: 0, z: Math.PI / 2 },
+      timestamp: 4000,
+    };
+
+    it.each([
+      ["ios", ios],
+      ["android", android],
+    ] as const)("reads %s's the same way", (os, raw) => {
+      jest.replaceProperty(Platform, "OS", os);
+      const { readings, stop } = collect("deviceMotion");
+      send(DeviceMotion, raw);
+      stop();
+      expect(readings).toHaveLength(1);
+      const [reading] = readings as (typeof expected)[];
+      expect(reading).toEqual({ ...reading, timestamp: 4000 });
+      for (const part of ["acceleration", "gravity", "rotationRate"] as const) {
+        for (const axis of ["x", "y", "z"] as const) {
+          expect(reading[part][axis]).toBeCloseTo(expected[part][axis]);
+        }
+      }
+      // An inverted zero is 0, not -0.
+      expect(Object.is(reading.acceleration.y, 0)).toBe(true);
+    });
+
+    it("maps each rotation axis on iOS", () => {
+      jest.replaceProperty(Platform, "OS", "ios");
+      const { readings, stop } = collect("deviceMotion");
+      send(DeviceMotion, {
+        ...ios,
+        rotationRate: { alpha: 180, beta: 90, gamma: 45, timestamp: 4 },
+      });
+      stop();
+      const { rotationRate } = readings[0] as typeof expected;
+      expect(rotationRate.x).toBeCloseTo(Math.PI / 4);
+      expect(rotationRate.y).toBeCloseTo(Math.PI / 2);
+      expect(rotationRate.z).toBeCloseTo(Math.PI);
+    });
+
+    it("maps each rotation axis on Android", () => {
+      jest.replaceProperty(Platform, "OS", "android");
+      const { readings, stop } = collect("deviceMotion");
+      send(DeviceMotion, {
+        ...android,
+        rotationRate: { alpha: 180, beta: 90, gamma: 45, timestamp: 4 },
+      });
+      stop();
+      const { rotationRate } = readings[0] as typeof expected;
+      expect(rotationRate.x).toBeCloseTo(Math.PI);
+      expect(rotationRate.y).toBeCloseTo(Math.PI / 2);
+      expect(rotationRate.z).toBeCloseTo(Math.PI / 4);
+    });
+
+    it("skips a reading missing a part", () => {
+      const { readings, stop } = collect("deviceMotion");
+      send(DeviceMotion, {
+        ...android,
+        accelerationIncludingGravity: undefined,
+      });
+      send(DeviceMotion, { ...android, acceleration: null });
+      send(DeviceMotion, { ...android, rotationRate: null });
+      stop();
+      expect(readings).toEqual([]);
+    });
+  });
+
+  describe("permission", () => {
+    it("is iOS's Motion & Fitness, for the barometer only", async () => {
+      jest.replaceProperty(Platform, "OS", "ios");
+      expect(expoSensorsAdapter.requiresPermission("barometer")).toBe(true);
+      expect(expoSensorsAdapter.requiresPermission("accelerometer")).toBe(
+        false,
+      );
+      await expect(expoSensorsAdapter.getPermission()).resolves.toEqual({
+        status: "undetermined",
+        canAskAgain: true,
+      });
+      await expect(expoSensorsAdapter.requestPermission()).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+    });
+
+    it("is not needed on Android, and never read there", async () => {
+      jest.replaceProperty(Platform, "OS", "android");
+      jest.mocked(DeviceMotion.getPermissionsAsync).mockClear();
+      jest.mocked(DeviceMotion.requestPermissionsAsync).mockClear();
+      expect(expoSensorsAdapter.requiresPermission("barometer")).toBe(false);
+      await expect(expoSensorsAdapter.getPermission()).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+      await expect(expoSensorsAdapter.requestPermission()).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+      // expo's Android request asks for ACTIVITY_RECOGNITION.
+      expect(DeviceMotion.getPermissionsAsync).not.toHaveBeenCalled();
+      expect(DeviceMotion.requestPermissionsAsync).not.toHaveBeenCalled();
+    });
   });
 
   it("sets a whole number of milliseconds", () => {
@@ -253,6 +389,125 @@ describe("webSensorsAdapter", () => {
     fire({ accelerationIncludingGravity: { x: 0, y: 0, z: 9.8 } });
     jest.advanceTimersByTime(PROBE_TIMEOUT);
     await expect(answer).resolves.toBe(false);
+  });
+
+  it("reads device motion, gravity apart", () => {
+    const readings: unknown[] = [];
+    const stop = webSensorsAdapter.subscribe("deviceMotion", (r) =>
+      readings.push(r),
+    );
+    fire({
+      timeStamp: 9,
+      acceleration: { x: 1, y: 0, z: 0 },
+      accelerationIncludingGravity: { x: 1, y: 0, z: 9.8 },
+      rotationRate: { alpha: 0, beta: 0, gamma: 0 },
+    } as never);
+    // Chrome on a laptop: no acceleration without gravity.
+    fire({
+      acceleration: null,
+      accelerationIncludingGravity: { x: 0, y: 0, z: 9.8 },
+      rotationRate: { alpha: 0, beta: 0, gamma: 0 },
+    } as never);
+    fire({
+      acceleration: { x: 1, y: 0, z: 0 },
+      accelerationIncludingGravity: { x: 1, y: 0, z: 9.8 },
+    } as never);
+    fire({
+      acceleration: { x: 1, y: 0, z: 0 },
+      rotationRate: { alpha: 0, beta: 0, gamma: 0 },
+    } as never);
+    stop();
+    expect(readings).toEqual([
+      {
+        acceleration: { x: 1, y: 0, z: 0 },
+        gravity: { x: 0, y: 0, z: 9.8 },
+        rotationRate: { x: 0, y: 0, z: 0 },
+        timestamp: 9,
+      },
+    ]);
+  });
+
+  describe("permission", () => {
+    let request: jest.Mock;
+    beforeEach(() => {
+      request = jest.fn(async () => "granted");
+      Object.assign(
+        (globalThis as { DeviceMotionEvent: object }).DeviceMotionEvent,
+        { requestPermission: request },
+      );
+    });
+
+    it("needs none without iOS Safari's prompt", async () => {
+      delete (
+        globalThis as { DeviceMotionEvent: { requestPermission?: unknown } }
+      ).DeviceMotionEvent.requestPermission;
+      const adapter = createWebSensorsAdapter();
+      expect(adapter.requiresPermission("accelerometer")).toBe(false);
+      await expect(adapter.getPermission()).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+      await expect(adapter.requestPermission()).resolves.toMatchObject({
+        status: "granted",
+      });
+    });
+
+    it("is unsupported without motion events", async () => {
+      delete (globalThis as { DeviceMotionEvent?: unknown }).DeviceMotionEvent;
+      await expect(createWebSensorsAdapter().getPermission()).resolves.toEqual({
+        status: "unsupported",
+        canAskAgain: false,
+      });
+    });
+
+    it("gates the motion sensors behind iOS Safari's prompt", async () => {
+      const adapter = createWebSensorsAdapter();
+      expect(adapter.requiresPermission("accelerometer")).toBe(true);
+      expect(adapter.requiresPermission("gyroscope")).toBe(true);
+      expect(adapter.requiresPermission("deviceMotion")).toBe(true);
+      expect(adapter.requiresPermission("barometer")).toBe(false);
+      // Nothing to probe before the prompt: assumed present.
+      await expect(adapter.isAvailable("accelerometer")).resolves.toBe(true);
+      expect(motionListeners.size).toBe(0);
+      await expect(adapter.getPermission()).resolves.toEqual({
+        status: "undetermined",
+        canAskAgain: true,
+      });
+    });
+
+    it("asks synchronously and remembers the answer", async () => {
+      const adapter = createWebSensorsAdapter();
+      const answer = adapter.requestPermission();
+      expect(request).toHaveBeenCalledTimes(1);
+      await expect(answer).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+      await expect(adapter.getPermission()).resolves.toEqual({
+        status: "granted",
+        canAskAgain: false,
+      });
+    });
+
+    it("reads a refusal as final", async () => {
+      request.mockResolvedValueOnce("denied");
+      const adapter = createWebSensorsAdapter();
+      await expect(adapter.requestPermission()).resolves.toEqual({
+        status: "denied",
+        canAskAgain: false,
+      });
+    });
+
+    it("rejects as Safari does outside a gesture", async () => {
+      request.mockRejectedValueOnce(new Error("NotAllowedError"));
+      const adapter = createWebSensorsAdapter();
+      await expect(adapter.requestPermission()).rejects.toThrow(
+        "NotAllowedError",
+      );
+      await expect(adapter.getPermission()).resolves.toMatchObject({
+        status: "undetermined",
+      });
+    });
   });
 
   it("is unavailable when no event comes in time", async () => {

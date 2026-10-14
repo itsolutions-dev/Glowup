@@ -1,4 +1,8 @@
-import type { Unsubscribe } from "../core/types";
+import type {
+  PermissionState,
+  PermissionStatus,
+  Unsubscribe,
+} from "../core/types";
 import type {
   SensorName,
   SensorReadings,
@@ -10,6 +14,15 @@ export interface MockSensorsOptions {
   supported?: boolean;
   /** Which sensors the device has. Default: all of them. */
   available?: Partial<Record<SensorName, boolean>>;
+  /**
+   * The sensors that need the motion permission, as iOS's barometer or
+   * iOS Safari's motion sensors do. Default: none.
+   */
+  gated?: readonly SensorName[];
+  /** The motion permission. Default `"undetermined"`. */
+  permission?: PermissionStatus;
+  /** What a request answers. Default `"granted"`. */
+  requestAnswer?: "granted" | "denied";
 }
 
 /** A reading without its timestamp, or with one to set it explicitly. */
@@ -29,6 +42,10 @@ export interface MockSensorsAdapter extends SensorsAdapter {
    * interval, so every reader set to that interval receives it.
    */
   emit<S extends SensorName>(sensor: S, reading: MockReading<S>): void;
+  /** How many times the permission was requested. */
+  readonly permissionRequests: number;
+  /** Changes the permission as the system settings would (read on the next refresh). */
+  setPermission(status: PermissionStatus): void;
 }
 
 /**
@@ -36,16 +53,39 @@ export interface MockSensorsAdapter extends SensorsAdapter {
  * `<DeviceAdaptersProvider adapters={{ sensors }}>` and drive it with
  * `emit()`.
  */
+const toState = (status: PermissionStatus): PermissionState => ({
+  status,
+  canAskAgain: status === "undetermined",
+});
+
 export function createMockSensorsAdapter({
   supported = true,
   available = {},
+  gated = [],
+  permission = "undetermined",
+  requestAnswer = "granted",
 }: MockSensorsOptions = {}): MockSensorsAdapter {
+  let current = permission;
+  let requests = 0;
   const intervals: Partial<Record<SensorName, number>> = {};
   const listeners = new Map<SensorName, Set<(reading: never) => void>>();
   const clocks: Partial<Record<SensorName, number>> = {};
 
   return {
     intervals,
+    get permissionRequests() {
+      return requests;
+    },
+    setPermission(status) {
+      current = status;
+    },
+    requiresPermission: (sensor) => gated.includes(sensor),
+    getPermission: async () => toState(current),
+    async requestPermission() {
+      requests++;
+      if (current === "undetermined") current = requestAnswer;
+      return toState(current);
+    },
     isSupported: () => supported,
     isAvailable: async (sensor) => available[sensor] ?? true,
     setInterval(sensor, interval) {

@@ -1,12 +1,25 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { usePermissionSnapshot } from "../core/permissionStore";
+import type { PermissionState } from "../core/types";
+import {
+  classifyOrientation,
+  type DeviceOrientation,
+} from "./deviceOrientation";
 import { expoSensorsAdapter } from "./expo";
-import { getAvailability, getSensorStream } from "./stream";
+import { getAvailability, getPermissionStore, getSensorStream } from "./stream";
 import type {
   AccelerometerReading,
   BarometerReading,
+  DeviceMotionReading,
   GyroscopeReading,
   LightReading,
   MagnetometerReading,
@@ -64,6 +77,67 @@ export function useSensorAvailability(sensor: SensorName): boolean | null {
     availability.getSnapshot,
     getServerAvailability,
   );
+}
+
+const subscribeNothing = () => () => {};
+const getServerRequired = () => null;
+
+const GRANTED: PermissionState = { status: "granted", canAskAgain: false };
+const resolveGranted = async () => GRANTED;
+
+export interface UseSensorPermission extends PermissionState {
+  /**
+   * Whether the sensor needs the motion permission here: iOS's barometer
+   * (Motion & Fitness) and every sensor in iOS Safari. Where it does not,
+   * the permission reads `granted`. `null` while a static page hydrates.
+   */
+  isRequired: boolean | null;
+  /** True until the first read answers. */
+  isLoading: boolean;
+  /**
+   * Shows the prompt. On the web call it synchronously from a press
+   * handler: Safari grants only inside the user's gesture.
+   */
+  request: () => Promise<PermissionState>;
+  /** Re-reads it. The hook already does when the app returns to the foreground. */
+  refresh: () => Promise<PermissionState>;
+}
+
+/**
+ * The motion permission a sensor needs, if any, shared by every component.
+ * The sensor hooks never prompt: a sensor that needs it opens once it is
+ * granted, and reads nothing until then.
+ */
+export function useSensorPermission(sensor: SensorName): UseSensorPermission {
+  const adapter = useSensorsAdapter();
+  const getRequired = useCallback(
+    () => adapter.requiresPermission(sensor),
+    [adapter, sensor],
+  );
+  const isRequired = useSyncExternalStore(
+    subscribeNothing,
+    getRequired,
+    getServerRequired,
+  );
+  const store = getPermissionStore(adapter);
+  const state = usePermissionSnapshot(isRequired ? store : null);
+
+  if (isRequired === false) {
+    return {
+      ...GRANTED,
+      isRequired,
+      isLoading: false,
+      request: resolveGranted,
+      refresh: resolveGranted,
+    };
+  }
+  return {
+    ...(state ?? { status: "undetermined", canAskAgain: true }),
+    isRequired,
+    isLoading: state === null,
+    request: store.request,
+    refresh: store.refresh,
+  };
 }
 
 /**
@@ -136,8 +210,9 @@ export function useMagnetometer(
 }
 
 /**
- * Air pressure in hPa, and on iOS the altitude change. Native only; iOS
- * ignores the interval.
+ * Air pressure in hPa, and on iOS the altitude change. Native only. iOS
+ * ignores the interval and needs Motion & Fitness: see
+ * `useSensorPermission("barometer")`.
  */
 export function useBarometer(
   options?: SensorOptions,
@@ -150,4 +225,49 @@ export function useLightSensor(
   options?: SensorOptions,
 ): UseSensor<LightReading> {
   return useSensor("light", options);
+}
+
+/**
+ * The platform's sensor fusion: the user's acceleration and gravity apart,
+ * with the rotation rate. Needs a gyroscope (on Android, every sensor the
+ * fusion uses).
+ */
+export function useDeviceMotion(
+  options?: SensorOptions,
+): UseSensor<DeviceMotionReading> {
+  return useSensor("deviceMotion", options);
+}
+
+export interface UseDeviceOrientation {
+  /** Whether there is an accelerometer; `null` until known. */
+  isAvailable: boolean | null;
+  /** `null` until a reading shows one clearly. */
+  orientation: DeviceOrientation | null;
+}
+
+/**
+ * How the device is held (not how the interface is drawn: see
+ * `/orientation`), from the accelerometer alone. Re-renders only when it
+ * changes; a phone tilted halfway keeps its previous answer.
+ */
+export function useDeviceOrientation(
+  options?: SensorOptions,
+): UseDeviceOrientation {
+  const [orientation, setOrientation] = useState<DeviceOrientation | null>(
+    null,
+  );
+  // Compared here, not in a state updater: React may render once to find
+  // out an updater changed nothing.
+  const last = useRef<DeviceOrientation | null>(null);
+  const { isAvailable } = useSensorListener(
+    "accelerometer",
+    (reading) => {
+      const next = classifyOrientation(reading, last.current);
+      if (next === last.current) return;
+      last.current = next;
+      setOrientation(next);
+    },
+    options,
+  );
+  return { isAvailable, orientation };
 }

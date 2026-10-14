@@ -126,6 +126,13 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   replaced in the same commit does not restart it. On web `web.ts` on `devicemotion`, not
   expo-sensors' web build (it sends orientation angles as the accelerometer and acceleration
   as the gyroscope); availability there is a probe for an event carrying the sensor's data.
+  The motion permission gates a sensor per platform (`adapter.requiresPermission`: iOS's
+  barometer, iOS Safari's motion sensors): the stream opens it only once granted and never
+  prompts; the permission is read for no other sensor, because expo's iOS requester crashes
+  without `NSMotionUsageDescription`. `request()` must stay synchronous down to
+  `DeviceMotionEvent.requestPermission()` (Safari grants only inside the gesture).
+  `useDeviceOrientation` classifies gravity with a 35°/55° hysteresis and keeps its last answer
+  in a ref (an updater returning the same value still renders once).
 - **Config plugin** (`app.plugin.js`): plain CommonJS run at prebuild. A capability's Expo
   plugin is required only when the app lists it; an unknown key throws. Its test
   (`__tests__/plugin.test.ts`) compiles the mods in introspection mode, so assert on the

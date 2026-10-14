@@ -28,21 +28,21 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                            | Needs                             | Exports                                                                                                      |
-| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `@its/glowup-device`              | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                  |
-| `@its/glowup-device/info`         | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                              |
-| `@its/glowup-device/location`     | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                            |
-| `@its/glowup-device/camera`       | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                          |
-| `@its/glowup-device/network`      | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                  |
-| `@its/glowup-device/battery`      | `expo-battery`                    | `useBattery`                                                                                                 |
-| `@its/glowup-device/keep-awake`   | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                                                                        |
-| `@its/glowup-device/orientation`  | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                          |
-| `@its/glowup-device/haptics`      | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                                                               |
-| `@its/glowup-device/biometrics`   | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                                |
-| `@its/glowup-device/secure-store` | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                       |
-| `@its/glowup-device/sensors`      | `expo-sensors`                    | `useAccelerometer`, `useGyroscope`, `useMagnetometer`, `useBarometer`, `useLightSensor`, `useSensorListener` |
-| `@its/glowup-device/testing`      | nothing native                    | in-memory adapters for every capability                                                                      |
+| Import                            | Needs                             | Exports                                                                                                    |
+| --------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `@its/glowup-device`              | nothing native                    | `DeviceAdaptersProvider`, `PermissionState`                                                                |
+| `@its/glowup-device/info`         | `expo-device`, `expo-application` | `useDeviceInfo`                                                                                            |
+| `@its/glowup-device/location`     | `expo-location`                   | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`                                          |
+| `@its/glowup-device/camera`       | `expo-camera`                     | `CameraView`, `useCameraPermission`                                                                        |
+| `@its/glowup-device/network`      | `@react-native-community/netinfo` | `useNetwork`, `useIsOnline`                                                                                |
+| `@its/glowup-device/battery`      | `expo-battery`                    | `useBattery`                                                                                               |
+| `@its/glowup-device/keep-awake`   | `expo-keep-awake`                 | `useKeepAwake`, `useKeepAwakeSupport`                                                                      |
+| `@its/glowup-device/orientation`  | `expo-screen-orientation`         | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                        |
+| `@its/glowup-device/haptics`      | `expo-haptics`                    | `useHaptics`, `hapticFeedback`                                                                             |
+| `@its/glowup-device/biometrics`   | `expo-local-authentication`       | `useBiometrics`, `useAppLock`                                                                              |
+| `@its/glowup-device/secure-store` | `expo-secure-store`               | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                     |
+| `@its/glowup-device/sensors`      | `expo-sensors`                    | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission` |
+| `@its/glowup-device/testing`      | nothing native                    | in-memory adapters for every capability                                                                    |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -618,8 +618,8 @@ switch (read.status) {
 
 ## Sensors
 
-Accelerometer, gyroscope, magnetometer, barometer and light sensor, in the same units and axes
-on every platform.
+Accelerometer, gyroscope, magnetometer, barometer, light sensor, device motion and how the
+device is held, in the same units and axes on every platform.
 
 ```bash
 npx expo install expo-sensors
@@ -658,12 +658,66 @@ function LevelIndicator({ visible }: { visible: boolean }) {
 - **`isAvailable`** is `null` until known (and while a static page hydrates), then whether the
   device has the sensor. A sensor that is not there is never opened.
 - **Platforms:** the light sensor is Android only; the barometer's `relativeAltitude` iOS only
-  (`null` on Android). On iOS the barometer asks for Motion & Fitness the first time it starts.
+  (`null` on Android).
 - **Web** reads the accelerometer and gyroscope from the DeviceMotion events (HTTPS only);
   the magnetometer, barometer and light sensor are unavailable. expo-sensors' web build is not
   used: it sends orientation angles as the accelerometer and acceleration as the gyroscope.
-  iOS Safari sends nothing until the user grants motion access (the sensor reads unavailable
-  until then).
+  iOS Safari sends nothing until the user grants motion access.
+
+### Device motion and orientation
+
+```tsx
+import {
+  useDeviceMotion,
+  useDeviceOrientation,
+} from "@its/glowup-device/sensors";
+
+const { reading } = useDeviceMotion({ interval: 50 });
+// reading.acceleration: the user's, gravity removed; reading.gravity; reading.rotationRate
+
+const { orientation } = useDeviceOrientation();
+// "portrait-up" | "portrait-down" | "landscape-left" | "landscape-right" | "face-up" | "face-down"
+```
+
+- **`useDeviceMotion`** is the platform's sensor fusion: the acceleration the user gives the
+  device apart from gravity, and the rotation rate, in the units above. It needs a gyroscope;
+  on Android, every sensor the fusion uses. There is no attitude: expo's iOS and Android
+  angles start from axes 90° apart, and the web has none. Read tilt from `gravity`; a compass
+  heading belongs to location.
+- **`useDeviceOrientation`** is how the device is held, whatever the interface does: a
+  portrait-locked app still reads `landscape-left` when the phone is turned (useful to rotate a
+  camera's controls). Its landscape sides are named as `/orientation` names the interface
+  orientation the app would take. It needs only the accelerometer, re-renders only when the
+  answer changes and keeps its previous answer while the phone is tilted halfway (35°–55°
+  from an axis) or shaken.
+
+### Motion permission
+
+```tsx
+import { useBarometer, useSensorPermission } from "@its/glowup-device/sensors";
+
+function Altimeter() {
+  const permission = useSensorPermission("barometer");
+  const { reading } = useBarometer();
+  if (permission.status === "undetermined") {
+    // On the web, call request() directly from the press handler.
+    return <Button onPress={permission.request}>Allow motion data</Button>;
+  }
+  return <Text>{reading ? `${reading.pressure.toFixed(1)} hPa` : "…"}</Text>;
+}
+```
+
+- **Which sensors need it:** iOS's barometer (Motion & Fitness) and, in iOS Safari, the
+  accelerometer, gyroscope and device motion. Everywhere else `useSensorPermission` reads
+  `granted` with `isRequired: false`, without asking the platform.
+- **The sensor hooks never prompt.** A sensor that needs the permission opens once it is
+  granted and reads nothing until then; it is read again when the app returns to the
+  foreground.
+- **On the web, `request()` must run in the user's gesture:** Safari refuses it otherwise. The
+  package calls Safari synchronously, so pass `request` as the press handler or call it before
+  any `await`. Safari cannot be asked what it answered: a page reload forgets it.
+- **iOS needs `NSMotionUsageDescription`** (the config plugin's `sensors.motionPermission`):
+  expo-sensors' permission check crashes the app without it.
 
 ## Config plugin
 
@@ -685,6 +739,7 @@ plugins: [
       },
       biometrics: { faceIDPermission: "Unlocks your saved cards." },
       secureStore: true,
+      sensors: { motionPermission: "Counts the floors you climb." },
     },
   ],
 ],
@@ -703,6 +758,12 @@ plugins: [
   a restored item could not be decrypted, its key never leaves the device);
   `androidBackupRules: false` leaves the backup rules to you. On iOS it writes Face ID's purpose
   string for protected items: `faceIDPermission`, or the `biometrics` one when both are listed.
+- **Sensors** sets the Motion & Fitness purpose string, which the iOS barometer needs
+  (`motionPermission: false` leaves it out for an app that never reads the barometer, which then
+  reads `denied` there), and removes Android's `ACTIVITY_RECOGNITION`, which expo-sensors adds for
+  a pedometer this package does not expose. `highSamplingRate: true` adds
+  `HIGH_SAMPLING_RATE_SENSORS`, without which Android 12 and later deliver no faster than every
+  200 ms. Unlisted, prebuild still applies expo-sensors' own plugin with its English text.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -803,4 +864,7 @@ enrolled biometrics would.
 `createMockSensorsAdapter()` has every sensor (`{ available: { light: false } }` removes one);
 `emit("accelerometer", { x: 0, y: 0, z: 9.81 })` sends a reading to every listening component,
 its timestamp advancing by the sensor's interval unless given. `intervals` holds the rate the
-package asked for and `isActive("gyroscope")` whether it is listening.
+package asked for and `isActive("gyroscope")` whether it is listening. `{ gated: ["barometer"],
+permission: "undetermined" }` makes a sensor wait for the motion permission; a request answers
+`requestAnswer` (default `"granted"`), `setPermission("denied")` changes it as the settings would
+and `permissionRequests` counts the prompts.

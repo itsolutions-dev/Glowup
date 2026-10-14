@@ -1,6 +1,11 @@
 import { AppState, type NativeEventSubscription } from "react-native";
 
-import type { Unsubscribe } from "../core/types";
+import {
+  createPermissionStore,
+  type PermissionStore,
+} from "../core/permissionStore";
+import { UNKNOWN, UNSUPPORTED } from "../core/permissions";
+import type { PermissionState, Unsubscribe } from "../core/types";
 import type { SensorName, SensorReadings, SensorsAdapter } from "./types";
 
 /** Whether a sensor exists, asked once per adapter and sensor. */
@@ -70,6 +75,10 @@ export interface SensorStream<R> {
  * only once the sensor is known to exist, and stops while the app is in the
  * background (iOS keeps CoreMotion running there; `inactive` is not left).
  *
+ * A sensor that needs the motion permission opens only once it is granted
+ * (read, never asked: only `useSensorPermission().request()` prompts), and
+ * the permission is read again whenever the app returns to the foreground.
+ *
  * It closes a microtask after the last reader leaves: a reader replaced in
  * the same commit (a new interval, one screen swapped for another) keeps the
  * sensor running instead of restarting it.
@@ -78,6 +87,7 @@ function createSensorStream<S extends SensorName>(
   adapter: SensorsAdapter,
   sensor: S,
   availability: Availability,
+  permission: PermissionStore<PermissionState>,
 ): SensorStream<SensorReadings[S]> {
   type R = SensorReadings[S];
   const readers = new Set<Reader<R>>();
@@ -87,6 +97,7 @@ function createSensorStream<S extends SensorName>(
   let stopPlatform: Unsubscribe | null = null;
   let interval: number | null = null;
   let closing = false;
+  let stopPermission: Unsubscribe | null = null;
 
   const emit = (reading: R) => {
     for (const reader of [...readers]) {
@@ -114,6 +125,8 @@ function createSensorStream<S extends SensorName>(
     stop();
     appState?.remove();
     appState = null;
+    stopPermission?.();
+    stopPermission = null;
     interval = null;
   };
 
@@ -140,8 +153,23 @@ function createSensorStream<S extends SensorName>(
       appState = AppState.addEventListener("change", (next) => {
         if (next === "inactive") return;
         foreground = next !== "background";
+        if (foreground && adapter.requiresPermission(sensor)) {
+          permission.refresh().catch(() => {});
+        }
         update();
       });
+    }
+    if (adapter.requiresPermission(sensor)) {
+      if (!stopPermission) {
+        stopPermission = permission.subscribe(update);
+        if (permission.getSnapshot() === null) {
+          permission.refresh().catch(() => {});
+        }
+      }
+      if (permission.getSnapshot()?.status !== "granted") {
+        stop();
+        return;
+      }
     }
     const fastest = Math.min(...[...readers].map((reader) => reader.interval));
     if (!foreground) {
@@ -176,6 +204,7 @@ function createSensorStream<S extends SensorName>(
 interface AdapterSensors {
   availability: Map<SensorName, Availability>;
   streams: Map<SensorName, SensorStream<never>>;
+  permission: PermissionStore<PermissionState>;
 }
 
 const registries = new WeakMap<SensorsAdapter, AdapterSensors>();
@@ -183,7 +212,18 @@ const registries = new WeakMap<SensorsAdapter, AdapterSensors>();
 function registryFor(adapter: SensorsAdapter): AdapterSensors {
   let registry = registries.get(adapter);
   if (!registry) {
-    registry = { availability: new Map(), streams: new Map() };
+    registry = {
+      availability: new Map(),
+      streams: new Map(),
+      permission: createPermissionStore({
+        isSupported: () => adapter.isSupported(),
+        read: () => adapter.getPermission(),
+        // Synchronous down to the adapter: the web grants only in a gesture.
+        request: () => adapter.requestPermission(),
+        unsupported: UNSUPPORTED,
+        unknown: UNKNOWN,
+      }),
+    };
     registries.set(adapter, registry);
   }
   return registry;
@@ -202,17 +242,25 @@ export function getAvailability(
   return store;
 }
 
+/** The motion permission, one store per adapter. */
+export function getPermissionStore(
+  adapter: SensorsAdapter,
+): PermissionStore<PermissionState> {
+  return registryFor(adapter).permission;
+}
+
 export function getSensorStream<S extends SensorName>(
   adapter: SensorsAdapter,
   sensor: S,
 ): SensorStream<SensorReadings[S]> {
-  const { streams } = registryFor(adapter);
+  const { streams, permission } = registryFor(adapter);
   let stream = streams.get(sensor);
   if (!stream) {
     stream = createSensorStream(
       adapter,
       sensor,
       getAvailability(adapter, sensor),
+      permission,
     ) as SensorStream<never>;
     streams.set(sensor, stream);
   }

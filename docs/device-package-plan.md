@@ -564,7 +564,7 @@ Applied as proposed (the four phase-16 questions, accepted without changes):
 | Phase | Content                                                                                                      | Status   |
 | ----- | ------------------------------------------------------------------------------------------------------------ | -------- |
 | 18    | `/sensors`: shared stream, normalised Expo adapter, web adapter, five value hooks, `useSensorListener`, mock | **done** |
-| 19    | `useDeviceMotion`, `useDeviceOrientation` (physical, from gravity), `useMotionPermission`, plugin key        | planned  |
+| 19    | `useDeviceMotion`, `useDeviceOrientation` (physical, from gravity), `useSensorPermission`, plugin key        | **done** |
 | 20    | Playground page, `examples/consumer`, changeset (`@its/glowup-device` minor, `0.5.0`), release               | planned  |
 
 ### Phase 18 — what landed
@@ -594,6 +594,55 @@ Applied as proposed (the four phase-16 questions, accepted without changes):
 - **Not checked on a device:** the iOS accelerometer's sign (from Apple's documented
   convention and expo's source), Safari's signs on iOS, the rates Android actually delivers
   at `SENSOR_DELAY_NORMAL`, whether a phone without a gyroscope reports the others correctly.
+
+### Phase 19 — what landed
+
+- **`useDeviceMotion()`**: `acceleration` (the user's, without gravity), `gravity` and
+  `rotationRate`, normalised like the single sensors. From expo's source: `acceleration` keeps
+  each platform's sign (iOS inverted), `accelerationIncludingGravity` is
+  `accel - 2 * gravity` on Android and the inverted sum on iOS, so on both
+  `acceleration - accelerationIncludingGravity` is gravity in Android's convention; the rotation
+  rate's alpha/beta/gamma are x/y/z on Android and z/y/x on iOS. A reading missing a part is
+  skipped (Android sends them as its sensors start). Web: W3C's `acceleration`, gravity as
+  `accelerationIncludingGravity - acceleration`.
+- **No attitude, a change from the plan.** expo's iOS yaw is measured from the device's x axis
+  to magnetic north and Android's azimuth from its y axis (90° apart), with an arbitrary
+  reference where iOS has no magnetometer; the web has none. Heading belongs to advanced
+  location (Z6); tilt reads from `gravity`.
+- **`useDeviceOrientation()`**: `portrait-up | portrait-down | landscape-left |
+landscape-right | face-up | face-down` from the accelerometer alone (works without a
+  gyroscope), named as `/orientation` names the interface orientation the app would take (the
+  right edge up is `landscape-right`, as in iOS). It enters an orientation within 35° of its
+  axis and keeps the previous answer between 35° and 55° and while shaken (not 0.5–1.5 g). It
+  re-renders only on a change: a state updater returning the same value still renders once, so
+  the last answer is kept in a ref.
+- **`useSensorPermission(sensor)`** instead of a sensor-agnostic `useMotionPermission`: the
+  permission gates different sensors per platform, so it says whether this sensor needs it
+  (`isRequired`) and reads `granted` where it does not, without asking the platform.
+  `SensorsAdapter` gains `requiresPermission`, `getPermission`, `requestPermission`; one
+  permission store per adapter (`core/permissionStore`). The stream opens a gated sensor only
+  once granted, never prompts, and reads the permission again on `active`.
+  - **iOS:** the barometer only (CMAltimeter's Motion & Fitness, read through expo's pedometer
+    requester, the same authorisation). It is read for no other sensor: expo's requester calls
+    `RCTFatal` when the Info.plist lacks `NSMotionUsageDescription`.
+  - **Android:** none; expo's own request asks for `ACTIVITY_RECOGNITION` and is never called.
+  - **Web:** iOS Safari's `DeviceMotionEvent.requestPermission()`, called synchronously from
+    `request()` down to the adapter (Safari grants only inside the gesture; a test pins it). Its
+    answer cannot be read back, so the adapter remembers it for the page. Behind the prompt the
+    motion sensors are assumed present (Safari runs on iPhones and iPads); elsewhere the probe
+    stays.
+- **Config plugin `sensors`:** `motionPermission` (text, or `false` to leave the string out:
+  expo then compiles its requester out and the barometer reads `denied`), with a warning when
+  left to the generic text; `ACTIVITY_RECOGNITION` removed with `tools:node="remove"`;
+  `highSamplingRate: true` adds `HIGH_SAMPLING_RATE_SENSORS`. Read in
+  `@expo/prebuild-config`: expo-sensors is one of the plugins prebuild applies on its own, so
+  an app that does not list `sensors` still gets expo's English motion string.
+- Mutation checks: 40 more mutations, all killed but one equivalent (the `-0` guard on one
+  axis, the same code as the axis tested); a redundant `+ 0` in the subtraction was removed.
+- **Not checked on a device:** the signs and axes of device motion on both platforms (derived
+  from expo's source and the platforms' documented conventions), that CMAltimeter shares the
+  pedometer's authorisation, whether desktop Safari exposes `requestPermission` (it would read
+  available and deliver nothing).
 
 ## Open for later
 

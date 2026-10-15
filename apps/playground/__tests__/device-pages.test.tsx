@@ -14,6 +14,7 @@ import {
   buildPosition,
   createMockBackgroundLocationAdapter,
   createMockBatteryAdapter,
+  createMockBluetoothAdapter,
   createMockGeocoderAdapter,
   createMockBiometricsAdapter,
   createMockCameraAdapter,
@@ -31,6 +32,7 @@ import {
   OFFLINE_NETWORK,
   type MockBackgroundLocationAdapter,
   type MockBatteryAdapter,
+  type MockBluetoothAdapter,
   type MockGeocoderAdapter,
   type MockBiometricsAdapter,
   type MockCameraAdapter,
@@ -44,6 +46,7 @@ import {
   type MockMediaPickerAdapter,
   type MockMediaLibraryAdapter,
 } from "@its/glowup-device/testing";
+import { bleManagerAdapter } from "@its/glowup-device/bluetooth";
 import * as ExpoHaptics from "expo-haptics";
 
 import DeviceOverview from "../app/device";
@@ -61,6 +64,7 @@ import SensorsPage from "../app/device/sensors";
 import MediaPickerPage from "../app/device/media-picker";
 import MediaLibraryPage from "../app/device/media-library";
 import BackgroundLocationPage from "../app/device/background-location";
+import BluetoothPage from "../app/device/bluetooth";
 import { clearTaskLog } from "../site/backgroundLog";
 import { SITES_TASK, TRIP_TASK } from "../site/backgroundTasks";
 import { HapticThemeProvider } from "../site/HapticsPreference";
@@ -131,6 +135,7 @@ let sensors: MockSensorsAdapter;
 let mediaPicker: MockMediaPickerAdapter;
 let mediaLibrary: MockMediaLibraryAdapter;
 let backgroundLocation: MockBackgroundLocationAdapter;
+let bluetooth: MockBluetoothAdapter;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -147,6 +152,16 @@ beforeEach(() => {
   mediaPicker = createMockMediaPickerAdapter();
   mediaLibrary = createMockMediaLibraryAdapter();
   backgroundLocation = createMockBackgroundLocationAdapter();
+  bluetooth = createMockBluetoothAdapter({
+    gatt: {
+      "AA:01": [
+        {
+          uuid: "180F",
+          characteristics: [{ uuid: "2A19", value: [87] }],
+        },
+      ],
+    },
+  });
   clearTaskLog();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
@@ -179,6 +194,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               mediaPicker,
               mediaLibrary,
               backgroundLocation,
+              bluetooth,
             }}
           >
             {children}
@@ -206,6 +222,7 @@ it("links the overview to every capability", async () => {
     ["Media picker", "/device/media-picker"],
     ["Media library", "/device/media-library"],
     ["Background location", "/device/background-location"],
+    ["Bluetooth", "/device/bluetooth"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -804,5 +821,68 @@ describe("background location", () => {
         ),
       ).toBeTruthy(),
     );
+  });
+});
+
+describe("bluetooth", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it("asks, scans, connects and reads on the app's adapter in a development build", async () => {
+    // Where the native module exists, the page uses the provided adapter.
+    jest.spyOn(bleManagerAdapter, "isSupported").mockReturnValue(true);
+    await render(<BluetoothPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    expect(screen.getByText("Radio: On")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scan all"));
+    await waitFor(() => expect(bluetooth.scanning).not.toBeNull());
+    await act(async () => {
+      bluetooth.discover({ id: "AA:01", name: "Scale", rssi: -70 });
+    });
+    await waitFor(() => expect(screen.getByText("Scale")).toBeTruthy());
+    expect(screen.getByText("AA:01 · -70 dBm")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scale"));
+    await fireEvent.press(screen.getByText("Connect"));
+    await waitFor(() => expect(screen.getByText("Connected")).toBeTruthy());
+    expect(screen.getByText("Services: 180f")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Read battery"));
+    await waitFor(() => expect(screen.getByText("Battery: 87%")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(bluetooth.connected.size).toBe(0));
+  });
+
+  it("says why it cannot scan without the permission", async () => {
+    jest.spyOn(bleManagerAdapter, "isSupported").mockReturnValue(true);
+    await render(<BluetoothPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Scan all"));
+    await waitFor(() =>
+      expect(
+        screen.getByText("Not allowed yet: grant the permission above."),
+      ).toBeTruthy(),
+    );
+    expect(bluetooth.scanCount).toBe(0);
+  });
+
+  it("runs on simulated devices without the native module", async () => {
+    await render(<BluetoothPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated devices/)).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Heart rate only"));
+    await waitFor(() => expect(screen.getByText("Glowup HRM")).toBeTruthy());
+    expect(screen.queryByText("Scale")).toBeNull();
+    await fireEvent.press(screen.getByText("Glowup HRM"));
+    await fireEvent.press(screen.getByText("Connect"));
+    await waitFor(() =>
+      expect(screen.getByText(/^Heart rate: \d+ bpm$/)).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Device information"));
+    await waitFor(() =>
+      expect(screen.getByText("Glowup Labs · HRM-1 · 1.4.2")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(screen.getByText("Connect")).toBeTruthy());
   });
 });

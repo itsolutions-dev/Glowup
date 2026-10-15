@@ -88,6 +88,10 @@ const config: ExpoConfig = {
           alwaysPermission:
             "Records positions and watches a circle on the background location demo page, also with the app closed.",
         },
+        bluetooth: {
+          permission:
+            "Finds and connects to Bluetooth devices on the Bluetooth demo page.",
+        },
       },
     ],
     [

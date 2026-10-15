@@ -1102,12 +1102,12 @@ read before the contract was written:
 | B9  | Web          | Unsupported in the first release.                                                                                                                                                                                        |
 | B10 | Background   | Not in the first release (connections kept alive, iOS state restoration, background scanning).                                                                                                                           |
 
-| Phase | Content                                                                                                                                                                                      | Release | Status  |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done    |
-| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done    |
-| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | done    |
-| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+| Phase | Content                                                                                                                                                                                      | Release | Status |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done   |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done   |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | done   |
+| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | done   |
 
 ### Phase 30 — what landed
 
@@ -1195,6 +1195,24 @@ read before the contract was written:
   `bonded`).
 - **Not verified on a device:** everything GATT. In particular iOS's `CBUUID` matching with short
   UUIDs, Android's behaviour on a connection that times out natively (status 133), and bonding.
+
+### Phase 33 — what landed
+
+- **Playground `/device/bluetooth`**: permission and radio, a scan (all, or heart rate only), the
+  device list, a connection with its services, battery and Device Information reads, live heart
+  rate notifications and a Nordic UART exchange. Where `bleManagerAdapter.isSupported()` is
+  false (the web, Expo Go) the page wraps itself in a provider with `site/bluetoothDemo.ts`: the
+  package's mock driven by a timer, with three simulated devices. The same answer while
+  prerendering and in the browser, so it hydrates.
+- **`examples/consumer`** imports `/bluetooth` (state, permission, scan, device, notifications)
+  and lists the plugin's `bluetooth` key. On the `npm pack` tarballs: `tsc`, the web export and
+  `expo config --type introspect` pass; with `location` beside it the manifest declares the
+  location permissions once, uncapped, and `BLUETOOTH_SCAN` with `neverForLocation`.
+- **Changeset** `0.9.0` (minor).
+- ble-manager's plugin also adds the legacy `BLUETOOTH` and `BLUETOOTH_ADMIN` without
+  `maxSdkVersion`: harmless normal permissions, left as they are.
+- **To verify on a device:** everything in phases 30–32 marked so, on an iPhone and on Android
+  12+ and 11, with a real peripheral (a heart rate strap, a Nordic UART board).
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with

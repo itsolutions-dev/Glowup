@@ -16,26 +16,20 @@ const MAP_COMMENT = /\n?\/\/# sourceMappingURL=.*\.d\.ts\.map\s*$/;
 let stripped = 0;
 let removed = 0;
 
-async function walk(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      await walk(path);
-    } else if (entry.name.endsWith(".d.ts.map")) {
-      await rm(path);
-      removed++;
-    } else if (entry.name.endsWith(".d.ts")) {
-      const source = await readFile(path, "utf8");
-      const next = source.replace(MAP_COMMENT, "\n");
-      if (next !== source) {
-        await writeFile(path, next);
-        stripped++;
-      }
+for (const name of await readdir(ROOT, { recursive: true })) {
+  const path = join(ROOT, name);
+  if (name.endsWith(".d.ts.map")) {
+    await rm(path);
+    removed++;
+  } else if (name.endsWith(".d.ts")) {
+    const source = await readFile(path, "utf8");
+    const next = source.replace(MAP_COMMENT, "\n");
+    if (next !== source) {
+      await writeFile(path, next);
+      stripped++;
     }
   }
 }
-
-await walk(ROOT);
 console.log(
   `declaration maps: removed ${removed} file(s), stripped ${stripped} comment(s)`,
 );

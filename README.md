@@ -36,7 +36,6 @@ npm start          # start the playground (Expo dev server) — no need to cd an
 `/components` is the reference. Platform shortcuts, all runnable from the root:
 
 ```bash
-npm run playground   # same as npm start
 npm run android      # open on Android
 npm run ios          # open on iOS
 npm run web          # open in the browser
@@ -150,7 +149,7 @@ screen needs something reusable, it belongs in one of the packages.
 ## Root scripts
 
 ```bash
-npm start / npm run playground   # run the playground app
+npm start                        # run the playground app
 npm run android | ios | web      # run the playground on a platform
 npm run lint                     # ESLint across the repo
 npm run type-check               # tsc --noEmit across all workspaces
@@ -205,7 +204,7 @@ through trusted publishing (no npm token). See `.changeset/README.md` for detail
   `packages/*`) are a lint error, as is any import of the app from a package or of one package
   from another.
 - **Line endings are LF**, enforced by `.gitattributes` (`* text=auto eol=lf`), Prettier
-  (`endOfLine: "lf"`) and ESLint (`linebreak-style: unix`).
+  (`endOfLine: "lf"`, reported by ESLint through `eslint-plugin-prettier`).
 - Prettier `trailingComma: "all"`.
 - Icons: `@expo/vector-icons/MaterialCommunityIcons`, kebab-case names, `-outline` suffix for
   outline variants.

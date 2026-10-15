@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -92,6 +92,29 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   geofencing failures as a message alone (`"Geofencing not available."` is location switched
   off). The plugin's `geofencing: true` adds the background permission in any `mode`, and
   `mode: "none"` is geofencing alone.
+- **Bluetooth** (`src/bluetooth`): BLE central on `react-native-ble-manager`, the package's only
+  peer that is not an Expo module. Its module builds its manager at import and throws without
+  the native module (Expo Go), so `bleManager.ts` requires it on first use inside a `try`
+  (`loadBleManager`, never on the web) and a missing module reads `unsupported`. `start()` runs
+  once per process (`ensureStarted`, after `isStarted()`): on iOS each call builds another
+  central manager, and building it is what prompts, so iOS starts only from `requestPermission`
+  (or when a manager already exists) and reads `undetermined` / `unknown` before; Android starts
+  on the first state subscription, which never prompts (its state events need it). The power
+  alert is off (`showAlert: false`). Android permissions go through React Native's
+  `PermissionsAndroid` (`BLUETOOTH_SCAN` + `BLUETOOTH_CONNECT` from API 31, plus
+  `ACCESS_FINE_LOCATION` with `neverForLocation: false`; `ACCESS_FINE_LOCATION` alone up to 30);
+  a check cannot tell "never ask again", so the adapter keeps a request's refusal for the launch.
+  Requests and `enable()` run inside `systemSheet` (another activity on Android).
+  `useBluetoothState` is a live store per adapter; `useBluetoothPermission`'s request also
+  refreshes it (on iOS the state starts with the request). `ensureBluetoothReady` (support →
+  permission → radio `on`) is what every later operation checks, and never prompts. UUIDs go out
+  lowercase 128-bit (`toBluetoothUuid`). The plugin key `bluetooth` calls ble-manager's plugin
+  with `neverForLocation` defaulting to `true` (its own default is `false`), and is registered
+  _before_ `location`: Android manifest mods run in reverse order, so expo-location's uncapped
+  `ACCESS_FINE_LOCATION` is written first and ble-manager, which skips a declared permission,
+  adds no second one capped at API 30. Its adapter test swaps `Platform` and spies
+  `PermissionsAndroid` on the main registry, not the isolated one: react-native's index requires
+  them in getters, at call time.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

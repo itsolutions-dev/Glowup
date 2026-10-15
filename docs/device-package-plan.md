@@ -1104,10 +1104,40 @@ read before the contract was written:
 
 | Phase | Content                                                                                                                                                                                      | Release | Status  |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | planned |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done    |
 | 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
 | 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
 | 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+
+### Phase 30 — what landed
+
+- **`@its/glowup-device/bluetooth`** on `react-native-ble-manager` 12.5 (an optional peer, the
+  first that is not an Expo module): `useBluetoothState`, `useBluetoothPermission`,
+  `BluetoothError` / `isBluetoothError`, `toBluetoothUuid` / `shortBluetoothUuid`,
+  `bleManagerAdapter` and `createBleManagerAdapter({ neverForLocation })`.
+- **Lazy module.** The adapter requires ble-manager on first use, inside a `try`, and never on
+  the web: Expo Go, the web and jest read `unsupported` instead of crashing at import.
+- **One `start()` per process**, after `isStarted()`: ble-manager builds a new central manager
+  on every iOS `start()`. iOS starts only from `requestPermission()` (building the manager is
+  the prompt), so before a request in the launch it reads `undetermined` and the radio
+  `unknown`; the request waits for the first settled state (`unauthorized` → `denied`, anything
+  else known → `granted`), at most a minute. Android starts on the first state subscription,
+  which prompts nothing and is what makes its state events flow. The iOS power alert is off.
+- **Android permissions** through `PermissionsAndroid`: "Nearby devices" from API 31 (plus the
+  precise location with `neverForLocation: false`), the precise location up to API 30. A check
+  cannot tell "never ask again", so a request's refusal is kept for the launch. Requests and
+  `enable()` (Android's "turn on Bluetooth?" dialog, which needs the permission) run inside
+  `systemSheet`, so `useAppLock` does not count the trip.
+- **Read from the source, not on a device:** Android's `scan()` returns without calling back
+  while the radio is off (phase 31 checks the state first); Android's `checkState()` answers
+  before `start()`, iOS's never does; `enableBluetooth()` rejects with "User refused to enable".
+- **Plugin key `bluetooth: { permission, neverForLocation }`** through ble-manager's plugin,
+  `neverForLocation` defaulting to `true`. It is registered before `location`: manifest mods
+  run in reverse order, and the other way round ble-manager would add a second
+  `ACCESS_FINE_LOCATION` capped at API 30 next to expo-location's (a test pins it).
+- **`/testing`:** `createMockBluetoothAdapter()`.
+- **Not verified on a device:** whether iOS's first state after the prompt arrives as described;
+  whether Android's `getState()` needs `BLUETOOTH_CONNECT` (the docs say no).
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with

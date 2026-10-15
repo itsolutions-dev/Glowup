@@ -24,6 +24,7 @@ npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
 npx expo install expo-location expo-task-manager # /background-location
+npx expo install react-native-ble-manager       # /bluetooth
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -49,6 +50,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/media-picker`        | `expo-image-picker`                  | `useMediaPicker`                                                                                                        |
 | `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                                       |
 | `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission` |
+| `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `BluetoothError`, `toBluetoothUuid`                                      |
 | `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                 |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -1091,6 +1093,83 @@ const always = useBackgroundLocationPermission();
   background meanwhile, which `useAppLock` does not count.
 - The state is read again whenever the app returns to the foreground.
 
+## Bluetooth
+
+Bluetooth Low Energy with the phone as the central (the GATT client): the radio, the
+permission, scanning, connections, reads, writes and notifications. It runs on
+`react-native-ble-manager`, so it needs a development build and the plugin's `bluetooth` key.
+On the web and in Expo Go every hook reads `unsupported`: the native module is loaded on first
+use, never at import, so importing the subpath there does not crash.
+
+Not covered: Bluetooth Classic (iOS opens it to MFi hardware only), the peripheral role (the
+phone advertising), and anything in the background.
+
+### Radio and permission
+
+```tsx
+import {
+  useBluetoothPermission,
+  useBluetoothState,
+} from "@its/glowup-device/bluetooth";
+
+const permission = useBluetoothPermission();
+const radio = useBluetoothState();
+
+useEffect(() => {
+  // On iOS, ask whenever a Bluetooth screen opens: see below.
+  permission.request();
+}, []);
+
+if (radio.state === "off" && radio.canEnable) {
+  // Android's "Turn on Bluetooth?" dialog; resolves false when the user refuses.
+  await radio.enable();
+}
+```
+
+- **iOS** cannot read the permission without the risk of showing the prompt, so it reads
+  `undetermined` until `request()` ran in this launch, even when the user answered on an earlier
+  one. The prompt shows once per install; afterwards `request()` answers at once with no UI, so
+  call it when a screen that needs Bluetooth opens. The radio's state is `unknown` until then.
+- **Android 12 and later** ask for "Nearby devices" (`BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`);
+  Android 11 and earlier for the precise location, which scans need there. Android tells that
+  the user chose "Don't ask again" only in a request's answer: until a request in this launch, a
+  refused permission reads `undetermined` (and a request then answers `denied` with
+  `canAskAgain: false`, without a dialog).
+- `state` is `unknown`, `unsupported`, `unauthorized` (iOS only), `off` or `on`. Android's
+  "turning on" and "turning off" read `off`.
+- `enable()` exists on Android only (`canEnable`), and needs the permission. iOS gives apps no
+  way to switch Bluetooth on: tell the user where to.
+- Errors are `BluetoothError`s (`isBluetoothError()`), with a `code`: `unsupported`,
+  `permission-denied`, `powered-off`, `timeout`, `not-connected`, `disconnected` or `failed`.
+
+### UUIDs
+
+iOS reports a SIG-assigned UUID in its short form (`180D`), Android in its 128-bit form, so raw
+strings never compare across platforms. Every UUID the package hands out is lowercase 128-bit,
+and every UUID it takes may be either:
+
+```ts
+toBluetoothUuid("180D"); // "0000180d-0000-1000-8000-00805f9b34fb"
+shortBluetoothUuid("0000180d-0000-1000-8000-00805f9b34fb"); // "180d"
+```
+
+### Beacons and location
+
+The plugin's `neverForLocation` (default `true`) tells Android 12 and later that scans never
+locate the user: no location permission is needed, and Android may leave beacons out of the
+results. For beacon-based presence set it to `false` and give the hooks an adapter that asks for
+location too:
+
+```tsx
+import { createBleManagerAdapter } from "@its/glowup-device/bluetooth";
+
+const bluetooth = createBleManagerAdapter({ neverForLocation: false });
+
+<DeviceAdaptersProvider adapters={{ bluetooth }}>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -1119,6 +1198,7 @@ plugins: [
         geofencing: true,
         alwaysPermission: "Records your trip while the app is closed.",
       },
+      bluetooth: { permission: "Reads your heart rate monitor." },
     },
   ],
 ],
@@ -1165,6 +1245,13 @@ plugins: [
   does not need, and Google Play accepts them only from apps whose core feature is browsing
   photos. Prebuild applies expo-media-library's plugin even when it is not listed, so list
   `mediaLibrary` whenever the module is installed.
+- **Bluetooth** goes through react-native-ble-manager's plugin. It sets the Bluetooth purpose
+  string (`permission`), without which the radio cannot start on iOS, and adds Android's
+  `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`, plus the location permissions for Android 11 and
+  earlier, whose scans need them. `neverForLocation` (default `true`, where ble-manager's own
+  default is `false`) flags the scan permission as never used for location and caps the
+  location permissions at Android 11; `false` keeps them for scans that locate the user
+  (beacons). Listed beside `location`, the location permissions are declared once, uncapped.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -1340,3 +1427,10 @@ pick open until `close(result?)`, meanwhile another resolves `busy`; `{ pending 
 Android 11+) and starts undetermined; a request answers `requestAnswer` (default `"granted"`),
 `setPermission("denied")` changes it as the settings would and `permissionRequests` counts the
 prompts. `saved` lists every saved URI; `failNext(detail?)` makes the next save fail.
+
+`createMockBluetoothAdapter()` has the radio on and the permission undetermined; a request
+answers `requestResult` (default `"granted"`). `setState("off")` changes the radio for every
+listening component, `setPermission("denied")` changes the permission as the settings would, and
+`requestCount` / `enableCount` count the prompts and the "turn on" dialogs (`enableResult:
+"refuse"` answers them no; `canEnable: false` stands in for iOS). `{ supported: false }` behaves
+like the web or Expo Go.

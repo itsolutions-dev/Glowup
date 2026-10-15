@@ -22,6 +22,7 @@ const DEVICE_CAPABILITIES = {
   "media-library": ["expo-media-library"],
   // Starts expo-location's updates, so it shares that module with /location.
   "background-location": ["expo-location", "expo-task-manager"],
+  bluetooth: ["react-native-ble-manager"],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

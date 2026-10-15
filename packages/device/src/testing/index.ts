@@ -87,3 +87,8 @@ export {
   type MockBackgroundLocationAdapter,
   type MockBackgroundLocationOptions,
 } from "./backgroundLocation";
+export {
+  createMockBluetoothAdapter,
+  type MockBluetoothAdapter,
+  type MockBluetoothOptions,
+} from "./bluetooth";

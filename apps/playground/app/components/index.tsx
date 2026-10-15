@@ -12,7 +12,7 @@ import {
 } from "@its/glowup-ui";
 
 import ComponentPreview from "../../catalogue/ComponentPreview";
-import { ComponentRegistry } from "../../catalogue/registry";
+import { ComponentRegistry, defaultsOf } from "../../catalogue/registry";
 import {
   CATEGORIES,
   CATEGORY_OF,
@@ -37,15 +37,6 @@ const PREVIEW_HEIGHT = 132;
 const PREVIEW_SCALE = 0.78;
 
 type LayoutMode = "gallery" | "list";
-
-const defaultsOf = (name: string) => {
-  const meta = ComponentRegistry[name];
-  const values: Record<string, any> = {};
-  for (const [key, definition] of Object.entries(meta.props)) {
-    values[key] = definition.default;
-  }
-  return values;
-};
 
 /**
  * The catalogue, as a gallery of live components.

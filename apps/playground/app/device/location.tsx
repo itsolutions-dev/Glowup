@@ -15,6 +15,7 @@ import {
   Typography,
   VStack,
   useTheme,
+  HelperText,
 } from "@its/glowup-ui";
 import {
   isLocationError,
@@ -157,14 +158,11 @@ const ErrorLine = ({
 }: {
   error: LocationError;
   copy?: Record<LocationErrorCode, string>;
-}) => {
-  const { theme } = useTheme();
-  return (
-    <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
-      {copy[error.code]}
-    </Typography>
-  );
-};
+}) => (
+  <HelperText type="error" padding="none">
+    {copy[error.code]}
+  </HelperText>
+);
 
 const CARDINALS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 

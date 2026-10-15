@@ -18,7 +18,6 @@ import { ButtonGroupDemo, SplitButtonDemo, ChipGroupDemo } from "../demos";
 /** Actions: 12 catalogue entries. */
 export const actions: Record<string, ComponentMetadata> = {
   Button: {
-    name: "Button",
     Component: Button,
     props: {
       children: { type: "text", default: "Click Me", label: "Label" },
@@ -49,7 +48,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   ProgressButton: {
-    name: "ProgressButton",
     Component: ProgressButton,
     props: {
       children: {
@@ -123,7 +121,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   IconButton: {
-    name: "IconButton",
     Component: IconButton,
     props: {
       icon: { type: "text", default: "heart-outline", label: "Icon" },
@@ -154,7 +151,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   Chip: {
-    name: "Chip",
     Component: Chip,
     props: {
       label: { type: "text", default: "React Native", label: "Label" },
@@ -182,8 +178,9 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   FAB: {
-    name: "FAB",
     Component: FAB,
+    dropWhenFalsy: ["label"],
+    stage: { width: "100%", height: 200 },
     props: {
       icon: { type: "text", default: "plus", label: "Icon" },
       label: { type: "text", default: "Create", label: "Label (extended)" },
@@ -213,8 +210,9 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   AnimatedFAB: {
-    name: "AnimatedFAB",
     Component: AnimatedFAB,
+    // Floating pins it to the screen corner, so give it room to sit in.
+    stage: { width: "100%", height: 160, justifyContent: "center" },
     props: {
       icon: { type: "text", default: "plus", label: "Icon" },
       label: { type: "text", default: "New ticket", label: "Label" },
@@ -250,8 +248,15 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   SpeedDial: {
-    name: "SpeedDial",
     Component: SpeedDial,
+    sample: {
+      actions: [
+        { id: "1", label: "New Doc", icon: "file-outline", onPress: () => {} },
+        { id: "2", label: "Upload", icon: "upload-outline", onPress: () => {} },
+        { id: "3", label: "Folder", icon: "folder-outline", onPress: () => {} },
+      ],
+    },
+    stage: { width: "100%", height: 260 },
     props: {
       mainIcon: { type: "text", default: "plus", label: "Main Icon" },
       position: {
@@ -268,7 +273,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   ToggleButton: {
-    name: "ToggleButton",
     Component: ToggleButton,
     props: {
       active: { type: "boolean", default: true, label: "Active" },
@@ -283,14 +287,20 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   ToggleButtonGroup: {
-    name: "ToggleButtonGroup",
     Component: ToggleButtonGroup,
+    sample: {
+      options: [
+        { label: "List", icon: "format-list-bulleted", value: "list" },
+        { label: "Grid", icon: "view-grid-outline", value: "grid" },
+        { label: "Cards", icon: "card-outline", value: "cards" },
+      ],
+    },
+    controlled: { onValueChange: "value" },
     props: {
       value: { type: "text", default: "list", label: "Value" },
     },
   },
   ButtonGroup: {
-    name: "ButtonGroup",
     Component: ButtonGroup,
     Demo: ButtonGroupDemo,
     props: {
@@ -326,7 +336,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   SplitButton: {
-    name: "SplitButton",
     Component: SplitButton,
     Demo: SplitButtonDemo,
     props: {
@@ -345,7 +354,6 @@ export const actions: Record<string, ComponentMetadata> = {
     },
   },
   ChipGroup: {
-    name: "ChipGroup",
     Component: ChipGroup,
     Demo: ChipGroupDemo,
     props: {

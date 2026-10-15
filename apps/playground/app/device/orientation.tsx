@@ -3,12 +3,11 @@ import { Platform } from "react-native";
 import { useIsFocused } from "expo-router";
 import {
   Banner,
+  HelperText,
   ListItem,
   ListSection,
   StatusBadge,
   ToggleButtonGroup,
-  Typography,
-  useTheme,
 } from "@its/glowup-ui";
 import {
   useOrientation,
@@ -53,7 +52,6 @@ function VideoPlayer() {
 }`;
 
 export default function OrientationPage() {
-  const { theme } = useTheme();
   const { orientation, isLandscape, isLoading } = useOrientation();
   const supportsLock = useOrientationLockSupport();
   const [choice, setChoice] = useState<Choice>("none");
@@ -137,12 +135,9 @@ export default function OrientationPage() {
           </ListItem>
         </ListSection>
         {lock.error ? (
-          <Typography
-            variant="bodyMedium"
-            style={{ color: theme.colors.error }}
-          >
+          <HelperText type="error" padding="none">
             {ERROR_COPY[lock.error.code]}
-          </Typography>
+          </HelperText>
         ) : null}
       </Section>
 

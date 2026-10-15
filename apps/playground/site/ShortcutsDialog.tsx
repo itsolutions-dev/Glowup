@@ -75,5 +75,3 @@ const makeStyles = (theme: Theme) =>
       overflow: "hidden",
     },
   });
-
-export default ShortcutsDialog;

@@ -41,9 +41,9 @@ const DEMO_DATE = new Date(2024, 4, 15, 10, 30);
 
 /**
  * Renders one catalogue entry with the props the panel currently holds.
- * Most entries are just `<Component {...props} />`; the ones below need a
- * controlled value, sample data or a coerced number, which is the whole
- * reason this is a component and not a one-liner.
+ * Most entries are `<Component {...props} />` plus their registry's `sample`,
+ * `controlled`, `dropWhenFalsy` and `stage`; the branches below are the ones
+ * that need children, demo state or a trigger.
  */
 const ComponentPreview = ({
   selectedComponentName,
@@ -79,49 +79,29 @@ const ComponentPreview = ({
     [],
   );
 
-  const { Component, Demo, isContainer, clientOnly } = activeMeta;
+  const {
+    Component,
+    Demo,
+    isContainer,
+    clientOnly,
+    sample,
+    controlled,
+    dropWhenFalsy,
+    stage,
+  } = activeMeta;
   if (clientOnly && !hydrated) return null;
   if (Demo) return <Demo props={componentProps} updateProp={updateProp} />;
-  let props = { ...componentProps };
+  let props = { ...componentProps, ...sample };
+  for (const key of dropWhenFalsy ?? []) if (!props[key]) delete props[key];
+  for (const [callback, key] of Object.entries(controlled ?? {})) {
+    props[callback] = (value: any) => updateProp(key, value);
+  }
 
-  // Special handling for some components
+  // The entries that need more than the registry's fields can say.
   if (selectedComponentName === "DataGrid") {
     props.data = props.empty ? [] : gridData;
     props.columns = gridCols;
     delete props.empty;
-  }
-
-  if (selectedComponentName === "Badge") {
-    props.count = Number(props.count) || 0;
-    props.max = Number(props.max) || 99;
-  }
-
-  if (selectedComponentName === "Checkbox") {
-    props.onValueChange = (v: boolean) => updateProp("checked", v);
-  }
-
-  if (selectedComponentName === "RadioGroup") {
-    props.options = [
-      { id: "a", label: "Option A", value: "a" },
-      { id: "b", label: "Option B (disabled)", value: "b", disabled: true },
-      { id: "c", label: "Option C", value: "c" },
-    ];
-    props.onValueChange = (v: any) => updateProp("value", v);
-  }
-
-  if (selectedComponentName === "Slider") {
-    props.value = Number(props.value) || 0;
-    props.min = Number(props.min) || 0;
-    props.max = Number(props.max) || 100;
-    props.step = Number(props.step) || undefined;
-    props.onValueChange = (v: number) => updateProp("value", v);
-  }
-
-  if (selectedComponentName === "Spinner") {
-    props.value = Number(props.value) || 0;
-    props.min = Number(props.min) || 0;
-    props.max = Number(props.max) || 100;
-    props.onChange = (v: number) => updateProp("value", v);
   }
 
   if (selectedComponentName === "Tooltip") {
@@ -179,39 +159,6 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "NavigationBar") {
-    props.items = [
-      { id: "home", label: "Home", icon: "home-outline", badgeCount: 0 },
-      {
-        id: "search",
-        label: "Search",
-        icon: "magnify",
-      },
-      {
-        id: "inbox",
-        label: "Inbox",
-        icon: "email-outline",
-        badgeCount: 3,
-      },
-      {
-        id: "profile",
-        label: "Profile",
-        icon: "account-outline",
-      },
-    ];
-    props.onItemPress = (id: string) => updateProp("activeId", id);
-  }
-
-  if (selectedComponentName === "Skeleton") {
-    props.width = Number(props.width) || 200;
-    props.height = Number(props.height) || 48;
-    props.duration = Number(props.duration) || 1200;
-  }
-
-  if (selectedComponentName === "SearchBar") {
-    props.onChangeText = (t: string) => updateProp("value", t);
-  }
-
   if (selectedComponentName === "Banner") {
     props.actions = [
       { label: "Dismiss", onPress: () => updateProp("visible", false) },
@@ -220,42 +167,7 @@ const ComponentPreview = ({
     props.onDismiss = () => updateProp("visible", false);
   }
 
-  if (selectedComponentName === "Breadcrumbs") {
-    const maxItems = Number(props.maxItems) || 0;
-    props.maxItems = maxItems > 0 ? maxItems : undefined;
-    props.items = [
-      { id: "1", label: "Home", icon: "home-outline", onPress: () => {} },
-      { id: "2", label: "Projects", onPress: () => {} },
-      { id: "3", label: "Glowup", onPress: () => {} },
-      { id: "4", label: "Components", onPress: () => {} },
-      { id: "5", label: "Breadcrumbs" },
-    ];
-  }
-
-  if (selectedComponentName === "Pagination") {
-    props.page = Number(props.page) || 1;
-    props.totalPages = Number(props.totalPages) || 1;
-    props.siblingCount = Number(props.siblingCount) || 1;
-    props.onPageChange = (p: number) => updateProp("page", p);
-  }
-
-  if (selectedComponentName === "Rating") {
-    props.value = Number(props.value) || 0;
-    props.max = Number(props.max) || 5;
-    props.size = Number(props.size) || 24;
-    props.onChange = (v: number) => updateProp("value", v);
-  }
-
-  if (selectedComponentName === "EmptyState") {
-    props.action = {
-      label: "Add item",
-      iconName: "plus",
-      onPress: () => {},
-    };
-  }
-
   if (selectedComponentName === "Carousel") {
-    props.autoPlayInterval = Number(props.autoPlayInterval) || 0;
     return (
       <View style={{ width: "100%", maxWidth: 480 }}>
         <Component {...props}>
@@ -282,7 +194,6 @@ const ComponentPreview = ({
 
   if (selectedComponentName === "ClockPicker") {
     if (!props.locale) delete props.locale;
-    props.minuteInterval = Number(props.minuteInterval) || 1;
     // The surface edits an instant, so it needs a non-null value.
     props.value = dateValue ?? DEMO_DATE;
     props.onChange = (d: Date) => setDateValue(d);
@@ -366,7 +277,6 @@ const ComponentPreview = ({
     if (selectedComponentName === "Calendar") {
       return <Component {...props} />;
     }
-    props.minuteInterval = Number(props.minuteInterval) || 1;
     return (
       <View style={{ width: "100%", maxWidth: 360 }}>
         <Component {...props} />
@@ -394,19 +304,8 @@ const ComponentPreview = ({
     return <Component {...linkProps}>{children}</Component>;
   }
 
-  if (selectedComponentName === "Stat") {
-    if (!props.icon) delete props.icon;
-    if (!props.delta) delete props.delta;
-    if (!props.helpText) delete props.helpText;
-    return (
-      <View style={{ minWidth: 240 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
   if (selectedComponentName === "PinInput") {
-    props.length = Math.max(2, Math.min(10, Number(props.length) || 6));
+    props.length = Math.max(2, Math.min(10, props.length));
     props.value = pinValue;
     props.onChangeText = setPinValue;
     if (!props.error) delete props.error;
@@ -419,7 +318,7 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Autocomplete") {
-    props.minChars = Math.max(0, Number(props.minChars) || 0);
+    props.minChars = Math.max(0, props.minChars);
     props.value = autocompleteQuery;
     props.onChangeText = setAutocompleteQuery;
     props.onSelect = () => {};
@@ -469,8 +368,6 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Collapse") {
-    props.collapsedHeight = Number(props.collapsedHeight) || 0;
-    props.duration = Number(props.duration) || 200;
     return (
       <View style={{ width: "100%", maxWidth: 420, gap: 12 }}>
         <Button mode="tonal" onPress={() => setCollapseOpen((o) => !o)}>
@@ -496,7 +393,6 @@ const ComponentPreview = ({
 
   if (selectedComponentName === "Image") {
     const { broken, ...imageProps } = props;
-    imageProps.ratio = Number(imageProps.ratio) || 1.5;
     imageProps.source = {
       uri: broken
         ? "https://example.invalid/missing.png"
@@ -515,9 +411,7 @@ const ComponentPreview = ({
     selectedComponentName === "Grid"
   ) {
     if (selectedComponentName === "Grid") {
-      props.columns = Math.max(1, Number(props.columns) || 1);
-      const minChildWidth = Number(props.minChildWidth) || 0;
-      props.minChildWidth = minChildWidth > 0 ? minChildWidth : undefined;
+      props.columns = Math.max(1, props.columns);
     }
     const swatches = ["primary", "secondary", "tertiary", "error"];
     return (
@@ -553,7 +447,7 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Toast") {
-    const duration = Number(props.duration) || 4000;
+    const { duration } = props;
     const action = props.withAction
       ? { label: "Undo", onPress: () => {} }
       : undefined;
@@ -604,95 +498,7 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "FAB") {
-    if (!props.label) delete props.label;
-    return (
-      <View style={{ width: "100%", height: 200 }}>
-        <Component {...props} onPress={() => {}} />
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "Toggle") {
-    props.width = Number(props.width) || 48;
-    props.height = Number(props.height) || 28;
-    props.onValueChange = (v: boolean) => updateProp("value", v);
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "Select") {
-    props.options = [
-      { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
-      { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
-      { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
-      { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
-    ];
-    props.onSelect = (v: any) => updateProp("value", v);
-    return (
-      <View style={{ width: "100%", maxWidth: 360 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "Stepper") {
-    props.activeStep = Number(props.activeStep) || 0;
-    props.steps = ["Cart", "Shipping", "Payment", "Review"];
-    props.onStepPress = (i: number) => updateProp("activeStep", i);
-    return (
-      <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "StatusBadge") {
-    if (!props.icon) delete props.icon;
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "Tabs") {
-    props.activeTab = Number(props.activeTab) || 0;
-    props.tabs = ["Overview", "Specs", "Reviews"];
-    props.onChange = (i: number) => updateProp("activeTab", i);
-    return (
-      <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "ToggleButtonGroup") {
-    props.options = [
-      { label: "List", icon: "format-list-bulleted", value: "list" },
-      { label: "Grid", icon: "view-grid-outline", value: "grid" },
-      { label: "Cards", icon: "card-outline", value: "cards" },
-    ];
-    props.onValueChange = (v: any) => updateProp("value", v);
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "CircularProgress") {
-    props.size = Number(props.size) || 48;
-    props.strokeWidth = Number(props.strokeWidth) || 4;
-    props.duration = Number(props.duration) || 1000;
-    if (!props.color) delete props.color;
-    return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "LinearProgress") {
-    props.progress = Number(props.progress) || 0;
-    props.height = Number(props.height) || 4;
-    if (!props.color) delete props.color;
-    return (
-      <View style={{ width: "100%", maxWidth: 400 }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
   if (selectedComponentName === "Snackbar") {
-    props.duration = Number(props.duration) || 0;
     props.onDismiss = () => updateProp("visible", false);
     props.action = { label: "Undo", onPress: () => {} };
     if (!props.icon) delete props.icon;
@@ -701,19 +507,6 @@ const ComponentPreview = ({
         <Button mode="tonal" onPress={() => updateProp("visible", true)}>
           Show Snackbar
         </Button>
-        <Component {...props} />
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "SpeedDial") {
-    props.actions = [
-      { id: "1", label: "New Doc", icon: "file-outline", onPress: () => {} },
-      { id: "2", label: "Upload", icon: "upload-outline", onPress: () => {} },
-      { id: "3", label: "Folder", icon: "folder-outline", onPress: () => {} },
-    ];
-    return (
-      <View style={{ width: "100%", height: 260 }}>
         <Component {...props} />
       </View>
     );
@@ -764,8 +557,6 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Divider") {
-    props.thickness = Number(props.thickness) || 1;
-    props.inset = Number(props.inset) || 0;
     const { children, ...dividerProps } = props;
 
     // A vertical rule is as tall as the row it separates, so on its own it has
@@ -805,17 +596,7 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "Paper") {
-    props.elevation = Number(props.elevation) || 0;
-  }
-
-  if (selectedComponentName === "Icon") {
-    props.size = Number(props.size) || 24;
-    return <Component {...props} />;
-  }
-
   if (selectedComponentName === "TouchableRipple") {
-    props.borderRadius = Number(props.borderRadius) || 0;
     return (
       <Component
         {...props}
@@ -863,7 +644,6 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "CardCover") {
-    props.ratio = Number(props.ratio) || 16 / 9;
     return (
       <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
         <Component
@@ -899,18 +679,7 @@ const ComponentPreview = ({
     return <Component {...props} />;
   }
 
-  if (selectedComponentName === "AnimatedFAB") {
-    props.onPress = () => {};
-    // Floating pins it to the screen corner, so give it room to sit in.
-    return (
-      <View style={{ width: "100%", height: 160, justifyContent: "center" }}>
-        <Component {...props} />
-      </View>
-    );
-  }
-
   if (selectedComponentName === "AspectRatio") {
-    props.ratio = Number(props.ratio) || 1;
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props} radius="medium" bg="surfaceContainerHigh">
@@ -935,7 +704,6 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Spacer") {
-    props.size = Number(props.size) || 0;
     const horizontal = props.axis === "horizontal";
     return (
       <View
@@ -954,7 +722,6 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "TabContent") {
-    props.activeTab = Number(props.activeTab) || 0;
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props}>
@@ -1032,7 +799,6 @@ const ComponentPreview = ({
 
   if (selectedComponentName === "ClockDial") {
     const current = dateValue ?? DEMO_DATE;
-    props.minuteInterval = Number(props.minuteInterval) || 1;
     props.hours = current.getHours();
     props.minutes = current.getMinutes();
     props.onChangeHours = (hours: number) => {
@@ -1048,9 +814,10 @@ const ComponentPreview = ({
     return <Component {...props} />;
   }
 
+  let element;
   if (isContainer) {
     const { children, ...otherProps } = props;
-    return (
+    element = (
       <Component {...otherProps}>
         {typeof children === "string" ? (
           <Typography variant="bodyMedium">{children}</Typography>
@@ -1059,9 +826,10 @@ const ComponentPreview = ({
         )}
       </Component>
     );
+  } else {
+    element = <Component {...props} onPress={() => console.log("Pressed")} />;
   }
-
-  return <Component {...props} onPress={() => console.log("Pressed")} />;
+  return stage ? <View style={stage}>{element}</View> : element;
 };
 
 /**

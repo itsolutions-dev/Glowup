@@ -174,5 +174,3 @@ const makeStyles = (theme: Theme) =>
     },
     section: { gap: theme.spacing.m },
   });
-
-export default Page;

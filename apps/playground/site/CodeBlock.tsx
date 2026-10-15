@@ -18,7 +18,7 @@ interface CodeBlockProps {
   language?: "tsx" | "bash" | "json";
 }
 
-const MONOSPACE = Platform.select({
+export const MONOSPACE = Platform.select({
   ios: "Menlo",
   android: "monospace",
   default: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
@@ -125,5 +125,3 @@ const makeStyles = (theme: Theme) =>
       number: { color: theme.colors.tertiary },
     } satisfies Record<TokenKind, TextStyle>),
   });
-
-export default CodeBlock;

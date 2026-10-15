@@ -30,5 +30,3 @@ export const usePaletteFonts = () => {
     if (fonts) loadAsync(fonts).catch(() => {});
   }, [palette.id]);
 };
-
-export default usePaletteFonts;

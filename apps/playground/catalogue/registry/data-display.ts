@@ -20,7 +20,6 @@ import { TableDemo } from "../demos";
 /** Data Display: 14 catalogue entries. */
 export const dataDisplay: Record<string, ComponentMetadata> = {
   Avatar: {
-    name: "Avatar",
     Component: Avatar,
     props: {
       // Empty: the icon below is the last link of source -> initials -> icon,
@@ -61,7 +60,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Badge: {
-    name: "Badge",
     Component: Badge,
     props: {
       count: { type: "number", default: 5, label: "Count" },
@@ -79,8 +77,8 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   StatusBadge: {
-    name: "StatusBadge",
     Component: StatusBadge,
+    dropWhenFalsy: ["icon"],
     props: {
       label: { type: "text", default: "Active", label: "Label" },
       type: {
@@ -97,7 +95,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   DataGrid: {
-    name: "DataGrid",
     Component: DataGrid,
     props: {
       density: {
@@ -121,14 +118,12 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   ListItem: {
-    name: "ListItem",
     Component: ListItem,
     props: {
       children: { type: "text", default: "List item label", label: "Label" },
     },
   },
   ListSection: {
-    name: "ListSection",
     Component: ListSection,
     props: {
       title: { type: "text", default: "Notifications", label: "Title" },
@@ -136,14 +131,12 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   ListSubheader: {
-    name: "ListSubheader",
     Component: ListSubheader,
     props: {
       children: { type: "text", default: "Preferences", label: "Text" },
     },
   },
   Tooltip: {
-    name: "Tooltip",
     Component: Tooltip,
     props: {
       content: {
@@ -166,7 +159,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Accordion: {
-    name: "Accordion",
     Component: Accordion,
     isContainer: true,
     props: {
@@ -184,7 +176,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Carousel: {
-    name: "Carousel",
     Component: Carousel,
     props: {
       showDots: { type: "boolean", default: true, label: "Show Dots" },
@@ -197,8 +188,9 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Stat: {
-    name: "Stat",
     Component: Stat,
+    dropWhenFalsy: ["icon", "delta", "helpText"],
+    stage: { minWidth: 240 },
     props: {
       label: { type: "text", default: "Monthly revenue", label: "Label" },
       value: { type: "text", default: "128,400", label: "Value" },
@@ -227,7 +219,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Image: {
-    name: "Image",
     Component: Image,
     props: {
       alt: { type: "text", default: "A placeholder photo", label: "Alt text" },
@@ -257,7 +248,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Link: {
-    name: "Link",
     Component: Link,
     props: {
       children: { type: "text", default: "Material Design 3", label: "Label" },
@@ -280,7 +270,6 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     },
   },
   Table: {
-    name: "Table",
     Component: Table,
     Demo: TableDemo,
     props: {},

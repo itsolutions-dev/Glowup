@@ -9,12 +9,12 @@ import {
   ListItem,
   ListSection,
   Skeleton,
-  StatusBadge,
   Toggle,
   Typography,
   VStack,
   useTheme,
   type MaterialCommunityIconsGlyphs,
+  HelperText,
 } from "@its/glowup-ui";
 import {
   DEFAULT_FOREGROUND,
@@ -32,12 +32,12 @@ import {
   type ForegroundPresentation,
   type NotificationCategory,
   type NotificationsEvent,
-  type PermissionStatus,
   type WebPushConfig,
   type WebPushPayload,
 } from "@its/glowup-notifications";
 
 import { CodeBlock } from "../site/CodeBlock";
+import { DevicePermission } from "../site/DevicePermission";
 import { Page, Section } from "../site/Page";
 
 const DEMO_CHANNEL = "demo";
@@ -150,17 +150,6 @@ const PRESENTATION_ROWS: {
     description: "Apply the badge count the payload carries.",
   },
 ];
-
-const STATUS_BADGE: Record<
-  PermissionStatus,
-  { label: string; type: "success" | "error" | "warning" }
-> = {
-  granted: { label: "Granted", type: "success" },
-  provisional: { label: "Provisional", type: "success" },
-  undetermined: { label: "Not asked", type: "warning" },
-  denied: { label: "Denied", type: "error" },
-  unsupported: { label: "Unsupported", type: "warning" },
-};
 
 const describeEvent = (
   event: NotificationsEvent,
@@ -293,42 +282,18 @@ export default function NotificationsPage() {
   );
 }
 
-const PermissionSection = () => {
-  const { status, canAskAgain, request, openSettings } =
-    useNotificationPermission();
-  const [busy, setBusy] = useState(false);
-  const badge = STATUS_BADGE[status];
-  const allowed = status === "granted" || status === "provisional";
-
-  const ask = async () => {
-    setBusy(true);
-    try {
-      await request();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Section
-      title="Permission"
-      description="Read on mount and again whenever the app returns to the foreground, so it is right after a trip to system settings. On Android the demo channel exists before the prompt is shown."
-    >
-      <HStack spacing="m" align="center" wrap>
-        <StatusBadge label={badge.label} type={badge.type} />
-        {status === "unsupported" || allowed ? null : canAskAgain ? (
-          <Button iconName="bell-outline" loading={busy} onPress={ask}>
-            Allow notifications
-          </Button>
-        ) : (
-          <Button mode="outlined" iconName="cog-outline" onPress={openSettings}>
-            Open settings
-          </Button>
-        )}
-      </HStack>
-    </Section>
-  );
-};
+const PermissionSection = () => (
+  <Section
+    title="Permission"
+    description="Read on mount and again whenever the app returns to the foreground, so it is right after a trip to system settings. On Android the demo channel exists before the prompt is shown."
+  >
+    <DevicePermission
+      {...useNotificationPermission()}
+      requestLabel="Allow notifications"
+      requestIcon="bell-outline"
+    />
+  </Section>
+);
 
 const TokenSection = () => {
   const { theme } = useTheme();
@@ -348,9 +313,9 @@ const TokenSection = () => {
   } else if (status === "error") {
     body = (
       <VStack spacing="s" align="flex-start">
-        <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
+        <HelperText type="error" padding="none">
           {String(error)}
-        </Typography>
+        </HelperText>
         <Button mode="text" iconName="refresh" onPress={() => void refresh()}>
           Try again
         </Button>

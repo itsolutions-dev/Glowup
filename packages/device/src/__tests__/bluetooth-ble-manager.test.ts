@@ -6,9 +6,11 @@
 import { PermissionsAndroid, Platform } from "react-native";
 
 import type * as BleManagerModule from "../bluetooth/bleManager";
-import { createStartThrottle } from "../bluetooth/throttle";
 import type { BluetoothError } from "../bluetooth/errors";
+import { createStartThrottle } from "../bluetooth/throttle";
 import type * as SystemSheetModule from "../core/systemSheet";
+
+type BleManagerModuleExports = typeof BleManagerModule;
 
 type StateListener = (event: { state: string }) => void;
 
@@ -19,6 +21,8 @@ type Listener = (event: never) => void;
 const mockEvents = {
   discover: new Set<Listener>(),
   stopScan: new Set<Listener>(),
+  value: new Set<Listener>(),
+  disconnect: new Set<Listener>(),
 };
 
 function listen(set: Set<Listener>) {
@@ -33,6 +37,21 @@ const mockBle = {
   stopScan: jest.fn(async () => {}),
   onDiscoverPeripheral: jest.fn(listen(mockEvents.discover)),
   onStopScan: jest.fn(listen(mockEvents.stopScan)),
+  onDidUpdateValueForCharacteristic: jest.fn(listen(mockEvents.value)),
+  onDisconnectPeripheral: jest.fn(listen(mockEvents.disconnect)),
+  connect: jest.fn(async (_id: string) => {}),
+  disconnect: jest.fn(async (_id: string) => {}),
+  retrieveServices: jest.fn(async (_id: string) => ({}) as object),
+  read: jest.fn(async (..._args: string[]) => [1, 2] as number[]),
+  write: jest.fn(async (..._args: unknown[]) => {}),
+  writeWithoutResponse: jest.fn(async (..._args: unknown[]) => {}),
+  startNotification: jest.fn(async (..._args: string[]) => {}),
+  stopNotification: jest.fn(async (..._args: string[]) => {}),
+  requestMTU: jest.fn(async (_id: string, mtu: number) => mtu),
+  readRSSI: jest.fn(async (_id: string) => -61),
+  createBond: jest.fn(async (_id: string) => {}),
+  getMaximumWriteValueLengthForWithResponse: jest.fn(async () => 512),
+  getMaximumWriteValueLengthForWithoutResponse: jest.fn(async () => 182),
   isStarted: jest.fn(async () => false),
   start: jest.fn(async (_options?: object) => {}),
   checkState: jest.fn(async () => "on"),
@@ -86,6 +105,9 @@ function load(os: "ios" | "android" = "ios", version = 34): Loaded {
       default: mockBle,
     }));
     jest.dontMock("../core/support");
+    // And on this registry's copy, for what the module reads at load time.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- the isolated copy
+    jest.replaceProperty(require("react-native").Platform, "OS", os);
     loaded = {
       // eslint-disable-next-line @typescript-eslint/no-require-imports -- a fresh copy per test
       ble: require("../bluetooth/bleManager"),
@@ -100,8 +122,7 @@ function load(os: "ios" | "android" = "ios", version = 34): Loaded {
 beforeEach(() => {
   jest.clearAllMocks();
   mockStateListeners.clear();
-  mockEvents.discover.clear();
-  mockEvents.stopScan.clear();
+  Object.values(mockEvents).forEach((set) => set.clear());
   mockBle.scan.mockResolvedValue(undefined);
   let started = false;
   mockBle.isStarted.mockImplementation(async () => started);
@@ -565,8 +586,9 @@ describe("scanning", () => {
       { services: ["0000180d-0000-1000-8000-00805f9b34fb"] },
       on,
     );
+    // SIG UUIDs go short: CoreBluetooth reports them so.
     expect(mockBle.scan).toHaveBeenCalledWith({
-      serviceUUIDs: ["0000180d-0000-1000-8000-00805f9b34fb"],
+      serviceUUIDs: ["180d"],
       allowDuplicates: true,
       scanMode: 2,
     });
@@ -689,5 +711,273 @@ describe("scanning", () => {
       await bleManagerAdapter.startScan({ services: [] }, handlers());
     }
     expect(mockBle.scan).toHaveBeenCalledTimes(7);
+  });
+});
+
+describe("toGattError", () => {
+  it.each([
+    ["Device disconnected", "disconnected"],
+    ["Disconnect called before the command completed", "disconnected"],
+    ["Peripheral did disconnect: 5A3C", "disconnected"],
+    ["Device is not connected", "not-connected"],
+    ["Peripheral not found or not connected", "not-connected"],
+    ["Peripheral not found", "not-connected"],
+    ["Could not find peripheral 5A3C.", "not-connected"],
+    ["BluetoothGatt is null", "not-connected"],
+    ["Characteristic 2a19 not found.", "failed"],
+    ["Error writing 2a39 status=3", "failed"],
+  ])("reads %j as %s", (message, code) => {
+    const error = load().ble.toGattError(message);
+    expect(error).toMatchObject({ name: "BluetoothError", code, message });
+  });
+
+  it("reads iOS's error objects and keeps a BluetoothError", () => {
+    const { toGattError } = load().ble;
+    expect(
+      toGattError({
+        code: 14,
+        domain: "CBErrorDomain",
+        message: "Peer removed pairing information",
+      }),
+    ).toMatchObject({
+      code: "failed",
+      message: "Peer removed pairing information",
+    });
+    expect(toGattError(new Error("boom")).message).toBe("boom");
+    expect(toGattError(42).message).toBe("42");
+  });
+});
+
+describe("toBluetoothServices", () => {
+  it("groups the characteristics under their services, UUIDs normalised", () => {
+    const { toBluetoothServices } = load().ble;
+    expect(
+      toBluetoothServices({
+        id: "A",
+        rssi: -50,
+        advertising: {},
+        services: [{ uuid: "180D" }, { uuid: "180d" }, { uuid: "not one" }],
+        characteristics: [
+          {
+            service: "180d",
+            characteristic: "2a37",
+            properties: { Notify: "Notify" },
+          },
+          {
+            service: "6E400001-B5A3-F393-E0A9-E50E24DCCA9E",
+            characteristic: "6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
+            properties: ["WriteWithoutResponse", "Write"] as never,
+          },
+          { service: "180d", characteristic: "??", properties: {} },
+        ],
+      }),
+    ).toEqual([
+      {
+        uuid: "0000180d-0000-1000-8000-00805f9b34fb",
+        characteristics: [
+          {
+            uuid: "00002a37-0000-1000-8000-00805f9b34fb",
+            service: "0000180d-0000-1000-8000-00805f9b34fb",
+            properties: {
+              read: false,
+              write: false,
+              writeWithoutResponse: false,
+              notify: true,
+              indicate: false,
+            },
+          },
+        ],
+      },
+      {
+        uuid: "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+        characteristics: [
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              write: true,
+              writeWithoutResponse: true,
+            }),
+          }),
+        ],
+      },
+    ]);
+    expect(toBluetoothServices({ id: "A", rssi: 0, advertising: {} })).toEqual(
+      [],
+    );
+  });
+});
+
+describe("GATT", () => {
+  const BATTERY = "0000180f-0000-1000-8000-00805f9b34fb";
+  const LEVEL = "00002a19-0000-1000-8000-00805f9b34fb";
+  const UART = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+  const RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+
+  it("reads with SIG UUIDs short, as bytes", async () => {
+    const { bleManagerAdapter } = load().ble;
+    await expect(bleManagerAdapter.read("A", BATTERY, LEVEL)).resolves.toEqual(
+      Uint8Array.from([1, 2]),
+    );
+    expect(mockBle.read).toHaveBeenCalledWith("A", "180f", "2a19");
+  });
+
+  it("writes in pieces of what one write carries: 20 bytes on Android until the MTU grows", async () => {
+    const { bleManagerAdapter } = load("android").ble;
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([1, 2]), {
+      withResponse: true,
+    });
+    expect(mockBle.write).toHaveBeenLastCalledWith("A", UART, RX, [1, 2], 20);
+    await expect(bleManagerAdapter.requestMtu("A", 247)).resolves.toBe(247);
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([3]), {
+      withResponse: false,
+    });
+    expect(mockBle.writeWithoutResponse).toHaveBeenLastCalledWith(
+      "A",
+      UART,
+      RX,
+      [3],
+      244,
+    );
+    // A new connection starts from the default again.
+    await bleManagerAdapter.connect("A");
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([4]), {
+      withResponse: true,
+    });
+    expect(mockBle.write).toHaveBeenLastCalledWith("A", UART, RX, [4], 20);
+  });
+
+  it("asks iOS what one write carries", async () => {
+    const { bleManagerAdapter } = load().ble;
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([1]), {
+      withResponse: true,
+    });
+    expect(mockBle.write).toHaveBeenLastCalledWith("A", UART, RX, [1], 512);
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([1]), {
+      withResponse: false,
+    });
+    expect(mockBle.writeWithoutResponse).toHaveBeenLastCalledWith(
+      "A",
+      UART,
+      RX,
+      [1],
+      182,
+    );
+    mockBle.getMaximumWriteValueLengthForWithResponse.mockRejectedValueOnce(
+      "Peripheral not found or not connected",
+    );
+    await bleManagerAdapter.write("A", UART, RX, Uint8Array.from([1]), {
+      withResponse: true,
+    });
+    expect(mockBle.write).toHaveBeenLastCalledWith("A", UART, RX, [1], 20);
+  });
+
+  it("reports iOS's MTU instead of asking for one", async () => {
+    const { bleManagerAdapter } = load().ble;
+    await expect(bleManagerAdapter.requestMtu("A", 517)).resolves.toBe(185);
+    expect(mockBle.requestMTU).not.toHaveBeenCalled();
+  });
+
+  it("connects, discovers, notifies and reads the signal", async () => {
+    const { bleManagerAdapter } = load().ble;
+    await bleManagerAdapter.connect("A");
+    expect(mockBle.connect).toHaveBeenCalledWith("A");
+    mockBle.retrieveServices.mockResolvedValueOnce({
+      services: [{ uuid: "180f" }],
+      characteristics: [],
+    });
+    await expect(bleManagerAdapter.discoverServices("A")).resolves.toEqual([
+      { uuid: BATTERY, characteristics: [] },
+    ]);
+    await bleManagerAdapter.startNotifications("A", BATTERY, LEVEL);
+    await bleManagerAdapter.stopNotifications("A", BATTERY, LEVEL);
+    expect(mockBle.startNotification).toHaveBeenCalledWith("A", "180f", "2a19");
+    expect(mockBle.stopNotification).toHaveBeenCalledWith("A", "180f", "2a19");
+    await expect(bleManagerAdapter.readRssi("A")).resolves.toBe(-61);
+  });
+
+  it("forwards notified values and closed connections", () => {
+    const { bleManagerAdapter } = load().ble;
+    const values = jest.fn();
+    const disconnects = jest.fn();
+    const stopValues = bleManagerAdapter.subscribeValues(values);
+    const stopDisconnects = bleManagerAdapter.subscribeDisconnects(disconnects);
+    emit(mockEvents.value, {
+      peripheral: "A",
+      service: "180F",
+      characteristic: "2A19",
+      value: [55],
+    });
+    emit(mockEvents.value, {
+      peripheral: "A",
+      service: "nope",
+      characteristic: "2A19",
+      value: [1],
+    });
+    emit(mockEvents.disconnect, { peripheral: "A", status: 8 });
+    expect(values.mock.calls).toEqual([
+      [
+        {
+          deviceId: "A",
+          service: BATTERY,
+          characteristic: LEVEL,
+          value: Uint8Array.from([55]),
+        },
+      ],
+    ]);
+    expect(disconnects).toHaveBeenCalledWith("A");
+    stopValues();
+    stopDisconnects();
+    expect(mockEvents.value.size + mockEvents.disconnect.size).toBe(0);
+  });
+
+  it("closes quietly what is already gone, and passes other failures on", async () => {
+    const { bleManagerAdapter } = load().ble;
+    mockBle.disconnect.mockRejectedValueOnce("Peripheral not found");
+    await expect(bleManagerAdapter.disconnect("A")).resolves.toBeUndefined();
+    mockBle.disconnect.mockRejectedValueOnce("Something else");
+    await expect(bleManagerAdapter.disconnect("A")).rejects.toMatchObject({
+      code: "failed",
+    });
+    mockBle.read.mockRejectedValueOnce("Device disconnected");
+    await expect(
+      bleManagerAdapter.read("A", BATTERY, LEVEL),
+    ).rejects.toMatchObject({ code: "disconnected" });
+  });
+
+  it("bonds on Android only", async () => {
+    expect(load().ble.bleManagerAdapter.bond).toBeUndefined();
+    const { bleManagerAdapter } = load("android").ble;
+    await bleManagerAdapter.bond!("A");
+    expect(mockBle.createBond).toHaveBeenCalledWith("A");
+  });
+
+  it("is unsupported where the module is not loaded", async () => {
+    let adapter!: BleManagerModuleExports["bleManagerAdapter"];
+    jest.isolateModules(() => {
+      // Not the module mock: once a lazy require reached this registry's
+      // copy, Jest serves it to isolated registries too.
+      jest.doMock("../core/support", () => ({
+        ...jest.requireActual("../core/support"),
+        isNativePlatform: false,
+      }));
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded after the mock above
+      adapter = require("../bluetooth/bleManager").bleManagerAdapter;
+    });
+    expect(adapter.subscribeValues(jest.fn())).toEqual(expect.any(Function));
+    expect(adapter.subscribeDisconnects(jest.fn())).toEqual(
+      expect.any(Function),
+    );
+    await expect(adapter.read("A", BATTERY, LEVEL)).rejects.toMatchObject({
+      code: "unsupported",
+    });
+    await expect(
+      adapter.startScan(
+        { services: [] },
+        {
+          onDevice: jest.fn(),
+          onStop: jest.fn(),
+        },
+      ),
+    ).rejects.toMatchObject({ code: "unsupported" });
+    await expect(adapter.stopScan()).resolves.toBeUndefined();
   });
 });

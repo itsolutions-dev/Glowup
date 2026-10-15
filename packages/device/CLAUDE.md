@@ -131,6 +131,28 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `onStopScan` statuses 0 and 10 (its own stops) and maps the others (Android's
   `ScanCallback` codes). ble-manager reports at most one manufacturer data entry, keyed by the
   company id in hex, and Android's missing transmit power as `Integer.MIN_VALUE`.
+  Connections (`connection.ts`): one store per adapter, one entry per device id (shared by every
+  `useBluetoothDevice` / `useBluetoothNotifications` on it), each with a `session` bumped by every
+  connect and disconnect so late answers are dropped. `connect()` = `ensureBluetoothReady` →
+  `adapter.connect` (with the store's timeout: iOS never times out; a timeout disconnects to
+  cancel) → `discoverServices` → `connected`, then turns every registered notification on again.
+  The adapter's disconnect events act only on a `connected` entry (a requested close is
+  `disconnecting`, a failed attempt is `connect()`'s to report). GATT calls need `connected` and
+  time out after 10 s (`GATT_TIMEOUT`). Notifications are counted per characteristic: on with
+  the first reader (once connected), off with the last; one that finished turning on after its
+  readers left is turned off. `hold()` counts mounted hooks; the last one leaving closes the
+  connection a microtask later unless it set `disconnectOnUnmount: false`. `write()` defaults
+  `withResponse` from the discovered properties. The adapter passes SIG UUIDs to ble-manager in
+  their short form (`shortBluetoothUuid`: CoreBluetooth compares `CBUUID`s it built from them),
+  chunks writes at MTU − 3 (ble-manager's `maxByteSize`; Android's MTU tracked per device and
+  reset on connect, iOS asked via `getMaximumWriteValueLength…`), and maps ble-manager's string
+  errors by their wording (`toGattError`). `bond` exists on Android only, so `canBond` is
+  `typeof adapter.bond === "function"`. Profiles (`profiles.ts`): Device Information and Battery,
+  UTF-8 by hand (Hermes' `TextDecoder` is not relied on), Nordic UART constants. In the mock,
+  `bond` is assigned after the literal: an object spread there would freeze its getters (as the
+  location mock's `watchHeading`). Jest: a lazy `require` that runs after `isolateModules` lands
+  in the main registry, and Jest then serves that mock to later isolated registries, so a test
+  that needs the module missing mocks `isNativePlatform` instead.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

@@ -28,11 +28,41 @@ export {
   type ScannedDevice,
   type UseBluetoothScan,
 } from "./scan";
+export {
+  DEFAULT_CONNECT_TIMEOUT,
+  GATT_TIMEOUT,
+  useBluetoothDevice,
+  useBluetoothNotifications,
+  type BluetoothConnectionStatus,
+  type BluetoothDeviceSnapshot,
+  type BluetoothNotificationState,
+  type ConnectOptions,
+  type UseBluetoothDevice,
+  type UseBluetoothDeviceOptions,
+  type UseBluetoothNotificationsOptions,
+  type WriteOptions,
+} from "./connection";
+export {
+  BLUETOOTH_CHARACTERISTICS,
+  BLUETOOTH_SERVICES,
+  decodeUtf8,
+  encodeUtf8,
+  parseBatteryLevel,
+  readBatteryLevel,
+  readDeviceInformation,
+  type DeviceInformation,
+  type GattReader,
+} from "./profiles";
 export { shortBluetoothUuid, toBluetoothUuid } from "./uuid";
 export type {
   BluetoothAdapter,
   BluetoothAdvertisement,
+  BluetoothCharacteristic,
+  BluetoothCharacteristicProperties,
   BluetoothDevice,
+  BluetoothService,
+  BluetoothValueEvent,
+  BluetoothWriteRequest,
   BluetoothScanHandlers,
   BluetoothScanRequest,
   BluetoothState,

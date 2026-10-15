@@ -1106,7 +1106,7 @@ read before the contract was written:
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done    |
 | 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done    |
-| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | done    |
 | 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
 
 ### Phase 30 — what landed
@@ -1165,6 +1165,36 @@ read before the contract was written:
   `buildBluetoothDevice()`.
 - **Not verified on a device:** the throttling limit and its margin, iOS's duplicate reports in
   the foreground, Android 11's silence with the location services off.
+
+### Phase 32 — what landed
+
+- **`useBluetoothDevice(id, { disconnectOnUnmount })`**: `connect({ timeout })`, `disconnect()`,
+  `status`, `error`, `services`, `read`, `write`, `requestMtu`, `mtu`, `readRssi`, `bond` /
+  `canBond`. One connection per device id, shared by every component; it closes when the last
+  one unmounts unless that one set `disconnectOnUnmount: false`.
+- **`useBluetoothNotifications(id, service, characteristic, onValue, { enabled })`**: counted per
+  characteristic, on once connected and again after each reconnection, off with the last reader;
+  the latest callback is called; one reader throwing does not keep the others from the value.
+- **Timeouts**: connecting 10 s by default (iOS never gives up; a timeout disconnects to cancel
+  the attempt), every GATT call 10 s (the platform's request is not cancelled).
+- **Unexpected disconnects** read `disconnected` with that error; no automatic reconnection.
+- **Writes** default to with-response when the characteristic allows it, without otherwise. A
+  value longer than one write is split by ble-manager into writes of MTU − 3 bytes: the adapter
+  passes Android's negotiated MTU (20 bytes until `requestMtu`) or iOS's
+  `maximumWriteValueLength`. A characteristic that needs one long value must fit in one write.
+- **Read from the source:** ble-manager rejects GATT calls with strings (mapped by wording to
+  `disconnected` / `not-connected` / `failed`) and iOS's failed connections with
+  `{ code, domain, message }`; it serialises Android's GATT commands per peripheral; its Android
+  `startNotification` also turns indications on. SIG UUIDs go to it short, since iOS builds
+  `CBUUID`s from the strings.
+- **Profiles (B7):** `readDeviceInformation`, `readBatteryLevel` / `parseBatteryLevel`, the SIG
+  and Nordic UART UUIDs (`BLUETOOTH_SERVICES`, `BLUETOOTH_CHARACTERISTICS`), `encodeUtf8` /
+  `decodeUtf8`.
+- **`/testing`:** GATT on the mock (`gatt`, `setGatt`, `notify`, `disconnectBySystem`,
+  `holdNextConnect`, `failNextConnect`, `failNextGatt`, `connected`, `notifying`, `writes`,
+  `bonded`).
+- **Not verified on a device:** everything GATT. In particular iOS's `CBUUID` matching with short
+  UUIDs, Android's behaviour on a connection that times out natively (status 133), and bonding.
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with

@@ -93,4 +93,7 @@ export {
   type BluetoothDeviceOverrides,
   type MockBluetoothAdapter,
   type MockBluetoothOptions,
+  type MockCharacteristic,
+  type MockService,
+  type MockWrite,
 } from "./bluetooth";

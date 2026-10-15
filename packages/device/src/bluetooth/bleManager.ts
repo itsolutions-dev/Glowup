@@ -1,22 +1,26 @@
 import { PermissionsAndroid, Platform, type Permission } from "react-native";
 import type BleManager from "react-native-ble-manager";
 import type {
+  Characteristic,
   CustomAdvertisingData,
   Peripheral,
+  PeripheralInfo,
 } from "react-native-ble-manager";
 
 import { isNativePlatform } from "../core/support";
 import { systemSheet } from "../core/systemSheet";
 import type { PermissionState } from "../core/types";
-import { BluetoothError } from "./errors";
+import { BluetoothError, isBluetoothError } from "./errors";
 import { createStartThrottle } from "./throttle";
 import type {
   BluetoothAdapter,
+  BluetoothCharacteristicProperties,
   BluetoothDevice,
   BluetoothScanHandlers,
+  BluetoothService,
   BluetoothState,
 } from "./types";
-import { toBluetoothUuid } from "./uuid";
+import { shortBluetoothUuid, toBluetoothUuid } from "./uuid";
 
 type BleManagerModule = typeof BleManager;
 
@@ -293,7 +297,7 @@ async function startScan(
   try {
     await withTimeout(
       ble.scan({
-        serviceUUIDs: services,
+        serviceUUIDs: services.map(shortBluetoothUuid),
         // iOS reports a device once per scan otherwise, and its signal never updates.
         allowDuplicates: true,
         scanMode: SCAN_MODE_LOW_LATENCY,
@@ -305,6 +309,141 @@ async function startScan(
     throw error instanceof BluetoothError
       ? error
       : new BluetoothError("failed", String(error), error);
+  }
+}
+
+/** The message inside whatever ble-manager rejected with. */
+function messageOf(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return String(error);
+}
+
+/**
+ * ble-manager rejects GATT calls with strings (iOS's failed connections with
+ * `{ code, domain, message }`): as `BluetoothError`s, from the wording both
+ * platforms use.
+ */
+export function toGattError(error: unknown): BluetoothError {
+  if (isBluetoothError(error)) return error;
+  const message = messageOf(error);
+  const lower = message.toLowerCase();
+  // Android: "Device disconnected", "Disconnect called before the command
+  // completed"; iOS: "Peripheral did disconnect: …".
+  if (lower.includes("disconnect")) {
+    return new BluetoothError("disconnected", message, error);
+  }
+  // "Device is not connected", "Peripheral not found or not connected",
+  // "Could not find peripheral …", "BluetoothGatt is null".
+  if (
+    lower.includes("not connected") ||
+    lower.includes("peripheral not found") ||
+    lower.includes("could not find peripheral") ||
+    lower.includes("gatt is null")
+  ) {
+    return new BluetoothError("not-connected", message, error);
+  }
+  return new BluetoothError("failed", message, error);
+}
+
+const PROPERTY_NAMES: Record<keyof BluetoothCharacteristicProperties, string> =
+  {
+    read: "Read",
+    write: "Write",
+    writeWithoutResponse: "WriteWithoutResponse",
+    notify: "Notify",
+    indicate: "Indicate",
+  };
+
+function toProperties(
+  raw: Characteristic["properties"] | string[] | undefined,
+): BluetoothCharacteristicProperties {
+  const has = (name: string) =>
+    Array.isArray(raw)
+      ? raw.includes(name)
+      : Boolean(raw && (raw as Record<string, unknown>)[name]);
+  return {
+    read: has(PROPERTY_NAMES.read),
+    write: has(PROPERTY_NAMES.write),
+    writeWithoutResponse: has(PROPERTY_NAMES.writeWithoutResponse),
+    notify: has(PROPERTY_NAMES.notify),
+    indicate: has(PROPERTY_NAMES.indicate),
+  };
+}
+
+/** ble-manager's flat lists as services holding their characteristics. */
+export function toBluetoothServices(info: PeripheralInfo): BluetoothService[] {
+  const services = new Map<string, BluetoothService>();
+  const serviceFor = (uuid: string) => {
+    let service = services.get(uuid);
+    if (!service) {
+      service = { uuid, characteristics: [] };
+      services.set(uuid, service);
+    }
+    return service;
+  };
+  for (const { uuid } of info.services ?? []) {
+    const service = readUuid(uuid);
+    if (service) serviceFor(service);
+  }
+  for (const raw of info.characteristics ?? []) {
+    const service = readUuid(raw.service);
+    const uuid = readUuid(raw.characteristic);
+    if (!service || !uuid) continue;
+    serviceFor(service).characteristics.push({
+      uuid,
+      service,
+      properties: toProperties(raw.properties),
+    });
+  }
+  return [...services.values()];
+}
+
+// ATT's default MTU, and the 3 bytes of each write's header.
+const DEFAULT_MTU = 23;
+const ATT_HEADER = 3;
+// The MTU Android negotiated per device (iOS reports its own).
+const androidMtus = new Map<string, number>();
+
+/** How many bytes one write carries on this connection. */
+async function writeLength(
+  ble: BleManagerModule,
+  deviceId: string,
+  withResponse: boolean,
+): Promise<number> {
+  if (Platform.OS !== "ios") {
+    return (androidMtus.get(deviceId) ?? DEFAULT_MTU) - ATT_HEADER;
+  }
+  try {
+    return withResponse
+      ? await ble.getMaximumWriteValueLengthForWithResponse(deviceId)
+      : await ble.getMaximumWriteValueLengthForWithoutResponse(deviceId);
+  } catch {
+    return DEFAULT_MTU - ATT_HEADER;
+  }
+}
+
+/** The form ble-manager is given: SIG UUIDs short, as CoreBluetooth reports them. */
+const native = shortBluetoothUuid;
+
+function requireBle(): BleManagerModule {
+  const ble = loadBleManager();
+  if (!ble) throw new BluetoothError("unsupported");
+  return ble;
+}
+
+/** Runs a GATT call, its failure as a `BluetoothError`. */
+async function gatt<T>(
+  call: (ble: BleManagerModule) => Promise<T>,
+): Promise<T> {
+  const ble = requireBle();
+  try {
+    return await call(ble);
+  } catch (error) {
+    throw toGattError(error);
   }
 }
 
@@ -438,6 +577,117 @@ export function createBleManagerAdapter(
       endScanSession();
       await ble.stopScan();
     },
+
+    connect(deviceId) {
+      // A new connection starts from the default MTU.
+      androidMtus.delete(deviceId);
+      return gatt((ble) => ble.connect(deviceId));
+    },
+
+    async disconnect(deviceId) {
+      try {
+        await gatt((ble) => ble.disconnect(deviceId));
+      } catch (error) {
+        // Never connected, or already gone: nothing to close.
+        if ((error as BluetoothError).code !== "not-connected") throw error;
+      }
+    },
+
+    discoverServices: (deviceId) =>
+      gatt(async (ble) =>
+        toBluetoothServices(await ble.retrieveServices(deviceId)),
+      ),
+
+    read: (deviceId, service, characteristic) =>
+      gatt(async (ble) =>
+        Uint8Array.from(
+          await ble.read(deviceId, native(service), native(characteristic)),
+        ),
+      ),
+
+    write: (deviceId, service, characteristic, value, { withResponse }) =>
+      gatt(async (ble) => {
+        const length = await writeLength(ble, deviceId, withResponse);
+        const data = Array.from(value);
+        if (withResponse) {
+          await ble.write(
+            deviceId,
+            native(service),
+            native(characteristic),
+            data,
+            length,
+          );
+        } else {
+          await ble.writeWithoutResponse(
+            deviceId,
+            native(service),
+            native(characteristic),
+            data,
+            length,
+          );
+        }
+      }),
+
+    startNotifications: (deviceId, service, characteristic) =>
+      gatt((ble) =>
+        ble.startNotification(
+          deviceId,
+          native(service),
+          native(characteristic),
+        ),
+      ),
+
+    stopNotifications: (deviceId, service, characteristic) =>
+      gatt((ble) =>
+        ble.stopNotification(deviceId, native(service), native(characteristic)),
+      ),
+
+    subscribeValues(listener) {
+      const ble = loadBleManager();
+      if (!ble) return () => {};
+      const subscription = ble.onDidUpdateValueForCharacteristic((event) => {
+        const service = readUuid(event.service);
+        const characteristic = readUuid(event.characteristic);
+        if (!service || !characteristic) return;
+        listener({
+          deviceId: event.peripheral,
+          service,
+          characteristic,
+          value: Uint8Array.from(event.value),
+        });
+      });
+      return () => subscription.remove();
+    },
+
+    subscribeDisconnects(listener) {
+      const ble = loadBleManager();
+      if (!ble) return () => {};
+      const subscription = ble.onDisconnectPeripheral(({ peripheral }) => {
+        androidMtus.delete(peripheral);
+        listener(peripheral);
+      });
+      return () => subscription.remove();
+    },
+
+    requestMtu: (deviceId, mtu) =>
+      gatt(async (ble) => {
+        if (Platform.OS === "ios") {
+          // iOS negotiated it on connecting; a write without response carries MTU - 3.
+          return (
+            (await ble.getMaximumWriteValueLengthForWithoutResponse(deviceId)) +
+            ATT_HEADER
+          );
+        }
+        const negotiated = await ble.requestMTU(deviceId, mtu);
+        androidMtus.set(deviceId, negotiated);
+        return negotiated;
+      }),
+
+    readRssi: (deviceId) => gatt((ble) => ble.readRSSI(deviceId)),
+
+    ...(Platform.OS === "android" && {
+      bond: (deviceId: string) => gatt((ble) => ble.createBond(deviceId)),
+    }),
   };
 }
 

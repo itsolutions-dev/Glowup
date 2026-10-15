@@ -70,7 +70,6 @@
   },
   "devDependencies": {
     "@react-native/jest-preset": "^0.86.3",
-    "@react-native/typescript-config": "^0.86.0",
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.17",

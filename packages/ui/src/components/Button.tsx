@@ -19,6 +19,7 @@ import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { getSuccessRoles } from "../providers/successRoles";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export type ButtonMode = "filled" | "tonal" | "outlined" | "text";
@@ -161,6 +162,7 @@ const Button = ({
     border,
     underlay: stateBase,
   } = useMemo(() => getButtonColors(theme, mode, tone), [theme, mode, tone]);
+  const stateLayer = useStateLayer(stateBase, on);
 
   const isInteractive = !disabled && !loading && !busy;
 
@@ -193,13 +195,10 @@ const Button = ({
       // stops answering presses.
       disabled={disabled || loading}
       style={({ hovered, pressed }: PressableState) => {
-        let currentBg = bg;
-
-        if (isInteractive && pressed) {
-          currentBg = getStateColor(stateBase, on, "press");
-        } else if (isInteractive && hovered) {
-          currentBg = getStateColor(stateBase, on, "hover");
-        }
+        const currentBg =
+          isInteractive && (pressed || hovered)
+            ? stateLayer({ pressed, hovered })
+            : bg;
 
         const glow =
           (hovered || pressed) && isInteractive

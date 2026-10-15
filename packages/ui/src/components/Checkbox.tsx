@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
-import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
-import { PressableState } from "./types";
+import SelectionControl from "./internal/SelectionControl";
 
 export interface CheckboxProps {
   label?: string;
@@ -46,112 +46,49 @@ const Checkbox = ({
     [error, filled, theme.colors],
   );
 
-  const labelComponent = useMemo(() => {
-    if (!label) return null;
-
-    return (
-      <Text
-        style={[
-          theme.typography.bodyLarge,
-          { color: theme.colors.onSurface },
-          labelPosition === "left" ? { marginRight: 12 } : { marginLeft: 12 },
-        ]}
-      >
-        {label}
-      </Text>
-    );
-  }, [label, labelPosition, theme.typography, theme.colors]);
-
   return (
-    <Pressable
+    <SelectionControl
+      label={label}
+      labelPosition={labelPosition}
       onPress={() => {
         emitFeedback("toggle");
         onValueChange(!checked);
       }}
-      accessibilityLabel={label}
       accessibilityRole="checkbox"
       accessibilityState={{
         checked: indeterminate ? "mixed" : checked,
         disabled,
       }}
       disabled={disabled}
-      style={[styles.wrapper, { opacity: disabled ? 0.38 : 1 }]}
     >
-      {({ hovered, pressed }: PressableState) => (
-        <>
-          {labelPosition === "left" && labelComponent}
-
-          <View style={styles.container}>
-            {/* State Layer (Hover/Pressed Effect) */}
-            <View
-              style={[
-                styles.stateLayer,
-                {
-                  backgroundColor: pressed
-                    ? theme.colors.primary
-                    : hovered
-                      ? theme.colors.onSurface
-                      : "transparent",
-                  opacity: pressed ? 0.12 : hovered ? 0.08 : 0,
-                },
-              ]}
+      {(active) => (
+        <View
+          style={[
+            styles.box,
+            {
+              borderColor: checkboxColor,
+              backgroundColor: filled ? checkboxColor : "transparent",
+              borderWidth: filled ? 0 : 2,
+            },
+            active && getGlowStyles(theme, true, error ? "error" : undefined),
+          ]}
+        >
+          {filled && (
+            <Icons
+              name={indeterminate ? "minus" : "check"}
+              size={14}
+              color={theme.colors.onPrimary}
             />
-
-            {/* The Actual Box */}
-            <View
-              style={[
-                styles.box,
-                {
-                  borderColor: checkboxColor,
-                  backgroundColor: filled ? checkboxColor : "transparent",
-                  borderWidth: filled ? 0 : 2,
-                },
-                (hovered || pressed) &&
-                  getGlowStyles(theme, true, error ? "error" : undefined),
-              ]}
-            >
-              {filled && (
-                <Icons
-                  name={indeterminate ? "minus" : "check"}
-                  size={14}
-                  color={theme.colors.onPrimary}
-                />
-              )}
-            </View>
-          </View>
-
-          {labelPosition === "right" && labelComponent}
-        </>
+          )}
+        </View>
       )}
-    </Pressable>
+    </SelectionControl>
   );
 };
 
 export default Checkbox;
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    alignSelf: "flex-start",
-    ...Platform.select({
-      web: { cursor: "pointer" },
-    }),
-  },
-  container: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  stateLayer: {
-    position: "absolute",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
   box: {
     width: 18,
     height: 18,

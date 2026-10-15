@@ -594,13 +594,13 @@ Text field (outlined or filled) with affixes, icons, multiline and number mode.
 | error                      | string (message + error styling)                            |            |
 | helperText                 | string (hidden while error shown)                           |            |
 | required                   | boolean (asterisk on label)                                 |            |
-| disabled / readonly        | boolean                                                     |            |
+| disabled / readOnly        | boolean (any other `TextInput` prop passes through)         |            |
 | secureTextEntry            | boolean (password)                                          |            |
 | maxLength                  | number                                                      |            |
 | multiline                  | boolean                                                     | `false`    |
 | numberOfLines              | number                                                      | `4`        |
 | minHeight                  | number                                                      | `56`       |
-| onFocus / onBlur           | () => void                                                  |            |
+| onFocus / onBlur           | (event) => void                                             |            |
 
 #### `Select`
 
@@ -881,7 +881,7 @@ Small labeled status pill with its own semantic colors (light/dark aware).
 
 #### `DataGrid`
 
-Virtualized table: sortable columns, reorder, density, loading + empty state. Also exports
+Virtualized table: sortable columns, density, loading + empty state. Also exports
 composable primitives `Table, Thead, Tfoot, Tr, Th, Td`.
 
 | Prop            | Type                                                                 | Default  |
@@ -893,7 +893,6 @@ composable primitives `Table, Thead, Tfoot, Tr, Th, Td`.
 | sortColumn      | string                                                               |          |
 | sortDirection   | `"asc" \| "desc"`                                                    |          |
 | onSort          | (columnId, direction) => void                                        |          |
-| onColumnReorder | (newColumns) => void                                                 |          |
 | onEndReached    | () => void (infinite scroll)                                         |          |
 | emptyMessage    | string                                                               |          |
 
@@ -905,7 +904,7 @@ Single pressable list row.
 | ------------------------------------------------------------------------ | ------------------------------------ | ------- |
 | children                                                                 | ReactNode (label, required)          | —       |
 | onPress                                                                  | () => void (adds hover/press states) |         |
-| itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object                               |         |
+| itemContainerStyle / itemTextStyle                                       | object                               |         |
 
 #### `ListSection` / `ListSubheader`
 

@@ -115,6 +115,22 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   adds no second one capped at API 30. Its adapter test swaps `Platform` and spies
   `PermissionsAndroid` on the main registry, not the isolated one: react-native's index requires
   them in getters, at call time.
+  Scanning (`scan.ts`, `useBluetoothScan`): one scan store per adapter, as the platform has one
+  scan: a `start()` replaces it, every reader shares the list, and the last reader leaving stops
+  it (a microtask later, as `sensors/stream.ts`). `start()` validates (`TypeError` /
+  `RangeError`), runs `ensureBluetoothReady`, and only then `adapter.startScan`; a session id
+  drops anything from a replaced or stopped scan. Devices are deduplicated by `id` (the name of
+  a repeat without one is kept) and rendered at most every 250 ms (`SCAN_UPDATE_INTERVAL`; the
+  first device after a reset shows at once). The timeout is the store's timer, not
+  ble-manager's `seconds`, so the scan can pause on `background` (the adapter's scan stops) and
+  resume on `active` for the time it had left; the radio store ending in `off` /
+  `unauthorized` finishes it with an error. The adapter scans with `allowDuplicates` (iOS reports
+  a device once otherwise, and its RSSI never moves) and Android's low-latency mode; it
+  delays a start past Android's five-in-30-seconds limit (`throttle.ts`), gives up on a
+  `scan()` that never calls back (Android's, with the radio off) after 5 s, ignores
+  `onStopScan` statuses 0 and 10 (its own stops) and maps the others (Android's
+  `ScanCallback` codes). ble-manager reports at most one manufacturer data entry, keyed by the
+  company id in hex, and Android's missing transmit power as `Integer.MIN_VALUE`.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each

@@ -6,13 +6,33 @@
 import { PermissionsAndroid, Platform } from "react-native";
 
 import type * as BleManagerModule from "../bluetooth/bleManager";
+import { createStartThrottle } from "../bluetooth/throttle";
 import type { BluetoothError } from "../bluetooth/errors";
 import type * as SystemSheetModule from "../core/systemSheet";
 
 type StateListener = (event: { state: string }) => void;
 
 const mockStateListeners = new Set<StateListener>();
+type Listener = (event: never) => void;
+
+/** ble-manager's other events: discovery and the end of a scan. */
+const mockEvents = {
+  discover: new Set<Listener>(),
+  stopScan: new Set<Listener>(),
+};
+
+function listen(set: Set<Listener>) {
+  return (listener: Listener) => {
+    set.add(listener);
+    return { remove: () => set.delete(listener) };
+  };
+}
+
 const mockBle = {
+  scan: jest.fn(async (_options: object) => {}),
+  stopScan: jest.fn(async () => {}),
+  onDiscoverPeripheral: jest.fn(listen(mockEvents.discover)),
+  onStopScan: jest.fn(listen(mockEvents.stopScan)),
   isStarted: jest.fn(async () => false),
   start: jest.fn(async (_options?: object) => {}),
   checkState: jest.fn(async () => "on"),
@@ -27,6 +47,10 @@ jest.mock("react-native-ble-manager", () => ({
   __esModule: true,
   default: mockBle,
 }));
+
+function emit(set: Set<Listener>, event: object) {
+  [...set].forEach((listener) => listener(event as never));
+}
 
 function emitState(state: string) {
   [...mockStateListeners].forEach((listener) => listener({ state }));
@@ -76,6 +100,9 @@ function load(os: "ios" | "android" = "ios", version = 34): Loaded {
 beforeEach(() => {
   jest.clearAllMocks();
   mockStateListeners.clear();
+  mockEvents.discover.clear();
+  mockEvents.stopScan.clear();
+  mockBle.scan.mockResolvedValue(undefined);
   let started = false;
   mockBle.isStarted.mockImplementation(async () => started);
   mockBle.start.mockImplementation(async () => {
@@ -425,5 +452,242 @@ describe("Android", () => {
     await new Promise((resolve) => setImmediate(resolve));
     mockBle.checkState.mockResolvedValue("unsupported");
     await expect(bleManagerAdapter.getState()).resolves.toBe("unsupported");
+  });
+});
+
+describe("toBluetoothDevice", () => {
+  const bytes = (values: number[]) => ({
+    CDVType: "ArrayBuffer" as const,
+    bytes: values,
+    data: "",
+  });
+
+  it("normalises an Android advertisement", () => {
+    const { toBluetoothDevice } = load().ble;
+    expect(
+      toBluetoothDevice({
+        id: "C0:FF:EE:00:00:01",
+        name: "Cached name",
+        rssi: -71,
+        advertising: {
+          localName: "HRM",
+          isConnectable: true,
+          serviceUUIDs: ["180d", "6E400001-B5A3-F393-E0A9-E50E24DCCA9E", "??"],
+          serviceData: { feaa: bytes([0x10, 0x00]), bad: bytes([1]) },
+          manufacturerData: { "004c": bytes([2, 21, 7]) },
+          manufacturerRawData: bytes([0, 0, 0, 0x4c, 2, 21, 7]),
+          txPowerLevel: -2147483648,
+          rawData: bytes([]),
+        },
+      }),
+    ).toEqual({
+      id: "C0:FF:EE:00:00:01",
+      name: "HRM",
+      rssi: -71,
+      advertisement: {
+        localName: "HRM",
+        serviceUuids: [
+          "0000180d-0000-1000-8000-00805f9b34fb",
+          "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+        ],
+        serviceData: {
+          "0000feaa-0000-1000-8000-00805f9b34fb": Uint8Array.from([0x10, 0]),
+        },
+        manufacturerData: {
+          companyId: 0x4c,
+          data: Uint8Array.from([2, 21, 7]),
+        },
+        txPowerLevel: null,
+        isConnectable: true,
+      },
+    });
+  });
+
+  it("reads an iOS advertisement with little in it", () => {
+    const { toBluetoothDevice } = load().ble;
+    expect(
+      toBluetoothDevice({
+        id: "5A3C1E2B-0000-4000-8000-000000000001",
+        name: "",
+        rssi: -40,
+        advertising: { txPowerLevel: 4 },
+      }),
+    ).toEqual({
+      id: "5A3C1E2B-0000-4000-8000-000000000001",
+      name: null,
+      rssi: -40,
+      advertisement: {
+        localName: null,
+        serviceUuids: [],
+        serviceData: {},
+        manufacturerData: null,
+        txPowerLevel: 4,
+        isConnectable: null,
+      },
+    });
+    expect(
+      toBluetoothDevice({
+        id: "x",
+        name: "Known",
+        rssi: -40,
+        advertising: undefined as never,
+      }).name,
+    ).toBe("Known");
+  });
+});
+
+describe("createStartThrottle", () => {
+  it("lets five starts through in 30 s, then waits for the oldest to leave", () => {
+    let now = 0;
+    const throttle = createStartThrottle(undefined, undefined, () => now);
+    for (let i = 0; i < 5; i++) {
+      expect(throttle.delay()).toBe(0);
+      throttle.record();
+      now += 1000;
+    }
+    // Five starts at 0..4 s; at 5 s the sixth waits until 30.5 s.
+    expect(throttle.delay()).toBe(25_500);
+    now = 30_500;
+    expect(throttle.delay()).toBe(0);
+    throttle.record();
+    expect(throttle.delay()).toBe(1000);
+  });
+});
+
+describe("scanning", () => {
+  const handlers = () => ({ onDevice: jest.fn(), onStop: jest.fn() });
+  const PERIPHERAL = { id: "A", name: "HRM", rssi: -50, advertising: {} };
+
+  it("scans with repeats, low latency and the services, and forwards devices", async () => {
+    const { bleManagerAdapter } = load().ble;
+    const on = handlers();
+    await bleManagerAdapter.startScan(
+      { services: ["0000180d-0000-1000-8000-00805f9b34fb"] },
+      on,
+    );
+    expect(mockBle.scan).toHaveBeenCalledWith({
+      serviceUUIDs: ["0000180d-0000-1000-8000-00805f9b34fb"],
+      allowDuplicates: true,
+      scanMode: 2,
+    });
+    emit(mockEvents.discover, PERIPHERAL);
+    expect(on.onDevice).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "A", name: "HRM", rssi: -50 }),
+    );
+  });
+
+  it("ignores the stops it asked for, and reports the platform's", async () => {
+    const { bleManagerAdapter } = load().ble;
+    const on = handlers();
+    await bleManagerAdapter.startScan({ services: [] }, on);
+    emit(mockEvents.stopScan, { status: 0 });
+    emit(mockEvents.stopScan, { status: 10 });
+    emit(mockEvents.stopScan, {});
+    expect(on.onStop).not.toHaveBeenCalled();
+    emit(mockEvents.stopScan, { status: 6 });
+    expect(on.onStop).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: "failed",
+        message: "The app scans too frequently.",
+      }),
+    );
+    // The session ended: nothing more reaches the handlers.
+    emit(mockEvents.discover, PERIPHERAL);
+    expect(on.onDevice).not.toHaveBeenCalled();
+    expect(mockEvents.discover.size).toBe(0);
+  });
+
+  it.each([
+    [4, "unsupported", "This device cannot scan for Bluetooth Low Energy."],
+    [42, "failed", "The scan stopped (status 42)."],
+  ])("reads status %d as %s", async (status, code, message) => {
+    const { bleManagerAdapter } = load().ble;
+    const on = handlers();
+    await bleManagerAdapter.startScan({ services: [] }, on);
+    emit(mockEvents.stopScan, { status });
+    expect(on.onStop).toHaveBeenCalledWith(
+      expect.objectContaining({ code, message }),
+    );
+  });
+
+  it("replaces a running scan: the old handlers hear nothing more", async () => {
+    const { bleManagerAdapter } = load().ble;
+    const first = handlers();
+    const second = handlers();
+    await bleManagerAdapter.startScan({ services: [] }, first);
+    await bleManagerAdapter.startScan({ services: [] }, second);
+    emit(mockEvents.discover, PERIPHERAL);
+    expect(first.onDevice).not.toHaveBeenCalled();
+    expect(second.onDevice).toHaveBeenCalledTimes(1);
+    expect(mockEvents.discover.size).toBe(1);
+  });
+
+  it("stops the platform's scan and lets go of its events", async () => {
+    const { bleManagerAdapter } = load().ble;
+    await bleManagerAdapter.stopScan();
+    expect(mockBle.stopScan).not.toHaveBeenCalled();
+    await bleManagerAdapter.startScan({ services: [] }, handlers());
+    await bleManagerAdapter.stopScan();
+    expect(mockBle.stopScan).toHaveBeenCalledTimes(1);
+    expect(mockEvents.discover.size + mockEvents.stopScan.size).toBe(0);
+  });
+
+  it("gives up on a scan the platform never confirms", async () => {
+    jest.useFakeTimers();
+    const { bleManagerAdapter } = load().ble;
+    mockBle.scan.mockReturnValue(new Promise(() => {}));
+    const start = bleManagerAdapter.startScan({ services: [] }, handlers());
+    const outcome = expect(start).rejects.toMatchObject({ code: "timeout" });
+    await jest.advanceTimersByTimeAsync(5000);
+    await outcome;
+    expect(mockEvents.discover.size).toBe(0);
+  });
+
+  it("wraps the platform's refusal", async () => {
+    const { bleManagerAdapter } = load().ble;
+    mockBle.scan.mockRejectedValue("No BLE scanner available");
+    await expect(
+      bleManagerAdapter.startScan({ services: [] }, handlers()),
+    ).rejects.toMatchObject({
+      name: "BluetoothError",
+      code: "failed",
+      message: "No BLE scanner available",
+    });
+  });
+
+  it("waits out Android's limit of five starts in 30 s", async () => {
+    jest.useFakeTimers({ now: 0 });
+    const { bleManagerAdapter } = load("android").ble;
+    for (let i = 0; i < 5; i++) {
+      await bleManagerAdapter.startScan({ services: [] }, handlers());
+    }
+    expect(mockBle.scan).toHaveBeenCalledTimes(5);
+    const sixth = bleManagerAdapter.startScan({ services: [] }, handlers());
+    await jest.advanceTimersByTimeAsync(30_499);
+    expect(mockBle.scan).toHaveBeenCalledTimes(5);
+    await jest.advanceTimersByTimeAsync(1);
+    await sixth;
+    expect(mockBle.scan).toHaveBeenCalledTimes(6);
+  });
+
+  it("starts nothing when stopped while it waits", async () => {
+    jest.useFakeTimers({ now: 0 });
+    const { bleManagerAdapter } = load("android").ble;
+    for (let i = 0; i < 5; i++) {
+      await bleManagerAdapter.startScan({ services: [] }, handlers());
+    }
+    const sixth = bleManagerAdapter.startScan({ services: [] }, handlers());
+    await bleManagerAdapter.stopScan();
+    await jest.advanceTimersByTimeAsync(31_000);
+    await sixth;
+    expect(mockBle.scan).toHaveBeenCalledTimes(5);
+  });
+
+  it("does not throttle iOS", async () => {
+    const { bleManagerAdapter } = load().ble;
+    for (let i = 0; i < 7; i++) {
+      await bleManagerAdapter.startScan({ services: [] }, handlers());
+    }
+    expect(mockBle.scan).toHaveBeenCalledTimes(7);
   });
 });

@@ -20,5 +20,20 @@ export {
   createBleManagerAdapter,
   type BleManagerAdapterOptions,
 } from "./bleManager";
+export {
+  DEFAULT_SCAN_TIMEOUT,
+  useBluetoothScan,
+  type BluetoothScanOptions,
+  type BluetoothScanSnapshot,
+  type ScannedDevice,
+  type UseBluetoothScan,
+} from "./scan";
 export { shortBluetoothUuid, toBluetoothUuid } from "./uuid";
-export type { BluetoothAdapter, BluetoothState } from "./types";
+export type {
+  BluetoothAdapter,
+  BluetoothAdvertisement,
+  BluetoothDevice,
+  BluetoothScanHandlers,
+  BluetoothScanRequest,
+  BluetoothState,
+} from "./types";

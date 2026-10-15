@@ -1,11 +1,22 @@
 import { PermissionsAndroid, Platform, type Permission } from "react-native";
 import type BleManager from "react-native-ble-manager";
+import type {
+  CustomAdvertisingData,
+  Peripheral,
+} from "react-native-ble-manager";
 
 import { isNativePlatform } from "../core/support";
 import { systemSheet } from "../core/systemSheet";
 import type { PermissionState } from "../core/types";
 import { BluetoothError } from "./errors";
-import type { BluetoothAdapter, BluetoothState } from "./types";
+import { createStartThrottle } from "./throttle";
+import type {
+  BluetoothAdapter,
+  BluetoothDevice,
+  BluetoothScanHandlers,
+  BluetoothState,
+} from "./types";
+import { toBluetoothUuid } from "./uuid";
 
 type BleManagerModule = typeof BleManager;
 
@@ -138,6 +149,165 @@ function settledState(ble: BleManagerModule): Promise<BluetoothState> {
   });
 }
 
+function toBytes(data: CustomAdvertisingData | undefined): Uint8Array {
+  return Uint8Array.from(data?.bytes ?? []);
+}
+
+/** A UUID the platform reported, normalised; `null` when it is not one. */
+function readUuid(uuid: string): string | null {
+  try {
+    return toBluetoothUuid(uuid);
+  } catch {
+    return null;
+  }
+}
+
+// What Android's ScanRecord answers when no power level was advertised.
+const NO_TX_POWER = -2147483648;
+
+/** ble-manager's peripheral as the package's device. */
+export function toBluetoothDevice(peripheral: Peripheral): BluetoothDevice {
+  const advertising = peripheral.advertising ?? {};
+  const serviceData: Record<string, Uint8Array> = {};
+  for (const [key, value] of Object.entries(advertising.serviceData ?? {})) {
+    const uuid = readUuid(key);
+    if (uuid) serviceData[uuid] = toBytes(value);
+  }
+  // Both platforms key the one entry by the company id in hex.
+  const [manufacturer] = Object.entries(advertising.manufacturerData ?? {});
+  const companyId = manufacturer ? Number.parseInt(manufacturer[0], 16) : NaN;
+  const txPowerLevel = advertising.txPowerLevel;
+  const localName = advertising.localName || null;
+  return {
+    id: peripheral.id,
+    name: localName ?? (peripheral.name || null),
+    rssi: peripheral.rssi,
+    advertisement: {
+      localName,
+      serviceUuids: (advertising.serviceUUIDs ?? [])
+        .map(readUuid)
+        .filter((uuid): uuid is string => uuid !== null),
+      serviceData,
+      manufacturerData: Number.isNaN(companyId)
+        ? null
+        : { companyId, data: toBytes(manufacturer![1]) },
+      txPowerLevel:
+        typeof txPowerLevel === "number" && txPowerLevel !== NO_TX_POWER
+          ? txPowerLevel
+          : null,
+      isConnectable:
+        typeof advertising.isConnectable === "boolean"
+          ? advertising.isConnectable
+          : null,
+    },
+  };
+}
+
+// Android's ScanCallback failures, as `onStopScan`'s status. 10 is
+// ble-manager's own timer (not used here) and 0 a stop the app asked for.
+const SCAN_FAILURES: Record<number, string> = {
+  1: "A scan was already running.",
+  2: "The app could not register its scan.",
+  3: "The Bluetooth stack failed.",
+  4: "This device cannot scan for Bluetooth Low Energy.",
+  5: "The Bluetooth controller is out of resources.",
+  6: "The app scans too frequently.",
+};
+const SCAN_UNSUPPORTED = 4;
+const ASKED_TO_STOP = new Set([0, 10]);
+
+// Android's ScanSettings: low latency while an app looks at the results.
+const SCAN_MODE_LOW_LATENCY = 2;
+
+// Android's scan() never calls back while the radio is off: a start that
+// takes longer than this did not happen.
+const SCAN_START_TIMEOUT = 5_000;
+
+// One scan per process, as the platform has.
+let scanSession = 0;
+let stopListening: (() => void) | null = null;
+const androidThrottle = createStartThrottle();
+
+function endScanSession(): void {
+  scanSession++;
+  stopListening?.();
+  stopListening = null;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () =>
+        reject(
+          new BluetoothError("timeout", "The platform did not start the scan."),
+        ),
+      ms,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+async function startScan(
+  ble: BleManagerModule,
+  services: string[],
+  handlers: BluetoothScanHandlers,
+): Promise<void> {
+  endScanSession();
+  const session = scanSession;
+  await ensureStarted(ble);
+  if (session !== scanSession) return;
+  if (Platform.OS === "android") {
+    const delay = androidThrottle.delay();
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    // Stopped or replaced while it waited.
+    if (session !== scanSession) return;
+    androidThrottle.record();
+  }
+  const discovered = ble.onDiscoverPeripheral((peripheral) => {
+    if (session === scanSession)
+      handlers.onDevice(toBluetoothDevice(peripheral));
+  });
+  const stopped = ble.onStopScan(({ status }) => {
+    if (session !== scanSession || ASKED_TO_STOP.has(status ?? 0)) return;
+    endScanSession();
+    handlers.onStop(
+      new BluetoothError(
+        status === SCAN_UNSUPPORTED ? "unsupported" : "failed",
+        SCAN_FAILURES[status!] ?? `The scan stopped (status ${status}).`,
+      ),
+    );
+  });
+  stopListening = () => {
+    discovered.remove();
+    stopped.remove();
+  };
+  try {
+    await withTimeout(
+      ble.scan({
+        serviceUUIDs: services,
+        // iOS reports a device once per scan otherwise, and its signal never updates.
+        allowDuplicates: true,
+        scanMode: SCAN_MODE_LOW_LATENCY,
+      }),
+      SCAN_START_TIMEOUT,
+    );
+  } catch (error) {
+    if (session === scanSession) endScanSession();
+    throw error instanceof BluetoothError
+      ? error
+      : new BluetoothError("failed", String(error), error);
+  }
+}
+
 export interface BleManagerAdapterOptions {
   /**
    * Match the config plugin's `bluetooth.neverForLocation` (default `true`).
@@ -251,6 +421,22 @@ export function createBleManagerAdapter(
             canAskAgain: !results.includes(NEVER_ASK_AGAIN),
           };
       return androidAnswer;
+    },
+
+    async startScan({ services }, handlers) {
+      const ble = loadBleManager();
+      if (!ble) throw new BluetoothError("unsupported");
+      await startScan(ble, services, handlers);
+    },
+
+    async stopScan() {
+      const ble = loadBleManager();
+      if (!ble || !stopListening) {
+        endScanSession();
+        return;
+      }
+      endScanSession();
+      await ble.stopScan();
     },
   };
 }

@@ -1,5 +1,47 @@
-import type { BluetoothAdapter, BluetoothState } from "../bluetooth/types";
+import { BluetoothError, type BluetoothErrorCode } from "../bluetooth/errors";
+import type {
+  BluetoothAdapter,
+  BluetoothAdvertisement,
+  BluetoothDevice,
+  BluetoothScanHandlers,
+  BluetoothScanRequest,
+  BluetoothState,
+} from "../bluetooth/types";
+import { toBluetoothUuid } from "../bluetooth/uuid";
 import type { PermissionState, PermissionStatus } from "../core/types";
+
+export type BluetoothDeviceOverrides = Partial<
+  Omit<BluetoothDevice, "advertisement">
+> & { advertisement?: Partial<BluetoothAdvertisement> };
+
+/**
+ * A device as a scan reports it: a heart rate monitor by default. Service
+ * UUIDs may be given short (`"180D"`); `localName` follows `name` unless set.
+ */
+export function buildBluetoothDevice(
+  overrides: BluetoothDeviceOverrides = {},
+): BluetoothDevice {
+  const name = overrides.name === undefined ? "HRM" : overrides.name;
+  const advertisement = overrides.advertisement ?? {};
+  return {
+    id: overrides.id ?? "AA:BB:CC:DD:EE:01",
+    name,
+    rssi: overrides.rssi ?? -60,
+    advertisement: {
+      localName: name,
+      serviceData: {},
+      manufacturerData: null,
+      txPowerLevel: null,
+      isConnectable: true,
+      ...advertisement,
+      serviceUuids: (advertisement.serviceUuids ?? []).map(toBluetoothUuid),
+    },
+  };
+}
+
+function toError(error: BluetoothError | BluetoothErrorCode): BluetoothError {
+  return typeof error === "string" ? new BluetoothError(error) : error;
+}
 
 export interface MockBluetoothOptions {
   /** `false` behaves like the web or Expo Go. Default true. */
@@ -29,6 +71,20 @@ export interface MockBluetoothAdapter extends BluetoothAdapter {
   readonly requestCount: number;
   /** How many times `enable()` was called. */
   readonly enableCount: number;
+  /**
+   * Reports a device to the running scan, as an advertisement would; dropped
+   * (returns false) when the scan filters by services it does not advertise.
+   * Throws when no scan runs: the platform would report nothing.
+   */
+  discover(device?: BluetoothDeviceOverrides): boolean;
+  /** Ends the running scan with a failure, as the platform would. */
+  failScan(error: BluetoothError | BluetoothErrorCode): void;
+  /** Makes the next `startScan()` reject. */
+  failNextScan(error: BluetoothError | BluetoothErrorCode): void;
+  /** The running scan's request; `null` when none runs. */
+  readonly scanning: BluetoothScanRequest | null;
+  /** How many scans were started. */
+  readonly scanCount: number;
 }
 
 // As the other mocks: only an undetermined permission can be asked by default.
@@ -58,6 +114,12 @@ export function createMockBluetoothAdapter(
   );
   let requestCount = 0;
   let enableCount = 0;
+  let scan: {
+    request: BluetoothScanRequest;
+    handlers: BluetoothScanHandlers;
+  } | null = null;
+  let nextScanError: BluetoothError | null = null;
+  let scanCount = 0;
   const stateListeners = new Set<(state: BluetoothState) => void>();
 
   const adapter: MockBluetoothAdapter = {
@@ -89,9 +151,23 @@ export function createMockBluetoothAdapter(
       }
       return { ...permission };
     },
+    async startScan(request, handlers) {
+      if (nextScanError) {
+        const error = nextScanError;
+        nextScanError = null;
+        throw error;
+      }
+      scanCount++;
+      scan = { request: { services: [...request.services] }, handlers };
+    },
+    async stopScan() {
+      scan = null;
+    },
 
     setState(next) {
       state = next;
+      // The radio going off ends the platform's scan.
+      if (next !== "on") scan = null;
       [...stateListeners].forEach((listener) => listener(state));
     },
     setPermission(status, extra = {}) {
@@ -105,6 +181,39 @@ export function createMockBluetoothAdapter(
     },
     get enableCount() {
       return enableCount;
+    },
+    discover(device = {}) {
+      if (!scan) {
+        throw new Error(
+          "MockBluetoothAdapter: no scan runs, so the platform would report nothing. Start one first.",
+        );
+      }
+      const found = buildBluetoothDevice(device);
+      const { services } = scan.request;
+      if (
+        services.length > 0 &&
+        !found.advertisement.serviceUuids.some((uuid) =>
+          services.includes(uuid),
+        )
+      ) {
+        return false;
+      }
+      scan.handlers.onDevice(found);
+      return true;
+    },
+    failScan(error) {
+      const running = scan;
+      scan = null;
+      running?.handlers.onStop(toError(error));
+    },
+    failNextScan(error) {
+      nextScanError = toError(error);
+    },
+    get scanning() {
+      return scan ? { services: [...scan.request.services] } : null;
+    },
+    get scanCount() {
+      return scanCount;
     },
   };
   return adapter;

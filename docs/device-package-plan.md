@@ -1105,7 +1105,7 @@ read before the contract was written:
 | Phase | Content                                                                                                                                                                                      | Release | Status  |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
 | 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done    |
-| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done    |
 | 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
 | 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
 
@@ -1138,6 +1138,33 @@ read before the contract was written:
 - **`/testing`:** `createMockBluetoothAdapter()`.
 - **Not verified on a device:** whether iOS's first state after the prompt arrives as described;
   whether Android's `getState()` needs `BLUETOOTH_CONNECT` (the docs say no).
+
+### Phase 31 — what landed
+
+- **`useBluetoothScan()`**: `start({ services, timeout })`, `stop()`, `clear()`, `devices`,
+  `isScanning`, `error`. One scan per adapter (the platform has one): a start replaces it, every
+  component shares the list, the last one leaving stops it.
+- **Checks first, never prompts:** `start()` validates its options (`TypeError` / `RangeError`)
+  and runs `ensureBluetoothReady` (support, permission, radio `on`) before the adapter.
+- **Dedupe and rendering:** one entry per `id` with the latest RSSI and advertisement,
+  `firstSeen` / `lastSeen`, a repeat without a name keeping the known one; the list renders at
+  most every 250 ms. The adapter scans with `allowDuplicates` (otherwise iOS reports a device
+  once and its RSSI never updates) and Android's low-latency mode.
+- **Advertising data** (`BluetoothAdvertisement`): local name, service UUIDs (normalised),
+  service data, manufacturer data as `{ companyId, data }`, transmit power, connectable. From
+  the source: ble-manager keeps one manufacturer entry on both platforms, keyed by the company
+  id in hex, and passes Android's missing transmit power as `Integer.MIN_VALUE`.
+- **Lifecycle:** the timeout is the store's own timer, so a scan pauses on `background` and
+  resumes on `active` for the time it had left; the radio going `off` (or iOS's
+  `unauthorized`) ends it with an error.
+- **Android's throttling:** starts are counted and a sixth within 30 s waits until it is
+  allowed (`throttle.ts`, 0.5 s margin). `scan()` without a callback in 5 s (Android's, with the
+  radio off) rejects with `timeout`. Android's `ScanCallback` failures arrive as `onStopScan`
+  statuses and map to `failed` (4, no LE scanning, to `unsupported`).
+- **`/testing`:** `discover()`, `failScan()`, `failNextScan()`, `scanning`, `scanCount`, and
+  `buildBluetoothDevice()`.
+- **Not verified on a device:** the throttling limit and its margin, iOS's duplicate reports in
+  the foreground, Android 11's silence with the location services off.
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with

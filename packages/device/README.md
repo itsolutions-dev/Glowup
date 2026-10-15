@@ -50,7 +50,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/media-picker`        | `expo-image-picker`                  | `useMediaPicker`                                                                                                        |
 | `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                                       |
 | `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission` |
-| `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `BluetoothError`, `toBluetoothUuid`                                      |
+| `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `useBluetoothScan`, `BluetoothError`, `toBluetoothUuid`                  |
 | `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                 |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -1142,6 +1142,43 @@ if (radio.state === "off" && radio.canEnable) {
 - Errors are `BluetoothError`s (`isBluetoothError()`), with a `code`: `unsupported`,
   `permission-denied`, `powered-off`, `timeout`, `not-connected`, `disconnected` or `failed`.
 
+### Scanning
+
+```tsx
+import { useBluetoothScan } from "@its/glowup-device/bluetooth";
+
+const scan = useBluetoothScan();
+
+await scan.start({ services: ["180D"], timeout: 10_000 }); // heart rate monitors, 10 s
+scan.devices; // [{ id, name, rssi, advertisement, firstSeen, lastSeen }], once each
+scan.isScanning;
+scan.error; // why the scan could not start or stopped early
+await scan.stop();
+```
+
+- **One scan per app**, as the platform has one: every component using the hook shares it and
+  its list, a `start()` anywhere replaces it (and empties the list), and it stops when the last
+  of them unmounts.
+- `start()` checks the permission and the radio first, never prompts, and rejects with the
+  `BluetoothError` that stops it (`permission-denied`, `powered-off`, `unsupported`). Bad options
+  are a `TypeError` / `RangeError` before anything starts.
+- `services` filters on the platform (fewer wake-ups): only devices advertising one of them.
+  Without it every device around shows, which is what you want to discover a device that
+  advertises no service.
+- `timeout` (default 10 s; `0` until `stop()`) ends the scan and keeps the list.
+- Each device is listed once, with its latest signal (`rssi`, dBm) and advertisement; the list
+  renders at most every 250 ms, however fast devices advertise. `advertisement` carries the
+  local name, the service UUIDs, the service data (Eddystone), the manufacturer data
+  (`companyId` and bytes), the advertised transmit power and whether it accepts connections.
+- It **pauses in the background** and resumes on return for the time it had left; it ends with
+  `powered-off` when the radio goes off.
+- **Android** silently returns nothing to an app that starts more than five scans in 30
+  seconds; the adapter counts the starts and delays the sixth until it is allowed (the scan
+  reads `isScanning` meanwhile). Android 11 and earlier also find nothing while the location
+  services are off, and say nothing about it.
+- A device's `id` is a per-app UUID on iOS and its MAC address on Android: stable on this phone
+  for this app, meaningless anywhere else. iOS hides Apple's iBeacon frames from apps.
+
 ### UUIDs
 
 iOS reports a SIG-assigned UUID in its short form (`180D`), Android in its 128-bit form, so raw
@@ -1433,4 +1470,7 @@ answers `requestResult` (default `"granted"`). `setState("off")` changes the rad
 listening component, `setPermission("denied")` changes the permission as the settings would, and
 `requestCount` / `enableCount` count the prompts and the "turn on" dialogs (`enableResult:
 "refuse"` answers them no; `canEnable: false` stands in for iOS). `{ supported: false }` behaves
-like the web or Expo Go.
+like the web or Expo Go. Once a scan runs, `discover({ id, name, rssi, advertisement })` reports
+a device to it (`buildBluetoothDevice()` fills the rest; a device the scan's services filter out
+is dropped, as the platform would); `failScan("failed")` ends it, `failNextScan()` makes the next
+start reject, and `scanning` holds the running scan's services.

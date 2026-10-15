@@ -4,22 +4,11 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 
 import ComponentPreview from "../catalogue/ComponentPreview";
-import { ComponentRegistry } from "../catalogue/registry";
+import { ComponentRegistry, defaultsOf } from "../catalogue/registry";
 import { CATEGORIES, FLAT_ORDER, TOTAL_COUNT } from "../catalogue/categories";
 import { buildSnippet } from "../catalogue/snippet";
 import { VARIANTS_BY_COMPONENT } from "../catalogue/variants";
 import { COMPONENT_DOCS, requiredPropsOf } from "../site/propsData";
-
-/** The panel's opening state for a component: every prop at its default. */
-const defaultsOf = (name: string) => {
-  const props: Record<string, any> = {};
-  for (const [key, definition] of Object.entries(
-    ComponentRegistry[name].props,
-  )) {
-    props[key] = definition.default;
-  }
-  return props;
-};
 
 // Same provider chain app/_layout.tsx mounts — the kit's components read from
 // all of it. The router is deliberately not mounted: what has to keep working

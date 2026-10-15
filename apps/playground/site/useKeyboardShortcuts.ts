@@ -72,5 +72,3 @@ export const COMMAND_KEY_LABEL =
   /Mac|iPhone|iPad/.test(navigator.platform ?? "")
     ? "⌘"
     : "Ctrl";
-
-export default useKeyboardShortcuts;

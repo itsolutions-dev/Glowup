@@ -17,5 +17,3 @@ export const useHydrated = () =>
     () => true,
     () => false,
   );
-
-export default useHydrated;

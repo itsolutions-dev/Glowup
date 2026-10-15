@@ -217,5 +217,3 @@ const makeStyles = (theme: Theme) =>
       minHeight: 40,
     },
   });
-
-export default PropControls;

@@ -15,7 +15,6 @@ import type { ComponentMetadata } from "../types";
 /** Foundations: 10 catalogue entries. */
 export const foundations: Record<string, ComponentMetadata> = {
   Typography: {
-    name: "Typography",
     Component: Typography,
     props: {
       children: {
@@ -48,7 +47,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   Divider: {
-    name: "Divider",
     Component: Divider,
     isContainer: true,
     props: {
@@ -73,7 +71,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   Paper: {
-    name: "Paper",
     Component: Paper,
     isContainer: true,
     props: {
@@ -88,7 +85,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   Card: {
-    name: "Card",
     Component: Card,
     isContainer: true,
     props: {
@@ -111,7 +107,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   CardTitle: {
-    name: "CardTitle",
     Component: CardTitle,
     props: {
       title: { type: "text", default: "Line 4", label: "Title" },
@@ -123,7 +118,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   CardContent: {
-    name: "CardContent",
     Component: CardContent,
     isContainer: true,
     props: {
@@ -135,7 +129,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   CardCover: {
-    name: "CardCover",
     Component: CardCover,
     props: {
       ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
@@ -143,7 +136,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   CardActions: {
-    name: "CardActions",
     Component: CardActions,
     props: {
       align: {
@@ -159,7 +151,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   Icon: {
-    name: "Icon",
     Component: Icon,
     props: {
       source: { type: "text", default: "camera", label: "Source (glyph)" },
@@ -168,7 +159,6 @@ export const foundations: Record<string, ComponentMetadata> = {
     },
   },
   TouchableRipple: {
-    name: "TouchableRipple",
     Component: TouchableRipple,
     props: {
       borderless: { type: "boolean", default: false, label: "Borderless" },

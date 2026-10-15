@@ -19,3 +19,13 @@ export const ComponentRegistry: Record<string, ComponentMetadata> = {
   ...navigation,
   ...layout,
 };
+
+/** The panel's opening state for a component: every prop at its default. */
+export const defaultsOf = (name: string): Record<string, any> =>
+  Object.hasOwn(ComponentRegistry, name)
+    ? Object.fromEntries(
+        Object.entries(ComponentRegistry[name].props).map(
+          ([key, definition]) => [key, definition.default],
+        ),
+      )
+    : {};

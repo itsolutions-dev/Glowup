@@ -1,26 +1,31 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { Button, HStack, StatusBadge } from "@its/glowup-ui";
 import type { PermissionStatus } from "@its/glowup-device";
 
+/** A device permission, or a notification one (iOS's quiet "provisional" grant). */
+type Status = PermissionStatus | "provisional";
+
 const BADGE: Record<
-  PermissionStatus,
+  Status,
   { label: string; type: "success" | "error" | "warning" }
 > = {
   granted: { label: "Granted", type: "success" },
+  provisional: { label: "Provisional", type: "success" },
   undetermined: { label: "Not asked", type: "warning" },
   denied: { label: "Denied", type: "error" },
   unsupported: { label: "Unsupported", type: "warning" },
 };
 
 interface DevicePermissionProps {
-  status: PermissionStatus;
+  status: Status;
   canAskAgain: boolean;
-  isLoading: boolean;
+  isLoading?: boolean;
   request: () => Promise<unknown>;
   /** Where a refused permission is turned back on; none on the web. */
   openSettings?: () => Promise<void>;
   /** The button that shows the OS prompt. */
   requestLabel: string;
+  requestIcon?: ComponentProps<typeof Button>["iconName"];
   /** Badges after the status (precision, the microphone). */
   children?: ReactNode;
 }
@@ -37,6 +42,7 @@ export function DevicePermission({
   request,
   openSettings,
   requestLabel,
+  requestIcon = "shield-check-outline",
   children,
 }: DevicePermissionProps) {
   const [busy, setBusy] = useState(false);
@@ -60,8 +66,9 @@ export function DevicePermission({
       {children}
       {isLoading ||
       status === "granted" ||
+      status === "provisional" ||
       status === "unsupported" ? null : canAskAgain ? (
-        <Button iconName="shield-check-outline" loading={busy} onPress={ask}>
+        <Button iconName={requestIcon} loading={busy} onPress={ask}>
           {requestLabel}
         </Button>
       ) : openSettings ? (

@@ -21,7 +21,6 @@ import { SideSheetDemo } from "../demos";
 /** Feedback: 15 catalogue entries. */
 export const feedback: Record<string, ComponentMetadata> = {
   Snackbar: {
-    name: "Snackbar",
     Component: Snackbar,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
@@ -45,7 +44,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Banner: {
-    name: "Banner",
     Component: Banner,
     props: {
       visible: { type: "boolean", default: true, label: "Visible" },
@@ -69,7 +67,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Modal: {
-    name: "Modal",
     Component: Modal,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
@@ -86,7 +83,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   ConfirmDialog: {
-    name: "ConfirmDialog",
     Component: ConfirmDialog,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
@@ -101,14 +97,12 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Popover: {
-    name: "Popover",
     Component: Popover,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
     },
   },
   BottomSheet: {
-    name: "BottomSheet",
     Component: BottomSheet,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
@@ -122,7 +116,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Menu: {
-    name: "Menu",
     Component: Menu,
     props: {
       visible: { type: "boolean", default: false, label: "Visible" },
@@ -134,7 +127,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Skeleton: {
-    name: "Skeleton",
     Component: Skeleton,
     props: {
       variant: {
@@ -160,8 +152,8 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   CircularProgress: {
-    name: "CircularProgress",
     Component: CircularProgress,
+    dropWhenFalsy: ["color"],
     props: {
       size: { type: "number", default: 48, label: "Size" },
       strokeWidth: { type: "number", default: 4, label: "Stroke Width" },
@@ -170,8 +162,9 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   LinearProgress: {
-    name: "LinearProgress",
     Component: LinearProgress,
+    dropWhenFalsy: ["color"],
+    stage: { width: "100%", maxWidth: 400 },
     props: {
       progress: {
         type: "number",
@@ -190,8 +183,10 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   EmptyState: {
-    name: "EmptyState",
     Component: EmptyState,
+    sample: {
+      action: { label: "Add item", iconName: "plus", onPress: () => {} },
+    },
     props: {
       icon: { type: "text", default: "inbox-outline", label: "Icon" },
       title: { type: "text", default: "No items yet", label: "Title" },
@@ -203,7 +198,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Toast: {
-    name: "Toast",
     Component: Button,
     props: {
       message: { type: "text", default: "Changes saved", label: "Message" },
@@ -212,7 +206,6 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Collapse: {
-    name: "Collapse",
     Component: Collapse,
     props: {
       collapsedHeight: {
@@ -225,12 +218,10 @@ export const feedback: Record<string, ComponentMetadata> = {
     },
   },
   Portal: {
-    name: "Portal",
     Component: Portal,
     props: {},
   },
   SideSheet: {
-    name: "SideSheet",
     Component: SideSheet,
     Demo: SideSheetDemo,
     props: {

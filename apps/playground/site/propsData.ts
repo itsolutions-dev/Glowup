@@ -9,8 +9,6 @@ export interface PropDoc {
   /** The initialiser from the component's destructuring pattern, verbatim. */
   default?: string;
   description?: string;
-  /** Present for short string/number literal unions; drives generated controls. */
-  values?: (string | number)[];
   deprecated?: boolean;
 }
 
@@ -51,8 +49,6 @@ export const requiredPropsOf = (name: string): string[] =>
   (COMPONENT_DOCS[name]?.props ?? [])
     .filter((prop) => prop.required)
     .map((prop) => prop.name);
-
-export const DOCUMENTED_COMPONENT_COUNT = Object.keys(COMPONENT_DOCS).length;
 
 export const TOTAL_PROP_COUNT = Object.values(COMPONENT_DOCS).reduce(
   (total, component) => total + component.props.length,

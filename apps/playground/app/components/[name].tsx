@@ -5,7 +5,6 @@ import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Divider,
   EmptyState,
-  ToggleButtonGroup,
   Typography,
   useTheme,
   type PressableState,
@@ -13,7 +12,7 @@ import {
 } from "@its/glowup-ui";
 
 import ComponentPreview from "../../catalogue/ComponentPreview";
-import { ComponentRegistry } from "../../catalogue/registry";
+import { ComponentRegistry, defaultsOf } from "../../catalogue/registry";
 import {
   CATEGORY_OF,
   FLAT_ORDER,
@@ -29,16 +28,12 @@ import { PropsTable } from "../../site/PropsTable";
 import { docFor, requiredPropsOf } from "../../site/propsData";
 import { useLayout } from "../../site/breakpoints";
 import { useHydrated } from "../../site/useHydrated";
+import {
+  StageWidthPicker,
+  stageWidthStyle,
+  type StageWidth,
+} from "../../site/Stage";
 import { GITHUB_URL } from "../../site/siteNav";
-
-/** Widths the stage can be pinned to, so a reader can see the mobile case. */
-const STAGE_WIDTHS = {
-  phone: 360,
-  tablet: 720,
-  full: undefined,
-} as const;
-
-type StageWidth = keyof typeof STAGE_WIDTHS;
 
 // The name comes from the URL, so only the registry's own keys count:
 // /components/constructor must be a 404, not Object.prototype.constructor.
@@ -46,16 +41,6 @@ const entryFor = (name?: string) =>
   name && Object.hasOwn(ComponentRegistry, name)
     ? ComponentRegistry[name]
     : undefined;
-
-const defaultsOf = (name: string) => {
-  const meta = entryFor(name);
-  const values: Record<string, any> = {};
-  if (!meta) return values;
-  for (const [key, definition] of Object.entries(meta.props)) {
-    values[key] = definition.default;
-  }
-  return values;
-};
 
 /**
  * Every route this page can be rendered at. `expo export` calls it to
@@ -199,16 +184,7 @@ export default function ComponentPage() {
             >
               Live demo
             </Typography>
-            <ToggleButtonGroup
-              accessibilityLabel="Stage width"
-              value={stageWidth}
-              onValueChange={(value) => setStageWidth(value as StageWidth)}
-              options={[
-                { value: "phone", icon: "cellphone", label: "360" },
-                { value: "tablet", icon: "tablet", label: "720" },
-                { value: "full", icon: "monitor", label: "Full" },
-              ]}
-            />
+            <StageWidthPicker value={stageWidth} onChange={setStageWidth} />
           </View>
 
           {/* The cap goes on the stage, not on a wrapper inside it. Capping an
@@ -216,20 +192,7 @@ export default function ComponentPage() {
               anyone can see: the frame stayed 912px and the demo never
               reflowed. Narrowing the frame itself is both the feedback that
               the viewport changed and the constraint the demo lays out in. */}
-          <View
-            style={[
-              styles.stage,
-              STAGE_WIDTHS[stageWidth] !== undefined && {
-                // A fixed width, not a cap: `alignSelf` takes the stage out of
-                // the column's stretch, so a maxWidth alone let it shrink-wrap
-                // its content and 360 and 720 rendered identically. maxWidth
-                // "100%" keeps it inside the column on a narrow screen.
-                width: STAGE_WIDTHS[stageWidth],
-                maxWidth: "100%",
-                alignSelf: "center",
-              },
-            ]}
-          >
+          <View style={[styles.stage, stageWidthStyle(stageWidth)]}>
             <View style={styles.stageInner}>
               <DemoErrorBoundary label={name}>
                 <ComponentPreview

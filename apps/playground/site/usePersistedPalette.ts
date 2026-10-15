@@ -37,5 +37,3 @@ export const usePersistedPalette = () => {
     if (restored.current && stored !== palette.id) store(palette.id);
   }, [palette.id, stored, store]);
 };
-
-export default usePersistedPalette;

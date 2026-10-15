@@ -4,7 +4,6 @@ import type { ComponentMetadata } from "../types";
 /** Layout: 6 catalogue entries. */
 export const layout: Record<string, ComponentMetadata> = {
   Box: {
-    name: "Box",
     Component: Box,
     props: {
       p: {
@@ -48,7 +47,6 @@ export const layout: Record<string, ComponentMetadata> = {
     },
   },
   Stack: {
-    name: "Stack",
     Component: Stack,
     props: {
       direction: {
@@ -75,8 +73,8 @@ export const layout: Record<string, ComponentMetadata> = {
     },
   },
   Grid: {
-    name: "Grid",
     Component: Grid,
+    dropWhenFalsy: ["minChildWidth"],
     props: {
       columns: {
         type: "number",
@@ -104,19 +102,16 @@ export const layout: Record<string, ComponentMetadata> = {
     },
   },
   AspectRatio: {
-    name: "AspectRatio",
     Component: AspectRatio,
     props: {
       ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
     },
   },
   Center: {
-    name: "Center",
     Component: Center,
     props: {},
   },
   Spacer: {
-    name: "Spacer",
     Component: Spacer,
     props: {
       size: { type: "number", default: 24, label: "Size" },

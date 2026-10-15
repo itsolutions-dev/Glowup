@@ -572,6 +572,11 @@ describe("profiles", () => {
     expect(decodeUtf8(encodeUtf8(text))).toBe(text);
     expect(Array.from(encodeUtf8("è"))).toEqual([0xc3, 0xa8]);
     expect(decodeUtf8(Uint8Array.from([0x41, 0x00, 0x00]))).toBe("A");
+    expect(decodeUtf8(Uint8Array.from([0x00, 0x41, 0x00]))).toBe("\0A");
+    // A long run of padding followed by text: linear, not a regex backtrack.
+    const padded = new Uint8Array(200_001);
+    padded[200_000] = 0x41;
+    expect(decodeUtf8(padded)).toHaveLength(200_001);
     expect(decodeUtf8(Uint8Array.from([0x41, 0xff, 0x42]))).toBe("A�B");
     expect(decodeUtf8(Uint8Array.from([0xe2, 0x82]))).toBe("��");
     expect(decodeUtf8(Uint8Array.from([0xed, 0xa0, 0x80]))).toBe("���");

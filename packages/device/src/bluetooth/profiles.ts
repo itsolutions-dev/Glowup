@@ -29,9 +29,13 @@ export const BLUETOOTH_CHARACTERISTICS = {
 
 /** UTF-8 bytes as text, as GATT strings travel; trailing NULs dropped. */
 export function decodeUtf8(bytes: Uint8Array): string {
+  // Trailing NULs pad fixed-size strings; dropped on the bytes, in one pass
+  // (a regex on the decoded text would be polynomial on a long run of them).
+  let end = bytes.length;
+  while (end > 0 && bytes[end - 1] === 0) end--;
   let text = "";
   let i = 0;
-  while (i < bytes.length) {
+  while (i < end) {
     const first = bytes[i];
     const size =
       first < 0x80
@@ -44,7 +48,7 @@ export function decodeUtf8(bytes: Uint8Array): string {
               ? 2
               : 0;
     let code = size === 1 ? first : first & (0xff >> (size + 1));
-    let valid = size > 0 && i + size <= bytes.length;
+    let valid = size > 0 && i + size <= end;
     for (let k = 1; valid && k < size; k++) {
       const next = bytes[i + k];
       if ((next & 0xc0) !== 0x80) valid = false;
@@ -58,7 +62,7 @@ export function decodeUtf8(bytes: Uint8Array): string {
       i += 1;
     }
   }
-  return text.replace(/\0+$/, "");
+  return text;
 }
 
 /** Text as UTF-8 bytes, to write a string to a characteristic. */

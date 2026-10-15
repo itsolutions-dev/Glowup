@@ -255,18 +255,18 @@ Cosa significa in pratica:
 
 ## 3. Fasi
 
-| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato |
-| ---- | -------------------------------------------------------------- | ---------- | ---------- | ----- |
-| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | —     |
-| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —     |
-| 2    | Token di tema e hook                                           | S          | 0          | —     |
-| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —     |
-| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —     |
-| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —     |
-| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —     |
-| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —     |
-| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —     |
-| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —     |
+| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                      |
+| ---- | -------------------------------------------------------------- | ---------- | ---------- | -------------------------- |
+| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2 e 0.5 fatti) |
+| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                          |
+| 2    | Token di tema e hook                                           | S          | 0          | —                          |
+| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                          |
+| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                          |
+| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                          |
+| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                          |
+| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                          |
+| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                          |
+| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                          |
 
 Ordine consigliato: **0 → (1 ∥ 2) → 3A → 4 ∥ 6 → 3B/3C → 5 → 7**, con 8 che parte quando 1 e 3A sono
 disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è richiesto anche sul
@@ -287,6 +287,29 @@ Obiettivo: trasformare le proposte più rischiose in fatti, **prima** di costrui
 | 0.6 | Eseguire il playground su un simulatore iOS e uno Android e annotare cosa si rompe (anche solo un elenco).                                                                                                                                               | Base di partenza per la Fase 1.                                                                                |
 
 Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matrice 0.5 esiste.
+
+**Esiti finora (2026-10-15).**
+
+- **0.2 fatto** → `docs/spike-0.2-crm-desktop.md`. Il rendering su react-native-web regge, la densità no: i
+  controlli di form non hanno una prop di densità (campo ≈ 55 px contro righe di griglia da 40 px). Da
+  aggiungere al lotto 3A (`size`/`density` su `Input`, `Select`, `Button`). Le interazioni non sono state provate.
+- **0.5 fatto** → `docs/crm-component-matrix.md` (tutti e tre i lotti). Correzioni al piano emerse dalla matrice:
+  - `AgendaTimeline` **non esiste** nel CRM: la fonte di `DayTimeline` è `MobileAgenda.jsx`.
+  - `useActiveFilters` **non esiste** in Glowup: o si crea o si toglie dal 3A.
+  - `Modal`: la prop più usata del CRM è la larghezza (`size`), non elencata nel piano → in 3B.
+  - **Senza evidenza** nel CRM (fuori dai lotti finché una schermata non li chiede): selezione, colonne sticky,
+    `footer` e `onRowPress` di `DataGrid`; `searchable` e `onOpen` di `Select`; contatore `maxCharacters`;
+    `dot` del `Chip`; `loading`/`sparkline`/`format`/`onPress` di `Stat`; campo data nativo; selettore
+    dimensione pagina; `Stepper` verticale/errore; snap point del `BottomSheet`; `hidden`/`renderItem` della sidebar.
+  - `PinInput` copre già tutto: nessun vuoto da colmare.
+  - Il CRM **non pagina**: scroll infinito (`useInfiniteQuery`, 16 file). `Pagination` si rinvia; il lavoro è la
+    lista infinita in `DataGrid`.
+  - Il `Stepper` del CRM è un `MobileStepper` (pallini/barra + Indietro/Avanti), non un wizard a etichette.
+  - Aggiunte non previste: `CaptionValue` (25 file) ad alta priorità, `ListItem` con `primary` come nodo e
+    indicatore di stato (13 file), `Tabs` con chiave, `BottomSheet` con `footer`, `Snackbar` con `info`/`warning`,
+    token pubblici `success`/`warning`/`info` nel tema.
+  - `Autocomplete`: il valore del CRM è un oggetto scelto distinto dal testo digitato; in Glowup `value` è solo testo.
+- **Da fare**: 0.1, 0.3, 0.4, 0.6.
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 
@@ -689,7 +712,7 @@ copia locale della libreria in un'app perché adottare il pacchetto costa troppo
 
 ## 9. Domande aperte
 
-Rimaste dopo le tue risposte. Ognuna ha un default: se va bene, basta dirlo.
+**Tutte chiuse il 2026-10-15 con il default indicato** (Q1–Q6). Il testo resta come registro delle decisioni.
 
 1. **Priorità tra web e telefono (D17)?** Default: il **web è il primo target** (browser desktop e mobile); il
    nativo si verifica in Fase 1 sui componenti principali e poi si estende. Se il telefono è prioritario fin

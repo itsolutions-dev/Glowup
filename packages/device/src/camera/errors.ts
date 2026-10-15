@@ -1,3 +1,5 @@
+import { CodedError, isCodedError } from "../core/shared";
+
 /**
  * - `permission-denied`: the camera (or, for video with sound, the microphone)
  *   is not granted.
@@ -16,14 +18,9 @@ export type CameraErrorCode =
   | "capture-failed"
   | "unsupported";
 
-export class CameraError extends Error {
-  readonly code: CameraErrorCode;
-
+export class CameraError extends CodedError<CameraErrorCode> {
   constructor(code: CameraErrorCode, message?: string, cause?: unknown) {
-    super(message ?? DEFAULT_MESSAGES[code]);
-    this.name = "CameraError";
-    this.code = code;
-    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+    super("CameraError", code, message ?? DEFAULT_MESSAGES[code], cause);
   }
 }
 
@@ -38,11 +35,7 @@ const DEFAULT_MESSAGES: Record<CameraErrorCode, string> = {
 
 /** Works across module copies, where `instanceof` would not. */
 export function isCameraError(error: unknown): error is CameraError {
-  return (
-    error instanceof Error &&
-    error.name === "CameraError" &&
-    typeof (error as CameraError).code === "string"
-  );
+  return isCodedError(error, "CameraError");
 }
 
 /**

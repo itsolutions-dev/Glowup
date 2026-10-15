@@ -12,7 +12,6 @@ import {
   SecureStoreError,
   useSecureStore,
   useSecureValue,
-  webSecureStoreAdapter,
   type SecureStoreAdapter,
 } from "../secure-store";
 import { toSecureStoreError } from "../secure-store/errors";
@@ -105,13 +104,6 @@ describe("errors", () => {
     expect(toSecureStoreError(own)).toBe(own);
     expect(isSecureStoreError(own)).toBe(true);
     expect(isSecureStoreError(new Error("x"))).toBe(false);
-  });
-
-  it("has nothing on web", async () => {
-    expect(webSecureStoreAdapter.isSupported()).toBe(false);
-    await expect(webSecureStoreAdapter.getItem("a", {})).rejects.toMatchObject({
-      code: "unsupported",
-    });
   });
 });
 

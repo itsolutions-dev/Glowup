@@ -17,19 +17,3 @@ export function hasDOM(): boolean {
     typeof document !== "undefined"
   );
 }
-
-/**
- * For imperative helpers: reject on a platform where the capability does not
- * exist instead of reaching a native module or browser API that is not there.
- */
-export function assertSupported(
-  api: string,
-  supported: boolean,
-  check: string,
-): void {
-  if (!supported) {
-    throw new Error(
-      `${api}() is not supported on ${Platform.OS}. Check ${check} first.`,
-    );
-  }
-}

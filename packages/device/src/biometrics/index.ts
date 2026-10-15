@@ -8,7 +8,6 @@
 export { useBiometrics, type UseBiometrics } from "./hooks";
 export { useAppLock, type AppLockOptions, type UseAppLock } from "./appLock";
 export { expoBiometricsAdapter } from "./expo";
-export { webBiometricsAdapter } from "./web";
 export type {
   AuthenticateOptions,
   BiometricErrorCode,

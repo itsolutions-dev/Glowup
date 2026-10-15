@@ -1,13 +1,10 @@
-import type {
-  PermissionState,
-  PermissionStatus,
-  Unsubscribe,
-} from "../core/types";
+import type { PermissionStatus, Unsubscribe } from "../core/types";
 import type {
   SensorName,
   SensorReadings,
   SensorsAdapter,
 } from "../sensors/types";
+import { mockPermission } from "./permission";
 
 export interface MockSensorsOptions {
   /** Default true. */
@@ -53,11 +50,6 @@ export interface MockSensorsAdapter extends SensorsAdapter {
  * `<DeviceAdaptersProvider adapters={{ sensors }}>` and drive it with
  * `emit()`.
  */
-const toState = (status: PermissionStatus): PermissionState => ({
-  status,
-  canAskAgain: status === "undetermined",
-});
-
 export function createMockSensorsAdapter({
   supported = true,
   available = {},
@@ -80,11 +72,11 @@ export function createMockSensorsAdapter({
       current = status;
     },
     requiresPermission: (sensor) => gated.includes(sensor),
-    getPermission: async () => toState(current),
+    getPermission: async () => mockPermission(current),
     async requestPermission() {
       requests++;
       if (current === "undetermined") current = requestAnswer;
-      return toState(current);
+      return mockPermission(current);
     },
     isSupported: () => supported,
     isAvailable: async (sensor) => available[sensor] ?? true,

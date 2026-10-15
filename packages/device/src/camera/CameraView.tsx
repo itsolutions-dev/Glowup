@@ -3,12 +3,12 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useSyncExternalStore,
   type ReactNode,
   type Ref,
 } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 
+import { useClientValue } from "../core/shared";
 import { useCameraAdapter } from "./adapter";
 import { CameraError, toCameraError } from "./errors";
 import type {
@@ -60,9 +60,6 @@ export interface CameraViewProps {
 const DEFAULT_BARCODE_TYPES: readonly BarcodeType[] = ["qr"];
 const DEFAULT_MAX_DURATION = 60;
 
-const subscribeNothing = () => () => {};
-const getServerSupport = () => false;
-
 /**
  * The camera preview, with no controls of its own. Capture through its ref:
  *
@@ -95,12 +92,7 @@ export function CameraView({
   const adapter = useCameraAdapter();
   // The static web export prerenders in Node, where there is no camera: the
   // page hydrates without one, then mounts the preview.
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const supported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerSupport,
-  );
+  const supported = useClientValue(() => adapter.isSupported(), false);
   const preview = useRef<CameraHandle>(null);
   const lastScan = useRef<{ key: string; at: number } | null>(null);
 

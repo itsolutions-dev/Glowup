@@ -1,3 +1,4 @@
+import { createEmitter } from "./shared";
 import type { Unsubscribe } from "./types";
 
 /**
@@ -18,19 +19,14 @@ export interface PromptSession {
 
 function createPromptSession(): PromptSession {
   let running = false;
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
   const set = (next: boolean) => {
     running = next;
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   };
   return {
     isRunning: () => running,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: emitter.subscribe,
     async run(busy, call) {
       if (running) return busy;
       set(true);

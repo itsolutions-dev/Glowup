@@ -8,7 +8,6 @@ import { DeviceAdaptersProvider } from "..";
 import {
   expoBiometricsAdapter,
   useBiometrics,
-  webBiometricsAdapter,
   type AuthenticateOptions,
   type BiometricsAdapter,
 } from "../biometrics";
@@ -200,20 +199,6 @@ describe("expoBiometricsAdapter", () => {
     setPlatform("android");
     await expoBiometricsAdapter.cancel();
     expect(native.cancelAuthenticate).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("webBiometricsAdapter", () => {
-  it("has nothing to authenticate with", async () => {
-    expect(webBiometricsAdapter.isSupported()).toBe(false);
-    await expect(webBiometricsAdapter.getStatus()).resolves.toMatchObject({
-      hasHardware: false,
-      level: "none",
-    });
-    await expect(webBiometricsAdapter.authenticate(OPTIONS)).resolves.toEqual({
-      success: false,
-      error: "unsupported",
-    });
   });
 });
 

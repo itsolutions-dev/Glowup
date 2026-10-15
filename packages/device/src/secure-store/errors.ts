@@ -1,3 +1,4 @@
+import { CodedError, isCodedError } from "../core/shared";
 import type { ProtectedErrorStatus } from "./types";
 
 /**
@@ -13,14 +14,9 @@ import type { ProtectedErrorStatus } from "./types";
 export type SecureStoreErrorCode =
   "invalid-key" | "invalid-value" | "locked" | "unsupported" | "failed";
 
-export class SecureStoreError extends Error {
-  readonly code: SecureStoreErrorCode;
-
+export class SecureStoreError extends CodedError<SecureStoreErrorCode> {
   constructor(code: SecureStoreErrorCode, message?: string, cause?: unknown) {
-    super(message ?? DEFAULT_MESSAGES[code]);
-    this.name = "SecureStoreError";
-    this.code = code;
-    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+    super("SecureStoreError", code, message ?? DEFAULT_MESSAGES[code], cause);
   }
 }
 
@@ -35,11 +31,7 @@ const DEFAULT_MESSAGES: Record<SecureStoreErrorCode, string> = {
 
 /** Works across module copies, where `instanceof` would not. */
 export function isSecureStoreError(error: unknown): error is SecureStoreError {
-  return (
-    error instanceof Error &&
-    error.name === "SecureStoreError" &&
-    typeof (error as SecureStoreError).code === "string"
-  );
+  return isCodedError(error, "SecureStoreError");
 }
 
 export function toSecureStoreError(error: unknown): SecureStoreError {

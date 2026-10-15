@@ -14,6 +14,7 @@ import type {
   ScannedBarcode,
 } from "../camera/types";
 import type { PermissionState, PermissionStatus } from "../core/types";
+import { mockPermission } from "./permission";
 
 export const MOCK_PICTURE: CapturedPicture = {
   uri: "file:///mock/picture.jpg",
@@ -77,8 +78,8 @@ export function createMockCameraAdapter(
 ): MockCameraAdapter {
   const requestResult = options.requestResult ?? "granted";
   const permissions: Record<CameraPermissionKind, PermissionState> = {
-    camera: initial(options.camera),
-    microphone: initial(options.microphone),
+    camera: mockPermission(options.camera ?? "undetermined"),
+    microphone: mockPermission(options.microphone ?? "undetermined"),
   };
   const requests: Record<CameraPermissionKind, number> = {
     camera: 0,
@@ -90,10 +91,6 @@ export function createMockCameraAdapter(
     options: RecordOptions;
     finish: (result: RecordedVideo | CameraError) => void;
   } | null = null;
-
-  function initial(status: PermissionStatus = "undetermined"): PermissionState {
-    return { status, canAskAgain: status === "undetermined" };
-  }
 
   function MockCameraPreview(props: CameraPreviewProps) {
     const { ref, onReady, style, children } = props;
@@ -166,10 +163,7 @@ export function createMockCameraAdapter(
     Preview: MockCameraPreview,
 
     setPermission(kind, status, extra = {}) {
-      permissions[kind] = {
-        status,
-        canAskAgain: extra.canAskAgain ?? status === "undetermined",
-      };
+      permissions[kind] = mockPermission(status, extra.canAskAgain);
     },
     setPicture(next) {
       picture = next;

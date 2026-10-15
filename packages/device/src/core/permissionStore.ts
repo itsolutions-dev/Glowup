@@ -1,53 +1,50 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { AppState } from "react-native";
+import { AppState, Linking } from "react-native";
 
-import type { PermissionState, Unsubscribe } from "./types";
+import { sameValue } from "./liveStore";
+import { createEmitter } from "./shared";
+import type { Unsubscribe } from "./types";
 
-export interface PermissionSource<S extends PermissionState> {
+export interface PermissionSource<S> {
   isSupported(): boolean;
   read(): Promise<S>;
-  request(): Promise<S>;
+  /** `read` when absent. */
+  request?(): Promise<S>;
   /** Answered without asking when `isSupported()` is false. */
   unsupported: S;
   /** Set when the first read fails, so no hook stays loading forever. */
-  unknown: S;
+  unknown?: S;
 }
 
-export interface PermissionStore<S extends PermissionState> {
+export interface PermissionStore<S> {
   /** `null` until the first read answers. */
   getSnapshot(): S | null;
   subscribe(listener: () => void): Unsubscribe;
   refresh(): Promise<S>;
   request(): Promise<S>;
-}
-
-function shallowEqual(a: object | null, b: object | null): boolean {
-  if (a === b) return true;
-  if (!a || !b) return false;
-  const keys = Object.keys(a) as (keyof typeof a)[];
-  return (
-    keys.length === Object.keys(b).length &&
-    keys.every((key) => a[key] === b[key])
-  );
+  /** A change the package made itself: a read already running is dropped. */
+  set(next: S): void;
 }
 
 /**
- * One permission's state, shared by every hook that reads it: a request made
- * in one component updates the others, and concurrent refreshes share a read.
+ * One permission's state (or another value read the same way, such as
+ * whether a background task runs), shared by every hook that reads it: a
+ * request made in one component updates the others, and concurrent
+ * refreshes share a read.
  */
-export function createPermissionStore<S extends PermissionState>(
+export function createPermissionStore<S>(
   source: PermissionSource<S>,
 ): PermissionStore<S> {
   let state: S | null = null;
   let pendingRefresh: Promise<S> | null = null;
   // Last call wins: a slow refresh must not overwrite a newer request's answer.
   let sequence = 0;
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
 
   function set(next: S) {
-    if (shallowEqual(state, next)) return;
+    if (sameValue(state, next)) return;
     state = next;
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   }
 
   async function run(read: () => Promise<S>): Promise<S> {
@@ -56,7 +53,9 @@ export function createPermissionStore<S extends PermissionState>(
     try {
       next = source.isSupported() ? await read() : source.unsupported;
     } catch (error) {
-      if (id === sequence && state === null) set(source.unknown);
+      if (id === sequence && state === null && source.unknown !== undefined) {
+        set(source.unknown);
+      }
       throw error;
     }
     if (id === sequence) set(next);
@@ -65,19 +64,18 @@ export function createPermissionStore<S extends PermissionState>(
 
   return {
     getSnapshot: () => state,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: emitter.subscribe,
     refresh() {
       pendingRefresh ??= run(source.read).finally(() => {
         pendingRefresh = null;
       });
       return pendingRefresh;
     },
-    request: () => run(source.request),
+    request: () => run(source.request ?? source.read),
+    set(next) {
+      sequence++;
+      set(next);
+    },
   };
 }
 
@@ -90,7 +88,7 @@ const getNothing = () => null;
  * again whenever the app returns to the foreground: the user may have changed
  * the permission in the system settings meanwhile.
  */
-export function usePermissionSnapshot<S extends PermissionState>(
+export function usePermissionSnapshot<S>(
   store: PermissionStore<S> | null,
 ): S | null {
   const state = useSyncExternalStore(
@@ -112,4 +110,25 @@ export function usePermissionSnapshot<S extends PermissionState>(
   }, [store]);
 
   return state;
+}
+
+const openSettings = () => Linking.openSettings();
+
+/**
+ * What a permission hook returns: the state (`unknown` until the first read
+ * answers), the store's `request` and `refresh`, and the app's page in the
+ * system settings, where a refusal is undone.
+ */
+export function toPermissionHook<S extends object>(
+  store: PermissionStore<S>,
+  state: S | null,
+  unknown: S,
+) {
+  return {
+    ...(state ?? unknown),
+    isLoading: state === null,
+    request: store.request,
+    refresh: store.refresh,
+    openSettings,
+  };
 }

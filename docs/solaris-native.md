@@ -255,18 +255,18 @@ Cosa significa in pratica:
 
 ## 3. Fasi
 
-| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                         |
-| ---- | -------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------- |
-| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 parziale) |
-| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                             |
-| 2    | Token di tema e hook                                           | S          | 0          | —                                             |
-| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                             |
-| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                             |
-| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                             |
-| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                             |
-| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                             |
-| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                             |
-| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                             |
+| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                               |
+| ---- | -------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------------- |
+| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 e 0.6 parziali) |
+| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                   |
+| 2    | Token di tema e hook                                           | S          | 0          | —                                                   |
+| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                   |
+| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                   |
+| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                   |
+| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                                   |
+| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                                   |
+| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                                   |
+| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                                   |
 
 Ordine consigliato: **0 → (1 ∥ 2) → 3A → 4 ∥ 6 → 3B/3C → 5 → 7**, con 8 che parte quando 1 e 3A sono
 disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è richiesto anche sul
@@ -324,7 +324,15 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   A 10.000 rettangoli il web impiega circa 0,3–0,5 s: per dati densi la Fase 4 deve prevedere una modalità a
   `<Path>` unico. Insidia: l'`Svg` va in posizione assoluta, altrimenti la larghezza misurata blocca il
   contenitore. **Non verificati**: tocco, tempi e rendering su iOS/Android, `d3` sotto jest.
-- **Da fare**: 0.3, 0.6 e la parte Hermes di 0.1, appena c'è un ambiente nativo (CI, Fase 1).
+- **0.6 parziale, primo giro di CI verde (2026-10-15, run 38745067229, commit 79a0c22)** → `.github/workflows/native.yml`.
+  Il playground (Expo SDK 57, React Native 0.86.3, nuova architettura, Hermes 250829098.0.17) **si compila in Release,
+  si installa e parte** su simulatore iOS (iPhone 17 Pro, iOS 26.4.1, Xcode 26.6) e su emulatore Android (API 34,
+  x86_64), e il processo è ancora vivo dopo 40 secondi. Tempi: iOS circa 12 min di xcodebuild più 1 di pod install;
+  Android circa 13 min di Gradle più 2,5 di emulatore. Plugin di configurazione e moduli nativi del pacchetto
+  `device` (camera, posizione, notifiche, sensori, biometria…) compresi. Segnalato per la Fase 1: su Android
+  `userInterfaceStyle: "automatic"` richiede `expo-system-ui`. **Non verificato**: l'aspetto delle schermate
+  (screenshot da guardare), qualsiasi interazione, JS che fallisce senza chiudere l'app.
+- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e la lettura degli screenshot di 0.6.
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

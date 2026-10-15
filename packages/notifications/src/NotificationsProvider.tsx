@@ -55,8 +55,6 @@ import type {
   WebPushConfig,
 } from "./types";
 
-export { isNotificationsSupported };
-
 export interface NotificationsProviderProps<TData = NotificationData> {
   children: ReactNode;
   /** Presentation of notifications that arrive while the app is open. Default: show everything. */

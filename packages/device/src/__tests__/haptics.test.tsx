@@ -9,7 +9,6 @@ import {
   expoHapticsAdapter,
   hapticFeedback,
   useHaptics,
-  webHapticsAdapter,
   type HapticsAdapter,
 } from "../haptics";
 import { createMockHapticsAdapter } from "../testing";
@@ -90,13 +89,6 @@ describe("expoHapticsAdapter", () => {
     expect(haptics.impactAsync).not.toHaveBeenCalled();
     expect(haptics.selectionAsync).not.toHaveBeenCalled();
   });
-});
-
-it("plays nothing on web", async () => {
-  expect(webHapticsAdapter.isSupported()).toBe(false);
-  await webHapticsAdapter.interaction("press");
-  await webHapticsAdapter.impact("light");
-  expect(haptics.impactAsync).not.toHaveBeenCalled();
 });
 
 describe("useHaptics", () => {

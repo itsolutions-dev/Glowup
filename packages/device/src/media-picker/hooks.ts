@@ -2,8 +2,8 @@ import { useCallback, useSyncExternalStore } from "react";
 import { Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
-import { systemSheet } from "../core/systemSheet";
-import type { Unsubscribe } from "../core/types";
+import { getOrCreate, useClientValue } from "../core/shared";
+import { createSystemSheet, systemSheet } from "../core/systemSheet";
 import { expoMediaPickerAdapter } from "./expo";
 import type {
   MediaKind,
@@ -83,52 +83,13 @@ export function toPickRequest(options: PickOptions = {}): PickRequest {
   };
 }
 
-/** How many picks are open on an adapter, for `isPicking`. */
-interface PickingStore {
-  isPicking(): boolean;
-  subscribe(listener: () => void): Unsubscribe;
-  run(call: () => Promise<PickResult>): Promise<PickResult>;
-}
+// How many picks are open on an adapter, for `isPicking`: a system sheet of
+// its own, inside the global one `useAppLock` reads.
+const pickingStores = new WeakMap<
+  MediaPickerAdapter,
+  ReturnType<typeof createSystemSheet>
+>();
 
-function createPickingStore(): PickingStore {
-  let open = 0;
-  const listeners = new Set<() => void>();
-  const change = (delta: number) => {
-    open += delta;
-    listeners.forEach((listener) => listener());
-  };
-  return {
-    isPicking: () => open > 0,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    async run(call) {
-      change(1);
-      try {
-        return await call();
-      } finally {
-        change(-1);
-      }
-    },
-  };
-}
-
-const pickingStores = new WeakMap<MediaPickerAdapter, PickingStore>();
-
-function getPickingStore(adapter: MediaPickerAdapter): PickingStore {
-  let store = pickingStores.get(adapter);
-  if (!store) {
-    store = createPickingStore();
-    pickingStores.set(adapter, store);
-  }
-  return store;
-}
-
-const subscribeNothing = () => () => {};
-const getServerSupport = () => null;
 const getServerPicking = () => false;
 
 function toFailure(error: unknown): PickResult {
@@ -158,17 +119,12 @@ export interface UseMediaPicker {
 /** The system photo and video picker, `@its/glowup-device/media-picker`. */
 export function useMediaPicker(): UseMediaPicker {
   const adapter = useDeviceAdapter("mediaPicker") ?? defaultMediaPickerAdapter;
-  const store = getPickingStore(adapter);
+  const store = getOrCreate(pickingStores, adapter, createSystemSheet);
 
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerSupport,
-  );
+  const isSupported = useClientValue(() => adapter.isSupported(), null);
   const isPicking = useSyncExternalStore(
     store.subscribe,
-    store.isPicking,
+    store.isOpen,
     getServerPicking,
   );
 

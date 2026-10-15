@@ -7,9 +7,10 @@ import {
 } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 
+import { promptSession } from "../core/promptSession";
+import { createEmitter, getOrCreate } from "../core/shared";
+import { systemSheet } from "../core/systemSheet";
 import type { Unsubscribe } from "../core/types";
-import { promptSession, type PromptSession } from "../core/promptSession";
-import { systemSheet, type SystemSheet } from "../core/systemSheet";
 import { useBiometrics, useBiometricsAdapter } from "./hooks";
 import type {
   AuthenticateOptions,
@@ -17,13 +18,7 @@ import type {
   BiometricsAdapter,
 } from "./types";
 
-interface Registration {
-  enabled: boolean;
-  relockAfter: number;
-  stayLocked: boolean;
-}
-
-/** What every mounted `useAppLock` asked for, the strictest winning. */
+/** What a mounted `useAppLock` asks for; the lock applies the strictest. */
 interface LockConfig {
   enabled: boolean;
   relockAfter: number;
@@ -43,7 +38,7 @@ interface AppLockStore {
   getSnapshot(): LockState;
   subscribe(listener: () => void): Unsubscribe;
   /** Adds a hook's options; the returned function removes them. */
-  register(id: string, registration: Registration): () => void;
+  register(id: string, registration: LockConfig): () => void;
   lock(): void;
   unlock(): void;
   /** True once per lock: the caller may show the automatic prompt. */
@@ -72,16 +67,13 @@ function sameConfig(a: LockConfig, b: LockConfig): boolean {
   );
 }
 
-function createAppLockStore(
-  session: PromptSession,
-  sheet: SystemSheet,
-): AppLockStore {
+function createAppLockStore(): AppLockStore {
   let state = INITIAL_STATE;
   let backgroundAt: number | null = null;
   let promptedLockId = 0;
   let subscription: { remove(): void } | null = null;
-  const registrations = new Map<string, Registration>();
-  const listeners = new Set<() => void>();
+  const registrations = new Map<string, LockConfig>();
+  const emitter = createEmitter();
 
   function set(patch: Partial<LockState>) {
     const next = { ...state, ...patch };
@@ -94,7 +86,7 @@ function createAppLockStore(
       return;
     }
     state = next;
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   }
 
   function effectiveConfig(): LockConfig {
@@ -118,7 +110,8 @@ function createAppLockStore(
       // activity behind the device-credential screen), and so can a system
       // sheet such as the media picker: such a trip never counts, or a
       // successful unlock (or a picked photo) would lock the app again.
-      backgroundAt = session.isRunning() || sheet.isOpen() ? null : Date.now();
+      backgroundAt =
+        promptSession.isRunning() || systemSheet.isOpen() ? null : Date.now();
       set({ isActive: false });
     } else if (next === "active") {
       const since = backgroundAt;
@@ -136,12 +129,7 @@ function createAppLockStore(
 
   return {
     getSnapshot: () => state,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: emitter.subscribe,
     register(id, registration) {
       if (!subscription) {
         subscription = AppState.addEventListener("change", onAppStateChange);
@@ -172,12 +160,7 @@ function createAppLockStore(
 const lockStores = new WeakMap<BiometricsAdapter, AppLockStore>();
 
 function getLockStore(adapter: BiometricsAdapter): AppLockStore {
-  let store = lockStores.get(adapter);
-  if (!store) {
-    store = createAppLockStore(promptSession, systemSheet);
-    lockStores.set(adapter, store);
-  }
-  return store;
+  return getOrCreate(lockStores, adapter, createAppLockStore);
 }
 
 const getServerState = () => INITIAL_STATE;

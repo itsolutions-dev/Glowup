@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 
+import { createEmitter } from "./shared";
 import type { Unsubscribe } from "./types";
 
 /** A value the platform pushes changes of: the network, the battery. */
@@ -30,12 +31,12 @@ export interface LiveStore<T> {
 export function createLiveStore<T>(source: LiveSource<T>): LiveStore<T> {
   let value: T | null = null;
   let stop: Unsubscribe | null = null;
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
 
   function set(next: T) {
     if (sameValue(value, next)) return;
     value = next;
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   }
 
   async function load(read: () => Promise<T>): Promise<T> {
@@ -51,8 +52,8 @@ export function createLiveStore<T>(source: LiveSource<T>): LiveStore<T> {
   return {
     getSnapshot: () => value,
     subscribe(listener) {
-      listeners.add(listener);
-      if (listeners.size === 1) {
+      const unsubscribe = emitter.subscribe(listener);
+      if (emitter.size() === 1) {
         if (source.isSupported()) {
           stop = source.subscribe(set);
           load(() => source.read()).catch(() => {});
@@ -61,8 +62,8 @@ export function createLiveStore<T>(source: LiveSource<T>): LiveStore<T> {
         }
       }
       return () => {
-        listeners.delete(listener);
-        if (listeners.size === 0) {
+        unsubscribe();
+        if (emitter.size() === 0) {
           stop?.();
           stop = null;
         }
@@ -76,7 +77,7 @@ export function createLiveStore<T>(source: LiveSource<T>): LiveStore<T> {
  * Platforms re-send equal states (netinfo emits on every reachability probe):
  * a shallow comparison keeps them from re-rendering every listener.
  */
-function sameValue<T>(a: T | null, b: T): boolean {
+export function sameValue<T>(a: T | null, b: T): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== "object" || typeof b !== "object" || !a || !b) {
     return false;

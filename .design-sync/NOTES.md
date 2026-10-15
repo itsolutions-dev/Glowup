@@ -10,10 +10,9 @@ Repo-specific gotchas for future `/design-sync` runs. Read this before anything 
   exists but is empty (npm workspaces hoists everything).
 - Build order for a re-sync:
   1. `npm run build` (bob → `packages/ui/lib/{commonjs,module,typescript}`)
-  2. `node .design-sync/make-web-barrel.mjs`
-  3. `node .design-sync/split-docs.mjs`
-  4. `node .design-sync/prebuild-web-entry.mjs`
-  5. `node .ds-sync/package-build.mjs --config .design-sync/config.json
+  2. `node .design-sync/split-docs.mjs`
+  3. `node .design-sync/prebuild-web-entry.mjs`
+  4. `node .ds-sync/package-build.mjs --config .design-sync/config.json
 --node-modules ./node_modules --entry ./packages/ui/.design-sync-entry.mjs --out ./ds-bundle`
   6. `node .ds-sync/package-validate.mjs ./ds-bundle`
 
@@ -77,8 +76,9 @@ loader and no asset loaders — all four are required here. Rather than fork
   `feedback-overlays/`. Real grouping comes from the `category` frontmatter, and that only
   applies when the src-derived group is generic.
 - `dts.mjs` — allowlists `FAB` in `isComponentName`. The ALL-CAPS-means-a-constant rule
-  silently dropped a real Material component.
-- Both forks need `.design-sync/node_modules` → `.ds-sync/node_modules` (they import
+  silently dropped a real Material component. A thin wrapper: it re-exports
+  `.ds-sync/lib/dts.mjs` and overrides only `isComponentName`.
+- `source-kit.mjs` needs `.design-sync/node_modules` → `.ds-sync/node_modules` (it imports
   `ts-morph`). Recreate it per clone:
   `ln -sfn ../.ds-sync/node_modules .design-sync/node_modules` (Git Bash on Windows needs
   `MSYS=winsymlinks:nativestrict`, or use `cmd //c mklink /J`).
@@ -124,10 +124,10 @@ missing.
 ## What is generated vs. committed under `.design-sync/`
 
 Committed (the real sync inputs): `config.json`, `NOTES.md`, `conventions.md`,
-`previews/`, `overrides/`, and the three generator scripts `make-web-barrel.mjs`,
-`split-docs.mjs`, `prebuild-web-entry.mjs`.
+`previews/`, `overrides/`, and the two generator scripts `split-docs.mjs`,
+`prebuild-web-entry.mjs`.
 
-Gitignored because a committed script regenerates them: `web-barrel.mjs`, `docs/`,
+Gitignored because a committed script regenerates them: `docs/`,
 `guidelines/`, and `packages/ui/.design-sync-entry.mjs`. Run the build order above after
 a fresh clone and they reappear.
 
@@ -582,12 +582,12 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 - Upgrading `react-native-web`, `@expo/vector-icons`, `expo-*` or `react-native-svg` can
   break the prebundle (new native-only import, new node builtin). Symptom: prebuild exits
   non-zero with `Could not resolve` — extend the stub plugin or the alias.
-- The two lib forks are copies of skill-bundled files. On every re-sync, diff
-  `.design-sync/overrides/<name>.mjs` against `.ds-sync/lib/<name>.mjs` and merge upstream
-  changes; the forked edit is a few lines in each and is comment-marked.
-- `make-web-barrel.mjs` mirrors `packages/ui/src/index.ts` by text transform. A component
-  added to that barrel flows through automatically; one that needs a `.web` pin or a new
-  native-only dependency does not, and will surface as a prebuild resolve error.
+- `source-kit.mjs` is a copy of the skill-bundled file. On every re-sync, diff it against
+  `.ds-sync/lib/source-kit.mjs` and merge upstream changes; the forked edit is a few lines
+  and is comment-marked. `dts.mjs` wraps upstream, so it follows upstream automatically.
+- `prebuild-web-entry.mjs` bundles the built barrel `packages/ui/lib/module/index.js`. A
+  component added to the barrel flows through automatically; a new native-only dependency
+  does not, and will surface as a prebuild resolve error.
 - Font fidelity: the DS sets `fontFamily: System` throughout (M3 type scale, no brand
   face), so previews render in the browser's system stack — matching the app on web.
   Nothing to source, no `[FONT_MISSING]`.

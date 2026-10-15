@@ -51,28 +51,12 @@ const Popover = ({
   }, []);
 
   useEffect(() => {
-    if (visible) {
-      // Small delay ensures the keyboard or scroll position is final
-      const timer = setTimeout(updatePosition, 0);
-      const frame = requestAnimationFrame(updatePosition);
-      return () => {
-        clearTimeout(timer);
-        cancelAnimationFrame(frame);
-      };
-    }
-  }, [visible, updatePosition]);
-
-  useEffect(() => {
-    if (visible) updatePosition();
+    if (!visible) return;
+    // Measure now, and again next frame once the keyboard or scroll settles.
+    updatePosition();
+    const frame = requestAnimationFrame(updatePosition);
+    return () => cancelAnimationFrame(frame);
   }, [visible, window.width, window.height, updatePosition]);
-
-  const handleOpen = useCallback(() => {
-    if (anchorRef.current) {
-      anchorRef.current.measure((fx, fy, width, height, px, py) => {
-        setAnchorCoords({ x: px, y: py, width, height });
-      });
-    }
-  }, []);
 
   const pos = useMemo(() => {
     // Before the first onLayout, assume the widest allowed card. Assuming a
@@ -95,7 +79,7 @@ const Popover = ({
 
   return (
     <View>
-      <View ref={anchorRef} onLayout={handleOpen} collapsable={false}>
+      <View ref={anchorRef} collapsable={false}>
         {anchor}
       </View>
 

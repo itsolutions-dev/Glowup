@@ -27,7 +27,7 @@ import type {
  * the field's display text, typed entry, and turning a confirmed draft back
  * into the caller's own `onChange` shape.
  */
-export const usePickerController = (props: DateTimePickerProps) => {
+const usePickerController = (props: DateTimePickerProps) => {
   const {
     mode = "date",
     locale: localeProp,

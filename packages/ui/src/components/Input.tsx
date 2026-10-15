@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  TextInputProps,
   StyleSheet,
   Platform,
   StyleProp,
@@ -13,15 +14,17 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import HelperText from "./HelperText";
 
-export interface InputProps {
+/** Every `TextInput` prop passes through, except the ones Input owns. */
+export interface InputProps extends Omit<
+  TextInputProps,
+  "style" | "value" | "onChangeText" | "editable" | "keyboardType"
+> {
   label?: string;
-  placeholder?: string;
   precision?: number;
   prefix?: string;
   suffix?: string;
   value: string;
   type?: "text" | "number";
-  maxLength?: number;
   onChangeText: (text: string) => void;
   variant?: "outlined" | "filled";
   error?: string;
@@ -30,15 +33,9 @@ export interface InputProps {
   /** Marks the label with an asterisk. */
   required?: boolean;
   disabled?: boolean;
-  readonly?: boolean;
-  secureTextEntry?: boolean;
-  onFocus?: () => void;
-  onBlur?: () => void;
   leadingIcon?: MaterialCommunityIconsGlyphs;
   trailingIcon?: MaterialCommunityIconsGlyphs;
   onTrailingIconPress?: () => void;
-  multiline?: boolean;
-  numberOfLines?: number;
   minHeight?: number;
   style?: StyleProp<ViewStyle>;
 }
@@ -51,15 +48,12 @@ const Input = ({
   prefix,
   suffix,
   value,
-  maxLength,
   onChangeText,
   variant = "outlined",
   error,
   helperText,
   required,
   disabled,
-  readonly,
-  secureTextEntry,
   onFocus,
   onBlur,
   leadingIcon,
@@ -69,6 +63,7 @@ const Input = ({
   numberOfLines = 4,
   minHeight = 56,
   style,
+  ...textInputProps
 }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
@@ -162,14 +157,13 @@ const Input = ({
           )}
 
           <TextInput
+            {...textInputProps}
             accessibilityLabel={label}
             accessibilityState={{ disabled }}
             accessibilityValue={{ text: value }}
             accessibilityHint={placeholder}
             multiline={multiline}
             numberOfLines={numberOfLines}
-            readOnly={readonly}
-            maxLength={maxLength}
             style={[
               styles.textInput,
               theme.typography.bodyLarge,
@@ -183,16 +177,15 @@ const Input = ({
             placeholderTextColor={theme.colors.onSurfaceVariant}
             value={value}
             onChangeText={handleTextChange}
-            onFocus={() => {
+            onFocus={(event) => {
               setIsFocused(true);
-              onFocus?.();
+              onFocus?.(event);
             }}
-            onBlur={() => {
+            onBlur={(event) => {
               setIsFocused(false);
-              onBlur?.();
+              onBlur?.(event);
             }}
             editable={!disabled}
-            secureTextEntry={secureTextEntry}
             keyboardType={type === "number" ? "decimal-pad" : "default"}
           />
         </View>

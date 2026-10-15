@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { AppState, type NativeEventSubscription } from "react-native";
 
 import type { Unsubscribe } from "../core/types";
-import { LocationError } from "./errors";
-import { toError } from "./resolve";
+import { LocationError, toError } from "../core/geo";
+import { getOrCreate } from "../core/shared";
 import type { Heading, LocationAdapter } from "./types";
 import { useLocationAdapter } from "./hooks";
 
@@ -97,12 +97,7 @@ function createHeadingStream(adapter: LocationAdapter): HeadingStream {
 const streams = new WeakMap<LocationAdapter, HeadingStream>();
 
 function getHeadingStream(adapter: LocationAdapter): HeadingStream {
-  let stream = streams.get(adapter);
-  if (!stream) {
-    stream = createHeadingStream(adapter);
-    streams.set(adapter, stream);
-  }
-  return stream;
+  return getOrCreate(streams, adapter, () => createHeadingStream(adapter));
 }
 
 /**

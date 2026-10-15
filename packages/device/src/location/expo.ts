@@ -2,11 +2,11 @@ import * as Location from "expo-location";
 
 import { hasDOM, isNativePlatform } from "../core/support";
 import {
+  LocationError,
   toGeoPosition,
   toLocationError,
   toLocationPermissionState,
 } from "../core/geo";
-import { LocationError } from "./errors";
 import type { Unsubscribe } from "../core/types";
 import type {
   GeocodedAddress,
@@ -17,8 +17,6 @@ import type {
   LocationAccuracy,
   LocationAdapter,
 } from "./types";
-
-export { toGeoPosition, toLocationError, toLocationPermissionState };
 
 const ACCURACY: Record<LocationAccuracy, Location.LocationAccuracy> = {
   low: Location.LocationAccuracy.Low,

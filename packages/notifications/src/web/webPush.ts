@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+import { toNotification } from "../rawNotification";
 import type {
   PermissionState,
   PushToken,
@@ -19,7 +20,7 @@ import type {
  */
 export const MESSAGE_SOURCE = "glowup-notifications";
 const LAUNCH_HASH_KEY = "glowup-notification=";
-export const DEFAULT_SERVICE_WORKER_PATH = "/glowup-push-sw.js";
+const DEFAULT_SERVICE_WORKER_PATH = "/glowup-push-sw.js";
 
 /** A push as the service worker forwards it: the payload plus an id and a time. */
 export interface WebNotification extends WebPushPayload {
@@ -69,17 +70,6 @@ export async function registerServiceWorker(
   return navigator.serviceWorker.ready;
 }
 
-/** VAPID keys travel as URL-safe base64; PushManager wants the raw bytes. */
-export function base64UrlToBytes(value: string): Uint8Array {
-  const padded = (value + "=".repeat((4 - (value.length % 4)) % 4))
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
-
 /** The existing subscription, or a new one. Needs the permission granted. */
 export async function getWebPushToken(
   config: WebPushConfig,
@@ -94,9 +84,8 @@ export async function getWebPushToken(
     (await registration.pushManager.getSubscription()) ??
     (await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: base64UrlToBytes(
-        config.vapidPublicKey,
-      ) as BufferSource,
+      // The Push API base64url-decodes a string key itself.
+      applicationServerKey: config.vapidPublicKey,
     }));
   const json = subscription.toJSON();
   return {
@@ -131,21 +120,7 @@ export async function showWebNotification(
 export function toRawNotification(
   notification: WebNotification,
 ): Notifications.Notification {
-  return {
-    date: notification.date,
-    request: {
-      identifier: notification.id,
-      content: {
-        title: notification.title ?? null,
-        subtitle: null,
-        body: notification.body ?? null,
-        data: notification.data ?? {},
-        categoryIdentifier: null,
-        sound: null,
-      },
-      trigger: { type: "push" },
-    },
-  } as unknown as Notifications.Notification;
+  return toNotification({ ...notification, trigger: { type: "push" } });
 }
 
 export function toRawResponse(
@@ -159,7 +134,7 @@ export function toRawResponse(
   };
 }
 
-export interface ServiceWorkerHandlers {
+interface ServiceWorkerHandlers {
   push: (notification: WebNotification) => void;
   click: (notification: WebNotification, action: string) => void;
   subscriptionChange: () => void;

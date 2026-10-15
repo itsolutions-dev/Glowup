@@ -2922,7 +2922,10 @@
       "name": "Input",
       "source": "packages/ui/src/components/Input.tsx",
       "propsTypeName": "InputProps",
-      "extends": [],
+      "extends": [
+        "Omit<\n  TextInputProps,\n  \"style\" | \"value\" | \"onChangeText\" | \"editable\" | \"keyboardType\"\n>"
+      ],
+      "description": "Every `TextInput` prop passes through, except the ones Input owns.",
       "props": [
         {
           "name": "onChangeText",

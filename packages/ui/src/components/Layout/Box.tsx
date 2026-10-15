@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { View, ViewProps, ViewStyle } from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
 import {
@@ -84,68 +84,38 @@ const Box = ({
 }: BoxProps) => {
   const { theme } = useTheme();
 
-  const boxStyle = useMemo<ViewStyle>(() => {
-    const space = (value: SpacingValue | undefined) =>
-      resolveSpacing(theme, value);
-    // Specific edges are applied after the axis shorthands, which are applied
-    // after the all-edges shorthand — narrowest wins, as in CSS.
-    return {
-      padding: space(p),
-      paddingHorizontal: space(px),
-      paddingVertical: space(py),
-      paddingTop: space(pt),
-      paddingRight: space(pr),
-      paddingBottom: space(pb),
-      paddingLeft: space(pl),
-      margin: space(m),
-      marginHorizontal: space(mx),
-      marginVertical: space(my),
-      marginTop: space(mt),
-      marginRight: space(mr),
-      marginBottom: space(mb),
-      marginLeft: space(ml),
-      backgroundColor: resolveColor(theme, bg),
-      borderRadius: resolveRadius(theme, radius),
-      borderWidth,
-      borderColor: resolveColor(theme, borderColor),
-      flex,
-      gap: space(gap),
-      alignItems: align,
-      justifyContent: justify,
-      width,
-      height,
-      flexDirection: row ? "row" : undefined,
-      flexWrap: wrap ? "wrap" : undefined,
-    };
-  }, [
-    theme,
-    p,
-    px,
-    py,
-    pt,
-    pr,
-    pb,
-    pl,
-    m,
-    mx,
-    my,
-    mt,
-    mr,
-    mb,
-    ml,
-    bg,
-    radius,
+  const space = (value: SpacingValue | undefined) =>
+    resolveSpacing(theme, value);
+  // Specific edges are applied after the axis shorthands, which are applied
+  // after the all-edges shorthand — narrowest wins, as in CSS.
+  const boxStyle: ViewStyle = {
+    padding: space(p),
+    paddingHorizontal: space(px),
+    paddingVertical: space(py),
+    paddingTop: space(pt),
+    paddingRight: space(pr),
+    paddingBottom: space(pb),
+    paddingLeft: space(pl),
+    margin: space(m),
+    marginHorizontal: space(mx),
+    marginVertical: space(my),
+    marginTop: space(mt),
+    marginRight: space(mr),
+    marginBottom: space(mb),
+    marginLeft: space(ml),
+    backgroundColor: resolveColor(theme, bg),
+    borderRadius: resolveRadius(theme, radius),
     borderWidth,
-    borderColor,
+    borderColor: resolveColor(theme, borderColor),
     flex,
-    gap,
-    align,
-    justify,
+    gap: space(gap),
+    alignItems: align,
+    justifyContent: justify,
     width,
     height,
-    row,
-    wrap,
-  ]);
+    flexDirection: row ? "row" : undefined,
+    flexWrap: wrap ? "wrap" : undefined,
+  };
 
   return (
     <View {...viewProps} style={[boxStyle, style]}>

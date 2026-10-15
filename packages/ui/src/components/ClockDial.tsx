@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
+import { pad2 } from "./DateTimePicker.shared";
 
 /** Which unit the dial is currently editing. */
 export type ClockUnit = "hours" | "minutes";
@@ -33,8 +34,6 @@ interface DialNumber {
   position: number;
   radius: number;
 }
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
 
 /** Clock position → angle in radians, with 12 o'clock at the top. */
 const toAngle = (position: number, steps: number) =>

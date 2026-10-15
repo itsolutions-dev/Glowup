@@ -2,6 +2,7 @@ import {
   createPermissionStore,
   type PermissionStore,
 } from "../core/permissionStore";
+import { getOrCreate } from "../core/shared";
 import type { LocationAdapter, LocationPermissionState } from "./types";
 
 export const UNSUPPORTED_LOCATION: LocationPermissionState = {
@@ -25,16 +26,13 @@ const stores = new WeakMap<
 export function getPermissionStore(
   adapter: LocationAdapter,
 ): PermissionStore<LocationPermissionState> {
-  let store = stores.get(adapter);
-  if (!store) {
-    store = createPermissionStore({
+  return getOrCreate(stores, adapter, () =>
+    createPermissionStore({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getPermission(),
       request: () => adapter.requestPermission(),
       unsupported: UNSUPPORTED_LOCATION,
       unknown: UNKNOWN_LOCATION,
-    });
-    stores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }

@@ -13,6 +13,11 @@ export * from "./providers/AlertProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";
 
+// --- Hooks ---
+export * from "./hooks/useDebounce";
+export * from "./hooks/useBreakpoint";
+export { useReduceMotion } from "./components/internal/useReduceMotion";
+
 // --- Components ---
 export { default as Accordion } from "./components/Accordion";
 export type { AccordionProps } from "./components/Accordion";

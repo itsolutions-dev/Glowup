@@ -259,7 +259,7 @@ Cosa significa in pratica:
 | ---- | -------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------------- |
 | 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 e 0.6 parziali) |
 | 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                   |
-| 2    | Token di tema e hook                                           | S          | 0          | —                                                   |
+| 2    | Token di tema e hook                                           | S          | 0          | In corso (lotto 2A fatto)                           |
 | 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                   |
 | 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                   |
 | 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                   |
@@ -402,6 +402,15 @@ Restano nelle app: `useProxy`, `useHasPermission`, `useModuleFlag`, `useNotify`,
 
 Uscita: token e hook esportati, documentati, testati su 3 piattaforme; il playground usa `useBreakpoint`
 della libreria al posto del suo.
+
+**Lotto 2A fatto (2026-10-15)** — `packages/ui/src/hooks/`: `useDebouncedValue`, `useDebouncedCallback` (con `cancel` e
+`flush`, identità stabile, annulla allo smontaggio), `useBreakpoint(overrides?)` con `SIZE_CLASSES` e `sizeClassFor`
+(classi di larghezza di Material 3, soglie sostituibili) e `useReduceMotion` esportato. 24 test jest (iOS), type-check,
+lint, build e `validate-package` verdi; changeset minor. **Non verificato**: web e Android a runtime (i test girano solo
+con il preset iOS), uso reale nelle componenti. Mancano: `useOrientation`, `useAbortableEffect`, `useInfiniteList`,
+`useControllableState`, `useDisclosure`, `useActiveFilters` (la matrice 0.5 dà evidenza solo a debounce, breakpoint,
+abort e lista infinita; gli altri aspettano un componente che li usi, D4) e tutti i token; il playground non usa ancora
+`useBreakpoint` della libreria.
 
 ### Fase 3 — Componenti specializzati (le prop)
 

@@ -255,18 +255,18 @@ Cosa significa in pratica:
 
 ## 3. Fasi
 
-| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                    |
-| ---- | -------------------------------------------------------------- | ---------- | ---------- | ---------------------------------------- |
-| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2 e 0.5 fatti, 0.1 parziale) |
-| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                        |
-| 2    | Token di tema e hook                                           | S          | 0          | —                                        |
-| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                        |
-| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                        |
-| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                        |
-| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                        |
-| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                        |
-| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                        |
-| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                        |
+| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                         |
+| ---- | -------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------- |
+| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 parziale) |
+| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                             |
+| 2    | Token di tema e hook                                           | S          | 0          | —                                             |
+| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                             |
+| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                             |
+| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                             |
+| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                             |
+| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                             |
+| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                             |
+| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                             |
 
 Ordine consigliato: **0 → (1 ∥ 2) → 3A → 4 ∥ 6 → 3B/3C → 5 → 7**, con 8 che parte quando 1 e 3A sono
 disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è richiesto anche sul
@@ -319,7 +319,12 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   Babel. Quindi **0.3, 0.6 e la parte Hermes di 0.1 restano non verificate** finché non c'è un altro ambiente: CI su
   runner macOS/Linux (Fase 1), una macchina di un collega o un Mac. Ogni fase dichiara iOS/Android come "non
   verificato" (§2) finché non cambia. Il piano resta valido perché il web è il primo target (Q1).
-- **Da fare**: 0.4 (su web) e, quando ci sarà un ambiente nativo, 0.3, 0.6 e la parte Hermes di 0.1.
+- **0.4 fatto per web e bundling** → `docs/spike-0.4-bar-chart.md`. `d3-scale` (solo ESM) si risolve su web, iOS e
+  Android e i bundle compilano in bytecode Hermes; larghezza da `onLayout` e tooltip al clic funzionano su web.
+  A 10.000 rettangoli il web impiega circa 0,3–0,5 s: per dati densi la Fase 4 deve prevedere una modalità a
+  `<Path>` unico. Insidia: l'`Svg` va in posizione assoluta, altrimenti la larghezza misurata blocca il
+  contenitore. **Non verificati**: tocco, tempi e rendering su iOS/Android, `d3` sotto jest.
+- **Da fare**: 0.3, 0.6 e la parte Hermes di 0.1, appena c'è un ambiente nativo (CI, Fase 1).
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

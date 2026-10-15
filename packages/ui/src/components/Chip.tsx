@@ -2,13 +2,9 @@ import { useMemo, useState } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
 import Icons from "./Glyph";
 
-import {
-  useTheme,
-  Theme,
-  getStateColor,
-  getGlowStyles,
-} from "../providers/ThemeProvider";
+import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface ChipProps {
@@ -91,20 +87,14 @@ const Chip = ({
   const [bodyHovered, setBodyHovered] = useState(false);
   const [bodyPressed, setBodyPressed] = useState(false);
 
-  let currentBg = bg;
-  if (bodyPressed) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "press",
-    );
-  } else if (bodyHovered) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "hover",
-    );
-  }
+  const stateLayer = useStateLayer(
+    bg === "transparent" ? theme.colors.surface : bg,
+    on,
+  );
+  const currentBg =
+    bodyPressed || bodyHovered
+      ? stateLayer({ pressed: bodyPressed, hovered: bodyHovered })
+      : bg;
 
   const glow =
     (bodyHovered || bodyPressed) && !disabled

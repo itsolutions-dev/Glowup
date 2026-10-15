@@ -2099,12 +2099,6 @@
           "deprecated": false
         },
         {
-          "name": "onColumnReorder",
-          "type": "(newColumns: ColumnDefinition[]) => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
           "name": "onEndReached",
           "type": "() => void",
           "required": false,
@@ -3457,7 +3451,10 @@
       "name": "Input",
       "source": "packages/ui/src/components/Input.tsx",
       "propsTypeName": "InputProps",
-      "extends": [],
+      "extends": [
+        "Omit<\n  TextInputProps,\n  \"style\" | \"value\" | \"onChangeText\" | \"editable\" | \"keyboardType\"\n>"
+      ],
+      "description": "Every `TextInput` prop passes through, except the ones Input owns.",
       "props": [
         {
           "name": "onChangeText",
@@ -3503,12 +3500,6 @@
           "deprecated": false
         },
         {
-          "name": "maxLength",
-          "type": "number",
-          "required": false,
-          "deprecated": false
-        },
-        {
           "name": "minHeight",
           "type": "number",
           "required": false,
@@ -3516,40 +3507,8 @@
           "deprecated": false
         },
         {
-          "name": "multiline",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "deprecated": false
-        },
-        {
-          "name": "numberOfLines",
-          "type": "number",
-          "required": false,
-          "default": "4",
-          "deprecated": false
-        },
-        {
-          "name": "onBlur",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "onFocus",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
           "name": "onTrailingIconPress",
           "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
           "required": false,
           "deprecated": false
         },
@@ -3566,22 +3525,10 @@
           "deprecated": false
         },
         {
-          "name": "readonly",
-          "type": "boolean",
-          "required": false,
-          "deprecated": false
-        },
-        {
           "name": "required",
           "type": "boolean",
           "required": false,
           "description": "Marks the label with an asterisk.",
-          "deprecated": false
-        },
-        {
-          "name": "secureTextEntry",
-          "type": "boolean",
-          "required": false,
           "deprecated": false
         },
         {
@@ -3746,24 +3693,6 @@
         },
         {
           "name": "itemContainerStyle",
-          "type": "object",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "itemHoveredStyle",
-          "type": "object",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "itemPressedStyle",
-          "type": "object",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "itemSecondaryTextStyle",
           "type": "object",
           "required": false,
           "deprecated": false
@@ -6525,13 +6454,6 @@
           "deprecated": false
         },
         {
-          "name": "activeStyle",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "description": "Extra style applied only while hovered (web) or pressed.",
-          "deprecated": false
-        },
-        {
           "name": "borderless",
           "type": "boolean",
           "required": false,
@@ -7218,18 +7140,6 @@
           "name": "children",
           "type": "ReactNode",
           "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onMoveLeft",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "onMoveRight",
-          "type": "() => void",
-          "required": false,
           "deprecated": false
         },
         {

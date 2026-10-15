@@ -188,7 +188,6 @@ hover/press colours in a component.
 | rippleColor   | string                  | `onSurface` | The "on" role of that surface              |
 | borderless    | boolean                 | `false`     | Tint only, no container background         |
 | borderRadius  | number                  |             | Match the parent so the layer doesn't bleed |
-| activeStyle   | ViewStyle               |             | Applied while hovered or pressed           |
 
 Plus every `Pressable` prop except `style`/`children`. The `useStateLayer(base, on)` hook
 exports the same colours for a component that already owns its `Pressable`.
@@ -451,13 +450,13 @@ Text field, outlined or filled; supports affixes, icons, multiline, number mode.
 | helperText                 | string                   |            |     | Hidden while error shown             |
 | required                   | boolean                  |            |     | Asterisk on label                    |
 | disabled                   | boolean                  |            |     |                                      |
-| readonly                   | boolean                  |            |     |                                      |
+| readOnly                   | boolean                  |            |     | Any other `TextInput` prop passes through |
 | secureTextEntry            | boolean                  |            |     | Password mode                        |
 | maxLength                  | number                   |            |     |                                      |
 | multiline                  | boolean                  | `false`    |     |                                      |
 | numberOfLines              | number                   | `4`        |     |                                      |
 | minHeight                  | number                   | `56`       |     |                                      |
-| onFocus / onBlur           | () => void               |            |     |                                      |
+| onFocus / onBlur           | (event) => void          |            |     |                                      |
 | style                      | ViewStyle                |            |     |                                      |
 
 ### Select
@@ -808,7 +807,7 @@ Small labeled status pill (own semantic colors, light/dark aware).
 
 ### DataGrid
 
-Virtualized table: sortable columns, reorder, density, loading, empty state. Built on the public `Table` primitives below.
+Virtualized table: sortable columns, density, loading, empty state. Built on the public `Table` primitives below.
 
 | Prop                           | Type                          | Default  | Req | Description                        |
 | ------------------------------ | ----------------------------- | -------- | --- | ---------------------------------- |
@@ -819,7 +818,6 @@ Virtualized table: sortable columns, reorder, density, loading, empty state. Bui
 | sortColumn                     | string                        |          |     |                                    |
 | sortDirection                  | `"asc" \| "desc"`             |          |     |                                    |
 | onSort                         | (columnId, direction) => void |          |     |                                    |
-| onColumnReorder                | (newColumns) => void          |          |     |                                    |
 | onEndReached                   | () => void                    |          |     | Infinite scroll                    |
 | onEndReachedThreshold          | number                        |          |     |                                    |
 | emptyMessage                   | string                        |          |     | Shown when empty & not loading     |
@@ -839,7 +837,7 @@ Single pressable list row (centered title text).
 | ------------------------------------------------------------------------ | ---------- | ------- | --- | ----------------------- |
 | children                                                                 | ReactNode  | —       | ✓   | Label                   |
 | onPress                                                                  | () => void |         |     | Adds hover/press states |
-| itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object     |         |     | Style overrides         |
+| itemContainerStyle / itemTextStyle                                       | object     |         |     | Style overrides         |
 
 ### ListSection / ListSubheader
 

@@ -335,7 +335,7 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   handoff origin…") copriva la pagina: era un difetto del playground (il `Head` serve solo al web), corretto in
   `site/Page.tsx`, **non riverificato su iOS**. **Non verificato**: qualsiasi interazione, JS che fallisce senza
   chiudere l'app.
-- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e riverificare iOS dopo la correzione dell'avviso.
+- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e riverificare iOS dopo la correzione dell'avviso. La schermata benchmark è nel workflow (in attesa del run).
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

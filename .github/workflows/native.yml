@@ -82,7 +82,9 @@ jobs:
         run: |
           UDID="${{ steps.sim.outputs.udid }}"
           xcrun simctl boot "$UDID"
-          xcrun simctl bootstatus "$UDID" -b
+          # The progress lines ("Waiting on Data Migration") are noise: keep them in a file.
+          xcrun simctl bootstatus "$UDID" -b > bootstatus.log 2>&1
+          tail -n 2 bootstatus.log
           APP=$(ls -d apps/playground/ios/build/Build/Products/Release-iphonesimulator/*.app | head -1)
           xcrun simctl install "$UDID" "$APP"
           xcrun simctl launch "$UDID" "$GLOWUP_CI_APP_ID"
@@ -101,6 +103,30 @@ jobs:
             exit 1
           fi
 
+      # Spike 0.1: run the AuraPivot core on Hermes. The route starts by itself; a
+      # deep link opens it. Results come from the unified log (console.log in a
+      # Release build may not reach it, so the screenshot is the fallback).
+      - name: Pivot benchmark on Hermes
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          xcrun simctl openurl "$UDID" "glowup://spike-pivot-hermes"
+          for i in $(seq 1 36); do
+            sleep 5
+            if xcrun simctl spawn "$UDID" log show --last 3m --predicate 'eventMessage CONTAINS "SPIKE01 DONE"' 2>/dev/null | grep -q "SPIKE01 DONE"; then
+              echo "benchmark finished after about $((i * 5)) s"
+              break
+            fi
+          done
+          xcrun simctl io "$UDID" screenshot ios-bench.png
+          xcrun simctl spawn "$UDID" log show --last 10m --style compact --predicate 'eventMessage CONTAINS "SPIKE01"' 2>/dev/null | grep -o "SPIKE01 .*" > pivot-bench-ios.txt || true
+          {
+            echo "### iOS pivot benchmark (Hermes, simulator on a CI runner: indicative only)"
+            echo '```'
+            cat pivot-bench-ios.txt
+            echo '```'
+            echo "Lines from the log: $(wc -l < pivot-bench-ios.txt | tr -d ' ') (0 means the log did not carry console.log; read ios-bench.png)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Collect crash reports
         if: always()
         run: |
@@ -114,6 +140,8 @@ jobs:
           name: ios-smoke
           path: |
             ios-shot.png
+            ios-bench.png
+            pivot-bench-ios.txt
             ios-app.log
             ios-crashes
             xcodebuild.log
@@ -144,6 +172,12 @@ jobs:
         working-directory: apps/playground
         run: npx expo prebuild --platform android --no-install
 
+      # cache-read-only is false on purpose: by default the cache is only written
+      # from the default branch, and this workflow runs on dev.
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
       # x86_64 only: the emulator is x86_64, and building every ABI is slower.
       - name: Build the release APK
         working-directory: apps/playground/android
@@ -172,6 +206,10 @@ jobs:
             adb logcat -d > android-logcat.txt
             adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
             test -s android-pid.txt
+            adb shell am start -W -a android.intent.action.VIEW -d glowup://spike-pivot-hermes ${{ env.GLOWUP_CI_APP_ID }}
+            for i in $(seq 1 36); do sleep 5; if adb logcat -d | grep -q "SPIKE01 DONE"; then echo "benchmark finished after about $((i * 5)) s"; break; fi; done
+            adb exec-out screencap -p > android-bench.png
+            adb logcat -d -s ReactNativeJS:V | grep -o "SPIKE01 .*" > pivot-bench-android.txt || true
 
       - name: Summary
         if: always()
@@ -180,6 +218,10 @@ jobs:
             echo "### Android"
             echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
             echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
+            echo "### Android pivot benchmark (Hermes, x86_64 emulator on a CI runner: indicative only)"
+            echo '```'
+            cat pivot-bench-android.txt 2>/dev/null || echo "no SPIKE01 lines (read android-bench.png)"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
@@ -188,6 +230,8 @@ jobs:
           name: android-smoke
           path: |
             android-shot.png
+            android-bench.png
+            pivot-bench-android.txt
             android-logcat.txt
             gradle.log
           if-no-files-found: ignore

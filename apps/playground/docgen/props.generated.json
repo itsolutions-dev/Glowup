@@ -1759,11 +1759,6 @@
           "default": "false"
         },
         {
-          "name": "onColumnReorder",
-          "type": "(newColumns: ColumnDefinition[]) => void",
-          "required": false
-        },
-        {
           "name": "onEndReached",
           "type": "() => void",
           "required": false
@@ -2964,46 +2959,14 @@
           "required": false
         },
         {
-          "name": "maxLength",
-          "type": "number",
-          "required": false
-        },
-        {
           "name": "minHeight",
           "type": "number",
           "required": false,
           "default": "56"
         },
         {
-          "name": "multiline",
-          "type": "boolean",
-          "required": false,
-          "default": "false"
-        },
-        {
-          "name": "numberOfLines",
-          "type": "number",
-          "required": false,
-          "default": "4"
-        },
-        {
-          "name": "onBlur",
-          "type": "() => void",
-          "required": false
-        },
-        {
-          "name": "onFocus",
-          "type": "() => void",
-          "required": false
-        },
-        {
           "name": "onTrailingIconPress",
           "type": "() => void",
-          "required": false
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
           "required": false
         },
         {
@@ -3017,20 +2980,10 @@
           "required": false
         },
         {
-          "name": "readonly",
-          "type": "boolean",
-          "required": false
-        },
-        {
           "name": "required",
           "type": "boolean",
           "required": false,
           "description": "Marks the label with an asterisk."
-        },
-        {
-          "name": "secureTextEntry",
-          "type": "boolean",
-          "required": false
         },
         {
           "name": "style",
@@ -3161,21 +3114,6 @@
         },
         {
           "name": "itemContainerStyle",
-          "type": "object",
-          "required": false
-        },
-        {
-          "name": "itemHoveredStyle",
-          "type": "object",
-          "required": false
-        },
-        {
-          "name": "itemPressedStyle",
-          "type": "object",
-          "required": false
-        },
-        {
-          "name": "itemSecondaryTextStyle",
           "type": "object",
           "required": false
         },
@@ -5497,12 +5435,6 @@
           "required": true
         },
         {
-          "name": "activeStyle",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "description": "Extra style applied only while hovered (web) or pressed."
-        },
-        {
           "name": "borderless",
           "type": "boolean",
           "required": false,
@@ -6097,16 +6029,6 @@
           "name": "children",
           "type": "ReactNode",
           "required": true
-        },
-        {
-          "name": "onMoveLeft",
-          "type": "() => void",
-          "required": false
-        },
-        {
-          "name": "onMoveRight",
-          "type": "() => void",
-          "required": false
         },
         {
           "name": "onPress",

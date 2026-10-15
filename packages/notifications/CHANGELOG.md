@@ -1,5 +1,14 @@
 # @its/glowup-notifications
 
+## 0.3.1
+
+### Patch Changes
+
+- 1f87eb7: Internal cleanup with no API change. Web Push now passes the VAPID public key to
+  `pushManager.subscribe` as the base64url string, which the Push API decodes
+  itself. The web push path and the `/testing` mock share one notification builder,
+  and scheduled and delivered notifications share one payload parser.
+
 ## 0.3.0
 
 ### Minor Changes

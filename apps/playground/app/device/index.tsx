@@ -114,6 +114,13 @@ const CAPABILITIES: {
     summary:
       "Positions with the app in the background, and geofencing, delivered to tasks — @its/glowup-device/background-location",
   },
+  {
+    href: "/device/bluetooth",
+    icon: "bluetooth",
+    title: "Bluetooth",
+    summary:
+      "Bluetooth Low Energy: scan, connect, read, write and notifications — @its/glowup-device/bluetooth",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
@@ -131,7 +138,8 @@ npx expo install expo-secure-store              # /secure-store
 npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
-npx expo install expo-location expo-task-manager # /background-location`;
+npx expo install expo-location expo-task-manager # /background-location
+npx expo install react-native-ble-manager       # /bluetooth`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -153,6 +161,7 @@ plugins: [
         geofencing: true,
         alwaysPermission: "Records your trip while the app is closed.",
       },
+      bluetooth: { permission: "Reads your heart rate monitor." },
     },
   ],
 ],`;
@@ -180,7 +189,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library and background location with geofencing, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library, background location with geofencing and Bluetooth Low Energy, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"

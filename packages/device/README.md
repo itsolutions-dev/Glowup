@@ -24,6 +24,7 @@ npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
 npx expo install expo-location expo-task-manager # /background-location
+npx expo install react-native-ble-manager       # /bluetooth
 ```
 
 Expo SDK 57 or later. The design and its trade-offs are recorded in the
@@ -32,24 +33,25 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 
 ## Entry points
 
-| Import                                   | Needs                                | Exports                                                                                                                 |
-| ---------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `@its/glowup-device`                     | nothing native                       | `DeviceAdaptersProvider`, `PermissionState`                                                                             |
-| `@its/glowup-device/info`                | `expo-device`, `expo-application`    | `useDeviceInfo`                                                                                                         |
-| `@its/glowup-device/location`            | `expo-location`                      | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`, `useGeocoder`                          |
-| `@its/glowup-device/camera`              | `expo-camera`                        | `CameraView`, `useCameraPermission`                                                                                     |
-| `@its/glowup-device/network`             | `@react-native-community/netinfo`    | `useNetwork`, `useIsOnline`                                                                                             |
-| `@its/glowup-device/battery`             | `expo-battery`                       | `useBattery`                                                                                                            |
-| `@its/glowup-device/keep-awake`          | `expo-keep-awake`                    | `useKeepAwake`, `useKeepAwakeSupport`                                                                                   |
-| `@its/glowup-device/orientation`         | `expo-screen-orientation`            | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                                     |
-| `@its/glowup-device/haptics`             | `expo-haptics`                       | `useHaptics`, `hapticFeedback`                                                                                          |
-| `@its/glowup-device/biometrics`          | `expo-local-authentication`          | `useBiometrics`, `useAppLock`                                                                                           |
-| `@its/glowup-device/secure-store`        | `expo-secure-store`                  | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                                  |
-| `@its/glowup-device/sensors`             | `expo-sensors`                       | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission`              |
-| `@its/glowup-device/media-picker`        | `expo-image-picker`                  | `useMediaPicker`                                                                                                        |
-| `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                                       |
-| `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission` |
-| `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                 |
+| Import                                   | Needs                                | Exports                                                                                                                                |
+| ---------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `@its/glowup-device`                     | nothing native                       | `DeviceAdaptersProvider`, `PermissionState`                                                                                            |
+| `@its/glowup-device/info`                | `expo-device`, `expo-application`    | `useDeviceInfo`                                                                                                                        |
+| `@its/glowup-device/location`            | `expo-location`                      | `useLocationPermission`, `useCurrentPosition`, `useWatchPosition`, `useHeading`, `useGeocoder`                                         |
+| `@its/glowup-device/camera`              | `expo-camera`                        | `CameraView`, `useCameraPermission`                                                                                                    |
+| `@its/glowup-device/network`             | `@react-native-community/netinfo`    | `useNetwork`, `useIsOnline`                                                                                                            |
+| `@its/glowup-device/battery`             | `expo-battery`                       | `useBattery`                                                                                                                           |
+| `@its/glowup-device/keep-awake`          | `expo-keep-awake`                    | `useKeepAwake`, `useKeepAwakeSupport`                                                                                                  |
+| `@its/glowup-device/orientation`         | `expo-screen-orientation`            | `useOrientation`, `useOrientationLock`, `useOrientationLockSupport`                                                                    |
+| `@its/glowup-device/haptics`             | `expo-haptics`                       | `useHaptics`, `hapticFeedback`                                                                                                         |
+| `@its/glowup-device/biometrics`          | `expo-local-authentication`          | `useBiometrics`, `useAppLock`                                                                                                          |
+| `@its/glowup-device/secure-store`        | `expo-secure-store`                  | `useSecureStore`, `useSecureValue`, `SecureStoreError`                                                                                 |
+| `@its/glowup-device/sensors`             | `expo-sensors`                       | `useAccelerometer` and the other sensors, `useDeviceMotion`, `useDeviceOrientation`, `useSensorPermission`                             |
+| `@its/glowup-device/media-picker`        | `expo-image-picker`                  | `useMediaPicker`                                                                                                                       |
+| `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                                                      |
+| `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission`                |
+| `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `useBluetoothScan`, `useBluetoothDevice`, `useBluetoothNotifications`, `BluetoothError` |
+| `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                                |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
 installs `expo-camera`.
@@ -1091,6 +1093,192 @@ const always = useBackgroundLocationPermission();
   background meanwhile, which `useAppLock` does not count.
 - The state is read again whenever the app returns to the foreground.
 
+## Bluetooth
+
+Bluetooth Low Energy with the phone as the central (the GATT client): the radio, the
+permission, scanning, connections, reads, writes and notifications. It runs on
+`react-native-ble-manager`, so it needs a development build and the plugin's `bluetooth` key.
+On the web and in Expo Go every hook reads `unsupported`: the native module is loaded on first
+use, never at import, so importing the subpath there does not crash.
+
+Not covered: Bluetooth Classic (iOS opens it to MFi hardware only), the peripheral role (the
+phone advertising), and anything in the background.
+
+### Radio and permission
+
+```tsx
+import {
+  useBluetoothPermission,
+  useBluetoothState,
+} from "@its/glowup-device/bluetooth";
+
+const permission = useBluetoothPermission();
+const radio = useBluetoothState();
+
+useEffect(() => {
+  // On iOS, ask whenever a Bluetooth screen opens: see below.
+  permission.request();
+}, []);
+
+if (radio.state === "off" && radio.canEnable) {
+  // Android's "Turn on Bluetooth?" dialog; resolves false when the user refuses.
+  await radio.enable();
+}
+```
+
+- **iOS** cannot read the permission without the risk of showing the prompt, so it reads
+  `undetermined` until `request()` ran in this launch, even when the user answered on an earlier
+  one. The prompt shows once per install; afterwards `request()` answers at once with no UI, so
+  call it when a screen that needs Bluetooth opens. The radio's state is `unknown` until then.
+- **Android 12 and later** ask for "Nearby devices" (`BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`);
+  Android 11 and earlier for the precise location, which scans need there. Android tells that
+  the user chose "Don't ask again" only in a request's answer: until a request in this launch, a
+  refused permission reads `undetermined` (and a request then answers `denied` with
+  `canAskAgain: false`, without a dialog).
+- `state` is `unknown`, `unsupported`, `unauthorized` (iOS only), `off` or `on`. Android's
+  "turning on" and "turning off" read `off`.
+- `enable()` exists on Android only (`canEnable`), and needs the permission. iOS gives apps no
+  way to switch Bluetooth on: tell the user where to.
+- Errors are `BluetoothError`s (`isBluetoothError()`), with a `code`: `unsupported`,
+  `permission-denied`, `powered-off`, `timeout`, `not-connected`, `disconnected` or `failed`.
+
+### Scanning
+
+```tsx
+import { useBluetoothScan } from "@its/glowup-device/bluetooth";
+
+const scan = useBluetoothScan();
+
+await scan.start({ services: ["180D"], timeout: 10_000 }); // heart rate monitors, 10 s
+scan.devices; // [{ id, name, rssi, advertisement, firstSeen, lastSeen }], once each
+scan.isScanning;
+scan.error; // why the scan could not start or stopped early
+await scan.stop();
+```
+
+- **One scan per app**, as the platform has one: every component using the hook shares it and
+  its list, a `start()` anywhere replaces it (and empties the list), and it stops when the last
+  of them unmounts.
+- `start()` checks the permission and the radio first, never prompts, and rejects with the
+  `BluetoothError` that stops it (`permission-denied`, `powered-off`, `unsupported`). Bad options
+  are a `TypeError` / `RangeError` before anything starts.
+- `services` filters on the platform (fewer wake-ups): only devices advertising one of them.
+  Without it every device around shows, which is what you want to discover a device that
+  advertises no service.
+- `timeout` (default 10 s; `0` until `stop()`) ends the scan and keeps the list.
+- Each device is listed once, with its latest signal (`rssi`, dBm) and advertisement; the list
+  renders at most every 250 ms, however fast devices advertise. `advertisement` carries the
+  local name, the service UUIDs, the service data (Eddystone), the manufacturer data
+  (`companyId` and bytes), the advertised transmit power and whether it accepts connections.
+- It **pauses in the background** and resumes on return for the time it had left; it ends with
+  `powered-off` when the radio goes off.
+- **Android** silently returns nothing to an app that starts more than five scans in 30
+  seconds; the adapter counts the starts and delays the sixth until it is allowed (the scan
+  reads `isScanning` meanwhile). Android 11 and earlier also find nothing while the location
+  services are off, and say nothing about it.
+- A device's `id` is a per-app UUID on iOS and its MAC address on Android: stable on this phone
+  for this app, meaningless anywhere else. iOS hides Apple's iBeacon frames from apps.
+
+### Connecting and GATT
+
+```tsx
+import {
+  BLUETOOTH_CHARACTERISTICS,
+  BLUETOOTH_SERVICES,
+  encodeUtf8,
+  readBatteryLevel,
+  readDeviceInformation,
+  useBluetoothDevice,
+} from "@its/glowup-device/bluetooth";
+
+const device = useBluetoothDevice(id); // the id a scan reported
+
+await device.connect(); // connects and discovers the services (10 s timeout)
+device.status; // "disconnected" | "connecting" | "connected" | "disconnecting"
+device.services; // [{ uuid, characteristics: [{ uuid, service, properties }] }]
+
+const level = await device.read("180F", "2A19"); // Uint8Array
+await device.write("FFE0", "FFE1", Uint8Array.from([0x01]));
+await readBatteryLevel(device); // 0–100
+await readDeviceInformation(device); // { manufacturerName, modelNumber, serialNumber, … }
+
+// Serial over BLE (Nordic UART): write lines, read them with useBluetoothNotifications.
+await device.write(
+  BLUETOOTH_SERVICES.nordicUart,
+  BLUETOOTH_CHARACTERISTICS.nordicUartRx,
+  encodeUtf8("STATUS\n"),
+);
+```
+
+- **One connection per device**, shared by every component using its id. Nothing connects until
+  `connect()`, which checks the permission and the radio first (never prompts), joins an attempt
+  already running and resolves at once when connected. iOS never gives up on a connection by
+  itself, so `connect({ timeout })` (default 10 s; `0` waits forever) cancels the attempt.
+- The connection closes when the last component using the device unmounts, unless that one set
+  `useBluetoothDevice(id, { disconnectOnUnmount: false })`, which keeps it open for the rest of
+  the app until `disconnect()`.
+- A dropped connection (the device out of range, switched off) reads `disconnected` with
+  `error.code === "disconnected"`; there is no automatic reconnection: call `connect()` again.
+  `disconnect()` the app asked for leaves `error` at `null`.
+- `read`, `write`, `requestMtu`, `readRssi` and `bond` need a connection (`not-connected`
+  otherwise) and give up after 10 s (`timeout`; the platform's own request is not cancelled).
+  UUIDs may be short (`"2A19"`) or 128-bit.
+- `write()` waits for the device's acknowledgement when the characteristic allows it, and writes
+  without response when that is all it allows; `{ withResponse }` decides otherwise. A value
+  longer than one write carries (MTU − 3 bytes: 20 by default) goes as several consecutive
+  writes, which is what serial over BLE expects. `requestMtu(247)` asks Android for more room
+  (iOS negotiates its own, and the call reports it).
+- `bond()` pairs on Android (`canBond`); iOS pairs by itself when a characteristic needs
+  encryption.
+- The profiles the package reads are Device Information (`0x180A`) and Battery (`0x180F`);
+  `decodeUtf8` / `encodeUtf8` and `parseBatteryLevel` help with the rest.
+
+### Notifications
+
+```tsx
+import { useBluetoothNotifications } from "@its/glowup-device/bluetooth";
+
+const heartRate = useBluetoothNotifications(id, "180D", "2A37", (value) => {
+  setBpm(value[0] & 0x01 ? value[1] | (value[2] << 8) : value[1]);
+});
+heartRate.isActive; // on, on the device
+heartRate.error; // why the device refused
+```
+
+- Components reading the same characteristic share one subscription on the device, on while at
+  least one of them is mounted (`{ enabled: false }` leaves it). Indications work the same way.
+- It turns on once the device is connected and again after every reconnection; it never connects
+  by itself.
+- The callback can change between renders: the latest one is called.
+
+### UUIDs
+
+iOS reports a SIG-assigned UUID in its short form (`180D`), Android in its 128-bit form, so raw
+strings never compare across platforms. Every UUID the package hands out is lowercase 128-bit,
+and every UUID it takes may be either:
+
+```ts
+toBluetoothUuid("180D"); // "0000180d-0000-1000-8000-00805f9b34fb"
+shortBluetoothUuid("0000180d-0000-1000-8000-00805f9b34fb"); // "180d"
+```
+
+### Beacons and location
+
+The plugin's `neverForLocation` (default `true`) tells Android 12 and later that scans never
+locate the user: no location permission is needed, and Android may leave beacons out of the
+results. For beacon-based presence set it to `false` and give the hooks an adapter that asks for
+location too:
+
+```tsx
+import { createBleManagerAdapter } from "@its/glowup-device/bluetooth";
+
+const bluetooth = createBleManagerAdapter({ neverForLocation: false });
+
+<DeviceAdaptersProvider adapters={{ bluetooth }}>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -1119,6 +1307,7 @@ plugins: [
         geofencing: true,
         alwaysPermission: "Records your trip while the app is closed.",
       },
+      bluetooth: { permission: "Reads your heart rate monitor." },
     },
   ],
 ],
@@ -1165,6 +1354,13 @@ plugins: [
   does not need, and Google Play accepts them only from apps whose core feature is browsing
   photos. Prebuild applies expo-media-library's plugin even when it is not listed, so list
   `mediaLibrary` whenever the module is installed.
+- **Bluetooth** goes through react-native-ble-manager's plugin. It sets the Bluetooth purpose
+  string (`permission`), without which the radio cannot start on iOS, and adds Android's
+  `BLUETOOTH_SCAN` and `BLUETOOTH_CONNECT`, plus the location permissions for Android 11 and
+  earlier, whose scans need them. `neverForLocation` (default `true`, where ble-manager's own
+  default is `false`) flags the scan permission as never used for location and caps the
+  location permissions at Android 11; `false` keeps them for scans that locate the user
+  (beacons). Listed beside `location`, the location permissions are declared once, uncapped.
 - A capability you do not list is not configured, and its Expo module is not loaded.
 - **Write a real purpose string.** Without one the plugin uses a generic text and warns:
   App Store review rejects purpose strings that do not say why the app needs the data.
@@ -1340,3 +1536,22 @@ pick open until `close(result?)`, meanwhile another resolves `busy`; `{ pending 
 Android 11+) and starts undetermined; a request answers `requestAnswer` (default `"granted"`),
 `setPermission("denied")` changes it as the settings would and `permissionRequests` counts the
 prompts. `saved` lists every saved URI; `failNext(detail?)` makes the next save fail.
+
+`createMockBluetoothAdapter()` has the radio on and the permission undetermined; a request
+answers `requestResult` (default `"granted"`). `setState("off")` changes the radio for every
+listening component, `setPermission("denied")` changes the permission as the settings would, and
+`requestCount` / `enableCount` count the prompts and the "turn on" dialogs (`enableResult:
+"refuse"` answers them no; `canEnable: false` stands in for iOS). `{ supported: false }` behaves
+like the web or Expo Go. Once a scan runs, `discover({ id, name, rssi, advertisement })` reports
+a device to it (`buildBluetoothDevice()` fills the rest; a device the scan's services filter out
+is dropped, as the platform would); `failScan("failed")` ends it, `failNextScan()` makes the next
+start reject, and `scanning` holds the running scan's services.
+
+For GATT, give the mock the devices' services (`gatt: { [id]: [{ uuid: "180F", characteristics:
+[{ uuid: "2A19", properties: { notify: true }, value: [87] }] }] }`, or `setGatt()`); only `read`
+is allowed unless `properties` says otherwise. `notify(id, service, characteristic, value)`
+sends a value while notifications are on, `disconnectBySystem(id)` drops a connection,
+`holdNextConnect()` leaves the next connection pending (to test the timeout),
+`failNextConnect()` / `failNextGatt()` make the next call reject, and `connected`, `notifying`,
+`writes` and `bonded` record what the app did. `{ bond: false }` has no `bond()`, as on iOS;
+`maxMtu` (default 247) caps `requestMtu()`.

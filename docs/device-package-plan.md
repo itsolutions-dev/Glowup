@@ -1102,12 +1102,117 @@ read before the contract was written:
 | B9  | Web          | Unsupported in the first release.                                                                                                                                                                                        |
 | B10 | Background   | Not in the first release (connections kept alive, iOS state restoration, background scanning).                                                                                                                           |
 
-| Phase | Content                                                                                                                                                                                      | Release | Status  |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | planned |
-| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
-| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
-| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+| Phase | Content                                                                                                                                                                                      | Release | Status |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done   |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done   |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | done   |
+| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | done   |
+
+### Phase 30 — what landed
+
+- **`@its/glowup-device/bluetooth`** on `react-native-ble-manager` 12.5 (an optional peer, the
+  first that is not an Expo module): `useBluetoothState`, `useBluetoothPermission`,
+  `BluetoothError` / `isBluetoothError`, `toBluetoothUuid` / `shortBluetoothUuid`,
+  `bleManagerAdapter` and `createBleManagerAdapter({ neverForLocation })`.
+- **Lazy module.** The adapter requires ble-manager on first use, inside a `try`, and never on
+  the web: Expo Go, the web and jest read `unsupported` instead of crashing at import.
+- **One `start()` per process**, after `isStarted()`: ble-manager builds a new central manager
+  on every iOS `start()`. iOS starts only from `requestPermission()` (building the manager is
+  the prompt), so before a request in the launch it reads `undetermined` and the radio
+  `unknown`; the request waits for the first settled state (`unauthorized` → `denied`, anything
+  else known → `granted`), at most a minute. Android starts on the first state subscription,
+  which prompts nothing and is what makes its state events flow. The iOS power alert is off.
+- **Android permissions** through `PermissionsAndroid`: "Nearby devices" from API 31 (plus the
+  precise location with `neverForLocation: false`), the precise location up to API 30. A check
+  cannot tell "never ask again", so a request's refusal is kept for the launch. Requests and
+  `enable()` (Android's "turn on Bluetooth?" dialog, which needs the permission) run inside
+  `systemSheet`, so `useAppLock` does not count the trip.
+- **Read from the source, not on a device:** Android's `scan()` returns without calling back
+  while the radio is off (phase 31 checks the state first); Android's `checkState()` answers
+  before `start()`, iOS's never does; `enableBluetooth()` rejects with "User refused to enable".
+- **Plugin key `bluetooth: { permission, neverForLocation }`** through ble-manager's plugin,
+  `neverForLocation` defaulting to `true`. It is registered before `location`: manifest mods
+  run in reverse order, and the other way round ble-manager would add a second
+  `ACCESS_FINE_LOCATION` capped at API 30 next to expo-location's (a test pins it).
+- **`/testing`:** `createMockBluetoothAdapter()`.
+- **Not verified on a device:** whether iOS's first state after the prompt arrives as described;
+  whether Android's `getState()` needs `BLUETOOTH_CONNECT` (the docs say no).
+
+### Phase 31 — what landed
+
+- **`useBluetoothScan()`**: `start({ services, timeout })`, `stop()`, `clear()`, `devices`,
+  `isScanning`, `error`. One scan per adapter (the platform has one): a start replaces it, every
+  component shares the list, the last one leaving stops it.
+- **Checks first, never prompts:** `start()` validates its options (`TypeError` / `RangeError`)
+  and runs `ensureBluetoothReady` (support, permission, radio `on`) before the adapter.
+- **Dedupe and rendering:** one entry per `id` with the latest RSSI and advertisement,
+  `firstSeen` / `lastSeen`, a repeat without a name keeping the known one; the list renders at
+  most every 250 ms. The adapter scans with `allowDuplicates` (otherwise iOS reports a device
+  once and its RSSI never updates) and Android's low-latency mode.
+- **Advertising data** (`BluetoothAdvertisement`): local name, service UUIDs (normalised),
+  service data, manufacturer data as `{ companyId, data }`, transmit power, connectable. From
+  the source: ble-manager keeps one manufacturer entry on both platforms, keyed by the company
+  id in hex, and passes Android's missing transmit power as `Integer.MIN_VALUE`.
+- **Lifecycle:** the timeout is the store's own timer, so a scan pauses on `background` and
+  resumes on `active` for the time it had left; the radio going `off` (or iOS's
+  `unauthorized`) ends it with an error.
+- **Android's throttling:** starts are counted and a sixth within 30 s waits until it is
+  allowed (`throttle.ts`, 0.5 s margin). `scan()` without a callback in 5 s (Android's, with the
+  radio off) rejects with `timeout`. Android's `ScanCallback` failures arrive as `onStopScan`
+  statuses and map to `failed` (4, no LE scanning, to `unsupported`).
+- **`/testing`:** `discover()`, `failScan()`, `failNextScan()`, `scanning`, `scanCount`, and
+  `buildBluetoothDevice()`.
+- **Not verified on a device:** the throttling limit and its margin, iOS's duplicate reports in
+  the foreground, Android 11's silence with the location services off.
+
+### Phase 32 — what landed
+
+- **`useBluetoothDevice(id, { disconnectOnUnmount })`**: `connect({ timeout })`, `disconnect()`,
+  `status`, `error`, `services`, `read`, `write`, `requestMtu`, `mtu`, `readRssi`, `bond` /
+  `canBond`. One connection per device id, shared by every component; it closes when the last
+  one unmounts unless that one set `disconnectOnUnmount: false`.
+- **`useBluetoothNotifications(id, service, characteristic, onValue, { enabled })`**: counted per
+  characteristic, on once connected and again after each reconnection, off with the last reader;
+  the latest callback is called; one reader throwing does not keep the others from the value.
+- **Timeouts**: connecting 10 s by default (iOS never gives up; a timeout disconnects to cancel
+  the attempt), every GATT call 10 s (the platform's request is not cancelled).
+- **Unexpected disconnects** read `disconnected` with that error; no automatic reconnection.
+- **Writes** default to with-response when the characteristic allows it, without otherwise. A
+  value longer than one write is split by ble-manager into writes of MTU − 3 bytes: the adapter
+  passes Android's negotiated MTU (20 bytes until `requestMtu`) or iOS's
+  `maximumWriteValueLength`. A characteristic that needs one long value must fit in one write.
+- **Read from the source:** ble-manager rejects GATT calls with strings (mapped by wording to
+  `disconnected` / `not-connected` / `failed`) and iOS's failed connections with
+  `{ code, domain, message }`; it serialises Android's GATT commands per peripheral; its Android
+  `startNotification` also turns indications on. SIG UUIDs go to it short, since iOS builds
+  `CBUUID`s from the strings.
+- **Profiles (B7):** `readDeviceInformation`, `readBatteryLevel` / `parseBatteryLevel`, the SIG
+  and Nordic UART UUIDs (`BLUETOOTH_SERVICES`, `BLUETOOTH_CHARACTERISTICS`), `encodeUtf8` /
+  `decodeUtf8`.
+- **`/testing`:** GATT on the mock (`gatt`, `setGatt`, `notify`, `disconnectBySystem`,
+  `holdNextConnect`, `failNextConnect`, `failNextGatt`, `connected`, `notifying`, `writes`,
+  `bonded`).
+- **Not verified on a device:** everything GATT. In particular iOS's `CBUUID` matching with short
+  UUIDs, Android's behaviour on a connection that times out natively (status 133), and bonding.
+
+### Phase 33 — what landed
+
+- **Playground `/device/bluetooth`**: permission and radio, a scan (all, or heart rate only), the
+  device list, a connection with its services, battery and Device Information reads, live heart
+  rate notifications and a Nordic UART exchange. Where `bleManagerAdapter.isSupported()` is
+  false (the web, Expo Go) the page wraps itself in a provider with `site/bluetoothDemo.ts`: the
+  package's mock driven by a timer, with three simulated devices. The same answer while
+  prerendering and in the browser, so it hydrates.
+- **`examples/consumer`** imports `/bluetooth` (state, permission, scan, device, notifications)
+  and lists the plugin's `bluetooth` key. On the `npm pack` tarballs: `tsc`, the web export and
+  `expo config --type introspect` pass; with `location` beside it the manifest declares the
+  location permissions once, uncapped, and `BLUETOOTH_SCAN` with `neverForLocation`.
+- **Changeset** `0.9.0` (minor).
+- ble-manager's plugin also adds the legacy `BLUETOOTH` and `BLUETOOTH_ADMIN` without
+  `maxSdkVersion`: harmless normal permissions, left as they are.
+- **To verify on a device:** everything in phases 30–32 marked so, on an iPhone and on Android
+  12+ and 11, with a real peripheral (a heart rate strap, a Nordic UART board).
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with

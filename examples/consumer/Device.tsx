@@ -5,7 +5,7 @@
  *  - every subpath in the export map resolves for a bundler and for `tsc`
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
  *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`,
- *    `/media-picker`, `/media-library`, `/background-location`, `/testing`), with its
+ *    `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/testing`), with its
  *    own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
@@ -28,6 +28,15 @@ import {
   type LocationTaskEvent,
 } from "@its/glowup-device/background-location";
 import { useBattery, type BatteryStatus } from "@its/glowup-device/battery";
+import {
+  BLUETOOTH_SERVICES,
+  useBluetoothDevice,
+  useBluetoothNotifications,
+  useBluetoothPermission,
+  useBluetoothScan,
+  useBluetoothState,
+  type BluetoothErrorCode,
+} from "@its/glowup-device/bluetooth";
 import {
   useAppLock,
   useBiometrics,
@@ -98,6 +107,7 @@ const KIND: InteractionKind = "press";
 const BUSY: BiometricErrorCode = "busy";
 const INVALIDATED: ProtectedReadResult["status"] = "invalidated";
 const FACE_UP: DeviceOrientation = "face-up";
+const POWERED_OFF: BluetoothErrorCode = "powered-off";
 const BUSY_PICK: PickResult["status"] = "busy";
 const SAVED: SaveResult["status"] = "saved";
 
@@ -132,6 +142,17 @@ const Readout = () => {
   const motion = useSensorPermission("barometer");
   const picker = useMediaPicker();
   const library = useMediaLibrary();
+  const radio = useBluetoothState();
+  const nearby = useBluetoothPermission();
+  const scan = useBluetoothScan();
+  const clock = useBluetoothDevice("smoke-clock");
+  useBluetoothNotifications(
+    "smoke-clock",
+    BLUETOOTH_SERVICES.nordicUart,
+    "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
+    () => {},
+    { enabled: false },
+  );
 
   return (
     <>
@@ -188,6 +209,12 @@ const Readout = () => {
         style={{ color: theme.colors.onSurfaceVariant }}
       >
         {`Picker ${String(picker.isSupported)} · picking ${String(picker.isPicking)} · ${BUSY_PICK} · library ${String(library.isSupported)} ${library.status} · ${SAVED}`}
+      </Typography>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant }}
+      >
+        {`Bluetooth ${radio.state} · ${nearby.status} · ${scan.devices.length} found · clock ${clock.status} · ${POWERED_OFF}`}
       </Typography>
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />

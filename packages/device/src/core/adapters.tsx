@@ -3,6 +3,7 @@ import { createContext, type ReactNode, useContext, useMemo } from "react";
 import type { BackgroundLocationAdapter } from "../background-location/types";
 import type { BatteryAdapter } from "../battery/types";
 import type { BiometricsAdapter } from "../biometrics/types";
+import type { BluetoothAdapter } from "../bluetooth/types";
 import type { CameraAdapter } from "../camera/types";
 import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
@@ -35,6 +36,7 @@ export interface DeviceAdapters {
   mediaPicker: MediaPickerAdapter;
   mediaLibrary: MediaLibraryAdapter;
   backgroundLocation: BackgroundLocationAdapter;
+  bluetooth: BluetoothAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -74,6 +76,7 @@ export function DeviceAdaptersProvider({
     mediaPicker,
     mediaLibrary,
     backgroundLocation,
+    bluetooth,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -93,6 +96,7 @@ export function DeviceAdaptersProvider({
       ...(mediaPicker && { mediaPicker }),
       ...(mediaLibrary && { mediaLibrary }),
       ...(backgroundLocation && { backgroundLocation }),
+      ...(bluetooth && { bluetooth }),
     }),
     [
       parent,
@@ -111,6 +115,7 @@ export function DeviceAdaptersProvider({
       mediaPicker,
       mediaLibrary,
       backgroundLocation,
+      bluetooth,
     ],
   );
   return (

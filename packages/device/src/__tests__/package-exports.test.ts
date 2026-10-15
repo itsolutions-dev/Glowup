@@ -36,6 +36,7 @@ describe("package exports", () => {
       "media-picker",
       "media-library",
       "background-location",
+      "bluetooth",
       "testing",
     ]);
   });

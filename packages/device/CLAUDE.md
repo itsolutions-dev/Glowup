@@ -7,9 +7,9 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
-  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
+  `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
   the folder of the subpath that needs it. ESLint enforces it (`DEVICE_CAPABILITIES` in the
   root `eslint.config.js`): a capability cannot import another capability or another
@@ -92,6 +92,67 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   geofencing failures as a message alone (`"Geofencing not available."` is location switched
   off). The plugin's `geofencing: true` adds the background permission in any `mode`, and
   `mode: "none"` is geofencing alone.
+- **Bluetooth** (`src/bluetooth`): BLE central on `react-native-ble-manager`, the package's only
+  peer that is not an Expo module. Its module builds its manager at import and throws without
+  the native module (Expo Go), so `bleManager.ts` requires it on first use inside a `try`
+  (`loadBleManager`, never on the web) and a missing module reads `unsupported`. `start()` runs
+  once per process (`ensureStarted`, after `isStarted()`): on iOS each call builds another
+  central manager, and building it is what prompts, so iOS starts only from `requestPermission`
+  (or when a manager already exists) and reads `undetermined` / `unknown` before; Android starts
+  on the first state subscription, which never prompts (its state events need it). The power
+  alert is off (`showAlert: false`). Android permissions go through React Native's
+  `PermissionsAndroid` (`BLUETOOTH_SCAN` + `BLUETOOTH_CONNECT` from API 31, plus
+  `ACCESS_FINE_LOCATION` with `neverForLocation: false`; `ACCESS_FINE_LOCATION` alone up to 30);
+  a check cannot tell "never ask again", so the adapter keeps a request's refusal for the launch.
+  Requests and `enable()` run inside `systemSheet` (another activity on Android).
+  `useBluetoothState` is a live store per adapter; `useBluetoothPermission`'s request also
+  refreshes it (on iOS the state starts with the request). `ensureBluetoothReady` (support →
+  permission → radio `on`) is what every later operation checks, and never prompts. UUIDs go out
+  lowercase 128-bit (`toBluetoothUuid`). The plugin key `bluetooth` calls ble-manager's plugin
+  with `neverForLocation` defaulting to `true` (its own default is `false`), and is registered
+  _before_ `location`: Android manifest mods run in reverse order, so expo-location's uncapped
+  `ACCESS_FINE_LOCATION` is written first and ble-manager, which skips a declared permission,
+  adds no second one capped at API 30. Its adapter test swaps `Platform` and spies
+  `PermissionsAndroid` on the main registry, not the isolated one: react-native's index requires
+  them in getters, at call time.
+  Scanning (`scan.ts`, `useBluetoothScan`): one scan store per adapter, as the platform has one
+  scan: a `start()` replaces it, every reader shares the list, and the last reader leaving stops
+  it (a microtask later, as `sensors/stream.ts`). `start()` validates (`TypeError` /
+  `RangeError`), runs `ensureBluetoothReady`, and only then `adapter.startScan`; a session id
+  drops anything from a replaced or stopped scan. Devices are deduplicated by `id` (the name of
+  a repeat without one is kept) and rendered at most every 250 ms (`SCAN_UPDATE_INTERVAL`; the
+  first device after a reset shows at once). The timeout is the store's timer, not
+  ble-manager's `seconds`, so the scan can pause on `background` (the adapter's scan stops) and
+  resume on `active` for the time it had left; the radio store ending in `off` /
+  `unauthorized` finishes it with an error. The adapter scans with `allowDuplicates` (iOS reports
+  a device once otherwise, and its RSSI never moves) and Android's low-latency mode; it
+  delays a start past Android's five-in-30-seconds limit (`throttle.ts`), gives up on a
+  `scan()` that never calls back (Android's, with the radio off) after 5 s, ignores
+  `onStopScan` statuses 0 and 10 (its own stops) and maps the others (Android's
+  `ScanCallback` codes). ble-manager reports at most one manufacturer data entry, keyed by the
+  company id in hex, and Android's missing transmit power as `Integer.MIN_VALUE`.
+  Connections (`connection.ts`): one store per adapter, one entry per device id (shared by every
+  `useBluetoothDevice` / `useBluetoothNotifications` on it), each with a `session` bumped by every
+  connect and disconnect so late answers are dropped. `connect()` = `ensureBluetoothReady` →
+  `adapter.connect` (with the store's timeout: iOS never times out; a timeout disconnects to
+  cancel) → `discoverServices` → `connected`, then turns every registered notification on again.
+  The adapter's disconnect events act only on a `connected` entry (a requested close is
+  `disconnecting`, a failed attempt is `connect()`'s to report). GATT calls need `connected` and
+  time out after 10 s (`GATT_TIMEOUT`). Notifications are counted per characteristic: on with
+  the first reader (once connected), off with the last; one that finished turning on after its
+  readers left is turned off. `hold()` counts mounted hooks; the last one leaving closes the
+  connection a microtask later unless it set `disconnectOnUnmount: false`. `write()` defaults
+  `withResponse` from the discovered properties. The adapter passes SIG UUIDs to ble-manager in
+  their short form (`shortBluetoothUuid`: CoreBluetooth compares `CBUUID`s it built from them),
+  chunks writes at MTU − 3 (ble-manager's `maxByteSize`; Android's MTU tracked per device and
+  reset on connect, iOS asked via `getMaximumWriteValueLength…`), and maps ble-manager's string
+  errors by their wording (`toGattError`). `bond` exists on Android only, so `canBond` is
+  `typeof adapter.bond === "function"`. Profiles (`profiles.ts`): Device Information and Battery,
+  UTF-8 by hand (Hermes' `TextDecoder` is not relied on), Nordic UART constants. In the mock,
+  `bond` is assigned after the literal: an object spread there would freeze its getters (as the
+  location mock's `watchHeading`). Jest: a lazy `require` that runs after `isolateModules` lands
+  in the main registry, and Jest then serves that mock to later isolated registries, so a test
+  that needs the module missing mocks `isNativePlatform` instead.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read; it also
   backs `/background-location`'s `isRunning`) and

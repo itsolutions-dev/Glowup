@@ -34,6 +34,9 @@
             "mode": "foreground-service",
             "geofencing": true,
             "alwaysPermission": "Checks that the published background location capability configures the app."
+          },
+          "bluetooth": {
+            "permission": "Checks that the published Bluetooth capability configures the app."
           }
         }
       ]

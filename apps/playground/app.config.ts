@@ -13,6 +13,11 @@ const baseUrl = process.env.GLOWUP_BASE_URL ?? "";
 // and the mark's square disappears into them.
 const ICON_BACKGROUND = "#0F0D13";
 
+// The playground has no store identity: `expo prebuild` needs a bundle id and
+// a package name, and only the native smoke workflow (native.yml) runs it, so
+// that workflow supplies one. Without the variable the config is unchanged.
+const ciAppId = process.env.GLOWUP_CI_APP_ID;
+
 const config: ExpoConfig = {
   name: "Glowup",
   slug: "glowup-playground",
@@ -23,8 +28,10 @@ const config: ExpoConfig = {
   userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: true,
+    ...(ciAppId ? { bundleIdentifier: ciAppId } : {}),
   },
   android: {
+    ...(ciAppId ? { package: ciAppId } : {}),
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: ICON_BACKGROUND,

@@ -1,0 +1,193 @@
+name: Native smoke
+
+# Builds the playground natively and launches it on an iOS simulator and an
+# Android emulator, to find out what breaks outside the browser (plan:
+# docs/solaris-native.md, Phase 0 spike 0.6 and Phase 1). It is a smoke test:
+# "the app builds, starts and is still running 40 seconds later", plus a
+# screenshot and the logs as artifacts. It does not click anything.
+#
+# Runs on pushes to `dev` only, and only when something that can change the
+# native app changed (docs-only pushes do nothing). There is no
+# workflow_dispatch on purpose: GitHub shows the "Run workflow" button only for
+# workflows on the default branch, and this one lives on `dev`.
+on:
+  push:
+    branches: [dev]
+    paths:
+      - ".github/workflows/native.yml"
+      - "apps/playground/**"
+      - "packages/**"
+      - "package-lock.json"
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: "1"
+  EXPO_NO_TELEMETRY: "1"
+  # Read by apps/playground/app.config.ts: prebuild needs a bundle id and a
+  # package name, and the playground has none of its own.
+  GLOWUP_CI_APP_ID: dev.glowup.playground.ci
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Generate the native project
+        working-directory: apps/playground
+        run: npx expo prebuild --platform ios --no-install
+
+      - name: Install pods
+        working-directory: apps/playground/ios
+        run: pod install
+
+      - name: Pick a simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | jq -r '[.devices[][] | select(.isAvailable and (.name | startswith("iPhone")))][0].udid')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Simulator: $UDID"
+          xcrun simctl list devices available | grep -i iphone | head -5
+
+      # Release embeds the JS bundle in the app, so no Metro server is needed.
+      - name: Build for the simulator
+        working-directory: apps/playground/ios
+        shell: bash
+        run: |
+          WS=$(ls -d *.xcworkspace | head -1)
+          SCHEME=$(basename "$WS" .xcworkspace)
+          xcodebuild -workspace "$WS" -scheme "$SCHEME" -configuration Release \
+            -sdk iphonesimulator -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build \
+            | tee ../../../xcodebuild.log | tail -40
+
+      - name: Launch and check
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          APP=$(ls -d apps/playground/ios/build/Build/Products/Release-iphonesimulator/*.app | head -1)
+          xcrun simctl install "$UDID" "$APP"
+          xcrun simctl launch "$UDID" "$GLOWUP_CI_APP_ID"
+          sleep 40
+          xcrun simctl io "$UDID" screenshot ios-shot.png
+          # `launchctl list` prints "<pid> <status> <label>"; the pid is "-" when the app is not running.
+          LINE=$(xcrun simctl spawn "$UDID" launchctl list | grep "UIKitApplication:$GLOWUP_CI_APP_ID" || true)
+          echo "launchctl: $LINE"
+          {
+            echo "### iOS"
+            echo "App process after 40 s: \`${LINE:-not found}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          PID=$(echo "$LINE" | awk '{print $1}')
+          if [ -z "$PID" ] || [ "$PID" = "-" ]; then
+            echo "The app is not running."
+            exit 1
+          fi
+
+      - name: Collect crash reports
+        if: always()
+        run: |
+          mkdir -p ios-crashes
+          cp ~/Library/Logs/DiagnosticReports/* ios-crashes/ 2>/dev/null || true
+          xcrun simctl spawn booted log show --last 3m --style compact --predicate 'process == "Glowup" OR subsystem CONTAINS "com.facebook.react"' > ios-app.log 2>&1 || true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ios-smoke
+          path: |
+            ios-shot.png
+            ios-app.log
+            ios-crashes
+            xcodebuild.log
+          if-no-files-found: ignore
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Generate the native project
+        working-directory: apps/playground
+        run: npx expo prebuild --platform android --no-install
+
+      # x86_64 only: the emulator is x86_64, and building every ABI is slower.
+      - name: Build the release APK
+        working-directory: apps/playground/android
+        shell: bash
+        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --console=plain | tee ../../../gradle.log | tail -40
+
+      # The runner has no KVM by default; this makes the emulator usable.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install -r apps/playground/android/app/build/outputs/apk/release/app-release.apk
+            adb shell monkey -p ${{ env.GLOWUP_CI_APP_ID }} -c android.intent.category.LAUNCHER 1
+            sleep 40
+            adb exec-out screencap -p > android-shot.png
+            adb logcat -d > android-logcat.txt
+            adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
+            test -s android-pid.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Android"
+            echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
+            echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: android-smoke
+          path: |
+            android-shot.png
+            android-logcat.txt
+            gradle.log
+          if-no-files-found: ignore

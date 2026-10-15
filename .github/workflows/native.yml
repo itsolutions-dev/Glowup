@@ -70,9 +70,6 @@ jobs:
       - name: Build for the simulator
         working-directory: apps/playground/ios
         shell: bash
-        env:
-          # Inlined into the JS bundle: the app opens the benchmark route itself.
-          EXPO_PUBLIC_NATIVE_BENCH: "1"
         run: |
           WS=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WS" .xcworkspace)
@@ -106,22 +103,6 @@ jobs:
             exit 1
           fi
 
-      # Spike 0.1: run the AuraPivot core on Hermes. The build opens the benchmark
-      # route by itself 60 s after launch (a deep link makes iOS ask "Open in
-      # Glowup?"). console.log of a Release build does not reach the unified log
-      # here, so the result is read from the screenshot.
-      - name: Pivot benchmark on Hermes
-        run: |
-          UDID="${{ steps.sim.outputs.udid }}"
-          sleep 60
-          xcrun simctl io "$UDID" screenshot ios-bench.png
-          xcrun simctl spawn "$UDID" log show --last 10m --style compact --predicate 'eventMessage CONTAINS "SPIKE01"' 2>/dev/null | grep -o "SPIKE01 .*" | grep -v 'DONE"' > pivot-bench-ios.txt || true
-          {
-            echo "### iOS pivot benchmark (Hermes, simulator on a CI runner: indicative only)"
-            echo "Results are on the screen: read ios-bench.png in the ios-smoke artifact."
-            echo "Log lines found: $(wc -l < pivot-bench-ios.txt | tr -d ' ')"
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Collect crash reports
         if: always()
         run: |
@@ -135,8 +116,6 @@ jobs:
           name: ios-smoke
           path: |
             ios-shot.png
-            ios-bench.png
-            pivot-bench-ios.txt
             ios-app.log
             ios-crashes
             xcodebuild.log
@@ -201,10 +180,6 @@ jobs:
             adb logcat -d > android-logcat.txt
             adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
             test -s android-pid.txt
-            adb shell am start -W -a android.intent.action.VIEW -d glowup://spike-pivot-hermes ${{ env.GLOWUP_CI_APP_ID }}
-            for i in $(seq 1 36); do sleep 5; if adb logcat -d | grep -q "SPIKE01 DONE"; then echo "benchmark finished after about $((i * 5)) s"; break; fi; done
-            adb exec-out screencap -p > android-bench.png
-            adb logcat -d -s ReactNativeJS:V | grep -o "SPIKE01 .*" > pivot-bench-android.txt || true
 
       - name: Summary
         if: always()
@@ -213,10 +188,6 @@ jobs:
             echo "### Android"
             echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
             echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
-            echo "### Android pivot benchmark (Hermes, x86_64 emulator on a CI runner: indicative only)"
-            echo '```'
-            cat pivot-bench-android.txt 2>/dev/null || echo "no SPIKE01 lines (read android-bench.png)"
-            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
@@ -225,8 +196,6 @@ jobs:
           name: android-smoke
           path: |
             android-shot.png
-            android-bench.png
-            pivot-bench-android.txt
             android-logcat.txt
             gradle.log
           if-no-files-found: ignore

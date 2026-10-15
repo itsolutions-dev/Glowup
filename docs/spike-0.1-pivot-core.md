@@ -3,10 +3,10 @@
 Fase 0 di `docs/solaris-native.md`. Domanda: **il core di AuraPivot (D8) gira in un ambiente React Native
 senza riscritture, e con quali modifiche alla copia?**
 
-**Stato: fatto su Android (Hermes reale, emulatore in CI); iOS in attesa del prossimo giro.** Il benchmark gira nel workflow
-`native.yml`, su un emulatore Android x86_64 di un runner GitHub (2026-10-15, run del commit `14a148f`): tempi
-indicativi, **non di un telefono**. Su iOS il link diretto ha fatto comparire "Open in Glowup?" e il benchmark non è partito:
-ora la schermata la apre l'app da sola (correzione fatta, non ancora eseguita).
+**Stato: fatto su Android e iOS** (Hermes reale, in CI); **manca solo un telefono vero.** Il benchmark ha girato nel workflow
+`native.yml` su un emulatore Android x86_64 e su un simulatore iOS (Apple Silicon) di runner GitHub, 2026-10-15: tempi
+**indicativi, non di un telefono**. La schermata di prova, la copia del core e le parti di workflow dedicate sono state
+tolte dal ramo dopo la misura: si recuperano da git (commit `14a148f` e `6b6f194`).
 
 ## Come è stato fatto
 
@@ -55,38 +55,52 @@ righe sul telefono resti accettabile. È il motivo per cui la prova su Hermes è
 3. **Test.** Porting meccanico da vitest a jest (vedi sopra). Non portati: il test dell'esportatore (richiede un
    ambiente DOM e `exceljs`), `localization/dictionaries.test.ts` (usa `import.meta.glob` di Vite) e il test
    del hook `usePivotMatrix` (gli hook non sono stati copiati).
-4. Le gerarchie di date usano i getter in ora locale (`getFullYear`, `getMonth`…): stesso comportamento del web,
+4. **Separatori senza `formatToParts`** (non esiste su Hermes iOS): ricavarli da `format(12345.6)`.
+5. Le gerarchie di date usano i getter in ora locale (`getFullYear`, `getMonth`…): stesso comportamento del web,
    ma su un dispositivo con fuso diverso dal server cambiano i bucket di giorno. Da tenere presente, non da
    cambiare.
 
-### Su Hermes reale (Android, emulatore x86_64 su runner CI, Hermes 250829098.0.17, build Release)
+### Su Hermes reale (Hermes 250829098.0.17, build Release, runner CI)
 
-`Intl` funziona in tutto ciò che il core usa: numeri `it-IT` (`1.234.567,891`), `formatToParts`, valuta (`1.234,50 €`),
-percentuale (`26%`), date `it-IT`, nomi di mese e giorno in italiano, `localeCompare` con `numeric` e con accenti
-(`àncora, Ancora, ape, zeta`). `navigator.language` è `undefined` e il locale risolto è quello del dispositivo (`en-US` sul
-runner): **conferma la modifica 2** (serve un `locale` esplicito).
+`Intl` esiste su entrambe, ma **le due implementazioni differiscono**, e la differenza conta:
 
-| Righe  | `setData` | `processMatrix` (3 esecuzioni) | agenti × prodotti |
-| ------ | --------- | ------------------------------ | ----------------- |
-| 5.000  | 32 ms     | 386 / 260 / 214 ms             | 648 ms            |
-| 50.000 | 295 ms    | 707 / 1.191 / 748 ms           | 1.178 ms          |
+| Prova                     | Android                        | iOS                                           |
+| ------------------------- | ------------------------------ | --------------------------------------------- |
+| `Number` it-IT            | `1.234.567,891`                | `1.234.567,891`                               |
+| `formatToParts`           | funziona                       | **`undefined is not a function`**             |
+| Valuta EUR it-IT (1234,5) | `1.234,50 €`                   | `1234,50 €` (senza separatore delle migliaia) |
+| Data it-IT (5 marzo 2026) | `5/3/2026`                     | `05/03/2026`                                  |
+| Mese, giorno, ordinamento | italiano, `P1,P9,P10`, accenti | uguale                                        |
+| `navigator.language`      | `undefined`                    | `undefined`                                   |
 
-A 50.000 righe Hermes impiega circa 3–5 volte il tempo di V8 (qui 0,7–1,2 s contro 0,2–0,35 s). Con 5.000 righe
-l'aggiornamento è sotto mezzo secondo. Un ricalcolo di circa un secondo blocca il thread JavaScript: per dataset grandi
-la UI del pivot dovrà mostrare uno stato di caricamento e non ricalcolare a ogni tocco.
+Conseguenze per il core: l'unico uso di `formatToParts` (`format/CellFormatter.ts:388`, per scoprire il separatore di
+migliaia e decimali del sistema) sta in un `try/catch`, quindi su iOS **non va in crash ma ricade in silenzio su `,` e
+`.`**; `navigator.language` non esiste, quindi il locale va passato sempre (modifica 2, confermata). Il formato di
+numeri e date **cambia da una piattaforma all'altra**: test e confronti non devono assumere un testo uguale ovunque.
+
+| Righe  | Piattaforma | `setData`  | `processMatrix` (3 esecuzioni) | agenti × prodotti |
+| ------ | ----------- | ---------- | ------------------------------ | ----------------- |
+| 5.000  | Android     | 32–48 ms   | 197–386 ms                     | 499–648 ms        |
+| 5.000  | iOS         | 44 ms      | 80–96 ms                       | 107 ms            |
+| 50.000 | Android     | 261–295 ms | 625–1.282 ms                   | 1.178–1.590 ms    |
+| 50.000 | iOS         | 388 ms     | 935–968 ms                     | 1.329 ms          |
+
+(Android: due giri; iOS: uno. Le variazioni tra esecuzioni sono forti, tipiche di una macchina condivisa.)
+
+A 50.000 righe Hermes impiega circa 3–5 volte il tempo di V8 (0,6–1,6 s contro 0,2–0,35 s) su entrambe; a 5.000 righe
+l'aggiornamento resta sotto mezzo secondo. Un ricalcolo di circa un secondo blocca il thread JavaScript: per dataset
+grandi la UI del pivot dovrà mostrare uno stato di caricamento e non ricalcolare a ogni tocco.
 
 ### Non verificato
 
-- **iOS** su Hermes (il giro con la correzione deve ancora girare) e **qualsiasi telefono vero**: i tempi sopra vengono da
-  una macchina virtuale condivisa, non dal tuo dispositivo.
+- **Qualsiasi telefono vero**: i tempi sopra vengono da macchine virtuali condivise, non da un dispositivo.
 - Hook (`usePivotMatrix`, `engineStore`) e contesto React: non copiati né provati.
-- Bundle di un'app Expo vera (Metro) con il core dentro.
 
 ## Conseguenze per il piano
 
-- **D8 regge**: sul piano statico, nei test e su Hermes reale (Android): il core non ha bisogno di riscritture, solo dei
-  punti 1–2. Prestazioni e UX per dataset grandi vanno progettate (vedi sopra).
-- Resta la conferma su iOS.
+- **D8 regge**: sul piano statico, nei test e su Hermes reale (Android e iOS): il core non ha bisogno di riscritture, solo dei
+  punti 1, 2 e 4. Prestazioni e UX per dataset grandi vanno progettate (vedi sopra).
+- Aggiungere alla lista di porting nessun testo di `Intl` assunto uguale tra piattaforme (test compresi).
 - La Fase 7 parte con l'elenco al punto "Modifiche necessarie" come lavoro di porting.
 
 ## Appendice — script del benchmark

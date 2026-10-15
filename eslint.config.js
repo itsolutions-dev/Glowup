@@ -78,9 +78,6 @@ module.exports = defineConfig([
       "**/.expo/**",
       "**/web-build/**",
       "**/coverage/**",
-      // Throwaway third-party copy used by the native smoke run (spike 0.1);
-      // see apps/playground/spikes/pivot-core/NOTICE.md. Deleted with the spike.
-      "apps/playground/spikes/**",
       // design-sync generated artifacts, all gitignored and all rebuilt by the
       // committed scripts (see .design-sync/NOTES.md for the build order). CI
       // never runs those scripts, but anyone who does would otherwise turn

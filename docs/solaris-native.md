@@ -255,18 +255,18 @@ Cosa significa in pratica:
 
 ## 3. Fasi
 
-| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                               |
-| ---- | -------------------------------------------------------------- | ---------- | ---------- | --------------------------------------------------- |
-| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 e 0.6 parziali) |
-| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                   |
-| 2    | Token di tema e hook                                           | S          | 0          | In corso (lotto 2A fatto)                           |
-| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                   |
-| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                   |
-| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                   |
-| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                                   |
-| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                                   |
-| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                                   |
-| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                                   |
+| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                                                    |
+| ---- | -------------------------------------------------------------- | ---------- | ---------- | ------------------------------------------------------------------------ |
+| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.2, 0.4 e 0.5 fatti; 0.1 e 0.6 parziali: iOS e telefoni veri) |
+| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                                        |
+| 2    | Token di tema e hook                                           | S          | 0          | In corso (lotto 2A fatto)                                                |
+| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                                        |
+| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                                        |
+| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                                        |
+| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                                                        |
+| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                                                        |
+| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                                                        |
+| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                                                        |
 
 Ordine consigliato: **0 → (1 ∥ 2) → 3A → 4 ∥ 6 → 3B/3C → 5 → 7**, con 8 che parte quando 1 e 3A sono
 disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è richiesto anche sul
@@ -311,8 +311,9 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   - `Autocomplete`: il valore del CRM è un oggetto scelto distinto dal testo digitato; in Glowup `value` è solo testo.
 - **0.1 parziale** → `docs/spike-0.1-pivot-core.md`. Il core gira sotto jest senza modificare il sorgente (150
   test su 150 portati da vitest) e compila con `hermesc` (37,8 KB minificato). A 50.000 righe il motore impiega
-  circa 220–350 ms su V8. Modifiche alla copia: esportatore Excel fuori dal core, `locale` esplicito. **Manca
-  l'esecuzione su Hermes** (serve un emulatore o un telefono): `Intl` e i tempi reali sono non verificati.
+  circa 220–350 ms su V8. Modifiche alla copia: esportatore Excel fuori dal core, `locale` esplicito. **Su Hermes reale (Android, CI):** `Intl` funziona
+  (numeri, valute, date, nomi, ordinamento con accenti); 50.000 righe: `processMatrix` 0,7–1,2 s (3–5 volte V8), 5.000: sotto
+  0,4 s. iOS in attesa del prossimo giro.
 - **Vincolo di ambiente (2026-10-15).** Dal portatile di lavoro **non si può provare su iOS/Android**: niente
   amministratore per completare Android Studio, rete aziendale che impedisce di collegare un iPhone a Metro. Il
   binario standalone di Hermes (v0.13.0) non è un sostituto: non ha `Intl` e non esegue classi e `async` senza
@@ -335,7 +336,7 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   handoff origin…") copriva la pagina: era un difetto del playground (il `Head` serve solo al web), corretto in
   `site/Page.tsx`, **non riverificato su iOS**. **Non verificato**: qualsiasi interazione, JS che fallisce senza
   chiudere l'app.
-- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e riverificare iOS dopo la correzione dell'avviso. La schermata benchmark è nel workflow (in attesa del run).
+- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e riverificare iOS dopo la correzione dell'avviso. La schermata benchmark ha girato su Android; su iOS il link diretto è stato sostituito da un avvio automatico (da riprovare).
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

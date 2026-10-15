@@ -70,6 +70,9 @@ jobs:
       - name: Build for the simulator
         working-directory: apps/playground/ios
         shell: bash
+        env:
+          # Inlined into the JS bundle: the app opens the benchmark route itself.
+          EXPO_PUBLIC_NATIVE_BENCH: "1"
         run: |
           WS=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WS" .xcworkspace)
@@ -103,28 +106,20 @@ jobs:
             exit 1
           fi
 
-      # Spike 0.1: run the AuraPivot core on Hermes. The route starts by itself; a
-      # deep link opens it. Results come from the unified log (console.log in a
-      # Release build may not reach it, so the screenshot is the fallback).
+      # Spike 0.1: run the AuraPivot core on Hermes. The build opens the benchmark
+      # route by itself 60 s after launch (a deep link makes iOS ask "Open in
+      # Glowup?"). console.log of a Release build does not reach the unified log
+      # here, so the result is read from the screenshot.
       - name: Pivot benchmark on Hermes
         run: |
           UDID="${{ steps.sim.outputs.udid }}"
-          xcrun simctl openurl "$UDID" "glowup://spike-pivot-hermes"
-          for i in $(seq 1 36); do
-            sleep 5
-            if xcrun simctl spawn "$UDID" log show --last 3m --predicate 'eventMessage CONTAINS "SPIKE01 DONE"' 2>/dev/null | grep -q "SPIKE01 DONE"; then
-              echo "benchmark finished after about $((i * 5)) s"
-              break
-            fi
-          done
+          sleep 60
           xcrun simctl io "$UDID" screenshot ios-bench.png
-          xcrun simctl spawn "$UDID" log show --last 10m --style compact --predicate 'eventMessage CONTAINS "SPIKE01"' 2>/dev/null | grep -o "SPIKE01 .*" > pivot-bench-ios.txt || true
+          xcrun simctl spawn "$UDID" log show --last 10m --style compact --predicate 'eventMessage CONTAINS "SPIKE01"' 2>/dev/null | grep -o "SPIKE01 .*" | grep -v 'DONE"' > pivot-bench-ios.txt || true
           {
             echo "### iOS pivot benchmark (Hermes, simulator on a CI runner: indicative only)"
-            echo '```'
-            cat pivot-bench-ios.txt
-            echo '```'
-            echo "Lines from the log: $(wc -l < pivot-bench-ios.txt | tr -d ' ') (0 means the log did not carry console.log; read ios-bench.png)"
+            echo "Results are on the screen: read ios-bench.png in the ios-smoke artifact."
+            echo "Log lines found: $(wc -l < pivot-bench-ios.txt | tr -d ' ')"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Collect crash reports

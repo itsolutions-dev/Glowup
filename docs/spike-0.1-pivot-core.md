@@ -3,9 +3,10 @@
 Fase 0 di `docs/solaris-native.md`. Domanda: **il core di AuraPivot (D8) gira in un ambiente React Native
 senza riscritture, e con quali modifiche alla copia?**
 
-**Stato: parziale.** Fatto tutto ciò che si può provare su questa macchina (Windows, nessun emulatore). **Manca
-l'esecuzione su Hermes**, che richiede un emulatore Android o un telefono: finché non c'è, `Intl` su Hermes e le
-prestazioni reali su dispositivo restano non verificati.
+**Stato: fatto su Android (Hermes reale, emulatore in CI); iOS in attesa del prossimo giro.** Il benchmark gira nel workflow
+`native.yml`, su un emulatore Android x86_64 di un runner GitHub (2026-10-15, run del commit `14a148f`): tempi
+indicativi, **non di un telefono**. Su iOS il link diretto ha fatto comparire "Open in Glowup?" e il benchmark non è partito:
+ora la schermata la apre l'app da sola (correzione fatta, non ancora eseguita).
 
 ## Come è stato fatto
 
@@ -58,19 +59,34 @@ righe sul telefono resti accettabile. È il motivo per cui la prova su Hermes è
    ma su un dispositivo con fuso diverso dal server cambiano i bucket di giorno. Da tenere presente, non da
    cambiare.
 
+### Su Hermes reale (Android, emulatore x86_64 su runner CI, Hermes 250829098.0.17, build Release)
+
+`Intl` funziona in tutto ciò che il core usa: numeri `it-IT` (`1.234.567,891`), `formatToParts`, valuta (`1.234,50 €`),
+percentuale (`26%`), date `it-IT`, nomi di mese e giorno in italiano, `localeCompare` con `numeric` e con accenti
+(`àncora, Ancora, ape, zeta`). `navigator.language` è `undefined` e il locale risolto è quello del dispositivo (`en-US` sul
+runner): **conferma la modifica 2** (serve un `locale` esplicito).
+
+| Righe  | `setData` | `processMatrix` (3 esecuzioni) | agenti × prodotti |
+| ------ | --------- | ------------------------------ | ----------------- |
+| 5.000  | 32 ms     | 386 / 260 / 214 ms             | 648 ms            |
+| 50.000 | 295 ms    | 707 / 1.191 / 748 ms           | 1.178 ms          |
+
+A 50.000 righe Hermes impiega circa 3–5 volte il tempo di V8 (qui 0,7–1,2 s contro 0,2–0,35 s). Con 5.000 righe
+l'aggiornamento è sotto mezzo secondo. Un ricalcolo di circa un secondo blocca il thread JavaScript: per dataset grandi
+la UI del pivot dovrà mostrare uno stato di caricamento e non ricalcolare a ogni tocco.
+
 ### Non verificato
 
-- **Esecuzione su Hermes** (Android e iOS): comportamento e tempi reali.
-- **`Intl` su Hermes**: il core usa `Intl.NumberFormat` (con `formatToParts`), `Intl.DateTimeFormat` e
-  `localeCompare` con locale e opzioni. Sotto jest girano sull'`Intl` completo di Node, che non è quello di Hermes.
+- **iOS** su Hermes (il giro con la correzione deve ancora girare) e **qualsiasi telefono vero**: i tempi sopra vengono da
+  una macchina virtuale condivisa, non dal tuo dispositivo.
 - Hook (`usePivotMatrix`, `engineStore`) e contesto React: non copiati né provati.
 - Bundle di un'app Expo vera (Metro) con il core dentro.
 
 ## Conseguenze per il piano
 
-- **D8 regge sul piano statico e sui test**: il core non ha bisogno di riscritture, solo dei punti 1–2.
-- Prima di dichiarare D8 verificata per il nativo serve una prova su Hermes con almeno 50.000 righe: è la
-  chiusura di questo spike e richiede un emulatore o un telefono.
+- **D8 regge**: sul piano statico, nei test e su Hermes reale (Android): il core non ha bisogno di riscritture, solo dei
+  punti 1–2. Prestazioni e UX per dataset grandi vanno progettate (vedi sopra).
+- Resta la conferma su iOS.
 - La Fase 7 parte con l'elenco al punto "Modifiche necessarie" come lavoro di porting.
 
 ## Appendice — script del benchmark

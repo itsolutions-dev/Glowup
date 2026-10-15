@@ -44,8 +44,6 @@ interface ToastApi {
   ) => string;
   /** Dismisses one toast by key, or the whole queue when called bare. */
   hide: (key?: string) => void;
-  /** Keys currently queued, head first. */
-  queue: string[];
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -96,9 +94,8 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
         show({ ...options, message, type: "success" }),
       error: (message, options) => show({ ...options, message, type: "error" }),
       hide,
-      queue: queue.map((toast) => toast.key),
     }),
-    [show, hide, queue],
+    [show, hide],
   );
 
   const current = queue[0];

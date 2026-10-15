@@ -1,5 +1,6 @@
-import type { PermissionState, PermissionStatus } from "../core/types";
+import type { PermissionStatus } from "../core/types";
 import type { MediaLibraryAdapter, SaveResult } from "../media-library/types";
+import { mockPermission } from "./permission";
 
 export interface MockMediaLibraryOptions {
   /** Default true. */
@@ -25,11 +26,6 @@ export interface MockMediaLibraryAdapter extends MediaLibraryAdapter {
   /** Makes the next save fail, as a missing file would. */
   failNext(detail?: string): void;
 }
-
-const toState = (status: PermissionStatus): PermissionState => ({
-  status,
-  canAskAgain: status === "undetermined",
-});
 
 /**
  * An in-memory `MediaLibraryAdapter`. Inject it with
@@ -60,11 +56,11 @@ export function createMockMediaLibraryAdapter({
     },
     isSupported: () => supported,
     requiresPermission: () => gated,
-    getPermission: async () => toState(current),
+    getPermission: async () => mockPermission(current),
     async requestPermission() {
       requests++;
       if (current === "undetermined") current = requestAnswer;
-      return toState(current);
+      return mockPermission(current);
     },
     async save(uri): Promise<SaveResult> {
       if (failure !== null) {

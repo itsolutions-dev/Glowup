@@ -15,6 +15,7 @@ import {
   Typography,
   useTheme,
   type Theme,
+  HelperText,
 } from "@its/glowup-ui";
 import {
   CameraView,
@@ -390,9 +391,9 @@ const CameraRecipe = ({
       </Paper>
 
       {failure ? (
-        <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
+        <HelperText type="error" padding="none">
           {`${failure.code}: ${failure.message}`}
-        </Typography>
+        </HelperText>
       ) : null}
 
       <ResultView result={result} />

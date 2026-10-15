@@ -1,6 +1,7 @@
 // Shape of the playground catalogue: what a component entry declares and how
 // the entries are grouped in the navigator.
 import type { ComponentType } from "react";
+import type { ViewStyle } from "react-native";
 
 export type PropType = "text" | "number" | "boolean" | "select" | "node";
 
@@ -28,10 +29,20 @@ export interface DemoProps {
 }
 
 export interface ComponentMetadata {
-  name: string;
   Component: any;
   props: Record<string, PropDefinition>;
   isContainer?: boolean;
+  /** Fixed props the stage adds to the panel's: sample items, options, steps. */
+  sample?: Record<string, any>;
+  /**
+   * Callbacks that write back to the panel, as `{ callback: propKey }`:
+   * `{ onValueChange: "checked" }` makes the stage a controlled Checkbox.
+   */
+  controlled?: Record<string, string>;
+  /** Props dropped when falsy: an empty text field, or a `0` that means "off". */
+  dropWhenFalsy?: string[];
+  /** Style of the box the stage draws the component in: a max width, room to float. */
+  stage?: ViewStyle;
   /**
    * Renders the stage when `<Component {...props} />` is not enough: sample
    * data, controlled state, an overlay opened from a trigger. Lives with the

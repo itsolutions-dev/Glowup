@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -35,7 +35,6 @@ export interface DataGridProps {
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
-  onColumnReorder?: (newColumns: ColumnDefinition[]) => void;
   /** Shown centered when data is empty and not loading. */
   emptyMessage?: string;
   style?: ViewStyle;
@@ -53,26 +52,17 @@ const DataGrid = ({
   sortColumn,
   sortDirection,
   onSort,
-  onColumnReorder,
   emptyMessage,
   style,
   rowStyle,
   headerStyle,
 }: DataGridProps) => {
   const { theme } = useTheme();
-  const [orderedColumns, setOrderedColumns] = useState(columns);
-  const [prevColumns, setPrevColumns] = useState(columns);
-
-  // Reset ordering when the columns prop changes (render-time adjustment)
-  if (prevColumns !== columns) {
-    setPrevColumns(columns);
-    setOrderedColumns(columns);
-  }
 
   const handleSort = useCallback(
     (columnId: string) => {
       if (!onSort) return;
-      const column = orderedColumns.find((c) => c.id === columnId);
+      const column = columns.find((c) => c.id === columnId);
       if (!column?.sortable) return;
 
       let nextDirection: "asc" | "desc" = "asc";
@@ -81,41 +71,20 @@ const DataGrid = ({
       }
       onSort(columnId, nextDirection);
     },
-    [onSort, sortColumn, sortDirection, orderedColumns],
+    [onSort, sortColumn, sortDirection, columns],
   );
-
-  const moveColumn = (fromIndex: number, toIndex: number) => {
-    if (!onColumnReorder) return;
-    const newColumns = [...orderedColumns];
-    const [removed] = newColumns.splice(fromIndex, 1);
-    newColumns.splice(toIndex, 0, removed);
-    setOrderedColumns(newColumns);
-    onColumnReorder(newColumns);
-  };
 
   const renderHeader = () => (
     <TableHead style={headerStyle}>
       <TableRow>
-        {orderedColumns.map((column, index) => (
+        {columns.map((column, index) => (
           <TableHeaderCell
             key={column.id}
             width={column.width}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
             onPress={() => handleSort(column.id)}
-            onMoveLeft={
-              onColumnReorder && index > 0
-                ? () => moveColumn(index, index - 1)
-                : undefined
-            }
-            onMoveRight={
-              onColumnReorder && index < orderedColumns.length - 1
-                ? () => moveColumn(index, index + 1)
-                : undefined
-            }
-            style={
-              index === orderedColumns.length - 1 ? { borderRightWidth: 0 } : []
-            }
+            style={index === columns.length - 1 ? { borderRightWidth: 0 } : []}
           >
             {column.label}
           </TableHeaderCell>
@@ -134,14 +103,12 @@ const DataGrid = ({
           { height: density === "dense" ? 40 : 56 },
         ]}
       >
-        {orderedColumns.map((column, colIndex) => (
+        {columns.map((column, colIndex) => (
           <TableCell
             key={`${item.id || index}-${column.id}`}
             width={column.width}
             style={[
-              colIndex === orderedColumns.length - 1
-                ? { borderRightWidth: 0 }
-                : {},
+              colIndex === columns.length - 1 ? { borderRightWidth: 0 } : {},
               { paddingVertical: density === "dense" ? 4 : 12 },
             ]}
           >

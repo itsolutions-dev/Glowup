@@ -5,6 +5,7 @@
  * class and the same types. Plain JavaScript: no native module.
  */
 import { toPermissionState, type PermissionResponseLike } from "./permissions";
+import { CodedError, isCodedError } from "./shared";
 import type { PermissionState } from "./types";
 
 /**
@@ -64,14 +65,9 @@ export type LocationErrorCode =
   | "timeout"
   | "unsupported";
 
-export class LocationError extends Error {
-  readonly code: LocationErrorCode;
-
+export class LocationError extends CodedError<LocationErrorCode> {
   constructor(code: LocationErrorCode, message?: string, cause?: unknown) {
-    super(message ?? DEFAULT_MESSAGES[code]);
-    this.name = "LocationError";
-    this.code = code;
-    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+    super("LocationError", code, message ?? DEFAULT_MESSAGES[code], cause);
   }
 }
 
@@ -85,10 +81,16 @@ const DEFAULT_MESSAGES: Record<LocationErrorCode, string> = {
 
 /** Works across module copies, where `instanceof` would not. */
 export function isLocationError(error: unknown): error is LocationError {
-  return (
-    error instanceof Error &&
-    error.name === "LocationError" &&
-    typeof (error as LocationError).code === "string"
+  return isCodedError(error, "LocationError");
+}
+
+/** A `LocationError` as it is; anything else becomes `unavailable`. */
+export function toError(error: unknown): LocationError {
+  if (isLocationError(error)) return error;
+  return new LocationError(
+    "unavailable",
+    error instanceof Error ? error.message : undefined,
+    error,
   );
 }
 

@@ -7,6 +7,7 @@ import {
   usePermissionSnapshot,
   type PermissionStore,
 } from "../core/permissionStore";
+import { getOrCreate } from "../core/shared";
 import type { PermissionState } from "../core/types";
 import { useCameraAdapter } from "./adapter";
 import type { CameraAdapter, CameraPermissionKind } from "./types";
@@ -17,20 +18,18 @@ type Stores = Record<CameraPermissionKind, PermissionStore<PermissionState>>;
 const stores = new WeakMap<CameraAdapter, Stores>();
 
 function getStores(adapter: CameraAdapter): Stores {
-  let pair = stores.get(adapter);
-  if (!pair) {
-    const create = (kind: CameraPermissionKind) =>
-      createPermissionStore({
-        isSupported: () => adapter.isSupported(),
-        read: () => adapter.getPermission(kind),
-        request: () => adapter.requestPermission(kind),
-        unsupported: UNSUPPORTED,
-        unknown: UNKNOWN,
-      });
-    pair = { camera: create("camera"), microphone: create("microphone") };
-    stores.set(adapter, pair);
-  }
-  return pair;
+  const create = (kind: CameraPermissionKind) =>
+    createPermissionStore({
+      isSupported: () => adapter.isSupported(),
+      read: () => adapter.getPermission(kind),
+      request: () => adapter.requestPermission(kind),
+      unsupported: UNSUPPORTED,
+      unknown: UNKNOWN,
+    });
+  return getOrCreate(stores, adapter, () => ({
+    camera: create("camera"),
+    microphone: create("microphone"),
+  }));
 }
 
 export interface UseCameraPermissionOptions {

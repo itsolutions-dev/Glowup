@@ -130,9 +130,7 @@ export const CATEGORIES: Category[] = [
 ];
 
 // Not catalogued, and deliberately so: `AppBar` takes a navigator's
-// `navigation`/`route`/`options`, `DrawerNavigation` and `StackNavigation` need a
-// NavigationContainer plus a route array, and `StatusBar` wraps expo-status-bar
-// and paints nothing of its own. Faking a navigator to fill the grid would
+// `navigation`/`route`/`options`, and faking a navigator to fill the grid would
 // preview a stub, not the component.
 
 // Flat ordered list + reverse lookup, derived once.

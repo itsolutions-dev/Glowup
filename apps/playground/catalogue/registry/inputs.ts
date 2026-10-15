@@ -35,7 +35,6 @@ const HAS_CLOCK = (values: Record<string, any>) => values.mode !== "date";
 /** Inputs: 22 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
   Input: {
-    name: "Input",
     Component: Input,
     props: {
       label: { type: "text", default: "User Name", label: "Label" },
@@ -58,8 +57,17 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Select: {
-    name: "Select",
     Component: Select,
+    sample: {
+      options: [
+        { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
+        { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
+        { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
+        { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
+      ],
+    },
+    controlled: { onSelect: "value" },
+    stage: { width: "100%", maxWidth: 360 },
     props: {
       label: { type: "text", default: "Country", label: "Label" },
       value: { type: "text", default: "it", label: "Value" },
@@ -78,8 +86,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Checkbox: {
-    name: "Checkbox",
     Component: Checkbox,
+    controlled: { onValueChange: "checked" },
     props: {
       label: { type: "text", default: "Accept terms", label: "Label" },
       checked: { type: "boolean", default: false, label: "Checked" },
@@ -102,7 +110,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   RadioButton: {
-    name: "RadioButton",
     Component: RadioButton,
     props: {
       selected: { type: "boolean", default: true, label: "Selected" },
@@ -121,8 +128,15 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   RadioGroup: {
-    name: "RadioGroup",
     Component: RadioGroup,
+    sample: {
+      options: [
+        { id: "a", label: "Option A", value: "a" },
+        { id: "b", label: "Option B (disabled)", value: "b", disabled: true },
+        { id: "c", label: "Option C", value: "c" },
+      ],
+    },
+    controlled: { onValueChange: "value" },
     props: {
       label: { type: "text", default: "Choose one", label: "Label" },
       value: { type: "text", default: "a", label: "Value" },
@@ -140,8 +154,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Toggle: {
-    name: "Toggle",
     Component: Toggle,
+    controlled: { onValueChange: "value" },
     props: {
       value: { type: "boolean", default: true, label: "Value" },
       width: { type: "number", default: 48, label: "Width" },
@@ -150,8 +164,9 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Slider: {
-    name: "Slider",
     Component: Slider,
+    controlled: { onValueChange: "value" },
+    dropWhenFalsy: ["step"],
     props: {
       value: { type: "number", default: 40, label: "Value" },
       min: { type: "number", default: 0, label: "Min" },
@@ -178,8 +193,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Spinner: {
-    name: "Spinner",
     Component: Spinner,
+    controlled: { onChange: "value" },
     props: {
       label: { type: "text", default: "Loading...", label: "Label" },
       value: { type: "number", default: 10, label: "Value" },
@@ -188,8 +203,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   SearchBar: {
-    name: "SearchBar",
     Component: SearchBar,
+    controlled: { onChangeText: "value" },
     props: {
       value: { type: "text", default: "", label: "Value" },
       placeholder: { type: "text", default: "Search", label: "Placeholder" },
@@ -197,7 +212,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Autocomplete: {
-    name: "Autocomplete",
     Component: Autocomplete,
     props: {
       label: { type: "text", default: "Country", label: "Label" },
@@ -225,7 +239,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   PinInput: {
-    name: "PinInput",
     Component: PinInput,
     props: {
       label: { type: "text", default: "Verification code", label: "Label" },
@@ -252,7 +265,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   FormControl: {
-    name: "FormControl",
     Component: FormControl,
     props: {
       label: { type: "text", default: "Notifications", label: "Label" },
@@ -269,7 +281,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   DateTimePicker: {
-    name: "DateTimePicker",
     Component: DateTimePicker,
     clientOnly: true,
     props: {
@@ -377,7 +388,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   DatePicker: {
-    name: "DatePicker",
     Component: DatePicker,
     clientOnly: true,
     props: {
@@ -385,7 +395,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   DatePickerInput: {
-    name: "DatePickerInput",
     Component: DatePickerInput,
     clientOnly: true,
     props: {
@@ -426,7 +435,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   DateRangePicker: {
-    name: "DateRangePicker",
     Component: DateRangePicker,
     clientOnly: true,
     props: {
@@ -468,7 +476,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   TimePicker: {
-    name: "TimePicker",
     Component: TimePicker,
     clientOnly: true,
     props: {
@@ -476,7 +483,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Calendar: {
-    name: "Calendar",
     Component: Calendar,
     clientOnly: true,
     props: {
@@ -524,7 +530,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   ClockPicker: {
-    name: "ClockPicker",
     Component: ClockPicker,
     clientOnly: true,
     props: {
@@ -569,7 +574,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   ClockDial: {
-    name: "ClockDial",
     Component: ClockDial,
     props: {
       unit: {
@@ -598,8 +602,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   Rating: {
-    name: "Rating",
     Component: Rating,
+    controlled: { onChange: "value" },
     props: {
       value: { type: "number", default: 3.5, label: "Value" },
       max: { type: "number", default: 5, label: "Max" },
@@ -608,7 +612,6 @@ export const inputs: Record<string, ComponentMetadata> = {
     },
   },
   HelperText: {
-    name: "HelperText",
     Component: HelperText,
     props: {
       children: {

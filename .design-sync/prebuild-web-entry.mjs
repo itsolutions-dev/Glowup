@@ -56,8 +56,19 @@ const PROCESS_SHIM = [
   "});",
 ].join("\n");
 
+// The entry is the built barrel of @its/glowup-ui. Its imports are extensionless,
+// so the web-first resolveExtensions below already pick DateTimePicker.web.
+// SafeAreaProvider is added so previews (and design-agent output) can mount
+// AppBar / SpeedDial, which read safe-area insets.
 const r = await esbuild.build({
-  entryPoints: [".design-sync/web-barrel.mjs"],
+  stdin: {
+    contents: [
+      'export * from "./packages/ui/lib/module/index.js";',
+      'export { SafeAreaProvider } from "react-native-safe-area-context";',
+    ].join("\n"),
+    resolveDir: process.cwd(),
+    loader: "js",
+  },
   outfile: "packages/ui/.design-sync-entry.mjs",
   bundle: true,
   format: "esm",

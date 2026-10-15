@@ -89,8 +89,6 @@ export interface TableHeaderCellProps {
   onPress?: () => void;
   sortable?: boolean;
   sortDirection?: "asc" | "desc" | null;
-  onMoveLeft?: () => void;
-  onMoveRight?: () => void;
 }
 export const TableHeaderCell = ({
   children,
@@ -99,8 +97,6 @@ export const TableHeaderCell = ({
   onPress,
   sortable,
   sortDirection,
-  onMoveLeft,
-  onMoveRight,
 }: TableHeaderCellProps) => {
   const { theme } = useTheme();
   return (
@@ -146,27 +142,6 @@ export const TableHeaderCell = ({
           </View>
         )}
       </Pressable>
-
-      <View style={styles.reorderContainer}>
-        {onMoveLeft && (
-          <Pressable onPress={onMoveLeft} style={styles.reorderButton}>
-            <Icons
-              name="chevron-left"
-              size={14}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
-        )}
-        {onMoveRight && (
-          <Pressable onPress={onMoveRight} style={styles.reorderButton}>
-            <Icons
-              name="chevron-right"
-              size={14}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
-        )}
-      </View>
     </View>
   );
 };
@@ -247,18 +222,6 @@ const styles = StyleSheet.create({
   },
   sortIconContainer: {
     marginLeft: 4,
-  },
-  reorderContainer: {
-    position: "absolute",
-    right: 0,
-    top: 0,
-    bottom: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingRight: 4,
-  },
-  reorderButton: {
-    padding: 2,
   },
 });
 

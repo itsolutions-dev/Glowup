@@ -21,8 +21,16 @@ import {
 /** Navigation: 10 catalogue entries. */
 export const navigation: Record<string, ComponentMetadata> = {
   NavigationBar: {
-    name: "NavigationBar",
     Component: NavigationBar,
+    sample: {
+      items: [
+        { id: "home", label: "Home", icon: "home-outline", badgeCount: 0 },
+        { id: "search", label: "Search", icon: "magnify" },
+        { id: "inbox", label: "Inbox", icon: "email-outline", badgeCount: 3 },
+        { id: "profile", label: "Profile", icon: "account-outline" },
+      ],
+    },
+    controlled: { onItemPress: "activeId" },
     props: {
       activeId: { type: "text", default: "home", label: "Active Id" },
       showLabels: {
@@ -37,29 +45,39 @@ export const navigation: Record<string, ComponentMetadata> = {
     },
   },
   Tabs: {
-    name: "Tabs",
     Component: Tabs,
+    sample: { tabs: ["Overview", "Specs", "Reviews"] },
+    controlled: { onChange: "activeTab" },
+    stage: { width: "100%", maxWidth: 420 },
     props: {
       activeTab: { type: "number", default: 0, label: "Active Tab" },
     },
   },
   TabContent: {
-    name: "TabContent",
     Component: TabContent,
     props: {
       activeTab: { type: "number", default: 0, label: "Active tab" },
     },
   },
   Breadcrumbs: {
-    name: "Breadcrumbs",
     Component: Breadcrumbs,
+    sample: {
+      items: [
+        { id: "1", label: "Home", icon: "home-outline", onPress: () => {} },
+        { id: "2", label: "Projects", onPress: () => {} },
+        { id: "3", label: "Glowup", onPress: () => {} },
+        { id: "4", label: "Components", onPress: () => {} },
+        { id: "5", label: "Breadcrumbs" },
+      ],
+    },
+    dropWhenFalsy: ["maxItems"],
     props: {
       maxItems: { type: "number", default: 0, label: "Max Items (0 = all)" },
     },
   },
   Pagination: {
-    name: "Pagination",
     Component: Pagination,
+    controlled: { onPageChange: "page" },
     props: {
       page: { type: "number", default: 1, label: "Page" },
       totalPages: { type: "number", default: 12, label: "Total Pages" },
@@ -73,14 +91,15 @@ export const navigation: Record<string, ComponentMetadata> = {
     },
   },
   Stepper: {
-    name: "Stepper",
     Component: Stepper,
+    sample: { steps: ["Cart", "Shipping", "Payment", "Review"] },
+    controlled: { onStepPress: "activeStep" },
+    stage: { width: "100%", maxWidth: 420 },
     props: {
       activeStep: { type: "number", default: 1, label: "Active Step" },
     },
   },
   TopAppBar: {
-    name: "TopAppBar",
     Component: TopAppBar,
     Demo: TopAppBarDemo,
     props: {
@@ -105,7 +124,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     },
   },
   NavigationRail: {
-    name: "NavigationRail",
     Component: NavigationRail,
     Demo: NavigationRailDemo,
     props: {
@@ -133,7 +151,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     },
   },
   NavigationDrawer: {
-    name: "NavigationDrawer",
     Component: NavigationDrawer,
     Demo: NavigationDrawerDemo,
     props: {
@@ -150,7 +167,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     },
   },
   Toolbar: {
-    name: "Toolbar",
     Component: Toolbar,
     Demo: ToolbarDemo,
     props: {

@@ -1,7 +1,7 @@
 {
   "name": "@its/glowup-device",
-  "version": "0.8.0",
-  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, haptics, biometrics, secure storage, sensors, Bluetooth Low Energy and more behind swappable adapters",
+  "version": "0.9.0",
+  "description": "Headless device hardware layer for Expo apps: location, camera, network, battery, haptics, biometrics, secure storage, sensors and more behind swappable adapters",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -136,7 +136,6 @@
   "scripts": {
     "build": "bob build && node ../../scripts/strip-declaration-maps.mjs",
     "validate-package": "publint && attw --pack . --exclude-entrypoints ./app.plugin.js",
-    "clean": "del-cli lib",
     "prepack": "npm run build",
     "type-check": "tsc --noEmit",
     "test": "jest"
@@ -243,7 +242,6 @@
     "@types/react": "~19.2.17",
     "@types/react-dom": "~19.2",
     "babel-preset-expo": "~57.0.1",
-    "del-cli": "^7.0.0",
     "expo": "~57.0.25",
     "expo-application": "~57.0.3",
     "expo-battery": "~57.0.3",

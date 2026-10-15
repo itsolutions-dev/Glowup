@@ -29,7 +29,7 @@ if something reusable is needed, it belongs in `packages/ui`.
 ```bash
 npm install            # all workspaces, from the repo root
 
-npm start              # Expo dev server for the playground (also: npm run playground)
+npm start              # Expo dev server for the playground
 npm run android        # playground on Android
 npm run ios            # playground on iOS
 npm run web            # playground on Web
@@ -117,7 +117,7 @@ own trusted publisher on npmjs.com (see `release.yml`). On push to `master`,
 
 ## Code style
 
-- Prettier: `trailingComma: "all"`, `endOfLine: "lf"`; ESLint enforces `linebreak-style: unix`.
+- Prettier: `trailingComma: "all"`, `endOfLine: "lf"` (ESLint reports it via `eslint-plugin-prettier`).
   `.gitattributes` (`* text=auto eol=lf`) is the source of truth, so every checkout gets LF
   regardless of `core.autocrlf`. `npm run lint` gates CI.
 - Icons: `@expo/vector-icons/MaterialCommunityIcons` — icon names are kebab-case strings;

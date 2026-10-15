@@ -9,7 +9,6 @@
   "homepage": "https://itsolutions-dev.github.io/Glowup/",
   "scripts": {
     "start": "npm start -w @its/glowup-playground",
-    "playground": "npm start -w @its/glowup-playground",
     "android": "npm run android -w @its/glowup-playground",
     "ios": "npm run ios -w @its/glowup-playground",
     "web": "npm run web -w @its/glowup-playground",

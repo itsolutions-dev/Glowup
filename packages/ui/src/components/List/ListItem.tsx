@@ -14,9 +14,6 @@ export interface ListItemProps {
   secondary?: React.ReactNode;
   itemContainerStyle?: object;
   itemTextStyle?: object;
-  itemSecondaryTextStyle?: object;
-  itemPressedStyle?: object;
-  itemHoveredStyle?: object;
 }
 
 function ListItem({
@@ -27,9 +24,6 @@ function ListItem({
   secondary,
   itemContainerStyle,
   itemTextStyle,
-  itemSecondaryTextStyle,
-  itemPressedStyle,
-  itemHoveredStyle,
 }: ListItemProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -49,10 +43,7 @@ function ListItem({
           {children}
         </Text>
         {!!secondary && (
-          <Text
-            style={[styles.secondaryText, itemSecondaryTextStyle]}
-            numberOfLines={2}
-          >
+          <Text style={styles.secondaryText} numberOfLines={2}>
             {secondary}
           </Text>
         )}
@@ -72,8 +63,8 @@ function ListItem({
             styles.itemContainer,
             itemContainerStyle,
             (hovered || pressed) && getGlowStyles(theme, true),
-            hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
-            pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
+            hovered && styles.itemHovered, // Web-only hover
+            pressed && styles.itemPressed, // Mobile-friendly press state
           ]}
         >
           {content}

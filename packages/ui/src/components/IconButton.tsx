@@ -1,12 +1,9 @@
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import Icons from "./Glyph";
-import {
-  useTheme,
-  getStateColor,
-  getGlowStyles,
-} from "../providers/ThemeProvider";
+import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { useStateLayer } from "./TouchableRipple";
 import CircularProgress from "./Progress/CircularProgress";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
@@ -112,6 +109,7 @@ const IconButton = ({
   }, [mode, selected, theme.colors]);
 
   const isInteractive = !disabled && !loading;
+  const stateLayer = useStateLayer(background, foreground);
 
   return (
     <Pressable
@@ -138,11 +136,7 @@ const IconButton = ({
           width: box,
           height: box,
           borderRadius: box / 2,
-          backgroundColor: pressed
-            ? getStateColor(background, foreground, "press")
-            : hovered
-              ? getStateColor(background, foreground, "hover")
-              : background,
+          backgroundColor: stateLayer({ pressed, hovered }),
         },
         borderColor && { borderWidth: 1, borderColor },
         focused && getGlowStyles(theme, true),

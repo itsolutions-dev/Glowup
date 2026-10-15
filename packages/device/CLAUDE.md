@@ -37,8 +37,8 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   permissions (camera + microphone) combines them with `combinePermissions()`. It is a copy
   of the notifications model on purpose: the two packages stay independent.
 - **Web.** The static export prerenders in Node. Read browser globals at call time
-  (`hasDOM()`), never at module scope, and keep an `isSupported` / `assertSupported()`
-  guard on every imperative API.
+  (`hasDOM()`), never at module scope, and keep an `isSupported` guard on every
+  imperative API.
 - **Location** (`src/location`): the hooks run `ensureReady()` (support → permission →
   services) before any read, so no adapter read ever prompts — on web, asking for a position
   _is_ the prompt. Only `requestPermission` may prompt. Permission state lives in one store
@@ -154,7 +154,8 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   in the main registry, and Jest then serves that mock to later isolated registries, so a test
   that needs the module missing mocks `isNativePlatform` instead.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
-  permission's state between hooks (last call wins, concurrent refreshes share a read) and
+  permission's state between hooks (last call wins, concurrent refreshes share a read; it also
+  backs `/background-location`'s `isRunning`) and
   `usePermissionSnapshot()` subscribes, reads on first use and re-reads on foreground. Each
   capability keeps its stores in a `WeakMap` keyed by adapter (camera: one per kind).
 - **Camera** (`src/camera`): the adapter's `Preview` is a component (the camera is a native
@@ -195,7 +196,8 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   `@its/glowup-ui`'s `ThemeProvider onInteractionFeedback` on the default adapter. Its
   `InteractionKind` repeats ui's strings instead of importing them (the packages stay
   independent). Android interactions use `performAndroidHapticsAsync` with constants every API
-  level has (newer ones throw below API 30 / 34). The web adapter is a no-op on purpose.
+  level has (newer ones throw below API 30 / 34). On web the Expo adapter answers unsupported,
+  so nothing plays (biometrics and secure store likewise have no web adapter).
 - **Biometrics** (`src/biometrics`): a local gate, documented as such. `authenticate()` resolves
   every outcome as `{ success: false, error }` and rejects only on an empty label (both labels are
   required: expo's defaults are English). One system prompt at a time (`busy` otherwise), because

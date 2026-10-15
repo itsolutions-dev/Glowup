@@ -35,9 +35,6 @@ const UI_SRC = resolve(UI_ROOT, "src").replace(/\\/g, "/");
 const BARREL = resolve(UI_ROOT, "src/index.ts");
 const OUT = resolve(HERE, "props.generated.json");
 
-/** A union written with more members than this is summarised, not listed. */
-const MAX_UNION_MEMBERS = 24;
-
 const project = new Project({
   tsConfigFilePath: resolve(UI_ROOT, "tsconfig.json"),
   skipAddingFilesFromTsConfig: false,
@@ -273,27 +270,6 @@ const extendsOf = (declaration) => {
 /** Collapses whitespace so a multi-line annotation fits a table cell. */
 const normaliseType = (text) => text.replace(/\s+/g, " ").trim();
 
-/**
- * String-literal unions become a value list a control can be generated from;
- * anything longer than MAX_UNION_MEMBERS is left as prose, because a select
- * with hundreds of options is not a control anyone can use.
- */
-const literalUnionValues = (typeNode) => {
-  if (!typeNode || !Node.isUnionTypeNode(typeNode)) return undefined;
-  const members = typeNode.getTypeNodes();
-  if (members.length > MAX_UNION_MEMBERS) return undefined;
-  const values = [];
-  for (const member of members) {
-    if (!Node.isLiteralTypeNode(member)) return undefined;
-    const literal = member.getLiteral();
-    if (Node.isStringLiteral(literal)) values.push(literal.getLiteralValue());
-    else if (Node.isNumericLiteral(literal))
-      values.push(literal.getLiteralValue());
-    else return undefined;
-  }
-  return values.length ? values : undefined;
-};
-
 const jsDocOf = (member) =>
   member
     .getJsDocs?.()
@@ -343,12 +319,13 @@ for (const entry of allExports) {
       required: !member.hasQuestionToken(),
       default: defaults[propName],
       description: jsDocOf(member),
-      values: literalUnionValues(typeNode),
-      deprecated: member
-        .getJsDocs?.()
-        .some((doc) =>
-          doc.getTags().some((tag) => tag.getTagName() === "deprecated"),
-        ),
+      // Only when tagged: `false` on every row is noise in the JSON.
+      deprecated:
+        member
+          .getJsDocs?.()
+          .some((doc) =>
+            doc.getTags().some((tag) => tag.getTagName() === "deprecated"),
+          ) || undefined,
     });
   }
 

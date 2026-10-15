@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import {
   Chip,
   Divider,
@@ -10,12 +10,7 @@ import {
 } from "@its/glowup-ui";
 import type { ComponentDoc, PropDoc } from "./propsData";
 import { useLayout } from "./breakpoints";
-
-const MONOSPACE = Platform.select({
-  ios: "Menlo",
-  android: "monospace",
-  default: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-});
+import { MONOSPACE } from "./CodeBlock";
 
 interface PropsTableProps {
   doc: ComponentDoc;
@@ -271,5 +266,3 @@ const makeStyles = (theme: Theme) =>
       flexWrap: "wrap",
     },
   });
-
-export default PropsTable;

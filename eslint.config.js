@@ -26,24 +26,42 @@ const DEVICE_CAPABILITIES = {
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
-// What no file of packages/device may import, whatever folder it is in.
-const DEVICE_BASE_PATTERNS = [
-  {
-    group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-    message: "The device package cannot depend on the playground app.",
-  },
+// The import-boundary patterns every workspace rule below is built from.
+const noPlayground = (message) => ({
+  group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
+  message,
+});
+// Neither the package name, a deep import nor a path into the folder.
+const noPackages = (names, message) => ({
+  group: names.flatMap((n) => [
+    `@its/glowup-${n}`,
+    `@its/glowup-${n}/*`,
+    `**/packages/${n}/**`,
+  ]),
+  message,
+});
+// The app reaches a package only through its name and its public subpaths.
+const publicOnly = (name, subpaths = []) => [
   {
     group: [
-      "@its/glowup-ui",
-      "@its/glowup-ui/*",
-      "**/packages/ui/**",
-      "@its/glowup-notifications",
-      "@its/glowup-notifications/*",
-      "**/packages/notifications/**",
+      `@its/glowup-${name}/*`,
+      ...subpaths.map((s) => `!@its/glowup-${name}/${s}`),
     ],
-    message:
-      "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
+    message: `Import from the '@its/glowup-${name}' barrel${subpaths.length ? ` or one of its public subpaths (${subpaths.join(", ")})` : ""} — other deep imports are not part of the package's public API.`,
   },
+  {
+    group: [`**/packages/${name}/**`, `packages/${name}/**`],
+    message: `Reach the package through the '@its/glowup-${name}' name, not through a path into packages/${name}.`,
+  },
+];
+
+// What no file of packages/device may import, whatever folder it is in.
+const DEVICE_BASE_PATTERNS = [
+  noPlayground("The device package cannot depend on the playground app."),
+  noPackages(
+    ["ui", "notifications"],
+    "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
+  ),
   {
     group: ["@react-navigation/*", "expo-router", "expo-router/*"],
     message: "The device package is navigation-agnostic.",
@@ -84,7 +102,6 @@ module.exports = defineConfig([
       // never runs those scripts, but anyone who does would otherwise turn
       // `npm run lint` into thousands of errors — the 3 MB pre-bundled entry
       // alone accounts for most of them.
-      ".design-sync/web-barrel.mjs",
       ".design-sync/docs/**",
       ".design-sync/guidelines/**",
       "**/.design-sync-entry.mjs",
@@ -111,7 +128,7 @@ module.exports = defineConfig([
     },
   },
   {
-    // The two design-sync lib forks import `ts-morph` and `../../.ds-sync/lib/*`.
+    // The design-sync lib overrides import `ts-morph` and `../../.ds-sync/lib/*`.
     // Both are supplied by the design-sync tooling at run time and neither is
     // resolvable from a clone: `.ds-sync/` and `.design-sync/node_modules` are
     // gitignored (the latter is a per-clone symlink, see .design-sync/NOTES.md)
@@ -133,45 +150,10 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["@its/glowup-ui/*"],
-              message:
-                "Import from the '@its/glowup-ui' barrel — deep imports are not part of the package's public API.",
-            },
-            {
-              group: ["**/packages/ui/**", "packages/ui/**"],
-              message:
-                "Reach the library through the '@its/glowup-ui' package name, not through a path into packages/ui.",
-            },
-            {
-              // "/testing" is the one public subpath (the Jest mock).
-              group: [
-                "@its/glowup-notifications/*",
-                "!@its/glowup-notifications/testing",
-              ],
-              message:
-                "Import from the '@its/glowup-notifications' barrel (or its '/testing' subpath) — other deep imports are not part of the package's public API.",
-            },
-            {
-              group: [
-                "**/packages/notifications/**",
-                "packages/notifications/**",
-              ],
-              message:
-                "Reach the package through the '@its/glowup-notifications' name, not through a path into packages/notifications.",
-            },
-            {
-              group: [
-                "@its/glowup-device/*",
-                ...DEVICE_SUBPATHS.map((s) => `!@its/glowup-device/${s}`),
-              ],
-              message: `Import from '@its/glowup-device' or one of its public subpaths (${DEVICE_SUBPATHS.join(", ")}) — other deep imports are not part of the package's public API.`,
-            },
-            {
-              group: ["**/packages/device/**", "packages/device/**"],
-              message:
-                "Reach the package through the '@its/glowup-device' name, not through a path into packages/device.",
-            },
+            ...publicOnly("ui"),
+            // "/testing" is the one public subpath (the Jest mock).
+            ...publicOnly("notifications", ["testing"]),
+            ...publicOnly("device", DEVICE_SUBPATHS),
           ],
         },
       ],
@@ -186,11 +168,9 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-              message:
-                "The library cannot depend on the playground app; move the shared code into packages/ui.",
-            },
+            noPlayground(
+              "The library cannot depend on the playground app; move the shared code into packages/ui.",
+            ),
             {
               // 0.5.0 removed DrawerNavigation/StackNavigation: the library ships
               // navigation widgets but no navigator, and has no @react-navigation
@@ -199,15 +179,10 @@ module.exports = defineConfig([
               message:
                 "The library is navigation-agnostic. Navigators live in the app (apps/playground/navigation).",
             },
-            {
-              group: [
-                "@its/glowup-device",
-                "@its/glowup-device/*",
-                "**/packages/device/**",
-              ],
-              message:
-                "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
-            },
+            noPackages(
+              ["device"],
+              "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
+            ),
           ],
         },
       ],
@@ -227,34 +202,22 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-              message:
-                "The notifications package cannot depend on the playground app.",
-            },
-            {
-              group: [
-                "@its/glowup-ui",
-                "@its/glowup-ui/*",
-                "**/packages/ui/**",
-              ],
-              message:
-                "The notifications package is headless. Render notifications with @its/glowup-ui in the app, not here.",
-            },
+            noPlayground(
+              "The notifications package cannot depend on the playground app.",
+            ),
+            noPackages(
+              ["ui"],
+              "The notifications package is headless. Render notifications with @its/glowup-ui in the app, not here.",
+            ),
             {
               group: ["@react-navigation/*", "expo-router", "expo-router/*"],
               message:
                 "The notifications package is navigation-agnostic: route from the app's onResponse callback.",
             },
-            {
-              group: [
-                "@its/glowup-device",
-                "@its/glowup-device/*",
-                "**/packages/device/**",
-              ],
-              message:
-                "The notifications package stands alone and cannot depend on @its/glowup-device.",
-            },
+            noPackages(
+              ["device"],
+              "The notifications package stands alone and cannot depend on @its/glowup-device.",
+            ),
           ],
         },
       ],
@@ -339,11 +302,6 @@ module.exports = defineConfig([
     rules: {
       "import/no-unresolved": "off",
       "no-restricted-imports": "off",
-    },
-  },
-  {
-    rules: {
-      "linebreak-style": ["error", "unix"],
     },
   },
 ]);

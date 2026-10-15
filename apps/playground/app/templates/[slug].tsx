@@ -6,7 +6,6 @@ import {
   Chip,
   Divider,
   EmptyState,
-  ToggleButtonGroup,
   Typography,
   useTheme,
   type Theme,
@@ -17,15 +16,11 @@ import { TEMPLATES, templateFor } from "../../templates";
 import { CodeBlock } from "../../site/CodeBlock";
 import { DemoErrorBoundary } from "../../site/ErrorBoundary";
 import { Page, PageHead, Section } from "../../site/Page";
-
-/** Widths the stage can be pinned to, as on a component's page. */
-const STAGE_WIDTHS = {
-  phone: 360,
-  tablet: 720,
-  full: undefined,
-} as const;
-
-type StageWidth = keyof typeof STAGE_WIDTHS;
+import {
+  StageWidthPicker,
+  stageWidthStyle,
+  type StageWidth,
+} from "../../site/Stage";
 
 /** One HTML file per template at export time, so each has a real URL. */
 export function generateStaticParams(): { slug: string }[] {
@@ -85,29 +80,11 @@ export default function TemplatePage() {
           >
             Live preview
           </Typography>
-          <ToggleButtonGroup
-            accessibilityLabel="Stage width"
-            value={stageWidth}
-            onValueChange={(value) => setStageWidth(value as StageWidth)}
-            options={[
-              { value: "phone", icon: "cellphone", label: "360" },
-              { value: "tablet", icon: "tablet", label: "720" },
-              { value: "full", icon: "monitor", label: "Full" },
-            ]}
-          />
+          <StageWidthPicker value={stageWidth} onChange={setStageWidth} />
         </View>
         {/* The width goes on the stage itself, not on a wrapper inside it:
             the template measures its own container to pick a layout. */}
-        <View
-          style={[
-            styles.stage,
-            STAGE_WIDTHS[stageWidth] !== undefined && {
-              width: STAGE_WIDTHS[stageWidth],
-              maxWidth: "100%",
-              alignSelf: "center",
-            },
-          ]}
-        >
+        <View style={[styles.stage, stageWidthStyle(stageWidth)]}>
           <DemoErrorBoundary label={template.title}>
             <Component />
           </DemoErrorBoundary>

@@ -374,7 +374,7 @@ export const clampDate = (date: Date, minimum?: Date, maximum?: Date) => {
 };
 
 /** Whole-day comparison, so a `minimumDate` at 14:00 still allows that day. */
-export const isDayOutOfRange = (day: Date, minimum?: Date, maximum?: Date) => {
+const isDayOutOfRange = (day: Date, minimum?: Date, maximum?: Date) => {
   const start = startOfDay(day).getTime();
   if (minimum && start < startOfDay(minimum).getTime()) return true;
   if (maximum && start > startOfDay(maximum).getTime()) return true;
@@ -505,7 +505,7 @@ const getDateParts = memoize((locale: string) =>
 );
 
 /** The order the locale writes day, month and year in. */
-export const getDateFieldOrder = memoize((locale: string) => {
+const getDateFieldOrder = memoize((locale: string) => {
   const order = getDateParts(locale)
     .filter((part): part is Intl.DateTimeFormatPart & { type: DateField } =>
       ["day", "month", "year"].includes(part.type),
@@ -517,7 +517,7 @@ export const getDateFieldOrder = memoize((locale: string) => {
 });
 
 /** The literal the locale puts between the fields, e.g. "/" or ".". */
-export const getDateFieldSeparator = memoize((locale: string) => {
+const getDateFieldSeparator = memoize((locale: string) => {
   const literal = getDateParts(locale).find(
     (part) => part.type === "literal" && part.value.trim().length > 0,
   );
@@ -537,7 +537,7 @@ export const getDateInputHint = memoize((locale: string) =>
     .join(getDateFieldSeparator(locale)),
 );
 
-const pad2 = (value: number) => String(value).padStart(2, "0");
+export const pad2 = (value: number) => String(value).padStart(2, "0");
 
 /** Renders a date in the same shape `parseDateInput` accepts. */
 export const formatDateInput = (date: Date, locale: string) => {
@@ -657,19 +657,6 @@ export const formatHeadline = (
     hour: mode === "date" ? undefined : "numeric",
     minute: mode === "date" ? undefined : "2-digit",
   }).format(value);
-
-export const useDateTimeDisplay = (
-  value: Date | null,
-  mode: DateTimePickerMode,
-  locale: string,
-  labels?: DateTimePickerRelativeLabels,
-) => {
-  const { today, yesterday, tomorrow } = labels ?? {};
-  return useMemo(() => {
-    if (!value) return "";
-    return formatDateTime(value, mode, locale, { today, yesterday, tomorrow });
-  }, [value, mode, locale, today, yesterday, tomorrow]);
-};
 
 /** Merges caller labels over the English defaults. */
 export const useLabels = (labels?: DateTimePickerLabels) =>

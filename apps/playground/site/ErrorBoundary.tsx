@@ -85,5 +85,3 @@ const makeStyles = (theme: Theme) =>
       alignItems: "flex-start",
     },
   });
-
-export default DemoErrorBoundary;

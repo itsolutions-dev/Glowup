@@ -58,7 +58,7 @@ export const WithIcons = () => (
   </div>
 );
 
-// NOTE: `disabled` and `readonly` are deliberately not previewed. Input maps them
+// NOTE: `disabled` and `readOnly` are deliberately not previewed. Input maps them
 // to `editable` / `readOnly` only (see packages/ui/src/components/Input.tsx) with no
 // visual treatment, so a disabled field is pixel-identical to an enabled one — a cell
 // for it would teach a design agent a state the component does not actually render.

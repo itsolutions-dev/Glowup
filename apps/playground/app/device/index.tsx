@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import {
   Icon,
   ListItem,
@@ -11,22 +11,7 @@ import { CodeBlock } from "../../site/CodeBlock";
 import { Page, Section } from "../../site/Page";
 
 const CAPABILITIES: {
-  href:
-    | "/device/info"
-    | "/device/location"
-    | "/device/camera"
-    | "/device/network"
-    | "/device/battery"
-    | "/device/keep-awake"
-    | "/device/orientation"
-    | "/device/haptics"
-    | "/device/biometrics"
-    | "/device/secure-store"
-    | "/device/sensors"
-    | "/device/media-picker"
-    | "/device/media-library"
-    | "/device/background-location"
-    | "/device/bluetooth";
+  href: Href;
   icon: MaterialCommunityIconsGlyphs;
   title: string;
   summary: string;
@@ -213,7 +198,7 @@ export default function DeviceOverview() {
         <ListSection>
           {CAPABILITIES.map((capability) => (
             <ListItem
-              key={capability.href}
+              key={capability.title}
               onPress={() => router.push(capability.href)}
               leading={
                 <Icon

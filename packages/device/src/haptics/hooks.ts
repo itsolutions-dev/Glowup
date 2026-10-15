@@ -1,17 +1,17 @@
-import { useCallback, useMemo, useSyncExternalStore } from "react";
-import { Platform } from "react-native";
+import { useMemo } from "react";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { useClientValue } from "../core/shared";
 import { expoHapticsAdapter } from "./expo";
 import type {
   ImpactStyle,
   InteractionKind,
   NotificationFeedback,
 } from "./types";
-import { webHapticsAdapter } from "./web";
 
-const defaultHapticsAdapter =
-  Platform.OS === "web" ? webHapticsAdapter : expoHapticsAdapter;
+// Unsupported on web: browsers have no haptics API (expo-haptics' web build
+// buzzes `navigator.vibrate` or clicks a hidden switch; pass an adapter for that).
+const defaultHapticsAdapter = expoHapticsAdapter;
 
 // Haptics decorate an action: a failure (an unsupported constant, a missing
 // activity) must never reach the code that asked for one.
@@ -28,9 +28,6 @@ export interface UseHaptics {
   interaction(kind: InteractionKind): Promise<void>;
 }
 
-const subscribeNothing = () => () => {};
-const getServerSupport = () => false;
-
 /**
  * Haptic feedback through the provided adapter (expo-haptics by default).
  * Every call resolves, never rejects, and does nothing where unsupported.
@@ -38,12 +35,7 @@ const getServerSupport = () => false;
  */
 export function useHaptics(): UseHaptics {
   const adapter = useDeviceAdapter("haptics") ?? defaultHapticsAdapter;
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerSupport,
-  );
+  const isSupported = useClientValue(() => adapter.isSupported(), false);
   return useMemo(() => {
     const run = (call: () => Promise<void>) =>
       adapter.isSupported() ? quietly(call) : Promise.resolve();

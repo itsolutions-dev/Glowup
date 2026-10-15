@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import { AppState, Linking } from "react-native";
+import { useCallback, useMemo } from "react";
 
 import { useDeviceAdapter } from "../core/adapters";
-import { isLocationError, LocationError } from "../core/geo";
+import { LocationError, toError } from "../core/geo";
 import {
   createPermissionStore,
+  toPermissionHook,
   usePermissionSnapshot,
   type PermissionStore,
 } from "../core/permissionStore";
 import { UNKNOWN, UNSUPPORTED } from "../core/permissions";
-import type { PermissionState, Unsubscribe } from "../core/types";
+import { getOrCreate, useClientValue } from "../core/shared";
+import type { PermissionState } from "../core/types";
 import { expoBackgroundLocationAdapter } from "./expo";
 import { checkOptions } from "./options";
 import { checkRegions } from "./regions";
@@ -27,15 +28,6 @@ export function useBackgroundLocationAdapter(): BackgroundLocationAdapter {
   );
 }
 
-function toError(error: unknown): LocationError {
-  if (isLocationError(error)) return error;
-  return new LocationError(
-    "unavailable",
-    error instanceof Error ? error.message : undefined,
-    error,
-  );
-}
-
 // One store per adapter, so every component sees the same answer.
 const permissionStores = new WeakMap<
   BackgroundLocationAdapter,
@@ -45,9 +37,8 @@ const permissionStores = new WeakMap<
 function getPermissionStore(
   adapter: BackgroundLocationAdapter,
 ): PermissionStore<PermissionState> {
-  let store = permissionStores.get(adapter);
-  if (!store) {
-    store = createPermissionStore({
+  return getOrCreate(permissionStores, adapter, () =>
+    createPermissionStore({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getPermission(),
       // Only after the foreground permission: iOS would show the foreground
@@ -59,10 +50,8 @@ function getPermissionStore(
       },
       unsupported: UNSUPPORTED,
       unknown: UNKNOWN,
-    });
-    permissionStores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }
 
 export interface UseBackgroundLocationPermission extends PermissionState {
@@ -89,128 +78,38 @@ export interface UseBackgroundLocationPermission extends PermissionState {
  */
 export function useBackgroundLocationPermission(): UseBackgroundLocationPermission {
   const store = getPermissionStore(useBackgroundLocationAdapter());
-  const state = usePermissionSnapshot(store);
-
-  return {
-    ...(state ?? UNKNOWN),
-    isLoading: state === null,
-    request: store.request,
-    refresh: store.refresh,
-    openSettings: () => Linking.openSettings(),
-  };
+  return toPermissionHook(store, usePermissionSnapshot(store), UNKNOWN);
 }
 
-const subscribeNothing = () => () => {};
-const getServerValue = () => null;
-
-interface RunningStore {
-  getSnapshot(): boolean | null;
-  subscribe(listener: () => void): Unsubscribe;
-  refresh(): Promise<boolean>;
-  set(running: boolean): void;
-}
-
-function createRunningStore(
-  isSupported: () => boolean,
-  read: () => Promise<boolean>,
-): RunningStore {
-  let running: boolean | null = null;
-  let pending: Promise<boolean> | null = null;
-  // Bumped by every start and stop: a read that began before one is stale.
-  let version = 0;
-  const listeners = new Set<() => void>();
-
-  function apply(next: boolean) {
-    if (running === next) return;
-    running = next;
-    listeners.forEach((listener) => listener());
-  }
-
-  return {
-    getSnapshot: () => running,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    refresh() {
-      if (!pending) {
-        const at = version;
-        pending = (isSupported() ? read() : Promise.resolve(false))
-          .then((next) => {
-            if (version === at) apply(next);
-            return next;
-          })
-          .finally(() => {
-            pending = null;
-          });
-      }
-      return pending;
-    },
-    set(next) {
-      version++;
-      apply(next);
-    },
-  };
-}
-
-// One store per adapter, kind and name, so every component agrees.
+// One store per adapter, kind and name, so every component agrees. It is
+// read on mount and on every return to the foreground (the system may have
+// stopped it meanwhile: a revoked permission); a read that began before a
+// `start` / `stop` is dropped.
 const runningStores = new WeakMap<
   BackgroundLocationAdapter,
-  Map<string, RunningStore>
+  Map<string, PermissionStore<boolean>>
 >();
 
 function getRunningStore(
   adapter: BackgroundLocationAdapter,
   kind: TaskKind,
   name: string,
-): RunningStore {
-  let stores = runningStores.get(adapter);
-  if (!stores) {
-    stores = new Map();
-    runningStores.set(adapter, stores);
-  }
-  const key = `${kind}:${name}`;
-  let store = stores.get(key);
-  if (!store) {
-    store = createRunningStore(
-      () => adapter.isSupported(),
-      kind === "location"
-        ? () => adapter.hasStarted(name)
-        : () => adapter.hasStartedGeofencing(name),
-    );
-    stores.set(key, store);
-  }
-  return store;
-}
-
-/** `isRunning` read on mount and again on every return to the foreground. */
-function useRunning(store: RunningStore): boolean | null {
-  const running = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    getServerValue,
+): PermissionStore<boolean> {
+  const stores = getOrCreate(runningStores, adapter, () => new Map());
+  return getOrCreate(stores, `${kind}:${name}`, () =>
+    createPermissionStore({
+      isSupported: () => adapter.isSupported(),
+      read:
+        kind === "location"
+          ? () => adapter.hasStarted(name)
+          : () => adapter.hasStartedGeofencing(name),
+      unsupported: false,
+    }),
   );
-
-  useEffect(() => {
-    const refresh = () => {
-      store.refresh().catch(() => {});
-    };
-    if (store.getSnapshot() === null) refresh();
-    // The system may have stopped it meanwhile (a revoked permission).
-    const subscription = AppState.addEventListener("change", (next) => {
-      if (next === "active") refresh();
-    });
-    return () => subscription.remove();
-  }, [store]);
-
-  return running;
 }
 
 function useSupport(adapter: BackgroundLocationAdapter): boolean | null {
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  return useSyncExternalStore(subscribeNothing, getSupport, getServerValue);
+  return useClientValue(() => adapter.isSupported(), null);
 }
 
 function checkDefined(
@@ -281,7 +180,7 @@ export function useBackgroundLocation(name: string): UseBackgroundLocation {
   const adapter = useBackgroundLocationAdapter();
   const store = getRunningStore(adapter, "location", name);
   const isSupported = useSupport(adapter);
-  const isRunning = useRunning(store);
+  const isRunning = usePermissionSnapshot(store);
 
   const start = useCallback(
     async (options: BackgroundLocationOptions) => {
@@ -353,7 +252,7 @@ export function useGeofencing(name: string): UseGeofencing {
   const adapter = useBackgroundLocationAdapter();
   const store = getRunningStore(adapter, "geofence", name);
   const isSupported = useSupport(adapter);
-  const isRunning = useRunning(store);
+  const isRunning = usePermissionSnapshot(store);
 
   const start = useCallback(
     async (regions: GeofenceRegion[]) => {

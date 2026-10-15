@@ -313,7 +313,13 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   test su 150 portati da vitest) e compila con `hermesc` (37,8 KB minificato). A 50.000 righe il motore impiega
   circa 220–350 ms su V8. Modifiche alla copia: esportatore Excel fuori dal core, `locale` esplicito. **Manca
   l'esecuzione su Hermes** (serve un emulatore o un telefono): `Intl` e i tempi reali sono non verificati.
-- **Da fare**: 0.3, 0.4, 0.6 e la parte Hermes di 0.1.
+- **Vincolo di ambiente (2026-10-15).** Dal portatile di lavoro **non si può provare su iOS/Android**: niente
+  amministratore per completare Android Studio, rete aziendale che impedisce di collegare un iPhone a Metro. Il
+  binario standalone di Hermes (v0.13.0) non è un sostituto: non ha `Intl` e non esegue classi e `async` senza
+  Babel. Quindi **0.3, 0.6 e la parte Hermes di 0.1 restano non verificate** finché non c'è un altro ambiente: CI su
+  runner macOS/Linux (Fase 1), una macchina di un collega o un Mac. Ogni fase dichiara iOS/Android come "non
+  verificato" (§2) finché non cambia. Il piano resta valido perché il web è il primo target (Q1).
+- **Da fare**: 0.4 (su web) e, quando ci sarà un ambiente nativo, 0.3, 0.6 e la parte Hermes di 0.1.
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

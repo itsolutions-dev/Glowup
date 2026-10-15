@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import Head from "expo-router/head";
 import { Typography, useTheme, type Theme } from "@its/glowup-ui";
 import { useLayout } from "./breakpoints";
@@ -94,7 +94,7 @@ export const Page = ({
  * Per-route `<title>` and meta description. On web these end up in the
  * prerendered HTML of each static route, which is the whole reason the site is
  * exported as `static` rather than as a single-page bundle; on native the
- * component is a no-op.
+ * component renders nothing.
  */
 export const PageHead = ({
   title,
@@ -106,6 +106,12 @@ export const PageHead = ({
   // The home page is titled "Glowup"; suffixing the site name there would
   // render "Glowup · Glowup" in the tab and in every share card.
   const documentTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
+
+  // Not a no-op on iOS after all: expo-router's Head there pops an Alert asking
+  // for the handoff `origin` (seen in the Release build, native smoke run
+  // 38745067229). The tags only matter in the prerendered HTML, so render them
+  // on the web alone.
+  if (Platform.OS !== "web") return null;
 
   return (
     <Head>

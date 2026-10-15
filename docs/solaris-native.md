@@ -330,9 +330,12 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   x86_64), e il processo è ancora vivo dopo 40 secondi. Tempi: iOS circa 12 min di xcodebuild più 1 di pod install;
   Android circa 13 min di Gradle più 2,5 di emulatore. Plugin di configurazione e moduli nativi del pacchetto
   `device` (camera, posizione, notifiche, sensori, biometria…) compresi. Segnalato per la Fase 1: su Android
-  `userInterfaceStyle: "automatic"` richiede `expo-system-ui`. **Non verificato**: l'aspetto delle schermate
-  (screenshot da guardare), qualsiasi interazione, JS che fallisce senza chiudere l'app.
-- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e la lettura degli screenshot di 0.6.
+  `userInterfaceStyle: "automatic"` richiede `expo-system-ui`. **Screenshot visti**: la home del playground si disegna in tema su
+  entrambe (Android senza errori fatali nel logcat, `Running "main"`); su iOS un avviso di `expo-router/head` ("Add the
+  handoff origin…") copriva la pagina: era un difetto del playground (il `Head` serve solo al web), corretto in
+  `site/Page.tsx`, **non riverificato su iOS**. **Non verificato**: qualsiasi interazione, JS che fallisce senza
+  chiudere l'app.
+- **Da fare**: 0.3, la parte Hermes di 0.1 (schermata benchmark in CI) e riverificare iOS dopo la correzione dell'avviso.
 
 ### Fase 1 — React Native readiness, web di prima classe, stabilità
 

@@ -55,6 +55,7 @@
       "@its/glowup-device/bluetooth": [
         "../../packages/device/src/bluetooth/index.ts"
       ],
+      "@its/glowup-device/rfid": ["../../packages/device/src/rfid/index.ts"],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

@@ -1278,7 +1278,8 @@ How it stays honest:
   distance only roughly.
 - **Contract version.** `/rfid` exports `RFID_CONTRACT_VERSION`; each adapter declares the version
   it implements, as a number literal (importing the constant would always match). The hooks reject a mismatch with `RfidError("incompatible-adapter")`, and the
-  vendor package's peer range follows the device package's minor version (0.x).
+  vendor package's peer range follows the device package's minor version (0.x): it is written as
+  `>=0.x.0 <0.y.0`, whose bounds changesets moves whenever the device package passes them.
 - **Conformance kit.** `@its/glowup-device/testing` exports `describeRfidAdapterContract()`: a Jest
   suite that every vendor package runs against its adapter with its native module faked. It checks
   units, event order, stop semantics, errors and capabilities. A vendor that does not pass cannot
@@ -1451,12 +1452,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status   |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done     |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done     |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done     |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status    |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done      |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done      |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done      |
+| 37    | Playground page (a simulated reader everywhere; Honeywell stays in `apps/rfid-diagnostics`), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                              | `0.11.0` | in review |
 
 **Answered:**
 
@@ -1472,7 +1473,9 @@ What follows from it:
 - **The CT40 runs Android 11:** connecting needs no runtime permission there, but a search needs
   the precise location (and location switched on); the plugin declares it capped at Android 11.
 - **Release:** `@its/glowup-device` shipped Bluetooth as `0.10.0`, so `/rfid` ships as `0.11.0`.
-  `@its/rfid-honeywell`'s peer range (now `>=0.10.0` for the workspace) becomes `^0.11.0` then.
+  `@its/rfid-honeywell`'s peer range is `>=0.10.0 <0.12.0` in the workspace (whose device
+  package is still `0.10.0`); the "Version Packages" PR rewrites it to `>=0.11.0 <0.12.0` (phase
+  37).
 
 **Still open:** whether Honeywell's Maven repository serves the SDK (above); the spike's other
 questions are answered.
@@ -1579,12 +1582,38 @@ questions are answered.
   `tsconfig.build.json` clears the mapping, so the published types import the package by name.
 - **`PermissionState` is exported from `/rfid`:** the adapter imported it from the root entry,
   which a vendor package should not need. ESLint now refuses the root entry in `packages/rfid-*`.
-- **Before the release (phase 37):** the peer range on `@its/glowup-device` becomes `^0.11.0`
-  (`0.10.0` has no `/rfid`). The package is no longer private, so `changeset publish` would
-  publish it with the first release from `master`: this branch merges only with phase 37.
+- **The peer range** on `@its/glowup-device` had to exclude `0.10.0`, which has no `/rfid` (phase
+  37 settles it). The package is no longer private, so `changeset publish` publishes it with the
+  first release from `master`: this branch merges only with phase 37.
 - **The trusted publisher** is set up on npmjs.com by a maintainer. npm may not offer the setting
   before the package's first version exists; if it does not, the first version needs a one-off
   publish by hand (to check on npmjs.com).
+
+### Phase 37 — what landed
+
+- **Playground `/device/rfid`** on a simulated reader (`site/rfidDemo.ts`: the package's mock
+  driven by a timer). The reader section searches, connects and shows the reader's identity and
+  battery; the multiple scan lists tags with their proximity (with TIDs on request) and runs on
+  the trigger (a button pulls the simulated one); the single read shows the nearest tag and its
+  TID; a tag picked in either is the search's target, whose gauge follows the sweep. The page
+  provides the demo only without an adapter above it, so its tests drive a mock: connection,
+  scan, trigger, single read, search and the simulated reader.
+- **Decided:** the playground depends on no RFID vendor, against the earlier "Honeywell in a
+  development build". A vendor package is autolinked into every Android build of the app that
+  depends on it, so every playground build would need Honeywell's two AARs, and would carry the
+  SDK onto other brands' devices (R13). `apps/rfid-diagnostics` is the Honeywell build.
+- **`examples/consumer`** installs `@its/rfid-honeywell` from the registry beside the other two:
+  it renders `/rfid` on the Honeywell adapter (unsupported on the web), types it as
+  `RfidAdapter` and lists the config plugin with SDK paths that do not exist (the plugin reads
+  them only at prebuild). The smoke workflow waits for, installs and checks the three versions.
+  Checked here with the three packages packed locally: `tsc`, the web export, and
+  `expo config` resolving and running the plugin.
+- **Changesets:** `@its/glowup-device` minor (`/rfid`, `0.11.0`) and `@its/rfid-honeywell` minor
+  (`0.1.0`). The peer range is `>=0.10.0 <0.12.0`: a caret on `0.11.0` would fail `npm ci` until
+  the device package is bumped. A dry run of `changeset version` gave device `0.11.0`,
+  rfid-honeywell `0.1.0` and the peer range `>=0.11.0 <0.12.0`.
+- **After the merge:** the trusted publisher of `@its/rfid-honeywell` on npmjs.com (above), then
+  the team's check on the IH40 with the published packages.
 
 ## Open for later
 

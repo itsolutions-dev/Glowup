@@ -16,10 +16,11 @@ An **npm-workspaces monorepo** with six workspaces:
 | `apps/rfid-diagnostics`   | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID spike on a real reader (phase 35).                           |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
-`@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
-the published artefacts (the playground, being a workspace, always runs the local source).
-Never add it to the `workspaces` array — npm would link the local packages and the check would
-silently test nothing; its CI job fails if either is a symlink in its `node_modules`. See
+`@its/glowup-ui`, `@its/glowup-device` and `@its/rfid-honeywell` **from the npm registry** and is
+the runtime check on the published artefacts (the playground, being a workspace, always runs the
+local source). Never add it to the `workspaces` array — npm would link the local packages and the
+check would silently test nothing; its CI job fails if any of them is a symlink in its
+`node_modules`. See
 `examples/consumer/README.md`.
 
 The library targets iOS, Android and Web through Expo + `react-native-web`. The playground is
@@ -88,7 +89,7 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/rfid`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint

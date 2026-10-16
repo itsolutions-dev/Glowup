@@ -6,8 +6,10 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   (`npm run build`, `validate-package`), a changeset for every user-visible change, its own
   trusted publisher on npmjs.com. The tarball carries `lib/`, `src/`, the Android module's
   `build.gradle` and sources, `expo-module.config.json` and `app.plugin.js`; never an SDK.
-  Its peer range on `@its/glowup-device` follows the device package's minor version (0.x):
-  `^0.11.0` once `/rfid` ships there.
+  Its peer range on `@its/glowup-device` follows the device package's minor version (0.x),
+  written `>=0.x.0 <0.y.0`: changesets moves both bounds when the device package moves past it,
+  and, unlike a caret on the coming minor, it still accepts the workspace's device package
+  before the "Version Packages" PR bumps it (`npm ci` checks peers).
 - **It implements `@its/glowup-device/rfid` and nothing else.** It imports the device package's
   `/rfid` (types, `PermissionState` and `RfidError` at run time) and `/testing` in tests, never
   the root entry, another subpath, the UI kit or an app (ESLint). The device package never

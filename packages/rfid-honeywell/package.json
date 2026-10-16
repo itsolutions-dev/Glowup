@@ -54,7 +54,7 @@
     "ih40"
   ],
   "peerDependencies": {
-    "@its/glowup-device": ">=0.10.0",
+    "@its/glowup-device": ">=0.10.0 <0.12.0",
     "expo": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"

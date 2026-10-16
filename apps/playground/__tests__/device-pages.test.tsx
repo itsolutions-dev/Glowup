@@ -28,6 +28,7 @@ import {
   createMockSensorsAdapter,
   createMockMediaPickerAdapter,
   createMockMediaLibraryAdapter,
+  createMockRfidAdapter,
   buildPickedMedia,
   OFFLINE_NETWORK,
   type MockBackgroundLocationAdapter,
@@ -45,6 +46,7 @@ import {
   type MockSensorsAdapter,
   type MockMediaPickerAdapter,
   type MockMediaLibraryAdapter,
+  type MockRfidAdapter,
 } from "@its/glowup-device/testing";
 import { bleManagerAdapter } from "@its/glowup-device/bluetooth";
 import * as ExpoHaptics from "expo-haptics";
@@ -65,6 +67,7 @@ import MediaPickerPage from "../app/device/media-picker";
 import MediaLibraryPage from "../app/device/media-library";
 import BackgroundLocationPage from "../app/device/background-location";
 import BluetoothPage from "../app/device/bluetooth";
+import RfidPage from "../app/device/rfid";
 import { clearTaskLog } from "../site/backgroundLog";
 import { SITES_TASK, TRIP_TASK } from "../site/backgroundTasks";
 import { HapticThemeProvider } from "../site/HapticsPreference";
@@ -136,6 +139,8 @@ let mediaPicker: MockMediaPickerAdapter;
 let mediaLibrary: MockMediaLibraryAdapter;
 let backgroundLocation: MockBackgroundLocationAdapter;
 let bluetooth: MockBluetoothAdapter;
+// Undefined: no vendor, as on the site.
+let rfid: MockRfidAdapter | undefined;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -162,6 +167,7 @@ beforeEach(() => {
       ],
     },
   });
+  rfid = createMockRfidAdapter();
   clearTaskLog();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
@@ -195,6 +201,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               mediaLibrary,
               backgroundLocation,
               bluetooth,
+              rfid,
             }}
           >
             {children}
@@ -223,6 +230,7 @@ it("links the overview to every capability", async () => {
     ["Media library", "/device/media-library"],
     ["Background location", "/device/background-location"],
     ["Bluetooth", "/device/bluetooth"],
+    ["RFID", "/device/rfid"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -884,5 +892,119 @@ describe("bluetooth", () => {
     );
     await fireEvent.press(screen.getByText("Disconnect"));
     await waitFor(() => expect(screen.getByText("Connect")).toBeTruthy());
+  });
+});
+
+describe("rfid", () => {
+  it("connects, scans, reads one tag and searches for it on the app's adapter", async () => {
+    const reader = rfid!;
+    await render(<RfidPage />, { wrapper: Providers });
+    expect(
+      screen.getByText("A real reader, through the app's adapter."),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+
+    await fireEvent.press(screen.getByText("Search readers"));
+    await waitFor(() => expect(reader.isDiscovering).toBe(true));
+    await act(async () => reader.discover());
+    await waitFor(() =>
+      expect(screen.getByText("Mock RFID reader")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Mock RFID reader"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Mock RFID reader · Mock · firmware 1.0.0 · battery 80%",
+        ),
+      ).toBeTruthy(),
+    );
+
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() => expect(reader.inventory).toEqual({ tid: false }));
+    await act(async () =>
+      reader.emitTags([{ epc: "3034257bf7194e4000001a85", rssi: -40 }]),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("3034257BF7194E4000001A85")).toBeTruthy(),
+    );
+    expect(screen.getByText("1 tags")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop"));
+    await waitFor(() => expect(reader.inventory).toBeNull());
+
+    // A read reported before the single read is what it hears.
+    reader.emitTags([
+      {
+        epc: "E28011700000020A4C7B12F0",
+        rssi: -30,
+        tid: "e2801170200030ecc48408f9",
+      },
+    ]);
+    await fireEvent.press(screen.getByText("Read"));
+    await waitFor(() =>
+      expect(screen.getByText("E28011700000020A4C7B12F0")).toBeTruthy(),
+    );
+    expect(screen.getByText(/TID E2801170200030ECC48408F9/)).toBeTruthy();
+    expect(reader.readOnceCount).toBe(1);
+
+    await fireEvent.press(screen.getByText("E28011700000020A4C7B12F0"));
+    expect(screen.getByText("Tag E28011700000020A4C7B12F0")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Start the search"));
+    await waitFor(() =>
+      expect(reader.locating).toBe("E28011700000020A4C7B12F0"),
+    );
+    await act(async () => {
+      reader.emitLocate(-30);
+    });
+    await waitFor(() => expect(screen.getByText("In range")).toBeTruthy());
+    expect(screen.getByText("100% · -30 dBm")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop"));
+    await waitFor(() => expect(reader.locating).toBeNull());
+
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(reader.connection.state).toBe("disconnected"));
+  });
+
+  it("scans on the trigger", async () => {
+    const reader = rfid!;
+    reader.setPermission("granted");
+    await reader.connect("00:11:22:33:44:55");
+    await render(<RfidPage />, { wrapper: Providers });
+    await waitFor(() => expect(reader.triggerSubscriberCount).toBe(1));
+    await act(async () => reader.pressTrigger(true));
+    await waitFor(() => expect(reader.inventory).not.toBeNull());
+    expect(screen.getByText("Trigger held")).toBeTruthy();
+    await act(async () => reader.pressTrigger(false));
+    await waitFor(() => expect(reader.inventory).toBeNull());
+  });
+
+  it("says why it cannot scan before a reader is connected", async () => {
+    rfid!.setPermission("granted");
+    await render(<RfidPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() =>
+      expect(screen.getByText("Connect to a reader first.")).toBeTruthy(),
+    );
+  });
+
+  it("runs on a simulated reader without a vendor", async () => {
+    rfid = undefined;
+    await render(<RfidPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated reader/)).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Search readers"));
+    await waitFor(() =>
+      expect(screen.getByText("IH40 · aisle 3")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("IH40 · aisle 3"));
+    await waitFor(() => expect(screen.getByText("Connected")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Stop searching"));
+
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() => expect(screen.getByText(/^\d+ tags$/)).toBeTruthy());
+    await fireEvent.press(screen.getByText("Stop"));
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(screen.getByText("Disconnected")).toBeTruthy());
   });
 });

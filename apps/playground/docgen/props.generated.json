@@ -246,6 +246,14 @@
           "deprecated": false
         },
         {
+          "name": "allowCustomValue",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether text that is not an option may stay in the field. Defaults to\n`true`. With `false`, leaving the field puts back the chosen option's\nlabel, or empties it when nothing is chosen.",
+          "deprecated": false
+        },
+        {
           "name": "clearable",
           "type": "boolean",
           "required": false,
@@ -257,6 +265,14 @@
           "name": "clearAccessibilityLabel",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "debounceMs",
+          "type": "number",
+          "required": false,
+          "default": "300",
+          "description": "Quiet time before `onSearch`. Defaults to 300.",
           "deprecated": false
         },
         {
@@ -282,8 +298,7 @@
           "name": "filter",
           "type": "(option: AutocompleteOption, query: string) => boolean",
           "required": false,
-          "default": "defaultFilter",
-          "description": "Custom matcher. Defaults to a case- and accent-insensitive substring test\nover `label`. Pass `() => true` when the options are filtered server-side.",
+          "description": "Custom matcher. Defaults to a case- and accent-insensitive substring test\nover `label`, or to no filtering at all when `onSearch` is given (the\nserver already filtered).",
           "deprecated": false
         },
         {
@@ -329,6 +344,19 @@
           "deprecated": false
         },
         {
+          "name": "onSearch",
+          "type": "(text: string) => void",
+          "required": false,
+          "description": "Called with the text after the user stops typing for `debounceMs`, once it\nhas `minChars` characters, and with `\"\"` when the field is cleared. Fetch\nthe options there and pass them in `options`; use `loading` meanwhile.\nNot called for the text an option fills in.",
+          "deprecated": false
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(option: AutocompleteOption | null) => void",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "placeholder",
           "type": "string",
           "required": false,
@@ -338,6 +366,13 @@
           "name": "required",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "AutocompleteOption | null",
+          "required": false,
+          "description": "The chosen option, kept apart from the text being typed. Pass it (even as\n`null`) to control the choice; editing the text away from its label, or\nclearing the field, reports `null` through `onSelectedChange`.",
           "deprecated": false
         },
         {

@@ -20,6 +20,7 @@ import {
 import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import CircularProgress from "./Progress/CircularProgress";
+import { useDebouncedCallback } from "../hooks/useDebounce";
 import HelperText from "./HelperText";
 import Portal, { usePortalHost } from "./Portal";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
@@ -43,9 +44,32 @@ export interface AutocompleteProps {
   placeholder?: string;
   /**
    * Custom matcher. Defaults to a case- and accent-insensitive substring test
-   * over `label`. Pass `() => true` when the options are filtered server-side.
+   * over `label`, or to no filtering at all when `onSearch` is given (the
+   * server already filtered).
    */
   filter?: (option: AutocompleteOption, query: string) => boolean;
+  /**
+   * Called with the text after the user stops typing for `debounceMs`, once it
+   * has `minChars` characters, and with `""` when the field is cleared. Fetch
+   * the options there and pass them in `options`; use `loading` meanwhile.
+   * Not called for the text an option fills in.
+   */
+  onSearch?: (text: string) => void;
+  /** Quiet time before `onSearch`. Defaults to 300. */
+  debounceMs?: number;
+  /**
+   * The chosen option, kept apart from the text being typed. Pass it (even as
+   * `null`) to control the choice; editing the text away from its label, or
+   * clearing the field, reports `null` through `onSelectedChange`.
+   */
+  selected?: AutocompleteOption | null;
+  onSelectedChange?: (option: AutocompleteOption | null) => void;
+  /**
+   * Whether text that is not an option may stay in the field. Defaults to
+   * `true`. With `false`, leaving the field puts back the chosen option's
+   * label, or empties it when nothing is chosen.
+   */
+  allowCustomValue?: boolean;
   /** Characters required before suggestions appear. Defaults to 1. */
   minChars?: number;
   /** Caps the visible suggestions. Defaults to 8. */
@@ -101,7 +125,12 @@ const Autocomplete = ({
   onSelect,
   label,
   placeholder,
-  filter = defaultFilter,
+  filter: filterProp,
+  onSearch,
+  debounceMs = 300,
+  selected,
+  onSelectedChange,
+  allowCustomValue = true,
   minChars = 1,
   maxSuggestions = 8,
   loading,
@@ -135,12 +164,21 @@ const Autocomplete = ({
   // re-open the list with a single exact match in it.
   const [suppressed, setSuppressed] = useState(false);
 
+  // With a server search the options already match: filtering them again by
+  // label would hide results the server found on other fields.
+  const serverSide = !!onSearch;
+  const search = useDebouncedCallback(
+    (text: string) => onSearch?.(text),
+    debounceMs,
+  );
+
   const suggestions = useMemo(() => {
     if (value.length < minChars) return [];
+    const match = filterProp ?? (serverSide ? () => true : defaultFilter);
     return options
-      .filter((option) => filter(option, value))
+      .filter((option) => match(option, value))
       .slice(0, maxSuggestions);
-  }, [options, value, filter, minChars, maxSuggestions]);
+  }, [options, value, filterProp, serverSide, minChars, maxSuggestions]);
 
   const listVisible =
     focused &&
@@ -185,10 +223,13 @@ const Autocomplete = ({
   const commit = useCallback(
     (option: AutocompleteOption) => {
       setSuppressed(true);
+      // The label this fills in is not a query.
+      search.cancel();
       onChangeText(option.label);
+      onSelectedChange?.(option);
       onSelect(option);
     },
-    [onChangeText, onSelect],
+    [onChangeText, onSelect, onSelectedChange, search],
   );
 
   const handleChange = (text: string) => {
@@ -196,6 +237,21 @@ const Autocomplete = ({
     // A new query invalidates the old highlight position.
     setHighlighted(0);
     onChangeText(text);
+    if (selected && text !== selected.label) onSelectedChange?.(null);
+    if (onSearch && text.length >= minChars) search(text);
+    else search.cancel();
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    if (allowCustomValue) return;
+    const chosen =
+      selected !== undefined
+        ? selected
+        : (options.find((option) => option.label === value) ?? null);
+    const wanted = chosen ? chosen.label : "";
+    if (value !== wanted) onChangeText(wanted);
+    if (!chosen && selected) onSelectedChange?.(null);
   };
 
   // Arrow/Enter navigation over the suggestion list. Web only: React Native
@@ -273,7 +329,7 @@ const Autocomplete = ({
             onFocus={() => setFocused(true)}
             // Blur closes the list; `keepFocus` stops option presses from
             // blurring in the first place.
-            onBlur={() => setFocused(false)}
+            onBlur={handleBlur}
             editable={!disabled}
             placeholder={placeholder}
             placeholderTextColor={theme.colors.onSurfaceVariant}
@@ -297,7 +353,10 @@ const Autocomplete = ({
               hitSlop={8}
               onPress={() => {
                 setSuppressed(false);
+                search.cancel();
                 onChangeText("");
+                onSelectedChange?.(null);
+                onSearch?.("");
                 inputRef.current?.focus();
               }}
               style={({ hovered }: PressableState) => [

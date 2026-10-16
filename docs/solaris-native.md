@@ -419,9 +419,8 @@ token ciascuno, chiaro e scuro), scritti in `theme.json` come `error`: tinte fis
 file dei design (`crm`/`siti`, uguali a `databeasy`/`inxpire`) non ne specifica. `providers/successRoles.ts` è stato tolto:
 `Button` (`tone="success"`) e `StatusBadge` leggono dal tema. Nuove utility `toneFromColor`, `toneFromString`, `toneFrom`
 (coppia sfondo/testo con i toni M3 di un contenitore, tinta da un hex o da un testo) e prop `toneFrom` su `Chip` (filled/tonal)
-e `StatusBadge`. 5 test nuovi (più i contrasti delle palette estesi ai ruoli di stato); test, type-check, build e `validate-package` verdi, due changeset minor. **Non verificato**: nativo
-a runtime; contrasto reale WCAG dei toni (i test misurano la distanza di luminosità, non il rapporto); `Banner` usa ancora
-secondary/tertiary per info/warning. **Mancano (2B-c)**: palette dei grafici e gradiente di marca. Nota: un `ThemePalette`
+e `StatusBadge`; `Banner` (warning, info) passato ai nuovi ruoli. 5 test nuovi (più i contrasti delle palette estesi ai ruoli di stato); test, type-check, build e `validate-package` verdi, due changeset minor. **Non verificato**: nativo
+a runtime; contrasto reale WCAG dei toni (i test misurano la distanza di luminosità, non il rapporto); **Mancano (2B-c)**: palette dei grafici e gradiente di marca. Nota: un `ThemePalette`
 scritto a mano ora deve includere i ruoli di stato (changeset lo dice).
 
 ### Fase 3 — Componenti specializzati (le prop)

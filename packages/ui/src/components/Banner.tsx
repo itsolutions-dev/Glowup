@@ -113,13 +113,13 @@ const makeStyles = (theme: Theme, type: BannerType) => {
     textColor = theme.colors.onErrorContainer;
     iconColor = theme.colors.error;
   } else if (type === "warning") {
-    backgroundColor = theme.colors.tertiaryContainer;
-    textColor = theme.colors.onTertiaryContainer;
-    iconColor = theme.colors.onTertiaryContainer;
+    backgroundColor = theme.colors.warningContainer;
+    textColor = theme.colors.onWarningContainer;
+    iconColor = theme.colors.warning;
   } else if (type === "info") {
-    backgroundColor = theme.colors.secondaryContainer;
-    textColor = theme.colors.onSecondaryContainer;
-    iconColor = theme.colors.primary;
+    backgroundColor = theme.colors.infoContainer;
+    textColor = theme.colors.onInfoContainer;
+    iconColor = theme.colors.info;
   }
 
   const styles = StyleSheet.create({

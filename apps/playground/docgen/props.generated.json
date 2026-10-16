@@ -3759,6 +3759,22 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "description": "The first line. Text is drawn in the theme's type; any other node is drawn as given.",
+          "deprecated": false
+        },
+        {
+          "name": "dimmed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Faded, for a row that is removed or inactive. Still pressable.",
+          "deprecated": false
+        },
+        {
+          "name": "indicatorColor",
+          "type": "string",
+          "required": false,
+          "description": "A coloured bar on the left edge, for a status or a priority.",
           "deprecated": false
         },
         {
@@ -3808,7 +3824,7 @@
           "name": "secondary",
           "type": "React.ReactNode",
           "required": false,
-          "description": "Second line below `children`.",
+          "description": "Second line below `children`. Text or any node, like `children`.",
           "deprecated": false
         },
         {
@@ -3816,6 +3832,13 @@
           "type": "React.ReactNode",
           "required": false,
           "description": "Trailing slot — a value, a Toggle, a chevron.",
+          "deprecated": false
+        },
+        {
+          "name": "trailingWidth",
+          "type": "number",
+          "required": false,
+          "description": "Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up.",
           "deprecated": false
         }
       ]

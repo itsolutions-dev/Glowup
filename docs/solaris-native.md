@@ -430,7 +430,9 @@ type-check e lint verdi. **Non verificato**: l'altezza reale a schermo su web, i
 layout) e l'effetto su un form da 11 campi come nello spike 0.2. **Verificato su web (Chrome headless, 2026-10-16)**: campo 56 → 40 px, pulsante ~50 → ~38 px (bordo compreso).
 Impostazione unica: `ThemeProvider density` (contesto a parte, `providers/Density.tsx`, non nel valore del tema) è il default di
 `Input`, `Select`, `Button` e `DataGrid`; la prop del controllo vince; un provider annidato senza `density` eredita. Esportati
-`Density` e `useDensity`. Resto del 3A non iniziato.
+`Density` e `useDensity`. **`ListItem` fatto (2026-10-16)**: `children` e `secondary` accettano un nodo (solo il testo viene avvolto in `Text`, quindi niente
+prop `primary` separata), più `indicatorColor`, `dimmed` e `trailingWidth`; galleria `StatusRows`; 2 test. Verificato su web (Chrome headless): barra, riga attenuata, badge allineati a destra; non su nativo.
+Resto del 3A non iniziato (restano `DataGrid`, `Autocomplete`, `Input`, `FilterButton`).
 
 ### Fase 3 — Componenti specializzati (le prop)
 

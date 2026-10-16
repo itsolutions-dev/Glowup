@@ -1,5 +1,12 @@
 import React from "react";
-import { Avatar, Icon, ListItem, Toggle, Typography } from "@its/glowup-ui";
+import {
+  Avatar,
+  Icon,
+  ListItem,
+  StatusBadge,
+  Toggle,
+  Typography,
+} from "@its/glowup-ui";
 
 const list: React.CSSProperties = {
   display: "flex",
@@ -103,5 +110,34 @@ export const TextOnly = () => (
     <ListItem onPress={() => {}}>Q1 revenue report</ListItem>
     <ListItem onPress={() => {}}>Warehouse capacity plan</ListItem>
     <ListItem onPress={() => {}}>Supplier contract renewal</ListItem>
+  </div>
+);
+
+export const StatusRows = () => (
+  <div style={list}>
+    <ListItem
+      indicatorColor="#B00020"
+      secondary="Call back before Friday"
+      trailing={<StatusBadge label="Urgent" type="error" />}
+      trailingWidth={112}
+    >
+      <Typography variant="titleMedium">Marta Bianchi</Typography>
+    </ListItem>
+    <ListItem
+      indicatorColor="#61B340"
+      secondary="Quote accepted"
+      trailing={<StatusBadge label="Won" />}
+      trailingWidth={112}
+    >
+      <Typography variant="titleMedium">Luca Verdi</Typography>
+    </ListItem>
+    <ListItem
+      dimmed
+      secondary="Removed on 12 Oct"
+      trailing={<StatusBadge label="Removed" type="warning" />}
+      trailingWidth={112}
+    >
+      <Typography variant="titleMedium">Anna Neri</Typography>
+    </ListItem>
   </div>
 );

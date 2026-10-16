@@ -4,14 +4,21 @@ import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 import { PressableState } from "../types";
 
 export interface ListItemProps {
+  /** The first line. Text is drawn in the theme's type; any other node is drawn as given. */
   children: React.ReactNode;
   onPress?: () => void;
   /** Leading slot — an Avatar, an icon, a Checkbox. */
   leading?: React.ReactNode;
   /** Trailing slot — a value, a Toggle, a chevron. */
   trailing?: React.ReactNode;
-  /** Second line below `children`. */
+  /** Second line below `children`. Text or any node, like `children`. */
   secondary?: React.ReactNode;
+  /** A coloured bar on the left edge, for a status or a priority. */
+  indicatorColor?: string;
+  /** Faded, for a row that is removed or inactive. Still pressable. */
+  dimmed?: boolean;
+  /** Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up. */
+  trailingWidth?: number;
   itemContainerStyle?: object;
   itemTextStyle?: object;
   itemSecondaryTextStyle?: object;
@@ -19,12 +26,18 @@ export interface ListItemProps {
   itemHoveredStyle?: object;
 }
 
+const isText = (node: React.ReactNode) =>
+  typeof node === "string" || typeof node === "number";
+
 function ListItem({
   children,
   onPress,
   leading,
   trailing,
   secondary,
+  indicatorColor,
+  dimmed = false,
+  trailingWidth,
   itemContainerStyle,
   itemTextStyle,
   itemSecondaryTextStyle,
@@ -42,34 +55,63 @@ function ListItem({
       {!!leading && <View style={styles.leading}>{leading}</View>}
 
       <View style={isRow ? styles.textBlock : undefined}>
-        <Text
-          style={[styles.itemText, isRow && styles.itemTextRow, itemTextStyle]}
-          numberOfLines={1}
-        >
-          {children}
-        </Text>
-        {!!secondary && (
+        {isText(children) ? (
           <Text
-            style={[styles.secondaryText, itemSecondaryTextStyle]}
-            numberOfLines={2}
+            style={[
+              styles.itemText,
+              isRow && styles.itemTextRow,
+              itemTextStyle,
+            ]}
+            numberOfLines={1}
           >
-            {secondary}
+            {children}
           </Text>
+        ) : (
+          children
         )}
+        {!!secondary &&
+          (isText(secondary) ? (
+            <Text
+              style={[styles.secondaryText, itemSecondaryTextStyle]}
+              numberOfLines={2}
+            >
+              {secondary}
+            </Text>
+          ) : (
+            secondary
+          ))}
       </View>
 
-      {!!trailing && <View style={styles.trailing}>{trailing}</View>}
+      {!!trailing && (
+        <View
+          style={[
+            styles.trailing,
+            trailingWidth !== undefined && {
+              width: trailingWidth,
+              alignItems: "flex-end",
+            },
+          ]}
+        >
+          {/* Its own box, so the right edge holds even for a child with an alignSelf of its own (StatusBadge). */}
+          {trailingWidth !== undefined ? <View>{trailing}</View> : trailing}
+        </View>
+      )}
     </View>
   );
 
+  const accent = indicatorColor
+    ? { borderLeftWidth: 4, borderLeftColor: indicatorColor }
+    : null;
+
   return (
-    <View style={styles.outerContainer}>
+    <View style={[styles.outerContainer, dimmed && styles.dimmed]}>
       {onPress ? (
         <Pressable
           onPress={onPress}
           accessibilityRole="button"
           style={({ hovered, pressed }: PressableState) => [
             styles.itemContainer,
+            accent,
             itemContainerStyle,
             (hovered || pressed) && getGlowStyles(theme, true),
             hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
@@ -82,7 +124,7 @@ function ListItem({
         // Not a disabled Pressable: that marks the row disabled for screen
         // readers (aria-disabled on the web), and with it the controls in
         // its slots, such as a Toggle in `trailing`.
-        <View style={[styles.itemContainer, itemContainerStyle]}>
+        <View style={[styles.itemContainer, accent, itemContainerStyle]}>
           {content}
         </View>
       )}
@@ -101,6 +143,9 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.colors.secondaryContainer,
       shadowColor: theme.colors.shadow,
       borderRadius: theme.shape.medium,
+    },
+    dimmed: {
+      opacity: 0.55,
     },
     content: {
       flex: 1,

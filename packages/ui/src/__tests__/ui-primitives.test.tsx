@@ -232,6 +232,43 @@ describe("ListItem", () => {
     await fireEvent.press(row);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  it("draws a node as given and wraps only text in the theme's type", async () => {
+    const { getByText, getByTestId, toJSON } = await wrap(
+      <ListItem
+        secondary={<Text testID="second">second node</Text>}
+        trailing={<Text>t</Text>}
+      >
+        <Text testID="first">first node</Text>
+      </ListItem>,
+    );
+    // A node is not nested inside another Text, which would force its lines
+    // to one line and its styles to inherit.
+    expect(getByTestId("first").parent?.type).not.toBe("Text");
+    expect(getByTestId("second")).toBeTruthy();
+    expect(getByText("first node")).toBeTruthy();
+    expect(JSON.stringify(toJSON())).not.toContain('"numberOfLines":1');
+  });
+
+  it("shows an indicator bar, dims, and fixes the trailing width", async () => {
+    const out = async (props: object) =>
+      JSON.stringify(
+        (
+          await wrap(
+            <ListItem trailing={<Text>x</Text>} {...props}>
+              Row
+            </ListItem>,
+          )
+        ).toJSON(),
+      );
+    expect(await out({ indicatorColor: "#B00020" })).toContain(
+      '"borderLeftColor":"#B00020"',
+    );
+    expect(await out({})).not.toContain("borderLeftColor");
+    expect(await out({ dimmed: true })).toContain('"opacity":0.55');
+    expect(await out({})).not.toContain('"opacity":0.55');
+    expect(await out({ trailingWidth: 112 })).toContain('"width":112');
+  });
 });
 
 describe("ListSection", () => {

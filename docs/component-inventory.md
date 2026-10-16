@@ -12,8 +12,8 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
 | Aggiunti | 1 | 15 |
-| Aggiornati | 17 | 207 |
-| Tenuti (invariati) | 85 | 756 |
+| Aggiornati | 20 | 234 |
+| Tenuti (invariati) | 82 | 737 |
 
 ## Aggiunti
 
@@ -27,10 +27,13 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Button](#button): comportamento · + badge, density
 - [Chip](#chip): + toneFrom
 - [DataGrid](#datagrid): comportamento · + emptyState · ~ density, rowStyle
+- [DrawerItem](#draweritem): + children, defaultExpanded, onToggle · ~ onPress
+- [DrawerSection](#drawersection): + collapsible, defaultExpanded, onToggle
 - [IconButton](#iconbutton): + badge
 - [Input](#input): comportamento · + allUpperCase, decimalSeparator, density, reserveHelperText · ~ minHeight
 - [ListItem](#listitem): comportamento · + dimmed, indicatorColor, trailingWidth
 - [Modal](#modal): + size
+- [NavigationDrawer](#navigationdrawer): + collapsed, header
 - [Select](#select): comportamento · + density
 - [Snackbar](#snackbar): comportamento · ~ type
 - [StatusBadge](#statusbadge): + toneFrom
@@ -41,7 +44,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ## Tenuti
 
-[Accordion](#accordion) · [AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AnimatedFAB](#animatedfab) · [AppBar](#appbar) · [AspectRatio](#aspectratio) · [Avatar](#avatar) · [Badge](#badge) · [Box](#box) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [Calendar](#calendar) · [Card](#card) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [CardTitle](#cardtitle) · [Carousel](#carousel) · [Center](#center) · [Checkbox](#checkbox) · [ChipGroup](#chipgroup) · [CircularProgress](#circularprogress) · [ClockDial](#clockdial) · [ClockPicker](#clockpicker) · [Collapse](#collapse) · [ConfirmDialog](#confirmdialog) · [DatePicker](#datepicker) · [DatePickerInput](#datepickerinput) · [DateRangePicker](#daterangepicker) · [DateTimePicker](#datetimepicker) · [Divider](#divider) · [DrawerItem](#draweritem) · [DrawerSection](#drawersection) · [EmptyState](#emptystate) · [FAB](#fab) · [FormControl](#formcontrol) · [Grid](#grid) · [HelperText](#helpertext) · [HStack](#hstack) · [Icon](#icon) · [Image](#image) · [LinearProgress](#linearprogress) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Menu](#menu) · [NavigationBar](#navigationbar) · [NavigationDrawer](#navigationdrawer) · [NavigationRail](#navigationrail) · [Pagination](#pagination) · [Paper](#paper) · [PinInput](#pininput) · [Popover](#popover) · [Portal](#portal) · [PortalHost](#portalhost) · [ProgressButton](#progressbutton) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Rating](#rating) · [SearchBar](#searchbar) · [SideSheet](#sidesheet) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [Spinner](#spinner) · [SplitButton](#splitbutton) · [Stack](#stack) · [Stat](#stat) · [Stepper](#stepper) · [TabContent](#tabcontent) · [Table](#table) · [TableHead](#tablehead) · [TableRow](#tablerow) · [TimePicker](#timepicker) · [ToastProvider](#toastprovider) · [Toggle](#toggle) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [Tooltip](#tooltip) · [TopAppBar](#topappbar) · [TouchableRipple](#touchableripple) · [Typography](#typography) · [VStack](#vstack)
+[Accordion](#accordion) · [AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AnimatedFAB](#animatedfab) · [AppBar](#appbar) · [AspectRatio](#aspectratio) · [Avatar](#avatar) · [Badge](#badge) · [Box](#box) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [Calendar](#calendar) · [Card](#card) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [CardTitle](#cardtitle) · [Carousel](#carousel) · [Center](#center) · [Checkbox](#checkbox) · [ChipGroup](#chipgroup) · [CircularProgress](#circularprogress) · [ClockDial](#clockdial) · [ClockPicker](#clockpicker) · [Collapse](#collapse) · [ConfirmDialog](#confirmdialog) · [DatePicker](#datepicker) · [DatePickerInput](#datepickerinput) · [DateRangePicker](#daterangepicker) · [DateTimePicker](#datetimepicker) · [Divider](#divider) · [EmptyState](#emptystate) · [FAB](#fab) · [FormControl](#formcontrol) · [Grid](#grid) · [HelperText](#helpertext) · [HStack](#hstack) · [Icon](#icon) · [Image](#image) · [LinearProgress](#linearprogress) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Menu](#menu) · [NavigationBar](#navigationbar) · [NavigationRail](#navigationrail) · [Pagination](#pagination) · [Paper](#paper) · [PinInput](#pininput) · [Popover](#popover) · [Portal](#portal) · [PortalHost](#portalhost) · [ProgressButton](#progressbutton) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Rating](#rating) · [SearchBar](#searchbar) · [SideSheet](#sidesheet) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [Spinner](#spinner) · [SplitButton](#splitbutton) · [Stack](#stack) · [Stat](#stat) · [Stepper](#stepper) · [TabContent](#tabcontent) · [Table](#table) · [TableHead](#tablehead) · [TableRow](#tablerow) · [TimePicker](#timepicker) · [ToastProvider](#toastprovider) · [Toggle](#toggle) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [Tooltip](#tooltip) · [TopAppBar](#topappbar) · [TouchableRipple](#touchableripple) · [Typography](#typography) · [VStack](#vstack)
 
 ## Altre aggiunte (non componenti)
 
@@ -218,6 +221,36 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | sortDirection | `"asc" \| "desc"` |  |  |  |
 | style | `ViewStyle` |  |  |  |
 
+### DrawerItem
+
+`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `children`, `defaultExpanded`, `onToggle`; prop cambiate: `onPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| label * | `string` |  |  |  |
+| badge | `string \| number` |  |  | Trailing text, e.g. an unread count: `24`, `"100+"`. |
+| children | `React.ReactNode` |  | nuova | Sub-items (`DrawerItem`s): makes this a group. Pressing it toggles them, and they are indented one level. Hidden while the drawer is `collapsed`. |
+| defaultExpanded | `boolean` | false | nuova | For a group: start open. Defaults to `false`. |
+| disabled | `boolean` | false |  |  |
+| icon | `MaterialCommunityIconsGlyphs` |  |  | Leading glyph. The active state strips an "-outline" suffix. |
+| onPress | `() => void` |  | cambiata | Optional for an item with `children`, whose press opens and closes them. |
+| onToggle | `(expanded: boolean) => void` |  | nuova | For a group: called with the new state after the user toggles it. |
+| selected | `boolean` | false |  | Whether this is the current destination. |
+| testID | `string` |  |  |  |
+
+### DrawerSection
+
+`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `collapsible`, `defaultExpanded`, `onToggle`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| collapsible | `boolean` | false | nuova | Makes the title a button that opens and closes the items. Needs a `title`. |
+| defaultExpanded | `boolean` | true | nuova | For a collapsible section: start open. Defaults to `true`. |
+| onToggle | `(expanded: boolean) => void` |  | nuova | For a collapsible section: called with the new state after the user toggles it. |
+| showDivider | `boolean` | false |  | Draws a divider above the section — between it and the one before. |
+| title | `string` |  |  | Section headline. |
+
 ### IconButton
 
 `packages/ui/src/components/IconButton.tsx` — prop nuove: `badge`
@@ -314,6 +347,24 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` | "modal" |  | Root testID. The scrim gets `${testID}-scrim`. |
 | title | `string` |  |  |  |
 | transparent | `boolean` | true |  |  |
+
+### NavigationDrawer
+
+`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `collapsed`, `header`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  | `DrawerSection`s and/or `DrawerItem`s. |
+| collapsed | `boolean` | false | nuova | Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an item without an icon shows its first letter). Defaults to `false`. |
+| footer | `React.ReactNode` |  |  | Pinned below the scrolling items. |
+| header | `React.ReactNode` |  | nuova | Pinned above the scrolling items: a logo, a site picker. |
+| onDismiss | `() => void` |  |  | Modal only: called on scrim press, Android back and Escape (web). |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| title | `string` |  |  | Headline at the top of the drawer. |
+| variant | `"standard" \| "modal"` | "standard" |  | `"standard"` is an inline panel to place beside the content (expanded windows and up). `"modal"` slides over the content with a scrim. Defaults to `"standard"`. |
+| visible | `boolean` | false |  | Modal only: whether the drawer is open. |
+| width | `number` | DRAWER_WIDTH |  | Defaults to 360 (M3), capped at the window width when modal. |
 
 ### Select
 
@@ -963,30 +1014,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `ViewStyle` |  |  |  |
 | thickness | `number` | 1 |  | Line thickness, in pixels. |
 
-### DrawerItem
-
-`packages/ui/src/components/NavigationDrawer.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| label * | `string` |  |  |  |
-| onPress * | `() => void` |  |  |  |
-| badge | `string \| number` |  |  | Trailing text, e.g. an unread count: `24`, `"100+"`. |
-| disabled | `boolean` | false |  |  |
-| icon | `MaterialCommunityIconsGlyphs` |  |  | Leading glyph. The active state strips an "-outline" suffix. |
-| selected | `boolean` | false |  | Whether this is the current destination. |
-| testID | `string` |  |  |  |
-
-### DrawerSection
-
-`packages/ui/src/components/NavigationDrawer.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| showDivider | `boolean` | false |  | Draws a divider above the section — between it and the one before. |
-| title | `string` |  |  | Section headline. |
-
 ### EmptyState
 
 `packages/ui/src/components/EmptyState.tsx`
@@ -1199,22 +1226,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | items * | `NavigationBarItem[]` |  |  |  |
 | onItemPress * | `(id: string) => void` |  |  |  |
 | showLabels | `"always" \| "selected"` | "always" |  | "always" shows every label, "selected" only the active one. |
-
-### NavigationDrawer
-
-`packages/ui/src/components/NavigationDrawer.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  | `DrawerSection`s and/or `DrawerItem`s. |
-| footer | `React.ReactNode` |  |  | Pinned below the scrolling items. |
-| onDismiss | `() => void` |  |  | Modal only: called on scrim press, Android back and Escape (web). |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| title | `string` |  |  | Headline at the top of the drawer. |
-| variant | `"standard" \| "modal"` | "standard" |  | `"standard"` is an inline panel to place beside the content (expanded windows and up). `"modal"` slides over the content with a scrim. Defaults to `"standard"`. |
-| visible | `boolean` | false |  | Modal only: whether the drawer is open. |
-| width | `number` | DRAWER_WIDTH |  | Defaults to 360 (M3), capped at the window width when modal. |
 
 ### NavigationRail
 

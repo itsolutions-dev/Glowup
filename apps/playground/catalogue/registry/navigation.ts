@@ -147,6 +147,7 @@ export const navigation: Record<string, ComponentMetadata> = {
         ],
       },
       title: { type: "text", default: "Mail", label: "Title" },
+      collapsed: { type: "boolean", default: false, label: "Collapsed" },
     },
   },
   Toolbar: {

@@ -463,8 +463,10 @@ con `actions` (stesso nome di `SideSheet` e `Modal`, non `footer`), `showCloseBu
 (`onChange(index, key)`, retrocompatibile), `Snackbar`/`useToast` con `warning` e `info` e `success` sui ruoli del tema. 16 test nuovi.
 Verificato su web: `Tabs` (chiave, tab disabilitato). **Non visto a schermo**: `Modal`, `BottomSheet`, `Snackbar` (i riquadri della galleria
 sono fermi a metà animazione nella cattura headless; colori e struttura verificati da test). **Non fatti, senza evidenza sufficiente**: `Modal`
-`overline`/`leadingActions`/`dividers`, snap point del `BottomSheet`. **Restano nel 3B**: barra laterale (`DrawerItem` annidato, `DrawerSection`
-comprimibile, `NavigationDrawer` con `header` e `collapsed`), `ToggleButtonGroup` con valori tipizzati, `Stepper` a pallini.
+`overline`/`leadingActions`/`dividers`, snap point del `BottomSheet`. **Barra laterale fatta** (stesso giorno): `DrawerItem` con `children` è un gruppo (`defaultExpanded`, `onToggle`, rientro per livello, riusa `Collapse`),
+`DrawerSection` con `collapsible`/`defaultExpanded`/`onToggle`, `NavigationDrawer` con `header` e `collapsed` (72 px, sole icone, la lettera al posto di
+un'icona mancante). 9 test; verificato su web (gruppo, sezione, header, versione compressa). Non fatti: `hidden`/`renderItem` (si filtra l'array), prefetch
+al passaggio del mouse. **Restano nel 3B**: `ToggleButtonGroup` con valori tipizzati, `Stepper` a pallini.
 
 **`CaptionValue` fatto (2026-10-16, lotto 3C)**: componente nuovo (`caption`, `value`, `direction`, `reverse`, `fallback`, `omitCaption`,
 `captionColor`/`valueColor`, `textAlign`, `gap`, `numberOfLines`, stili e `style`); non porta il `translate()` interno del CRM (l'i18n resta

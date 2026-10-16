@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 import { getGlowStyles, useTheme, Theme } from "../providers/ThemeProvider";
+import Collapse from "./Collapse";
 import Divider from "./Divider";
 import Icon from "./Icon";
 import Typography from "./Typography";
@@ -20,6 +21,13 @@ import { activeGlyph } from "./internal/activeGlyph";
 const DRAWER_WIDTH = 360;
 const ITEM_HEIGHT = 56;
 const ITEM_INSET = 12;
+// Icons only: the width of a navigation rail.
+const COLLAPSED_WIDTH = 72;
+const LEVEL_INDENT = 16;
+
+// Internal: how deep an item sits, and whether the drawer shows icons only.
+const LevelContext = createContext(0);
+const CollapsedContext = createContext(false);
 
 export interface DrawerItemProps {
   label: string;
@@ -29,7 +37,17 @@ export interface DrawerItemProps {
   selected?: boolean;
   /** Trailing text, e.g. an unread count: `24`, `"100+"`. */
   badge?: string | number;
-  onPress: () => void;
+  /** Optional for an item with `children`, whose press opens and closes them. */
+  onPress?: () => void;
+  /**
+   * Sub-items (`DrawerItem`s): makes this a group. Pressing it toggles them,
+   * and they are indented one level. Hidden while the drawer is `collapsed`.
+   */
+  children?: React.ReactNode;
+  /** For a group: start open. Defaults to `false`. */
+  defaultExpanded?: boolean;
+  /** For a group: called with the new state after the user toggles it. */
+  onToggle?: (expanded: boolean) => void;
   disabled?: boolean;
   testID?: string;
 }
@@ -41,27 +59,50 @@ export const DrawerItem = ({
   selected = false,
   badge,
   onPress,
+  children,
+  defaultExpanded = false,
+  onToggle,
   disabled = false,
   testID,
 }: DrawerItemProps) => {
   const { theme } = useTheme();
+  const level = useContext(LevelContext);
+  const collapsed = useContext(CollapsedContext);
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const isGroup = React.Children.toArray(children).length > 0;
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const content = selected
     ? theme.colors.onSecondaryContainer
     : theme.colors.onSurfaceVariant;
   const glyph = icon && activeGlyph(icon, selected);
 
-  return (
+  const press = () => {
+    if (isGroup) {
+      const next = !expanded;
+      setExpanded(next);
+      onToggle?.(next);
+    }
+    onPress?.();
+  };
+
+  const row = (
     <Pressable
-      onPress={onPress}
+      onPress={press}
       disabled={disabled}
-      accessibilityRole="link"
+      accessibilityRole={isGroup ? "button" : "link"}
       accessibilityLabel={label}
-      accessibilityState={{ selected, disabled }}
+      accessibilityState={{
+        selected,
+        disabled,
+        expanded: isGroup ? expanded : undefined,
+      }}
       aria-current={selected ? "page" : undefined}
       testID={testID}
       style={({ hovered, pressed, focused }: PressableState) => [
         styles.item,
+        !collapsed &&
+          level > 0 && { paddingStart: theme.spacing.m + level * LEVEL_INDENT },
+        collapsed && styles.itemCollapsed,
         selected && { backgroundColor: theme.colors.secondaryContainer },
         !selected &&
           (hovered || pressed) && {
@@ -71,20 +112,50 @@ export const DrawerItem = ({
         disabled && styles.disabled,
       ]}
     >
-      {glyph && <Icon source={glyph} size={24} color={content} />}
-      <Typography
-        variant="labelLarge"
-        numberOfLines={1}
-        style={[styles.itemLabel, { color: content }]}
-      >
-        {label}
-      </Typography>
-      {badge != null && badge !== "" && (
+      {glyph ? (
+        <Icon source={glyph} size={24} color={content} />
+      ) : (
+        // Icons only and no icon given: the first letter of the label stands in.
+        collapsed && (
+          <Typography variant="titleMedium" style={{ color: content }}>
+            {label.charAt(0).toUpperCase()}
+          </Typography>
+        )
+      )}
+      {!collapsed && (
+        <Typography
+          variant="labelLarge"
+          numberOfLines={1}
+          style={[styles.itemLabel, { color: content }]}
+        >
+          {label}
+        </Typography>
+      )}
+      {!collapsed && badge != null && badge !== "" && (
         <Typography variant="labelLarge" style={{ color: content }}>
           {String(badge)}
         </Typography>
       )}
+      {!collapsed && isGroup && (
+        <Icon
+          source={expanded ? "chevron-up" : "chevron-down"}
+          size={20}
+          color={content}
+        />
+      )}
     </Pressable>
+  );
+
+  if (!isGroup) return row;
+  return (
+    <>
+      {row}
+      {!collapsed && (
+        <LevelContext.Provider value={level + 1}>
+          <Collapse open={expanded}>{children}</Collapse>
+        </LevelContext.Provider>
+      )}
+    </>
   );
 };
 
@@ -94,6 +165,12 @@ export interface DrawerSectionProps {
   children: React.ReactNode;
   /** Draws a divider above the section — between it and the one before. */
   showDivider?: boolean;
+  /** Makes the title a button that opens and closes the items. Needs a `title`. */
+  collapsible?: boolean;
+  /** For a collapsible section: start open. Defaults to `true`. */
+  defaultExpanded?: boolean;
+  /** For a collapsible section: called with the new state after the user toggles it. */
+  onToggle?: (expanded: boolean) => void;
 }
 
 /** A titled group of `DrawerItem`s. */
@@ -101,22 +178,61 @@ export const DrawerSection = ({
   title,
   children,
   showDivider = false,
+  collapsible = false,
+  defaultExpanded = true,
+  onToggle,
 }: DrawerSectionProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  return (
-    <View style={styles.section}>
-      {showDivider && <Divider style={styles.divider} />}
-      {!!title && (
+  const collapsed = useContext(CollapsedContext);
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  const canCollapse = collapsible && !!title && !collapsed;
+
+  let heading: React.ReactNode = null;
+  if (!!title && !collapsed) {
+    heading = canCollapse ? (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        accessibilityState={{ expanded }}
+        onPress={() => {
+          setExpanded(!expanded);
+          onToggle?.(!expanded);
+        }}
+        style={[
+          styles.sectionTitleRow,
+          Platform.select({ web: { cursor: "pointer" } }),
+        ]}
+      >
         <Typography
           variant="titleSmall"
           accessibilityRole="header"
-          style={styles.sectionTitle}
+          style={styles.sectionTitleText}
         >
           {title}
         </Typography>
-      )}
-      {children}
+        <Icon
+          source={expanded ? "chevron-up" : "chevron-down"}
+          size={20}
+          color={theme.colors.onSurfaceVariant}
+        />
+      </Pressable>
+    ) : (
+      <Typography
+        variant="titleSmall"
+        accessibilityRole="header"
+        style={styles.sectionTitle}
+      >
+        {title}
+      </Typography>
+    );
+  }
+
+  return (
+    <View style={styles.section}>
+      {showDivider && <Divider style={styles.divider} />}
+      {heading}
+      {canCollapse ? <Collapse open={expanded}>{children}</Collapse> : children}
     </View>
   );
 };
@@ -132,6 +248,13 @@ export interface NavigationDrawerProps {
   visible?: boolean;
   /** Modal only: called on scrim press, Android back and Escape (web). */
   onDismiss?: () => void;
+  /** Pinned above the scrolling items: a logo, a site picker. */
+  header?: React.ReactNode;
+  /**
+   * Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an
+   * item without an icon shows its first letter). Defaults to `false`.
+   */
+  collapsed?: boolean;
   /** Headline at the top of the drawer. */
   title?: string;
   /** `DrawerSection`s and/or `DrawerItem`s. */
@@ -152,20 +275,29 @@ const NavigationDrawer = ({
   variant = "standard",
   visible = false,
   onDismiss,
+  header,
+  collapsed = false,
   title,
   children,
   footer,
-  width = DRAWER_WIDTH,
+  width: widthProp = DRAWER_WIDTH,
   style,
   testID,
 }: NavigationDrawerProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const width = collapsed ? COLLAPSED_WIDTH : widthProp;
 
   const body = (
     <View style={styles.body} role="navigation">
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {!!title && (
+      {header != null && <View style={styles.header}>{header}</View>}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          collapsed && styles.scrollCollapsed,
+        ]}
+      >
+        {!!title && !collapsed && (
           <Typography
             variant="titleSmall"
             accessibilityRole="header"
@@ -180,8 +312,14 @@ const NavigationDrawer = ({
     </View>
   );
 
+  const withContext = (node: React.ReactNode) => (
+    <CollapsedContext.Provider value={collapsed}>
+      {node}
+    </CollapsedContext.Provider>
+  );
+
   if (variant === "modal") {
-    return (
+    return withContext(
       <SideOverlay
         visible={visible}
         onDismiss={onDismiss}
@@ -192,14 +330,14 @@ const NavigationDrawer = ({
         testID={testID}
       >
         {body}
-      </SideOverlay>
+      </SideOverlay>,
     );
   }
 
-  return (
+  return withContext(
     <View style={[styles.standard, { width }, style]} testID={testID}>
       {body}
-    </View>
+    </View>,
   );
 };
 
@@ -213,6 +351,8 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.colors.surface,
     },
     body: { flex: 1 },
+    header: { paddingHorizontal: ITEM_INSET, paddingTop: ITEM_INSET },
+    scrollCollapsed: { paddingHorizontal: theme.spacing.s },
     scroll: {
       paddingHorizontal: ITEM_INSET,
       paddingVertical: ITEM_INSET,
@@ -228,6 +368,14 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.m,
       paddingVertical: theme.spacing.m,
     },
+    sectionTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.m,
+      paddingVertical: theme.spacing.m,
+    },
+    sectionTitleText: { color: theme.colors.onSurfaceVariant },
     divider: {
       marginHorizontal: theme.spacing.m,
       marginBottom: theme.spacing.s,
@@ -243,6 +391,12 @@ const makeStyles = (theme: Theme) =>
       ...Platform.select({ web: { cursor: "pointer" } }),
     },
     itemLabel: { flex: 1 },
+    itemCollapsed: {
+      justifyContent: "center",
+      paddingStart: 0,
+      paddingEnd: 0,
+      gap: 0,
+    },
     focused: getGlowStyles(theme, true),
     disabled: { opacity: 0.38 },
     footer: {

@@ -115,6 +115,21 @@ export const navigationDrawerVariants = galleryOf(NavigationDrawerDemo, [
   ],
 ]);
 
+navigationDrawerVariants.push(
+  ...galleryOf(NavigationDrawerDemo, [
+    [
+      "Nested items and a collapsible section",
+      { variant: "standard", layout: "crm" },
+      "A group opens to its sub-items; the section title opens and closes its items; a header sits above.",
+    ],
+    [
+      "Collapsed",
+      { variant: "standard", layout: "crm", collapsed: true },
+      "Icons only, 72 wide.",
+    ],
+  ]),
+);
+
 export const toolbarVariants = galleryOf(ToolbarDemo, [
   ["Docked", { variant: "docked" }],
   ["Floating", { variant: "floating", color: "standard" }],

@@ -110,6 +110,28 @@ const DrawerContent = ({
   </>
 );
 
+// A CRM-style menu: a group with sub-items, a collapsible section, a header.
+const CrmDrawerContent = () => (
+  <>
+    <DrawerSection>
+      <DrawerItem
+        label="Customers"
+        icon="account-multiple-outline"
+        selected
+        onPress={noop}
+      />
+      <DrawerItem label="Reports" icon="chart-box-outline" defaultExpanded>
+        <DrawerItem label="Sales" onPress={noop} />
+        <DrawerItem label="Agents" onPress={noop} />
+      </DrawerItem>
+    </DrawerSection>
+    <DrawerSection title="Administration" showDivider collapsible>
+      <DrawerItem label="Users" icon="shield-account-outline" onPress={noop} />
+      <DrawerItem label="Routes" icon="sitemap-outline" onPress={noop} />
+    </DrawerSection>
+  </>
+);
+
 export const NavigationDrawerDemo = ({ props }: DemoProps) => {
   const [selected, setSelected] = useState("inbox");
   const [open, setOpen] = useState(false);
@@ -139,8 +161,29 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
   }
   return (
     <View style={{ height: 440, width: "100%", maxWidth: 360 }}>
-      <NavigationDrawer title={props.title} width={320}>
-        <DrawerContent selected={selected} onSelect={setSelected} />
+      <NavigationDrawer
+        title={props.layout === "crm" ? undefined : props.title}
+        width={320}
+        collapsed={!!props.collapsed}
+        header={
+          props.layout === "crm" ? (
+            props.collapsed ? (
+              <IconButton
+                icon="domain"
+                accessibilityLabel="Acme"
+                onPress={noop}
+              />
+            ) : (
+              <Button mode="outlined">Acme · Rome</Button>
+            )
+          ) : undefined
+        }
+      >
+        {props.layout === "crm" ? (
+          <CrmDrawerContent />
+        ) : (
+          <DrawerContent selected={selected} onSelect={setSelected} />
+        )}
       </NavigationDrawer>
     </View>
   );

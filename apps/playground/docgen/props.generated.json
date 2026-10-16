@@ -4285,10 +4285,25 @@
           "deprecated": false
         },
         {
+          "name": "collapsed",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an\nitem without an icon shows its first letter). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
           "name": "footer",
           "type": "React.ReactNode",
           "required": false,
           "description": "Pinned below the scrolling items.",
+          "deprecated": false
+        },
+        {
+          "name": "header",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Pinned above the scrolling items: a logo, a site picker.",
           "deprecated": false
         },
         {
@@ -6965,16 +6980,25 @@
           "deprecated": false
         },
         {
-          "name": "onPress",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
           "name": "badge",
           "type": "string | number",
           "required": false,
           "description": "Trailing text, e.g. an unread count: `24`, `\"100+\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Sub-items (`DrawerItem`s): makes this a group. Pressing it toggles them,\nand they are indented one level. Hidden while the drawer is `collapsed`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "For a group: start open. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -6989,6 +7013,20 @@
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
           "description": "Leading glyph. The active state strips an \"-outline\" suffix.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "description": "Optional for an item with `children`, whose press opens and closes them.",
+          "deprecated": false
+        },
+        {
+          "name": "onToggle",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "description": "For a group: called with the new state after the user toggles it.",
           "deprecated": false
         },
         {
@@ -7017,6 +7055,29 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "collapsible",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Makes the title a button that opens and closes the items. Needs a `title`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "For a collapsible section: start open. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "onToggle",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "description": "For a collapsible section: called with the new state after the user toggles it.",
           "deprecated": false
         },
         {

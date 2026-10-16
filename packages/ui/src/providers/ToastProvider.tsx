@@ -6,13 +6,13 @@ import React, {
   useState,
 } from "react";
 import { View, StyleSheet } from "react-native";
-import Snackbar from "../components/Snackbar";
+import Snackbar, { type SnackbarType } from "../components/Snackbar";
 import { MaterialCommunityIconsGlyphs } from "../components/types";
 
 export interface ToastOptions {
   message: string;
   /** Drives the container colors and the default icon. */
-  type?: "default" | "success" | "error";
+  type?: SnackbarType;
   /** Auto-hide delay in ms. Defaults to 4000. */
   duration?: number;
   /** Overrides the icon implied by `type`. */
@@ -39,6 +39,16 @@ interface ToastApi {
   ) => string;
   /** Shorthand for `show({ type: "error" })`. */
   error: (
+    message: string,
+    options?: Omit<ToastOptions, "message" | "type">,
+  ) => string;
+  /** Shorthand for `show({ type: "warning" })`. */
+  warning: (
+    message: string,
+    options?: Omit<ToastOptions, "message" | "type">,
+  ) => string;
+  /** Shorthand for `show({ type: "info" })`. */
+  info: (
     message: string,
     options?: Omit<ToastOptions, "message" | "type">,
   ) => string;
@@ -95,6 +105,9 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
       success: (message, options) =>
         show({ ...options, message, type: "success" }),
       error: (message, options) => show({ ...options, message, type: "error" }),
+      warning: (message, options) =>
+        show({ ...options, message, type: "warning" }),
+      info: (message, options) => show({ ...options, message, type: "info" }),
       hide,
       queue: queue.map((toast) => toast.key),
     }),

@@ -592,6 +592,13 @@
           "deprecated": false
         },
         {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "A row of buttons fixed at the bottom, below a divider, while the content\nabove it scrolls (named like `SideSheet`'s and `Modal`'s `actions`).",
+          "deprecated": false
+        },
+        {
           "name": "dismissOnScrimTap",
           "type": "boolean",
           "required": false,
@@ -604,6 +611,14 @@
           "required": false,
           "default": "0.85",
           "description": "Max sheet height as a fraction of the window height.",
+          "deprecated": false
+        },
+        {
+          "name": "showCloseButton",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds a close button at the end of the title row. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -4188,6 +4203,14 @@
           "deprecated": false
         },
         {
+          "name": "size",
+          "type": "keyof typeof MAX_WIDTHS",
+          "required": false,
+          "default": "\"md\"",
+          "description": "How wide the dialog may grow on a wide window: `\"xs\"` 360, `\"sm\"` 480,\n`\"md\"` 560, `\"lg\"` 800. Defaults to `\"md\"`, the width it always had.\nIgnored by `fullScreen`.",
+          "deprecated": false
+        },
+        {
           "name": "testID",
           "type": "string",
           "required": false,
@@ -5523,14 +5546,9 @@
         },
         {
           "name": "type",
-          "type": "\"default\" | \"success\" | \"error\"",
+          "type": "SnackbarType",
           "required": false,
           "default": "\"default\"",
-          "values": [
-            "default",
-            "success",
-            "error"
-          ],
           "deprecated": false
         }
       ]
@@ -6060,21 +6078,31 @@
       "extends": [],
       "props": [
         {
-          "name": "activeTab",
-          "type": "number",
-          "required": true,
-          "deprecated": false
-        },
-        {
           "name": "onChange",
-          "type": "(index: number) => void",
+          "type": "(index: number, key?: string) => void",
           "required": true,
+          "description": "Called with the pressed tab's position and, when it has one, its `key`.",
           "deprecated": false
         },
         {
           "name": "tabs",
-          "type": "IconTabItem[] | string[]",
+          "type": "TabItem[] | string[]",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "activeKey",
+          "type": "string",
+          "required": false,
+          "description": "The active tab by its `key`, for tabs that come and go (by role, by flag).",
+          "deprecated": false
+        },
+        {
+          "name": "activeTab",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "The active tab by position. Ignored when `activeKey` is given. Defaults to 0.",
           "deprecated": false
         }
       ]

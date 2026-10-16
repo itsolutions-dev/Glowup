@@ -9,6 +9,7 @@ import {
   Modal as NativeModal,
   Animated,
   Pressable,
+  ScrollView,
   View,
   StyleSheet,
   Platform,
@@ -17,12 +18,21 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Typography from "./Typography";
+import IconButton from "./IconButton";
+import Divider from "./Divider";
 
 export interface BottomSheetProps {
   visible: boolean;
   onDismiss: () => void;
   children: React.ReactNode;
   title?: string;
+  /** Adds a close button at the end of the title row. Defaults to `false`. */
+  showCloseButton?: boolean;
+  /**
+   * A row of buttons fixed at the bottom, below a divider, while the content
+   * above it scrolls (named like `SideSheet`'s and `Modal`'s `actions`).
+   */
+  actions?: React.ReactNode;
   showHandle?: boolean;
   dismissOnScrimTap?: boolean;
   /** Max sheet height as a fraction of the window height. */
@@ -36,6 +46,8 @@ const BottomSheet = ({
   onDismiss,
   children,
   title,
+  showCloseButton = false,
+  actions,
   showHandle = true,
   dismissOnScrimTap = true,
   maxHeightRatio = 0.85,
@@ -167,13 +179,41 @@ const BottomSheet = ({
             </View>
           )}
 
-          {!!title && (
-            <Typography variant="titleLarge" style={styles.title}>
-              {title}
-            </Typography>
+          {(!!title || showCloseButton) && (
+            <View style={styles.header}>
+              <Typography
+                variant="titleLarge"
+                accessibilityRole="header"
+                numberOfLines={1}
+                style={[styles.title, showCloseButton && styles.titleStart]}
+              >
+                {title ?? ""}
+              </Typography>
+              {showCloseButton && (
+                <IconButton
+                  icon="close"
+                  accessibilityLabel="Close"
+                  onPress={onDismiss}
+                />
+              )}
+            </View>
           )}
 
-          <View style={styles.content}>{children}</View>
+          {/* Scrolls on its own, so a tall sheet keeps its actions in view. */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+          >
+            {children}
+          </ScrollView>
+
+          {actions != null && (
+            <>
+              <Divider />
+              <View style={styles.actions}>{actions}</View>
+            </>
+          )}
         </Animated.View>
       </View>
     </NativeModal>
@@ -233,12 +273,29 @@ const makeStyles = (theme: Theme) =>
       backgroundColor: theme.colors.onSurfaceVariant,
       opacity: 0.4,
     },
-    title: {
-      textAlign: "center",
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.m,
       marginBottom: theme.spacing.s,
+    },
+    title: {
+      flex: 1,
+      textAlign: "center",
       color: theme.colors.onSurface,
     },
+    // With a close button the title sits at the start, like a side sheet's.
+    titleStart: { textAlign: "left" },
+    scroll: { flexShrink: 1 },
     content: {
       paddingHorizontal: theme.spacing.m,
+    },
+    actions: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: theme.spacing.s,
+      paddingHorizontal: theme.spacing.m,
+      paddingTop: theme.spacing.m,
     },
   });

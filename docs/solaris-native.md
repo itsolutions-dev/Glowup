@@ -455,6 +455,14 @@ all'uscita dal campo si rimette l'etichetta scelta o si svuota; il CRM lo usa sp
 **Non fatti, per scarsa evidenza**: `multiple` (2 usi) e `uppercase` (3). **Non verificato**: a schermo, su iOS e Android (sul nativo
 il blur può arrivare prima della pressione di un'opzione: ordine ragionato, non provato). **Il lotto 3A è chiuso.**
 
+**Lotto 3B, primo giro fatto (2026-10-16)** — solo estensioni di componenti esistenti: `Modal.size` (20 file del CRM la usano), `BottomSheet`
+con `actions` (stesso nome di `SideSheet` e `Modal`, non `footer`), `showCloseButton` e contenuto che scorre, `Tabs` con `key`/`activeKey`/`disabled`
+(`onChange(index, key)`, retrocompatibile), `Snackbar`/`useToast` con `warning` e `info` e `success` sui ruoli del tema. 16 test nuovi.
+Verificato su web: `Tabs` (chiave, tab disabilitato). **Non visto a schermo**: `Modal`, `BottomSheet`, `Snackbar` (i riquadri della galleria
+sono fermi a metà animazione nella cattura headless; colori e struttura verificati da test). **Non fatti, senza evidenza sufficiente**: `Modal`
+`overline`/`leadingActions`/`dividers`, snap point del `BottomSheet`. **Restano nel 3B**: barra laterale (`DrawerItem` annidato, `DrawerSection`
+comprimibile, `NavigationDrawer` con `header` e `collapsed`), `ToggleButtonGroup` con valori tipizzati, `Stepper` a pallini.
+
 **`CaptionValue` fatto (2026-10-16, lotto 3C)**: componente nuovo (`caption`, `value`, `direction`, `reverse`, `fallback`, `omitCaption`,
 `captionColor`/`valueColor`, `textAlign`, `gap`, `numberOfLines`, stili e `style`); non porta il `translate()` interno del CRM (l'i18n resta
 all'app). Differenza voluta dal CRM: `0` è un valore, non cade nel `fallback`. 4 test; in catalogo con demo e galleria; verificato su web.

@@ -55,6 +55,25 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
+        type="warning"
+        message="Storage is almost full: 92% of 5 GB used."
+        onDismiss={() => {}}
+      />
+    </div>
+    <div style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        type="info"
+        message="A new version of the app is available."
+        action={{ label: "Update", onPress: () => {} }}
+        onDismiss={() => {}}
+      />
+    </div>
+    <div style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
         type="error"
         message="Upload failed — the token file is larger than 2 MB."
         action={{ label: "Retry", onPress: () => {} }}

@@ -4,20 +4,27 @@ import Icons from "../Glyph";
 import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
-interface BaseTabItem {
+export interface TabItem {
   label: string;
-}
-interface IconTabItem extends BaseTabItem {
-  icon: string;
+  /** Shows the icon variant of the bar. Give it to every tab or to none. */
+  icon?: string;
+  /** Identifies the tab for `activeKey` and `onChange`, whatever its position. */
+  key?: string;
+  /** Greys the tab out and ignores presses. */
+  disabled?: boolean;
 }
 
 export interface TabProps {
-  tabs: IconTabItem[] | string[];
-  activeTab: number;
-  onChange: (index: number) => void;
+  tabs: TabItem[] | string[];
+  /** The active tab by position. Ignored when `activeKey` is given. Defaults to 0. */
+  activeTab?: number;
+  /** The active tab by its `key`, for tabs that come and go (by role, by flag). */
+  activeKey?: string;
+  /** Called with the pressed tab's position and, when it has one, its `key`. */
+  onChange: (index: number, key?: string) => void;
 }
 
-const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
+const Tabs = ({ tabs, activeTab = 0, activeKey, onChange }: TabProps) => {
   const { theme } = useTheme();
   const [containerWidth, setContainerWidth] = useState(0);
   const [indicatorAnim] = useState(() => new Animated.Value(0));
@@ -26,20 +33,28 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
     Array.isArray(tabs) &&
     tabs.length > 0 &&
     typeof tabs[0] !== "string" &&
-    "icon" in tabs[0];
+    !!tabs[0].icon;
 
   const tabWidth = containerWidth > 0 ? containerWidth / tabs.length : 0;
 
+  // A key that matches no tab leaves the bar with no active tab, not the first.
+  const activeIndex =
+    activeKey === undefined
+      ? activeTab
+      : (tabs as (TabItem | string)[]).findIndex(
+          (tab) => typeof tab !== "string" && tab.key === activeKey,
+        );
+
   useEffect(() => {
-    if (tabWidth > 0) {
+    if (tabWidth > 0 && activeIndex >= 0) {
       Animated.spring(indicatorAnim, {
-        toValue: activeTab * tabWidth,
+        toValue: activeIndex * tabWidth,
         useNativeDriver: true,
         friction: 8,
         tension: 50,
       }).start();
     }
-  }, [activeTab, tabWidth, indicatorAnim]);
+  }, [activeIndex, tabWidth, indicatorAnim]);
 
   return (
     <View
@@ -55,8 +70,10 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
       accessibilityRole="tablist"
     >
       {tabs.map((tab, index) => {
-        const isActive = activeTab === index;
+        const isActive = activeIndex === index;
         const label = typeof tab === "string" ? tab : tab.label;
+        const tabKey = typeof tab === "string" ? undefined : tab.key;
+        const disabled = typeof tab !== "string" && !!tab.disabled;
         const iconName =
           hasIcons && typeof tab !== "string"
             ? isActive
@@ -66,21 +83,25 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
 
         return (
           <Pressable
-            key={index}
-            onPress={() => onChange(index)}
+            key={tabKey ?? index}
+            disabled={disabled}
+            onPress={() => onChange(index, tabKey)}
             style={({ hovered, pressed }: PressableState) => [
               styles.tabItem,
-              (hovered || pressed) && getGlowStyles(theme, true),
+              disabled && styles.disabled,
+              !disabled && (hovered || pressed) && getGlowStyles(theme, true),
               // Use theme-defined state layer colors for consistency
-              hovered && {
-                backgroundColor: `${theme.colors.primary}08`,
-              },
-              pressed && {
-                backgroundColor: `${theme.colors.primary}12`,
-              },
+              !disabled &&
+                hovered && {
+                  backgroundColor: `${theme.colors.primary}08`,
+                },
+              !disabled &&
+                pressed && {
+                  backgroundColor: `${theme.colors.primary}12`,
+                },
             ]}
             accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
+            accessibilityState={{ selected: isActive, disabled }}
             aria-selected={isActive}
             accessibilityLabel={label}
           >
@@ -130,6 +151,7 @@ const Tabs = ({ tabs, activeTab, onChange }: TabProps) => {
           styles.indicator,
           {
             width: tabWidth,
+            opacity: activeIndex < 0 ? 0 : 1,
             backgroundColor: theme.colors.primary,
             transform: [{ translateX: indicatorAnim }],
           },
@@ -161,6 +183,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(0,0,0,0.05)",
   },
+  disabled: { opacity: 0.38 },
   tabItem: {
     flex: 1,
     alignItems: "center",

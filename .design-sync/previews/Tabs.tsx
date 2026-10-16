@@ -47,3 +47,17 @@ export const TwoTabs = () => (
     />
   </div>
 );
+
+export const KeysAndDisabled = () => (
+  <div style={wrap}>
+    <Tabs
+      tabs={[
+        { label: "Overview", key: "overview" },
+        { label: "Billing", key: "billing" },
+        { label: "Audit log", key: "audit", disabled: true },
+      ]}
+      activeKey="billing"
+      onChange={() => {}}
+    />
+  </div>
+);

@@ -17,6 +17,9 @@ import IconButton from "../IconButton";
 import Title from "../Typography";
 import { useEscapeKey } from "../internal/useEscapeKey";
 
+/** Maximum dialog widths: the dialog is 85% of the window, up to this many px. */
+const MAX_WIDTHS = { xs: 360, sm: 480, md: 560, lg: 800 } as const;
+
 export interface ModalProps {
   children: React.ReactNode | string;
   title?: string;
@@ -36,6 +39,12 @@ export interface ModalProps {
    * Defaults to `true`.
    */
   dismissable?: boolean;
+  /**
+   * How wide the dialog may grow on a wide window: `"xs"` 360, `"sm"` 480,
+   * `"md"` 560, `"lg"` 800. Defaults to `"md"`, the width it always had.
+   * Ignored by `fullScreen`.
+   */
+  size?: keyof typeof MAX_WIDTHS;
   /** Scrolls the body when the content is taller than the dialog. */
   scrollable?: boolean;
   /**
@@ -66,6 +75,7 @@ function Modal({
   onDismiss,
   closeText = "Close",
   dismissable = true,
+  size = "md",
   scrollable = false,
   actions,
   fullScreen = false,
@@ -159,7 +169,11 @@ function Modal({
 
         <View
           accessibilityViewIsModal
-          style={[styles.modalContent, getGlowStyles(theme, true)]}
+          style={[
+            styles.modalContent,
+            { maxWidth: MAX_WIDTHS[size] },
+            getGlowStyles(theme, true),
+          ]}
         >
           {!!icon && (
             <View style={styles.iconRow}>

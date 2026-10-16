@@ -53,6 +53,20 @@ export const TwoTabs = () => (
   </View>
 );
 
+export const KeysAndDisabled = () => (
+  <View style={wrap}>
+    <Tabs
+      tabs={[
+        { label: "Overview", key: "overview" },
+        { label: "Billing", key: "billing" },
+        { label: "Audit log", key: "audit", disabled: true },
+      ]}
+      activeKey="billing"
+      onChange={() => {}}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "TextTabs",
@@ -73,5 +87,10 @@ export const variants: Variant[] = [
     name: "TwoTabs",
     title: "Two tabs",
     render: TwoTabs,
+  },
+  {
+    name: "KeysAndDisabled",
+    title: "Keys and disabled",
+    render: KeysAndDisabled,
   },
 ];

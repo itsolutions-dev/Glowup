@@ -5,6 +5,16 @@ import Button from "./Button";
 import Icons from "./Glyph";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
+export type SnackbarType = "default" | "success" | "error" | "warning" | "info";
+
+const TYPE_ICONS: Record<SnackbarType, MaterialCommunityIconsGlyphs> = {
+  default: "alert-circle",
+  success: "check-circle",
+  error: "alert-circle",
+  warning: "alert",
+  info: "information",
+};
+
 export interface SnackbarProps {
   visible: boolean;
   message: string;
@@ -14,7 +24,7 @@ export interface SnackbarProps {
     label: string;
     onPress: () => void;
   };
-  type?: "default" | "success" | "error";
+  type?: SnackbarType;
   icon?: MaterialCommunityIconsGlyphs;
 }
 
@@ -122,7 +132,7 @@ const Snackbar = ({
           )}
           {!icon && type !== "default" && (
             <Icons
-              name={type === "success" ? "check-circle" : "alert-circle"}
+              name={TYPE_ICONS[type]}
               size={20}
               color={iconColor}
               style={styles.leadingIcon}
@@ -153,23 +163,17 @@ const Snackbar = ({
   );
 };
 
-const makeStyles = (theme: Theme, type: "default" | "success" | "error") => {
-  const isError = type === "error";
-  const isSuccess = type === "success";
-
-  let backgroundColor = theme.colors.surfaceContainerHighest;
-  let textColor = theme.colors.onSurface;
-  let iconColor = theme.colors.primary;
-
-  if (isError) {
-    backgroundColor = theme.colors.errorContainer;
-    textColor = theme.colors.onErrorContainer;
-    iconColor = theme.colors.error;
-  } else if (isSuccess) {
-    backgroundColor = theme.colors.secondaryContainer;
-    textColor = theme.colors.onSecondaryContainer;
-    iconColor = theme.colors.primary; // Or theme.colors.success if it existed
-  }
+const makeStyles = (theme: Theme, type: SnackbarType) => {
+  const c = theme.colors;
+  // One role set per status: container, text on it, and the accent for the icon.
+  const roles = {
+    default: [c.surfaceContainerHighest, c.onSurface, c.primary],
+    error: [c.errorContainer, c.onErrorContainer, c.error],
+    success: [c.successContainer, c.onSuccessContainer, c.success],
+    warning: [c.warningContainer, c.onWarningContainer, c.warning],
+    info: [c.infoContainer, c.onInfoContainer, c.info],
+  } as const;
+  const [backgroundColor, textColor, iconColor] = roles[type];
 
   const styles = StyleSheet.create({
     container: {

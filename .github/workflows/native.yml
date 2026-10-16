@@ -70,6 +70,9 @@ jobs:
       - name: Build for the simulator
         working-directory: apps/playground/ios
         shell: bash
+        env:
+          # The app opens the native check screen by itself a minute after launch.
+          EXPO_PUBLIC_NATIVE_CHECK_ROUTE: /native-check
         run: |
           WS=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WS" .xcworkspace)
@@ -103,6 +106,18 @@ jobs:
             exit 1
           fi
 
+      - name: Native check screen on iOS
+        if: always()
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          # The app opens the route 60 s after launch; the smoke check above took 40 s.
+          sleep 45
+          xcrun simctl io "$UDID" screenshot ios-check.png
+          {
+            echo "### iOS native check"
+            echo "Measured on the simulator: read the lines in ios-check.png (the artifact)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Collect crash reports
         if: always()
         run: |
@@ -116,6 +131,7 @@ jobs:
           name: ios-smoke
           path: |
             ios-shot.png
+            ios-check.png
             ios-app.log
             ios-crashes
             xcodebuild.log
@@ -156,6 +172,9 @@ jobs:
       - name: Build the release APK
         working-directory: apps/playground/android
         shell: bash
+        env:
+          # The app opens the native check screen by itself a minute after launch.
+          EXPO_PUBLIC_NATIVE_CHECK_ROUTE: /native-check
         run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --console=plain | tee ../../../gradle.log | tail -40
 
       # The runner has no KVM by default; this makes the emulator usable.
@@ -180,6 +199,8 @@ jobs:
             adb logcat -d > android-logcat.txt
             adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
             test -s android-pid.txt
+            node scripts/android-interact.mjs | tee android-interaction.txt || true
+            adb logcat -d -s ReactNativeJS:V | grep -o "NATIVECHECK .*" > android-nativecheck.txt || true
 
       - name: Summary
         if: always()
@@ -188,6 +209,11 @@ jobs:
             echo "### Android"
             echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
             echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
+            echo "### Android native check"
+            echo '```'
+            cat android-interaction.txt 2>/dev/null || echo "no interaction output"
+            sort -u android-nativecheck.txt 2>/dev/null || true
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
@@ -196,6 +222,10 @@ jobs:
           name: android-smoke
           path: |
             android-shot.png
+            android-check.png
+            android-check-after.png
+            android-interaction.txt
+            android-nativecheck.txt
             android-logcat.txt
             gradle.log
           if-no-files-found: ignore

@@ -468,6 +468,12 @@ sono fermi a metà animazione nella cattura headless; colori e struttura verific
 un'icona mancante). 9 test; verificato su web (gruppo, sezione, header, versione compressa). Non fatti: `hidden`/`renderItem` (si filtra l'array), prefetch
 al passaggio del mouse. **Restano nel 3B**: `ToggleButtonGroup` con valori tipizzati, `Stepper` a pallini.
 
+**Schermata di verifica nativa (2026-10-16, spike 0.6)**: `/native-check` nel playground, aperta in CI un minuto dopo l'avvio. Misura sul
+dispositivo le altezze reali con `density` (campo −24, pulsante −12, `Select` −20) e la larghezza del badge; su Android `scripts/android-interact.mjs`
+comanda l'emulatore con `adb` (scrive `12,50`, tocca il badge, cambia tab, apre il gruppo del menu e il foglio) e legge lo schermo con
+`uiautomator`. Su iOS solo misure e screenshot (la CI non può toccare). **Verificata su web** (4 misure su 4); **non ancora girata su nessun
+emulatore**: il primo run probabilmente richiederà correzioni allo script.
+
 **`CaptionValue` fatto (2026-10-16, lotto 3C)**: componente nuovo (`caption`, `value`, `direction`, `reverse`, `fallback`, `omitCaption`,
 `captionColor`/`valueColor`, `textAlign`, `gap`, `numberOfLines`, stili e `style`); non porta il `translate()` interno del CRM (l'i18n resta
 all'app). Differenza voluta dal CRM: `0` è un valore, non cade nel `fallback`. 4 test; in catalogo con demo e galleria; verificato su web.

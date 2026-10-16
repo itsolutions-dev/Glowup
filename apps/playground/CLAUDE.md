@@ -59,6 +59,22 @@ against `FLAT_ORDER`, the registry and the generated docs, so a component catalo
 working demo fails there.
 It gets its page, its props table and its URL for free.
 
+## The native check screen
+
+`app/native-check.tsx` (/native-check) is a verification screen for the **native smoke job only**
+(`.github/workflows/native.yml`); nothing links to it. A build made with
+`EXPO_PUBLIC_NATIVE_CHECK_ROUTE=/native-check` opens it a minute after launch (`NativeCheckTrigger` in
+`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has two parts:
+
+- **Measurements**: normal and dense controls and a button with and without a badge are laid out on the
+  device and their sizes compared (Δ height 24 / 12 / 20, badge width +12), so it catches what jest cannot.
+  Results are drawn on screen (an iOS screenshot is the only evidence there: its log carries no
+  `console.log`) and logged as `NATIVECHECK` lines.
+- **Interaction**: a decimal-comma input, a badge button, keyed tabs, a drawer group and a bottom sheet, each
+  with a `state=` line. `scripts/android-interact.mjs` drives them on the emulator with `adb` (types,
+  taps, `uiautomator dump`) and prints PASS/FAIL per step. iOS has no equivalent from CI. The screen and
+  the script are kept in step by hand: add a control there when a component gains behaviour a phone must prove.
+
 ## The notifications page
 
 `app/notifications.tsx` (/notifications) demos `@its/glowup-notifications`. The page mounts its

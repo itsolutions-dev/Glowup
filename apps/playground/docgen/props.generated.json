@@ -820,6 +820,18 @@
           "deprecated": false
         },
         {
+          "name": "density",
+          "type": "\"normal\" | \"dense\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "Control height. `\"dense\"` is for desktop forms and tables: about 36 px\ninstead of 48.",
+          "values": [
+            "normal",
+            "dense"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -3479,6 +3491,18 @@
           "deprecated": false
         },
         {
+          "name": "density",
+          "type": "\"normal\" | \"dense\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "Control height. `\"dense\"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.",
+          "values": [
+            "normal",
+            "dense"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -3519,7 +3543,7 @@
           "name": "minHeight",
           "type": "number",
           "required": false,
-          "default": "56",
+          "description": "Overrides the height `density` gives (56, or 40 when dense).",
           "deprecated": false
         },
         {
@@ -5039,6 +5063,18 @@
           "required": false,
           "default": "false",
           "description": "Mount with the option list already open. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "density",
+          "type": "\"normal\" | \"dense\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "Control height. `\"dense\"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.",
+          "values": [
+            "normal",
+            "dense"
+          ],
           "deprecated": false
         },
         {

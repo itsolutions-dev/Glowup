@@ -39,6 +39,11 @@ export interface InputProps {
   onTrailingIconPress?: () => void;
   multiline?: boolean;
   numberOfLines?: number;
+  /**
+   * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.
+   */
+  density?: "normal" | "dense";
+  /** Overrides the height `density` gives (56, or 40 when dense). */
   minHeight?: number;
   style?: StyleProp<ViewStyle>;
 }
@@ -67,12 +72,14 @@ const Input = ({
   onTrailingIconPress,
   multiline = false,
   numberOfLines = 4,
-  minHeight = 56,
+  density = "normal",
+  minHeight,
   style,
 }: InputProps) => {
+  const dense = density === "dense";
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);
   const activeColor = error ? theme.colors.error : theme.colors.primary;
 
   const handleTextChange = useCallback(
@@ -122,7 +129,7 @@ const Input = ({
       <View
         style={[
           styles.inputContainer,
-          { minHeight },
+          { minHeight: minHeight ?? (dense ? 40 : 56) },
           dynamicStyles,
           disabled && styles.disabled,
         ]}
@@ -172,10 +179,10 @@ const Input = ({
             maxLength={maxLength}
             style={[
               styles.textInput,
-              theme.typography.bodyLarge,
+              dense ? theme.typography.bodyMedium : theme.typography.bodyLarge,
               {
                 color: theme.colors.onSurface,
-                paddingVertical: variant === "filled" ? 2 : 12,
+                paddingVertical: variant === "filled" ? 2 : dense ? 8 : 12,
                 textAlign: type === "number" ? "right" : "left",
               },
             ]}
@@ -230,10 +237,10 @@ const Input = ({
 
 export default Input;
 
-const makeStyles = (theme: Theme) =>
+const makeStyles = (theme: Theme, dense: boolean) =>
   StyleSheet.create({
     wrapper: {
-      marginBottom: 20,
+      marginBottom: dense ? 12 : 20,
       width: "100%",
     },
     inputContainer: {
@@ -260,7 +267,7 @@ const makeStyles = (theme: Theme) =>
     },
     textInputWrapper: {
       flex: 1,
-      paddingVertical: Platform.OS === "ios" ? 8 : 0, // iOS needs a bit of padding for multiline
+      paddingVertical: Platform.OS === "ios" && !dense ? 8 : 0, // iOS needs a bit of padding for multiline
     },
     iconLeft: {
       marginRight: 12,

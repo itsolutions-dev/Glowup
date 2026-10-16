@@ -112,6 +112,11 @@ export interface ButtonProps {
   underlay?: React.ReactNode;
   /** Applied to the label text, after the theme's type style. */
   labelStyle?: StyleProp<TextStyle>;
+  /**
+   * Control height. `"dense"` is for desktop forms and tables: about 36 px
+   * instead of 48.
+   */
+  density?: "normal" | "dense";
   /** Stretch to fill the parent width. */
   fullWidth?: boolean;
   /** Icon side relative to the label. */
@@ -143,6 +148,7 @@ const Button = ({
   underlay,
   labelStyle,
   fullWidth = false,
+  density = "normal",
   iconPosition = "left",
   accessibilityLabel,
   accessibilityHint,
@@ -215,6 +221,7 @@ const Button = ({
             ...glow,
             opacity: disabled ? 0.38 : 1,
           },
+          density === "dense" && styles.dense,
           fullWidth && styles.fullWidth,
           underlay != null && styles.clipped,
           style,
@@ -292,6 +299,10 @@ const makeStyles = (theme: Theme) =>
     },
     clipped: {
       overflow: "hidden",
+    },
+    dense: {
+      paddingVertical: 10,
+      paddingHorizontal: theme.spacing.m,
     },
     fullWidth: {
       alignSelf: "stretch",

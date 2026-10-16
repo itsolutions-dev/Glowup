@@ -423,6 +423,12 @@ e `StatusBadge`; `Banner` (warning, info) passato ai nuovi ruoli. 5 test nuovi (
 a runtime; contrasto reale WCAG dei toni (i test misurano la distanza di luminosità, non il rapporto); **Mancano (2B-c)**: palette dei grafici e gradiente di marca. Nota: un `ThemePalette`
 scritto a mano ora deve includere i ruoli di stato (changeset lo dice).
 
+**Lotto 3A, primo pezzo fatto (2026-10-16)** — `density?: "normal" | "dense"` su `Input`, `Select` e `Button` (stesso nome e
+valori di `DataGrid`; `Button.size` è già la dimensione dell'icona, quindi `size` non andava bene). Dense: campo da 40 px
+(prima 56 / 52), pulsante da 36 (prima 48), testo `bodyMedium`, meno spazio sotto il campo. 3 test sui valori di stile;
+type-check e lint verdi. **Non verificato**: l'altezza reale a schermo su web, iOS e Android (i test leggono lo stile, non il
+layout) e l'effetto su un form da 11 campi come nello spike 0.2. Resto del 3A non iniziato.
+
 ### Fase 3 — Componenti specializzati (le prop)
 
 Gli elementi sotto sono **candidati** dalla lettura del CRM; la matrice 0.5 li conferma uno per uno

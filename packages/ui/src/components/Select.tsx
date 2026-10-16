@@ -42,6 +42,10 @@ export interface SelectProps {
   toggleOptions?: (value: any) => void;
   /** Mount with the option list already open. Uncontrolled after that. */
   defaultOpen?: boolean;
+  /**
+   * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.
+   */
+  density?: "normal" | "dense";
 }
 
 const Select = ({
@@ -60,10 +64,15 @@ const Select = ({
   selectedValues = [],
   toggleOptions,
   defaultOpen = false,
+  density = "normal",
 }: SelectProps) => {
+  const dense = density === "dense";
   const [visible, setVisible] = useState(defaultOpen);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);
+  const valueType = dense
+    ? theme.typography.bodyMedium
+    : theme.typography.bodyLarge;
 
   const labelColor = error ? theme.colors.error : theme.colors.primary;
 
@@ -115,7 +124,7 @@ const Select = ({
       return (
         <Text
           style={[
-            theme.typography.bodyLarge,
+            valueType,
             {
               color:
                 selectedValues.length > 0
@@ -140,7 +149,7 @@ const Select = ({
           />
         )}
         <Text
-          style={[theme.typography.bodyLarge, { color: placeholderColor }]}
+          style={[valueType, { color: placeholderColor }]}
           numberOfLines={1}
         >
           {selectedOption ? selectedOption.label : placeholder}
@@ -156,6 +165,7 @@ const Select = ({
     placeholder,
     theme,
     styles,
+    valueType,
     internalToggleOption,
     placeholderColor,
   ]);
@@ -347,14 +357,14 @@ const Select = ({
 
 export default Select;
 
-const makeStyles = (theme: Theme) =>
+const makeStyles = (theme: Theme, dense: boolean) =>
   StyleSheet.create({
     wrapper: {
-      marginBottom: 20,
+      marginBottom: dense ? 12 : 20,
       width: "100%",
     },
     selectContainer: {
-      minHeight: 52,
+      minHeight: dense ? 40 : 52,
       height: "100%",
       borderRadius: 12,
       paddingHorizontal: 16,

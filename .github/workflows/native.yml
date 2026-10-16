@@ -52,8 +52,13 @@ jobs:
 
       # Spike 0.3 (PDF): the libraries are not in the manifests, so they are added
       # here without saving anything.
-      - name: Add the PDF spike libraries (not saved)
-        run: npm install --no-save --ignore-scripts --no-audit --no-fund react-native-pdf@7.0.5 react-native-blob-util@0.25.1
+      - name: Add the PDF spike libraries (this checkout only)
+        # Native autolinking reads the app's package.json dependencies, so a
+        # --no-save install is invisible to it: the modules are not compiled in
+        # and the app dies on "native module is not available".
+        run: |
+          npm pkg set dependencies.react-native-pdf=7.0.5 dependencies.react-native-blob-util=0.25.1 -w @its/glowup-playground
+          npm install --ignore-scripts --no-audit --no-fund
 
       - name: Start the PDF spike server
         run: |
@@ -176,8 +181,13 @@ jobs:
 
       # Spike 0.3 (PDF): the libraries are not in the manifests, so they are added
       # here without saving anything.
-      - name: Add the PDF spike libraries (not saved)
-        run: npm install --no-save --ignore-scripts --no-audit --no-fund react-native-pdf@7.0.5 react-native-blob-util@0.25.1
+      - name: Add the PDF spike libraries (this checkout only)
+        # Native autolinking reads the app's package.json dependencies, so a
+        # --no-save install is invisible to it: the modules are not compiled in
+        # and the app dies on "native module is not available".
+        run: |
+          npm pkg set dependencies.react-native-pdf=7.0.5 dependencies.react-native-blob-util=0.25.1 -w @its/glowup-playground
+          npm install --ignore-scripts --no-audit --no-fund
 
       - name: Start the PDF spike server
         run: |
@@ -233,6 +243,7 @@ jobs:
             test -s android-pid.txt
             sleep 50
             adb exec-out screencap -p > android-pdf.png
+            adb logcat -d > android-logcat-after-pdf.txt
             adb logcat -d -s ReactNativeJS:V | grep -o "SPIKE03 .*" > pdf-spike-android.txt || true
 
       - name: Summary
@@ -262,5 +273,6 @@ jobs:
             pdf-spike-android.txt
             pdf-server.log
             android-logcat.txt
+            android-logcat-after-pdf.txt
             gradle.log
           if-no-files-found: ignore

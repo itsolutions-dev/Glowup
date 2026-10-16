@@ -50,23 +50,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      # Spike 0.3 (PDF): the libraries are not in the manifests, so they are added
-      # here without saving anything.
-      - name: Add the PDF spike libraries (this checkout only)
-        # Native autolinking reads the app's package.json dependencies, so a
-        # --no-save install is invisible to it: the modules are not compiled in
-        # and the app dies on "native module is not available".
-        run: |
-          npm pkg set dependencies.react-native-pdf=7.0.5 dependencies.react-native-blob-util=0.25.1 -w @its/glowup-playground
-          npm install --ignore-scripts --no-audit --no-fund
-
-      - name: Start the PDF spike server
-        run: |
-          nohup node apps/playground/spikes/pdf/server.mjs > pdf-server.log 2>&1 &
-          sleep 2
-          echo "without token: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8100/doc.pdf)"
-          echo "with token: $(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer spike-token' http://localhost:8100/doc.pdf)"
-
       - name: Generate the native project
         working-directory: apps/playground
         run: npx expo prebuild --platform ios --no-install
@@ -87,10 +70,6 @@ jobs:
       - name: Build for the simulator
         working-directory: apps/playground/ios
         shell: bash
-        env:
-          # Inlined into the JS bundle: the app opens the PDF spike route itself.
-          EXPO_PUBLIC_NATIVE_SPIKE_ROUTE: /spike-pdf
-          EXPO_PUBLIC_PDF_SPIKE_HOST: localhost
         run: |
           WS=$(ls -d *.xcworkspace | head -1)
           SCHEME=$(basename "$WS" .xcworkspace)
@@ -124,20 +103,6 @@ jobs:
             exit 1
           fi
 
-      # Spike 0.3: the route opens 60 s after launch; the result is on the screen.
-      - name: PDF spike on iOS
-        run: |
-          UDID="${{ steps.sim.outputs.udid }}"
-          sleep 60
-          xcrun simctl io "$UDID" screenshot ios-pdf.png
-          {
-            echo "### iOS PDF spike: requests the server received"
-            echo '```'
-            cat pdf-server.log
-            echo '```'
-            echo "Results are on the screen: read ios-pdf.png in the ios-smoke artifact."
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Collect crash reports
         if: always()
         run: |
@@ -151,8 +116,6 @@ jobs:
           name: ios-smoke
           path: |
             ios-shot.png
-            ios-pdf.png
-            pdf-server.log
             ios-app.log
             ios-crashes
             xcodebuild.log
@@ -179,30 +142,9 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
 
-      # Spike 0.3 (PDF): the libraries are not in the manifests, so they are added
-      # here without saving anything.
-      - name: Add the PDF spike libraries (this checkout only)
-        # Native autolinking reads the app's package.json dependencies, so a
-        # --no-save install is invisible to it: the modules are not compiled in
-        # and the app dies on "native module is not available".
-        run: |
-          npm pkg set dependencies.react-native-pdf=7.0.5 dependencies.react-native-blob-util=0.25.1 -w @its/glowup-playground
-          npm install --ignore-scripts --no-audit --no-fund
-
-      - name: Start the PDF spike server
-        run: |
-          nohup node apps/playground/spikes/pdf/server.mjs > pdf-server.log 2>&1 &
-          sleep 2
-          echo "without token: $(curl -s -o /dev/null -w '%{http_code}' http://localhost:8100/doc.pdf)"
-          echo "with token: $(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer spike-token' http://localhost:8100/doc.pdf)"
-
       - name: Generate the native project
         working-directory: apps/playground
         run: npx expo prebuild --platform android --no-install
-
-      # The spike server is plain http; a Release app refuses cleartext traffic by default.
-      - name: Allow cleartext traffic (spike only)
-        run: sed -i 's/<application /<application android:usesCleartextTraffic="true" /' apps/playground/android/app/src/main/AndroidManifest.xml
 
       # cache-read-only is false on purpose: by default the cache is only written
       # from the default branch, and this workflow runs on dev.
@@ -214,9 +156,6 @@ jobs:
       - name: Build the release APK
         working-directory: apps/playground/android
         shell: bash
-        env:
-          EXPO_PUBLIC_NATIVE_SPIKE_ROUTE: /spike-pdf
-          EXPO_PUBLIC_PDF_SPIKE_HOST: 10.0.2.2
         run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=x86_64 --console=plain | tee ../../../gradle.log | tail -40
 
       # The runner has no KVM by default; this makes the emulator usable.
@@ -241,10 +180,6 @@ jobs:
             adb logcat -d > android-logcat.txt
             adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
             test -s android-pid.txt
-            sleep 50
-            adb exec-out screencap -p > android-pdf.png
-            adb logcat -d > android-logcat-after-pdf.txt
-            adb logcat -d -s ReactNativeJS:V | grep -o "SPIKE03 .*" > pdf-spike-android.txt || true
 
       - name: Summary
         if: always()
@@ -253,14 +188,6 @@ jobs:
             echo "### Android"
             echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
             echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
-            echo "### Android PDF spike"
-            echo '```'
-            cat pdf-spike-android.txt 2>/dev/null || echo "no SPIKE03 lines (read android-pdf.png)"
-            echo '```'
-            echo "Requests the server received:"
-            echo '```'
-            cat pdf-server.log 2>/dev/null
-            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v7
@@ -269,10 +196,6 @@ jobs:
           name: android-smoke
           path: |
             android-shot.png
-            android-pdf.png
-            pdf-spike-android.txt
-            pdf-server.log
             android-logcat.txt
-            android-logcat-after-pdf.txt
             gradle.log
           if-no-files-found: ignore

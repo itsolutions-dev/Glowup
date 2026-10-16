@@ -109,7 +109,7 @@ sarebbe da rifare in ogni caso.
 | D6  | i18n                            | Nessuna libreria i18n nella libreria (il CRM usa react-intl, un'altra app potrebbe usarne un'altra): testi via prop `labels`/nodi, formattazione con `Intl`.                                                                                                                                                                                                                                                                                                                                                                                                     | Proposta                                      |
 | D7  | Charts                          | **SVG proprio** su `react-native-svg` (già peer) con `d3-scale`/`d3-shape` (JS puro). No Skia, no visx (renderizza DOM). Touch-first, hover su web. Formato dati: array di oggetti per chiave di serie (come recharts).                                                                                                                                                                                                                                                                                                                                          | Proposta                                      |
 | D8  | Pivot                           | **Si copia il core di AuraPivot dentro `packages/pivot`** (adattato: niente DOM, `locale` esplicito, esportazione Excel in un file a parte) e si riscrive la UI per RN. La repo AuraPivot **non si modifica**; la copia ha una nota di provenienza. Dettaglio in Fase 7.                                                                                                                                                                                                                                                                                         | Confermata (2026-10-15)                       |
-| D9  | PDF                             | Adapter come in `device`: web = `pdfjs-dist`/iframe, nativo = `react-native-pdf` (richiede dev build, non Expo Go). Input: `uri` (+ header) o byte/base64/`Blob`. **Solo visualizzare**, non generare, e **nessuna** gestione di sessioni di servizi esterni.                                                                                                                                                                                                                                                                                                    | Proposta                                      |
+| D9  | PDF                             | Adapter come in `device`: web = `pdfjs-dist`/iframe, nativo = `react-native-pdf` (richiede dev build, non Expo Go). Input: `uri` (+ header) o byte/base64/`Blob`. **Solo visualizzare**, non generare, e **nessuna** gestione di sessioni di servizi esterni. **Nativo con autenticazione = scaricare in un file con `react-native-blob-util` e aprire il file**, mai `source.headers` di `react-native-pdf`.                                                                                                                                                    | **Deciso** (spike 0.3)                        |
 | D10 | Template e componenti compositi | **Due livelli.** (1) **Componenti compositi generici**: composti solo da componenti di base, guidati da prop e slot, senza dati né dominio; restano **dentro la libreria**, nel sottopercorso **`composite-ui`** (nome provvisorio) di `@its/glowup-ui`. (2) **Componenti specifici del CRM**: si fanno **nel progetto CRM**, in una cartella/repo a parte del CRM che **dipende dalla libreria di base**; mai dentro la libreria. Il playground continua a mostrare le pagine d'esempio come codice copiabile (come `/templates/sign-in`). Dettaglio in Fase 5. | Confermata (2026-10-15, risposta del collega) |
 | D11 | Hook                            | Solo hook **generici e senza dipendenze native**, nella barrel. Quelli legati a Jotai/API/permessi restano nelle app.                                                                                                                                                                                                                                                                                                                                                                                                                                            | Proposta                                      |
 | D12 | Template builder + MCP          | **Non si costruisce ora.** Ora si fa solo la _disciplina dei metadati_ (D13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Proposta                                      |
@@ -255,18 +255,18 @@ Cosa significa in pratica:
 
 ## 3. Fasi
 
-| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                                        |
-| ---- | -------------------------------------------------------------- | ---------- | ---------- | ------------------------------------------------------------ |
-| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.1, 0.2, 0.4, 0.5 fatti; 0.6 parziale; manca 0.3) |
-| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                            |
-| 2    | Token di tema e hook                                           | S          | 0          | In corso (2A, 2B-a e 2B-b fatti)                             |
-| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                            |
-| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                            |
-| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                            |
-| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                                            |
-| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                                            |
-| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                                            |
-| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                                            |
+| Fase | Contenuto                                                      | Dimensione | Dipende da | Stato                                  |
+| ---- | -------------------------------------------------------------- | ---------- | ---------- | -------------------------------------- |
+| 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.1–0.5 fatti; 0.6 parziale) |
+| 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                      |
+| 2    | Token di tema e hook                                           | S          | 0          | In corso (2A, 2B-a e 2B-b fatti)       |
+| 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                      |
+| 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                      |
+| 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                      |
+| 6    | PDF viewer (pacchetto separato `packages/pdf`)                 | M          | 0          | —                                      |
+| 7    | Pivot (pacchetto separato `packages/pivot`, core da AuraPivot) | L          | 3, 4       | —                                      |
+| 8    | Validazione con schermate pilota del CRM                       | M          | 1, 3A      | —                                      |
+| 9    | Template builder + MCP (futuro)                                | L          | 5, D13     | —                                      |
 
 Ordine consigliato: **0 → (1 ∥ 2) → 3A → 4 ∥ 6 → 3B/3C → 5 → 7**, con 8 che parte quando 1 e 3A sono
 disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è richiesto anche sul
@@ -325,6 +325,12 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   A 10.000 rettangoli il web impiega circa 0,3–0,5 s: per dati densi la Fase 4 deve prevedere una modalità a
   `<Path>` unico. Insidia: l'`Svg` va in posizione assoluta, altrimenti la larghezza misurata blocca il
   contenitore. **Non verificati**: tocco, tempi e rendering su iOS/Android, `d3` sotto jest.
+- **0.3 fatto, web e CI su iOS e Android (2026-10-16)** → `docs/spike-0.3-pdf.md`. `react-native-pdf` funziona con RN 0.86 e nuova
+  architettura su iOS e Android: base64 ok e file scaricato con header ok (3 pagine), `pdfjs-dist` ok sul web. **`source.headers`
+  di `react-native-pdf` fallisce** su entrambe (iOS `DownloadFailed`, Android "Use of own trust manager but none defined"):
+  si scarica con `react-native-blob-util` e si apre il file, come già previsto. Insidia: l'autolinking legge il `package.json`
+  dell'app (una dipendenza `--no-save` non viene compilata e l'app muore all'avvio). **Non verificati**: telefono vero, https,
+  gesti, PDF grandi. Codice di prova tolto (commit `3076ad8`, `616c45d`).
 - **0.6 parziale, primo giro di CI verde (2026-10-15, run 38745067229, commit 79a0c22)** → `.github/workflows/native.yml`.
   Il playground (Expo SDK 57, React Native 0.86.3, nuova architettura, Hermes 250829098.0.17) **si compila in Release,
   si installa e parte** su simulatore iOS (iPhone 17 Pro, iOS 26.4.1, Xcode 26.6) e su emulatore Android (API 34,
@@ -581,7 +587,7 @@ onPageChange page zoom fit />`, più `usePdfDocument()` (numero pagine, stato). 
 - **Sorgente reale (per gli esempi e i test)**: nel CRM un **Blob** scaricato dall'API con bearer token
   (allegati email; documenti di pratica/dossier e preventivo quando ci saranno).
 - **Autenticazione**: sul nativo significa scaricare in file locale con header e passare il percorso al viewer
-  (da provare nello spike 0.3). Download e condivisione usano `@its/glowup-device` tramite l'app, mai
+  (provato nello spike 0.3, su iOS e Android). Download e condivisione usano `@its/glowup-device` tramite l'app, mai
   importato dalla libreria.
 - **Non incluso**: generazione/anteprima di template PDF (lato server nel CRM, Gotenberg), annotazioni, firma, ricerca nel testo.
 

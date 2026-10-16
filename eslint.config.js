@@ -78,8 +78,6 @@ module.exports = defineConfig([
       "**/.expo/**",
       "**/web-build/**",
       "**/coverage/**",
-      // Throwaway spike code (docs/solaris-native.md, spike 0.3); deleted with it.
-      "apps/playground/spikes/**",
       // design-sync generated artifacts, all gitignored and all rebuilt by the
       // committed scripts (see .design-sync/NOTES.md for the build order). CI
       // never runs those scripts, but anyone who does would otherwise turn

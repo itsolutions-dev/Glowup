@@ -2,12 +2,17 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Icons from "./Glyph";
 import { useTheme } from "../providers/ThemeProvider";
-import { getSuccessRoles, getWarningRoles } from "../providers/successRoles";
+import { toneFrom as resolveTone } from "../providers/toneFrom";
 
 export interface StatusBadgeProps {
   label: string;
   icon?: string;
   type?: "success" | "error" | "warning";
+  /**
+   * Tints the badge from a `#RRGGBB` colour or from any text instead of from
+   * `type`, which still picks the default icon.
+   */
+  toneFrom?: string;
 }
 
 const ICONS = {
@@ -16,12 +21,20 @@ const ICONS = {
   warning: "alert",
 } as const;
 
-const StatusBadge = ({ label, icon, type = "success" }: StatusBadgeProps) => {
+const StatusBadge = ({
+  label,
+  icon,
+  type = "success",
+  toneFrom,
+}: StatusBadgeProps) => {
   const { theme } = useTheme();
-  // Container roles from the theme — error from the palette, success and
-  // warning from their fixed hues — so a badge follows the scheme and the
+  // Container roles from the theme, so a badge follows the scheme and the
   // palette instead of a hand-picked hex pair per mode.
   const { bg, on } = useMemo(() => {
+    if (toneFrom) {
+      const tint = resolveTone(toneFrom, theme.isDark ? "dark" : "light");
+      return { bg: tint.background, on: tint.foreground };
+    }
     if (type === "error") {
       return {
         bg: theme.colors.errorContainer,
@@ -29,12 +42,16 @@ const StatusBadge = ({ label, icon, type = "success" }: StatusBadgeProps) => {
       };
     }
     if (type === "warning") {
-      const roles = getWarningRoles(theme.isDark);
-      return { bg: roles.warningContainer, on: roles.onWarningContainer };
+      return {
+        bg: theme.colors.warningContainer,
+        on: theme.colors.onWarningContainer,
+      };
     }
-    const roles = getSuccessRoles(theme.isDark);
-    return { bg: roles.successContainer, on: roles.onSuccessContainer };
-  }, [type, theme]);
+    return {
+      bg: theme.colors.successContainer,
+      on: theme.colors.onSuccessContainer,
+    };
+  }, [type, theme, toneFrom]);
 
   return (
     <View

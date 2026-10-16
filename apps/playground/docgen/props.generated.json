@@ -1735,6 +1735,13 @@
           "required": false,
           "default": "{}",
           "deprecated": false
+        },
+        {
+          "name": "toneFrom",
+          "type": "string",
+          "required": false,
+          "description": "Tints a `\"filled\"` or `\"tonal\"` chip from a `#RRGGBB` colour or from any\ntext (the same text always gives the same colour), readable in light and dark.",
+          "deprecated": false
         }
       ]
     },
@@ -5720,6 +5727,13 @@
           "name": "icon",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "toneFrom",
+          "type": "string",
+          "required": false,
+          "description": "Tints the badge from a `#RRGGBB` colour or from any text instead of from\n`type`, which still picks the default icon.",
           "deprecated": false
         },
         {

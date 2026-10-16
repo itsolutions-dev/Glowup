@@ -259,7 +259,7 @@ Cosa significa in pratica:
 | ---- | -------------------------------------------------------------- | ---------- | ---------- | ------------------------------------------------------------ |
 | 0    | Spike e fondamenta (decisioni verificate)                      | M          | —          | In corso (0.1, 0.2, 0.4, 0.5 fatti; 0.6 parziale; manca 0.3) |
 | 1    | React Native readiness + web di prima classe + stabilità       | M          | 0          | —                                                            |
-| 2    | Token di tema e hook                                           | S          | 0          | In corso (lotto 2A fatto)                                    |
+| 2    | Token di tema e hook                                           | S          | 0          | In corso (2A, 2B-a e 2B-b fatti)                             |
 | 3    | Componenti specializzati (prop) — 3 lotti                      | L          | 0, 2       | —                                                            |
 | 4    | Charts (pacchetto separato `packages/charts`)                  | L          | 2          | —                                                            |
 | 5    | Componenti compositi (`composite-ui`) e pagine d'esempio       | L          | 3          | —                                                            |
@@ -412,6 +412,17 @@ con il preset iOS), uso reale nelle componenti. Mancano: `useOrientation`, `useA
 `useControllableState`, `useDisclosure`, `useActiveFilters` (la matrice 0.5 dà evidenza solo a debounce, breakpoint,
 abort e lista infinita; gli altri aspettano un componente che li usi, D4) e tutti i token; il playground non usa ancora
 `useBreakpoint` della libreria.
+
+**Lotto 2B-a/b fatto (2026-10-16)** — ruoli di stato in `theme.colors` (`success`, `warning`, `info`, `neutral`, quattro
+token ciascuno, chiaro e scuro), scritti in `theme.json` come `error`: tinte fisse fuori dal seme, uguali in ogni palette
+(`createPalette` e le due palette di marca li prendono da lì; `brandPalettes.ts` non è stato toccato nei colori). Il
+file dei design (`crm`/`siti`, uguali a `databeasy`/`inxpire`) non ne specifica. `providers/successRoles.ts` è stato tolto:
+`Button` (`tone="success"`) e `StatusBadge` leggono dal tema. Nuove utility `toneFromColor`, `toneFromString`, `toneFrom`
+(coppia sfondo/testo con i toni M3 di un contenitore, tinta da un hex o da un testo) e prop `toneFrom` su `Chip` (filled/tonal)
+e `StatusBadge`. 5 test nuovi (più i contrasti delle palette estesi ai ruoli di stato); test, type-check, build e `validate-package` verdi, due changeset minor. **Non verificato**: nativo
+a runtime; contrasto reale WCAG dei toni (i test misurano la distanza di luminosità, non il rapporto); `Banner` usa ancora
+secondary/tertiary per info/warning. **Mancano (2B-c)**: palette dei grafici e gradiente di marca. Nota: un `ThemePalette`
+scritto a mano ora deve includere i ruoli di stato (changeset lo dice).
 
 ### Fase 3 — Componenti specializzati (le prop)
 

@@ -9,6 +9,7 @@ export {
   type InteractionFeedbackKind,
 } from "./providers/InteractionFeedback";
 export * from "./providers/palettes";
+export * from "./providers/toneFrom";
 export * from "./providers/AlertProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";

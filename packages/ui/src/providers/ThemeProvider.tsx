@@ -29,7 +29,26 @@ import { palettes, type ThemePalette } from "./palettes";
  * enable `resolveJsonModule`. The `_ThemeTokensInSync` guard at the bottom of
  * this block fails `tsc` if these types and `theme.json` ever drift apart.
  */
-export interface ThemeColorTokens {
+export interface ThemeStatusTokens {
+  info: string;
+  infoContainer: string;
+  neutral: string;
+  neutralContainer: string;
+  onInfo: string;
+  onInfoContainer: string;
+  onNeutral: string;
+  onNeutralContainer: string;
+  onSuccess: string;
+  onSuccessContainer: string;
+  onWarning: string;
+  onWarningContainer: string;
+  success: string;
+  successContainer: string;
+  warning: string;
+  warningContainer: string;
+}
+
+export interface ThemeColorTokens extends ThemeStatusTokens {
   background: string;
   boxShadow: string;
   error: string;

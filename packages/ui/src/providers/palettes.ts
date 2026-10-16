@@ -64,7 +64,9 @@ export const BASELINE_SEED = "#6750A4";
 /**
  * Build a full light/dark colour set from one source colour, following
  * Material 3's role-to-tone mapping. Error stays the fixed Material red — the
- * spec keeps it off the seed so a green brand cannot produce a green error.
+ * spec keeps it off the seed so a green brand cannot produce a green error —
+ * and so do the status roles (success, warning, info, neutral) and `boxShadow`,
+ * all taken from `theme.json`.
  *
  * ```ts
  * const brand = createPalette("#00639B", { id: "brand", name: "Brand" });
@@ -97,6 +99,7 @@ export const createPalette = (
     name: options.name ?? seed.toUpperCase(),
     seed,
     light: {
+      ...fixed.light,
       primary: p(40),
       onPrimary: p(100),
       primaryContainer: p(90),
@@ -132,9 +135,9 @@ export const createPalette = (
       outlineVariant: nv(80),
       scrim: "#000000",
       shadow: "#000000",
-      boxShadow: fixed.light.boxShadow,
     },
     dark: {
+      ...fixed.dark,
       primary: p(80),
       onPrimary: p(20),
       primaryContainer: p(30),
@@ -170,7 +173,6 @@ export const createPalette = (
       outlineVariant: nv(30),
       scrim: "#000000",
       shadow: "#000000",
-      boxShadow: fixed.dark.boxShadow,
     },
   };
 };
@@ -276,8 +278,8 @@ const shipped = {
       rest.id,
       {
         ...rest,
-        light: { ...light, boxShadow: themeConfig.colors.light.boxShadow },
-        dark: { ...dark, boxShadow: themeConfig.colors.dark.boxShadow },
+        light: { ...themeConfig.colors.light, ...light },
+        dark: { ...themeConfig.colors.dark, ...dark },
       },
     ]),
   ),

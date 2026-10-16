@@ -9,6 +9,7 @@ import {
   getGlowStyles,
 } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { toneFrom as resolveTone } from "../providers/toneFrom";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface ChipProps {
@@ -21,6 +22,11 @@ export interface ChipProps {
   mode?: "filled" | "tonal" | "outlined";
   /** "small" renders a compact 24px chip. */
   size?: "small" | "medium";
+  /**
+   * Tints a `"filled"` or `"tonal"` chip from a `#RRGGBB` colour or from any
+   * text (the same text always gives the same colour), readable in light and dark.
+   */
+  toneFrom?: string;
   /**
    * Overrides the role of a pressable chip (`"button"`). A chip that toggles
    * inside a group is a `"radio"` or a `"checkbox"`, and then reports
@@ -44,6 +50,7 @@ const Chip = ({
   disabled = false,
   mode = "filled",
   size = "medium",
+  toneFrom,
   accessibilityRole,
   style = {},
   feedback = true,
@@ -80,13 +87,19 @@ const Chip = ({
         onColor = theme.colors.onSurface;
         androidRippleColor = theme.colors.primary;
     }
+    if (toneFrom && (mode === "filled" || mode === "tonal")) {
+      const tint = resolveTone(toneFrom, theme.isDark ? "dark" : "light");
+      backgroundColor = tint.background;
+      onColor = tint.foreground;
+      androidRippleColor = tint.foreground;
+    }
     return {
       bg: backgroundColor,
       on: onColor,
       border: borderColor,
       rippleColor: androidRippleColor,
     };
-  }, [mode, selected, theme.colors]);
+  }, [mode, selected, theme.colors, theme.isDark, toneFrom]);
 
   const [bodyHovered, setBodyHovered] = useState(false);
   const [bodyPressed, setBodyPressed] = useState(false);

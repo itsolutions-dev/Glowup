@@ -57,6 +57,14 @@ describe("palettes", () => {
           ["secondaryContainer", "onSecondaryContainer"],
           ["tertiaryContainer", "onTertiaryContainer"],
           ["surface", "onSurface"],
+          ["success", "onSuccess"],
+          ["successContainer", "onSuccessContainer"],
+          ["warning", "onWarning"],
+          ["warningContainer", "onWarningContainer"],
+          ["info", "onInfo"],
+          ["infoContainer", "onInfoContainer"],
+          ["neutral", "onNeutral"],
+          ["neutralContainer", "onNeutralContainer"],
         ] as const
       ).forEach(([bg, fg]) => {
         (["light", "dark"] as const).forEach((scheme) => {

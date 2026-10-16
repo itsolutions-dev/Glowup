@@ -18,7 +18,6 @@ import {
 import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
-import { getSuccessRoles } from "../providers/successRoles";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export type ButtonMode = "filled" | "tonal" | "outlined" | "text";
@@ -45,28 +44,28 @@ export const getButtonColors = (
   mode: ButtonMode,
   tone: ButtonTone,
 ): ButtonColors => {
-  const success = tone === "success" ? getSuccessRoles(theme.isDark) : null;
-  const isError = tone === "error";
-  const accent = success
-    ? success.success
-    : isError
-      ? theme.colors.error
-      : theme.colors.primary;
-  const onAccent = success
-    ? success.onSuccess
-    : isError
-      ? theme.colors.onError
-      : theme.colors.onPrimary;
-  const container = success
-    ? success.successContainer
-    : isError
-      ? theme.colors.errorContainer
-      : theme.colors.secondaryContainer;
-  const onContainer = success
-    ? success.onSuccessContainer
-    : isError
-      ? theme.colors.onErrorContainer
-      : theme.colors.onSecondaryContainer;
+  const { colors } = theme;
+  const [accent, onAccent, container, onContainer] =
+    tone === "success"
+      ? [
+          colors.success,
+          colors.onSuccess,
+          colors.successContainer,
+          colors.onSuccessContainer,
+        ]
+      : tone === "error"
+        ? [
+            colors.error,
+            colors.onError,
+            colors.errorContainer,
+            colors.onErrorContainer,
+          ]
+        : [
+            colors.primary,
+            colors.onPrimary,
+            colors.secondaryContainer,
+            colors.onSecondaryContainer,
+          ];
 
   const surface = theme.colors.surface;
   switch (mode) {

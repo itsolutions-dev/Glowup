@@ -53,6 +53,22 @@ const COLOR_GROUPS: { label: string; tokens: string[] }[] = [
     tokens: ["error", "onError", "errorContainer", "onErrorContainer"],
   },
   {
+    label: "Success",
+    tokens: ["success", "onSuccess", "successContainer", "onSuccessContainer"],
+  },
+  {
+    label: "Warning",
+    tokens: ["warning", "onWarning", "warningContainer", "onWarningContainer"],
+  },
+  {
+    label: "Info",
+    tokens: ["info", "onInfo", "infoContainer", "onInfoContainer"],
+  },
+  {
+    label: "Neutral",
+    tokens: ["neutral", "onNeutral", "neutralContainer", "onNeutralContainer"],
+  },
+  {
     label: "Surfaces",
     tokens: [
       "background",

@@ -2,11 +2,18 @@ import themeConfig from "./theme.json";
 import type {
   Theme,
   ThemeColorTokens,
+  ThemeStatusTokens,
   TypographyVariant,
 } from "./ThemeProvider";
 
-/** A scheme as authored here: every token but `boxShadow`, which palettes.ts adds. */
-type BrandScheme = Omit<ThemeColorTokens, "boxShadow">;
+/**
+ * A scheme as authored here: every token but `boxShadow` and the status roles,
+ * which palettes.ts adds from `theme.json` (they stay off a brand's colours).
+ */
+type BrandScheme = Omit<
+  ThemeColorTokens,
+  "boxShadow" | keyof ThemeStatusTokens
+>;
 
 interface BrandPalette {
   id: "databeasy" | "inxpire";

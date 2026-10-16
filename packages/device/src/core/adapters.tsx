@@ -13,6 +13,7 @@ import type { MediaLibraryAdapter } from "../media-library/types";
 import type { MediaPickerAdapter } from "../media-picker/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
+import type { RfidAdapter } from "../rfid/types";
 import type { SecureStoreAdapter } from "../secure-store/types";
 import type { SensorsAdapter } from "../sensors/types";
 
@@ -37,6 +38,8 @@ export interface DeviceAdapters {
   mediaLibrary: MediaLibraryAdapter;
   backgroundLocation: BackgroundLocationAdapter;
   bluetooth: BluetoothAdapter;
+  /** No default: a vendor package (`@its/rfid-honeywell`) provides it. */
+  rfid: RfidAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -77,6 +80,7 @@ export function DeviceAdaptersProvider({
     mediaLibrary,
     backgroundLocation,
     bluetooth,
+    rfid,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -97,6 +101,7 @@ export function DeviceAdaptersProvider({
       ...(mediaLibrary && { mediaLibrary }),
       ...(backgroundLocation && { backgroundLocation }),
       ...(bluetooth && { bluetooth }),
+      ...(rfid && { rfid }),
     }),
     [
       parent,
@@ -116,6 +121,7 @@ export function DeviceAdaptersProvider({
       mediaLibrary,
       backgroundLocation,
       bluetooth,
+      rfid,
     ],
   );
   return (

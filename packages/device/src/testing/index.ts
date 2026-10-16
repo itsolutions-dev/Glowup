@@ -97,3 +97,16 @@ export {
   type MockService,
   type MockWrite,
 } from "./bluetooth";
+export {
+  createMockRfidAdapter,
+  type MockRfidAdapter,
+  type MockRfidCapabilities,
+  type MockRfidOptions,
+  type MockTagRead,
+} from "./rfid";
+export {
+  describeRfidAdapterContract,
+  type RfidContractHarness,
+  type RfidContractOptions,
+  type RfidContractTestApi,
+} from "./rfidContract";

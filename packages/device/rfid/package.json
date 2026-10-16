@@ -1,0 +1,7 @@
+{
+  "main": "../lib/commonjs/rfid/index.js",
+  "module": "../lib/module/rfid/index.js",
+  "types": "../lib/typescript/rfid/index.d.ts",
+  "react-native": "../src/rfid/index.ts",
+  "source": "../src/rfid/index.ts"
+}

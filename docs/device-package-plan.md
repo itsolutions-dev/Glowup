@@ -1248,8 +1248,8 @@ vendor implements it.
 
 - **`@its/rfid-honeywell`** (later `@its/rfid-zebra`, …) is a vendor package: an Android-only Expo
   module (Kotlin) around the vendor's SDK, a JS adapter that implements `RfidAdapter`, and its
-  config plugin. It depends on the contract through `import type` only, with
-  `@its/glowup-device` as a peer.
+  config plugin. It takes the contract's types through `import type` and `RfidError` at run
+  time, with `@its/glowup-device` as a peer.
 - **The app** picks the vendor in one place, `<DeviceAdaptersProvider adapters={{ rfid:
 honeywellRfidAdapter }}>`, or picks at run time with `firstSupportedRfidAdapter([honeywell,
 zebra])`. Screens use only `/rfid`'s hooks, so changing vendor changes that line and the
@@ -1266,8 +1266,9 @@ Rejected alternatives:
 How it stays honest:
 
 - **Thin adapter.** The adapter implements only primitives: connect, inventory start / stop, and
-  the settings. It declares `capabilities` for the rest (native locate, native single read, TID,
-  trigger, discovery, beeper). The engine emulates what a vendor lacks (locate = inventory
+  the settings. The rest are optional methods (native locate, native single read, trigger,
+  discovery, battery, reader info) plus `supportsTid`, and `capabilities` are read from which
+  methods exist rather than declared, so an adapter cannot claim what it lacks. The engine emulates what a vendor lacks (locate = inventory
   filtered by EPC plus the engine's proximity; single read = a short inventory window keeping the
   strongest tag), so a new vendor costs only its primitives.
 - **Units are the contract's.** RSSI is dBm, transmit power is dBm, times are ms epoch, EPC and
@@ -1276,7 +1277,7 @@ How it stays honest:
   supplies default bounds and the app may calibrate them. Metres are never promised: RSSI follows
   distance only roughly.
 - **Contract version.** `/rfid` exports `RFID_CONTRACT_VERSION`; each adapter declares the version
-  it implements. The hooks reject a mismatch with `RfidError("incompatible-adapter")`, and the
+  it implements, as a number literal (importing the constant would always match). The hooks reject a mismatch with `RfidError("incompatible-adapter")`, and the
   vendor package's peer range follows the device package's minor version (0.x).
 - **Conformance kit.** `@its/glowup-device/testing` exports `describeRfidAdapterContract()`: a Jest
   suite that every vendor package runs against its adapter with its native module faked. It checks
@@ -1364,7 +1365,7 @@ Free to use is not the same as free to redistribute.
 
 | Phase | Content                                                                                                                                                                                                                                                               | Release  | Status   |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.10.0` | proposed |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.10.0` | done     |
 | 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | proposed |
 | 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed |
 | 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.10.0` | proposed |
@@ -1382,6 +1383,50 @@ Free to use is not the same as free to redistribute.
 - **The licence:** whether it allows redistribution (R11 holds until it does).
 - **Choosing a reader:** one fixed IH40 per CT40, or a pool with a picker.
 - **The CT40's Android version.** The SDK needs 8.0 or later.
+
+### Phase 34 — what landed
+
+- **`@its/glowup-device/rfid`**, no native code and no default adapter (`unsupportedRfidAdapter`
+  rejects everything with `unsupported`). Lint lists it in `DEVICE_CAPABILITIES` with no module.
+- **The contract** (`types.ts`): `RfidAdapter` with its required primitives (permission,
+  connection, inventory, settings) and its optional methods (`readOnce`, `startLocate` /
+  `stopLocate`, `subscribeTrigger`, `startDiscovery` / `stopDiscovery`, `getBatteryLevel`,
+  `getReaderInfo`); `RFID_CONTRACT_VERSION = 1`; `RfidTagRead` as the adapter reports a read and
+  `RfidTag` as the hooks expose it; `RfidSettings` (power in dBm, session 0–3, beeper volume, the
+  region read-only). `getRfidCapabilities()` reads `native` / `emulated` from the methods;
+  `firstSupportedRfidAdapter()` picks among vendors at run time.
+- **`RfidError`** with eight codes: `unsupported`, `incompatible-adapter`, `permission-denied`,
+  `not-connected`, `disconnected`, `timeout`, `cancelled`, `failed`.
+- **The engine** (`engine.ts`), one per adapter:
+  - readiness: supported → contract version → permission → connected; never prompts;
+  - the connection outlives the components; `connect()` times out after 20 s and closes the
+    attempt; the latest failure stays in `useRfidReader().error`;
+  - one mode at a time: the last start wins, a new mode starts only after the previous one
+    stopped on the reader, and the running one ends in the background and when the link leaves
+    `connected` (`disconnected`);
+  - settings checked before they reach the reader (`RangeError` outside `powerRange`).
+- **The hooks:**
+  - `useRfidPermission`, `useRfidReader`;
+  - `useRfidInventory`: merged by EPC, RSSI smoothed (EMA 0.3), proximity between the bounds,
+    nearest first or first seen, rendered at most every 250 ms, `forgetAfter`, `duration`;
+  - `useRfidSingleRead`: native `readOnce` or a 500 ms inventory, the strongest tag or `null`;
+  - `useRfidLocate`: native tag finder or a filtered inventory, out of range after 2 s of silence;
+  - `useRfidTrigger` (press / release handlers; pairs with any mode);
+  - `useRfidReaderDiscovery`.
+- **Testing:** `createMockRfidAdapter()` (every optional part switchable) and
+  `describeRfidAdapterContract({ describe, it }, setup)`: 13 checks on units, connection states,
+  stop semantics, errors and the optional parts. It runs on the mock with every part and with
+  none, and its own tests prove it fails adapters that keep vendor units, report after a stop,
+  or resolve `connect()` early.
+- **Decided on the way:**
+  - The trigger is a hook of its own rather than an option of each mode: one way to pair it with
+    any mode, and nothing to keep in sync.
+  - A mode ends (rather than pauses) in the background: a handheld returning to the app expects
+    to press the trigger again.
+  - `read()` hands back its promise before the reader starts, so a read replaced during a
+    native window rejects at once, not when the window ends.
+- **Not yet:** no vendor and no playground page; the units the Honeywell module must convert from
+  (RSSI, the locate value) wait for the spike in phase 35.
 
 ## Open for later
 

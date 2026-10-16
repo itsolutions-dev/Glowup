@@ -23,6 +23,8 @@ const DEVICE_CAPABILITIES = {
   // Starts expo-location's updates, so it shares that module with /location.
   "background-location": ["expo-location", "expo-task-manager"],
   bluetooth: ["react-native-ble-manager"],
+  // The contract and its engine: the vendors' native code is in @its/rfid-*.
+  rfid: [],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 

@@ -74,6 +74,23 @@ export const FullWidth = () => (
   </View>
 );
 
+export const WithBadge = () => (
+  <View style={row}>
+    <Button mode="outlined" iconName="filter-outline">
+      Filters
+    </Button>
+    <Button iconName="filter-variant" badge={3}>
+      Filters
+    </Button>
+    <Button mode="tonal" badge={12}>
+      Inbox
+    </Button>
+    <Button mode="outlined" badge={120}>
+      Alerts
+    </Button>
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Modes",
@@ -94,5 +111,10 @@ export const variants: Variant[] = [
     name: "FullWidth",
     title: "Full width",
     render: FullWidth,
+  },
+  {
+    name: "WithBadge",
+    title: "With badge",
+    render: WithBadge,
   },
 ];

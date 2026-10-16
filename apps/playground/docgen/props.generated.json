@@ -806,6 +806,13 @@
           "deprecated": false
         },
         {
+          "name": "badge",
+          "type": "number",
+          "required": false,
+          "description": "A count shown after the label (a `Badge`): active filters, unread items.\nHidden at 0 or when left out.",
+          "deprecated": false
+        },
+        {
           "name": "busy",
           "type": "boolean",
           "required": false,
@@ -3306,6 +3313,13 @@
           "name": "icon",
           "type": "MaterialCommunityIconsGlyphs",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "badge",
+          "type": "number",
+          "required": false,
+          "description": "A count on the top-right corner (a `Badge`). Hidden at 0 or when left out.",
           "deprecated": false
         },
         {

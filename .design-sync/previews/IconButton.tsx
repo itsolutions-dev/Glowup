@@ -130,3 +130,21 @@ export const InAToolbar = () => (
     </Paper>
   </div>
 );
+
+export const WithBadge = () => (
+  <div style={row}>
+    <IconButton icon="bell-outline" accessibilityLabel="Alerts" badge={3} />
+    <IconButton
+      icon="filter-outline"
+      mode="tonal"
+      accessibilityLabel="Filters"
+      badge={12}
+    />
+    <IconButton
+      icon="email-outline"
+      mode="outlined"
+      accessibilityLabel="Inbox"
+      badge={120}
+    />
+  </div>
+);

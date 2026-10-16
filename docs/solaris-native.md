@@ -446,7 +446,10 @@ media, 3 file; GrantMatrix li usa e il piano lo lascia all'app), lista infinita 
 normale "12.50"; prima la virgola veniva scartata in silenzio e 12,50 diventava 1250, verificato con una sonda), `allUpperCase`
 (maiuscole mentre si scrive e `autoCapitalize="characters"`), `reserveHelperText` (la riga sotto il campo resta anche senza testo);
 7 test; verificato su web. Il separatore non si prende ancora dalla lingua del dispositivo (resta una scelta dell'app).
-Restano nel 3A: `Autocomplete`, `FilterButton`.
+**`FilterButton` non creato (2026-10-16)**: controllato prima se bastava un componente esistente. Basta `badge` su `Button` e `IconButton`
+(conteggio con il `Badge` che c'è già, nascosto a 0, "99+", letto dallo screen reader). Il "×" che azzera i filtri al passaggio del mouse ha un solo
+uso nel CRM e resta all'app. 4 test; verificato su web (con una correzione: il badge di `IconButton` era ritagliato dal contenitore).
+Resta nel 3A: `Autocomplete`.
 
 **`CaptionValue` fatto (2026-10-16, lotto 3C)**: componente nuovo (`caption`, `value`, `direction`, `reverse`, `fallback`, `omitCaption`,
 `captionColor`/`valueColor`, `textAlign`, `gap`, `numberOfLines`, stili e `style`); non porta il `translate()` interno del CRM (l'i18n resta

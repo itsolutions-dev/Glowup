@@ -70,3 +70,20 @@ export const FullWidth = () => (
     </Button>
   </div>
 );
+
+export const WithBadge = () => (
+  <div style={row}>
+    <Button mode="outlined" iconName="filter-outline">
+      Filters
+    </Button>
+    <Button iconName="filter-variant" badge={3}>
+      Filters
+    </Button>
+    <Button mode="tonal" badge={12}>
+      Inbox
+    </Button>
+    <Button mode="outlined" badge={120}>
+      Alerts
+    </Button>
+  </div>
+);

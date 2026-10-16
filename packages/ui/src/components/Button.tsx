@@ -20,6 +20,7 @@ import CircularProgress from "./Progress/CircularProgress";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
+import Badge from "./Badge";
 
 export type ButtonMode = "filled" | "tonal" | "outlined" | "text";
 export type ButtonTone = "primary" | "error" | "success";
@@ -118,6 +119,11 @@ export interface ButtonProps {
    * instead of 48.
    */
   density?: Density;
+  /**
+   * A count shown after the label (a `Badge`): active filters, unread items.
+   * Hidden at 0 or when left out.
+   */
+  badge?: number;
   /** Stretch to fill the parent width. */
   fullWidth?: boolean;
   /** Icon side relative to the label. */
@@ -150,6 +156,7 @@ const Button = ({
   labelStyle,
   fullWidth = false,
   density,
+  badge,
   iconPosition = "left",
   accessibilityLabel,
   accessibilityHint,
@@ -180,6 +187,7 @@ const Button = ({
       accessibilityHint={accessibilityHint}
       accessibilityRole="button"
       accessibilityState={{ disabled, busy: loading || busy }}
+      accessibilityValue={badge ? { text: String(badge) } : undefined}
       // react-native-web does not map accessibilityState.busy to the DOM.
       aria-busy={loading || busy}
       testID={testID}
@@ -256,6 +264,11 @@ const Button = ({
                 {children}
               </Text>
             )}
+            {!!badge && badge > 0 && (
+              <View style={styles.badgeSlot}>
+                <Badge count={badge} />
+              </View>
+            )}
             {!!iconName && iconPosition === "right" && (
               <Icons
                 name={iconName}
@@ -301,6 +314,12 @@ const makeStyles = (theme: Theme) =>
     },
     clipped: {
       overflow: "hidden",
+    },
+    // The badge is absolutely placed, so it needs a box of its own to sit in.
+    badgeSlot: {
+      minWidth: 16,
+      height: 16,
+      marginLeft: theme.spacing.s,
     },
     dense: {
       paddingVertical: 10,

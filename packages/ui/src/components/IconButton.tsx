@@ -1,5 +1,11 @@
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, StyleProp, ViewStyle } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  StyleProp,
+  View,
+  ViewStyle,
+} from "react-native";
 import Icons from "./Glyph";
 import {
   useTheme,
@@ -8,6 +14,7 @@ import {
 } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import CircularProgress from "./Progress/CircularProgress";
+import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export type IconButtonMode = "standard" | "filled" | "tonal" | "outlined";
@@ -27,6 +34,8 @@ export interface IconButtonProps {
   size?: IconButtonSize;
   /** Renders the M3 "selected" container of a toggle icon button. */
   selected?: boolean;
+  /** A count on the top-right corner (a `Badge`). Hidden at 0 or when left out. */
+  badge?: number;
   disabled?: boolean;
   loading?: boolean;
   /** Required: an icon alone carries no accessible name. */
@@ -50,6 +59,7 @@ const IconButton = ({
   mode = "standard",
   size = "medium",
   selected,
+  badge,
   disabled,
   loading,
   accessibilityLabel,
@@ -122,6 +132,7 @@ const IconButton = ({
         busy: !!loading,
         selected,
       }}
+      accessibilityValue={badge ? { text: String(badge) } : undefined}
       disabled={!isInteractive}
       onPress={
         isInteractive && onPress
@@ -155,6 +166,11 @@ const IconButton = ({
       ) : (
         <Icons name={icon} size={iconSize} color={foreground} />
       )}
+      {!!badge && badge > 0 && (
+        <View pointerEvents="none" style={styles.badge}>
+          <Badge count={badge} style={{ right: 0 }} />
+        </View>
+      )}
     </Pressable>
   );
 };
@@ -169,4 +185,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   disabled: { opacity: 0.38 },
+  // Inside the circle (the container clips what overflows it) and with a size
+  // of its own, because the Badge is absolutely placed. A wide count grows to
+  // the left from the corner.
+  badge: { position: "absolute", top: 2, right: 2, width: 16, height: 16 },
 });

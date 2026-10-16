@@ -1391,11 +1391,14 @@ How it stays honest:
   show each single read's path and TID count, and the module reports a revision
   (`getRevision`, `HONEYWELL_NATIVE_REVISION`) so the diagnostics flag an app built before the
   latest native change, which a Metro reload does not update.
-- **Still to verify on the hardware:**
-  - a single read with "Read the TID" on (the report's `syncReads` entry has `path: "read"` and a
-    `tids` count);
-  - whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves the SDK; the build
-    environment's proxy refuses that host.
+- **Sixth report (16 October): the single read returns the TID.** With "Read the TID" on, six
+  single reads took the read window (`path: "read"`): 2 s gave 50 reads, 45 with a TID; 500 ms gave
+  11–15, 10–13 with a TID. About one read in ten arrives with an empty `additionData`, in the
+  multiple scan too; the engine merges a tag's reads, so its TID comes from the others. Six tags,
+  each with one stable TID (two TID families: `E2806894…` and `E2801130…`). A `syncRead` without
+  the TID, for comparison: 8 reads. The locate gave 36 values between −60 and −49 dBm.
+- **Not verifiable here:** whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves
+  the SDK; the build environment's proxy refuses that host, so `aarPath` stays required.
 
 ### The licence
 
@@ -1448,12 +1451,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                            |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                              |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | five reports in; the single read's TID to confirm |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                          |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                          |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status   |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done     |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done     |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed |
+| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed |
 
 **Answered:**
 
@@ -1471,7 +1474,8 @@ What follows from it:
 - **Release:** `@its/glowup-device` shipped Bluetooth as `0.10.0`, so `/rfid` ships as `0.11.0`.
   `@its/rfid-honeywell`'s peer range (now `>=0.10.0` for the workspace) becomes `^0.11.0` then.
 
-**Still open:** what the spike measures (the list above).
+**Still open:** whether Honeywell's Maven repository serves the SDK (above); the spike's other
+questions are answered.
 
 ### Phase 34 — what landed
 
@@ -1544,6 +1548,13 @@ What follows from it:
   the spike needs, shared as a JSON report. `README.md` is the team's checklist.
 - **Repository:** lint keeps the device package from importing a vendor and a vendor to `/rfid`;
   `.gitignore` blocks the SDK anywhere in the tree.
+- **What the six reports changed** (the measurements above):
+  - `DataCollection.aar` became a second SDK the app supplies (`dataCollectionAarPath`);
+  - the default proximity bounds moved to −30 / −70 dBm;
+  - the search also matches the IH40's company id (1318);
+  - the module reconnects by itself, the SDK's auto-reconnect being off;
+  - the read option sets `data` and `protocol`, and a single read with a TID is a `read()` window;
+  - the module reports a revision, so the diagnostics flag a stale native build.
 - **Decided on the way:**
   - The module computes the locate value from the reads the SDK filters for it, not from
     `onReceivedFindingTag`, whose integer division by the read count is not a signal strength.

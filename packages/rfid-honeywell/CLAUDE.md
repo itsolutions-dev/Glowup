@@ -2,9 +2,19 @@
 
 Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md`, "v0.10 — RFID".
 
+- **Published** from `release.yml` like the device package: built by bob into `lib/`
+  (`npm run build`, `validate-package`), a changeset for every user-visible change, its own
+  trusted publisher on npmjs.com. The tarball carries `lib/`, `src/`, the Android module's
+  `build.gradle` and sources, `expo-module.config.json` and `app.plugin.js`; never an SDK.
+  Its peer range on `@its/glowup-device` follows the device package's minor version (0.x):
+  `^0.11.0` once `/rfid` ships there.
 - **It implements `@its/glowup-device/rfid` and nothing else.** It imports the device package's
-  `/rfid` (types and `RfidError` at run time) and `/testing` in tests, never another subpath, the
-  UI kit or an app (ESLint). The device package never imports it.
+  `/rfid` (types, `PermissionState` and `RfidError` at run time) and `/testing` in tests, never
+  the root entry, another subpath, the UI kit or an app (ESLint). The device package never
+  imports it. `tsconfig.json` (`paths`) and Jest (`moduleNameMapper`) map those two subpaths to
+  the device package's `src`: CI type-checks and tests before `npm run build`.
+  `tsconfig.build.json` clears the mapping, so the published types import the device package by
+  name.
 - **The SDK never enters the repository** (its licence; the root `.gitignore` ignores
   `honeywell_rfid_sdk*.aar` and the plugin's `honeywell-rfid-repository/`). The module's Gradle
   build depends on `com.honeywell.rfid:honeywell-rfid-sdk:1.1.0`, which the config plugin

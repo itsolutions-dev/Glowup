@@ -44,8 +44,8 @@ export function fromNativeSettings(
 
 /**
  * A read in the contract's units. The SDK reports RSSI as a signed byte from
- * the reader, which is dBm (read from the SDK's bytecode; the spike confirms
- * it), and the EPC as uppercase hex already.
+ * the reader, which is dBm (read from the SDK's bytecode, confirmed on an
+ * IH40), and the EPC as uppercase hex already.
  */
 export function fromNativeRead(read: NativeTagRead): RfidTagRead | null {
   const epc = normalizeEpc(read.epc ?? "");

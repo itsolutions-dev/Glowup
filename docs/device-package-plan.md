@@ -1455,7 +1455,7 @@ What follows from it:
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- |
 | 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done     |
 | 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done     |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done     |
 | 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed |
 
 **Answered:**
@@ -1562,6 +1562,29 @@ questions are answered.
     off to learn what the IH40 really advertises.
   - Plain React Native components in the diagnostics app: a short-lived tool, built without the
     UI kit's fonts and native modules.
+
+### Phase 36 — what landed
+
+- **`@its/rfid-honeywell` is publishable** (no longer `private`), built like the device package:
+  bob into `lib/` (CommonJS, ES modules, types), an `exports` map (`.`, `./app.plugin.js`,
+  `./package.json`), `validate-package` (publint, attw) in CI and the root `build`, `release.yml`
+  naming it. The tarball holds `lib/`, `src/`, the Android module (`build.gradle`, sources),
+  `expo-module.config.json` and `app.plugin.js`: no SDK. A changeset makes it `0.1.0`.
+- **The adapter's work** listed for this phase (the conformance kit, units, batching, threading,
+  reconnection, discovery, errors) landed during the spike and was measured there (phase 35).
+- **Found on the way:** the package's type-check and tests resolved `@its/glowup-device/rfid`
+  through the device package's `exports`, so its built `lib/`; CI type-checks and tests before it
+  builds, so on a clean checkout both failed. `tsconfig.json` (`paths`) and Jest
+  (`moduleNameMapper`) now map `/rfid` and `/testing` to the device package's `src`;
+  `tsconfig.build.json` clears the mapping, so the published types import the package by name.
+- **`PermissionState` is exported from `/rfid`:** the adapter imported it from the root entry,
+  which a vendor package should not need. ESLint now refuses the root entry in `packages/rfid-*`.
+- **Before the release (phase 37):** the peer range on `@its/glowup-device` becomes `^0.11.0`
+  (`0.10.0` has no `/rfid`). The package is no longer private, so `changeset publish` would
+  publish it with the first release from `master`: this branch merges only with phase 37.
+- **The trusted publisher** is set up on npmjs.com by a maintainer. npm may not offer the setting
+  before the package's first version exists; if it does not, the first version needs a one-off
+  publish by hand (to check on npmjs.com).
 
 ## Open for later
 

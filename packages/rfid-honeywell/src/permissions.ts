@@ -1,4 +1,4 @@
-import type { PermissionState } from "@its/glowup-device";
+import type { PermissionState } from "@its/glowup-device/rfid";
 import { PermissionsAndroid, Platform, type Permission } from "react-native";
 
 const GRANTED: PermissionState = { status: "granted", canAskAgain: false };

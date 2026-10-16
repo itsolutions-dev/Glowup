@@ -61,6 +61,9 @@ export {
   type UseRfidReaderDiscovery,
 } from "./discovery";
 export { normalizeEpc, toProximity } from "./tags";
+// What `RfidAdapter.getPermission()` answers, for a vendor package that
+// implements it without importing the root entry.
+export type { PermissionState } from "../core/types";
 export {
   RFID_CONTRACT_VERSION,
   type RfidAdapter,

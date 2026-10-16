@@ -326,6 +326,13 @@ module.exports = defineConfig([
             ),
             ...publicOnly("device", ["rfid", "testing"]),
           ],
+          paths: [
+            {
+              name: "@its/glowup-device",
+              message:
+                "A vendor package imports @its/glowup-device/rfid (and /testing in tests), not the root entry.",
+            },
+          ],
         },
       ],
     },

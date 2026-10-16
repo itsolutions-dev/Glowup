@@ -1,13 +1,18 @@
 # @its/rfid-honeywell
 
 Honeywell RFID readers (the IH40 over Bluetooth, through the Honeywell RFID SDK v1.1.0) behind
-[`@its/glowup-device/rfid`](../device/README.md#rfid). The screens use `/rfid`'s hooks; this package
-is the one line that picks the vendor.
+[`@its/glowup-device/rfid`](https://github.com/itsolutions-dev/Glowup/tree/master/packages/device#rfid).
+The screens use `/rfid`'s hooks; this package is the one line that picks the vendor.
 
-> **Status: spike (phase 35).** Private, not published. The adapter passes the contract's
-> conformance kit against a faked native module; the Kotlin module compiles against the SDK but
-> has not run on a reader yet. `apps/rfid-diagnostics` is the app the team runs on a CT40 + IH40
-> to confirm it.
+Measured on a CT40 (Android 11) with an IH40: connection, reconnection, the multiple scan with
+TIDs, the single read with its TID, the search with the reader's beeper, the trigger and a reader
+search. `apps/rfid-diagnostics` in the repository is the app that measured it.
+
+```sh
+npm install @its/rfid-honeywell
+```
+
+It needs `@its/glowup-device` (`/rfid`) and an Expo development build for Android.
 
 ## The SDKs are yours to supply
 

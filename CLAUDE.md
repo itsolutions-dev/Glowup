@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An **npm-workspaces monorepo** with six workspaces:
 
-| Workspace                 | Package                     | Role                                                                                                                          |
-| ------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui`             | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                                              |
-| `packages/notifications`  | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                                       |
-| `packages/device`         | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters.                       |
-| `apps/playground`         | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                                           |
-| `packages/rfid-honeywell` | `@its/rfid-honeywell`       | Honeywell RFID readers behind `@its/glowup-device/rfid`: Android Expo module, adapter, config plugin. Private until phase 36. |
-| `apps/rfid-diagnostics`   | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID spike on a real reader (phase 35).                                       |
+| Workspace                 | Package                     | Role                                                                                                              |
+| ------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `packages/ui`             | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                                  |
+| `packages/notifications`  | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                           |
+| `packages/device`         | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters.           |
+| `apps/playground`         | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                               |
+| `packages/rfid-honeywell` | `@its/rfid-honeywell`       | Publishable Honeywell RFID readers behind `@its/glowup-device/rfid`: Android Expo module, adapter, config plugin. |
+| `apps/rfid-diagnostics`   | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID spike on a real reader (phase 35).                           |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
@@ -44,6 +44,7 @@ npm run build          # build the published packages with react-native-builder-
 npm test -w @its/glowup-ui                    # only the library's component tests
 npm test -w @its/glowup-notifications         # only the notifications package's tests
 npm test -w @its/glowup-device                # only the device package's tests
+npm test -w @its/rfid-honeywell               # only the Honeywell RFID package's tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
@@ -95,10 +96,11 @@ error), so each can ship alone and the app wires them together. `packages/device
 same rule towards both: it imports neither, and neither imports it.
 
 RFID vendor packages (`packages/rfid-*`, `@its/rfid-*`) implement `@its/glowup-device/rfid`:
-they import only its `/rfid` (and `/testing` in tests), and the device package never imports
-them (both ESLint errors). The Honeywell SDK they wrap **never enters the repository**: its
-licence lets it travel only inside an app's build (`.gitignore` blocks
-`honeywell_rfid_sdk*.aar`). `apps/rfid-diagnostics/tsconfig.json` maps `@its/glowup-device`,
+they import only its `/rfid` (and `/testing` in tests), never its root entry, and the device
+package never imports them (all ESLint errors). Their `tsconfig.json` and Jest map those two
+subpaths to the device package's `src`, since CI type-checks and tests before it builds. The
+Honeywell SDK they wrap **never enters the repository**: its licence lets it travel only inside
+an app's build (`.gitignore` blocks `honeywell_rfid_sdk*.aar`). `apps/rfid-diagnostics/tsconfig.json` maps `@its/glowup-device`,
 its `/rfid` and `/testing`, and `@its/rfid-honeywell` to their `src`, as the playground does.
 
 Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
@@ -119,12 +121,12 @@ and `apps/playground/CLAUDE.md`, which load when you work under those folders.
 
 ## Releasing
 
-Changesets. `@its/glowup-ui`, `@its/glowup-notifications` and `@its/glowup-device` are
-published (versioned independently); `@its/glowup-playground` and `@its/rfid-diagnostics` are
-private and ignored, and `@its/rfid-honeywell` stays private until it is ready to ship. A
-user-visible change to any of them needs a changeset (`npx changeset`). Each package needs its
-own trusted publisher on npmjs.com (see `release.yml`). On push to `master`,
-`release.yml` opens a "Version Packages" PR; merging it publishes to npm.
+Changesets. `@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device` and
+`@its/rfid-honeywell` are published (versioned independently); `@its/glowup-playground` and
+`@its/rfid-diagnostics` are private and ignored. A user-visible change to any of them needs a
+changeset (`npx changeset`). Each package needs its own trusted publisher on npmjs.com (see
+`release.yml`). On push to `master`, `release.yml` opens a "Version Packages" PR; merging it
+publishes to npm.
 
 ## Code style
 

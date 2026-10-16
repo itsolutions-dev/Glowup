@@ -12,6 +12,7 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "docgen": "node docgen/extract-props.mjs",
+    "inventory": "node docgen/inventory.mjs",
     "export:web": "expo export --platform web",
     "variants": "node catalogue/variants/generate.mjs",
     "templates": "node templates/generate.mjs",

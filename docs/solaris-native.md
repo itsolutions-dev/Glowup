@@ -33,6 +33,9 @@ si descrive solo ciò che la libreria deve offrire e come la si verifica con sch
 e per questo le prop restano generali (D4) e niente di CRM entra nei nomi. In concreto: componenti, prop e
 compositi si giustificano con file del CRM; la Fase 8 verifica la libreria con schermate pilota.
 
+**Inventario dei componenti:** `docs/component-inventory.md` elenca tutti i componenti con tutte le prop, divisi in aggiunti, aggiornati e
+tenuti rispetto all'inizio del lavoro. È generato (`npm run docgen` poi `npm run inventory`, nel workspace del playground) e si aggiorna a ogni lotto.
+
 Convenzioni: **Verificato** = letto nel codice o eseguito; **Non verificato** = dedotto o non controllato;
 _Proposta_ = scelta mia, non ancora confermata da te.
 

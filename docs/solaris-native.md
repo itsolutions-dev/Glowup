@@ -442,8 +442,11 @@ prop `primary` separata), più `indicatorColor`, `dimmed` e `trailingWidth`; gal
 `TableHeaderCell`, tipo `TableAlign`), `rowStyle` come funzione della riga, `emptyState` come nodo; gallerie "Cells and
 alignment" e "Empty state"; 4 test; verificato su web (intestazione e valori allineati, badge, riga attenuata). **Rinviato, senza
 prova che serva**: larghezze in percentuale, `rowActions` su hover, righe-gruppo comprimibili, `renderRow`, `rowGap` (matrice 0.5:
-media, 3 file; GrantMatrix li usa e il piano lo lascia all'app), lista infinita (`onEndReached` esiste già). Restano nel 3A:
-`Autocomplete`, `Input`, `FilterButton`.
+media, 3 file; GrantMatrix li usa e il piano lo lascia all'app), lista infinita (`onEndReached` esiste già). **`Input` fatto (2026-10-16)**: `decimalSeparator` (`","` per scrivere e vedere 12,50 mentre `value`/`onChangeText` restano in forma
+normale "12.50"; prima la virgola veniva scartata in silenzio e 12,50 diventava 1250, verificato con una sonda), `allUpperCase`
+(maiuscole mentre si scrive e `autoCapitalize="characters"`), `reserveHelperText` (la riga sotto il campo resta anche senza testo);
+7 test; verificato su web. Il separatore non si prende ancora dalla lingua del dispositivo (resta una scelta dell'app).
+Restano nel 3A: `Autocomplete`, `FilterButton`.
 
 ### Fase 3 — Componenti specializzati (le prop)
 

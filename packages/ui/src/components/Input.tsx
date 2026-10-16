@@ -18,6 +18,20 @@ export interface InputProps {
   label?: string;
   placeholder?: string;
   precision?: number;
+  /**
+   * The decimal mark a `type="number"` field types and shows: `","` for a user
+   * who writes 12,50. `value` and `onChangeText` stay in the plain form
+   * ("12.50"), so the app parses nothing; a typed "." is then ignored, as a
+   * thousands mark. Defaults to `"."`.
+   */
+  decimalSeparator?: "." | ",";
+  /** Capitalises what is typed (codes, plates, tax ids). Not for `type="number"`. */
+  allUpperCase?: boolean;
+  /**
+   * Keeps the line under the field even with no helper or error text, so a
+   * message appearing does not push the next field down. Default false.
+   */
+  reserveHelperText?: boolean;
   prefix?: string;
   suffix?: string;
   value: string;
@@ -54,6 +68,9 @@ const Input = ({
   label,
   placeholder,
   precision,
+  decimalSeparator = ".",
+  allUpperCase = false,
+  reserveHelperText = false,
   prefix,
   suffix,
   value,
@@ -86,10 +103,14 @@ const Input = ({
   const handleTextChange = useCallback(
     (text: string) => {
       if (type === "number") {
-        // Allow digits, one leading minus and one decimal point
+        // Allow digits, one leading minus and one decimal mark (the one the
+        // field is set to: the other character is dropped, so "1.250,50"
+        // typed or pasted into a comma field is 1250.50).
         const sign = text.trimStart().startsWith("-") ? "-" : "";
-        const [whole, ...rest] = text.replace(/[^0-9.]/g, "").split(".");
-        // Every dot after the first is dropped, then precision applies to the
+        const [whole, ...rest] = text
+          .replace(decimalSeparator === "," ? /[^0-9,]/g : /[^0-9.]/g, "")
+          .split(decimalSeparator);
+        // Every mark after the first is dropped, then precision applies to the
         // merged fraction: "1.2.34" at precision 2 is "1.23", not "1.234".
         const fraction =
           precision === undefined
@@ -98,10 +119,10 @@ const Input = ({
         const cleaned = rest.length > 0 ? `${whole}.${fraction}` : whole;
         onChangeText(sign + cleaned);
       } else {
-        onChangeText(text);
+        onChangeText(allUpperCase ? text.toUpperCase() : text);
       }
     },
-    [type, precision, onChangeText],
+    [type, precision, decimalSeparator, allUpperCase, onChangeText],
   );
 
   // Focus ring + error border, both driven by the theme's glow helper.
@@ -189,7 +210,12 @@ const Input = ({
             ]}
             placeholder={placeholder}
             placeholderTextColor={theme.colors.onSurfaceVariant}
-            value={value}
+            autoCapitalize={allUpperCase ? "characters" : undefined}
+            value={
+              type === "number" && decimalSeparator === ","
+                ? value.replace(".", ",")
+                : value
+            }
             onChangeText={handleTextChange}
             onFocus={() => {
               setIsFocused(true);
@@ -227,9 +253,13 @@ const Input = ({
         )}
       </View>
 
-      {!!(error || helperText) && (
-        <HelperText type={error ? "error" : "info"} disabled={disabled}>
-          {error || helperText}
+      {(!!(error || helperText) || reserveHelperText) && (
+        <HelperText
+          type={error ? "error" : "info"}
+          disabled={disabled}
+          visible={!!(error || helperText)}
+        >
+          {error || helperText || " "}
         </HelperText>
       )}
     </View>

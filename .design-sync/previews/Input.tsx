@@ -111,3 +111,46 @@ export const Multiline = () => (
     />
   </div>
 );
+
+export const DecimalComma = () => (
+  <div style={stack}>
+    <Input
+      type="number"
+      label="Amount (decimal comma)"
+      decimalSeparator=","
+      precision={2}
+      suffix="€"
+      value="1250.50"
+      onChangeText={noop}
+    />
+    <Input
+      type="number"
+      label="Amount (decimal point)"
+      precision={2}
+      suffix="€"
+      value="1250.50"
+      onChangeText={noop}
+    />
+  </div>
+);
+
+export const UpperCaseAndReservedHelper = () => (
+  <div style={stack}>
+    <Input
+      label="Tax code"
+      allUpperCase
+      reserveHelperText
+      value="RSSMRA80A01H501U"
+      onChangeText={noop}
+    />
+    <Input
+      label="Plate"
+      allUpperCase
+      reserveHelperText
+      error="Not a valid plate"
+      value="AB123C"
+      onChangeText={noop}
+    />
+    <Input label="Next field" value="" onChangeText={noop} />
+  </div>
+);

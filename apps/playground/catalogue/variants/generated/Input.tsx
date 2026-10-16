@@ -116,6 +116,49 @@ export const Multiline = () => (
   </View>
 );
 
+export const DecimalComma = () => (
+  <View style={stack}>
+    <Input
+      type="number"
+      label="Amount (decimal comma)"
+      decimalSeparator=","
+      precision={2}
+      suffix="€"
+      value="1250.50"
+      onChangeText={noop}
+    />
+    <Input
+      type="number"
+      label="Amount (decimal point)"
+      precision={2}
+      suffix="€"
+      value="1250.50"
+      onChangeText={noop}
+    />
+  </View>
+);
+
+export const UpperCaseAndReservedHelper = () => (
+  <View style={stack}>
+    <Input
+      label="Tax code"
+      allUpperCase
+      reserveHelperText
+      value="RSSMRA80A01H501U"
+      onChangeText={noop}
+    />
+    <Input
+      label="Plate"
+      allUpperCase
+      reserveHelperText
+      error="Not a valid plate"
+      value="AB123C"
+      onChangeText={noop}
+    />
+    <Input label="Next field" value="" onChangeText={noop} />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Variants",
@@ -136,5 +179,15 @@ export const variants: Variant[] = [
     name: "Multiline",
     title: "Multiline",
     render: Multiline,
+  },
+  {
+    name: "DecimalComma",
+    title: "Decimal comma",
+    render: DecimalComma,
+  },
+  {
+    name: "UpperCaseAndReservedHelper",
+    title: "Upper case and reserved helper",
+    render: UpperCaseAndReservedHelper,
   },
 ];

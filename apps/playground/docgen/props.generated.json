@@ -3490,6 +3490,26 @@
           "deprecated": false
         },
         {
+          "name": "allUpperCase",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Capitalises what is typed (codes, plates, tax ids). Not for `type=\"number\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "decimalSeparator",
+          "type": "\".\" | \",\"",
+          "required": false,
+          "default": "\".\"",
+          "description": "The decimal mark a `type=\"number\"` field types and shows: `\",\"` for a user\nwho writes 12,50. `value` and `onChangeText` stay in the plain form\n(\"12.50\"), so the app parses nothing; a typed \".\" is then ignored, as a\nthousands mark. Defaults to `\".\"`.",
+          "values": [
+            ".",
+            ","
+          ],
+          "deprecated": false
+        },
+        {
           "name": "density",
           "type": "Density",
           "required": false,
@@ -3601,6 +3621,14 @@
           "type": "boolean",
           "required": false,
           "description": "Marks the label with an asterisk.",
+          "deprecated": false
+        },
+        {
+          "name": "reserveHelperText",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps the line under the field even with no helper or error text, so a\nmessage appearing does not push the next field down. Default false.",
           "deprecated": false
         },
         {

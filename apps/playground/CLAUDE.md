@@ -78,7 +78,7 @@ cannot fetch a token.
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
 capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
 `haptics`, `biometrics`, `secure-store`, `sensors`, `media-picker`, `media-library`,
-`background-location`, `bluetooth`). They import only the package's public subpaths. Every capability's native module
+`background-location`, `bluetooth`, `rfid`). They import only the package's public subpaths. Every capability's native module
 (`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
 `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`) is a dependency of the
 playground because it is the package's peer, and the package's config plugin is listed in
@@ -113,6 +113,14 @@ with `site/bluetoothDemo.ts`: the package's in-memory adapter driven by a timer,
 three simulated devices, the heart rate monitor notifies and the time clock answers over the
 Nordic UART service. The answer is the same while prerendering and in the browser (false on
 the web), so it hydrates. Its test spies `isSupported` to take the provided mock instead.
+The RFID page always runs on `site/rfidDemo.ts`, a simulated reader (the package's in-memory
+adapter driven by a timer: two readers to find, eight tags at their own distance, a search
+whose signal sweeps near and far), because the playground depends on **no RFID vendor**: a vendor
+package is an Android module whose build needs the vendor's SDK, which its licence keeps out of
+the repository and binds to the vendor's hardware. `@its/rfid-honeywell` runs on hardware in
+`apps/rfid-diagnostics` instead. The page provides the demo only when `useRfidReader().vendor`
+is `"none"` (no adapter above it, the same answer in Node and the browser), so its test provides
+a mock and drives it.
 
 **Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
 `app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to
@@ -125,8 +133,9 @@ does not play twice.
 adapters (`@its/glowup-device/testing`) and drives them: permission, position, photo,
 recording, scan, network and battery changes, wake lock, orientation lock, haptics, biometric prompt and app lock, secure store items (plain and protected), sensor readings,
 intervals and motion access, picks (options, cancel, the pending result), saves (permission
-prompt, refusal, no library) and Bluetooth (permission, scan, connection, a read, the simulated
-devices). It mocks
+prompt, refusal, no library), Bluetooth (permission, scan, connection, a read, the simulated
+devices) and RFID (search, connection, scan, the trigger, a single read with its TID, a search,
+the simulated reader). It mocks
 `useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
 `expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise

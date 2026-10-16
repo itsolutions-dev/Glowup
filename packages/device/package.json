@@ -98,6 +98,11 @@
       "types": "./lib/typescript/bluetooth/index.d.ts",
       "default": "./lib/commonjs/bluetooth/index.js"
     },
+    "./rfid": {
+      "source": "./src/rfid/index.ts",
+      "types": "./lib/typescript/rfid/index.d.ts",
+      "default": "./lib/commonjs/rfid/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -124,6 +129,7 @@
     "media-library",
     "background-location",
     "bluetooth",
+    "rfid",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -160,7 +166,9 @@
     "media-library",
     "background-location",
     "bluetooth",
-    "ble"
+    "ble",
+    "rfid",
+    "uhf"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",

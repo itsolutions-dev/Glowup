@@ -11,6 +11,13 @@
     "plugins": [
       "expo-status-bar",
       [
+        "@its/rfid-honeywell",
+        {
+          "aarPath": "./honeywell/honeywell_rfid_sdk_v1.1.0.aar",
+          "dataCollectionAarPath": "./honeywell/DataCollection.aar"
+        }
+      ],
+      [
         "@its/glowup-device",
         {
           "location": {

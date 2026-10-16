@@ -51,6 +51,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/media-library`       | `expo-media-library`                 | `useMediaLibrary`                                                                                                                      |
 | `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission`                |
 | `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `useBluetoothScan`, `useBluetoothDevice`, `useBluetoothNotifications`, `BluetoothError` |
+| `@its/glowup-device/rfid`                | a vendor package (`@its/rfid-*`)     | `useRfidReader`, `useRfidInventory`, `useRfidLocate`, `useRfidSingleRead`, `useRfidTrigger`, `RfidAdapter`, `RfidError`                |
 | `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                                |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -1279,6 +1280,136 @@ const bluetooth = createBleManagerAdapter({ neverForLocation: false });
 </DeviceAdaptersProvider>;
 ```
 
+## RFID
+
+`@its/glowup-device/rfid` is UHF RFID behind one contract: the screens use its hooks, and a
+vendor package implements `RfidAdapter` for its readers. Changing vendor changes the package
+installed and one line of the provider, never a screen. It ships no vendor and no native code;
+without an adapter every hook reads `unsupported`.
+
+```tsx
+import { DeviceAdaptersProvider } from "@its/glowup-device";
+import { getHoneywellRfidAdapter } from "@its/rfid-honeywell"; // a vendor package
+
+<DeviceAdaptersProvider adapters={{ rfid: getHoneywellRfidAdapter() }}>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
+`firstSupportedRfidAdapter([a, b])` picks the first adapter supported here, for a build that
+ships several. Honeywell's SDK binds the app to Honeywell hardware, so with
+`@its/rfid-honeywell` build one app per vendor.
+
+The contract fixes the units, so every vendor reads the same: RSSI and transmit power in dBm,
+times in ms since the epoch, EPC and TID as uppercase hex. `proximity` (0–1) comes from the
+smoothed RSSI between the adapter's `proximityBounds` (calibratable per call); it ranks tags and
+guides a search, and is never metres.
+
+### The reader
+
+```tsx
+import { useRfidPermission, useRfidReader } from "@its/glowup-device/rfid";
+
+const permission = useRfidPermission(); // the link's (Honeywell: Bluetooth)
+const reader = useRfidReader();
+
+await permission.request();
+await reader.connect("0C:23:69:19:AA:12"); // resolves once the reader is ready
+reader.state; // "disconnected" | "connecting" | "connected" | "reconnecting"
+reader.capabilities; // { locate: "native", singleRead: "native", trigger: true, … }
+await reader.setSettings({ power: 20, session: 1 }); // dBm, within reader.powerRange
+await reader.getBatteryLevel(); // 0–100, or null
+```
+
+- The connection outlives the component, until `disconnect()`. After a drop the adapter
+  reconnects by itself (`reconnecting`); the modes need `connected`.
+- `connect()` checks the permission and never prompts; it gives up after 20 s (`timeout`).
+  `reader.error` keeps the latest failure until a connect succeeds.
+- `isSupported` is false without an adapter, on a platform the vendor does not support, or when
+  the adapter implements another contract version (`incompatible-adapter`): update the vendor
+  package or this one.
+
+### Multiple scan
+
+```tsx
+import { useRfidInventory } from "@its/glowup-device/rfid";
+
+const inventory = useRfidInventory();
+await inventory.start(); // { tid, proximity, sort, forgetAfter, duration }
+inventory.tags; // [{ epc, rssi, averageRssi, proximity, readCount, lastSeen, … }], nearest first
+await inventory.stop();
+```
+
+- Each tag once, merged by EPC, rendered at most every 250 ms (the first at once).
+- `sort: "first-seen"` keeps a steady order for a list to pick from; `forgetAfter: 3000` drops
+  tags out of range; `duration` stops by itself.
+
+### Single search
+
+```tsx
+import { useRfidLocate } from "@its/glowup-device/rfid";
+
+const locate = useRfidLocate();
+await locate.start("E280 1170 0000 0212 0FD4 A0F1"); // separators and case ignored
+locate.proximity; // 0–1: drive a gauge
+locate.isInRange; // false once the tag is silent for 2 s
+```
+
+It uses the reader's own tag finder when the adapter has one (`capabilities.locate:
+"native"`: the reader also beeps faster as the tag nears), an inventory filtered by the EPC
+otherwise.
+
+### Single read
+
+```tsx
+import { useRfidSingleRead } from "@its/glowup-device/rfid";
+
+const single = useRfidSingleRead();
+const tag = await single.read(); // the nearest tag after 500 ms (`window`), or null
+```
+
+### One mode at a time
+
+An inventory, a search and a single read share the reader: starting one ends the running one
+(the last start wins; a replaced `read()` rejects with `cancelled`). The running mode also ends
+when the app goes to the background, when the reader drops (`disconnected`), and, for the
+inventory and the search, when no component reads it any more.
+
+### The trigger
+
+```tsx
+import { useRfidInventory, useRfidTrigger } from "@its/glowup-device/rfid";
+
+const inventory = useRfidInventory();
+useRfidTrigger({
+  onPress: () => inventory.start().catch(() => {}), // the failure is in inventory.error
+  onRelease: () => inventory.stop(),
+});
+```
+
+While a component uses the hook, the reader hands its trigger to the app (`capabilities.trigger`);
+it gets it back when the last one unmounts.
+
+### Choosing a reader
+
+`useRfidReaderDiscovery()` lists the readers nearby when the adapter can search
+(`capabilities.discovery`); otherwise connect by a known id.
+
+### Writing a vendor adapter
+
+A vendor package implements `RfidAdapter` (`import type` from this subpath; `RfidError` at run
+time, with `@its/glowup-device` as a peer):
+
+- Only the primitives are required: the permission, `connect` / `disconnect` / the connection,
+  `startInventory` / `stopInventory` and the settings. The optional methods (`readOnce`,
+  `startLocate` / `stopLocate`, `subscribeTrigger`, discovery, battery, reader info) become
+  `capabilities`; the engine emulates the single read and the search without them.
+- Convert to the contract's units, and declare `contractVersion` as a number literal (importing
+  `RFID_CONTRACT_VERSION` would always match and hide a mismatch).
+- Fail with `RfidError`s: `not-connected` before a connection, `disconnected` in `onStop` when
+  the link drops. `onStop` is only for a mode that ends by itself, never after a stop.
+- Pass the conformance kit, below.
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -1555,3 +1686,36 @@ sends a value while notifications are on, `disconnectBySystem(id)` drops a conne
 `failNextConnect()` / `failNextGatt()` make the next call reject, and `connected`, `notifying`,
 `writes` and `bonded` record what the app did. `{ bond: false }` has no `bond()`, as on iOS;
 `maxMtu` (default 247) caps `requestMtu()`.
+
+`createMockRfidAdapter()` has one reader (`00:11:22:33:44:55`), the permission undetermined (a
+request answers `requestResult`, default `"granted"`) and every optional part of the contract;
+`capabilities: { locate: false, readOnce: false, … }` leaves parts out, so the engine's
+emulations run. Once connected, `emitTags([{ epc, rssi }])` reports tags to the running
+inventory, to a native search (the searched EPC's signal) or to the next single read;
+`emitLocate(rssi)` and `pressTrigger(pressed)` drive the search and the trigger,
+`dropConnection()` / `reconnect()` the link, and `failNextConnect()`, `holdNextConnect()`,
+`failNextStart()` and `failRead()` the failures. `inventory`, `locating`, `connection`,
+`settings` and the counters record what the app did; `contractVersion` tests the version check.
+
+`describeRfidAdapterContract()` is the suite every vendor adapter passes before it ships: units,
+connection states, stop semantics, errors and the optional parts. A vendor package runs it with
+its native module faked; the drivers speak the contract's units and the harness turns them into
+the vendor's:
+
+```ts
+import { describeRfidAdapterContract } from "@its/glowup-device/testing";
+
+describeRfidAdapterContract({ describe, it }, () => {
+  const native = createFakeNativeModule();
+  return {
+    adapter: createVendorRfidAdapter(native), // supported, permission granted
+    readerId: "0C:23:69:19:AA:12",
+    emitTags: (tags) => native.emitTagRead(tags.map(toVendorRead)),
+    dropConnection: () => native.emitDisconnected(),
+    emitLocate: (rssi) => native.emitFindingTag(toVendorRssi(rssi)),
+    pressTrigger: (pressed) => native.emitTrigger(pressed),
+  };
+});
+```
+
+It uses real timers and its own assertions, so it needs no Jest globals beyond the two passed.

@@ -121,6 +121,13 @@ const CAPABILITIES: {
     summary:
       "Bluetooth Low Energy: scan, connect, read, write and notifications — @its/glowup-device/bluetooth",
   },
+  {
+    href: "/device/rfid",
+    icon: "contactless-payment",
+    title: "RFID",
+    summary:
+      "UHF handheld readers behind one contract: scan, single read, tag search — @its/glowup-device/rfid",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
@@ -139,7 +146,8 @@ npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
 npx expo install expo-location expo-task-manager # /background-location
-npx expo install react-native-ble-manager       # /bluetooth`;
+npx expo install react-native-ble-manager       # /bluetooth
+npm install @its/rfid-honeywell                  # /rfid: one vendor package`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -189,7 +197,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library, background location with geofencing and Bluetooth Low Energy, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library, background location with geofencing, Bluetooth Low Energy and UHF RFID readers, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"

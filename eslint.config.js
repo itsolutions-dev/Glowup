@@ -23,6 +23,8 @@ const DEVICE_CAPABILITIES = {
   // Starts expo-location's updates, so it shares that module with /location.
   "background-location": ["expo-location", "expo-task-manager"],
   bluetooth: ["react-native-ble-manager"],
+  // The contract and its engine: the vendors' native code is in @its/rfid-*.
+  rfid: [],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
@@ -58,6 +60,11 @@ const publicOnly = (name, subpaths = []) => [
 // What no file of packages/device may import, whatever folder it is in.
 const DEVICE_BASE_PATTERNS = [
   noPlayground("The device package cannot depend on the playground app."),
+  {
+    group: ["@its/rfid-*", "**/packages/rfid-*/**"],
+    message:
+      "The device package holds the RFID contract; vendor packages (@its/rfid-*) implement it and the app chooses one. The arrow never points back.",
+  },
   noPackages(
     ["ui", "notifications"],
     "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
@@ -105,6 +112,7 @@ module.exports = defineConfig([
       ".design-sync/docs/**",
       ".design-sync/guidelines/**",
       "**/.design-sync-entry.mjs",
+      ".design-sync/web-barrel.mjs",
     ],
   },
   {
@@ -154,6 +162,15 @@ module.exports = defineConfig([
             // "/testing" is the one public subpath (the Jest mock).
             ...publicOnly("notifications", ["testing"]),
             ...publicOnly("device", DEVICE_SUBPATHS),
+            {
+              group: [
+                "@its/rfid-*/*",
+                "**/packages/rfid-*/**",
+                "packages/rfid-*/**",
+              ],
+              message:
+                "Import a vendor package through its name only (@its/rfid-honeywell).",
+            },
           ],
         },
       ],
@@ -287,6 +304,33 @@ module.exports = defineConfig([
               allowTypeImports: true,
               message:
                 "The root entry and core/ may only `import type` from a capability: a value import would load its native module.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // A vendor package implements `@its/glowup-device/rfid` and knows nothing
+    // else of the repo: no UI kit, no other capability, no app.
+    files: ["packages/rfid-*/**/*.ts", "packages/rfid-*/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            noPlayground("A vendor package cannot depend on an app."),
+            noPackages(
+              ["ui", "notifications"],
+              "A vendor package is headless: it implements @its/glowup-device/rfid only.",
+            ),
+            ...publicOnly("device", ["rfid", "testing"]),
+          ],
+          paths: [
+            {
+              name: "@its/glowup-device",
+              message:
+                "A vendor package imports @its/glowup-device/rfid (and /testing in tests), not the root entry.",
             },
           ],
         },

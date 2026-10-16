@@ -37,6 +37,7 @@ describe("package exports", () => {
       "media-library",
       "background-location",
       "bluetooth",
+      "rfid",
       "testing",
     ]);
   });

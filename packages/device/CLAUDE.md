@@ -7,7 +7,7 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, `./rfid`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
   `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
@@ -153,6 +153,34 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   location mock's `watchHeading`). Jest: a lazy `require` that runs after `isolateModules` lands
   in the main registry, and Jest then serves that mock to later isolated registries, so a test
   that needs the module missing mocks `isNativePlatform` instead.
+- **RFID** (`src/rfid`): a contract and its engine, no native code and no default adapter
+  (`DEVICE_CAPABILITIES` lists it with no module). Vendor packages (`@its/rfid-*`) implement
+  `RfidAdapter`; ADR-R1 in the plan says why. The contract's units are fixed (dBm, ms epoch,
+  uppercase hex), `contractVersion` must match `RFID_CONTRACT_VERSION` (checked by
+  `ensureReady`: supported → version → permission → connected) and `capabilities` are read from
+  which optional methods exist (`getRfidCapabilities`), never declared. `engine.ts` keeps one
+  engine per adapter: the connection (a live store over `getConnection` /
+  `subscribeConnection`), the permission store, the latest connect error, and **one mode at a
+  time**. A mode (`RfidMode`: `end(error)` for its own state, `stop()` for the reader's side,
+  which awaits its start first) goes through `begin()`, which ends the previous one, waits for
+  every earlier stop (`stopping` is a chain, so a new mode starts only on a stopped reader),
+  checks readiness and only then watches `AppState` (background ends it) and the connection
+  (anything but `connected` ends it with `disconnected`). `finish()` is the reader ending it
+  (no stop), `stop()` the app, `complete()` a mode that reached its result, `abandon()` a
+  failed `begin()`. The stores (`inventory.ts`, `singleRead.ts`, `locate.ts`) hold their
+  snapshot and their current mode; the inventory and the search stop when their last reader
+  leaves (a microtask later). Reads merge by normalised EPC (`tags.ts`: EMA 0.3 on the RSSI,
+  proximity between the bounds), render at most every 250 ms (search: 100 ms) through
+  `createThrottle` (the first at once after a reset). `read()` returns its promise before the
+  work starts, so a read replaced during a native window rejects then, not when the window ends.
+  The search is native (`startLocate`) or an inventory keeping the target's strongest read per
+  batch; it reads out of range after 2 s of silence (an interval checks, as silence sends no
+  event). Discovery and the trigger sit beside the modes: the trigger store holds one adapter
+  subscription while any handler or snapshot listens. Testing: `createMockRfidAdapter()` is
+  the reference adapter (optional methods assigned after the literal, so a capability turned
+  off is absent, not `undefined`), and `describeRfidAdapterContract()` is the vendors' suite:
+  it takes `{ describe, it }` (`/testing` needs no Jest globals), uses its own assertions and
+  real timers, and `rfid-contract.test.ts` checks it fails broken adapters.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read; it also
   backs `/background-location`'s `isRunning`) and

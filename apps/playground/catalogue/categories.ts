@@ -81,6 +81,7 @@ export const CATEGORIES: Category[] = [
       "Accordion",
       "Carousel",
       "Stat",
+      "CaptionValue",
       "Image",
       "Link",
     ],

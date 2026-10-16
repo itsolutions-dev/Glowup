@@ -10,6 +10,7 @@ import {
   Image,
   Link,
   Stat,
+  CaptionValue,
   ListSection,
   ListSubheader,
   Table,
@@ -224,6 +225,26 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
       },
       helpText: { type: "text", default: "vs. last month", label: "Help Text" },
       icon: { type: "text", default: "cash-multiple", label: "Icon" },
+    },
+  },
+  CaptionValue: {
+    name: "CaptionValue",
+    Component: CaptionValue,
+    props: {
+      caption: { type: "text", default: "Phone", label: "Caption" },
+      value: { type: "text", default: "+39 06 1234 5678", label: "Value" },
+      direction: {
+        type: "select",
+        default: "column",
+        label: "Direction",
+        options: [
+          { label: "Column", value: "column" },
+          { label: "Row", value: "row" },
+        ],
+      },
+      reverse: { type: "boolean", default: false, label: "Reverse" },
+      omitCaption: { type: "boolean", default: false, label: "Omit caption" },
+      fallback: { type: "text", default: "—", label: "Fallback" },
     },
   },
   Image: {

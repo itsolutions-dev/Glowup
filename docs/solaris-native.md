@@ -448,6 +448,10 @@ normale "12.50"; prima la virgola veniva scartata in silenzio e 12,50 diventava 
 7 test; verificato su web. Il separatore non si prende ancora dalla lingua del dispositivo (resta una scelta dell'app).
 Restano nel 3A: `Autocomplete`, `FilterButton`.
 
+**`CaptionValue` fatto (2026-10-16, lotto 3C)**: componente nuovo (`caption`, `value`, `direction`, `reverse`, `fallback`, `omitCaption`,
+`captionColor`/`valueColor`, `textAlign`, `gap`, `numberOfLines`, stili e `style`); non porta il `translate()` interno del CRM (l'i18n resta
+all'app). Differenza voluta dal CRM: `0` è un valore, non cade nel `fallback`. 4 test; in catalogo con demo e galleria; verificato su web.
+
 ### Fase 3 — Componenti specializzati (le prop)
 
 Gli elementi sotto sono **candidati** dalla lettura del CRM; la matrice 0.5 li conferma uno per uno

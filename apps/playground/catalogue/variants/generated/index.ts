@@ -11,6 +11,7 @@ import { variants as Breadcrumbs } from "./Breadcrumbs";
 import { variants as Button } from "./Button";
 import { variants as ButtonGroup } from "./ButtonGroup";
 import { variants as Calendar } from "./Calendar";
+import { variants as CaptionValue } from "./CaptionValue";
 import { variants as Card } from "./Card";
 import { variants as Carousel } from "./Carousel";
 import { variants as Center } from "./Center";
@@ -88,6 +89,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Button,
   ButtonGroup,
   Calendar,
+  CaptionValue,
   Card,
   Carousel,
   Center,

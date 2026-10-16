@@ -144,6 +144,7 @@ const CATALOGUE = [
   "Accordion",
   "Carousel",
   "Stat",
+  "CaptionValue",
   "Image",
   "Link",
   // Feedback

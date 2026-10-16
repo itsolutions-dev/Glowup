@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 102,
+  "componentCount": 103,
   "components": {
     "Accordion": {
       "name": "Accordion",
@@ -5783,6 +5783,125 @@
             "down",
             "flat"
           ],
+          "deprecated": false
+        }
+      ]
+    },
+    "CaptionValue": {
+      "name": "CaptionValue",
+      "source": "packages/ui/src/components/CaptionValue.tsx",
+      "propsTypeName": "CaptionValueProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "caption",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "The label: \"Phone\", \"Due date\". Text, or any node.",
+          "deprecated": false
+        },
+        {
+          "name": "captionColor",
+          "type": "string",
+          "required": false,
+          "description": "Any colour; defaults to the variant-on-surface role.",
+          "deprecated": false
+        },
+        {
+          "name": "captionStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "`\"column\"` stacks the caption over the value, `\"row\"` puts them side by side.",
+          "values": [
+            "column",
+            "row"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "fallback",
+          "type": "React.ReactNode",
+          "required": false,
+          "default": "\"—\"",
+          "description": "Drawn when `value` is empty (`null`, `undefined`, `\"\"` or `false`; `0` is a\nvalue). Defaults to an em dash.",
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "description": "Space between the caption and the value. Defaults to 4.",
+          "deprecated": false
+        },
+        {
+          "name": "numberOfLines",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "Lines the value may use before it is cut with an ellipsis; `0` is no limit. Defaults to 1.",
+          "deprecated": false
+        },
+        {
+          "name": "omitCaption",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws no caption at all, instead of an empty line.",
+          "deprecated": false
+        },
+        {
+          "name": "reverse",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Puts the value before the caption.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "For width, flex, padding and the like.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "textAlign",
+          "type": "TextStyle[\"textAlign\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "The value. Text and numbers are drawn in the theme's type; any other node as given.",
+          "deprecated": false
+        },
+        {
+          "name": "valueColor",
+          "type": "string",
+          "required": false,
+          "description": "Any colour; defaults to the on-surface role.",
+          "deprecated": false
+        },
+        {
+          "name": "valueStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
           "deprecated": false
         }
       ]

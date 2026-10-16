@@ -10,10 +10,13 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.SystemClock
 
-// The service the SDK talks to on the reader. Whether the IH40 advertises it
-// is for the spike to tell: the diagnostics log every advertisement.
-private const val READER_SERVICE = "e093f3b5-00a3-a9e5-9eca-40016e0edc24"
+// What an IH40 advertises while no host is connected to it (phase 35's
+// spike): the name "IH40" and manufacturer data under company id 1318
+// (0x0526), no service UUID. Connected, it does not advertise at all. The SDK's
+// service stays in the test in case another model advertises it.
 private val READER_NAME = Regex("^IH4\\d", RegexOption.IGNORE_CASE)
+private const val READER_MANUFACTURER = 1318
+private const val READER_SERVICE = "e093f3b5-00a3-a9e5-9eca-40016e0edc24"
 
 // A device advertises many times a second: one report per this interval.
 private const val REPORT_INTERVAL_MS = 500L
@@ -99,8 +102,11 @@ class ReaderScanner(
       null
     }
     val services = record?.serviceUuids?.map { it.uuid.toString() } ?: emptyList()
-    val likely = services.any { it.equals(READER_SERVICE, ignoreCase = true) } ||
-      (name != null && READER_NAME.containsMatchIn(name))
+    val manufacturers = record?.manufacturerSpecificData
+    val manufacturerIds = (0 until (manufacturers?.size() ?: 0)).map { manufacturers!!.keyAt(it) }
+    val likely = (name != null && READER_NAME.containsMatchIn(name)) ||
+      READER_MANUFACTURER in manufacturerIds ||
+      services.any { it.equals(READER_SERVICE, ignoreCase = true) }
     val now = SystemClock.elapsedRealtime()
     synchronized(this) {
       if (callback == null) return
@@ -108,14 +114,13 @@ class ReaderScanner(
       if (last != null && now - last < REPORT_INTERVAL_MS) return
       lastReport[address] = now
     }
-    val manufacturers = record?.manufacturerSpecificData
     onAdvert(
       mapOf(
         "id" to address,
         "name" to name,
         "rssi" to result.rssi,
         "serviceUuids" to services,
-        "manufacturerIds" to (0 until (manufacturers?.size() ?: 0)).map { manufacturers!!.keyAt(it) },
+        "manufacturerIds" to manufacturerIds,
         "likelyReader" to likely
       )
     )

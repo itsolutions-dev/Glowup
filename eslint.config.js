@@ -112,6 +112,7 @@ module.exports = defineConfig([
       ".design-sync/docs/**",
       ".design-sync/guidelines/**",
       "**/.design-sync-entry.mjs",
+      ".design-sync/web-barrel.mjs",
     ],
   },
   {

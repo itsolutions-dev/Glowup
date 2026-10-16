@@ -72,4 +72,5 @@ Everything else is `@its/glowup-device/rfid`: `useRfidReader`, `useRfidInventory
   dBm); the beeper's `MUTE` / `LOW` / `MEDIUM` / `HIGH` as `off` / `low` / `medium` / `high`.
 
 `createHoneywellRfidAdapter(options)` builds another one: `discoveryFilter: false` reports every
-named device in a search, `proximityBounds` changes the default -35 / -75 dBm.
+named device in a search, `proximityBounds` changes the default -30 / -70 dBm (measured on an IH40: about -25 with the tag against the
+reader, -71 the weakest heard).

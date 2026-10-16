@@ -36,7 +36,10 @@ export interface HoneywellRfidAdapterOptions {
    * see what the readers advertise.
    */
   discoveryFilter?: boolean;
-  /** Default near -35, far -75 dBm, until the spike measures the IH40. */
+  /**
+   * Default near -30, far -70 dBm: on the IH40 a tag held against the reader
+   * reads about -25, the weakest heard about -71 (phase 35's spike).
+   */
   proximityBounds?: RfidProximityBounds;
   /** The host's manufacturer; `Platform.constants.Manufacturer` by default. */
   manufacturer?: () => string | null;
@@ -145,7 +148,7 @@ export function createHoneywellRfidAdapter(
     contractVersion: 1,
     vendor: "honeywell",
     supportsTid: true,
-    proximityBounds: options.proximityBounds ?? { near: -35, far: -75 },
+    proximityBounds: options.proximityBounds ?? { near: -30, far: -70 },
     powerRange: POWER_RANGE,
 
     isSupported,

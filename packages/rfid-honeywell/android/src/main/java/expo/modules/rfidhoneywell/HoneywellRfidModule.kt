@@ -30,8 +30,9 @@ class RfidException(code: String, message: String, cause: Throwable? = null) :
 // batches many times a second.
 private const val BATCH_INTERVAL_MS = 100L
 
-// The SDK's tag time is 0 on the Bluetooth path: anything before 2001 is not
-// a real time, and the arrival time stands in.
+// The IH40 reports real tag times (phase 35), but some of the SDK's
+// TagReadData constructors pass 0: anything before 2001 is not a real time,
+// and the arrival time stands in.
 private const val EARLIEST_REAL_TIME = 1_000_000_000_000L
 
 private enum class Mode { IDLE, INVENTORY, LOCATE, SINGLE }

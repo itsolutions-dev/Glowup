@@ -75,6 +75,7 @@ describe("where it runs", () => {
       vendor: "honeywell",
       supportsTid: true,
       powerRange: { min: 5, max: 30 },
+      proximityBounds: { near: -30, far: -70 },
     });
   });
 });

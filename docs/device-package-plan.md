@@ -1322,8 +1322,8 @@ How it stays honest:
   - EPCs come out of `bytes_Hexstr()` with `toUpperCase()`: uppercase.
   - RSSI: the Bluetooth path's tag info stores it as a signed `byte`, so -128…127, which reads as
     dBm. The hardware confirms the range.
-  - The tag time on the Bluetooth path is built from `0`: `getTime()` is 1970. The module uses the
-    arrival time.
+  - Some of `TagReadData`'s constructors build the time from `0`. The module keeps a guard (a
+    time before 2001 becomes the arrival time), but the IH40's reads carry real times (measured).
   - While locating, `onTagRead` receives only the searched tag (or an empty array), with its full
     RSSI; `onReceivedFindingTag` gets `rssi / readCount` (integer division). The module sends the
     RSSI and keeps the SDK's value for the diagnostics.
@@ -1338,17 +1338,29 @@ How it stays honest:
     for it.
   - Its internal search (`Comm_Bluetooth.StartSearch`) has no name or service filter, and is not
     public.
-- **Not verified, for the spike on a CT40 + IH40 (`apps/rfid-diagnostics` measures them):**
-  - the build itself (no Android SDK in the cloud sessions);
-  - the RSSI range in practice, and the default proximity bounds (-35 / -75 dBm);
-  - the SDK's locate value beside the module's;
+- **Measured on a CT40 (Android 11) + IH40, phase 35 spike (first report, 16 October):**
+  - The development build works once the app also supplies `DataCollection.aar` (above).
+  - Connection: `onDeviceConnected` 135 ms after `connect()`, then `onReaderCreated(true)` about
+    **2 s** later (what the old MES app's fixed 2 s delay stood in for). The module waits for the
+    event.
+  - RSSI in dBm: −25 / −23 with the tag against the reader, −45 / −52 at a short distance, −71 the
+    weakest heard. The adapter's default bounds moved from −35 / −75 to **−30 / −70**.
+  - EPCs uppercase; tag times real; `readCount` always 1 (the SDK reports every read on its own,
+    so the module's 100 ms batches matter: up to 8 reads each).
+  - Locate: about one read every 120–300 ms; `onReceivedFindingTag` equals the read's RSSI (117
+    samples), as `readCount` is 1.
+  - A new SDK thread for every read session (`Thread-10`, `-14`, …); the module's lock covers it.
+  - `syncRead`: 500 ms found 0, 5 and 7 tags; 2 s found 6.
+  - Battery `"46"`; the trigger reached the app (six presses and releases).
+  - The IH40 answers `getSN()` with `"Not Support!"`: the adapter reads it as no serial number.
+- **Still to verify on the hardware (second report):**
+  - **The search:** the IH40 did not appear among 55 devices heard, probably because it was
+    connected (a connected BLE peripheral usually stops advertising). To repeat disconnected, with
+    the filter off; the filter is adapted to what it advertises then.
+  - reconnection after the reader is switched off and on;
   - whether the reader beeps during a locate started through the module;
-  - batch sizes, rates and the callback threads;
-  - connection time, and reconnection after the reader is switched off and on;
-  - whether the trigger reaches the app in `TriggerMode.RFID`, and is given back;
-  - what the IH40 advertises (the search's filter guesses the SDK's service or an `IH4x` name);
   - TIDs through `TagAdditionData.TID_BANK`;
-  - whether AGP packages the AAR's `armeabi` folder without complaint;
+  - whether the trigger drives the CT40's own scanner again once handed back;
   - whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves the SDK; the build
     environment's proxy refuses that host.
 
@@ -1403,12 +1415,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                      |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                        |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | code done; hardware pending |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                    |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                    |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                                   |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                                     |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | first report in; search, reconnection, beep, TID pending |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                                 |
+| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                                 |
 
 **Answered:**
 

@@ -358,14 +358,16 @@ function SingleReadSection({ onPick }: { onPick: (epc: string) => void }) {
   const single = useRfidSingleRead();
   const { error, run } = useAction();
   const [done, setDone] = useState(false);
+  const [tid, setTid] = useState(false);
   return (
     <Section title="Single read">
+      <Toggle label="Read the TID" value={tid} onChange={setTid} />
       <Row>
         <Button
           label={single.isReading ? "Reading…" : "Read (500 ms)"}
           onPress={() =>
             run(async () => {
-              await single.read();
+              await single.read({ tid });
               setDone(true);
             })
           }
@@ -374,7 +376,7 @@ function SingleReadSection({ onPick }: { onPick: (epc: string) => void }) {
           label="Read (2 s)"
           onPress={() =>
             run(async () => {
-              await single.read({ window: 2000 });
+              await single.read({ window: 2000, tid });
               setDone(true);
             })
           }

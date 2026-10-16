@@ -65,7 +65,8 @@ Everything else is `@its/glowup-device/rfid`: `useRfidReader`, `useRfidInventory
 - **Honeywell hosts only.** The licence binds apps embedding the SDK to Honeywell hardware, so the
   adapter reads `unsupported` on another brand's device and never starts the SDK there. Build one
   app per vendor.
-- **Every capability is native:** the reader's own single read (`syncRead`) and tag finder (it
+- **Every capability is native:** the reader's own single read (`syncRead`; with a TID, a short
+  read window, as `syncRead` cannot return one) and tag finder (it
   beeps faster as the tag nears), the trigger, the battery, the reader's identity, and a reader
   search (a Bluetooth scan in the module: the SDK has none). An IH40 is found only while no host
   is connected to it: connected, it stops advertising.

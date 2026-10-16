@@ -23,7 +23,9 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   because on the CT40 its daemon never retried; after an unexpected drop the module calls
   `connect()` again after 1, 3, 5, then every 10 s, abandoning an attempt that gives no reader in
   15 s, until `connect()` or `disconnect()`. The read option sets `data` and `protocol` as the
-  SDK's own `read()` does: without them the TID never comes back. Reads arrive on SDK
+  SDK's own `read()` does: without them the TID never comes back. `syncRead` takes no read option,
+  so a single read with a TID is a `read()` window instead, collected by the tag listener while
+  the mode is `SINGLE`. Reads arrive on SDK
   threads: every state change goes through `lock`, no blocking SDK call runs under it, and reads
   are batched to JavaScript every 100 ms from the module's `HandlerThread`. While locating, the
   SDK passes only the searched tag to `onTagRead` (matched with `String.equals` on uppercase

@@ -29,7 +29,8 @@ Turn the IH40 on, keep "Diagnostics" on, then work down the screen:
    settings; try −1 / +1 dBm and Session.
 3. **Multiple scan:** Start with a few tags at different distances; move them. Then turn on
    "Trigger drives the scan" and use the trigger. Try "Read TIDs".
-4. **Single read:** with one tag close, then none, then several.
+4. **Single read:** with one tag close, then none, then several; then again with "Read the TID"
+   on (the tag line shows its TID).
 5. **Single search:** tap a tag in the list, Start, move the reader towards and away from it.
    Does the IH40 beep faster as it nears?
 6. Turn the IH40 off and on again while connected: the state should go `reconnecting`, then back

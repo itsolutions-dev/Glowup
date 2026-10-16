@@ -1302,7 +1302,8 @@ How it stays honest:
 - **How the three modes map:**
   - **Multiple scan:** `read()` + `OnTagReadListener.onTagRead(TagReadData[])`, in batches on an
     SDK thread. `TagReadData` gives the EPC, RSSI, antenna, read count, frequency and time.
-  - **Single read:** `syncRead(windowMs)`, then the strongest tag.
+  - **Single read:** `syncRead(windowMs)`, then the strongest tag. With a TID, a `read()` window
+    instead: `syncRead` takes no `TagReadOption`, so it cannot ask for the TID's data (phase 35).
   - **Single search:** native Tag Finder. `setLocateEPC(epc)` + `read()`; the SDK then passes on
     only that tag, `EventListener.onReceivedFindingTag(rssi / readCount)` gives the value, and the
     reader beeps faster as the tag nears. The EPC is matched with `String.equals`, so case matters.
@@ -1372,10 +1373,20 @@ How it stays honest:
     `protocol` in its `TagReadOption`; the module's did not. It does now.
   - The reader beeps faster during a locate started through the module.
   - Handed back, the trigger drives the CT40's own scanner again.
+- **Fourth report (16 October):**
+  - **The module's reconnection works:** the IH40 switched off and on while connected, the first
+    `reconnectAttempt` 1 s after the drop, `onDeviceConnected` 4.3 s and `onReaderCreated(true)`
+    6.5 s after it.
+  - **TIDs arrive in the multiple scan:** every read's `additionData` holds 12 bytes (for
+    example `E28068942000401007656433`).
+  - **No TID in the single read:** the diagnostics' single read never asked for one. Asking would
+    not have been enough either: `syncRead(TID_BANK, ms)` builds the TID read plan but takes no
+    `TagReadOption`, so the `data` flag the multiple scan needed is never set. With a TID the
+    module now reads for the window with `read(TID_BANK, option)` and collects the reads itself;
+    without one it keeps `syncRead`. The diagnostics' single read has a "Read the TID" toggle.
 - **Still to verify on the hardware:**
-  - the module's reconnection (switch the IH40 off and on while connected: `reconnectAttempt`
-    entries in the report, then `connected`);
-  - TIDs with "Read TIDs" on (multiple scan) and in a single read (`syncRead` with `TID_BANK`);
+  - a single read with "Read the TID" on (the report's `syncReads` entry has `path: "read"` and a
+    `tids` count);
   - whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves the SDK; the build
     environment's proxy refuses that host.
 
@@ -1430,12 +1441,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                                  |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                                    |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | three reports in; reconnection and TID fixes to confirm |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                                |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                                |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                            |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                              |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | four reports in; the single read's TID to confirm |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                          |
+| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                          |
 
 **Answered:**
 
@@ -1503,11 +1514,11 @@ What follows from it:
 
 - **`packages/rfid-honeywell`** (`@its/rfid-honeywell`, private): an Android-only Expo module, its
   adapter and its config plugin.
-  - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects with auto-reconnect
-    and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
-    request), single read (`syncRead`), locate (`setLocateEPC` + `read`, the value from the
-    filtered reads), trigger hand-over (`TriggerMode.RFID`, the previous mode restored), settings,
-    battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
+  - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects (and reconnects by
+    itself) and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
+    request), single read (`syncRead`, or a `read` window for a TID), locate (`setLocateEPC` +
+    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, the
+    previous mode restored), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
     `ReaderScanner.kt` is the search: a low-latency BLE scan that refuses to start with location
     off up to Android 11 and reports each device at most every 500 ms.
   - **Adapter** (`createHoneywellRfidAdapter`, `getHoneywellRfidAdapter`): every optional part of

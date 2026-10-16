@@ -193,10 +193,17 @@ class HoneywellRfidModule : Module() {
     AsyncFunction("readOnce") { windowMs: Int, tid: Boolean ->
       val r = beginMode(Mode.SINGLE)
       try {
-        val now = System.currentTimeMillis()
-        val reads = if (tid) r.syncRead(TagAdditionData.TID_BANK, windowMs) else r.syncRead(windowMs)
-        diagnostic("syncRead", mapOf("size" to (reads?.size ?: 0), "windowMs" to windowMs))
-        (reads ?: emptyArray()).map { toRead(it, now, tid) }
+        val reads = if (tid) readWindow(r, windowMs) else syncRead(r, windowMs)
+        diagnostic(
+          "syncRead",
+          mapOf(
+            "path" to if (tid) "read" else "syncRead",
+            "size" to reads.size,
+            "tids" to reads.count { it["tid"] != null },
+            "windowMs" to windowMs
+          )
+        )
+        reads
       } catch (error: RfidException) {
         throw error
       } catch (error: Throwable) {
@@ -572,6 +579,29 @@ class HoneywellRfidModule : Module() {
     return r
   }
 
+  private fun syncRead(r: RfidReader, windowMs: Int): List<Map<String, Any?>> {
+    val now = System.currentTimeMillis()
+    return (r.syncRead(windowMs) ?: emptyArray()).map { toRead(it, now, false) }
+  }
+
+  // syncRead takes no TagReadOption, so it cannot ask for the data flag the
+  // TID needs (phase 35: no TID came back). With a TID, the single read is a
+  // short inventory instead: the listener collects while the mode is SINGLE.
+  private fun readWindow(r: RfidReader, windowMs: Int): List<Map<String, Any?>> {
+    if (!r.read(TagAdditionData.TID_BANK, readOption())) {
+      throw RfidException("ERR_READER", "The reader refused to start reading.")
+    }
+    try {
+      Thread.sleep(windowMs.toLong())
+    } finally {
+      try {
+        r.stopRead()
+      } catch (_: Throwable) {
+      }
+    }
+    return synchronized(lock) { ArrayList(pendingReads).also { pendingReads.clear() } }
+  }
+
   private fun endMode(expected: Mode) {
     synchronized(lock) { if (mode == expected) mode = Mode.IDLE }
   }
@@ -622,6 +652,11 @@ class HoneywellRfidModule : Module() {
     synchronized(lock) {
       when (mode) {
         Mode.INVENTORY -> batch.forEach { pendingReads.add(toRead(it, now, readTids)) }
+        // readWindow collects these itself once the window ends; no flush.
+        Mode.SINGLE -> {
+          batch.forEach { pendingReads.add(toRead(it, now, true)) }
+          return@OnTagReadListener
+        }
         Mode.LOCATE -> batch.forEach { read ->
           pendingLocate = maxOf(pendingLocate ?: read.rssi, read.rssi)
         }

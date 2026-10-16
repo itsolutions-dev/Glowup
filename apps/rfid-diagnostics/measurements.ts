@@ -27,7 +27,13 @@ export interface Measurements {
   /** The SDK's own locate value (`onReceivedFindingTag`), beside the module's RSSI. */
   findingTag: { count: number; min: number | null; max: number | null };
   battery: string[];
-  syncReads: { windowMs: number; size: number }[];
+  /** Single reads: `syncRead` without a TID, a short `read` with one. */
+  syncReads: {
+    path: string;
+    windowMs: number;
+    size: number;
+    tids: number;
+  }[];
   /** Every device a discovery heard, filtered or not. */
   adverts: Record<
     string,
@@ -152,7 +158,12 @@ export function record(
     case "syncRead":
       next.syncReads = [
         ...measurements.syncReads,
-        { windowMs: num(event.windowMs) ?? 0, size: num(event.size) ?? 0 },
+        {
+          path: String(event.path ?? "syncRead"),
+          windowMs: num(event.windowMs) ?? 0,
+          size: num(event.size) ?? 0,
+          tids: num(event.tids) ?? 0,
+        },
       ];
       break;
     case "advert": {

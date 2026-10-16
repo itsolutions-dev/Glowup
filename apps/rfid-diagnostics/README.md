@@ -25,7 +25,7 @@ Turn the IH40 on, keep "Diagnostics" on, then work down the screen:
 1. **Permission:** Request. On Android 11 it asks for location (a reader search needs it).
 2. **Reader:** Search with "Only Honeywell-looking readers" **on**, then **off**. The list under
    Measurements shows what each device advertises; a ★ marks one the filter would keep. Tap the
-   IH40 (or type its address) to connect. Note how long it takes. Read the battery, info and
+   IH40, type its address, or press Connect when the search found only it. Note how long it takes. Read the battery, info and
    settings; try −1 / +1 dBm and Session.
 3. **Multiple scan:** Start with a few tags at different distances; move them. Then turn on
    "Trigger drives the scan" and use the trigger. Try "Read TIDs".

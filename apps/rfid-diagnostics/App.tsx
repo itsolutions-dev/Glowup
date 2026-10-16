@@ -216,7 +216,17 @@ function ReaderSection({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
         autoCorrect={false}
       />
       <Row>
-        <Button label="Connect" onPress={() => connect(address)} />
+        <Button
+          label="Connect"
+          // An empty field connects to the reader the search found, when it
+          // found exactly one.
+          onPress={() =>
+            connect(
+              address.trim() ||
+                (discovery.readers.length === 1 ? discovery.readers[0].id : ""),
+            )
+          }
+        />
         <Button
           label="Disconnect"
           onPress={() => run(() => reader.disconnect())}

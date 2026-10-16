@@ -51,6 +51,7 @@ const TIMELINE = new Set([
   "deviceConnected",
   "readerCreated",
   "deviceDisconnected",
+  "reconnectAttempt",
   "trigger",
   "triggerMode",
   "triggerModeFailed",

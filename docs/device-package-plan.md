@@ -1362,11 +1362,20 @@ How it stays honest:
     `onDeviceConnected`.
   - Every inventory starts a new SDK thread; reads may carry the time of a previous session's
     last read (an SDK buffer), harmless to the merge.
+- **Third report (16 October):**
+  - **The SDK's auto-reconnect does not work:** after the IH40 was switched off and on, nothing
+    happened for 61 s, while a connection by hand worked in 2 s. Its daemon (a 3 s retry, created
+    in `onReaderCreated` when auto-reconnect is on) made no attempt. The module now turns it off
+    and reconnects itself (1, 3, 5, then every 10 s; an attempt without a reader in 15 s is
+    closed and retried).
+  - **TIDs did not arrive:** `additionData` stayed empty. The SDK's own `read()` sets `data` and
+    `protocol` in its `TagReadOption`; the module's did not. It does now.
+  - The reader beeps faster during a locate started through the module.
+  - Handed back, the trigger drives the CT40's own scanner again.
 - **Still to verify on the hardware:**
-  - automatic reconnection after the reader is switched off and on (not in either report);
-  - whether the reader beeps during a locate started through the module;
-  - TIDs through `TagAdditionData.TID_BANK` (no `additionData` seen yet);
-  - whether the trigger drives the CT40's own scanner again once handed back;
+  - the module's reconnection (switch the IH40 off and on while connected: `reconnectAttempt`
+    entries in the report, then `connected`);
+  - TIDs with "Read TIDs" on (multiple scan) and in a single read (`syncRead` with `TID_BANK`);
   - whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves the SDK; the build
     environment's proxy refuses that host.
 
@@ -1421,12 +1430,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                          |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                            |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | two reports in; reconnection, beep, TID pending |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                        |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                        |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                                  |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                                    |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | three reports in; reconnection and TID fixes to confirm |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                                |
+| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                                |
 
 **Answered:**
 

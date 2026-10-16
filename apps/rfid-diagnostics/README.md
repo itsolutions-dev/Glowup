@@ -33,7 +33,8 @@ Turn the IH40 on, keep "Diagnostics" on, then work down the screen:
 5. **Single search:** tap a tag in the list, Start, move the reader towards and away from it.
    Does the IH40 beep faster as it nears?
 6. Turn the IH40 off and on again while connected: the state should go `reconnecting`, then back
-   to `connected`.
+   to `connected` within about 10 s of the reader being on (Measurements lists each
+   `reconnectAttempt`).
 
 ## Send back
 

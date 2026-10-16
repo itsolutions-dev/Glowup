@@ -18,8 +18,12 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
 - **The Kotlin module** (`android/…/HoneywellRfidModule.kt`) keeps the SDK's units (RSSI as
   reported, power in centi-dBm, enum names) and the adapter (`src/adapter.ts`) converts them, so
   the diagnostics see raw values. It binds the SDK's embedded `RfidService`
-  (`RfidManager.create`), connects with auto-reconnect, calls `createReader()` on every
-  `onDeviceConnected` and is `connected` only after `onReaderCreated(true)`. Reads arrive on SDK
+  (`RfidManager.create`), calls `createReader()` on every `onDeviceConnected` and is `connected`
+  only after `onReaderCreated(true)`. It reconnects by itself: the SDK's auto-reconnect is off,
+  because on the CT40 its daemon never retried; after an unexpected drop the module calls
+  `connect()` again after 1, 3, 5, then every 10 s, abandoning an attempt that gives no reader in
+  15 s, until `connect()` or `disconnect()`. The read option sets `data` and `protocol` as the
+  SDK's own `read()` does: without them the TID never comes back. Reads arrive on SDK
   threads: every state change goes through `lock`, no blocking SDK call runs under it, and reads
   are batched to JavaScript every 100 ms from the module's `HandlerThread`. While locating, the
   SDK passes only the searched tag to `onTagRead` (matched with `String.equals` on uppercase

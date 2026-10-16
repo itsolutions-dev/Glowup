@@ -35,6 +35,13 @@ private const val BATCH_INTERVAL_MS = 100L
 // and the arrival time stands in.
 private const val EARLIEST_REAL_TIME = 1_000_000_000_000L
 
+// The SDK's own auto-reconnect never retried on the CT40 (phase 35): the
+// module reconnects itself, after these waits, then every last one.
+private val RECONNECT_DELAYS_MS = longArrayOf(1_000L, 3_000L, 5_000L, 10_000L)
+
+// An attempt that started but gave no reader within this is abandoned.
+private const val RECONNECT_ATTEMPT_TIMEOUT_MS = 15_000L
+
 private enum class Mode { IDLE, INVENTORY, LOCATE, SINGLE }
 
 /**
@@ -64,6 +71,10 @@ class HoneywellRfidModule : Module() {
   private val pendingReads = ArrayList<Map<String, Any?>>()
   private var pendingLocate: Int? = null
   private var flushScheduled = false
+
+  private var reconnectAttempts = 0
+  private var reconnectScheduled = false
+  private var attemptInFlight = false
 
   private var triggerHandover = false
   private var previousTriggerMode: TriggerMode? = null
@@ -331,8 +342,10 @@ class HoneywellRfidModule : Module() {
     }
     replaced?.reject(RfidException("ERR_CANCELLED", "Another connect() replaced this one."))
     setState("connecting")
+    cancelReconnect()
     val started = try {
-      m.setAutoReconnect(true)
+      // The module reconnects itself (see RECONNECT_DELAYS_MS).
+      m.setAutoReconnect(false)
       m.connect(address)
     } catch (error: Throwable) {
       diagnostic("connectThrew", mapOf("message" to error.toString()))
@@ -345,6 +358,7 @@ class HoneywellRfidModule : Module() {
   }
 
   private fun failConnect(error: RfidException) {
+    cancelReconnect()
     val (promise, m) = synchronized(lock) {
       val p = pendingConnect
       pendingConnect = null
@@ -370,6 +384,7 @@ class HoneywellRfidModule : Module() {
       Triple(manager, mode, p)
     }
     connecting?.reject(RfidException("ERR_CANCELLED", "disconnect() ended the connection attempt."))
+    cancelReconnect()
     if (running == Mode.INVENTORY || running == Mode.LOCATE) stopReading(running)
     restoreTriggerMode()
     try {
@@ -434,6 +449,7 @@ class HoneywellRfidModule : Module() {
       return
     }
     created.setOnTagReadListener(tagListener)
+    cancelReconnect()
     val promise = synchronized(lock) {
       reader = created
       pendingConnect.also { pendingConnect = null }
@@ -461,7 +477,62 @@ class HoneywellRfidModule : Module() {
         mapOf("mode" to running.name.lowercase(), "code" to "ERR_DISCONNECTED", "message" to "The RFID reader disconnected.")
       )
     }
-    setState(if (keep) "reconnecting" else "disconnected")
+    if (!keep) {
+      setState("disconnected")
+      return
+    }
+    setState("reconnecting")
+    if (!synchronized(lock) { reconnectScheduled }) scheduleReconnect(nextReconnectDelay())
+  }
+
+  // --- Reconnection -------------------------------------------------------
+
+  private val reconnect = Runnable { attemptReconnect() }
+
+  private fun nextReconnectDelay(): Long = synchronized(lock) {
+    RECONNECT_DELAYS_MS[minOf(reconnectAttempts, RECONNECT_DELAYS_MS.size - 1)]
+      .also { reconnectAttempts++ }
+  }
+
+  private fun scheduleReconnect(delayMs: Long) {
+    synchronized(lock) { reconnectScheduled = true }
+    handler?.removeCallbacks(reconnect)
+    handler?.postDelayed(reconnect, delayMs)
+  }
+
+  private fun cancelReconnect() {
+    synchronized(lock) {
+      reconnectScheduled = false
+      reconnectAttempts = 0
+      attemptInFlight = false
+    }
+    handler?.removeCallbacks(reconnect)
+  }
+
+  /** What a connect() by hand does, which works where the SDK's daemon did not. */
+  private fun attemptReconnect() {
+    val (m, address, stale) = synchronized(lock) {
+      reconnectScheduled = false
+      if (!keepConnected || state != "reconnecting") return
+      Triple(manager, readerId, attemptInFlight)
+    }
+    if (m == null || address == null) return
+    diagnostic("reconnectAttempt", mapOf("attempt" to synchronized(lock) { reconnectAttempts }, "address" to address))
+    if (stale) {
+      // The previous attempt never produced a reader: close it first.
+      try {
+        m.disconnect()
+      } catch (_: Throwable) {
+      }
+    }
+    val started = try {
+      m.connect(address)
+    } catch (error: Throwable) {
+      diagnostic("connectThrew", mapOf("message" to error.toString()))
+      false
+    }
+    synchronized(lock) { attemptInFlight = started }
+    scheduleReconnect(if (started) RECONNECT_ATTEMPT_TIMEOUT_MS else nextReconnectDelay())
   }
 
   private fun setState(next: String) {
@@ -526,7 +597,11 @@ class HoneywellRfidModule : Module() {
     }
   }
 
+  // As the SDK's own read(): without data and protocol, the TID asked for
+  // through TagAdditionData never comes back (phase 35).
   private fun readOption() = TagReadOption().apply {
+    setData(true)
+    setProtocol(true)
     setRssi(true)
     setReadCount(true)
     setAntennaId(true)

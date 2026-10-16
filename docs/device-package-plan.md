@@ -1250,10 +1250,10 @@ vendor implements it.
   module (Kotlin) around the vendor's SDK, a JS adapter that implements `RfidAdapter`, and its
   config plugin. It takes the contract's types through `import type` and `RfidError` at run
   time, with `@its/glowup-device` as a peer.
-- **The app** picks the vendor in one place, `<DeviceAdaptersProvider adapters={{ rfid:
-honeywellRfidAdapter }}>`, or picks at run time with `firstSupportedRfidAdapter([honeywell,
-zebra])`. Screens use only `/rfid`'s hooks, so changing vendor changes that line and the
-  installed package, nothing else.
+- **The app** picks the vendor in one place,
+  `<DeviceAdaptersProvider adapters={{ rfid: getHoneywellRfidAdapter() }}>` (one build per vendor,
+  R13). Screens use only `/rfid`'s hooks, so changing vendor changes that line and the installed
+  package, nothing else.
 
 Rejected alternatives:
 
@@ -1314,16 +1314,35 @@ How it stays honest:
   - `getBatteryLevel()` (a `String`: polled, no event);
   - beeper volume, LED;
   - antenna power, Gen2 session S0–S3, Q, target, region, versions and serial number.
-- **Not verified, for the spike on a CT40 + IH40:**
-  - whether a Honeywell app (`HON_RFID_App`) must be installed besides the AAR;
-  - RSSI unit and range;
-  - the locate value's range;
-  - the EPC's case;
-  - whether the reader beeps during a locate;
-  - batch sizes and rates;
-  - the battery string's format;
-  - reconnection;
-  - what the IH40 advertises (for discovery);
+- **Read in phase 35 (`javap -c`):**
+  - `RfidManager.create()` binds `new Intent(context, RfidService.class)`: the service embedded in
+    the AAR, inside the app. **No Honeywell app is needed.**
+  - `SecurityGuard` is a challenge-response that authenticates the **reader** (SHA-1 over a salt);
+    it does not check the host's brand.
+  - EPCs come out of `bytes_Hexstr()` with `toUpperCase()`: uppercase.
+  - RSSI: the Bluetooth path's tag info stores it as a signed `byte`, so -128…127, which reads as
+    dBm. The hardware confirms the range.
+  - The tag time on the Bluetooth path is built from `0`: `getTime()` is 1970. The module uses the
+    arrival time.
+  - While locating, `onTagRead` receives only the searched tag (or an empty array), with its full
+    RSSI; `onReceivedFindingTag` gets `rssi / readCount` (integer division). The module sends the
+    RSSI and keeps the SDK's value for the diagnostics.
+  - `getBatteryLevel()` is `String.valueOf(byte)` of a characteristic, `""` on failure.
+  - Antenna power passes through to the reader's `AntPower` unchanged (centi-dBm).
+  - The SDK uses `androidx.localbroadcastmanager` without declaring it.
+  - Its internal search (`Comm_Bluetooth.StartSearch`) has no name or service filter, and is not
+    public.
+- **Not verified, for the spike on a CT40 + IH40 (`apps/rfid-diagnostics` measures them):**
+  - the build itself (no Android SDK in the cloud sessions);
+  - the RSSI range in practice, and the default proximity bounds (-35 / -75 dBm);
+  - the SDK's locate value beside the module's;
+  - whether the reader beeps during a locate started through the module;
+  - batch sizes, rates and the callback threads;
+  - connection time, and reconnection after the reader is switched off and on;
+  - whether the trigger reaches the app in `TriggerMode.RFID`, and is given back;
+  - what the IH40 advertises (the search's filter guesses the SDK's service or an `IH4x` name);
+  - TIDs through `TagAdditionData.TID_BANK`;
+  - whether AGP packages the AAR's `armeabi` folder without complaint;
   - whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves the SDK; the build
     environment's proxy refuses that host.
 
@@ -1362,28 +1381,28 @@ What follows from it:
 
 ### Decisions
 
-| #   | Question     | Decision                                                                                                                                                                                                                    |
-| --- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Architecture | Contract and engine in `@its/glowup-device/rfid`; one package per vendor (`@its/rfid-honeywell` first) implementing `RfidAdapter`; the app chooses through the provider (ADR-R1 above).                                     |
-| R2  | Modes        | One at a time per reader. `inventory` (deduplicated by EPC, sorted by proximity), `readSingle` (native or emulated window, the strongest tag or `null`), `locate(epc)` (native Tag Finder or emulated).                     |
-| R3  | Data         | `RfidTag`: `epc`, `tid` when asked, `rssi` (dBm), `proximity` (0–1), `antenna`, `readCount`, `firstSeen` / `lastSeen`.                                                                                                      |
-| R4  | Distance     | Relative proximity from smoothed RSSI, calibratable bounds, never metres; the raw RSSI stays available.                                                                                                                     |
-| R5  | Connection   | One reader per app: `connect(address)` resolves when the reader is ready (Honeywell: `onReaderCreated` after `onDeviceConnected`, no fixed delay); auto-reconnect; `reconnecting` while it runs; open until `disconnect()`. |
-| R6  | Discovery    | `startDiscovery()` as a capability; Honeywell's through its own native scan.                                                                                                                                                |
-| R7  | Trigger      | A capability: a hook puts the reader in RFID trigger mode while mounted, restores it after, and exposes the presses.                                                                                                        |
-| R8  | Settings     | Transmit power (dBm), Gen2 session, beeper volume; the region read-only (setting it wrongly is unlawful).                                                                                                                   |
-| R9  | Platforms    | Android only for Honeywell; the contract has no platform, and iOS and the web read `unsupported` until a vendor supports them.                                                                                              |
-| R10 | Events       | The vendor module batches tag reads (at most every 100 ms) before they reach JavaScript, and runs the SDK's blocking calls off the main thread.                                                                             |
-| R11 | Distribution | The AAR travels only inside the app's build (the plugin's `aarPath`), never in a published package (the licence, §1 and §3).                                                                                                |
-| R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                          |
-| R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                               |
+| #   | Question     | Decision                                                                                                                                                                                                                                                 |
+| --- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Architecture | Contract and engine in `@its/glowup-device/rfid`; one package per vendor (`@its/rfid-honeywell` first) implementing `RfidAdapter`; the app chooses through the provider (ADR-R1 above).                                                                  |
+| R2  | Modes        | One at a time per reader. `inventory` (deduplicated by EPC, sorted by proximity), `readSingle` (native or emulated window, the strongest tag or `null`), `locate(epc)` (native Tag Finder or emulated).                                                  |
+| R3  | Data         | `RfidTag`: `epc`, `tid` when asked, `rssi` (dBm), `proximity` (0–1), `antenna`, `readCount`, `firstSeen` / `lastSeen`.                                                                                                                                   |
+| R4  | Distance     | Relative proximity from smoothed RSSI, calibratable bounds, never metres; the raw RSSI stays available.                                                                                                                                                  |
+| R5  | Connection   | One reader at a time: `connect(address)` resolves when the reader is ready (Honeywell: `createReader()` on every `onDeviceConnected`, `onReaderCreated(true)`, no fixed delay); auto-reconnect; `reconnecting` while it runs; open until `disconnect()`. |
+| R6  | Discovery    | In scope (each CT40 picks from a pool of readers): `startDiscovery()` as a capability; Honeywell's through its own native scan, filtered to what looks like a reader.                                                                                    |
+| R7  | Trigger      | A capability: a hook puts the reader in RFID trigger mode while mounted, restores it after, and exposes the presses.                                                                                                                                     |
+| R8  | Settings     | Transmit power (dBm), Gen2 session, beeper volume; the region read-only (setting it wrongly is unlawful).                                                                                                                                                |
+| R9  | Platforms    | Android only for Honeywell; the contract has no platform, and iOS and the web read `unsupported` until a vendor supports them.                                                                                                                           |
+| R10 | Events       | The vendor module batches tag reads (at most every 100 ms) before they reach JavaScript, and runs the SDK's blocking calls off the main thread.                                                                                                          |
+| R11 | Distribution | The AAR travels only inside the app's build (the plugin's `aarPath`), never in a published package (the licence, §1 and §3).                                                                                                                             |
+| R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
+| R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status   |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.10.0` | done     |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | proposed |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed |
-| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.10.0` | proposed |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------------------------- |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                        |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | code done; hardware pending |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                    |
+| 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                    |
 
 **Answered:**
 
@@ -1395,10 +1414,13 @@ What follows from it:
 - **The licence:** use is royalty-free with no runtime licence; the AAR stays inside the app's
   build (R11) and each vendor gets its own build (R13).
 
-**Still open:**
+- **Choosing a reader:** each CT40 picks from a pool of IH40s, so the search (R6) is in scope.
+- **The CT40 runs Android 11:** connecting needs no runtime permission there, but a search needs
+  the precise location (and location switched on); the plugin declares it capped at Android 11.
+- **Release:** `@its/glowup-device` shipped Bluetooth as `0.10.0`, so `/rfid` ships as `0.11.0`.
+  `@its/rfid-honeywell`'s peer range (now `>=0.10.0` for the workspace) becomes `^0.11.0` then.
 
-- **Choosing a reader:** one fixed IH40 per CT40, or a pool with a picker.
-- **The CT40's Android version.** The SDK needs 8.0 or later.
+**Still open:** what the spike measures (the list above).
 
 ### Phase 34 — what landed
 
@@ -1443,6 +1465,41 @@ What follows from it:
     native window rejects at once, not when the window ends.
 - **Not yet:** no vendor and no playground page; the units the Honeywell module must convert from
   (RSSI, the locate value) wait for the spike in phase 35.
+
+### Phase 35 — what landed
+
+- **`packages/rfid-honeywell`** (`@its/rfid-honeywell`, private): an Android-only Expo module, its
+  adapter and its config plugin.
+  - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects with auto-reconnect
+    and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
+    request), single read (`syncRead`), locate (`setLocateEPC` + `read`, the value from the
+    filtered reads), trigger hand-over (`TriggerMode.RFID`, the previous mode restored), settings,
+    battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
+    `ReaderScanner.kt` is the search: a low-latency BLE scan that refuses to start with location
+    off up to Android 11 and reports each device at most every 500 ms.
+  - **Adapter** (`createHoneywellRfidAdapter`, `getHoneywellRfidAdapter`): every optional part of
+    the contract; centi-dBm and volume names converted; the module's error codes mapped to
+    `RfidError`; `unsupported` off Honeywell hosts (R13); Android permissions: nearby devices from
+    Android 12, the precise location up to 11.
+  - **Plugin** (`aarPath`): copies the app's AAR into a Maven repository in `android/`, declares it
+    for the SDK's group only, raises `minSdkVersion` to 26 and declares the permissions. A real
+    `expo prebuild` of the diagnostics app produced the expected `build.gradle`,
+    `gradle.properties`, manifest and repository, and autolinking found the module.
+  - **Checked:** the Kotlin compiles against the AAR's `classes.jar` (stubs for Android and
+    Expo's DSL; no Android SDK can be downloaded here). The adapter passes the conformance kit
+    against a JavaScript copy of the module (`fakeNative.ts`).
+- **`apps/rfid-diagnostics`** (private): one screen over `/rfid`'s hooks (permission, search,
+  connection, settings, multiple scan with the trigger, single read, search) and the measurements
+  the spike needs, shared as a JSON report. `README.md` is the team's checklist.
+- **Repository:** lint keeps the device package from importing a vendor and a vendor to `/rfid`;
+  `.gitignore` blocks the SDK anywhere in the tree.
+- **Decided on the way:**
+  - The module computes the locate value from the reads the SDK filters for it, not from
+    `onReceivedFindingTag`, whose integer division by the read count is not a signal strength.
+  - The search filters to the SDK's service or an `IH4x` name; the diagnostics turn the filter
+    off to learn what the IH40 really advertises.
+  - Plain React Native components in the diagnostics app: a short-lived tool, built without the
+    UI kit's fonts and native modules.
 
 ## Open for later
 

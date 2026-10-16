@@ -1,0 +1,25 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.rfidhoneywell'
+version = '0.0.0'
+
+android {
+  namespace "expo.modules.rfidhoneywell"
+  defaultConfig {
+    versionCode 1
+    versionName '0.0.0'
+  }
+}
+
+dependencies {
+  // Honeywell's SDK is not on a public repository and its licence forbids
+  // redistributing it: the config plugin copies the app's own copy (aarPath)
+  // into a Maven repository inside android/ and declares it.
+  implementation 'com.honeywell.rfid:honeywell-rfid-sdk:1.1.0'
+  // The SDK uses LocalBroadcastManager without declaring it (a local AAR has
+  // no POM to carry its dependencies).
+  implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+}

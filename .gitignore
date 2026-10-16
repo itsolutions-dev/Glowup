@@ -66,3 +66,8 @@ packages/ui/.design-sync-entry.mjs
 .tokensave/
 .serena/
 graphify-out/
+
+# The Honeywell RFID SDK: its licence lets it travel only inside an app's
+# build (docs/device-package-plan.md, "The licence"). Never commit a copy.
+honeywell_rfid_sdk*.aar
+honeywell-rfid-repository/

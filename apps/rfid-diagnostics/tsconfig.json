@@ -1,0 +1,17 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "types": ["jest"],
+    // As in the playground: the packages by name, mapped to their source so
+    // Metro and tsc follow a live edit.
+    "paths": {
+      "@its/glowup-device": ["../../packages/device/src/index.ts"],
+      "@its/glowup-device/rfid": ["../../packages/device/src/rfid/index.ts"],
+      "@its/glowup-device/testing": [
+        "../../packages/device/src/testing/index.ts"
+      ],
+      "@its/rfid-honeywell": ["../../packages/rfid-honeywell/src/index.ts"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

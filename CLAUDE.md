@@ -4,14 +4,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-An **npm-workspaces monorepo** with four workspaces:
+An **npm-workspaces monorepo** with six workspaces:
 
-| Workspace                | Package                     | Role                                                                                                    |
-| ------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                        |
-| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                 |
-| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters. |
-| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                     |
+| Workspace                 | Package                     | Role                                                                                                                          |
+| ------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui`             | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                                              |
+| `packages/notifications`  | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                                       |
+| `packages/device`         | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters.                       |
+| `apps/playground`         | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                                           |
+| `packages/rfid-honeywell` | `@its/rfid-honeywell`       | Honeywell RFID readers behind `@its/glowup-device/rfid`: Android Expo module, adapter, config plugin. Private until phase 36. |
+| `apps/rfid-diagnostics`   | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID spike on a real reader (phase 35).                                       |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
@@ -92,8 +94,16 @@ This is the rule that keeps the split real:
 error), so each can ship alone and the app wires them together. `packages/device` follows the
 same rule towards both: it imports neither, and neither imports it.
 
+RFID vendor packages (`packages/rfid-*`, `@its/rfid-*`) implement `@its/glowup-device/rfid`:
+they import only its `/rfid` (and `/testing` in tests), and the device package never imports
+them (both ESLint errors). The Honeywell SDK they wrap **never enters the repository**: its
+licence lets it travel only inside an app's build (`.gitignore` blocks
+`honeywell_rfid_sdk*.aar`). `apps/rfid-diagnostics/tsconfig.json` maps `@its/glowup-device`,
+its `/rfid` and `/testing`, and `@its/rfid-honeywell` to their `src`, as the playground does.
+
 Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
-`packages/notifications/CLAUDE.md`, `packages/device/CLAUDE.md` and `apps/playground/CLAUDE.md`, which load when you work under those folders.
+`packages/notifications/CLAUDE.md`, `packages/device/CLAUDE.md`, `packages/rfid-honeywell/CLAUDE.md`
+and `apps/playground/CLAUDE.md`, which load when you work under those folders.
 
 ## Tests
 
@@ -110,7 +120,8 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 ## Releasing
 
 Changesets. `@its/glowup-ui`, `@its/glowup-notifications` and `@its/glowup-device` are
-published (versioned independently); `@its/glowup-playground` is private and ignored. A
+published (versioned independently); `@its/glowup-playground` and `@its/rfid-diagnostics` are
+private and ignored, and `@its/rfid-honeywell` stays private until it is ready to ship. A
 user-visible change to any of them needs a changeset (`npx changeset`). Each package needs its
 own trusted publisher on npmjs.com (see `release.yml`). On push to `master`,
 `release.yml` opens a "Version Packages" PR; merging it publishes to npm.

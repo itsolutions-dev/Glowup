@@ -1289,15 +1289,16 @@ without an adapter every hook reads `unsupported`.
 
 ```tsx
 import { DeviceAdaptersProvider } from "@its/glowup-device";
-import { honeywellRfidAdapter } from "@its/rfid-honeywell"; // a vendor package
+import { getHoneywellRfidAdapter } from "@its/rfid-honeywell"; // a vendor package
 
-<DeviceAdaptersProvider adapters={{ rfid: honeywellRfidAdapter }}>
+<DeviceAdaptersProvider adapters={{ rfid: getHoneywellRfidAdapter() }}>
   <App />
 </DeviceAdaptersProvider>;
 ```
 
-An app that ships several vendors picks at run time with
-`firstSupportedRfidAdapter([honeywellRfidAdapter, zebraRfidAdapter])`.
+`firstSupportedRfidAdapter([a, b])` picks the first adapter supported here, for a build that
+ships several. Honeywell's SDK binds the app to Honeywell hardware, so with
+`@its/rfid-honeywell` build one app per vendor.
 
 The contract fixes the units, so every vendor reads the same: RSSI and transmit power in dBm,
 times in ms since the epoch, EPC and TID as uppercase hex. `proximity` (0–1) comes from the

@@ -1,0 +1,61 @@
+# @its/rfid-honeywell
+
+Honeywell RFID readers (the IH40 over Bluetooth, through the Honeywell RFID SDK v1.1.0) behind
+[`@its/glowup-device/rfid`](../device/README.md#rfid). The screens use `/rfid`'s hooks; this package
+is the one line that picks the vendor.
+
+> **Status: spike (phase 35).** Private, not published. The adapter passes the contract's
+> conformance kit against a faked native module; the Kotlin module compiles against the SDK but
+> has not run on a reader yet. `apps/rfid-diagnostics` is the app the team runs on a CT40 + IH40
+> to confirm it.
+
+## The SDK is yours to supply
+
+The SDK's licence lets it travel only inside an app's build, so this package does not ship it.
+Download `honeywell_rfid_sdk_v1.1.0.aar` from Honeywell's support portal, keep it out of git, and
+point the config plugin at it:
+
+```ts
+// app.config.ts
+plugins: [
+  ["@its/rfid-honeywell", { aarPath: "./honeywell/honeywell_rfid_sdk_v1.1.0.aar" }],
+],
+```
+
+At prebuild the plugin:
+
+- copies the AAR into a Maven repository inside `android/` and declares it for the SDK's group
+  only;
+- raises `minSdkVersion` to 26, the SDK's;
+- declares the Bluetooth permissions: `BLUETOOTH_SCAN` (`neverForLocation`) and
+  `BLUETOOTH_CONNECT` from Android 12, and `ACCESS_FINE_LOCATION` capped at Android 11, which a
+  reader search needs there. An app that uses location itself lists this plugin **before**
+  `expo-location`, so the uncapped declaration wins.
+
+It needs a development build (`npx expo run:android`); Expo Go and iOS read `unsupported`.
+
+## Use
+
+```tsx
+import { DeviceAdaptersProvider } from "@its/glowup-device";
+import { getHoneywellRfidAdapter } from "@its/rfid-honeywell";
+
+<DeviceAdaptersProvider adapters={{ rfid: getHoneywellRfidAdapter() }}>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
+Everything else is `@its/glowup-device/rfid`: `useRfidReader`, `useRfidInventory`,
+`useRfidLocate`, `useRfidSingleRead`, `useRfidTrigger`, `useRfidReaderDiscovery`.
+
+- **Honeywell hosts only.** The licence binds apps embedding the SDK to Honeywell hardware, so the
+  adapter reads `unsupported` on another brand's device and never starts the SDK there. Build one
+  app per vendor.
+- **Every capability is native:** the reader's own single read (`syncRead`) and tag finder (it
+  beeps faster as the tag nears), the trigger, the battery, the reader's identity, and a reader
+  search (a Bluetooth scan in the module: the SDK has none).
+- **Units:** RSSI in dBm as the reader reports it; power converted from the SDK's centi-dBm (5–30
+  dBm); the beeper's `MUTE` / `LOW` / `MEDIUM` / `HIGH` as `off` / `low` / `medium` / `high`.
+
+`createHoneywellRfidAdapter(options)` builds another one: `discoveryFilter: false` reports every
+named device in a search, `proximityBounds` changes the default -35 / -75 dBm.

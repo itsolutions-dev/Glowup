@@ -1384,6 +1384,13 @@ How it stays honest:
     `TagReadOption`, so the `data` flag the multiple scan needed is never set. With a TID the
     module now reads for the window with `read(TID_BANK, option)` and collects the reads itself;
     without one it keeps `syncRead`. The diagnostics' single read has a "Read the TID" toggle.
+- **Fifth report (16 October):** the build carried the read window (each single read's
+  diagnostic names its path), but all five single reads reached the module without a TID asked
+  (`path: "syncRead"`): the "Read the TID" toggle was off. The JavaScript passes the option
+  through (a test now covers it). The buttons now name the TID when it is on, the measurements
+  show each single read's path and TID count, and the module reports a revision
+  (`getRevision`, `HONEYWELL_NATIVE_REVISION`) so the diagnostics flag an app built before the
+  latest native change, which a Metro reload does not update.
 - **Still to verify on the hardware:**
   - a single read with "Read the TID" on (the report's `syncReads` entry has `path: "read"` and a
     `tids` count);
@@ -1444,7 +1451,7 @@ What follows from it:
 | Phase | Content                                                                                                                                                                                                                                                               | Release  | Status                                            |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------- |
 | 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done                                              |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | four reports in; the single read's TID to confirm |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | five reports in; the single read's TID to confirm |
 | 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | proposed                                          |
 | 37    | Playground page (the mock on the web and in Expo Go, Honeywell in a development build), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                                   | `0.11.0` | proposed                                          |
 

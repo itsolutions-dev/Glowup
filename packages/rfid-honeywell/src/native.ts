@@ -78,7 +78,16 @@ export interface NativeSubscription {
   remove(): void;
 }
 
+/**
+ * The native module's revision this JavaScript expects: the Kotlin's
+ * `NATIVE_REVISION`, raised together. A Metro reload changes the JavaScript
+ * only, so an app built before a native change reports a lower one.
+ */
+export const HONEYWELL_NATIVE_REVISION = 2;
+
 export interface HoneywellRfidNativeModule {
+  /** Missing before revision 2. */
+  getRevision?(): number;
   getConnection(): NativeConnection;
   setDiagnostics(enabled: boolean): void;
   connect(mac: string): Promise<void>;

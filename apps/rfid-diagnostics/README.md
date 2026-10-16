@@ -16,7 +16,9 @@ On a machine with Android Studio (the SDK and a JDK 17):
    `npm run android -w @its/rfid-diagnostics`.
 
 `expo run:android` prebuilds `android/` (git ignores it), builds the debug APK, installs it and
-starts Metro. A build failure here is the first thing to report.
+starts Metro. A build failure here is the first thing to report. After a pull that changes the
+Kotlin, build again: reloading Metro updates the JavaScript only. Host → Native module shows the
+module's revision, in red when the app needs rebuilding.
 
 ## Run the checks
 
@@ -30,7 +32,8 @@ Turn the IH40 on, keep "Diagnostics" on, then work down the screen:
 3. **Multiple scan:** Start with a few tags at different distances; move them. Then turn on
    "Trigger drives the scan" and use the trigger. Try "Read TIDs".
 4. **Single read:** with one tag close, then none, then several; then again with "Read the TID"
-   on (the tag line shows its TID).
+   on: the buttons then read "Read (500 ms, TID)", the tag line shows its TID, and Measurements →
+   Single reads says "TID asked" with a count of reads that carried one.
 5. **Single search:** tap a tag in the list, Start, move the reader towards and away from it.
    Does the IH40 beep faster as it nears?
 6. Turn the IH40 off and on again while connected: the state should go `reconnecting`, then back

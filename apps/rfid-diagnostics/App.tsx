@@ -12,6 +12,7 @@ import {
 } from "@its/glowup-device/rfid";
 import {
   getHoneywellRfidAdapter,
+  HONEYWELL_NATIVE_REVISION,
   type HoneywellRfidAdapter,
 } from "@its/rfid-honeywell";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -104,7 +105,12 @@ function Diagnostics({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
     androidVersion: Platform.Version,
     honeywellHost: target.isHoneywellHost(),
     supported: target.isSupported(),
+    nativeRevision: target.nativeRevision(),
+    expectedNativeRevision: HONEYWELL_NATIVE_REVISION,
   };
+  const staleNative =
+    host.nativeRevision !== null &&
+    host.nativeRevision < HONEYWELL_NATIVE_REVISION;
 
   return (
     <>
@@ -117,6 +123,18 @@ function Diagnostics({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
               ? "unsupported: the native module is missing (build with the plugin)"
               : "unsupported: not a Honeywell host"}
         </Line>
+        <Line label="Native module">
+          {host.nativeRevision === null
+            ? "—"
+            : `revision ${host.nativeRevision} (this JavaScript expects ${HONEYWELL_NATIVE_REVISION})`}
+        </Line>
+        {staleNative ? (
+          <Text style={styles.error}>
+            The app was built before the latest native change: rebuild it (npm
+            run android -w @its/rfid-diagnostics). Reloading Metro does not
+            update the module.
+          </Text>
+        ) : null}
         <Toggle
           label="Diagnostics (raw SDK events)"
           value={diagnostics}
@@ -374,7 +392,9 @@ function SingleReadSection({ onPick }: { onPick: (epc: string) => void }) {
       <Toggle label="Read the TID" value={tid} onChange={setTid} />
       <Row>
         <Button
-          label={single.isReading ? "Reading…" : "Read (500 ms)"}
+          label={
+            single.isReading ? "Reading…" : `Read (500 ms${tid ? ", TID" : ""})`
+          }
           onPress={() =>
             run(async () => {
               await single.read({ tid });
@@ -383,7 +403,7 @@ function SingleReadSection({ onPick }: { onPick: (epc: string) => void }) {
           }
         />
         <Button
-          label="Read (2 s)"
+          label={`Read (2 s${tid ? ", TID" : ""})`}
           onPress={() =>
             run(async () => {
               await single.read({ window: 2000, tid });
@@ -479,6 +499,15 @@ function MeasurementsSection({
         {findingTag.count === 0
           ? "—"
           : `${findingTag.min} … ${findingTag.max} (${findingTag.count})`}
+      </Line>
+      <Line label="Single reads">
+        {measurements.syncReads
+          .slice(-4)
+          .map(
+            (read) =>
+              `${read.windowMs} ms, ${read.path === null ? "module before revision 2" : read.path === "read" ? "TID asked" : "TID not asked"}: ${read.size} reads, ${read.tids} with a TID`,
+          )
+          .join("\n") || "—"}
       </Line>
       <Line label="Battery raw">
         {measurements.battery.map((b) => JSON.stringify(b)).join(", ") || "—"}

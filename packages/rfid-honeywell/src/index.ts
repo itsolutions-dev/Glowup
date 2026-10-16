@@ -14,4 +14,4 @@ export {
   type HoneywellRfidAdapter,
   type HoneywellRfidAdapterOptions,
 } from "./adapter";
-export type { HoneywellDiagnostic } from "./native";
+export { HONEYWELL_NATIVE_REVISION, type HoneywellDiagnostic } from "./native";

@@ -26,6 +26,10 @@ import expo.modules.kotlin.modules.ModuleDefinition
 class RfidException(code: String, message: String, cause: Throwable? = null) :
   CodedException(code, message, cause)
 
+// Raised with every native change: JavaScript compares it with its own
+// (HONEYWELL_NATIVE_REVISION), since a Metro reload does not rebuild this.
+private const val NATIVE_REVISION = 2
+
 // Reads reach JavaScript at most this often (plan R10): the SDK delivers
 // batches many times a second.
 private const val BATCH_INTERVAL_MS = 100L
@@ -123,6 +127,10 @@ class HoneywellRfidModule : Module() {
       } catch (_: Throwable) {
       }
       worker?.quitSafely()
+    }
+
+    Function("getRevision") {
+      NATIVE_REVISION
     }
 
     Function("getConnection") {

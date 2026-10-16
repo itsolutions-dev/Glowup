@@ -68,6 +68,12 @@ export type HoneywellRfidAdapter = RfidAdapter &
 interface HoneywellExtras {
   /** Whether this host is Honeywell's (`Build.MANUFACTURER`). */
   isHoneywellHost(): boolean;
+  /**
+   * The linked module's revision: below `HONEYWELL_NATIVE_REVISION` the app
+   * was built before a native change and needs rebuilding. `null` without the
+   * module; `1` for a module from before revisions.
+   */
+  nativeRevision(): number | null;
   /** Raw SDK events (reads, threads, advertisements) while on. */
   setDiagnostics(enabled: boolean): void;
   /** Whether the next discovery reports only what looks like a Honeywell reader. */
@@ -331,6 +337,14 @@ export function createHoneywellRfidAdapter(
             : null,
         firmwareVersion: info.rfidSoftware || null,
       };
+    },
+
+    nativeRevision() {
+      const module = native();
+      if (!module) return null;
+      return typeof module.getRevision === "function"
+        ? module.getRevision()
+        : 1;
     },
 
     setDiagnostics(enabled) {

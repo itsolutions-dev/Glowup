@@ -3,6 +3,7 @@ import { PermissionsAndroid, Platform } from "react-native";
 
 import { createHoneywellRfidAdapter } from "../adapter";
 import { parseBatteryLevel, toRfidError } from "../convert";
+import { HONEYWELL_NATIVE_REVISION } from "../native";
 import { createFakeHoneywellModule } from "./fakeNative";
 
 const READER = "0C:23:69:19:AA:12";
@@ -77,6 +78,16 @@ describe("where it runs", () => {
       powerRange: { min: 5, max: 30 },
       proximityBounds: { near: -30, far: -70 },
     });
+  });
+
+  it("reports the linked module's revision, 1 for a module from before revisions", () => {
+    const { native, adapter } = setup();
+    expect(adapter.nativeRevision()).toBe(HONEYWELL_NATIVE_REVISION);
+    delete native.getRevision;
+    expect(adapter.nativeRevision()).toBe(1);
+    expect(
+      createHoneywellRfidAdapter({ native: null }).nativeRevision(),
+    ).toBeNull();
   });
 });
 
@@ -166,6 +177,27 @@ describe("units", () => {
     await adapter.connect(READER);
     native.serialNumber = "Not Support!";
     expect((await adapter.getReaderInfo()).serialNumber).toBeNull();
+  });
+});
+
+describe("single read", () => {
+  it("returns the TID the module read in its window", async () => {
+    const { native, adapter } = setup();
+    await adapter.connect(READER);
+    const read = adapter.readOnce({ window: 50, tid: true });
+    native.emitReads([
+      {
+        epc: "E2000017221101441890ABCD",
+        rssi: -40,
+        tid: "e28068942000401007656433",
+      },
+    ]);
+    expect(await read).toEqual([
+      expect.objectContaining({
+        epc: "E2000017221101441890ABCD",
+        tid: "E28068942000401007656433",
+      }),
+    ]);
   });
 });
 

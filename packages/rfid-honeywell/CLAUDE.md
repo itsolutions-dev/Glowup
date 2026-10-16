@@ -30,9 +30,11 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   are batched to JavaScript every 100 ms from the module's `HandlerThread`. While locating, the
   SDK passes only the searched tag to `onTagRead` (matched with `String.equals` on uppercase
   hex, so the module uppercases the EPC); the module sends its RSSI as the locate value and keeps
-  the SDK's own (`onReceivedFindingTag`, RSSI ÷ read count) for the diagnostics only. The tag
-  time is 0 on the Bluetooth path: the arrival time replaces it. `ReaderScanner.kt` is the reader
-  search (the SDK has no public one).
+  the SDK's own (`onReceivedFindingTag`, RSSI ÷ read count) for the diagnostics only. Some of
+  the SDK's constructors give a tag time of 0 (the IH40's are real): the arrival time replaces it. `ReaderScanner.kt` is the reader
+  search (the SDK has no public one). Every native change raises `NATIVE_REVISION` in the Kotlin
+  and `HONEYWELL_NATIVE_REVISION` in `src/native.ts` together: the adapter's `nativeRevision()`
+  tells a stale build apart (a Metro reload does not rebuild the module).
 - **Checking the Kotlin.** No Android SDK can be downloaded in the cloud sessions
   (`dl.google.com` is refused), so the module is compiled with Gradle's bundled `kotlinc` against
   the AAR's `classes.jar`, stubs of the few Android classes it uses, and stubs of Expo's DSL

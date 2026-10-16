@@ -1,8 +1,9 @@
-import type {
-  HoneywellRfidNativeModule,
-  NativeConnection,
-  NativeEvents,
-  NativeTagRead,
+import {
+  HONEYWELL_NATIVE_REVISION,
+  type HoneywellRfidNativeModule,
+  type NativeConnection,
+  type NativeEvents,
+  type NativeTagRead,
 } from "../native";
 
 /** A rejection as the Expo module sends it: an Error with the module's code. */
@@ -96,6 +97,7 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
   });
 
   const fake: FakeHoneywellModule = {
+    getRevision: () => HONEYWELL_NATIVE_REVISION,
     getConnection: () => ({ ...connection }),
     setDiagnostics(enabled) {
       diagnostics = enabled;

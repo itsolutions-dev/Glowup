@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFonts } from "expo-font";
 import {
@@ -6,6 +6,7 @@ import {
   DefaultTheme,
   Stack,
   ThemeProvider as NavigationThemeProvider,
+  useRouter,
 } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProvider, ToastProvider, useTheme } from "@its/glowup-ui";
@@ -22,6 +23,24 @@ import { ThemeStatusBar } from "../site/ThemeStatusBar";
  * draws the top bar itself — one bar, the same on all platforms, instead of a
  * navigator header on native and nothing on web.
  */
+/**
+ * Native smoke run only (.github/workflows/native.yml, spike 0.3): a build made
+ * with EXPO_PUBLIC_NATIVE_SPIKE_ROUTE=/some-route opens that route a minute
+ * after launch, once the smoke check has taken its screenshot of the home page
+ * (a deep link cannot do it on iOS: the system asks "Open in Glowup?" first).
+ * Without the variable this renders nothing and schedules nothing.
+ */
+const NativeSpikeTrigger = () => {
+  const router = useRouter();
+  useEffect(() => {
+    const route = process.env.EXPO_PUBLIC_NATIVE_SPIKE_ROUTE;
+    if (!route) return;
+    const timer = setTimeout(() => router.push(route as never), 60_000);
+    return () => clearTimeout(timer);
+  }, [router]);
+  return null;
+};
+
 export default function RootLayout() {
   // The icon font, registered during the static render too. An icon renders
   // nothing until its font counts as loaded, and in Node that only happens
@@ -38,6 +57,7 @@ export default function RootLayout() {
           <ToastProvider>
             <ThemeStatusBar />
             <Navigator />
+            <NativeSpikeTrigger />
           </ToastProvider>
         </AlertProvider>
       </SafeAreaProvider>

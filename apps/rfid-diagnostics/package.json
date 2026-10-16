@@ -6,6 +6,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
+    "packed": "node packed.mjs",
     "type-check": "tsc --noEmit",
     "test": "jest"
   },

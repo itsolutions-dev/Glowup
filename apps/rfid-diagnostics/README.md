@@ -20,6 +20,26 @@ starts Metro. A build failure here is the first thing to report. After a pull th
 Kotlin, build again: reloading Metro updates the JavaScript only. Host → Native module shows the
 module's revision, in red when the app needs rebuilding.
 
+## On the packed packages
+
+The build above runs the packages' source. To check what npm would ship instead (the built
+`lib/`, the `exports`, the config plugin and the Android module as the tarballs hold them), make
+a copy of this app that installs the tarballs, in a directory **outside** the repository:
+
+```bash
+npm install                                          # at the repository root
+npm run packed -w @its/rfid-diagnostics -- ../rfid-packed
+cd ../rfid-packed
+npm install
+npm run type-check
+npm run android
+```
+
+The script builds both packages, packs them into `packages/`, copies the app and the SDKs from
+`honeywell/` when they are there (or set `HONEYWELL_RFID_AAR` and
+`HONEYWELL_DATACOLLECTION_AAR`), and prints the versions it packed. Then run the checks below on
+the copy; Host → Native module should show the same revision as the source build.
+
 ## Run the checks
 
 Turn the IH40 on, keep "Diagnostics" on, then work down the screen:

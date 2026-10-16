@@ -49,6 +49,7 @@ npm test -w @its/rfid-honeywell               # only the Honeywell RFID package'
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
+npm run packed -w @its/rfid-diagnostics -- <dir>  # the RFID diagnostics app on the packed tarballs, outside the repo
 
 # The documentation site (apps/playground)
 npm run docgen -w @its/glowup-playground      # regenerate the prop tables from the library source

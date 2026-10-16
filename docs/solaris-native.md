@@ -432,7 +432,12 @@ Impostazione unica: `ThemeProvider density` (contesto a parte, `providers/Densit
 `Input`, `Select`, `Button` e `DataGrid`; la prop del controllo vince; un provider annidato senza `density` eredita. Esportati
 `Density` e `useDensity`. **`ListItem` fatto (2026-10-16)**: `children` e `secondary` accettano un nodo (solo il testo viene avvolto in `Text`, quindi niente
 prop `primary` separata), più `indicatorColor`, `dimmed` e `trailingWidth`; galleria `StatusRows`; 2 test. Verificato su web (Chrome headless): barra, riga attenuata, badge allineati a destra; non su nativo.
-Resto del 3A non iniziato (restano `DataGrid`, `Autocomplete`, `Input`, `FilterButton`).
+**`DataGrid` fatto in parte (2026-10-16)**: `columns[].renderCell(value, row, index)`, `columns[].align` (anche su `TableCell` e
+`TableHeaderCell`, tipo `TableAlign`), `rowStyle` come funzione della riga, `emptyState` come nodo; gallerie "Cells and
+alignment" e "Empty state"; 4 test; verificato su web (intestazione e valori allineati, badge, riga attenuata). **Rinviato, senza
+prova che serva**: larghezze in percentuale, `rowActions` su hover, righe-gruppo comprimibili, `renderRow`, `rowGap` (matrice 0.5:
+media, 3 file; GrantMatrix li usa e il piano lo lascia all'app), lista infinita (`onEndReached` esiste già). Restano nel 3A:
+`Autocomplete`, `Input`, `FilterButton`.
 
 ### Fase 3 — Componenti specializzati (le prop)
 

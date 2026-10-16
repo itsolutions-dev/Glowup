@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, type ReactNode } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import Table, {
   TableHead,
   TableHeaderCell,
   TableRow,
+  type TableAlign,
 } from "./Table";
 import { useDensity, type Density } from "../providers/Density";
 
@@ -24,6 +25,13 @@ export interface ColumnDefinition {
   label: string;
   width?: number;
   sortable?: boolean;
+  /** Alignment of the header and the cells. Defaults to `"left"`; use `"right"` for numbers. */
+  align?: TableAlign;
+  /**
+   * Draws the cell instead of printing `row[id]`: a badge, a formatted
+   * amount, a button. Receives the value, the row and its index.
+   */
+  renderCell?: (value: any, row: any, index: number) => ReactNode;
 }
 
 export interface DataGridProps {
@@ -40,8 +48,11 @@ export interface DataGridProps {
   onColumnReorder?: (newColumns: ColumnDefinition[]) => void;
   /** Shown centered when data is empty and not loading. */
   emptyMessage?: string;
+  /** Drawn instead of `emptyMessage` when data is empty and not loading: an illustration, a call to action. */
+  emptyState?: ReactNode;
   style?: ViewStyle;
-  rowStyle?: ViewStyle;
+  /** One style for every row, or a function of the row (to dim or highlight one). */
+  rowStyle?: ViewStyle | ((row: any, index: number) => ViewStyle | undefined);
   headerStyle?: ViewStyle;
 }
 
@@ -57,6 +68,7 @@ const DataGrid = ({
   onSort,
   onColumnReorder,
   emptyMessage,
+  emptyState,
   style,
   rowStyle,
   headerStyle,
@@ -103,6 +115,7 @@ const DataGrid = ({
           <TableHeaderCell
             key={column.id}
             width={column.width}
+            align={column.align}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
             onPress={() => handleSort(column.id)}
@@ -132,7 +145,7 @@ const DataGrid = ({
     return (
       <TableRow
         style={[
-          rowStyle || {},
+          typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
           isOdd ? { backgroundColor: theme.colors.surfaceVariant + "20" } : {},
           { height: density === "dense" ? 40 : 56 },
         ]}
@@ -141,6 +154,7 @@ const DataGrid = ({
           <TableCell
             key={`${item.id || index}-${column.id}`}
             width={column.width}
+            align={column.align}
             style={[
               colIndex === orderedColumns.length - 1
                 ? { borderRightWidth: 0 }
@@ -148,7 +162,9 @@ const DataGrid = ({
               { paddingVertical: density === "dense" ? 4 : 12 },
             ]}
           >
-            {item[column.id]}
+            {column.renderCell
+              ? column.renderCell(item[column.id], item, index)
+              : item[column.id]}
           </TableCell>
         ))}
       </TableRow>
@@ -179,7 +195,9 @@ const DataGrid = ({
             onEndReachedThreshold={onEndReachedThreshold}
             ListFooterComponent={renderFooter}
             ListEmptyComponent={
-              !loading && emptyMessage ? (
+              loading ? null : emptyState ? (
+                <View style={styles.emptyContainer}>{emptyState}</View>
+              ) : emptyMessage ? (
                 <View style={styles.emptyContainer}>
                   <Text
                     style={[

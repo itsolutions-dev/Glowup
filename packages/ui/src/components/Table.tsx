@@ -82,8 +82,18 @@ export const TableRow = ({ children, style }: TableRowProps) => {
   );
 };
 
+/** Horizontal alignment of a column's content: numbers read best on the right. */
+export type TableAlign = "left" | "center" | "right";
+
+const FLEX: Record<TableAlign, "flex-start" | "center" | "flex-end"> = {
+  left: "flex-start",
+  center: "center",
+  right: "flex-end",
+};
+
 export interface TableHeaderCellProps {
   children: ReactNode;
+  align?: TableAlign;
   style?: StyleProp<ViewStyle>;
   width?: number;
   onPress?: () => void;
@@ -94,6 +104,7 @@ export interface TableHeaderCellProps {
 }
 export const TableHeaderCell = ({
   children,
+  align = "left",
   style,
   width,
   onPress,
@@ -117,6 +128,12 @@ export const TableHeaderCell = ({
         disabled={!onPress || !sortable}
         style={({ hovered, pressed }: PressableState) => [
           styles.thContent,
+          {
+            justifyContent: FLEX[align],
+            // Room for the reorder arrows only when they are there, so a
+            // right-aligned header lines up with its cells.
+            paddingRight: onMoveLeft || onMoveRight ? 40 : 12,
+          },
           (hovered || pressed) && sortable && getGlowStyles(theme, true),
           (hovered || pressed) &&
             sortable && {
@@ -173,12 +190,14 @@ export const TableHeaderCell = ({
 
 export interface TableCellProps {
   children: ReactNode;
+  align?: TableAlign;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   width?: number;
 }
 export const TableCell = ({
   children,
+  align = "left",
   style,
   textStyle,
   width,
@@ -189,7 +208,11 @@ export const TableCell = ({
       role="cell"
       style={[
         styles.td,
-        { width: width || 150, borderRightColor: theme.colors.outlineVariant },
+        {
+          width: width || 150,
+          borderRightColor: theme.colors.outlineVariant,
+          alignItems: FLEX[align],
+        },
         style,
       ]}
     >
@@ -198,6 +221,7 @@ export const TableCell = ({
           style={[
             { color: theme.colors.onSurface },
             theme.typography.bodyMedium,
+            { textAlign: align },
             textStyle,
           ]}
           numberOfLines={1}

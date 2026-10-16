@@ -2096,6 +2096,13 @@
           "deprecated": false
         },
         {
+          "name": "emptyState",
+          "type": "ReactNode",
+          "required": false,
+          "description": "Drawn instead of `emptyMessage` when data is empty and not loading: an illustration, a call to action.",
+          "deprecated": false
+        },
+        {
           "name": "headerStyle",
           "type": "ViewStyle",
           "required": false,
@@ -2135,8 +2142,9 @@
         },
         {
           "name": "rowStyle",
-          "type": "ViewStyle",
+          "type": "ViewStyle | ((row: any, index: number) => ViewStyle | undefined)",
           "required": false,
+          "description": "One style for every row, or a function of the row (to dim or highlight one).",
           "deprecated": false
         },
         {
@@ -7282,6 +7290,13 @@
           "deprecated": false
         },
         {
+          "name": "align",
+          "type": "TableAlign",
+          "required": false,
+          "default": "\"left\"",
+          "deprecated": false
+        },
+        {
           "name": "onMoveLeft",
           "type": "() => void",
           "required": false,
@@ -7335,6 +7350,13 @@
           "name": "children",
           "type": "ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "align",
+          "type": "TableAlign",
+          "required": false,
+          "default": "\"left\"",
           "deprecated": false
         },
         {

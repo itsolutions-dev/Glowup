@@ -1,5 +1,5 @@
 import React from "react";
-import { DataGrid } from "@its/glowup-ui";
+import { DataGrid, StatusBadge, Typography } from "@its/glowup-ui";
 
 const columns = [
   { id: "invoice", label: "Invoice", width: 120 },
@@ -78,6 +78,54 @@ export const Empty = () => (
       data={[]}
       columns={columns}
       emptyMessage="No invoices in this period"
+    />
+  </div>
+);
+
+const crmColumns = [
+  { id: "client", label: "Client", width: 170 },
+  {
+    id: "status",
+    label: "Status",
+    width: 130,
+    renderCell: (value: string) => (
+      <StatusBadge
+        label={value}
+        type={value === "Overdue" ? "error" : "success"}
+      />
+    ),
+  },
+  { id: "total", label: "Total", width: 120, align: "right" as const },
+];
+
+const crmRows = [
+  { id: 1, client: "Acme Inc.", status: "Paid", total: "€1,240.50" },
+  { id: 2, client: "Northwind Ltd", status: "Overdue", total: "€380.00" },
+  { id: 3, client: "Removed client", status: "Paid", total: "€72.90" },
+];
+
+export const CellsAndAlignment = () => (
+  <div style={frame}>
+    <DataGrid
+      data={crmRows}
+      columns={crmColumns}
+      rowStyle={(row: { id: number }) =>
+        row.id === 3 ? { opacity: 0.45 } : undefined
+      }
+    />
+  </div>
+);
+
+export const EmptyState = () => (
+  <div style={frame}>
+    <DataGrid
+      data={[]}
+      columns={crmColumns}
+      emptyState={
+        <Typography variant="bodyMedium">
+          No invoices yet. Create the first one from the button above.
+        </Typography>
+      }
     />
   </div>
 );

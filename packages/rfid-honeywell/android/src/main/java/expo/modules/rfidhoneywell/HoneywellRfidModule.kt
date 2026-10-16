@@ -402,7 +402,9 @@ class HoneywellRfidModule : Module() {
 
     override fun onReaderCreated(success: Boolean, created: RfidReader?) {
       diagnostic("readerCreated", mapOf("success" to success))
-      post { onReaderCreated(success, created) }
+      // Qualified: unqualified, the name resolves to this override, which
+      // would post itself forever.
+      post { this@HoneywellRfidModule.onReaderCreated(success, created) }
     }
 
     override fun onRfidTriggered(pressed: Boolean) {

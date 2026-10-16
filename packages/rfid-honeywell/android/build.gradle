@@ -19,6 +19,11 @@ dependencies {
   // redistributing it: the config plugin copies the app's own copy (aarPath)
   // into a Maven repository inside android/ and declares it.
   implementation 'com.honeywell.rfid:honeywell-rfid-sdk:1.1.0'
+  // The SDK's RfidService builds its USB transport on every bind, and that
+  // loads Honeywell's Data Collection SDK (com.honeywell.aidc): without it the
+  // app dies with NoClassDefFoundError even on Bluetooth. Same copy, same
+  // repository; Honeywell's sample app bundles the two together.
+  implementation 'com.honeywell.aidc:datacollection:1.97.00.0060'
   // The SDK uses LocalBroadcastManager without declaring it (a local AAR has
   // no POM to carry its dependencies).
   implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'

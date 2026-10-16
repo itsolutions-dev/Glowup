@@ -9,22 +9,36 @@ is the one line that picks the vendor.
 > has not run on a reader yet. `apps/rfid-diagnostics` is the app the team runs on a CT40 + IH40
 > to confirm it.
 
-## The SDK is yours to supply
+## The SDKs are yours to supply
 
 The SDK's licence lets it travel only inside an app's build, so this package does not ship it.
-Download `honeywell_rfid_sdk_v1.1.0.aar` from Honeywell's support portal, keep it out of git, and
-point the config plugin at it:
+Download `honeywell_rfid_sdk_v1.1.0.aar` from Honeywell's support portal and keep it out of git.
+
+The RFID SDK also needs Honeywell's Data Collection SDK, `DataCollection.aar`. Its `RfidService`
+sets up its USB transport on every bind, and that transport loads `com.honeywell.aidc`. Without
+the AAR the app crashes with `NoClassDefFoundError: com/honeywell/aidc/AidcManager$CreatedCallback`
+as soon as it binds the service, even over Bluetooth. Take `DataCollection.aar` from the
+`app/libs` folder of the RFID SDK's sample app, which ships the two together (1.97.00.0060 there),
+or from the Honeywell Mobility SDK for Android. Keep it out of git too.
+
+Point the config plugin at both:
 
 ```ts
 // app.config.ts
 plugins: [
-  ["@its/rfid-honeywell", { aarPath: "./honeywell/honeywell_rfid_sdk_v1.1.0.aar" }],
+  [
+    "@its/rfid-honeywell",
+    {
+      aarPath: "./honeywell/honeywell_rfid_sdk_v1.1.0.aar",
+      dataCollectionAarPath: "./honeywell/DataCollection.aar",
+    },
+  ],
 ],
 ```
 
 At prebuild the plugin:
 
-- copies the AAR into a Maven repository inside `android/` and declares it for the SDK's group
+- copies the two AARs into a Maven repository inside `android/` and declares it for their groups
   only;
 - raises `minSdkVersion` to 26, the SDK's;
 - declares the Bluetooth permissions: `BLUETOOTH_SCAN` (`neverForLocation`) and

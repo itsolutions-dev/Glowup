@@ -41,8 +41,8 @@ lib/
 !src/**/lib/
 
 # generated native folders
-/ios
-/android
+**/ios/
+**/android/
 
 # The workspaces' lockfile is committed; the smoke app's is not (it must resolve
 # the published package and its peers fresh, the way a new app would).
@@ -67,7 +67,9 @@ packages/ui/.design-sync-entry.mjs
 .serena/
 graphify-out/
 
-# The Honeywell RFID SDK: its licence lets it travel only inside an app's
-# build (docs/device-package-plan.md, "The licence"). Never commit a copy.
+# The Honeywell SDKs (RFID, and the Data Collection SDK it loads): their
+# licence lets them travel only inside an app's build
+# (docs/device-package-plan.md, "The licence"). Never commit a copy.
 honeywell_rfid_sdk*.aar
+DataCollection*.aar
 honeywell-rfid-repository/

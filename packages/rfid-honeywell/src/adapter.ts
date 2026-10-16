@@ -321,7 +321,11 @@ export function createHoneywellRfidAdapter(
         id: info.id ?? connection.readerId ?? "",
         name: null,
         model: null,
-        serialNumber: info.serialNumber || null,
+        // The SDK answers "Not Support!" when the reader has no serial (IH40).
+        serialNumber:
+          info.serialNumber && info.serialNumber !== "Not Support!"
+            ? info.serialNumber
+            : null,
         firmwareVersion: info.rfidSoftware || null,
       };
     },

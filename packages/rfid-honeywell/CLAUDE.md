@@ -10,7 +10,11 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   build depends on `com.honeywell.rfid:honeywell-rfid-sdk:1.1.0`, which the config plugin
   (`app.plugin.js`) puts in a Maven repository inside the app's `android/` from the app's
   `aarPath`. The SDK uses `androidx.localbroadcastmanager` without declaring it (a local AAR has
-  no POM), so the module declares it.
+  no POM), so the module declares it. The same way, it needs Honeywell's Data Collection SDK
+  (`com.honeywell.aidc`, `DataCollection.aar`, ignored as `DataCollection*.aar`): `RfidService`
+  builds its USB transport (`com.usb.UsbPortManager` → `AidcManager`) on every bind, so without
+  it the app dies with `NoClassDefFoundError` even over Bluetooth. The plugin takes it as
+  `dataCollectionAarPath` and the module depends on `com.honeywell.aidc:datacollection:1.97.00.0060`.
 - **The Kotlin module** (`android/…/HoneywellRfidModule.kt`) keeps the SDK's units (RSSI as
   reported, power in centi-dBm, enum names) and the adapter (`src/adapter.ts`) converts them, so
   the diagnostics see raw values. It binds the SDK's embedded `RfidService`

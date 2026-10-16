@@ -1330,6 +1330,12 @@ How it stays honest:
   - `getBatteryLevel()` is `String.valueOf(byte)` of a characteristic, `""` on failure.
   - Antenna power passes through to the reader's `AntPower` unchanged (centi-dBm).
   - The SDK uses `androidx.localbroadcastmanager` without declaring it.
+  - It also needs Honeywell's Data Collection SDK (`com.honeywell.aidc`), which it neither bundles
+    nor declares. `RfidService.init` builds `com.usb.UsbCommunication` → `UsbPortManager`, which
+    calls `AidcManager`, on every bind. Without `DataCollection.aar` the app dies with
+    `NoClassDefFoundError` even over Bluetooth (seen on the CT40, phase 35). Honeywell's sample
+    app ships it in `app/libs` beside the RFID AAR (1.97.00.0060); the CT40 has no shared library
+    for it.
   - Its internal search (`Comm_Bluetooth.StartSearch`) has no name or service filter, and is not
     public.
 - **Not verified, for the spike on a CT40 + IH40 (`apps/rfid-diagnostics` measures them):**

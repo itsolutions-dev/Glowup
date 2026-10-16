@@ -1,10 +1,13 @@
 import type { ExpoConfig } from "expo/config";
 
-// The Honeywell RFID SDK is not in this repository: its licence lets it
-// travel only inside an app's build. Put your copy at the default path below
-// (git ignores it) or point HONEYWELL_RFID_AAR at it.
+// The Honeywell SDKs are not in this repository: their licence lets them
+// travel only inside an app's build. Put your copies at the default paths below
+// (git ignores them) or point HONEYWELL_RFID_AAR / HONEYWELL_DATACOLLECTION_AAR
+// at them.
 const aarPath =
   process.env.HONEYWELL_RFID_AAR ?? "./honeywell/honeywell_rfid_sdk_v1.1.0.aar";
+const dataCollectionAarPath =
+  process.env.HONEYWELL_DATACOLLECTION_AAR ?? "./honeywell/DataCollection.aar";
 
 const config: ExpoConfig = {
   name: "RFID diagnostics",
@@ -16,7 +19,7 @@ const config: ExpoConfig = {
   android: {
     package: "it.itsolutions.rfiddiagnostics",
   },
-  plugins: [["@its/rfid-honeywell", { aarPath }]],
+  plugins: [["@its/rfid-honeywell", { aarPath, dataCollectionAarPath }]],
 };
 
 export default config;

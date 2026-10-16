@@ -1,12 +1,16 @@
 /**
- * The config plugin: `["@its/rfid-honeywell", { aarPath: "./honeywell/honeywell_rfid_sdk_v1.1.0.aar" }]`.
+ * The config plugin:
+ * `["@its/rfid-honeywell", { aarPath: "./honeywell/honeywell_rfid_sdk_v1.1.0.aar", dataCollectionAarPath: "./honeywell/DataCollection.aar" }]`.
  *
  * The Honeywell RFID SDK is not on a public repository, and its licence lets
- * it travel only inside the app's build: this package cannot ship it. The
- * plugin takes the app's own copy and:
- * - copies it into a Maven repository inside `android/`, where the module's
- *   Gradle build finds it as `com.honeywell.rfid:honeywell-rfid-sdk:1.1.0`;
- * - declares that repository, for the SDK's group only;
+ * it travel only inside the app's build: this package cannot ship it. Nor
+ * does it ship Honeywell's Data Collection SDK, which the RFID SDK's embedded
+ * `RfidService` loads on every bind (its USB transport) and which Honeywell's
+ * sample app bundles beside it. The plugin takes the app's own copies and:
+ * - copies them into a Maven repository inside `android/`, where the module's
+ *   Gradle build finds them as `com.honeywell.rfid:honeywell-rfid-sdk:1.1.0`
+ *   and `com.honeywell.aidc:datacollection:1.97.00.0060`;
+ * - declares that repository, for the SDKs' groups only;
  * - raises `minSdkVersion` to 26, the SDK's;
  * - declares the Bluetooth permissions: Android 12's nearby devices (the scan
  *   never locates), and the location a scan needs up to Android 11.
@@ -28,56 +32,74 @@ const pkg = require("./package.json");
 
 const TAG = `[${pkg.name}]`;
 
-const SDK = {
-  group: "com.honeywell.rfid",
-  artifact: "honeywell-rfid-sdk",
-  version: "1.1.0",
-};
+/** The SDKs the app supplies, each under the plugin option that points at it. */
+const SDKS = [
+  {
+    option: "aarPath",
+    file: "honeywell_rfid_sdk_v1.1.0.aar",
+    source:
+      "Download the Honeywell RFID SDK v1.1.0 from Honeywell's support portal",
+    group: "com.honeywell.rfid",
+    artifact: "honeywell-rfid-sdk",
+    version: "1.1.0",
+  },
+  {
+    option: "dataCollectionAarPath",
+    file: "DataCollection.aar",
+    source:
+      "Take Honeywell's Data Collection SDK from the RFID SDK's sample app (app/libs), or from the Honeywell Mobility SDK for Android",
+    group: "com.honeywell.aidc",
+    artifact: "datacollection",
+    version: "1.97.00.0060",
+  },
+];
 const REPOSITORY_DIR = "honeywell-rfid-repository";
 const MIN_SDK = 26;
 
-const MARKER = `// ${pkg.name}: the app's copy of the Honeywell RFID SDK`;
+const MARKER = `// ${pkg.name}: the app's copies of the Honeywell SDKs`;
 const REPOSITORY = `${MARKER}
     maven {
       url = uri("$rootDir/${REPOSITORY_DIR}")
-      content { includeGroup("${SDK.group}") }
+      content {
+${SDKS.map((sdk) => `        includeGroup("${sdk.group}")`).join("\n")}
+      }
     }`;
 
-function pom() {
+function pom(sdk) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>${SDK.group}</groupId>
-  <artifactId>${SDK.artifact}</artifactId>
-  <version>${SDK.version}</version>
+  <groupId>${sdk.group}</groupId>
+  <artifactId>${sdk.artifact}</artifactId>
+  <version>${sdk.version}</version>
   <packaging>aar</packaging>
 </project>
 `;
 }
 
-/** Where the SDK goes in the repository, relative to `android/`. */
-function artifactDir() {
+/** Where an SDK goes in the repository, relative to `android/`. */
+function artifactDir(sdk) {
   return path.join(
     REPOSITORY_DIR,
-    ...SDK.group.split("."),
-    SDK.artifact,
-    SDK.version,
+    ...sdk.group.split("."),
+    sdk.artifact,
+    sdk.version,
   );
 }
 
-/** Copies the app's SDK into the Maven repository inside `android/`. */
-function copySdk(projectRoot, platformRoot, aarPath) {
+/** Copies the app's copy of an SDK into the Maven repository inside `android/`. */
+function copySdk(projectRoot, platformRoot, sdk, aarPath) {
   const source = path.resolve(projectRoot, aarPath);
   if (!fs.existsSync(source)) {
     throw new Error(
-      `${TAG} aarPath: ${source} does not exist. Download the Honeywell RFID SDK v1.1.0 from Honeywell's support portal and point aarPath at honeywell_rfid_sdk_v1.1.0.aar.`,
+      `${TAG} ${sdk.option}: ${source} does not exist. ${sdk.source} and point ${sdk.option} at ${sdk.file}.`,
     );
   }
-  const dir = path.join(platformRoot, artifactDir());
+  const dir = path.join(platformRoot, artifactDir(sdk));
   fs.mkdirSync(dir, { recursive: true });
-  const base = `${SDK.artifact}-${SDK.version}`;
+  const base = `${sdk.artifact}-${sdk.version}`;
   fs.copyFileSync(source, path.join(dir, `${base}.aar`));
-  fs.writeFileSync(path.join(dir, `${base}.pom`), pom());
+  fs.writeFileSync(path.join(dir, `${base}.pom`), pom(sdk));
 }
 
 /** The root build.gradle with the repository in `allprojects`. */
@@ -136,20 +158,25 @@ function addPermissions(manifest) {
 }
 
 function withHoneywellRfid(config, options = {}) {
-  const { aarPath } = options;
-  if (typeof aarPath !== "string" || aarPath.trim() === "") {
-    throw new Error(
-      `${TAG} aarPath is required: the path, from the app's root, to your copy of honeywell_rfid_sdk_v1.1.0.aar. Its licence does not let this package ship it.`,
-    );
+  for (const sdk of SDKS) {
+    const aarPath = options[sdk.option];
+    if (typeof aarPath !== "string" || aarPath.trim() === "") {
+      throw new Error(
+        `${TAG} ${sdk.option} is required: the path, from the app's root, to your copy of ${sdk.file}. Its licence does not let this package ship it.`,
+      );
+    }
   }
   config = withDangerousMod(config, [
     "android",
     (mod) => {
-      copySdk(
-        mod.modRequest.projectRoot,
-        mod.modRequest.platformProjectRoot,
-        aarPath,
-      );
+      for (const sdk of SDKS) {
+        copySdk(
+          mod.modRequest.projectRoot,
+          mod.modRequest.platformProjectRoot,
+          sdk,
+          options[sdk.option],
+        );
+      }
       return mod;
     },
   ]);
@@ -181,4 +208,5 @@ module.exports.internal = {
   addPermissions,
   copySdk,
   artifactDir,
+  SDKS,
 };

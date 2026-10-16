@@ -27,6 +27,7 @@ export interface FakeHoneywellModule extends HoneywellRfidNativeModule {
   readonly listenerCount: number;
   failNext(method: string, code: string, message?: string): void;
   battery: string;
+  serialNumber: string;
 }
 
 /**
@@ -170,7 +171,7 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
       requireConnected();
       return {
         id: connection.readerId,
-        serialNumber: "19AA12",
+        serialNumber: fake.serialNumber,
         rfidSoftware: "2.1.0",
         rfidHardware: "A",
         bluetoothSoftware: "1.0",
@@ -241,6 +242,7 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
       failures.set(method, nativeError(code, message));
     },
     battery: "87",
+    serialNumber: "19AA12",
   };
   return fake;
 }

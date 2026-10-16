@@ -159,6 +159,13 @@ describe("units", () => {
       firmwareVersion: "2.1.0",
     });
   });
+
+  it('reads the SDK\'s "Not Support!" serial number as none (the IH40 answers it)', async () => {
+    const { adapter, native } = setup();
+    await adapter.connect(READER);
+    native.serialNumber = "Not Support!";
+    expect((await adapter.getReaderInfo()).serialNumber).toBeNull();
+  });
 });
 
 describe("errors", () => {

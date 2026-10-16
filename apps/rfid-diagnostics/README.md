@@ -8,8 +8,9 @@ code assumes. Android only, Honeywell hosts only (the SDK's licence); not a prod
 
 On a machine with Android Studio (the SDK and a JDK 17):
 
-1. Put your copy of `honeywell_rfid_sdk_v1.1.0.aar` in `apps/rfid-diagnostics/honeywell/` (git
-   ignores it), or set `HONEYWELL_RFID_AAR` to its path.
+1. Put your copies of `honeywell_rfid_sdk_v1.1.0.aar` and `DataCollection.aar` (from the
+   `app/libs` folder of Honeywell's RFID sample app) in `apps/rfid-diagnostics/honeywell/`. Git
+   ignores them. Or set `HONEYWELL_RFID_AAR` and `HONEYWELL_DATACOLLECTION_AAR` to their paths.
 2. From the repository root: `npm install`.
 3. Connect the CT40 by USB (developer options, USB debugging), then:
    `npm run android -w @its/rfid-diagnostics`.

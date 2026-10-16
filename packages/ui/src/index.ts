@@ -10,6 +10,7 @@ export {
 } from "./providers/InteractionFeedback";
 export * from "./providers/palettes";
 export * from "./providers/toneFrom";
+export { useDensity, type Density } from "./providers/Density";
 export * from "./providers/AlertProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";

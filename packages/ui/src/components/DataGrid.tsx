@@ -15,6 +15,7 @@ import Table, {
   TableHeaderCell,
   TableRow,
 } from "./Table";
+import { useDensity, type Density } from "../providers/Density";
 
 // --- Main DataGrid Component ---
 
@@ -31,7 +32,8 @@ export interface DataGridProps {
   loading?: boolean;
   onEndReached?: () => void;
   onEndReachedThreshold?: number;
-  density?: "normal" | "dense";
+  /** Row height; follows `ThemeProvider`'s `density` unless set here. */
+  density?: Density;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
@@ -49,7 +51,7 @@ const DataGrid = ({
   loading = false,
   onEndReached,
   onEndReachedThreshold = 0.5,
-  density = "normal",
+  density: densityProp,
   sortColumn,
   sortDirection,
   onSort,
@@ -59,6 +61,7 @@ const DataGrid = ({
   rowStyle,
   headerStyle,
 }: DataGridProps) => {
+  const density = useDensity(densityProp);
   const { theme } = useTheme();
   const [orderedColumns, setOrderedColumns] = useState(columns);
   const [prevColumns, setPrevColumns] = useState(columns);

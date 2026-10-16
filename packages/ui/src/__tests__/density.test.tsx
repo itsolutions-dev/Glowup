@@ -41,3 +41,41 @@ describe("density", () => {
     );
   });
 });
+
+describe("ThemeProvider density", () => {
+  const withProvider = async (
+    provider: Omit<React.ComponentProps<typeof ThemeProvider>, "children">,
+    ui: React.ReactElement,
+  ) =>
+    JSON.stringify(
+      (
+        await render(<ThemeProvider {...provider}>{ui}</ThemeProvider>)
+      ).toJSON(),
+    );
+  const field = (props = {}) => (
+    <Input label="Nome" value="" onChangeText={() => {}} {...props} />
+  );
+
+  it("sets the default for every control inside", async () => {
+    expect(await withProvider({ density: "dense" }, field())).toContain(
+      '"minHeight":40',
+    );
+    expect(
+      await withProvider({ density: "dense" }, <Button>Ok</Button>),
+    ).toContain('"paddingVertical":10');
+  });
+
+  it("lets a control's own density win", async () => {
+    expect(
+      await withProvider({ density: "dense" }, field({ density: "normal" })),
+    ).toContain('"minHeight":56');
+  });
+
+  it("is inherited by a nested provider that sets none", async () => {
+    const out = await withProvider(
+      { density: "dense" },
+      <ThemeProvider>{field()}</ThemeProvider>,
+    );
+    expect(out).toContain('"minHeight":40');
+  });
+});

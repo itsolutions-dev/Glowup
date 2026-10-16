@@ -427,7 +427,10 @@ scritto a mano ora deve includere i ruoli di stato (changeset lo dice).
 valori di `DataGrid`; `Button.size` è già la dimensione dell'icona, quindi `size` non andava bene). Dense: campo da 40 px
 (prima 56 / 52), pulsante da 36 (prima 48), testo `bodyMedium`, meno spazio sotto il campo. 3 test sui valori di stile;
 type-check e lint verdi. **Non verificato**: l'altezza reale a schermo su web, iOS e Android (i test leggono lo stile, non il
-layout) e l'effetto su un form da 11 campi come nello spike 0.2. Resto del 3A non iniziato.
+layout) e l'effetto su un form da 11 campi come nello spike 0.2. **Verificato su web (Chrome headless, 2026-10-16)**: campo 56 → 40 px, pulsante ~50 → ~38 px (bordo compreso).
+Impostazione unica: `ThemeProvider density` (contesto a parte, `providers/Density.tsx`, non nel valore del tema) è il default di
+`Input`, `Select`, `Button` e `DataGrid`; la prop del controllo vince; un provider annidato senza `density` eredita. Esportati
+`Density` e `useDensity`. Resto del 3A non iniziato.
 
 ### Fase 3 — Componenti specializzati (le prop)
 

@@ -12,6 +12,7 @@ import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import HelperText from "./HelperText";
+import { useDensity, type Density } from "../providers/Density";
 
 export interface InputProps {
   label?: string;
@@ -42,7 +43,7 @@ export interface InputProps {
   /**
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.
    */
-  density?: "normal" | "dense";
+  density?: Density;
   /** Overrides the height `density` gives (56, or 40 when dense). */
   minHeight?: number;
   style?: StyleProp<ViewStyle>;
@@ -72,11 +73,11 @@ const Input = ({
   onTrailingIconPress,
   multiline = false,
   numberOfLines = 4,
-  density = "normal",
+  density,
   minHeight,
   style,
 }: InputProps) => {
-  const dense = density === "dense";
+  const dense = useDensity(density) === "dense";
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);

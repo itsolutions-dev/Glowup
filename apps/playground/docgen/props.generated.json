@@ -821,14 +821,9 @@
         },
         {
           "name": "density",
-          "type": "\"normal\" | \"dense\"",
+          "type": "Density",
           "required": false,
-          "default": "\"normal\"",
           "description": "Control height. `\"dense\"` is for desktop forms and tables: about 36 px\ninstead of 48.",
-          "values": [
-            "normal",
-            "dense"
-          ],
           "deprecated": false
         },
         {
@@ -2088,13 +2083,9 @@
         },
         {
           "name": "density",
-          "type": "\"normal\" | \"dense\"",
+          "type": "Density",
           "required": false,
-          "default": "\"normal\"",
-          "values": [
-            "normal",
-            "dense"
-          ],
+          "description": "Row height; follows `ThemeProvider`'s `density` unless set here.",
           "deprecated": false
         },
         {
@@ -3492,14 +3483,9 @@
         },
         {
           "name": "density",
-          "type": "\"normal\" | \"dense\"",
+          "type": "Density",
           "required": false,
-          "default": "\"normal\"",
           "description": "Control height. `\"dense\"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.",
-          "values": [
-            "normal",
-            "dense"
-          ],
           "deprecated": false
         },
         {
@@ -5067,14 +5053,9 @@
         },
         {
           "name": "density",
-          "type": "\"normal\" | \"dense\"",
+          "type": "Density",
           "required": false,
-          "default": "\"normal\"",
           "description": "Control height. `\"dense\"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.",
-          "values": [
-            "normal",
-            "dense"
-          ],
           "deprecated": false
         },
         {
@@ -6651,6 +6632,13 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "density",
+          "type": "Density",
+          "required": false,
+          "description": "The default `density` of every control inside (`Input`, `Select`, `Button`,\n`DataGrid`); a control's own `density` prop still wins. A nested provider\nwithout one inherits the outer one's. Defaults to `\"normal\"`.",
           "deprecated": false
         },
         {

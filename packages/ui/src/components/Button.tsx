@@ -19,6 +19,7 @@ import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { useDensity, type Density } from "../providers/Density";
 
 export type ButtonMode = "filled" | "tonal" | "outlined" | "text";
 export type ButtonTone = "primary" | "error" | "success";
@@ -116,7 +117,7 @@ export interface ButtonProps {
    * Control height. `"dense"` is for desktop forms and tables: about 36 px
    * instead of 48.
    */
-  density?: "normal" | "dense";
+  density?: Density;
   /** Stretch to fill the parent width. */
   fullWidth?: boolean;
   /** Icon side relative to the label. */
@@ -148,7 +149,7 @@ const Button = ({
   underlay,
   labelStyle,
   fullWidth = false,
-  density = "normal",
+  density,
   iconPosition = "left",
   accessibilityLabel,
   accessibilityHint,
@@ -157,6 +158,7 @@ const Button = ({
   children,
 }: ButtonProps) => {
   const { theme } = useTheme();
+  const dense = useDensity(density) === "dense";
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -221,7 +223,7 @@ const Button = ({
             ...glow,
             opacity: disabled ? 0.38 : 1,
           },
-          density === "dense" && styles.dense,
+          dense && styles.dense,
           fullWidth && styles.fullWidth,
           underlay != null && styles.clipped,
           style,

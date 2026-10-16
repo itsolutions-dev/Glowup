@@ -18,6 +18,7 @@ import {
   type InteractionFeedbackKind,
 } from "./InteractionFeedback";
 import { palettes, type ThemePalette } from "./palettes";
+import { DensityContext, type Density } from "./Density";
 
 /**
  * The design tokens exactly as `theme.json` declares them.
@@ -202,6 +203,7 @@ export const ThemeProvider = ({
   children,
   initialPalette = palettes.baseline,
   onInteractionFeedback,
+  density,
 }: {
   children: React.ReactNode;
   /**
@@ -217,6 +219,12 @@ export const ThemeProvider = ({
    * `feedback={false}`. Without it a nested provider inherits the outer one's.
    */
   onInteractionFeedback?: InteractionFeedbackHandler;
+  /**
+   * The default `density` of every control inside (`Input`, `Select`, `Button`,
+   * `DataGrid`); a control's own `density` prop still wins. A nested provider
+   * without one inherits the outer one's. Defaults to `"normal"`.
+   */
+  density?: Density;
 }) => {
   const systemScheme = useSyncExternalStore(
     subscribeToScheme,
@@ -267,11 +275,14 @@ export const ThemeProvider = ({
   }, []);
   const parentFeedback = useContext(InteractionFeedbackContext);
   const feedback = onInteractionFeedback ? emit : parentFeedback;
+  const parentDensity = useContext(DensityContext);
 
   return (
     <ThemeContext.Provider value={value}>
       <InteractionFeedbackContext.Provider value={feedback}>
-        {children}
+        <DensityContext.Provider value={density ?? parentDensity}>
+          {children}
+        </DensityContext.Provider>
       </InteractionFeedbackContext.Provider>
     </ThemeContext.Provider>
   );

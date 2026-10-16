@@ -15,6 +15,7 @@ import Popover from "./Popover";
 import Checkbox from "./Checkbox";
 import Chip from "./Chip";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { useDensity, type Density } from "../providers/Density";
 
 export interface Option {
   id: string;
@@ -45,7 +46,7 @@ export interface SelectProps {
   /**
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.
    */
-  density?: "normal" | "dense";
+  density?: Density;
 }
 
 const Select = ({
@@ -64,9 +65,9 @@ const Select = ({
   selectedValues = [],
   toggleOptions,
   defaultOpen = false,
-  density = "normal",
+  density,
 }: SelectProps) => {
-  const dense = density === "dense";
+  const dense = useDensity(density) === "dense";
   const [visible, setVisible] = useState(defaultOpen);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);

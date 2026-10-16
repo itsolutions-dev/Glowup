@@ -1,7 +1,5 @@
 {
   "main": "../lib/commonjs/haptics/index.js",
-  "module": "../lib/module/haptics/index.js",
   "types": "../lib/typescript/haptics/index.d.ts",
-  "react-native": "../src/haptics/index.ts",
   "source": "../src/haptics/index.ts"
 }

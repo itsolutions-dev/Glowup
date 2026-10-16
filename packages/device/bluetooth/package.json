@@ -1,7 +1,5 @@
 {
   "main": "../lib/commonjs/bluetooth/index.js",
-  "module": "../lib/module/bluetooth/index.js",
   "types": "../lib/typescript/bluetooth/index.d.ts",
-  "react-native": "../src/bluetooth/index.ts",
   "source": "../src/bluetooth/index.ts"
 }

@@ -1,7 +1,5 @@
 {
   "main": "../lib/commonjs/orientation/index.js",
-  "module": "../lib/module/orientation/index.js",
   "types": "../lib/typescript/orientation/index.d.ts",
-  "react-native": "../src/orientation/index.ts",
   "source": "../src/orientation/index.ts"
 }

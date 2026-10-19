@@ -30,7 +30,9 @@ you will get the reasoning.
 - Releases are published from GitHub Actions only, through npm trusted publishing
   (OIDC), with npm provenance: every version on npm links back to the workflow run
   and commit that built it. A version without a provenance attestation did not
-  come from this repository.
+  come from this repository. (A package's first version, which trusted publishing
+  cannot create, goes out from the same workflow with a short-lived granular token,
+  and with provenance too.)
 - CI and the release job install from the committed `package-lock.json` with
   `npm ci --ignore-scripts`.
 - The library's runtime dependencies are limited to `polished`; everything else is

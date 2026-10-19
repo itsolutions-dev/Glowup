@@ -1,21 +1,31 @@
 # packages/pdf — the PDF viewer package
 
-Plan: `docs/solaris-native.md`, phase 6 and D9. Spike result: `docs/spike-0.3-pdf.md`.
+Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-native.md`). Read it before adding anything.
 
-- **Sits on top of the library.** It may import `@its/glowup-ui`, **by package name only**. It imports
-  neither `@its/glowup-device` nor `@its/glowup-notifications` nor another high-level package (`charts`,
-  `pivot`), and nothing below it imports it. ESLint enforces all of it (`ADDON_PACKAGES` in the root
-  `eslint.config.js`): the app composes the packages.
-- **Private until ready.** `changeset publish` publishes any non-private package whose version is not on npm
-  yet, so this one stays `"private": true` until its first release (it also needs its own trusted publisher on
-  npmjs.com, see `release.yml`).
-- **Native modules are optional peers.** Metro resolves every static import reachable from the barrel, so a
-  native import belongs in a file only the native build reaches (`.native.tsx` / `.web.tsx` split), and its
-  module goes in `peerDependenciesMeta` as optional.
-- **Native + authentication = download, then open the file** (D9, spike 0.3). Never `source.headers` of
-  `react-native-pdf`: it fails on iOS and Android.
-- **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the
-  build, and `packages/ui/lib` is build output. `tsconfig.build.json` clears the mapping so the declarations name
-  the package.
-- **Documentation.** The prop tables of `apps/playground` are generated from `packages/ui` only; this
-  package's props are documented by hand in its README until the generator covers it.
+- **No third-party libraries.** The viewer is ours: React Native, Expo and the operating systems' own PDF engines
+  (PDFKit, `PdfRenderer`, the browser's viewer) are the only things it stands on. Do not add `pdfjs-dist`,
+  `react-native-pdf`, `react-native-blob-util`, `react-native-webview` or a copy of their compiled files. Open source code
+  with a permissive licence may be copied in and made ours (licence and author kept, noted in `docs/pdf-upstream.md`).
+- **Sits on top of the library.** It may import `@its/glowup-ui`, **by package name only**. It imports neither
+  `@its/glowup-device` nor `@its/glowup-notifications` nor another high-level package (`charts`, `pivot`), and nothing
+  below it imports it. ESLint enforces all of it (`ADDON_PACKAGES` in the root `eslint.config.js`).
+- **Private until ready.** `changeset publish` publishes any non-private package whose version is not on npm yet, so this
+  one stays `"private": true` until its first release (it also needs its own trusted publisher on npmjs.com, see
+  `release.yml`).
+- **The viewer talks to adapters, never to Expo directly** (`src/types.ts`: `PdfNative`, `PdfFiles`, `PdfActions`), as
+  `packages/device` does. `src/adapters.ts` is the Expo implementation; `@its/glowup-pdf/testing` has an in-memory one
+  (`createMemoryPdf`) and every viewer test uses it: no `jest.mock` of Expo modules.
+- **Expo modules are optional peers and are loaded when first used**, inside a `try` (`load()` in `adapters.ts`): an app that
+  ships only a website installs none, and one that forgot the package in its dependencies gets a `native-missing` error
+  with a readable text, not a crash at start-up.
+- **The page drawing is native, everything else is JavaScript.** The native module has five functions (`capabilities`,
+  `open`, `renderPage`, `search`, `close`); the toolbar, zoom, page list, search highlights and states are shared by iOS and
+  Android. Search rectangles are fractions (0..1) of the page with the origin at the top left, whatever the platform.
+- **Source identity is its content** (`sourceKey`): a new source, or a retry, remounts the viewer, so the document, the search
+  and the zoom always belong to one source. A parent can pass the same content as a new object on every render.
+- **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the build, and
+  `packages/ui/lib` is build output. `tsconfig.build.json` clears the mapping so the declarations name the package.
+- **Documentation.** The prop tables of `apps/playground` are generated from `packages/ui` only; this package's props are
+  documented by hand (`docs/pdf-package-plan.md` §4, README) until the generator covers it.
+- **Tests use `await` on every `fireEvent`**: this version of Testing Library is asynchronous, and an unawaited event overlaps
+  `act()` and poisons the tests after it.

@@ -11,8 +11,10 @@ Plan and decisions: `docs/pdf-package-plan.md`. A live demo is the `/pdf` page o
   start like a PDF (a login page or an error body that came back as a 200 is reported as such) and shown from a `blob:` URL.
 - **Shared viewer for iOS and Android: done and tested with in-memory adapters** (pages, page number and "go to", zoom, search with
   highlights, print, save, loading and error states).
-- **The native module (iOS: PDFKit, Android: `PdfRenderer`) is not written yet**, so on a phone the viewer reports
-  `native-missing`.
+- **The native module is written but has never run on a device:** iOS draws and searches with PDFKit, Android draws with
+  `PdfRenderer`. Android search is off for now (`capabilities().search` is `false`; plan step 6). The playground's
+  `/native-check` opens a sample PDF, draws a page, searches a known word and opens a non-PDF, and the CI run reports it
+  (`NATIVECHECK pdf …` lines, a screenshot). Until a run says so, treat iOS and Android as unverified.
 
 ## Peers
 

@@ -21,6 +21,12 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
 - **The page drawing is native, everything else is JavaScript.** The native module has five functions (`capabilities`,
   `open`, `renderPage`, `search`, `close`); the toolbar, zoom, page list, search highlights and states are shared by iOS and
   Android. Search rectangles are fractions (0..1) of the page with the origin at the top left, whatever the platform.
+- **The native module lives in this package**: `ios/` (Swift, PDFKit; podspec `GlowupPdf`), `android/` (Kotlin, `PdfRenderer`;
+  built from source, `canBePublished false`) and `expo-module.config.json`; Expo autolinking picks it up from the app's
+  dependency. Both sides keep documents open by file URI until `close`, run every call on one queue or thread (PDFKit and
+  `PdfRenderer` are not thread safe), draw on white, write a JPEG into the cache and return its `file://` URI. Errors carry
+  the words "password" or "format" in the message because `fromNativeError` (`src/adapters.ts`) reads them. A change to the
+  module is verified only by `/native-check` in `native.yml`: read its `NATIVECHECK pdf` lines and screenshot.
 - **Source identity is its content** (`sourceKey`): a new source, or a retry, remounts the viewer, so the document, the search
   and the zoom always belong to one source. A parent can pass the same content as a new object on every render.
 - **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the build, and

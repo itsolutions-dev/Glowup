@@ -9,7 +9,13 @@
 //    it types, taps and reads the `STATE` lines below. iOS has no equivalent from
 //    CI, so there the screen is only measured and photographed.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
+import {
+  Image,
+  ScrollView,
+  Text,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 import {
   BottomSheet,
   Button,
@@ -20,11 +26,131 @@ import {
   Tabs,
   useTheme,
 } from "@its/glowup-ui";
+import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
+
+import { SAMPLE_PDF_PAGES, samplePdf } from "../site/samplePdf";
 
 type Sizes = Record<string, number>;
+type Row = [name: string, ok: boolean | null, detail: string];
 
 const noop = () => {};
 const OPTIONS = [{ id: "1", label: "Uno", value: 1 }];
+
+const PDF_WIDTH = 600;
+const PDF_OPEN = "pdf opens and reports its pages";
+const PDF_DRAW = "pdf page is drawn at the width asked";
+const PDF_SEARCH = "pdf search finds a known word";
+const PDF_REFUSE = "pdf refuses a file that is not a PDF";
+
+/**
+ * The PDF module on the device, on the playground's sample: open it, draw the first page,
+ * search "hello" (on pages 1 and 2), and open something that is not a PDF. The drawn page is
+ * shown below the rows so a screenshot proves it, and its real pixel width is read from the
+ * image once it has loaded.
+ */
+const usePdfChecks = () => {
+  const pdf = usePdfAdapters();
+  const [rows, setRows] = useState<Record<string, [boolean | null, string]>>(
+    {},
+  );
+  const [image, setImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    let uri: string | null = null;
+    const set = (name: string, ok: boolean | null, detail: string) => {
+      if (alive) setRows((prev) => ({ ...prev, [name]: [ok, detail] }));
+    };
+    const failure = (error: unknown) =>
+      `${isPdfError(error) ? `${error.code}: ` : ""}${error instanceof Error ? error.message : String(error)}`;
+
+    void (async () => {
+      try {
+        uri = await pdf.files.write(samplePdf());
+        const { pages } = await pdf.native.open(uri);
+        const first = pages[0];
+        set(
+          PDF_OPEN,
+          pages.length === SAMPLE_PDF_PAGES,
+          `${pages.length} pages, first ${Math.round(first?.width ?? 0)} x ${Math.round(first?.height ?? 0)}`,
+        );
+        const drawn = await pdf.native.renderPage(uri, 0, PDF_WIDTH);
+        if (alive) setImage(drawn);
+      } catch (error) {
+        set(PDF_OPEN, false, failure(error));
+        return;
+      }
+      try {
+        const caps = await pdf.native.capabilities();
+        if (!caps.search) {
+          set(PDF_SEARCH, null, "search is off on this device");
+        } else {
+          const hits = await pdf.native.search(uri, "hello");
+          const found = hits.map((hit) => hit.page).join(",");
+          const inside = hits.every((hit) =>
+            hit.rects.every(
+              (r) =>
+                r.width > 0 &&
+                r.height > 0 &&
+                r.x >= 0 &&
+                r.y >= 0 &&
+                r.x + r.width <= 1.001 &&
+                r.y + r.height <= 1.001,
+            ),
+          );
+          set(
+            PDF_SEARCH,
+            found === "0,1" && inside,
+            `pages ${found || "none"}, rectangles ${inside ? "inside" : "outside"} the page`,
+          );
+        }
+      } catch (error) {
+        set(PDF_SEARCH, false, failure(error));
+      }
+      let junk: string | null = null;
+      try {
+        junk = await pdf.files.write(
+          Uint8Array.from("not a pdf", (c) => c.charCodeAt(0)),
+        );
+        await pdf.native.open(junk);
+        set(PDF_REFUSE, false, "it was opened");
+      } catch (error) {
+        set(
+          PDF_REFUSE,
+          isPdfError(error) && error.code === "format",
+          failure(error),
+        );
+      } finally {
+        if (junk) void pdf.files.remove(junk);
+      }
+    })();
+
+    return () => {
+      alive = false;
+      if (uri) {
+        void pdf.native.close(uri).catch(() => {});
+        void pdf.files.remove(uri);
+      }
+    };
+  }, [pdf]);
+
+  const onImageLoad = useCallback((width: number, height: number) => {
+    setRows((prev) => ({
+      ...prev,
+      [PDF_DRAW]: [width === PDF_WIDTH, `${width} x ${height} pixels`],
+    }));
+  }, []);
+
+  const checks = useMemo<Row[]>(
+    () =>
+      [PDF_OPEN, PDF_DRAW, PDF_SEARCH, PDF_REFUSE].map((name) => [
+        name,
+        ...(rows[name] ?? [null, "not measured yet"]),
+      ]),
+    [rows],
+  );
+  return { checks, image, onImageLoad };
+};
 
 /** Reports the height and width of what it wraps, once laid out. */
 const Measured = ({
@@ -65,7 +191,8 @@ export default function NativeCheck() {
 
   // Each check compares a difference, not an absolute size: line heights differ
   // between platforms, the padding the props add does not.
-  const checks = useMemo<[name: string, ok: boolean | null, detail: string][]>(
+  const pdf = usePdfChecks();
+  const measured = useMemo<Row[]>(
     () => [
       check("input dense is 24 shorter", h.inputNormal, h.inputDense, 24),
       check("button dense is 12 shorter", h.buttonNormal, h.buttonDense, 12),
@@ -79,6 +206,10 @@ export default function NativeCheck() {
       ],
     ],
     [h, w],
+  );
+  const checks = useMemo<Row[]>(
+    () => [...measured, ...pdf.checks],
+    [measured, pdf.checks],
   );
   // One line per check for logcat; on iOS the log carries no console output, so
   // the same lines are drawn on screen below.
@@ -117,6 +248,20 @@ export default function NativeCheck() {
           {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
         </Text>
       ))}
+
+      {pdf.image ? (
+        <Image
+          source={{ uri: pdf.image }}
+          accessibilityLabel="Sample PDF page"
+          onLoad={(e) =>
+            pdf.onImageLoad(
+              e.nativeEvent.source.width,
+              e.nativeEvent.source.height,
+            )
+          }
+          style={{ width: 90, height: 127, backgroundColor: "#fff" }}
+        />
+      ) : null}
 
       <Text style={{ color: theme.colors.onSurfaceVariant }}>Interaction</Text>
 

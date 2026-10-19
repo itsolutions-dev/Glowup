@@ -128,6 +128,14 @@ const expectText = async (pattern, what) => {
 const keyboardShown = () =>
   adb("shell", "dumpsys", "input_method").includes("mInputShown=true");
 
+const keyboardUp = async () => {
+  for (let i = 0; i < 6; i += 1) {
+    if (keyboardShown()) return true;
+    await sleep(500);
+  }
+  return false;
+};
+
 const expectGone = async (label, what) => {
   await sleep(700);
   if (named(screen(), label))
@@ -141,10 +149,13 @@ const steps = [
       await scrollToTop();
       // The field itself: its label sits above the box, so tapping the label
       // would not focus it.
-      await tapNode(
-        (nodes) => nodes.find((n) => n.cls.endsWith("EditText")),
-        "the Amount field",
-      );
+      const field = (nodes) => nodes.find((n) => n.cls.endsWith("EditText"));
+      await tapNode(field, "the Amount field");
+      // Typing before the keyboard is up goes nowhere (the first run typed 12,50 and the
+      // field stayed empty): wait for it, and tap again once if it does not come.
+      for (let tries = 0; tries < 2 && !(await keyboardUp()); tries += 1) {
+        await tapNode(field, "the Amount field");
+      }
       adb("shell", "input", "text", "12,50");
       await sleep(700);
       try {

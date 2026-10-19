@@ -157,7 +157,9 @@ export default function NativeCheck() {
       />
       <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
 
-      <View style={{ height: 200 }}>
+      {/* A row, so the drawer stretches to this height: its body is `flex: 1`, and in a column
+          of auto height it collapses to nothing on iOS and Android (not on the web). */}
+      <View style={{ height: 200, flexDirection: "row" }}>
         <NavigationDrawer width={280}>
           <DrawerItem label="Reports" icon="chart-box-outline">
             <DrawerItem label="Sales" onPress={noop} />

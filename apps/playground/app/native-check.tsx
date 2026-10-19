@@ -226,6 +226,6 @@ function check(
   return [
     name,
     Math.abs(delta - expected) <= 2,
-    `Δ=${delta}, expected ${expected}`,
+    `${normal} -> ${dense}, Δ=${delta}, expected ${expected}`,
   ];
 }

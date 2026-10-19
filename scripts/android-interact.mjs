@@ -43,6 +43,7 @@ const screen = () => {
     return {
       text: attr("text"),
       desc: attr("content-desc"),
+      cls: attr("class"),
       x: Math.round((l + r) / 2),
       y: Math.round((t + b) / 2),
     };
@@ -54,40 +55,78 @@ const named = (nodes, label) =>
 const hasText = (nodes, pattern) =>
   nodes.find((n) => pattern.test(n.text) || pattern.test(n.desc));
 
-/** Looks for something, scrolling down a few times if it is off screen. */
+/** What is on screen, for a failure message: a miss is useless without it. */
+const describe = (nodes) =>
+  [...new Set(nodes.flatMap((n) => [n.text, n.desc]).filter(Boolean))]
+    .slice(0, 30)
+    .join(" | ");
+
+const swipe = (direction) => {
+  const [from, to] = direction === "down" ? [0.7, 0.3] : [0.3, 0.7];
+  adb(
+    "shell",
+    "input",
+    "swipe",
+    screenW / 2,
+    screenH * from,
+    screenW / 2,
+    screenH * to,
+    300,
+  );
+};
+
+const scrollToTop = async () => {
+  for (let i = 0; i < 6; i += 1) {
+    swipe("up");
+    await sleep(300);
+  }
+};
+
+/**
+ * Looks for something where it is: on screen now, then further down the page,
+ * then back up. A step can start anywhere, and the page only scrolls one way
+ * per swipe, so looking down alone never finds what a previous step scrolled
+ * past.
+ */
 const find = async (predicate, tries = 6) => {
-  for (let i = 0; i < tries; i += 1) {
-    const hit = predicate(screen());
-    if (hit) return hit;
-    adb(
-      "shell",
-      "input",
-      "swipe",
-      screenW / 2,
-      screenH * 0.7,
-      screenW / 2,
-      screenH * 0.3,
-      300,
-    );
-    await sleep(600);
+  let hit = predicate(screen());
+  if (hit) return hit;
+  for (const direction of ["down", "up"]) {
+    for (let i = 0; i < (direction === "down" ? tries : tries * 2); i += 1) {
+      swipe(direction);
+      await sleep(600);
+      hit = predicate(screen());
+      if (hit) return hit;
+    }
   }
   return null;
 };
 
-const tap = async (label) => {
-  const node = await find((nodes) => named(nodes, label));
-  if (!node) throw new Error(`"${label}" not on screen`);
+const tapNode = async (predicate, what) => {
+  const node = await find(predicate);
+  if (!node) {
+    throw new Error(`${what} not on screen; on screen: ${describe(screen())}`);
+  }
   adb("shell", "input", "tap", node.x, node.y);
   await sleep(700);
 };
 
+const tap = (label) => tapNode((nodes) => named(nodes, label), `"${label}"`);
+
 const expectText = async (pattern, what) => {
-  for (let i = 0; i < 6; i += 1) {
+  for (let i = 0; i < 3; i += 1) {
     if (hasText(screen(), pattern)) return;
     await sleep(500);
   }
-  throw new Error(`${what}: ${pattern} not found`);
+  // A state line can sit below the fold: look for it as well.
+  if (await find((nodes) => hasText(nodes, pattern))) return;
+  throw new Error(
+    `${what}: ${pattern} not found; on screen: ${describe(screen())}`,
+  );
 };
+
+const keyboardShown = () =>
+  adb("shell", "dumpsys", "input_method").includes("mInputShown=true");
 
 const expectGone = async (label, what) => {
   await sleep(700);
@@ -99,13 +138,23 @@ const steps = [
   [
     "a decimal comma is typed and reported as a plain number",
     async () => {
-      await tap("Amount");
+      await scrollToTop();
+      // The field itself: its label sits above the box, so tapping the label
+      // would not focus it.
+      await tapNode(
+        (nodes) => nodes.find((n) => n.cls.endsWith("EditText")),
+        "the Amount field",
+      );
       adb("shell", "input", "text", "12,50");
       await sleep(700);
-      await expectText(/^reported=12\.50$/, "reported value");
-      await expectText(/^12,50$/, "text shown in the field");
-      adb("shell", "input", "keyevent", "4"); // hide the keyboard
-      await sleep(500);
+      try {
+        await expectText(/^reported=12\.50$/, "reported value");
+        await expectText(/^12,50$/, "text shown in the field");
+      } finally {
+        // Back closes the keyboard, but leaves the screen when there is none.
+        if (keyboardShown()) adb("shell", "input", "keyevent", "4");
+        await sleep(500);
+      }
     },
   ],
   [

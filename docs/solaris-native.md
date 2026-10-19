@@ -744,7 +744,7 @@ apps/playground/templates/       # pagine d'esempio (codice), come oggi
 docs/native-verification.md      # matrice componente × piattaforma (web, iOS, Android) × data
 docs/crm-component-matrix.md     # matrice 0.5
 docs/pivot-upstream.md           # differenze dalla copia di AuraPivot
-docs/handoff/                    # un file per sessione (§8)
+docs/handoff/                    # un file per giornata (§8)
 
 Nel progetto CRM (fuori da questa repo):
   pacchetto/repo di componenti specifici del CRM, che dipende da @its/glowup-ui (livello 2, D10)
@@ -802,7 +802,8 @@ copia locale della libreria in un'app perché adottare il pacchetto costa troppo
 5. Il codice copiato da AuraPivot riporta versione e commit di origine in testa a ogni file o in
    `docs/pivot-upstream.md`; le differenze volute si registrano lì.
 6. **Handoff a fine sessione.** Ogni sessione di lavoro si chiude con un file di passaggio per la successiva:
-   `docs/handoff/AAAA-MM-GG.md` (se ce n'è più d'uno nello stesso giorno, suffisso `-2`). Contiene: cosa è
+   `docs/handoff/AAAA-MM-GG.md`, **uno solo per giornata**: se quello di oggi esiste già lo si aggiorna (una sezione per
+   persona), non se ne crea un secondo, né con suffisso `-2` né con il nome. Contiene: cosa è
    stato fatto; stato delle fasi; decisioni prese o cambiate; cosa è verificato e cosa no (web, iOS, Android);
    file toccati e commit fatti; domande aperte; **prossimo passo**. La sessione successiva parte leggendo
    l'ultimo handoff e questo documento.

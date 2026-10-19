@@ -115,6 +115,15 @@ user-visible change to any of them needs a changeset (`npx changeset`). Each pac
 own trusted publisher on npmjs.com (see `release.yml`). On push to `master`,
 `release.yml` opens a "Version Packages" PR; merging it publishes to npm.
 
+## Handoffs
+
+A session that did work ends with a handoff in `docs/handoff/AAAA-MM-GG.md` (what was done, phase
+status, decisions, what was verified on web/iOS/Android, files and commits, open questions, next
+step). **One handoff per calendar day**: if today's file already exists, update it (add or edit a
+section; with two people, one section each) and never create a second one for the same day — no
+`-2`, no name suffix. Earlier files that already carry a suffix stay as they are. A later session
+starts from the latest handoff and `docs/solaris-native.md`.
+
 ## Code style
 
 - Prettier: `trailingComma: "all"`, `endOfLine: "lf"`; ESLint enforces `linebreak-style: unix`.

@@ -184,7 +184,9 @@ l'impianto di un pacchetto nuovo (build, export map, peer opzionali, playground)
 ### Rami e CI
 
 - **Tutti e due lavorano direttamente su `dev`**, senza rami di lavoro e senza PR. `master` non entra (decisione del
-  2026-10-16).
+  2026-10-16). **Aggiornamento 2026-10-19:** per ora B lavora su un altro ramo, non su `dev`: le regole sotto su push
+  incrociati e CI nativa valgono quando B torna su `dev`; fino ad allora `dev` ha un solo autore, e il lavoro di B in `ui`
+  arriva con un merge o un cherry-pick deciso insieme, non con un push diretto.
 - **Prima di ogni push**: `git pull --rebase origin dev`, poi si rilanciano in locale `type-check`, `lint` e i test dei
   workspace toccati. Su `dev` **non gira nessun controllo automatico a parte la CI nativa**: `ci.yml` parte solo sulle push a
   `master` e sulle PR, quindi un errore di lint o di tipi su `dev` lo trova solo chi lo prova in locale.

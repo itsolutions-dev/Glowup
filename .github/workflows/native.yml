@@ -201,6 +201,7 @@ jobs:
             test -s android-pid.txt
             node scripts/android-interact.mjs | tee android-interaction.txt || true
             adb logcat -d -s ReactNativeJS:V | grep -o "NATIVECHECK .*" > android-nativecheck.txt || true
+            adb logcat -d > android-logcat-after.txt || true
 
       - name: Summary
         if: always()
@@ -224,8 +225,10 @@ jobs:
             android-shot.png
             android-check.png
             android-check-after.png
+            android-step-*.png
             android-interaction.txt
             android-nativecheck.txt
             android-logcat.txt
+            android-logcat-after.txt
             gradle.log
           if-no-files-found: ignore

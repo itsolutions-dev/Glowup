@@ -44,6 +44,7 @@ const screen = () => {
       text: attr("text"),
       desc: attr("content-desc"),
       cls: attr("class"),
+      focused: attr("focused") === "true",
       x: Math.round((l + r) / 2),
       y: Math.round((t + b) / 2),
     };
@@ -142,6 +143,10 @@ const expectGone = async (label, what) => {
     throw new Error(`${what}: "${label}" still there`);
 };
 
+// Android key codes of what the amount field takes: 0-9 are 7-16, "," is 55, "." is 56.
+const keyCode = (char) =>
+  char === "," ? 55 : char === "." ? 56 : 7 + Number(char);
+
 const steps = [
   [
     "a decimal comma is typed and reported as a plain number",
@@ -156,7 +161,16 @@ const steps = [
       for (let tries = 0; tries < 2 && !(await keyboardUp()); tries += 1) {
         await tapNode(field, "the Amount field");
       }
-      adb("shell", "input", "text", "12,50");
+      // Key events rather than `input text`: the first runs left the field empty with the
+      // keyboard up, so the text path is the suspect. Say what the field looked like.
+      const before = field(screen());
+      console.log(
+        `  field focused=${before?.focused} keyboard=${keyboardShown()} text="${before?.text}"`,
+      );
+      for (const char of "12,50") {
+        adb("shell", "input", "keyevent", keyCode(char));
+        await sleep(150);
+      }
       await sleep(700);
       try {
         await expectText(/^reported=12\.50$/, "reported value");
@@ -190,6 +204,9 @@ const steps = [
     "a drawer group opens to its sub-items",
     async () => {
       await tap("Reports");
+      // The group animates open: wait longer than its 200 ms, and say what is there.
+      await sleep(1500);
+      console.log(`  after opening: ${describe(screen())}`);
       await expectText(/^Sales$/, "sub-item");
     },
   ],
@@ -215,15 +232,19 @@ for (let i = 0; i < 40 && !ready; i += 1) {
 if (!ready) console.log("FAIL the native check screen did not open");
 
 let failed = 0;
+let index = 0;
 if (ready) {
   // The measurement results sit at the top: photograph them before scrolling.
   await sleep(2000);
   photo("android-check.png");
   for (const [name, run] of steps) {
+    index += 1;
     try {
       await run();
       console.log(`PASS ${name}`);
     } catch (error) {
+      // A failing step is photographed where it stopped, not at the end.
+      photo(`android-step-${index}.png`);
       failed += 1;
       console.log(`FAIL ${name}: ${error.message}`);
     }

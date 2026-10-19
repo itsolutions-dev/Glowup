@@ -159,10 +159,15 @@ export default function NativeCheck() {
 
       {/* A row, so the drawer stretches to this height: its body is `flex: 1`, and in a column
           of auto height it collapses to nothing on iOS and Android (not on the web). */}
-      <View style={{ height: 200, flexDirection: "row" }}>
+      <View style={{ height: 280, flexDirection: "row" }}>
         <NavigationDrawer width={280}>
           <DrawerItem label="Reports" icon="chart-box-outline">
             <DrawerItem label="Sales" onPress={noop} />
+          </DrawerItem>
+          {/* Open from the start, so it never animates: if "Old" shows and "Sales" does not,
+              it is the opening animation that fails, not the layout. */}
+          <DrawerItem label="Archive" icon="archive-outline" defaultExpanded>
+            <DrawerItem label="Old" onPress={noop} />
           </DrawerItem>
         </NavigationDrawer>
       </View>

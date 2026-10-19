@@ -19,6 +19,10 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
 - **Adding a subpath** means four things kept in step: the `exports` entry, the node10
   fallback folder (`<name>/package.json`, which attw checks), its name in `files`, and the
   list in `src/__tests__/package-exports.test.ts` (which fails when any of them drifts).
+  The folder holds `main` (`lib/commonjs`), `types` and `source` only, and the root has no
+  `react-native` or `module` field: Metro reads a subpath through that folder and the root
+  through `exports`, so a field leading to `src` or `lib/module` bundles `core/` twice and the
+  provider stops reaching the subpaths' hooks (found in `0.11.0`, before its first publish).
 - **Adapters.** Hooks and components talk only to a capability's adapter interface, never to
   Expo. The interface's types are the package's own: an Expo type in a public signature
   ties the API to one implementation. The Expo adapter is the default (imported by its

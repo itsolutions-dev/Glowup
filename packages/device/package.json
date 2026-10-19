@@ -13,10 +13,8 @@
     "url": "https://github.com/itsolutions-dev/Glowup/issues"
   },
   "main": "lib/commonjs/index.js",
-  "module": "lib/module/index.js",
   "types": "lib/typescript/index.d.ts",
   "source": "src/index.ts",
-  "react-native": "src/index.ts",
   "exports": {
     ".": {
       "source": "./src/index.ts",

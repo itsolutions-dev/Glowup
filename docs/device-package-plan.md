@@ -788,6 +788,8 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
 - **G6 checked in a real web bundle:** the static export has no `ExpoMediaLibraryNext` anywhere,
   and neither does the consumer's `expo export -p web` on the packed tarball (the tarball ships
   `expo.web` in `src` and `lib`; Metro reads `src` through the subpath's `react-native` field).
+  That field was a defect, found after phase 37: the root resolved to `lib/commonjs`, so `core/`
+  was bundled twice (see "After phase 37").
 - Chromium at 1440 and 390 px, without errors: a real file chooser opens synchronously from the
   press with the right `accept` and `multiple`; one PNG, then two PNGs and a `.txt` (skipped),
   come back with their sizes; no input is left in the page. The library page reads unsupported
@@ -1452,12 +1454,12 @@ What follows from it:
 | R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
 | R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
 
-| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status    |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --------- |
-| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done      |
-| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done      |
-| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done      |
-| 37    | Playground page (a simulated reader everywhere; Honeywell stays in `apps/rfid-diagnostics`), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                              | `0.11.0` | in review |
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done   |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done   |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done   |
+| 37    | Playground page (a simulated reader everywhere; Honeywell stays in `apps/rfid-diagnostics`), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                              | `0.11.0` | done   |
 
 **Answered:**
 
@@ -1587,7 +1589,8 @@ questions are answered.
   first release from `master`: this branch merges only with phase 37.
 - **The trusted publisher** is set up on npmjs.com by a maintainer. npm may not offer the setting
   before the package's first version exists; if it does not, the first version needs a one-off
-  publish by hand (to check on npmjs.com).
+  publish by hand (to check on npmjs.com). The Release runs after phase 37 answered it: every
+  package npm did not know yet failed with `E404` on `PUT` (see "After phase 37").
 
 ### Phase 37 — what landed
 
@@ -1614,6 +1617,42 @@ questions are answered.
   rfid-honeywell `0.1.0` and the peer range `>=0.11.0 <0.12.0`.
 - **After the merge:** the trusted publisher of `@its/rfid-honeywell` on npmjs.com (above), then
   the team's check on the IH40 with the published packages.
+
+### After phase 37
+
+- **Publishing is blocked.** The Release after the "Version Packages" merge failed as on 15
+  October: `@its/glowup-device@0.11.0` and `@its/glowup-notifications@0.3.1` with `E404` on
+  `PUT`, and nothing was published (npm knows only `@its/glowup-ui`). Trusted publishing cannot
+  create a package, and the workflow has no token: the first version of each needs a publish
+  by hand or a temporary token, then a trusted publisher. A maintainer's choice; the versions on
+  `master` stay, and `changeset publish` publishes whatever the registry lacks.
+- **The check on the IH40 no longer waits for it.** `npm run packed -w @its/rfid-diagnostics --
+  <dir>` builds the two packages, packs the tarballs npm would publish and makes a copy of the
+  diagnostics app outside the repository that installs them (inside it, Node would fall back to
+  the root `node_modules`, where both are links to their source). The same screen and checklist
+  then run on `lib/`, the `exports`, the config plugin and the Android module as the tarballs
+  ship them; only the provenance is left to the Release.
+- **Found by it: every subpath was bundled from another build than the root.** Metro resolves
+  `@its/glowup-device/rfid` through the nearest `package.json`, the node10 fallback folder,
+  which has no `exports`. Its `react-native` field led to `src` on iOS and Android, its `module`
+  field to `lib/module` on the web (Expo reads `browser`, `module`, `main` there); the root
+  resolved through `exports` to `lib/commonjs`. `core/` was in the bundle twice, so the
+  diagnostics app's `DeviceAdaptersProvider` (from the root) would not have reached
+  `useRfidReader` (from `/rfid`): the Honeywell adapter would never have been used. Neither the
+  playground (`paths` to `src` for every entry) nor the consumer smoke (it bundles, but renders
+  nothing that depends on the provider) could see it. `@its/glowup-notifications`' `/testing`
+  had the same shape.
+- **Fixed** in both packages: the fallback folders and the roots point only at `lib/commonjs`
+  (`main`, `types`, `source`; no `react-native`, no `module`), so every resolver, with or
+  without `exports`, native, web or server, lands on one build. Each package's
+  `package-exports.test.ts` pins it. Patch changesets: device `0.11.1`, notifications `0.3.2`.
+  Checked on the packed tarballs: the Android bundle of the diagnostics copy and the consumer's
+  web bundle each hold one `core/adapters.js`, from `lib/commonjs` (before: `src` beside
+  `lib/commonjs` on Android, `lib/module` beside it on the web); `tsc`, the config plugin at
+  prebuild (with placeholder files where the SDKs go) and autolinking of the Honeywell module
+  pass on the copy. The tests, type-check and lint pass with no `lib/` in the tree.
+- **Still open:** whether Honeywell's Maven repository serves the SDK (phase 35); the team's
+  check on the IH40 with the packed tarballs.
 
 ## Open for later
 

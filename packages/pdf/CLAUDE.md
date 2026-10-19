@@ -29,3 +29,9 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   documented by hand (`docs/pdf-package-plan.md` §4, README) until the generator covers it.
 - **Tests use `await` on every `fireEvent`**: this version of Testing Library is asynchronous, and an unawaited event overlaps
   `act()` and poisons the tests after it.
+- **The web viewer is a separate file, not a branch of the native one.** `PdfViewer.web.tsx` has no adapters: it fetches and
+  shows a `blob:` URL in an iframe (`webSource.ts`), because the browser already has the viewer. Its pure part,
+  `loadPdfBlob`, is tested under `@jest-environment node` (real `Blob` and `Response`); the component is tested with that
+  mocked. Read browser globals only inside effects and handlers: the static export prerenders in Node.
+- **The playground page `/pdf`** (`apps/playground/app/pdf.tsx`) runs on `site/samplePdf.ts`, a three-page PDF built in code
+  with known words ("hello" on pages 1 and 2, "1,250.00" on page 2), which `/native-check` can reuse for the native checks.

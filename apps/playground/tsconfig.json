@@ -12,6 +12,7 @@
         "../../packages/notifications/src/index.ts"
       ],
       "@its/glowup-pdf": ["../../packages/pdf/src/index.ts"],
+      "@its/glowup-pdf/testing": ["../../packages/pdf/src/testing/index.ts"],
       "@its/glowup-device": ["../../packages/device/src/index.ts"],
       "@its/glowup-device/info": ["../../packages/device/src/info/index.ts"],
       "@its/glowup-device/location": [

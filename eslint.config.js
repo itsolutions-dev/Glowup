@@ -191,8 +191,9 @@ module.exports = defineConfig([
             },
             ...ADDON_PACKAGES.flatMap((n) => [
               {
-                group: [`@its/glowup-${n}/*`],
-                message: `Import from the '@its/glowup-${n}' barrel — deep imports are not part of the package's public API.`,
+                // "/testing" is the one public subpath (the in-memory adapters).
+                group: [`@its/glowup-${n}/*`, `!@its/glowup-${n}/testing`],
+                message: `Import from the '@its/glowup-${n}' barrel (or its '/testing' subpath) — other deep imports are not part of the package's public API.`,
               },
               {
                 group: [`**/packages/${n}/**`, `packages/${n}/**`],

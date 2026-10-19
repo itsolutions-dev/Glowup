@@ -2,14 +2,17 @@
 
 A PDF viewer for Expo apps, built on `@its/glowup-ui`, with **no third-party libraries**. Not published yet (`"private": true`).
 
-Plan and decisions: `docs/pdf-package-plan.md`.
+Plan and decisions: `docs/pdf-package-plan.md`. A live demo is the `/pdf` page of the playground.
 
 ## State
 
-The shared part is done and tested with in-memory adapters: the viewer (pages, page number and "go to", zoom, search with
-highlights, print, save, loading and error states), the sources (`uri` with headers, `base64`, `bytes`) and the testing
-adapters. **The native module (iOS: PDFKit, Android: `PdfRenderer`) and the web viewer are not written yet**, so today the
-viewer reports `native-missing` on a device.
+- **Web: done and checked in Chrome.** `PdfViewer.web.tsx` shows the file in the browser's own viewer (search, print, download,
+  thumbnails) and adds a bar with "open in a new tab" and "save". A file behind a login is fetched with its headers, checked to
+  start like a PDF (a login page or an error body that came back as a 200 is reported as such) and shown from a `blob:` URL.
+- **Shared viewer for iOS and Android: done and tested with in-memory adapters** (pages, page number and "go to", zoom, search with
+  highlights, print, save, loading and error states).
+- **The native module (iOS: PDFKit, Android: `PdfRenderer`) is not written yet**, so on a phone the viewer reports
+  `native-missing`.
 
 ## Peers
 
@@ -18,8 +21,9 @@ that only ships a website installs none of them.
 
 ## Limits, on purpose
 
-- On the web phones' browsers show little of a PDF in a page (Safari: the first page; Chrome on Android: none): the web viewer
-  will always offer an "open" button that opens it in a tab.
+- On the web, phones' browsers show little of a PDF in a page (Safari: the first page; Chrome on Android: none): use "open in a
+  new tab". `onLoad` reports `pages: null` there, and `onPageChange` is never called: the browser's viewer does not tell.
+- The browser's viewer names the document after its `blob:` address; `fileName` names the save and the iframe's title.
 - Search finds text only: a PDF that is a scan (an image) has none, and nothing here recognises characters.
-- No password-protected PDFs, no text selection or links inside a page, zoom by buttons, not by pinching.
-- "Save" opens the system share sheet on both platforms (on iOS it offers "Save to Files").
+- No password-protected PDFs, no text selection or links inside a page on a phone, zoom by buttons, not by pinching.
+- "Save" opens the system share sheet on a phone (on iOS it offers "Save to Files").

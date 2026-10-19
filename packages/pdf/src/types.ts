@@ -73,6 +73,8 @@ export type PdfLabels = {
   nextResult: string;
   print: string;
   save: string;
+  /** The web viewer's button that opens the PDF in a tab: the way to read it on a phone's browser. */
+  openInTab: string;
   retry: string;
   errorTitle: string;
   actionFailed: string;
@@ -85,7 +87,8 @@ export type PdfViewerProps = {
   fileName?: string;
   /** The page to open on, from 1. */
   initialPage?: number;
-  onLoad?: (info: { pages: number }) => void;
+  /** `pages` is `null` on the web, where the browser's own viewer shows the document and does not tell. */
+  onLoad?: (info: { pages: number | null }) => void;
   onError?: (error: PdfError) => void;
   onPageChange?: (page: number, pages: number) => void;
   /** The bar with the page, zoom, search, print and save controls. Defaults to true. */

@@ -52,6 +52,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     summary: "The headless push companion package, running live.",
   },
   {
+    href: "/pdf",
+    label: "PDF",
+    icon: "file-pdf-box",
+    summary: "A PDF viewer inside the app, with no third-party library.",
+  },
+  {
     href: "/device",
     label: "Device",
     icon: "cellphone-cog",

@@ -19,6 +19,7 @@ export const defaultPdfLabels: PdfLabels = {
   nextResult: "Next result",
   print: "Print",
   save: "Save",
+  openInTab: "Open in a new tab",
   retry: "Try again",
   errorTitle: "The document could not be shown",
   actionFailed: "The action could not be completed",
@@ -31,6 +32,15 @@ export const defaultPdfLabels: PdfLabels = {
       "The PDF module is not in this app. Add @its/glowup-pdf to the app's dependencies and make a new development build.",
   },
 };
+
+/** The defaults with what an app passes laid over them (the error texts are merged one by one). */
+export const withDefaultLabels = (
+  overrides?: Partial<PdfLabels>,
+): PdfLabels => ({
+  ...defaultPdfLabels,
+  ...overrides,
+  errors: { ...defaultPdfLabels.errors, ...overrides?.errors },
+});
 
 export const fillLabel = (
   template: string,

@@ -21,15 +21,9 @@ import { usePdfAdapters } from "./PdfProvider";
 import PdfPage, { type PdfHighlight } from "./PdfPage";
 import { PdfSearchPanel, PdfToolbar } from "./PdfToolbar";
 import { toPdfError } from "./errors";
-import { defaultPdfLabels, fillLabel } from "./labels";
+import { fillLabel, withDefaultLabels } from "./labels";
 import { resolveSource, sourceKey, type ResolvedFile } from "./source";
-import type {
-  PdfError,
-  PdfLabels,
-  PdfMatch,
-  PdfPageSize,
-  PdfViewerProps,
-} from "./types";
+import type { PdfError, PdfMatch, PdfPageSize, PdfViewerProps } from "./types";
 
 const ZOOMS = [1, 1.25, 1.5, 2, 3];
 /** A page drawn wider than this would fill the memory for no gain on a phone. */
@@ -81,12 +75,8 @@ const PdfDocument = ({
 }: DocumentProps) => {
   const { theme } = useTheme();
   const { native, files, actions } = usePdfAdapters();
-  const labels = useMemo<PdfLabels>(
-    () => ({
-      ...defaultPdfLabels,
-      ...labelOverrides,
-      errors: { ...defaultPdfLabels.errors, ...labelOverrides?.errors },
-    }),
+  const labels = useMemo(
+    () => withDefaultLabels(labelOverrides),
     [labelOverrides],
   );
 

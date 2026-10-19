@@ -25,6 +25,23 @@ const DEVICE_CAPABILITIES = {
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
+// The high-level packages that sit on top of the library (plan D3). Each may
+// import `@its/glowup-ui` (by name) and nothing else of ours; the library,
+// `device` and `notifications` import none of them, and they do not import each
+// other. A name listed here before its folder exists changes nothing.
+const ADDON_PACKAGES = ["charts", "pdf", "pivot"];
+const addonImports = (names) =>
+  names.flatMap((n) => [
+    `@its/glowup-${n}`,
+    `@its/glowup-${n}/*`,
+    `**/packages/${n}/**`,
+  ]);
+const ADDON_PATTERN = {
+  group: addonImports(ADDON_PACKAGES),
+  message:
+    "Charts, pivot and PDF sit on top of the library: nothing below them imports them. The app composes them.",
+};
+
 // What no file of packages/device may import, whatever folder it is in.
 const DEVICE_BASE_PATTERNS = [
   {
@@ -47,6 +64,7 @@ const DEVICE_BASE_PATTERNS = [
     group: ["@react-navigation/*", "expo-router", "expo-router/*"],
     message: "The device package is navigation-agnostic.",
   },
+  ADDON_PATTERN,
 ];
 
 // Every module but the capability's own: two capabilities may share one
@@ -171,6 +189,16 @@ module.exports = defineConfig([
               message:
                 "Reach the package through the '@its/glowup-device' name, not through a path into packages/device.",
             },
+            ...ADDON_PACKAGES.flatMap((n) => [
+              {
+                group: [`@its/glowup-${n}/*`],
+                message: `Import from the '@its/glowup-${n}' barrel — deep imports are not part of the package's public API.`,
+              },
+              {
+                group: [`**/packages/${n}/**`, `packages/${n}/**`],
+                message: `Reach the package through the '@its/glowup-${n}' name, not through a path into packages/${n}.`,
+              },
+            ]),
           ],
         },
       ],
@@ -207,6 +235,7 @@ module.exports = defineConfig([
               message:
                 "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
             },
+            ADDON_PATTERN,
           ],
         },
       ],
@@ -254,6 +283,7 @@ module.exports = defineConfig([
               message:
                 "The notifications package stands alone and cannot depend on @its/glowup-device.",
             },
+            ADDON_PATTERN,
           ],
         },
       ],
@@ -329,6 +359,49 @@ module.exports = defineConfig([
       ],
     },
   },
+  // A high-level package may import the library by name and nothing else of
+  // ours: not the app, not `device` or `notifications`, not another high-level
+  // package.
+  ...ADDON_PACKAGES.map((name) => ({
+    files: [`packages/${name}/**/*.ts`, `packages/${name}/**/*.tsx`],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
+              message: `The ${name} package cannot depend on the playground app.`,
+            },
+            {
+              group: ["@its/glowup-ui/*", "**/packages/ui/**"],
+              message:
+                "Import the library from '@its/glowup-ui' by name: a deep import or a path into packages/ui is not part of its public API.",
+            },
+            {
+              group: [
+                "@its/glowup-device",
+                "@its/glowup-device/*",
+                "**/packages/device/**",
+                "@its/glowup-notifications",
+                "@its/glowup-notifications/*",
+                "**/packages/notifications/**",
+              ],
+              message: `The ${name} package cannot depend on @its/glowup-device or @its/glowup-notifications: the app wires them together.`,
+            },
+            {
+              group: addonImports(ADDON_PACKAGES.filter((n) => n !== name)),
+              message: `The ${name} package cannot import another high-level package: the app composes them.`,
+            },
+            {
+              group: ["@react-navigation/*", "expo-router", "expo-router/*"],
+              message: `The ${name} package is navigation-agnostic.`,
+            },
+          ],
+        },
+      ],
+    },
+  })),
   {
     // examples/consumer is outside the npm workspaces on purpose (it installs the
     // published package), so it has its own node_modules that the root `npm

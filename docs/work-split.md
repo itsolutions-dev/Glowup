@@ -67,12 +67,15 @@ provato su un telefono, chiede ad A di estendere `/native-check`.
 
 ## 3. Il lavoro di A (pacchetti nuovi, strumenti, verifica nativa)
 
-### A1 — Impalcatura dei tre pacchetti (prima del resto del lavoro su `charts`, `pdf`, `pivot`)
+### A1 — Impalcatura dei pacchetti (**fatta per `pdf` il 2026-10-19**; `charts` e `pivot` nascono quando si comincia a lavorarci)
 
-Un solo PR, piccolo, che **crea insieme i tre workspace vuoti**. Farlo in un colpo evita di toccare più volte gli stessi file
-di root.
+Si era previsto di creare subito i tre workspace vuoti. Si è fatto solo `pdf`: due cartelle vuote non servono a niente finché
+non ci si lavora, e ognuna costa soltanto una cartella, un mapping nel `tsconfig` del playground, una riga nello script
+`build` e in `ci.yml`, e un `npm install`. Le parti generiche (regola ESLint con `ADDON_PACKAGES`, testo di `CLAUDE.md`) sono
+già scritte per tutti e tre. Per creare `charts` o `pivot`: copiare `packages/pdf`, cambiare nome e descrizione, e aggiungere
+le quattro righe appena elencate.
 
-- `packages/charts`, `packages/pdf`, `packages/pivot`: `package.json` sul modello di `packages/device` (`exports`,
+- `packages/pdf` (poi `packages/charts` e `packages/pivot`): `package.json` sul modello di `packages/device` (`exports`,
   `main`/`module`/`types`, `source`, `react-native`, build con `react-native-builder-bob`, `tsconfig`, `tsconfig.build.json`),
   **`"private": true`**, `@its/glowup-ui` come **peer** con intervallo di versione. Le dipendenze pesanti
   (`d3-scale`/`d3-shape`, `react-native-pdf`, `react-native-blob-util`, `pdfjs-dist`, `exceljs`) stanno **nel pacchetto che le
@@ -95,7 +98,7 @@ entri nel catalogo.
 | ID  | Lavoro                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Dipende da                     | Uscita                                                                                                |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
 | A0  | **Artefatti di CI di `badd994`** (`ios-smoke`, `android-smoke`): leggerli, correggere `/native-check` e `scripts/android-interact.mjs` finché i passi tornano. Un solo push alla volta. I difetti che risultano essere di `ui` si passano a B con il caso minimo.                                                                                                                                                                                                                                       | —                              | Misure su iOS e Android lette; script che passa o fallisce per un motivo vero; elenco difetti per B   |
-| A1  | **Impalcatura** (sopra).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | —                              | Tre workspace vuoti; lint, type-check, build verdi                                                    |
+| A1  | **Impalcatura** (sopra).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | —                              | Workspace `pdf` vuoto; lint, type-check, build verdi                                                  |
 | A2  | **Fase 6, `packages/pdf`**: `PdfViewer` (`source` = `uri`, `bytes`, `base64`, `blob`; `initialPage`, `page`, `zoom`, `fit`, `onLoad`, `onError`), `usePdfDocument()`, toolbar a slot, stati vuoto/caricamento/errore con i token. Web: `iframe`/`object` e `pdfjs-dist`. Nativo: **si scarica con `react-native-blob-util` e si apre il file; mai `source.headers`** (D9, spike 0.3). `react-native-pdf` richiede dev build: peer opzionale con config plugin documentato.                              | A1                             | Viewer su web (prioritario), iOS e Android con un PDF autenticato e uno da base64; nota su cosa manca |
 | A3  | **Fase 7, core di `packages/pivot`**: copia di `pivot-core/` (circa 149 KB), `options/`, `localization/`, hook e contesto da AuraPivot 2.6.0, con **versione e commit di origine** in testa; `locale` esplicito; separatori senza `Intl.formatToParts` (manca su iOS); esportatore Excel in `excel.ts` a parte, `exceljs` peer opzionale **solo web**; porting dei test da vitest a jest (la lista delle modifiche è nello spike 0.1); `docs/pivot-upstream.md`. **La repo AuraPivot non si modifica.** | A1                             | Test del core verdi in jest nella nostra CI; nota di provenienza; elenco delle differenze volute      |
 | A4  | **Fase 4, `packages/charts`**: nucleo comune (misura da `onLayout`, primo frame a larghezza 0 che non rompe il grafico; tooltip al tocco e al passaggio del mouse su web; colori **solo dai token**; `Intl`; `loading`/`empty`; `useReduceMotion`; riassunto testuale per lo screen reader). Poi: `BarChart`, `LineChart`/`AreaChart`, `DonutChart`, `StackedBar`, `Sparkline`, `Gauge`, `ChartLegend`, facciata `Chart`. Dai 10.000 punti, modalità a `<Path>` unico (spike 0.4).                      | A1, **B0** (nomi), B2 (valori) | Grafici del CRM mobile riproducibili; prestazioni misurate su web                                     |
@@ -137,7 +140,7 @@ Fuori dal lavoro di B finché una schermata non le chiede: tutto l'elenco "non f
               A (resto)                          B (packages/ui)
  ──────────────────────────────────────────────────────────────────────────
  onda 0   A0 artefatti di CI                  B0 contratto dei token grafici
-          A1 impalcatura dei 3 pacchetti      B1 jest ×3
+          A1 impalcatura di pdf (fatta)       B1 jest ×3
  ──────────────────────────────────────────────────────────────────────────
  onda 1   A2 PDF                              B2 2B-c completo
           A3 core del pivot                   B3 chiude 3B

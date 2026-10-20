@@ -7,7 +7,7 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   package whose version is not on npm yet, so a new package must stay `"private": true`
   until it is ready to ship (this one was, through its v1 phases).
 - **One subpath per capability.** `./info`, `./location`, `./camera`, `./network`, `./battery`,
-  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, `./rfid`, plus `./testing`. Each capability owns its native modules (`expo-device` +
+  `./keep-awake`, `./orientation`, `./haptics`, `./biometrics`, `./secure-store`, `./sensors`, `./media-picker`, `./media-library`, `./background-location`, `./bluetooth`, `./rfid`, `./scanner`, plus `./testing`. Each capability owns its native modules (`expo-device` +
   `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
   `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`), and those are **optional** peers (`peerDependenciesMeta`): Metro resolves
   every static import reachable from an entry point, so a native import is only safe inside
@@ -185,6 +185,23 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   off is absent, not `undefined`), and `describeRfidAdapterContract()` is the vendors' suite:
   it takes `{ describe, it }` (`/testing` needs no Jest globals), uses its own assertions and
   real timers, and `rfid-contract.test.ts` checks it fails broken adapters.
+- **Barcode scanner** (`src/scanner`): a hardware imager's contract and engine, built like
+  `/rfid` (no native code, no default adapter, `DEVICE_CAPABILITIES` lists it with no module,
+  vendors in `@its/scanner-*`; ADR-C1 in the plan). `engine.ts` keeps one engine per adapter
+  with a **stack of holders** (each mounted, enabled `useBarcodeScanner`): the scanner is open
+  while the stack is not empty and the app is in the foreground (`background` closes it,
+  `active` opens it again), reads go to the holder on top, and the request is the top holder's
+  symbologies (reapplied with `open()` while open, compared as a sorted key). Opens and closes
+  run one at a time on a promise chain; `session` drops what an earlier claim reports after it
+  closed (an `onClose` from the adapter means another app took it). The AIM mapping, the
+  `BarcodeScan` shape and the guards (`createScanGate`: the same code once per interval, reads
+  dropped while the handler's promise is pending) are in `core/barcodes.ts`, because
+  `CameraView` uses the same gate (a capability may not import another); `/camera` re-exports
+  `BarcodeType` from there. The hook validates `symbologies` against `adapter.symbologies` only
+  where the adapter is supported (an app passes the same list to the camera elsewhere).
+  Testing: `createMockBarcodeScannerAdapter()` (optional methods assigned after the literal) and
+  `describeBarcodeScannerAdapterContract()`, which `scanner-contract.test.ts` checks against
+  broken adapters.
 - **Permission stores** (`src/core/permissionStore.ts`): `createPermissionStore()` shares one
   permission's state between hooks (last call wins, concurrent refreshes share a read; it also
   backs `/background-location`'s `isRunning`) and
@@ -192,7 +209,8 @@ Roadmap and decisions: `docs/device-package-plan.md`. Read it before adding a ca
   capability keeps its stores in a `WeakMap` keyed by adapter (camera: one per kind).
 - **Camera** (`src/camera`): the adapter's `Preview` is a component (the camera is a native
   view) whose ref exposes `CameraHandle`. `CameraView` owns everything adapter-independent:
-  defaults, scan dedupe (`scanInterval`), the stable `barcodeTypes` identity, the
+  defaults, scan dedupe (`scanInterval`) and the busy guard (core's `createScanGate`, shared
+  with `/scanner`), the stable `barcodeTypes` identity, the
   `invalid-mode` / `unsupported` checks and error normalisation, so an adapter only maps
   props. `isSupported()` is read through `useSyncExternalStore` with a `false` server
   snapshot (`__tests__/camera-ssr.test.tsx`): never call it during render directly. The web

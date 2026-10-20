@@ -110,3 +110,15 @@ export {
   type RfidContractOptions,
   type RfidContractTestApi,
 } from "./rfidContract";
+export {
+  createMockBarcodeScannerAdapter,
+  type MockBarcodeRead,
+  type MockBarcodeScannerAdapter,
+  type MockBarcodeScannerOptions,
+} from "./barcodeScanner";
+export {
+  describeBarcodeScannerAdapterContract,
+  type BarcodeScannerContractHarness,
+  type BarcodeScannerContractOptions,
+  type BarcodeScannerContractTestApi,
+} from "./barcodeScannerContract";

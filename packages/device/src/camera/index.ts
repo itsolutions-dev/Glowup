@@ -10,6 +10,7 @@ export {
 } from "./permissions";
 export { CameraError, isCameraError, type CameraErrorCode } from "./errors";
 export { expoCameraAdapter } from "./expo";
+export type { BarcodeScan } from "../core/barcodes";
 export type {
   BarcodeType,
   CameraAdapter,

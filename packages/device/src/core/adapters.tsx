@@ -14,6 +14,7 @@ import type { MediaPickerAdapter } from "../media-picker/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
 import type { RfidAdapter } from "../rfid/types";
+import type { BarcodeScannerAdapter } from "../scanner/types";
 import type { SecureStoreAdapter } from "../secure-store/types";
 import type { SensorsAdapter } from "../sensors/types";
 
@@ -40,6 +41,8 @@ export interface DeviceAdapters {
   bluetooth: BluetoothAdapter;
   /** No default: a vendor package (`@its/rfid-honeywell`) provides it. */
   rfid: RfidAdapter;
+  /** No default: a vendor package (`@its/scanner-honeywell`) provides it. */
+  barcodeScanner: BarcodeScannerAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -81,6 +84,7 @@ export function DeviceAdaptersProvider({
     backgroundLocation,
     bluetooth,
     rfid,
+    barcodeScanner,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -102,6 +106,7 @@ export function DeviceAdaptersProvider({
       ...(backgroundLocation && { backgroundLocation }),
       ...(bluetooth && { bluetooth }),
       ...(rfid && { rfid }),
+      ...(barcodeScanner && { barcodeScanner }),
     }),
     [
       parent,
@@ -122,6 +127,7 @@ export function DeviceAdaptersProvider({
       backgroundLocation,
       bluetooth,
       rfid,
+      barcodeScanner,
     ],
   );
   return (

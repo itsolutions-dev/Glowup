@@ -1811,19 +1811,20 @@ It does not drive the CT40's own imager. That is Honeywell's **Data Collection S
 SDK, `com.honeywell.aidc`, `DataCollection.aar`), the same AAR `@its/rfid-honeywell` already
 requires (1.97.00.0060, phase 35). The ring scanners are out unless someone uses them (below).
 
-### The architecture (ADR-B1)
+### The architecture (ADR-C1)
 
 - **`@its/glowup-device/scanner`**: the contract and the engine, like `/rfid`.
-  - `BarcodeScannerAdapter`: `vendor`, `isSupported()`, capabilities (software trigger,
-    symbology settings), `open(handlers)` / `close()` (Honeywell's claim / release), reads and
-    trigger presses as events, `softwareTrigger?(pressed)`, `setSymbologies?(types)`.
+  - `BarcodeScannerAdapter`: `vendor`, `symbologies` (what it can turn on), `isSupported()`,
+    `open(request, handlers)` / `close()` (Honeywell's claim / release; the request's
+    symbologies applied on each `open()`), reads, trigger presses and a scanner taken away as
+    events, `softwareTrigger?(pressed)`, `getScannerInfo?()`.
   - A read: `data` (text), `type` (`BarcodeType` or `"unknown"`), `rawType` (the vendor's
     code id), `aimId` when the SDK gives one, `timestamp`.
   - `useBarcodeScanner({ onScan, enabled, symbologies })`: the scanner is open while the screen
     is mounted, `enabled` and the app in the foreground, and released otherwise (another app, or
     the device's own keyboard wedge, gets it back).
   - **Automatic confirmation** is the app's `onScan`: the library never submits anything. To
-    keep a confirmation from running twice, the engine drops a read while the previous
+    keep a confirmation from running twice, the hook drops a read while the previous
     `onScan`'s promise is pending, and the same code within a short window (both configurable).
   - `createMockBarcodeScannerAdapter()` and `describeBarcodeScannerAdapterContract()` in
     `/testing`.
@@ -1866,7 +1867,7 @@ with `javap` without `-c`; the AAR holds no licence text):
 The **IH40 has no imager of its own**: its SDK has no barcode API, and in `TriggerMode.BARCODE`
 its trigger drives the host's scanner (measured in phase 35: "handed back, the trigger drives the
 CT40's own scanner again"). Reading barcodes with the IH40 is pulling its trigger while
-`/scanner` holds the CT40's imager and no RFID screen is mounted (B6).
+`/scanner` holds the CT40's imager and no RFID screen is mounted (C6).
 
 **To confirm on the CT40:** whether a claim stops the keyboard wedge for the app; whether the
 IH40's trigger reaches `onTriggerEvent` and decodes under `autoControl`; the code ids and AIM ids
@@ -1877,23 +1878,64 @@ background; the charset of a QR holding non-ASCII text.
 
 | #   | Question      | Decision                                                                                                                                                                                                                            | Status   |
 | --- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| B1  | Honeywell     | The Data Collection SDK (`com.honeywell.aidc`), not the scanner service's intents.                                                                                                                                                  | decided  |
-| B2  | Confirmation  | A read reaches the app as `onScan`, which confirms by itself; no keyboard wedge, no Enter key.                                                                                                                                      | decided  |
-| B3  | Support       | Whatever the Data Collection SDK supports, checked on the team's CT40 (Android 11).                                                                                                                                                 | decided  |
-| B4  | Ring scanner  | The Gen7 BT SDK (8680i / 8690i) is out: the team uses no ring scanner.                                                                                                                                                              | decided  |
-| B5  | One build     | The scanner and RFID packages share `DataCollection.aar`: the same Maven coordinate in each plugin's repository, so Gradle resolves it once; the versions must agree.                                                               | decided  |
-| B6  | Trigger       | No screen reads RFID and barcodes together: an RFID screen owns the trigger (`useRfidTrigger`, `TriggerMode.RFID`); everywhere else it stays in `BARCODE` mode and drives the imager `/scanner` holds, the IH40's trigger included. | decided  |
-| B7  | First scope   | Hardware and software trigger; QR, Code 128, EAN-13 and Data Matrix (the others off); no GS1 parsing.                                                                                                                               | decided  |
-| B8  | Camera        | Phones without an imager read through the camera, with the same `onScan` (how: B10).                                                                                                                                                | decided  |
-| B9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided  |
-| B10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | proposed |
+| C1  | Honeywell     | The Data Collection SDK (`com.honeywell.aidc`), not the scanner service's intents.                                                                                                                                                  | decided  |
+| C2  | Confirmation  | A read reaches the app as `onScan`, which confirms by itself; no keyboard wedge, no Enter key.                                                                                                                                      | decided  |
+| C3  | Support       | Whatever the Data Collection SDK supports, checked on the team's CT40 (Android 11).                                                                                                                                                 | decided  |
+| C4  | Ring scanner  | The Gen7 BT SDK (8680i / 8690i) is out: the team uses no ring scanner.                                                                                                                                                              | decided  |
+| C5  | One build     | The scanner and RFID packages share `DataCollection.aar`: the same Maven coordinate in each plugin's repository, so Gradle resolves it once; the versions must agree.                                                               | decided  |
+| C6  | Trigger       | No screen reads RFID and barcodes together: an RFID screen owns the trigger (`useRfidTrigger`, `TriggerMode.RFID`); everywhere else it stays in `BARCODE` mode and drives the imager `/scanner` holds, the IH40's trigger included. | decided  |
+| C7  | First scope   | Hardware and software trigger; QR, Code 128, EAN-13 and Data Matrix (the others off); no GS1 parsing.                                                                                                                               | decided  |
+| C8  | Camera        | Phones without an imager read through the camera, with the same `onScan` (how: C10).                                                                                                                                                | decided  |
+| C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided  |
+| C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | proposed |
 
-| Phase | Content                                                                                                                                                                                                                     | Release      | Status |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
-| B1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (B10) | device minor | —      |
-| B2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | —      |
-| B3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —      |
-| B4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —      |
+| Phase | Content                                                                                                                                                                                                                     | Release      | Status    |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------- |
+| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | in review |
+| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | —         |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —         |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —         |
+
+### Phase C1 — what landed
+
+- **`@its/glowup-device/scanner`** (`src/scanner`):
+  - **Contract** (`types.ts`, `BARCODE_SCANNER_CONTRACT_VERSION` 1): `BarcodeScannerAdapter`
+    as above; a read (`BarcodeScannerRead`: `data`, `aimId`, `rawType`, optional `type` and
+    `timestamp`); `BarcodeScannerError` (`unsupported`, `incompatible-adapter`, `unavailable`,
+    `not-open`, `failed`); `unsupportedBarcodeScannerAdapter`,
+    `firstSupportedBarcodeScannerAdapter`, capabilities read from the optional methods.
+  - **Engine** (`engine.ts`, one per adapter): a stack of holders, one per mounted and enabled
+    `useBarcodeScanner`. The scanner is open while the stack is not empty and the app is in the
+    foreground; the reads go to the top holder; its symbologies are the request, reapplied
+    with `open()` while open (no release between screens). One open or close at a time, on a
+    promise chain; a session counter drops what an earlier claim reports after it closed. An
+    adapter's `onClose` (another app took the scanner) reads `closed` with `unavailable`, and
+    `retry()` opens again; the next foreground or holder change does too.
+  - **Hook** (`useBarcodeScanner`): `onScan` (the latest one, without reopening), `enabled`,
+    `symbologies` (`null`: the device's own configuration), `repeatInterval` (1000 ms),
+    `dropWhileBusy` (true); it reports `state`, `isActive`, `error`, `isTriggerPressed`,
+    `isBusy`, and gives `softwareTrigger`, `getScannerInfo` and `retry`. A symbology the
+    scanner cannot decode is a `RangeError`, only where the adapter is supported (elsewhere the
+    same list goes to the camera). Unsupported and closed while a static page prerenders.
+- **Shared with `/camera`** (`core/barcodes.ts`, C10): `BarcodeType` (moved from `/camera`,
+  which re-exports it), `BarcodeScan` (`data`, `type`, `rawType`: what a camera read and a
+  hardware read share, so one handler serves both), `aimToBarcodeType` (ISO/IEC 15424: `]Q`,
+  `]C`, `]E0` / `]E4`, `]d`, `]A`, `]G`, `]F`, `]I`, `]L`, `]z`) and `createScanGate` (the
+  repeat window and the busy guard). `CameraView` now uses the gate: a handler that returns a
+  promise makes it drop codes until the promise settles.
+- **Wiring:** `DeviceAdapters.barcodeScanner`, the `./scanner` export, its node10 folder (`main`,
+  `types`, `source` only) and `files`; `DEVICE_CAPABILITIES.scanner` with no module; ESLint
+  keeps `@its/scanner-*` out of the device package and gives `packages/scanner-*` the vendor
+  rules RFID's have (one rule built for both contracts); the playground maps the subpath.
+- **Testing:** `createMockBarcodeScannerAdapter()` (decodes only while open and only the
+  symbologies turned on; trigger, take-away, failed and held opens) and
+  `describeBarcodeScannerAdapterContract()` (declaration, one delivery per decode with the text
+  intact, non-ASCII included, a request reapplied while open, close semantics, reopening, the
+  software trigger needing a claim, the hardware trigger, a scanner taken away, the identity).
+  `scanner-contract.test.ts` runs it on the mock with every part and with none, and checks it
+  catches five broken adapters (a version imported, a suffix and a missing AIM id, a listener
+  added on each open, reads after close, a software trigger that works while closed).
+- **Changeset:** `@its/glowup-device` minor.
 
 ## Open for later
 

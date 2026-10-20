@@ -46,6 +46,7 @@ describe("package exports", () => {
       "background-location",
       "bluetooth",
       "rfid",
+      "scanner",
       "testing",
     ]);
   });

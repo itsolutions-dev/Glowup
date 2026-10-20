@@ -8,9 +8,10 @@ Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` 
 ## State
 
 - **`BarChart`: grouped or stacked bars, vertical or horizontal, a target line, a tooltip on tap or hover, `onSelect`, loading and empty states.** Checked
-  in unit tests; not yet on a phone or in the CI's native check.
-- The rest of the first wave (`LineChart`, `AreaChart`, `DonutChart`, `StackedBar`, `Sparkline`, `ChartLegend`, `Chart`) is not
-  written: see the steps in the plan.
+  in unit tests and in Chrome; not yet on a phone or in the CI's native check.
+- **`LineChart` and `AreaChart`: one or more lines over categories in order, straight or smooth, a gap where a value is missing, a dot per
+  point, a guide and a tooltip on tap or hover, a target line.** Same checks as the bars.
+- The rest of the first wave (`DonutChart`, `StackedBar`, `Sparkline`, `ChartLegend`, `Chart`) is not written: see the steps in the plan.
 
 ## Use
 
@@ -59,3 +60,25 @@ import { BarChart } from "@its/glowup-charts";
   there are more than 12 categories). Picking a category by screen reader is not possible yet; the plan has a table mode for it.
 - **No animation** and no zoom or pan.
 - The category axis shows every nth label when they do not fit side by side; the width of a label is estimated, not measured.
+
+## Lines and areas
+
+```tsx
+import { AreaChart, LineChart } from "@its/glowup-charts";
+
+<LineChart data={data} series={series} curve="monotone" target={150} />
+<AreaChart data={data} series={series} />
+```
+
+Same `data`, `series`, `colors`, `locale`, `formatValue`, `loading`, `onSelect` and `title` as `BarChart`, plus:
+
+| Prop       | Meaning                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------- |
+| `curve`    | `"linear"` (default), `"monotone"`, `"natural"` or `"step"`.                                      |
+| `area`     | Fill under each line (`AreaChart` is `LineChart` with it set).                                    |
+| `zero`     | Keep 0 on the value axis, default true; a line in a narrow band reads better with `zero={false}`. |
+| `showDots` | A dot on every point; default up to 24 categories (beyond that only the active one has a dot).    |
+| `target`   | A dashed reference line at this value.                                                            |
+
+The x axis is the order of the points, evenly spaced, with one `label` per point: it is not a time scale (the CRM's own line charts
+work this way). A missing value leaves a gap in the line. Areas of several series overlap, they do not pile up.

@@ -43,4 +43,22 @@ describe("the charts page", () => {
       "Loading",
     );
   });
+
+  it("switches to lines and to areas", async () => {
+    await open();
+    await fireEvent.press(screen.getByText("lines"));
+    // the chart is a new one: it measures itself again
+    await fireEvent(screen.getByTestId("demo-bars"), "layout", {
+      nativeEvent: { layout: { width: 600, height: 240, x: 0, y: 0 } },
+    });
+    expect(bars()).toHaveLength(0);
+    expect(screen.getByTestId("demo-bars-line-answered")).toBeTruthy();
+    expect(screen.queryByTestId("demo-bars-area-answered")).toBeNull();
+
+    await fireEvent.press(screen.getByText("area"));
+    await fireEvent(screen.getByTestId("demo-bars"), "layout", {
+      nativeEvent: { layout: { width: 600, height: 240, x: 0, y: 0 } },
+    });
+    expect(screen.getByTestId("demo-bars-area-answered")).toBeTruthy();
+  });
 });

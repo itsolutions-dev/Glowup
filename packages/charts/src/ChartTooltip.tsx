@@ -12,6 +12,7 @@ type ChartTooltipProps = {
   containerWidth: number;
   title: string;
   rows: TooltipRow[];
+  testID?: string;
 };
 
 /** A small card above the point it explains. It never takes touches: the chart under it keeps them. */
@@ -21,12 +22,13 @@ export const ChartTooltip = ({
   containerWidth,
   title,
   rows,
+  testID,
 }: ChartTooltipProps) => {
   const { theme } = useTheme();
   const [size, setSize] = useState({ width: 0, height: 0 });
-  // Until it is measured it sits at the corner: next to the right edge the box
-  // would be squeezed to the space left there and measured too narrow, its text
-  // wrapped.
+  // The box stays at the corner and is moved with a transform: a `left` next to
+  // the right edge would leave it only the space left there, and its text would
+  // wrap. A transform does not change the room the layout gives it.
   const measured = size.width > 0;
   const left = measured
     ? Math.min(
@@ -37,6 +39,7 @@ export const ChartTooltip = ({
   const top = measured ? Math.max(0, y - size.height - 8) : 0;
   return (
     <View
+      testID={testID}
       pointerEvents="none"
       onLayout={(e) =>
         setSize({
@@ -47,8 +50,7 @@ export const ChartTooltip = ({
       style={[
         styles.card,
         {
-          left,
-          top,
+          transform: [{ translateX: left }, { translateY: top }],
           // Hidden until measured, so it does not flash in the wrong place.
           opacity: size.width ? 1 : 0,
           backgroundColor: theme.colors.inverseSurface,
@@ -82,7 +84,13 @@ export const ChartTooltip = ({
 };
 
 const styles = StyleSheet.create({
-  card: { position: "absolute", paddingHorizontal: 10, paddingVertical: 6 },
+  card: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
   row: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
   swatch: { width: 8, height: 8, borderRadius: 4 },
 });

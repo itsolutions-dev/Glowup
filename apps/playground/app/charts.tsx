@@ -9,7 +9,12 @@ import {
   VStack,
   useTheme,
 } from "@its/glowup-ui";
-import { BarChart, type ChartDatum } from "@its/glowup-charts";
+import {
+  AreaChart,
+  BarChart,
+  LineChart,
+  type ChartDatum,
+} from "@its/glowup-charts";
 
 import { CodeBlock } from "../site/CodeBlock";
 import { Page, Section } from "../site/Page";
@@ -82,22 +87,50 @@ const Option = ({
 
 const Demo = () => {
   const { theme } = useTheme();
+  const [kind, setKind] = useState<"bars" | "lines" | "area">("bars");
   const [stacked, setStacked] = useState(false);
   const [horizontal, setHorizontal] = useState(false);
+  const [smooth, setSmooth] = useState(false);
   const [target, setTarget] = useState(true);
   const [few, setFew] = useState(false);
   const [state, setState] = useState<"data" | "loading" | "empty">("data");
   const [picked, setPicked] = useState<number | null>(null);
+  const common = {
+    title: "Calls by month",
+    data: state === "empty" ? [] : few ? CALLS.slice(0, 3) : CALLS,
+    series: SERIES,
+    loading: state === "loading",
+    target: target ? 150 : undefined,
+    onSelect: setPicked,
+    testID: "demo-bars",
+  };
 
   return (
     <VStack spacing={16}>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        {(["bars", "lines", "area"] as const).map((k) => (
+          <Button
+            key={k}
+            mode={kind === k ? "filled" : "outlined"}
+            onPress={() => setKind(k)}
+          >
+            {k}
+          </Button>
+        ))}
+      </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
-        <Option label="Stacked" value={stacked} onChange={setStacked} />
-        <Option
-          label="Horizontal"
-          value={horizontal}
-          onChange={setHorizontal}
-        />
+        {kind === "bars" ? (
+          <>
+            <Option label="Stacked" value={stacked} onChange={setStacked} />
+            <Option
+              label="Horizontal"
+              value={horizontal}
+              onChange={setHorizontal}
+            />
+          </>
+        ) : (
+          <Option label="Smooth" value={smooth} onChange={setSmooth} />
+        )}
         <Option label="Target line" value={target} onChange={setTarget} />
         <Option label="Three months only" value={few} onChange={setFew} />
       </View>
@@ -119,18 +152,18 @@ const Demo = () => {
           backgroundColor: theme.colors.surfaceContainerLow,
         }}
       >
-        <BarChart
-          title="Calls by month"
-          data={state === "empty" ? [] : few ? CALLS.slice(0, 3) : CALLS}
-          series={SERIES}
-          loading={state === "loading"}
-          stacked={stacked}
-          horizontal={horizontal}
-          height={horizontal && !few ? 400 : 240}
-          target={target ? 150 : undefined}
-          onSelect={setPicked}
-          testID="demo-bars"
-        />
+        {kind === "bars" ? (
+          <BarChart
+            {...common}
+            stacked={stacked}
+            horizontal={horizontal}
+            height={horizontal && !few ? 400 : 240}
+          />
+        ) : kind === "lines" ? (
+          <LineChart {...common} curve={smooth ? "monotone" : "linear"} />
+        ) : (
+          <AreaChart {...common} curve={smooth ? "monotone" : "linear"} />
+        )}
       </Paper>
       <Typography variant="bodyMedium">
         {picked === null
@@ -146,7 +179,7 @@ export default function ChartsPage() {
     <Page
       eyebrow="Companion package"
       title="Charts"
-      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Only the bar chart exists so far. This page is not published yet."
+      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Bars, lines and areas exist so far. This page is not published yet."
       banner={
         <Banner
           visible
@@ -158,7 +191,7 @@ export default function ChartsPage() {
     >
       <Section
         title="Live"
-        description="Bars grouped or stacked, vertical or horizontal, a target line, a tooltip on tap or hover, and the loading and empty states."
+        description="Bars (grouped or stacked, vertical or horizontal), lines and areas (straight or smooth), a target line, a tooltip on tap or hover, and the loading and empty states."
       >
         <Demo />
       </Section>

@@ -97,7 +97,10 @@ const Input = ({
   const dense = useDensity(density) === "dense";
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);
+  const styles = useMemo(
+    () => makeStyles(theme, dense, !!multiline),
+    [theme, dense, multiline],
+  );
   const activeColor = error ? theme.colors.error : theme.colors.primary;
 
   const handleTextChange = useCallback(
@@ -268,7 +271,7 @@ const Input = ({
 
 export default Input;
 
-const makeStyles = (theme: Theme, dense: boolean) =>
+const makeStyles = (theme: Theme, dense: boolean, multiline: boolean) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: dense ? 12 : 20,
@@ -298,7 +301,9 @@ const makeStyles = (theme: Theme, dense: boolean) =>
     },
     textInputWrapper: {
       flex: 1,
-      paddingVertical: Platform.OS === "ios" && !dense ? 8 : 0, // iOS needs a bit of padding for multiline
+      // iOS needs a bit of padding for multiline. A single line has none: it
+      // made the field 66 high on iOS instead of the 56 `minHeight` gives.
+      paddingVertical: Platform.OS === "ios" && !dense && multiline ? 8 : 0,
     },
     iconLeft: {
       marginRight: 12,

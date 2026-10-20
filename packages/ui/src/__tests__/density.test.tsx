@@ -32,6 +32,17 @@ describe("density", () => {
     expect(await json(select())).toContain('"minHeight":52');
   });
 
+  it("does not give Select a percentage height, which native layout cannot resolve", async () => {
+    const out = await json(
+      <Select
+        options={[{ id: "1", label: "Uno", value: 1 }]}
+        value={null}
+        onSelect={() => {}}
+      />,
+    );
+    expect(out).not.toContain('"height":"100%"');
+  });
+
   it("tightens Button padding when dense", async () => {
     expect(await json(<Button density="dense">Ok</Button>)).toContain(
       '"paddingVertical":10',

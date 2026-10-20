@@ -12,5 +12,12 @@
     "paths": {}
   },
   "include": ["src"],
-  "exclude": ["**/__tests__", "**/*.test.ts", "**/*.test.tsx"]
+  "exclude": [
+    "**/__tests__",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    // The d3 copy is JavaScript: its types are vendor/d3/index.d.ts, which no
+    // public declaration names, and tsc cannot emit declarations for it.
+    "src/vendor/**/*.js"
+  ]
 }

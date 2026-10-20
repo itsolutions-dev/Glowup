@@ -3,7 +3,7 @@
 Plan and decisions: `docs/charts-package-plan.md` (it changes D7 of `docs/solaris-native.md`). Read it before adding anything.
 
 - **No third-party dependency in `package.json`.** Charts are drawn with `react-native-svg` (a peer, already one of the
-  library's). Scales and shapes are **d3 source copied into `src/vendor/d3/`** (ISC licence, header and author kept in every file,
+  library's). Scales and shapes are **d3 source copied into `src/vendor/d3/`** (ISC licence: each package keeps its `LICENSE` file next to its code,
   versions and wanted differences in `docs/charts-upstream.md`). Do not add `d3-*`, `victory`, `recharts`, Skia or `visx`
   to the manifest. Update the copy by hand and rarely, and write the change in `docs/charts-upstream.md`.
 - **`src/vendor` is JavaScript as it came.** It is excluded from Prettier and ESLint; edit it only for a difference listed in

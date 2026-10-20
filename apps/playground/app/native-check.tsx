@@ -11,7 +11,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
+  Keyboard,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -235,165 +237,191 @@ export default function NativeCheck() {
   }, [checks]);
 
   return (
-    <ScrollView
-      // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
-      // as it opens: the Android run showed the hide request 45 ms after the show.
-      keyboardShouldPersistTaps="handled"
-      style={{ flex: 1, backgroundColor: theme.colors.surface }}
-      contentContainerStyle={{ padding: 16, gap: 12 }}
-    >
-      <Text
-        style={[theme.typography.titleLarge, { color: theme.colors.onSurface }]}
+    <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
+      {/* Outside the scroll view, so it stays reachable with the keyboard up: the Android script
+          taps it after typing (Enter does not close the keyboard of a number field). */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Hide keyboard"
+        onPress={Keyboard.dismiss}
+        style={{ paddingHorizontal: 16, paddingVertical: 6 }}
       >
-        Native check
-      </Text>
-
-      <Text style={{ color: theme.colors.onSurfaceVariant }}>Measurements</Text>
-      {checks.map(([name, ok, detail]) => (
+        <Text style={{ color: theme.colors.primary }}>Hide keyboard</Text>
+      </Pressable>
+      <ScrollView
+        // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
+        // as it opens: the Android run showed the hide request 45 ms after the show.
+        keyboardShouldPersistTaps="handled"
+        style={{ flex: 1, backgroundColor: theme.colors.surface }}
+        contentContainerStyle={{ padding: 16, gap: 12 }}
+      >
         <Text
-          key={name}
-          style={{
-            color:
-              ok == null
-                ? theme.colors.onSurfaceVariant
-                : ok
-                  ? theme.colors.success
-                  : theme.colors.error,
-          }}
+          style={[
+            theme.typography.titleLarge,
+            { color: theme.colors.onSurface },
+          ]}
         >
-          {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
+          Native check
         </Text>
-      ))}
 
-      {pdf.image ? (
-        <Image
-          source={{ uri: pdf.image }}
-          accessibilityLabel="Sample PDF page"
-          style={{ width: 90, height: 127, backgroundColor: "#fff" }}
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          Measurements
+        </Text>
+        {checks.map(([name, ok, detail]) => (
+          <Text
+            key={name}
+            style={{
+              color:
+                ok == null
+                  ? theme.colors.onSurfaceVariant
+                  : ok
+                    ? theme.colors.success
+                    : theme.colors.error,
+            }}
+          >
+            {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
+          </Text>
+        ))}
+
+        {pdf.image ? (
+          <Image
+            source={{ uri: pdf.image }}
+            accessibilityLabel="Sample PDF page"
+            style={{ width: 90, height: 127, backgroundColor: "#fff" }}
+          />
+        ) : null}
+
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          Interaction
+        </Text>
+
+        <Input
+          label="Amount"
+          type="number"
+          decimalSeparator=","
+          precision={2}
+          value={amount}
+          onChangeText={setAmount}
         />
-      ) : null}
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`reported=${amount}`}</Text>
 
-      <Text style={{ color: theme.colors.onSurfaceVariant }}>Interaction</Text>
-
-      <Input
-        label="Amount"
-        type="number"
-        decimalSeparator=","
-        precision={2}
-        value={amount}
-        onChangeText={setAmount}
-      />
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`reported=${amount}`}</Text>
-
-      {/* A control for the Amount field: the library's Input is not involved, so if this one takes
+        {/* A control for the Amount field: the library's Input is not involved, so if this one takes
           keys and Amount does not, the fault is in the Input and not in the emulator. */}
-      <TextInput
-        accessibilityLabel="Plain field"
-        keyboardType="decimal-pad"
-        value={plain}
-        onChangeText={setPlain}
-        style={{
-          borderWidth: 1,
-          borderColor: theme.colors.outline,
-          borderRadius: 4,
-          padding: 8,
-          color: theme.colors.onSurface,
-        }}
-      />
-      <Text style={{ color: theme.colors.onSurface }}>{`plain=${plain}`}</Text>
+        <TextInput
+          accessibilityLabel="Plain field"
+          keyboardType="decimal-pad"
+          value={plain}
+          onChangeText={setPlain}
+          style={{
+            borderWidth: 1,
+            borderColor: theme.colors.outline,
+            borderRadius: 4,
+            padding: 8,
+            color: theme.colors.onSurface,
+          }}
+        />
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`plain=${plain}`}</Text>
 
-      {/* The library's Input with nothing special set: tells a fault of every Input from one of the number type. */}
-      <Input label="Name" value={name} onChangeText={setName} />
-      <Text style={{ color: theme.colors.onSurface }}>{`name=${name}`}</Text>
+        {/* The library's Input with nothing special set: tells a fault of every Input from one of the number type. */}
+        <Input label="Name" value={name} onChangeText={setName} />
+        <Text style={{ color: theme.colors.onSurface }}>{`name=${name}`}</Text>
 
-      <View style={{ flexDirection: "row" }}>
-        <Button
-          mode="outlined"
-          iconName="filter-outline"
-          badge={filters}
-          onPress={() => setFilters((n) => n + 1)}
-        >
-          Filters
-        </Button>
-      </View>
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`badge=${filters}`}</Text>
+        <View style={{ flexDirection: "row" }}>
+          <Button
+            mode="outlined"
+            iconName="filter-outline"
+            badge={filters}
+            onPress={() => setFilters((n) => n + 1)}
+          >
+            Filters
+          </Button>
+        </View>
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`badge=${filters}`}</Text>
 
-      <Tabs
-        tabs={[
-          { label: "Overview", key: "overview" },
-          { label: "Billing", key: "billing" },
-          { label: "Audit", key: "audit", disabled: true },
-        ]}
-        activeKey={tab}
-        onChange={(_, key) => setTab(key ?? "")}
-      />
-      <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
+        <Tabs
+          tabs={[
+            { label: "Overview", key: "overview" },
+            { label: "Billing", key: "billing" },
+            { label: "Audit", key: "audit", disabled: true },
+          ]}
+          activeKey={tab}
+          onChange={(_, key) => setTab(key ?? "")}
+        />
+        <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
 
-      {/* A row, so the drawer stretches to this height: its body is `flex: 1`, and in a column
+        {/* A row, so the drawer stretches to this height: its body is `flex: 1`, and in a column
           of auto height it collapses to nothing on iOS and Android (not on the web). */}
-      <View style={{ height: 280, flexDirection: "row" }}>
-        <NavigationDrawer width={280}>
-          <DrawerItem label="Reports" icon="chart-box-outline">
-            <DrawerItem label="Sales" onPress={noop} />
-          </DrawerItem>
-          {/* Open from the start, so it never animates: if "Old" shows and "Sales" does not,
+        <View style={{ height: 280, flexDirection: "row" }}>
+          <NavigationDrawer width={280}>
+            <DrawerItem label="Reports" icon="chart-box-outline">
+              <DrawerItem label="Sales" onPress={noop} />
+            </DrawerItem>
+            {/* Open from the start, so it never animates: if "Old" shows and "Sales" does not,
               it is the opening animation that fails, not the layout. */}
-          <DrawerItem label="Archive" icon="archive-outline" defaultExpanded>
-            <DrawerItem label="Old" onPress={noop} />
-          </DrawerItem>
-        </NavigationDrawer>
-      </View>
+            <DrawerItem label="Archive" icon="archive-outline" defaultExpanded>
+              <DrawerItem label="Old" onPress={noop} />
+            </DrawerItem>
+          </NavigationDrawer>
+        </View>
 
-      <View style={{ flexDirection: "row" }}>
-        <Button mode="tonal" onPress={() => setSheet(true)}>
-          Open sheet
-        </Button>
-      </View>
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`sheet=${sheet ? "open" : "closed"}`}</Text>
-      <BottomSheet
-        visible={sheet}
-        onDismiss={() => setSheet(false)}
-        title="Filters"
-        showCloseButton
-        actions={<Button onPress={() => setSheet(false)}>Apply</Button>}
-      >
-        <Text style={{ color: theme.colors.onSurface }}>Sheet content</Text>
-      </BottomSheet>
+        <View style={{ flexDirection: "row" }}>
+          <Button mode="tonal" onPress={() => setSheet(true)}>
+            Open sheet
+          </Button>
+        </View>
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`sheet=${sheet ? "open" : "closed"}`}</Text>
+        <BottomSheet
+          visible={sheet}
+          onDismiss={() => setSheet(false)}
+          title="Filters"
+          showCloseButton
+          actions={<Button onPress={() => setSheet(false)}>Apply</Button>}
+        >
+          <Text style={{ color: theme.colors.onSurface }}>Sheet content</Text>
+        </BottomSheet>
 
-      {/* Laid out only to be measured. */}
-      <View style={{ width: 280 }}>
-        <Measured id="inputNormal" onSize={onSize}>
-          <Input label="Normal" value="" onChangeText={noop} />
-        </Measured>
-        <Measured id="inputDense" onSize={onSize}>
-          <Input label="Dense" density="dense" value="" onChangeText={noop} />
-        </Measured>
-        <Measured id="buttonNormal" onSize={onSize}>
-          <Button>Normal</Button>
-        </Measured>
-        <Measured id="buttonDense" onSize={onSize}>
-          <Button density="dense">Dense</Button>
-        </Measured>
-        <Measured id="selectNormal" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onSelect={noop} />
-        </Measured>
-        <Measured id="selectDense" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onSelect={noop} density="dense" />
-        </Measured>
-        <Measured id="badgeOff" onSize={onSize}>
-          <Button>Filters</Button>
-        </Measured>
-        <Measured id="badgeOn" onSize={onSize}>
-          <Button badge={3}>Filters</Button>
-        </Measured>
-      </View>
-    </ScrollView>
+        {/* Laid out only to be measured. */}
+        <View style={{ width: 280 }}>
+          <Measured id="inputNormal" onSize={onSize}>
+            <Input label="Normal" value="" onChangeText={noop} />
+          </Measured>
+          <Measured id="inputDense" onSize={onSize}>
+            <Input label="Dense" density="dense" value="" onChangeText={noop} />
+          </Measured>
+          <Measured id="buttonNormal" onSize={onSize}>
+            <Button>Normal</Button>
+          </Measured>
+          <Measured id="buttonDense" onSize={onSize}>
+            <Button density="dense">Dense</Button>
+          </Measured>
+          <Measured id="selectNormal" onSize={onSize}>
+            <Select options={OPTIONS} value={1} onSelect={noop} />
+          </Measured>
+          <Measured id="selectDense" onSize={onSize}>
+            <Select
+              options={OPTIONS}
+              value={1}
+              onSelect={noop}
+              density="dense"
+            />
+          </Measured>
+          <Measured id="badgeOff" onSize={onSize}>
+            <Button>Filters</Button>
+          </Measured>
+          <Measured id="badgeOn" onSize={onSize}>
+            <Button badge={3}>Filters</Button>
+          </Measured>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 

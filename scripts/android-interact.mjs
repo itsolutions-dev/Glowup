@@ -149,8 +149,9 @@ const keyCode = (char) =>
 /**
  * Taps the text field with this label, types with key events and checks what the screen then says.
  * No dump and no `dumpsys` between the tap and the keys (a dump can take the focus off the
- * field). Enter closes the keyboard (the field's action is "done"): Back would leave the screen
- * when there were none, and a keyboard left open covers the rest of the page.
+ * field). The "Hide keyboard" button of the screen closes the keyboard: Enter does not for a
+ * number field, Back would leave the screen when there were none, and a keyboard left open covers
+ * the rest of the page (and keeps the keys of the next step).
  */
 const typeInto = async (label, text, photoName, expectations) => {
   await scrollToTop();
@@ -165,8 +166,7 @@ const typeInto = async (label, text, photoName, expectations) => {
   }
   await sleep(700);
   photo(photoName);
-  adb("shell", "input", "keyevent", "66");
-  await sleep(700);
+  await tap("Hide keyboard");
   for (const [pattern, what] of expectations) await expectText(pattern, what);
 };
 

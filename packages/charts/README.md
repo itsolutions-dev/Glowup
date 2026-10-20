@@ -7,8 +7,8 @@ Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` 
 
 ## State
 
-- **`BarChart`: grouped or stacked bars, a target line, a tooltip on tap or hover, `onSelect`, loading and empty states.** Checked
-  in unit tests; not yet on a phone or in the CI's native check. Horizontal bars are still to do.
+- **`BarChart`: grouped or stacked bars, vertical or horizontal, a target line, a tooltip on tap or hover, `onSelect`, loading and empty states.** Checked
+  in unit tests; not yet on a phone or in the CI's native check.
 - The rest of the first wave (`LineChart`, `AreaChart`, `DonutChart`, `StackedBar`, `Sparkline`, `ChartLegend`, `Chart`) is not
   written: see the steps in the plan.
 
@@ -38,7 +38,8 @@ import { BarChart } from "@its/glowup-charts";
 | `series`                  | `{ key, label?, color? }` per series.                                                        |
 | `height`                  | Height in pixels, default 240. The width is the box the chart sits in.                       |
 | `stacked`                 | Pile the series up instead of side by side.                                                  |
-| `target`                  | A dashed horizontal reference line, labelled with its value.                                 |
+| `horizontal`              | One row per category, bars running left to right; long labels are cut with an ellipsis.      |
+| `target`                  | A dashed reference line, labelled with its value.                                            |
 | `colors`                  | One colour per series; a series' own `color` wins. Default: roles of the theme.              |
 | `title`                   | Starts the text a screen reader gets for the chart.                                          |
 | `locale`, `numberFormat`  | BCP 47 tag (default `en-US`) and `Intl.NumberFormat` options for every number shown.         |

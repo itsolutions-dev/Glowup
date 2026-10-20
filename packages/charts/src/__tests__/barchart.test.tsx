@@ -120,4 +120,40 @@ describe("BarChart", () => {
     await show({ data: [{ label: "x", a: 0 }], series: [{ key: "a" }] });
     expect(bars()).toHaveLength(0);
   });
+
+  it("lays horizontal bars out left to right, one row per category", async () => {
+    await show({ horizontal: true });
+    const jan = screen.getByTestId("c-bar-0-a").props;
+    const feb = screen.getByTestId("c-bar-1-a").props;
+    // same x origin, a length proportional to the value (10 vs 30), rows one below the other
+    expect(Number(feb.x)).toBe(Number(jan.x));
+    expect(Number(feb.width)).toBeCloseTo(3 * Number(jan.width));
+    expect(Number(feb.y)).toBeGreaterThan(Number(jan.y));
+    // two series share a row: South starts below North in the same category
+    expect(Number(screen.getByTestId("c-bar-0-b").props.y)).toBeGreaterThan(
+      Number(jan.y),
+    );
+  });
+
+  it("piles horizontal bars end to end when stacked", async () => {
+    await show({ horizontal: true, stacked: true });
+    const a = screen.getByTestId("c-bar-0-a").props;
+    const b = screen.getByTestId("c-bar-0-b").props;
+    expect(Number(b.x)).toBeCloseTo(Number(a.x) + Number(a.width));
+    expect(Number(b.y)).toBe(Number(a.y));
+  });
+
+  it("cuts long category labels in a horizontal chart and keeps the full title in the tooltip", async () => {
+    const long = "A very long category name that cannot fit";
+    await show({
+      horizontal: true,
+      data: [{ label: long, a: 5 }],
+      series: [{ key: "a" }],
+    });
+    const json = JSON.stringify(screen.toJSON());
+    expect(json).not.toContain(`"content":"${long}"`);
+    expect(json).toContain("…");
+    await fireEvent.press(screen.getByTestId("c-category-0"));
+    expect(screen.getByText(long)).toBeTruthy();
+  });
 });

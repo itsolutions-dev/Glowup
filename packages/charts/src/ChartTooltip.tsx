@@ -24,11 +24,17 @@ export const ChartTooltip = ({
 }: ChartTooltipProps) => {
   const { theme } = useTheme();
   const [size, setSize] = useState({ width: 0, height: 0 });
-  const left = Math.min(
-    Math.max(0, x - size.width / 2),
-    Math.max(0, containerWidth - size.width),
-  );
-  const top = Math.max(0, y - size.height - 8);
+  // Until it is measured it sits at the corner: next to the right edge the box
+  // would be squeezed to the space left there and measured too narrow, its text
+  // wrapped.
+  const measured = size.width > 0;
+  const left = measured
+    ? Math.min(
+        Math.max(0, x - size.width / 2),
+        Math.max(0, containerWidth - size.width),
+      )
+    : 0;
+  const top = measured ? Math.max(0, y - size.height - 8) : 0;
   return (
     <View
       pointerEvents="none"

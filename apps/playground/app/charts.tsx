@@ -31,6 +31,7 @@ const data = [
     { key: "missed", label: "Missed" },
   ]}
   stacked
+  horizontal
   target={150}
   locale="it-IT"
   onSelect={(index) => console.log(index)}
@@ -82,6 +83,7 @@ const Option = ({
 const Demo = () => {
   const { theme } = useTheme();
   const [stacked, setStacked] = useState(false);
+  const [horizontal, setHorizontal] = useState(false);
   const [target, setTarget] = useState(true);
   const [few, setFew] = useState(false);
   const [state, setState] = useState<"data" | "loading" | "empty">("data");
@@ -91,6 +93,11 @@ const Demo = () => {
     <VStack spacing={16}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
         <Option label="Stacked" value={stacked} onChange={setStacked} />
+        <Option
+          label="Horizontal"
+          value={horizontal}
+          onChange={setHorizontal}
+        />
         <Option label="Target line" value={target} onChange={setTarget} />
         <Option label="Three months only" value={few} onChange={setFew} />
       </View>
@@ -118,6 +125,8 @@ const Demo = () => {
           series={SERIES}
           loading={state === "loading"}
           stacked={stacked}
+          horizontal={horizontal}
+          height={horizontal && !few ? 400 : 240}
           target={target ? 150 : undefined}
           onSelect={setPicked}
           testID="demo-bars"
@@ -149,7 +158,7 @@ export default function ChartsPage() {
     >
       <Section
         title="Live"
-        description="Bars grouped or stacked, a target line, a tooltip on tap or hover, and the loading and empty states."
+        description="Bars grouped or stacked, vertical or horizontal, a target line, a tooltip on tap or hover, and the loading and empty states."
       >
         <Demo />
       </Section>

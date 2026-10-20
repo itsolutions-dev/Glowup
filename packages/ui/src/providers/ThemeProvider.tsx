@@ -339,9 +339,8 @@ export const getGlowStyles = (
         shadowOpacity: 0.25,
         shadowRadius: 8,
       },
-      android: {
-        elevation: 4,
-      },
+      // No `elevation` on Android: a style that appears at focus changed the field's container
+      // while the keyboard opened, and the native check saw the app hide the keyboard 4 ms later.
     }),
   };
 };

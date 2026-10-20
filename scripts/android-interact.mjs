@@ -18,6 +18,11 @@ const photo = (file) =>
   );
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// The emulator has a hardware keyboard, so Android can be told not to show the soft one. Tried
+// before: closing it with Enter, Back or a button in the page; the page moves up when it opens and
+// the button went out of view.
+adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", "0");
+
 const [screenW, screenH] = (
   adb("shell", "wm", "size").match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
 )
@@ -148,10 +153,9 @@ const keyCode = (char) =>
 
 /**
  * Taps the text field with this label, types with key events and checks what the screen then says.
- * No dump and no `dumpsys` between the tap and the keys (a dump can take the focus off the
- * field). The "Hide keyboard" button of the screen closes the keyboard: Enter does not for a
- * number field, Back would leave the screen when there were none, and a keyboard left open covers
- * the rest of the page (and keeps the keys of the next step).
+ * No dump between the tap and the keys (a dump can take the focus off the field). The soft
+ * keyboard is switched off for the whole run (see below), so nothing covers the page and there is
+ * nothing to close: the keys are hardware key events and reach the focused field all the same.
  */
 const typeInto = async (label, text, photoName, expectations) => {
   await scrollToTop();
@@ -166,7 +170,6 @@ const typeInto = async (label, text, photoName, expectations) => {
   }
   await sleep(700);
   photo(photoName);
-  await tap("Hide keyboard");
   for (const [pattern, what] of expectations) await expectText(pattern, what);
 };
 

@@ -11,9 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
-  Keyboard,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   TextInput,
@@ -240,16 +238,6 @@ export default function NativeCheck() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
-      {/* Outside the scroll view, so it stays reachable with the keyboard up: the Android script
-          taps it after typing (Enter does not close the keyboard of a number field). */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Hide keyboard"
-        onPress={Keyboard.dismiss}
-        style={{ paddingHorizontal: 16, paddingVertical: 6 }}
-      >
-        <Text style={{ color: theme.colors.primary }}>Hide keyboard</Text>
-      </Pressable>
       <ScrollView
         // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
         // as it opens: the Android run showed the hide request 45 ms after the show.

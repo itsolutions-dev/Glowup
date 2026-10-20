@@ -184,6 +184,13 @@ const steps = [
       typeInto("Name", "ab", "android-name.png", [[/^name=ab$/, "name value"]]),
   ],
   [
+    "the search field the PDF viewer uses takes keys",
+    () =>
+      typeInto("Search the PDF", "hello", "android-search.png", [
+        [/^query=hello$/, "query value"],
+      ]),
+  ],
+  [
     "a decimal comma is typed and reported as a plain number",
     () =>
       typeInto("Amount", "12,50", "android-typed.png", [

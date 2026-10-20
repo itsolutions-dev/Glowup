@@ -25,6 +25,7 @@ import {
   Button,
   DrawerItem,
   Input,
+  SearchBar,
   NavigationDrawer,
   Select,
   Tabs,
@@ -200,6 +201,7 @@ export default function NativeCheck() {
   const [amount, setAmount] = useState("");
   const [plain, setPlain] = useState("");
   const [name, setName] = useState("");
+  const [query, setQuery] = useState("");
   const [filters, setFilters] = useState(0);
   const [tab, setTab] = useState("overview");
   const [sheet, setSheet] = useState(false);
@@ -329,6 +331,16 @@ export default function NativeCheck() {
         {/* The library's Input with nothing special set: tells a fault of every Input from one of the number type. */}
         <Input label="Name" value={name} onChangeText={setName} />
         <Text style={{ color: theme.colors.onSurface }}>{`name=${name}`}</Text>
+
+        {/* The field of the PDF viewer's search: the same focus ring as Input. */}
+        <SearchBar
+          placeholder="Search the PDF"
+          value={query}
+          onChangeText={setQuery}
+        />
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`query=${query}`}</Text>
 
         <View style={{ flexDirection: "row" }}>
           <Button

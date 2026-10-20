@@ -93,6 +93,8 @@ module.exports = defineConfig([
     ignores: [
       "**/dist/**",
       "**/lib/**",
+      // Copied d3 source, kept as it came (docs/charts-package-plan.md §2).
+      "packages/charts/src/vendor/**",
       "**/.expo/**",
       "**/web-build/**",
       "**/coverage/**",

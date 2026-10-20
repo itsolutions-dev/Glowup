@@ -1,5 +1,12 @@
 # @its/rfid-honeywell
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [49f39dc]
+  - @its/glowup-device@0.12.0
+
 ## 0.1.0
 
 ### Minor Changes

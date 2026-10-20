@@ -55,7 +55,7 @@
     "rfd40"
   ],
   "peerDependencies": {
-    "@its/glowup-device": ">=0.11.0 <0.12.0",
+    "@its/glowup-device": ">=0.12.0 <0.13.0",
     "expo": ">=57",
     "react": ">=19",
     "react-native": ">=0.86"

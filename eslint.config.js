@@ -178,6 +178,15 @@ module.exports = defineConfig([
               message:
                 "Import a vendor package through its name only (@its/rfid-honeywell).",
             },
+            {
+              group: [
+                "@its/scanner-*/*",
+                "**/packages/scanner-*/**",
+                "packages/scanner-*/**",
+              ],
+              message:
+                "Import a vendor package through its name only (@its/scanner-honeywell).",
+            },
           ],
         },
       ],

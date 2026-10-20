@@ -1,14 +1,34 @@
-import { render, screen } from "@testing-library/react-native";
+import {
+  createHoneywellBarcodeScannerAdapter,
+  HONEYWELL_SCANNER_NATIVE_REVISION,
+} from "@its/scanner-honeywell";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import App from "../App";
-import config, { excludeFromAutolinking, vendorOf } from "../app.config";
+import config, {
+  excludeFromAutolinking,
+  VENDORS,
+  vendorOf,
+} from "../app.config";
 import {
   batchRate,
   emptyMeasurements,
   record,
   toReport,
 } from "../measurements";
-import { zebraVendor } from "../vendors";
+import { FIRST_SCOPE } from "../ScannerScreen";
+import {
+  emptyScannerMeasurements,
+  recordScanner,
+  toScannerReport,
+} from "../scannerMeasurements";
+import { honeywellVendor, zebraVendor } from "../vendors";
 
 const at = (ms: number) => 1_700_000_000_000 + ms;
 
@@ -159,6 +179,133 @@ describe("measurements", () => {
   });
 });
 
+describe("scanner measurements", () => {
+  it("groups the reads by code id and AIM id, with their charsets and a sample", () => {
+    let m = emptyScannerMeasurements(at(0));
+    const read = (
+      codeId: string,
+      aimId: string,
+      data: string,
+      charset: string,
+    ) =>
+      (m = recordScanner(m, {
+        type: "read",
+        at: at(1),
+        thread: "binder:1234_2",
+        codeId,
+        aimId,
+        data,
+        charset,
+        timestamp: "2026-10-20 10:15:30.250",
+      }));
+    read("s", "]Q1", "Città\n", "UTF-8");
+    read("s", "]Q1", "B", "ISO-8859-1");
+    read("j", "]C0", "PALLET-7", "UTF-8");
+    m = recordScanner(m, { type: "noRead", at: at(2), thread: "t" });
+    expect(m.reads).toBe(3);
+    expect(m.noReads).toBe(1);
+    expect(m.symbologies["s ]Q1"]).toEqual({
+      codeId: "s",
+      aimId: "]Q1",
+      charsets: ["UTF-8", "ISO-8859-1"],
+      count: 2,
+      timestamp: "2026-10-20 10:15:30.250",
+      sample: '"B"',
+    });
+    expect(m.symbologies["j ]C0"]!.count).toBe(1);
+    expect(m.threads).toEqual(["binder:1234_2", "t"]);
+  });
+
+  it("counts the trigger, also while not claimed, and keeps the claim's timeline", () => {
+    let m = emptyScannerMeasurements(at(0));
+    for (const [pressed, claimed] of [
+      [true, true],
+      [false, true],
+      [true, false],
+    ]) {
+      m = recordScanner(m, {
+        type: "trigger",
+        at: at(1),
+        thread: "t",
+        pressed,
+        claimed,
+      });
+    }
+    m = recordScanner(m, {
+      type: "applied",
+      at: at(2),
+      thread: "t",
+      set: 40,
+      skipped: ["DEC_DIGIMARC_ENABLED"],
+      restored: [],
+    });
+    m = recordScanner(m, { type: "released", at: at(3), thread: "t" });
+    expect(m.triggers).toEqual({ pressed: 2, released: 1, whileReleased: 1 });
+    expect(m.timeline.map((entry) => entry.type)).toEqual([
+      "applied",
+      "released",
+    ]);
+    expect(m.timeline[0]!.detail).toContain("DEC_DIGIMARC_ENABLED");
+    expect(toScannerReport(m, { host: "CT40" })).toMatchObject({
+      kind: "barcode-scanner",
+      context: { host: "CT40" },
+    });
+  });
+});
+
+/** The Kotlin module's surface, enough for the screen: claims and reads. */
+function fakeScannerModule() {
+  const listeners = new Map<string, Set<(event: never) => void>>();
+  let claimed = false;
+  const opens: Record<string, unknown>[] = [];
+  return {
+    opens,
+    get claimed() {
+      return claimed;
+    },
+    decode(data: string) {
+      if (!claimed) return;
+      listeners.get("onRead")?.forEach((listener) =>
+        (listener as (event: unknown) => void)({
+          data,
+          codeId: "s",
+          aimId: "]Q1",
+          charset: "UTF-8",
+          timestamp: null,
+          receivedAt: Date.now(),
+        }),
+      );
+    },
+    module: {
+      getRevision: () => HONEYWELL_SCANNER_NATIVE_REVISION,
+      setDiagnostics() {},
+      async open(properties: Record<string, unknown>) {
+        opens.push(properties);
+        claimed = true;
+      },
+      async close() {
+        claimed = false;
+      },
+      async softwareTrigger() {},
+      async getScannerInfo() {
+        throw new Error("not in this fake");
+      },
+      async listDevices() {
+        return [];
+      },
+      async getAllProperties() {
+        return {};
+      },
+      addListener(event: string, listener: (event: never) => void) {
+        const set = listeners.get(event) ?? new Set();
+        set.add(listener);
+        listeners.set(event, set);
+        return { remove: () => set.delete(listener) };
+      },
+    },
+  };
+}
+
 describe("the screen", () => {
   it("renders without a Honeywell host or module, and says why the adapter is off", async () => {
     await render(<App />);
@@ -183,6 +330,52 @@ describe("the screen", () => {
   });
 });
 
+describe("the scanner screen", () => {
+  it("renders without a Honeywell host or module, and says why the adapter is off", async () => {
+    await render(<App initialScreen="scanner" />);
+    expect(screen.getByText("Barcode scanner diagnostics")).toBeTruthy();
+    expect(
+      screen.getByText(
+        /unsupported: (not a Honeywell host|the native module is missing)/,
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText("Keyboard wedge")).toBeTruthy();
+  });
+
+  it("holds the CT40's imager with the first scope and lists what reaches onScan", async () => {
+    const fake = fakeScannerModule();
+    const vendor = honeywellVendor();
+    vendor.scanner = {
+      ...vendor.scanner,
+      adapter: createHoneywellBarcodeScannerAdapter({
+        native: fake.module as never,
+        manufacturer: () => "Honeywell",
+      }),
+    };
+    await render(<App vendor={vendor} />);
+    await fireEvent.press(screen.getByText("Barcode scanner"));
+    await waitFor(() => expect(fake.claimed).toBe(true));
+    const enabled = Object.entries(fake.opens.at(-1)!)
+      .filter(([, value]) => value === true)
+      .map(([key]) => key)
+      .sort();
+    expect(enabled).toEqual([
+      "DEC_CODE128_ENABLED",
+      "DEC_DATAMATRIX_ENABLED",
+      "DEC_EAN13_ENABLED",
+      "DEC_GS1_128_ENABLED",
+      "DEC_QR_ENABLED",
+    ]);
+    expect(FIRST_SCOPE).toEqual(["qr", "code128", "ean13", "datamatrix"]);
+    await act(async () => fake.decode("LOT-42"));
+    expect(screen.getByText('"LOT-42"')).toBeTruthy();
+    expect(screen.getByText(/qr · AIM \]Q1 · code id s/)).toBeTruthy();
+    // Back to RFID: the scanner screen unmounts and the imager is released.
+    await fireEvent.press(screen.getByText("RFID"));
+    await waitFor(() => expect(fake.claimed).toBe(false));
+  });
+});
+
 describe("one vendor per build", () => {
   const SETTINGS = `extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
@@ -200,6 +393,26 @@ rootProject.name = 'HelloWorld'
       "@its/rfid-honeywell",
       expect.objectContaining({ aarPath: expect.any(String) }),
     ]);
+    expect(config.plugins?.[1]).toEqual([
+      "@its/scanner-honeywell",
+      { dataCollectionAarPath: expect.any(String) },
+    ]);
+  });
+
+  it("gives Honeywell's RFID and scanner plugins one Data Collection SDK, at one coordinate (C5)", () => {
+    const [[, rfid], [, scanner]] = VENDORS.honeywell.plugins;
+    expect(scanner.dataCollectionAarPath).toBe(rfid.dataCollectionAarPath);
+    const rfidSdk = jest
+      .requireActual("@its/rfid-honeywell/app.plugin.js")
+      .internal.SDKS.find(
+        (sdk: { option: string }) => sdk.option === "dataCollectionAarPath",
+      );
+    const scannerSdk = jest.requireActual(
+      "@its/scanner-honeywell/app.plugin.js",
+    ).internal.SDK;
+    for (const key of ["group", "artifact", "version"]) {
+      expect(scannerSdk[key]).toBe(rfidSdk[key]);
+    }
   });
 
   it("leaves the other vendors' modules out of autolinking, once", () => {

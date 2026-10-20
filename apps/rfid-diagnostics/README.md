@@ -3,7 +3,10 @@
 A development build that runs `@its/glowup-device/rfid` on one vendor package against a real
 reader, and records what the vendor's SDK does underneath. It is how a spike confirms what the
 code assumes: phase 35 for Honeywell (`@its/rfid-honeywell`), phase Z1 for Zebra
-(`@its/rfid-zebra`). Android only; not a product.
+(`@its/rfid-zebra`). Its **Barcode scanner** screen does the same for
+`@its/glowup-device/scanner` on the CT40's own imager (`@its/scanner-honeywell`, phase C2): the
+buttons at the top switch between the two, one at a time (no screen reads RFID and barcodes
+together). Android only; not a product.
 
 **One build per vendor.** `RFID_VENDOR` (`honeywell`, the default, or `zebra`) picks the
 vendor's config plugin and leaves the other vendor's native module out of autolinking: a vendor's
@@ -17,7 +20,8 @@ On a machine with Android Studio (the SDK and a JDK 17):
    - **Honeywell:** `honeywell_rfid_sdk_v1.1.0.aar` and `DataCollection.aar` (from the `app/libs`
      folder of Honeywell's RFID sample app) in `apps/rfid-diagnostics/honeywell/`, or set
      `HONEYWELL_RFID_AAR` and `HONEYWELL_DATACOLLECTION_AAR` to their paths. Honeywell hosts only
-     (the SDK's licence): the CT40.
+     (the SDK's licence): the CT40. The same `DataCollection.aar` drives the barcode scanner:
+     the Honeywell build links both packages.
    - **Zebra:** `rfidapi3lib-2.0.5.297.aar` (at the root of `Zebra_RFIDAPI3_SDK_2.0.5.297.zip`)
      in `apps/rfid-diagnostics/zebra/`, or set `ZEBRA_RFID_AAR` to its path. Any Android 10+
      device, paired with an RFD40 Premium.
@@ -98,6 +102,39 @@ reader's NFC mark. The SDK reaches paired readers only. Keep "Diagnostics" on, t
    `connected` (Measurements: `linkLost`, each `reconnectAttempt`, `readerAppeared`).
 7. Walk out of Bluetooth range and back in, connected: same as 6.
 
+## Run the checks: barcode scanner (CT40)
+
+A Honeywell build (the default). Press **Barcode scanner** at the top; keep "Diagnostics" on.
+Have a QR code (one with accented or non-Latin text too), a Code 128 (and a GS1-128 label if
+there is one), an EAN-13, a Data Matrix, and one code of another kind (an EAN-8 or a PDF417).
+
+1. **Host:** "Scanner adapter" should read `supported`, and "State" `open · held by this screen`.
+   Note anything in red.
+2. **Reads:** scan each code with the side trigger. Each should appear once under "Reads
+   (onScan)" with its type, AIM id and code id; the other kind should **not** appear (the first
+   scope turns it off). Then turn "Only QR, Code 128, EAN-13, Data Matrix" off and scan it again:
+   it should appear now (the device's settings). Is the non-ASCII QR's text right?
+3. **Keyboard wedge:** tap the "Wedge output" field, then scan: with the scanner held, nothing
+   should be typed there. Turn "Hold the scanner" off and scan again: does the text appear in
+   the field (the wedge has the scanner back), and with a suffix (an Enter)?
+4. **Repeats and a slow confirmation:** scan the same code twice quickly: the second is dropped
+   within 1 s; turn "Drop the same code within 1 s" off and both arrive. Turn "Slow
+   confirmation" on and scan two codes within 1.5 s: the second is dropped ("busy").
+5. **Software trigger:** press and hold **Hold to scan** with a code in front of the scanner;
+   release.
+6. **IH40:** with the IH40 connected to the CT40 in barcode mode (the RFID screen not in use),
+   pull its trigger with a code in front of the CT40: does it read here? Measurements → Trigger
+   counts the trigger events the SDK reported. If the trigger is counted but nothing is read,
+   turn on "The app drives the trigger" and try again.
+7. **Background:** with the scanner held, go to the home screen, scan (the wedge should have
+   it: the code goes to whatever app is in front, or nowhere), then come back: State should be
+   `open` again and the next scan should arrive here. Measurements' timeline lists each
+   `released` / `claimed`.
+8. **Info, Devices, Properties:** press each. Properties shows the keys the package sets as the
+   service holds them (the symbologies, `DPR_*`, `TRIG_*`).
+9. After all this, open another app with a text field and scan: the device's own settings
+   should be untouched (the wedge works as before, with its suffix).
+
 ## Send back
 
 Tap **Share report** and send the JSON, with notes on what you saw or heard:
@@ -107,6 +144,7 @@ Tap **Share report** and send the JSON, with notes on what you saw or heard:
 - whether the trigger reached the app, and (Honeywell) whether it still drives the CT40's own
   scanner after the toggle is turned off;
 - whether the reader beeped during the search;
+- (scanner) for each step above what you saw, and whether the wedge typed into the field;
 - the distances the tags were at in the multiple scan (the report has the raw RSSI range).
 
 The report answers the plan's "not verified" lists: RSSI range and unit, EPC case, batch sizes,

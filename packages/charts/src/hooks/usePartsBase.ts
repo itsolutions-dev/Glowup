@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { createElement, useMemo, useState, type ReactElement } from "react";
 import { useTheme } from "@its/glowup-ui";
+import { ChartLegend } from "../ChartLegend";
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
 import { describeParts } from "../core/summary";
@@ -16,6 +17,8 @@ export type PartsCommonProps = {
   total?: number;
   /** One colour per part, in order; a part's own `color` wins. Default: roles of the theme. */
   colors?: string[];
+  /** A key under the chart; a tap on a part switches it off. */
+  legend?: boolean;
   title?: string;
   /** BCP 47 tag for the numbers. Default "en-US". */
   locale?: string;
@@ -29,24 +32,35 @@ export type PartsCommonProps = {
   testID?: string;
 };
 
-/** What the donut and the stacked bar have in common: colours, formatting, the screen-reader text and the active part. */
+/**
+ * What the donut and the stacked bar have in common: colours, formatting, the
+ * screen-reader text, the active part and the parts the legend has switched off.
+ * `visible` is `data` without those; `colorOf` keeps each part's colour by its
+ * place in the whole list, so switching one off does not recolour the others.
+ */
 export const usePartsBase = ({
   data,
   total,
   colors,
+  legend,
   title,
   locale,
   numberFormat,
   formatValue,
   onSelect,
+  testID,
 }: PartsCommonProps) => {
   const { theme } = useTheme();
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const partColors = resolveSeriesColors(
+  const [hidden, setHidden] = useState<string[]>([]);
+  const allColors = resolveSeriesColors(
     data.map((d) => ({ key: d.id, color: d.color })),
     colors ?? themeSeriesColors(theme.colors),
   );
+  const colorOf = (id: string) =>
+    allColors[data.findIndex((d) => d.id === id)] ?? "currentColor";
+  const visible = data.filter((d) => !hidden.includes(d.id));
   const format = useMemo(() => {
     const f = makeValueFormatter({ locale, options: numberFormat });
     return formatValue
@@ -64,7 +78,7 @@ export const usePartsBase = ({
   const nameOf = (d: PartDatum) => d.label ?? d.id;
   const summary = describeParts({
     title,
-    parts: data.map((d) => ({ name: nameOf(d), value: d.value })),
+    parts: visible.map((d) => ({ name: nameOf(d), value: d.value })),
     total,
     format,
     percent,
@@ -74,9 +88,24 @@ export const usePartsBase = ({
     setSelected(next);
     onSelect?.(next);
   };
+  const toggleOff = (id: string) =>
+    setHidden((h) => (h.includes(id) ? h.filter((k) => k !== id) : [...h, id]));
+  const legendNode: ReactElement | null = legend
+    ? createElement(ChartLegend, {
+        items: data.map((d) => ({
+          key: d.id,
+          label: nameOf(d),
+          color: colorOf(d.id),
+        })),
+        hidden,
+        onToggle: toggleOff,
+        testID: testID ? `${testID}-legend` : undefined,
+      })
+    : null;
   return {
     theme,
-    partColors,
+    visible,
+    colorOf,
     format,
     percent,
     nameOf,
@@ -84,5 +113,6 @@ export const usePartsBase = ({
     active: hovered ?? selected,
     setHovered,
     toggle,
+    legendNode,
   };
 };

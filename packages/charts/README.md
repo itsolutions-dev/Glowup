@@ -13,7 +13,9 @@ Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` 
   point, a guide and a tooltip on tap or hover, a target line.** Same checks as the bars.
 - **`DonutChart`, `PieChart`, `StackedBar` and `Sparkline`**: parts of a whole, and a trend with no axes. A gauge is a `DonutChart` with a
   `total`. Same checks as the bars.
-- The rest of the first wave (`ChartLegend`, `Chart`) is not written: see the steps in the plan.
+- **`ChartLegend`, the `legend` prop and `Chart`**: a key under the chart whose items switch a series (or a part) off, and one entry
+  point that picks the component by `type`.
+- Still to do: the dense mode for thousands of points, and the check on the iOS and Android simulators (steps 7 and 8 of the plan).
 
 ## Use
 
@@ -105,13 +107,13 @@ const outcomes = [
 `DonutChart`, `PieChart` and `StackedBar` take `data: { id, value, label?, color? }[]` and the `colors`, number, `title`, `loading` and
 `emptyLabel` props of the other charts. `onSelect` gets the **id** of the part, or `null`.
 
-| Prop                         | Meaning                                                                                                                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `total`                      | The whole the parts are shares of. More than their sum leaves the rest empty: 30 of 100 fills 30% of the ring.                                            |
-| `centerValue`, `centerLabel` | The text in the hole of a donut. While a part is active it shows that part's value and label instead. A pie has no hole: its active slice gets a tooltip. |
-| `thickness`                  | Width of the ring in pixels (donut).                                                                                                                      |
-| `showPercent`                | Each share written on its slice, where the slice is wide enough.                                                                                          |
-| `height`                     | In pixels; the ring is as big as fits. A stacked bar is 32 by default.                                                                                    |
+| Prop                         | Meaning                                                                                                                                                                                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `total`                      | The whole the parts are shares of. More than their sum leaves the rest empty: 30 of 100 fills 30% of the ring.                                                                                                                                                      |
+| `centerValue`, `centerLabel` | The text in the hole of a donut. While a part is active it shows that part's value and label instead. `centerValue` may be a function of the sum of the parts still shown, for a total that follows the legend. A pie has no hole: its active slice gets a tooltip. |
+| `thickness`                  | Width of the ring in pixels (donut).                                                                                                                                                                                                                                |
+| `showPercent`                | Each share written on its slice, where the slice is wide enough.                                                                                                                                                                                                    |
+| `height`                     | In pixels; the ring is as big as fits. A stacked bar is 32 by default.                                                                                                                                                                                              |
 
 A tap or a pointer over a slice makes it active; a tap on the hole does nothing. Zero and negative values are not drawn. A donut with a `total`
 and no part with a value is a gauge at zero: it keeps its ring and its centre.
@@ -121,3 +123,23 @@ the shape of a series.
 
 There is no separate gauge component: the library's `CircularProgress` has no centre text and no share, and a donut with a `total` does what a
 gauge needs. Colour it by threshold in the app (`colors`, or a part's `color`).
+
+## Legend and `Chart`
+
+```tsx
+import { Chart, ChartLegend } from "@its/glowup-charts";
+
+<BarChart data={data} series={series} legend />        {/* the chart keeps its own legend */}
+<Chart type="area" data={data} series={series} legend />  {/* the chart that fits, by type */}
+<ChartLegend items={[{ key: "a", label: "North", color: "#6750a4" }]} />  {/* a key on its own */}
+```
+
+`legend` puts a key under any chart. Tapping an item switches that series (or part) off: its marks go, the value axis is redrawn for the
+rest and the other series **keep their colours**. With everything off the chart shows its `emptyLabel` and the legend stays, so a series can
+be brought back. To a screen reader each item is a checkbox, checked while the series is shown.
+
+`ChartLegend` on its own takes `items` (`{ key, label, color }`), `hidden` (keys switched off) and `onToggle`; without `onToggle` it is only a
+key.
+
+`Chart` takes `type` (`"bar"`, `"line"`, `"area"`, `"donut"`, `"pie"` or `"stacked"`) and then the props of that component, so
+`<Chart type="bar" … />` is a `BarChart`. Use the component itself when the type never changes: it is the smaller import.

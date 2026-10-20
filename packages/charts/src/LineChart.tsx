@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
 import { ChartAxes, labelStride, labelWidth, type Plot } from "./ChartAxes";
 import { ChartFrame } from "./ChartFrame";
@@ -55,9 +55,10 @@ const LineChart = (props: LineChartProps) => {
     active,
     setHovered,
     toggle,
+    legendNode,
   } = useChartBase(props);
 
-  return (
+  const frame = (
     <ChartFrame
       height={height}
       loading={loading}
@@ -248,6 +249,14 @@ const LineChart = (props: LineChartProps) => {
         );
       }}
     </ChartFrame>
+  );
+  return legendNode ? (
+    <View>
+      {frame}
+      {legendNode}
+    </View>
+  ) : (
+    frame
   );
 };
 

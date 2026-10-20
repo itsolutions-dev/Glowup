@@ -41,6 +41,7 @@ const data = [
   ]}
   stacked
   horizontal
+  legend
   target={150}
   locale="it-IT"
   onSelect={(index) => console.log(index)}
@@ -104,6 +105,7 @@ const Demo = () => {
     data: state === "empty" ? [] : few ? CALLS.slice(0, 3) : CALLS,
     series: SERIES,
     loading: state === "loading",
+    legend: true,
     target: target ? 150 : undefined,
     onSelect: setPicked,
     testID: "demo-bars",
@@ -238,8 +240,9 @@ const PartsDemo = () => {
           <Ring
             testID="demo-donut"
             data={OUTCOMES}
+            legend
             height={220}
-            centerValue="173"
+            centerValue={(sum) => String(sum)}
             centerLabel="calls"
             showPercent={percent}
           />
@@ -270,7 +273,7 @@ const PartsDemo = () => {
         </Tile>
       </View>
       <Tile wide title="Outcome share, in one bar">
-        <StackedBar testID="demo-stack" data={OUTCOMES} />
+        <StackedBar testID="demo-stack" data={OUTCOMES} legend />
       </Tile>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
         {TRENDS.map((t) => (
@@ -300,7 +303,7 @@ export default function ChartsPage() {
     >
       <Section
         title="Live"
-        description="Bars (grouped or stacked, vertical or horizontal), lines and areas (straight or smooth), a target line, a tooltip on tap or hover, and the loading and empty states."
+        description="Bars (grouped or stacked, vertical or horizontal), lines and areas (straight or smooth), a target line, a legend that switches a series off, a tooltip on tap or hover, and the loading and empty states."
       >
         <Demo />
       </Section>

@@ -8,6 +8,10 @@ export { default as StackedBar } from "./StackedBar";
 export type { StackedBarProps } from "./StackedBar";
 export { default as Sparkline } from "./Sparkline";
 export type { SparklineProps } from "./Sparkline";
+export { ChartLegend } from "./ChartLegend";
+export type { ChartLegendProps, LegendItem } from "./ChartLegend";
+export { default as Chart } from "./Chart";
+export type { ChartProps } from "./Chart";
 export type {
   ChartDatum,
   ChartSeries,

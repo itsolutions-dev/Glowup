@@ -3,9 +3,9 @@
 Riguarda la Fase 4 di `docs/solaris-native.md` e il lavoro A4 di `docs/work-split.md`. **Cambia la decisione D7** di quel
 piano (che prevedeva `d3-scale` e `d3-shape` come dipendenze): vedi §2. Esito dello spike su cui poggiava D7: `docs/spike-0.4-bar-chart.md`.
 
-Stato al 2026-10-20: **passi 0–5 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
-buchi; `DonutChart`, `PieChart`, `StackedBar`, `Sparkline`; bersaglio, tooltip, `onSelect`; pagina `/charts`; provato in Chrome).
-Dal passo 6 in poi niente. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
+Stato al 2026-10-20: **passi 0–6 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
+buchi; `DonutChart`, `PieChart`, `StackedBar`, `Sparkline`; `ChartLegend` e prop `legend`; facciata `Chart`; bersaglio, tooltip,
+`onSelect`; pagina `/charts`; provato in Chrome). Dal passo 7 in poi niente. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
 Android). Per la forma di un pacchetto di alto livello si prende `packages/pdf` (stesse regole di confine, `ADDON_PACKAGES` in
 `eslint.config.js`, già pronte per `charts`).
 

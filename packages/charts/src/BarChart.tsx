@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { G, Line, Rect, Text as SvgText } from "react-native-svg";
 import {
   ChartAxes,
@@ -27,7 +27,6 @@ export type BarChartProps = ChartCommonProps & {
 const BarChart = (props: BarChartProps) => {
   const {
     data,
-    series,
     height = 240,
     stacked = false,
     horizontal = false,
@@ -49,19 +48,11 @@ const BarChart = (props: BarChartProps) => {
     active,
     setHovered,
     toggle,
+    legendNode,
   } = useChartBase(props);
-  const stacks = useMemo(
-    () =>
-      stacked
-        ? stackValues(
-            data,
-            series.map((s) => s.key),
-          )
-        : null,
-    [stacked, data, series],
-  );
+  const stacks = stacked ? stackValues(data, keys) : null;
 
-  return (
+  const frame = (
     <ChartFrame
       height={height}
       loading={loading}
@@ -292,6 +283,14 @@ const BarChart = (props: BarChartProps) => {
         );
       }}
     </ChartFrame>
+  );
+  return legendNode ? (
+    <View>
+      {frame}
+      {legendNode}
+    </View>
+  ) : (
+    frame
   );
 };
 

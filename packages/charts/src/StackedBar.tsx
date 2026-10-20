@@ -1,5 +1,5 @@
 import React, { useId } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { ClipPath, Defs, G, Rect } from "react-native-svg";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip } from "./ChartTooltip";
@@ -12,17 +12,12 @@ export type StackedBarProps = PartsCommonProps & {
 
 /** A single horizontal bar cut into the parts of a whole, each as wide as its share. */
 const StackedBar = (props: StackedBarProps) => {
-  const {
-    data,
-    total,
-    height = 32,
-    loading,
-    emptyLabel = "No data",
-    testID,
-  } = props;
+  const { total, height = 32, loading, emptyLabel = "No data", testID } = props;
   const {
     theme,
-    partColors,
+    visible,
+    colorOf,
+    legendNode,
     format,
     percent,
     nameOf,
@@ -32,12 +27,14 @@ const StackedBar = (props: StackedBarProps) => {
     toggle,
   } = usePartsBase(props);
   const clipId = useId().replace(/[^a-zA-Z0-9]/g, "");
-  const positive = data.filter((d) => Number.isFinite(d.value) && d.value > 0);
+  const positive = visible.filter(
+    (d) => Number.isFinite(d.value) && d.value > 0,
+  );
   const sum = positive.reduce((s, d) => s + d.value, 0);
   const whole = Math.max(total ?? sum, sum);
   const empty = whole <= 0;
 
-  return (
+  const frame = (
     <ChartFrame
       height={height}
       loading={loading}
@@ -55,8 +52,7 @@ const StackedBar = (props: StackedBarProps) => {
           return segment;
         });
         const shown = segments.find((s) => s.part.id === active);
-        const color = (id: string) =>
-          partColors[data.findIndex((d) => d.id === id)];
+        const color = colorOf;
         return (
           <>
             <Svg
@@ -137,6 +133,14 @@ const StackedBar = (props: StackedBarProps) => {
         );
       }}
     </ChartFrame>
+  );
+  return legendNode ? (
+    <View>
+      {frame}
+      {legendNode}
+    </View>
+  ) : (
+    frame
   );
 };
 

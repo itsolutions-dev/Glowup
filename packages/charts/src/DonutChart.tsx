@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import React from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { G, Path, Text as SvgText } from "react-native-svg";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip } from "./ChartTooltip";
@@ -10,8 +10,11 @@ export type DonutChartProps = PartsCommonProps & {
   height?: number;
   /** Width of the ring in pixels. Default about a third of the radius. */
   thickness?: number;
-  /** The big text in the middle; while a part is active it shows that part's value. */
-  centerValue?: string;
+  /**
+   * The big text in the middle; while a part is active it shows that part's value. A function gets the sum of the parts still
+   * shown (the legend can switch some off), for a total that follows them.
+   */
+  centerValue?: string | ((shownTotal: number) => string);
   /** The small text under it; while a part is active it shows that part's label. */
   centerLabel?: string;
   /** Each part's share, written on its slice (only where the slice is wide enough). */
@@ -30,7 +33,6 @@ const CORNER = 4;
  */
 const DonutChart = (props: DonutChartProps) => {
   const {
-    data,
     total,
     height = 200,
     thickness,
@@ -43,7 +45,9 @@ const DonutChart = (props: DonutChartProps) => {
   } = props;
   const {
     theme,
-    partColors,
+    visible,
+    colorOf,
+    legendNode,
     format,
     percent,
     nameOf,
@@ -52,14 +56,13 @@ const DonutChart = (props: DonutChartProps) => {
     setHovered,
     toggle,
   } = usePartsBase(props);
-  const positive = useMemo(
-    () => data.filter((d) => Number.isFinite(d.value) && d.value > 0),
-    [data],
+  const positive = visible.filter(
+    (d) => Number.isFinite(d.value) && d.value > 0,
   );
   // A gauge at zero has no slice but still shows its ring and its centre.
   const empty = positive.length === 0 && total === undefined;
 
-  return (
+  const frame = (
     <ChartFrame
       height={height}
       loading={loading}
@@ -75,7 +78,7 @@ const DonutChart = (props: DonutChartProps) => {
         const cx = width / 2;
         const cy = height / 2;
         const slices = donutSlices(
-          data.map((d) => ({ id: d.id, value: d.value })),
+          visible.map((d) => ({ id: d.id, value: d.value })),
           {
             innerRadius: inner,
             outerRadius: outer,
@@ -86,9 +89,8 @@ const DonutChart = (props: DonutChartProps) => {
         );
         const sum = positive.reduce((s, d) => s + d.value, 0);
         const showTrack = total !== undefined && total > sum;
-        const activePart = data.find((d) => d.id === active);
-        const color = (id: string) =>
-          partColors[data.findIndex((d) => d.id === id)];
+        const activePart = visible.find((d) => d.id === active);
+        const color = colorOf;
         const idAt = (x?: number, y?: number) => {
           if (x === undefined || y === undefined) return null;
           const i = sliceAt(slices, x - cx, y - cy, inner, outer + GROW);
@@ -103,7 +105,9 @@ const DonutChart = (props: DonutChartProps) => {
           ? undefined
           : activePart
             ? format(activePart.value)
-            : centerValue;
+            : typeof centerValue === "function"
+              ? centerValue(sum)
+              : centerValue;
         const centerBottom = !hasHole
           ? undefined
           : activePart
@@ -235,6 +239,14 @@ const DonutChart = (props: DonutChartProps) => {
         );
       }}
     </ChartFrame>
+  );
+  return legendNode ? (
+    <View>
+      {frame}
+      {legendNode}
+    </View>
+  ) : (
+    frame
   );
 };
 

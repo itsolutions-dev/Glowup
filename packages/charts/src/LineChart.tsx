@@ -4,6 +4,7 @@ import Svg, { Circle, G, Line, Path, Text as SvgText } from "react-native-svg";
 import { ChartAxes, labelStride, labelWidth, type Plot } from "./ChartAxes";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip, type TooltipRow } from "./ChartTooltip";
+import { DENSE_POINTS, DenseHit } from "./DenseHit";
 import { areaPath, linePath } from "./core/paths";
 import { pointPositions, valueScale } from "./core/scales";
 import type { CurveName } from "./core/types";
@@ -20,6 +21,8 @@ export type LineChartProps = ChartCommonProps & {
   zero?: boolean;
   /** A dot on every point. Default: up to 24 categories. */
   showDots?: boolean;
+  /** One touch layer instead of a Pressable per category, for thousands of points (the lines are one path each anyway). Default: on from 200 categories. */
+  dense?: boolean;
 };
 
 /** The room left and right of the first and last point, so their dots and labels are not cut. */
@@ -38,6 +41,7 @@ const LineChart = (props: LineChartProps) => {
     target,
     zero = true,
     showDots,
+    dense,
     loading,
     emptyLabel = "No data",
     testID,
@@ -112,6 +116,7 @@ const LineChart = (props: LineChartProps) => {
           };
         });
         const dots = showDots ?? data.length <= 24;
+        const isDense = dense ?? data.length > DENSE_POINTS;
 
         const tooltip = (() => {
           if (active === null || active >= data.length) return null;
@@ -227,23 +232,37 @@ const LineChart = (props: LineChartProps) => {
                 </G>
               ))}
             </Svg>
-            {data.map((_, i) => (
-              <Pressable
-                key={i}
-                testID={testID ? `${testID}-category-${i}` : undefined}
-                accessible={false}
-                onPress={() => toggle(i)}
-                onHoverIn={() => setHovered(i)}
-                onHoverOut={() => setHovered(null)}
-                style={{
-                  position: "absolute",
-                  left: xs[i] - (data.length > 1 ? step / 2 : plot.width / 2),
-                  width: data.length > 1 ? step : plot.width,
-                  top: plot.top,
-                  height: plot.height,
+            {isDense ? (
+              <DenseHit
+                testID={testID ? `${testID}-hit` : undefined}
+                plot={plot}
+                indexAt={(x) => {
+                  const i =
+                    data.length > 1 ? Math.round((x - INSET) / step) : 0;
+                  return Math.min(data.length - 1, Math.max(0, i));
                 }}
+                onPress={toggle}
+                onHover={setHovered}
               />
-            ))}
+            ) : (
+              data.map((_, i) => (
+                <Pressable
+                  key={i}
+                  testID={testID ? `${testID}-category-${i}` : undefined}
+                  accessible={false}
+                  onPress={() => toggle(i)}
+                  onHoverIn={() => setHovered(i)}
+                  onHoverOut={() => setHovered(null)}
+                  style={{
+                    position: "absolute",
+                    left: xs[i] - (data.length > 1 ? step / 2 : plot.width / 2),
+                    width: data.length > 1 ? step : plot.width,
+                    top: plot.top,
+                    height: plot.height,
+                  }}
+                />
+              ))
+            )}
             {tooltip}
           </>
         );

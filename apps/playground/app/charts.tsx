@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import {
   Banner,
@@ -286,6 +286,80 @@ const PartsDemo = () => {
   );
 };
 
+const manyPoints = (n: number): ChartDatum[] =>
+  Array.from({ length: n }, (_, i) => ({
+    label: `${i + 1}`,
+    value: Math.round(50 + 40 * Math.sin(i / 7) + ((i * 37) % 13)),
+    other: Math.round(30 + 20 * Math.cos(i / 11) + ((i * 17) % 7)),
+  }));
+
+const MANY_SERIES = [
+  { key: "value", label: "Value" },
+  { key: "other", label: "Other" },
+];
+
+const MANY_COUNTS = [50, 400, 2000, 10000];
+
+/** Thousands of bars or points: what the dense mode is for. */
+const ManyDemo = () => {
+  const { theme } = useTheme();
+  const [count, setCount] = useState(2000);
+  const [dense, setDense] = useState(true);
+  const [kind, setKind] = useState<"bars" | "lines">("bars");
+  const data = useMemo(() => manyPoints(count), [count]);
+
+  return (
+    <VStack spacing={16}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+        {MANY_COUNTS.map((n) => (
+          <Button
+            key={n}
+            mode={count === n ? "filled" : "outlined"}
+            onPress={() => setCount(n)}
+          >
+            {`${n} points`}
+          </Button>
+        ))}
+        {(["bars", "lines"] as const).map((k) => (
+          <Button
+            key={k}
+            mode={kind === k ? "filled" : "outlined"}
+            onPress={() => setKind(k)}
+          >
+            {`many ${k}`}
+          </Button>
+        ))}
+      </View>
+      <Option label="Dense mode" value={dense} onChange={setDense} />
+      <Paper
+        style={{
+          padding: 16,
+          borderRadius: 12,
+          backgroundColor: theme.colors.surfaceContainerLow,
+        }}
+      >
+        {kind === "bars" ? (
+          <BarChart
+            testID="demo-many"
+            data={data}
+            series={MANY_SERIES}
+            dense={dense}
+            legend
+          />
+        ) : (
+          <LineChart
+            testID="demo-many"
+            data={data}
+            series={MANY_SERIES}
+            dense={dense}
+            legend
+          />
+        )}
+      </Paper>
+    </VStack>
+  );
+};
+
 export default function ChartsPage() {
   return (
     <Page
@@ -312,6 +386,12 @@ export default function ChartsPage() {
         description="A donut or a pie, a gauge (a donut with a total bigger than its part), a single stacked bar and sparklines. Tap or point at a slice to read it."
       >
         <PartsDemo />
+      </Section>
+      <Section
+        title="Thousands of points"
+        description="Past a few hundred bars a chart draws one path per series and one touch layer instead of a node per bar. Switch it off to see the difference."
+      >
+        <ManyDemo />
       </Section>
       <Section
         title="Use it"

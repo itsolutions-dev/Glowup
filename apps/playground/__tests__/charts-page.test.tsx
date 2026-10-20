@@ -82,4 +82,14 @@ describe("the charts page", () => {
     await fireEvent.press(screen.getByText("More"));
     expect(JSON.stringify(screen.toJSON())).toContain(`"content":"90%"`);
   });
+
+  it("draws thousands of points densely", async () => {
+    await open();
+    await fireEvent(screen.getByTestId("demo-many"), "layout", {
+      nativeEvent: { layout: { width: 600, height: 240, x: 0, y: 0 } },
+    });
+    // 2000 points x 2 series: a path per series, no node per bar
+    expect(screen.getByTestId("demo-many-dense-value")).toBeTruthy();
+    expect(screen.queryAllByTestId(/^demo-many-bar-/)).toHaveLength(0);
+  });
 });

@@ -3,9 +3,9 @@
 Riguarda la Fase 4 di `docs/solaris-native.md` e il lavoro A4 di `docs/work-split.md`. **Cambia la decisione D7** di quel
 piano (che prevedeva `d3-scale` e `d3-shape` come dipendenze): vedi §2. Esito dello spike su cui poggiava D7: `docs/spike-0.4-bar-chart.md`.
 
-Stato al 2026-10-20: **passi 0–6 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
+Stato al 2026-10-20: **passi 0–7 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
 buchi; `DonutChart`, `PieChart`, `StackedBar`, `Sparkline`; `ChartLegend` e prop `legend`; facciata `Chart`; bersaglio, tooltip,
-`onSelect`; pagina `/charts`; provato in Chrome). Dal passo 7 in poi niente. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
+`onSelect`; pagina `/charts`; provato in Chrome). Dal passo 8 in poi niente (il 9, la documentazione, si chiude con i simulatori). Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
 Android). Per la forma di un pacchetto di alto livello si prende `packages/pdf` (stesse regole di confine, `ADDON_PACKAGES` in
 `eslint.config.js`, già pronte per `charts`).
 
@@ -108,13 +108,35 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 4   | **`LineChart` e `AreaChart`**                                                                                                                                                                                                         | come sopra                                                                                                        |
 | 5   | **`DonutChart`/`PieChart`, `StackedBar`, `Sparkline`**; verifica di `CircularProgress` per l'indicatore                                                                                                                               | come sopra                                                                                                        |
 | 6   | **`ChartLegend` e facciata `Chart`**                                                                                                                                                                                                  | test: nascondere una serie ridisegna gli assi                                                                     |
-| 7   | **Modalità densa** (un `<Path>`) e misura dei tempi su web                                                                                                                                                                            | numeri riportati qui; soglia scelta dalla misura                                                                  |
+| 7   | **Modalità densa** (un `<Path>`) e misura dei tempi su web                                                                                                                                                                            | numeri nella sezione sotto; soglia scelta dalla misura                                                            |
 | 8   | **Verifica nativa:** riga `charts` in `/native-check` (disegna un grafico, legge le dimensioni dei nodi) e screenshot in CI                                                                                                           | righe `NATIVECHECK charts` e screenshot negli artefatti del run                                                   |
 | 9   | **Documentazione:** README con limiti, `docs/solaris-native.md` (D7 e Fase 4), `docs/work-split.md`, changeset quando esce da `private`                                                                                               |                                                                                                                   |
 
 **Cosa non si può verificare dal portatile di lavoro:** iOS e Android a runtime. Il passo 8 passa dalla CI nativa come per il PDF.
 Non si dichiara "funziona su iOS/Android" finché un run non lo mostra. **Non verificati in ogni caso:** tocco e velocità su un
 telefono vero, hover, grafici con migliaia di punti sul nativo.
+
+### Misure del passo 7 (2026-10-20)
+
+**Fatto.** Con la modalità densa un `BarChart` disegna **un `<Path>` per serie** e **un solo livello di tocco** (`DenseHit`) che ricava la
+categoria dalla posizione; un `LineChart` tiene i suoi tracciati (già uno per serie) e cambia il solo livello di tocco. Scatta da sola da
+**400 barre** (`DENSE_BARS`, per esempio 200 categorie × 2 serie) e da **200 categorie** nelle linee (`DENSE_POINTS`), e si controlla con la prop
+`dense`. In modalità densa una barra non si attenua da sola: una fascia dietro la categoria attiva la segna.
+
+**Misurato sul web** (pagina `/charts`, sezione "Thousands of points", Chrome senza interfaccia, rendering software, portatile di lavoro; due serie;
+tempo dal clic al secondo fotogramma, mediana di 15 passaggi del mouse per il tooltip, che comprende circa 45 ms di andata e ritorno di
+Chrome):
+
+| Punti × 2 serie | Barre, un nodo per barra                | Barre, dense                     | Linee, un `Pressable` per categoria           | Linee, dense                     |
+| --------------- | --------------------------------------- | -------------------------------- | --------------------------------------------- | -------------------------------- |
+| 400             | 120–130 ms, 1.258 nodi, tooltip 84 ms   | 20 ms, 70 nodi, tooltip 49 ms    | 95–119 ms, 469 nodi, tooltip 68 ms            | 20 ms, 70 nodi, tooltip 49 ms    |
+| 2.000           | 820–830 ms, 6.059 nodi, tooltip 344 ms  | 25–32 ms, 63 nodi, tooltip 50 ms | 440–520 ms, 2.064 nodi, tooltip 248 ms        | 22 ms, 65 nodi, tooltip 50 ms    |
+| 10.000          | 8.200 ms, 30.055 nodi, tooltip 1.573 ms | 72–74 ms, 59 nodi, tooltip 84 ms | 3.250–3.370 ms, 10.061 nodi, tooltip 1.034 ms | 53–60 ms, 62 nodi, tooltip 68 ms |
+
+**Come si legge.** Il costo cresce con il numero di nodi, non con i dati: la modalità densa tiene il disegno sotto i 100 ms anche a
+10.000 punti. Soglie scelte: sul web 400 barre (circa 800 nodi) costano già 120 ms, quindi si scatta prima, **e sul nativo ogni elemento SVG è una
+vista nativa**, dove è lecito aspettarsi di peggio: per questo la soglia è bassa. **Non misurato:** iOS e Android (passo 8, in CI), telefono vero,
+memoria. Sotto la soglia non ho misurato (il punto più piccolo è 400 punti × 2 serie, già sopra).
 
 ## 7. Rischi
 

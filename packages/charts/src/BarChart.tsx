@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Svg, { G, Line, Rect, Text as SvgText } from "react-native-svg";
+import Svg, { G, Line, Path, Rect, Text as SvgText } from "react-native-svg";
 import {
   ChartAxes,
   fitLabel,
@@ -11,6 +11,7 @@ import {
 } from "./ChartAxes";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip, type TooltipRow } from "./ChartTooltip";
+import { DENSE_BARS, DenseHit } from "./DenseHit";
 import { stackValues } from "./core/paths";
 import { bandScale, valueScale } from "./core/scales";
 import { num, useChartBase, type ChartCommonProps } from "./hooks/useChartBase";
@@ -22,6 +23,11 @@ export type BarChartProps = ChartCommonProps & {
   horizontal?: boolean;
   /** A reference line at this value. */
   target?: number;
+  /**
+   * One path per series and one touch layer instead of a node and a Pressable per bar, for thousands of bars. A bar can no longer be
+   * dimmed on its own: a band behind the active category marks it. Default: on from 400 bars.
+   */
+  dense?: boolean;
 };
 
 const BarChart = (props: BarChartProps) => {
@@ -31,6 +37,7 @@ const BarChart = (props: BarChartProps) => {
     stacked = false,
     horizontal = false,
     target,
+    dense,
     loading,
     emptyLabel = "No data",
     testID,
@@ -134,32 +141,77 @@ const BarChart = (props: BarChartProps) => {
           return x === null ? null : [Math.min(x, 0), Math.max(x, 0)];
         };
 
-        const bars = data.flatMap((_, i) =>
-          keys.map((k, s) => {
-            const span = spanOf(i, s);
-            if (!span) return null;
-            const a = v.at(span[0]);
-            const b = v.at(span[1]);
-            const start = Math.min(a, b);
-            const length = Math.abs(a - b);
-            if (length <= 0) return null;
-            const cross = crossStart(i) + (stacked ? 0 : s * thickness) + inset;
-            const size = Math.max(0, thickness - 2 * inset);
-            return (
-              <Rect
-                key={`${i}-${k}`}
-                testID={testID ? `${testID}-bar-${i}-${k}` : undefined}
-                x={horizontal ? start : cross}
-                y={horizontal ? cross : start}
-                width={horizontal ? length : size}
-                height={horizontal ? size : length}
-                rx={2}
-                fill={seriesColors[s]}
-                opacity={active === null || active === i ? 1 : 0.45}
-              />
+        // Where one bar is, or null when it has no length (no value, or zero).
+        const barRect = (i: number, s: number) => {
+          const span = spanOf(i, s);
+          if (!span) return null;
+          const a = v.at(span[0]);
+          const b = v.at(span[1]);
+          const start = Math.min(a, b);
+          const length = Math.abs(a - b);
+          if (length <= 0) return null;
+          const cross = crossStart(i) + (stacked ? 0 : s * thickness) + inset;
+          const size = Math.max(0, thickness - 2 * inset);
+          return horizontal
+            ? { x: start, y: cross, width: length, height: size }
+            : { x: cross, y: start, width: size, height: length };
+        };
+
+        // Past a few hundred bars one native node per bar is too much: each
+        // series is then a single path of rectangles, and the active category is
+        // marked by a band behind the bars (no bar can be dimmed on its own).
+        const isDense = dense ?? data.length * keys.length > DENSE_BARS;
+        const bars = isDense
+          ? keys.map((k, s) => {
+              let d = "";
+              for (let i = 0; i < data.length; i++) {
+                const r = barRect(i, s);
+                if (r)
+                  d += `M${r.x},${r.y}h${r.width}v${r.height}h${-r.width}Z`;
+              }
+              return d === "" ? null : (
+                <Path
+                  key={k}
+                  testID={testID ? `${testID}-dense-${k}` : undefined}
+                  d={d}
+                  fill={seriesColors[s]}
+                />
+              );
+            })
+          : data.flatMap((_, i) =>
+              keys.map((k, s) => {
+                const r = barRect(i, s);
+                return r ? (
+                  <Rect
+                    key={`${i}-${k}`}
+                    testID={testID ? `${testID}-bar-${i}-${k}` : undefined}
+                    {...r}
+                    rx={2}
+                    fill={seriesColors[s]}
+                    opacity={active === null || active === i ? 1 : 0.45}
+                  />
+                ) : null;
+              }),
             );
-          }),
-        );
+        const activeBand =
+          isDense && active !== null && active < data.length ? (
+            <Rect
+              x={
+                horizontal
+                  ? plot.left
+                  : crossStart(active) - (band.step - band.width) / 2
+              }
+              y={
+                horizontal
+                  ? crossStart(active) - (band.step - band.width) / 2
+                  : plot.top
+              }
+              width={horizontal ? plot.width : band.step}
+              height={horizontal ? band.step : plot.height}
+              fill={theme.colors.surfaceVariant}
+              opacity={0.6}
+            />
+          ) : null;
 
         const tooltip = (() => {
           if (active === null || active >= data.length) return null;
@@ -213,7 +265,10 @@ const BarChart = (props: BarChartProps) => {
                   label: format(t),
                 }))}
               />
-              <G>{bars}</G>
+              <G>
+                {activeBand}
+                {bars}
+              </G>
               {target != null && (
                 <G>
                   <Line
@@ -248,36 +303,50 @@ const BarChart = (props: BarChartProps) => {
                 </G>
               )}
             </Svg>
-            {data.map((_, i) => {
-              const pad = (band.step - band.width) / 2;
-              return (
-                <Pressable
-                  key={i}
-                  testID={testID ? `${testID}-category-${i}` : undefined}
-                  accessible={false}
-                  onPress={() => toggle(i)}
-                  onHoverIn={() => setHovered(i)}
-                  onHoverOut={() => setHovered(null)}
-                  style={
-                    horizontal
-                      ? {
-                          position: "absolute",
-                          left: 0,
-                          width,
-                          top: crossStart(i) - pad,
-                          height: band.step,
-                        }
-                      : {
-                          position: "absolute",
-                          left: crossStart(i) - pad,
-                          width: band.step,
-                          top: plot.top,
-                          height: plot.height,
-                        }
-                  }
-                />
-              );
-            })}
+            {isDense ? (
+              <DenseHit
+                testID={testID ? `${testID}-hit` : undefined}
+                plot={plot}
+                indexAt={(x, y) => {
+                  const along = horizontal ? y : x;
+                  const i = Math.floor(along / band.step);
+                  return i < 0 || i >= data.length ? null : i;
+                }}
+                onPress={toggle}
+                onHover={setHovered}
+              />
+            ) : (
+              data.map((_, i) => {
+                const pad = (band.step - band.width) / 2;
+                return (
+                  <Pressable
+                    key={i}
+                    testID={testID ? `${testID}-category-${i}` : undefined}
+                    accessible={false}
+                    onPress={() => toggle(i)}
+                    onHoverIn={() => setHovered(i)}
+                    onHoverOut={() => setHovered(null)}
+                    style={
+                      horizontal
+                        ? {
+                            position: "absolute",
+                            left: 0,
+                            width,
+                            top: crossStart(i) - pad,
+                            height: band.step,
+                          }
+                        : {
+                            position: "absolute",
+                            left: crossStart(i) - pad,
+                            width: band.step,
+                            top: plot.top,
+                            height: plot.height,
+                          }
+                    }
+                  />
+                );
+              })
+            )}
             {tooltip}
           </>
         );

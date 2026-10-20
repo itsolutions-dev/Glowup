@@ -1784,6 +1784,88 @@ Zebra's terms for the RFID SDK) decides whether Z2's "the app supplies the SDK" 
 an obligation, and whether it binds the SDK to Zebra hardware (here the reader is Zebra's, the
 host may not be).
 
+## v0.12 — barcode scanner
+
+The request: the CT40's built-in barcode / QR imager behind a vendor-neutral interface, with the
+same split as RFID: a contract in `@its/glowup-device`, a package per vendor (Honeywell first,
+Zebra later). A read confirms by itself: the app gets the code and acts on it (submits the
+form, calls its API) without a keypress.
+
+### The SDK received, and why it is not the one
+
+`Honeywell_Scanner_SDK_for_Android-v6.00.06.00.zip` (read from its manifests, class names,
+release notes, sample and EULA; not its bytecode, which its licence forbids reverse compiling)
+is the **Android Gen7 BT SDK** for the **Seychelles 8680i / 8680iB / 8690i** wearable scanners:
+
+- Bluetooth only (`com.honeywell.scanner.sdk.bt.classicbt`, `bt.ble`; BLE "in a future
+  release"): connect to the ring scanner, read its barcodes (and the 8690i's RFID), flash its
+  firmware (`libFlashFirmwareLib.so`). The CT40 and CT60 appear only as the host it pairs with.
+- Android 7.1 to 10 in its release notes; `minSdkVersion` 24, `targetSdkVersion` 28, last
+  release 6 October 2021. It declares `BLUETOOTH` / `BLUETOOTH_ADMIN` only, none of Android 12's
+  nearby devices permissions. Nothing in it requires Android 13; newer Android is where it is
+  least likely to work.
+- Its EULA ("Honeywell Productivity Products Developer License", §4) forbids copying,
+  distributing, modifying and reverse compiling the DevTools.
+
+It does not drive the CT40's own imager. That is Honeywell's **Data Collection SDK** (Mobility
+SDK, `com.honeywell.aidc`, `DataCollection.aar`), the same AAR `@its/rfid-honeywell` already
+requires (1.97.00.0060, phase 35). The ring scanners are out unless someone uses them (below).
+
+### The architecture (ADR-S1)
+
+- **`@its/glowup-device/scanner`**: the contract and the engine, like `/rfid`.
+  - `BarcodeScannerAdapter`: `vendor`, `isSupported()`, capabilities (software trigger,
+    symbology settings), `open(handlers)` / `close()` (Honeywell's claim / release), reads and
+    trigger presses as events, `softwareTrigger?(pressed)`, `setSymbologies?(types)`.
+  - A read: `data` (text), `type` (`BarcodeType` or `"unknown"`), `rawType` (the vendor's
+    code id), `aimId` when the SDK gives one, `timestamp`.
+  - `useBarcodeScanner({ onScan, enabled, symbologies })`: the scanner is open while the screen
+    is mounted, `enabled` and the app in the foreground, and released otherwise (another app, or
+    the device's own keyboard wedge, gets it back).
+  - **Automatic confirmation** is the app's `onScan`: the library never submits anything. To
+    keep a confirmation from running twice, the engine drops a read while the previous
+    `onScan`'s promise is pending, and the same code within a short window (both configurable).
+  - `createMockBarcodeScannerAdapter()` and `describeBarcodeScannerAdapterContract()` in
+    `/testing`.
+  - `BarcodeType` moves from `/camera` to `core/` (a capability imports no other, D2), as the
+    location types did in phase 27; `/camera` re-exports it.
+- **`@its/scanner-honeywell`**: Android Expo module over the Data Collection SDK, adapter,
+  config plugin; the AAR supplied by the app (`dataCollectionAarPath`), never in the repository
+  or a package (R11). It supports what the SDK supports: no Android floor of its own, and the
+  same host check as R13.
+- **`@its/scanner-zebra`** later, on the same contract (DataWedge's intents on Zebra mobile
+  computers, or Zebra's scanner library for a Bluetooth imager): decided when a Zebra device is
+  there to try.
+
+**Data Collection SDK, from memory, to confirm on the requester's AAR** (its Javadoc, or its
+public API with `javap` without `-c`, as for Zebra): `AidcManager.create(context, callback)`,
+`createBarcodeReader()`, `claim()` / `release()`, `addBarcodeListener` → `onBarcodeEvent`
+(`getBarcodeData`, `getCodeId`, `getAimId`, `getCharset`, `getTimestamp`) and `onFailureEvent`,
+`addTriggerListener`, `softwareTrigger(boolean)`, `setProperty` with
+`PROPERTY_TRIGGER_CONTROL_MODE` (auto or client control) and one `PROPERTY_*_ENABLED` per
+symbology; whether a claim stops the keyboard wedge for the app; its licence's terms.
+
+### Decisions
+
+| #   | Question     | Decision                                                                                                                                                          | Status   |
+| --- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| S1  | Honeywell    | The Data Collection SDK (`com.honeywell.aidc`), not the scanner service's intents.                                                                                | decided  |
+| S2  | Confirmation | A read reaches the app as `onScan`, which confirms by itself; no keyboard wedge, no Enter key.                                                                    | decided  |
+| S3  | Support      | Whatever the Data Collection SDK supports, checked on the team's CT40 (Android 11).                                                                               | decided  |
+| S4  | Ring scanner | The Gen7 BT SDK (8680i / 8690i) is out.                                                                                                                           | proposed |
+| S5  | One build    | The scanner and RFID packages share `DataCollection.aar`: the same Maven coordinate in each plugin's repository, so Gradle resolves it once; versions must agree. | proposed |
+| S6  | Trigger      | The screen that reads RFID owns the trigger (`useRfidTrigger`); elsewhere the scanner does. The spike measures what the IH40's trigger does in each mode.         | proposed |
+| S7  | First scope  | Hardware trigger, software trigger, the symbologies the team uses; no GS1 parsing; a camera adapter only if phones without an imager need the same screens.       | proposed |
+| S8  | Names        | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`.                                                                                                       | proposed |
+| S9  | Diagnostics  | A scanner section in `apps/rfid-diagnostics` (the Honeywell build already carries `DataCollection.aar`), later renamed for both.                                  | proposed |
+
+| Phase | Content                                                                                                                                                     | Release      | Status |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
+| S1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType` into `core/`                          | device minor | —      |
+| S2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40 | —            | —      |
+| S3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                     | `0.1.0`      | —      |
+| S4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                     | device minor | —      |
+
 ## Open for later
 
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's

@@ -4,9 +4,9 @@ import { Avatar, Button, Chip, HStack, Typography } from "@its/glowup-ui";
 export const Spacing = () => (
   <HStack spacing="m" align="center" width={480} wrap>
     <Typography variant="labelSmall">spacing=&quot;m&quot;</Typography>
-    <Chip label="Paid" mode="tonal" onPress={() => {}} />
-    <Chip label="Overdue" mode="outlined" onPress={() => {}} />
-    <Chip label="Draft" mode="outlined" onPress={() => {}} />
+    <Chip label="Paid" variant="tonal" onClick={() => {}} />
+    <Chip label="Overdue" variant="outlined" onClick={() => {}} />
+    <Chip label="Draft" variant="outlined" onClick={() => {}} />
   </HStack>
 );
 
@@ -41,10 +41,10 @@ export const ToolbarRow = () => (
   >
     <Typography variant="titleMedium">Invoices</Typography>
     <HStack spacing="s">
-      <Button mode="text" onPress={() => {}}>
+      <Button variant="text" onClick={() => {}}>
         Export
       </Button>
-      <Button mode="filled" iconName="plus" onPress={() => {}}>
+      <Button variant="filled" iconName="plus" onClick={() => {}}>
         New
       </Button>
     </HStack>

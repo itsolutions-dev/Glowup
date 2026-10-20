@@ -15,9 +15,11 @@ import {
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import CircularProgress from "./Progress/CircularProgress";
 import Badge from "./Badge";
+import Tooltip from "./Tooltip";
+import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
-export type IconButtonMode = "standard" | "filled" | "tonal" | "outlined";
+export type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
 export type IconButtonSize = "small" | "medium" | "large";
 
 const SIZES: Record<IconButtonSize, { box: number; icon: number }> = {
@@ -28,9 +30,20 @@ const SIZES: Record<IconButtonSize, { box: number; icon: number }> = {
 
 export interface IconButtonProps {
   icon: MaterialCommunityIconsGlyphs;
-  onPress?: () => void;
+  onClick?: () => void;
   /** M3 icon-button container styles. Defaults to `"standard"`. */
-  mode?: IconButtonMode;
+  variant?: IconButtonVariant;
+  /**
+   * Colour role of the button. Left out, it keeps the neutral M3 look
+   * (`onSurfaceVariant`, `primary` once selected).
+   */
+  color?: ColorRole;
+  /**
+   * A tooltip with this text: on hover or focus on the web, on long press on
+   * native. It is a label for sighted users; `accessibilityLabel` stays the
+   * accessible name.
+   */
+  title?: string;
   size?: IconButtonSize;
   /** Renders the M3 "selected" container of a toggle icon button. */
   selected?: boolean;
@@ -55,8 +68,10 @@ export interface IconButtonProps {
  */
 const IconButton = ({
   icon,
-  onPress,
-  mode = "standard",
+  onClick,
+  variant = "standard",
+  color,
+  title,
   size = "medium",
   selected,
   badge,
@@ -72,8 +87,16 @@ const IconButton = ({
   const { box, icon: iconSize } = SIZES[size];
 
   const { background, foreground, borderColor } = useMemo(() => {
-    switch (mode) {
+    const role = color ? colorRoleTokens(theme, color) : undefined;
+    switch (variant) {
       case "filled":
+        if (role && selected !== false) {
+          return {
+            background: role.main,
+            foreground: role.onMain,
+            borderColor: undefined,
+          };
+        }
         return selected === false
           ? {
               background: theme.colors.surfaceContainerHighest,
@@ -86,6 +109,13 @@ const IconButton = ({
               borderColor: undefined,
             };
       case "tonal":
+        if (role && selected !== false) {
+          return {
+            background: role.container,
+            foreground: role.onContainer,
+            borderColor: undefined,
+          };
+        }
         return selected === false
           ? {
               background: theme.colors.surfaceContainerHighest,
@@ -98,6 +128,19 @@ const IconButton = ({
               borderColor: undefined,
             };
       case "outlined":
+        if (role) {
+          return selected
+            ? {
+                background: role.main,
+                foreground: role.onMain,
+                borderColor: undefined,
+              }
+            : {
+                background: "transparent",
+                foreground: role.main,
+                borderColor: role.main,
+              };
+        }
         return selected
           ? {
               background: theme.colors.onSurfaceVariant,
@@ -113,17 +156,19 @@ const IconButton = ({
       default:
         return {
           background: "transparent",
-          foreground: selected
-            ? theme.colors.primary
-            : theme.colors.onSurfaceVariant,
+          foreground: role
+            ? role.main
+            : selected
+              ? theme.colors.primary
+              : theme.colors.onSurfaceVariant,
           borderColor: undefined,
         };
     }
-  }, [mode, selected, theme.colors]);
+  }, [variant, color, selected, theme]);
 
   const isInteractive = !disabled && !loading;
 
-  return (
+  const button = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
@@ -135,10 +180,10 @@ const IconButton = ({
       accessibilityValue={badge ? { text: String(badge) } : undefined}
       disabled={!isInteractive}
       onPress={
-        isInteractive && onPress
+        isInteractive && onClick
           ? () => {
               emitFeedback(selected === undefined ? "press" : "toggle");
-              onPress();
+              onClick();
             }
           : undefined
       }
@@ -172,6 +217,14 @@ const IconButton = ({
         </View>
       )}
     </Pressable>
+  );
+
+  return title ? (
+    <Tooltip content={title} anchorAccessible={false}>
+      {button}
+    </Tooltip>
+  ) : (
+    button
   );
 };
 

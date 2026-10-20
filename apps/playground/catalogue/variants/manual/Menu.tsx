@@ -17,7 +17,7 @@ const ContextMenu = () => {
         visible={open}
         onDismiss={hide}
         anchor={
-          <Button mode="tonal" iconName="dots-vertical" onPress={show}>
+          <Button variant="tonal" iconName="dots-vertical" onClick={show}>
             Chip
           </Button>
         }
@@ -63,7 +63,7 @@ const WithDisabledItems = () => {
         visible={open}
         onDismiss={hide}
         anchor={
-          <Button mode="outlined" iconName="export-variant" onPress={show}>
+          <Button variant="outlined" iconName="export-variant" onClick={show}>
             Export
           </Button>
         }
@@ -102,7 +102,7 @@ const AccountMenu = () => {
         closeOnSelect={false}
         onDismiss={hide}
         anchor={
-          <Avatar name="Marta Rossi" size={40} status="online" onPress={show} />
+          <Avatar name="Marta Rossi" size={40} status="online" onClick={show} />
         }
         items={[
           {

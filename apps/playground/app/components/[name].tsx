@@ -6,6 +6,7 @@ import {
   Divider,
   EmptyState,
   ToggleButtonGroup,
+  ViewportProvider,
   Typography,
   useTheme,
   type PressableState,
@@ -231,14 +232,19 @@ export default function ComponentPage() {
             ]}
           >
             <View style={styles.stageInner}>
-              <DemoErrorBoundary label={name}>
-                <ComponentPreview
-                  selectedComponentName={name}
-                  activeMeta={meta}
-                  componentProps={props}
-                  updateProp={updateProp}
-                />
-              </DemoErrorBoundary>
+              {/* The frame cannot change the window, so the components are told
+                  how wide their device is: a date picker in the 360 frame opens
+                  as the dialog it is on a phone, a Grid reflows to its columns. */}
+              <ViewportProvider width={STAGE_WIDTHS[stageWidth]}>
+                <DemoErrorBoundary label={name}>
+                  <ComponentPreview
+                    selectedComponentName={name}
+                    activeMeta={meta}
+                    componentProps={props}
+                    updateProp={updateProp}
+                  />
+                </DemoErrorBoundary>
+              </ViewportProvider>
             </View>
           </View>
         </View>

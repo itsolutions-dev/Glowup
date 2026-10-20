@@ -29,27 +29,27 @@ export const FilterSheet = () => (
           <Chip
             label="Buttons & actions"
             size="small"
-            mode="tonal"
+            variant="tonal"
             selected
-            onPress={() => {}}
+            onClick={() => {}}
           />
           <Chip
             label="Inputs & forms"
             size="small"
-            mode="outlined"
-            onPress={() => {}}
+            variant="outlined"
+            onClick={() => {}}
           />
           <Chip
             label="Feedback"
             size="small"
-            mode="outlined"
-            onPress={() => {}}
+            variant="outlined"
+            onClick={() => {}}
           />
           <Chip
             label="Navigation"
             size="small"
-            mode="outlined"
-            onPress={() => {}}
+            variant="outlined"
+            onClick={() => {}}
           />
         </div>
         <div style={{ height: 4 }} />
@@ -60,19 +60,19 @@ export const FilterSheet = () => (
           <Chip
             label="Stable"
             size="small"
-            mode="tonal"
+            variant="tonal"
             selected
-            onPress={() => {}}
+            onClick={() => {}}
           />
           <Chip
             label="Deprecated"
             size="small"
-            mode="outlined"
-            onPress={() => {}}
+            variant="outlined"
+            onClick={() => {}}
           />
         </div>
         <div style={{ height: 12 }} />
-        <Button mode="filled" fullWidth onPress={() => {}}>
+        <Button variant="filled" fullWidth onClick={() => {}}>
           Show 12 components
         </Button>
       </div>
@@ -87,35 +87,35 @@ export const ActionSheet = () => (
     <BottomSheet visible title="Chip" onDismiss={() => {}}>
       <div style={column}>
         <Button
-          mode="text"
+          variant="text"
           fullWidth
           iconName="pencil-outline"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Edit props
         </Button>
         <Button
-          mode="text"
+          variant="text"
           fullWidth
           iconName="content-copy"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Duplicate component
         </Button>
         <Button
-          mode="text"
+          variant="text"
           fullWidth
           iconName="share-variant"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Share preview link
         </Button>
         <Divider contentSpacing={0} />
         <Button
-          mode="text"
+          variant="text"
           fullWidth
           iconName="delete-outline"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Delete
         </Button>
@@ -135,14 +135,14 @@ export const NoHandle = () => (
       <div style={column}>
         <Chip
           label="Recently updated"
-          mode="tonal"
+          variant="tonal"
           selected
-          onPress={() => {}}
+          onClick={() => {}}
         />
-        <Chip label="Name A–Z" mode="outlined" onPress={() => {}} />
-        <Chip label="Most used" mode="outlined" onPress={() => {}} />
+        <Chip label="Name A–Z" variant="outlined" onClick={() => {}} />
+        <Chip label="Most used" variant="outlined" onClick={() => {}} />
         <div style={{ height: 8 }} />
-        <Button mode="filled" fullWidth onPress={() => {}}>
+        <Button variant="filled" fullWidth onClick={() => {}}>
           Apply
         </Button>
       </div>
@@ -165,7 +165,7 @@ export const ReleaseNotes = () => (
           the body scrolls.
         </Typography>
         <div style={{ height: 8 }} />
-        <Button mode="tonal" fullWidth onPress={() => {}}>
+        <Button variant="tonal" fullWidth onClick={() => {}}>
           Read the full changelog
         </Button>
       </div>

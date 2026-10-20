@@ -10,7 +10,7 @@ import {
   ListSection,
   Skeleton,
   StatusBadge,
-  Toggle,
+  Switch,
   Typography,
   VStack,
   useTheme,
@@ -118,8 +118,8 @@ const EnableNotifications = () => {
   const { status, canAskAgain, request, openSettings } = useNotificationPermission();
   if (status === "granted") return null;
   return canAskAgain
-    ? <Button onPress={() => request()}>Allow notifications</Button>
-    : <Button onPress={openSettings}>Open settings</Button>;
+    ? <Button onClick={() => request()}>Allow notifications</Button>
+    : <Button onClick={openSettings}>Open settings</Button>;
 };`;
 
 interface LoggedEvent {
@@ -317,11 +317,15 @@ const PermissionSection = () => {
       <HStack spacing="m" align="center" wrap>
         <StatusBadge label={badge.label} type={badge.type} />
         {status === "unsupported" || allowed ? null : canAskAgain ? (
-          <Button iconName="bell-outline" loading={busy} onPress={ask}>
+          <Button iconName="bell-outline" loading={busy} onClick={ask}>
             Allow notifications
           </Button>
         ) : (
-          <Button mode="outlined" iconName="cog-outline" onPress={openSettings}>
+          <Button
+            variant="outlined"
+            iconName="cog-outline"
+            onClick={openSettings}
+          >
             Open settings
           </Button>
         )}
@@ -351,7 +355,11 @@ const TokenSection = () => {
         <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
           {String(error)}
         </Typography>
-        <Button mode="text" iconName="refresh" onPress={() => void refresh()}>
+        <Button
+          variant="text"
+          iconName="refresh"
+          onClick={() => void refresh()}
+        >
           Try again
         </Button>
       </VStack>
@@ -396,11 +404,9 @@ const ForegroundSection = ({
             key={row.key}
             secondary={row.description}
             trailing={
-              <Toggle
+              <Switch
                 value={value[row.key]}
-                onValueChange={(next) =>
-                  onChange({ ...value, [row.key]: next })
-                }
+                onChange={(next) => onChange({ ...value, [row.key]: next })}
               />
             }
           >
@@ -463,11 +469,11 @@ const TrySection = () => {
     >
       <HStack>
         <Button
-          mode="tonal"
+          variant="tonal"
           iconName="send-outline"
           disabled={!allowed}
           loading={scheduled}
-          onPress={send}
+          onClick={send}
         >
           Send a test notification
         </Button>
@@ -514,34 +520,34 @@ const BadgeSection = () => {
       </Typography>
       <HStack spacing="s" wrap>
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="refresh"
           disabled={!isNotificationsSupported}
-          onPress={() => void refresh()}
+          onClick={() => void refresh()}
         >
           Read
         </Button>
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="numeric-3-circle-outline"
           disabled={!isNotificationsSupported}
-          onPress={run(() => setBadgeCount(3))}
+          onClick={run(() => setBadgeCount(3))}
         >
           Set badge to 3
         </Button>
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="close-circle-outline"
           disabled={!isNotificationsSupported}
-          onPress={run(clearBadge)}
+          onClick={run(clearBadge)}
         >
           Clear badge
         </Button>
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="notification-clear-all"
           disabled={!isNotificationsSupported}
-          onPress={run(dismissAllNotifications)}
+          onClick={run(dismissAllNotifications)}
         >
           Dismiss delivered
         </Button>
@@ -592,7 +598,7 @@ const EventLogSection = ({
               );
             })}
           </ListSection>
-          <Button mode="text" iconName="delete-outline" onPress={onClear}>
+          <Button variant="text" iconName="delete-outline" onClick={onClear}>
             Clear
           </Button>
         </VStack>

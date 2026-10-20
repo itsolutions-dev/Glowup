@@ -88,8 +88,8 @@ const Banner = ({
           {actions.slice(0, 2).map((action) => (
             <Button
               key={action.label}
-              mode="text"
-              onPress={action.onPress}
+              variant="text"
+              onClick={action.onPress}
               style={styles.actionButton}
             >
               {action.label}

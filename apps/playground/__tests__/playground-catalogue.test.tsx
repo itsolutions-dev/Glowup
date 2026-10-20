@@ -102,7 +102,6 @@ const CATALOGUE = [
   "Chip",
   "ChipGroup",
   "FAB",
-  "AnimatedFAB",
   "SpeedDial",
   "ToggleButton",
   "ToggleButtonGroup",
@@ -112,23 +111,19 @@ const CATALOGUE = [
   "Input",
   "Select",
   "Checkbox",
+  "CheckboxGroup",
   "RadioButton",
   "RadioGroup",
-  "Toggle",
+  "Switch",
   "Slider",
-  "Spinner",
+  "NumberField",
   "SearchBar",
   "Autocomplete",
   "PinInput",
   "FormControl",
   "DateTimePicker",
   "DatePicker",
-  "DatePickerInput",
-  "DateRangePicker",
   "TimePicker",
-  "Calendar",
-  "ClockPicker",
-  "ClockDial",
   "Rating",
   "HelperText",
   // Data Display
@@ -401,7 +396,6 @@ describe("Playground catalogue", () => {
       "Autocomplete",
       "PinInput",
       "FormControl",
-      "DatePickerInput",
       "DateTimePicker",
     ].map((component) => ({
       component,
@@ -430,23 +424,58 @@ describe("Playground catalogue", () => {
       props: ["inputEnabled"],
     },
 
+    // A static picker is the bare surface: nothing of the field is drawn.
     {
-      component: "ClockPicker",
-      off: { inputType: "keyboard" },
-      on: { inputType: "picker" },
-      props: ["minuteInterval"],
+      component: "DateTimePicker",
+      off: { variant: "static" },
+      on: { variant: "default" },
+      props: [
+        "label",
+        "presentation",
+        "fieldVariant",
+        "placeholder",
+        "helperText",
+        "error",
+        "required",
+        "clearable",
+        "inputEnabled",
+      ],
     },
+    ...["DatePicker", "TimePicker"].map((component) => ({
+      component,
+      off: { variant: "static" },
+      on: { variant: "default" },
+      props: ["label", "presentation", "fieldVariant"],
+    })),
+
+    // Only a multiline field has lines to count.
     {
-      component: "ClockDial",
-      off: { unit: "hours" },
-      on: { unit: "minutes" },
-      props: ["minuteInterval"],
+      component: "Input",
+      off: { multiline: false },
+      on: { multiline: true },
+      props: ["rows"],
     },
+    // The empty message replaces the list, so it needs an empty list.
     {
-      component: "ClockDial",
-      off: { unit: "minutes" },
-      on: { unit: "hours" },
-      props: ["use24HourClock"],
+      component: "Select",
+      off: { empty: false },
+      on: { empty: true },
+      props: ["emptyMessage"],
+    },
+    // A switch without a label has nothing to place.
+    {
+      component: "Switch",
+      off: { label: "" },
+      on: { label: "Email notifications" },
+      props: ["labelPlacement"],
+    },
+
+    // Only the animated FAB folds its label away, so only it has these.
+    {
+      component: "FAB",
+      off: { variant: "icon" },
+      on: { variant: "animated" },
+      props: ["extended", "animateFrom", "iconMode"],
     },
 
     {
@@ -515,8 +544,8 @@ describe("Playground catalogue", () => {
     // `required` only guards the last selected chip of a single-select group.
     {
       component: "ChipGroup",
-      off: { multiSelect: true },
-      on: { multiSelect: false },
+      off: { multiple: true },
+      on: { multiple: false },
       props: ["required"],
     },
     // Colour, orientation and the FAB belong to the floating toolbar.
@@ -557,7 +586,11 @@ describe("Playground catalogue", () => {
     const HIDDEN_AT_REST = [
       "DateTimePicker.minuteInterval", // Mode → Time / Date & Time
       "DateTimePicker.use24HourClock", // Mode → Time / Date & Time
-      "ClockDial.minuteInterval", // Unit → Minutes
+      "Input.rows", // Multiline → on
+      "Select.emptyMessage", // Empty options → on
+      "FAB.extended", // Variant → Animated
+      "FAB.animateFrom", // Variant → Animated
+      "FAB.iconMode", // Variant → Animated
       "DataGrid.emptyMessage", // Empty Data → on
       "ProgressButton.progress", // Status → Loading
       "ProgressButton.loadingLabel", // Status → Loading

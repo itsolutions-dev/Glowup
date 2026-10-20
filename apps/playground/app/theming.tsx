@@ -149,7 +149,7 @@ const SWITCH_PALETTE = `import { palettes, useTheme } from "@its/glowup-ui";
 const PaletteMenu = () => {
   const { palette, setPalette } = useTheme();
   return Object.values(palettes).map((p) => (
-    <Chip key={p.id} selected={p.id === palette.id} onPress={() => setPalette(p)}>
+    <Chip key={p.id} selected={p.id === palette.id} onClick={() => setPalette(p)}>
       {p.name}
     </Chip>
   ));
@@ -222,9 +222,9 @@ export default function Theming() {
           scheme.
         </Typography>
         <Button
-          mode="tonal"
+          variant="tonal"
           iconName={theme.isDark ? "weather-sunny" : "weather-night"}
-          onPress={toggleTheme}
+          onClick={toggleTheme}
         >
           Switch scheme
         </Button>

@@ -164,10 +164,10 @@ export default function Pricing() {
                 ))}
               </VStack>
               <Button
-                mode={chosen === plan.id ? "filled" : "outlined"}
+                variant={chosen === plan.id ? "filled" : "outlined"}
                 iconName={chosen === plan.id ? "check" : undefined}
                 fullWidth
-                onPress={() => setChosen(plan.id)}
+                onClick={() => setChosen(plan.id)}
               >
                 {chosen === plan.id ? "Selected" : `Choose ${plan.name}`}
               </Button>

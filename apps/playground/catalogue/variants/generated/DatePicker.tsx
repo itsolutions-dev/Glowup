@@ -40,7 +40,6 @@ export const Basic = () => (
 /**
  * Only `mode` is locked, so `selectionMode` still switches the shape of the
  * value: one `Date`, a `{ startDate, endDate }` pair, or an array of days.
- * (`DateRangePicker` is this same component with the range mode fixed too.)
  */
 export const SelectionModes = () => (
   <View style={stack}>
@@ -84,6 +83,28 @@ export const States = () => (
   </View>
 );
 
+/**
+ * `variant="static"` draws the calendar inline, in the page: no field, no
+ * dialog, no OK. Every tap reports through `onChange` at once, so it is the
+ * calendar to put beside a list rather than behind a field.
+ */
+export const Static = () => (
+  <View style={stack}>
+    <DatePicker variant="static" value={later} onChange={noop} />
+  </View>
+);
+
+export const StaticRange = () => (
+  <View style={stack}>
+    <DatePicker
+      variant="static"
+      selectionMode="range"
+      value={{ startDate: today, endDate: later }}
+      onChange={noop}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Basic",
@@ -96,12 +117,24 @@ export const variants: Variant[] = [
     name: "SelectionModes",
     title: "Selection modes",
     description:
-      "Only `mode` is locked, so `selectionMode` still switches the shape of the value: one `Date`, a `{ startDate, endDate }` pair, or an array of days. (`DateRangePicker` is this same component with the range mode fixed too.)",
+      "Only `mode` is locked, so `selectionMode` still switches the shape of the value: one `Date`, a `{ startDate, endDate }` pair, or an array of days.",
     render: SelectionModes,
   },
   {
     name: "States",
     title: "States",
     render: States,
+  },
+  {
+    name: "Static",
+    title: "Static",
+    description:
+      '`variant="static"` draws the calendar inline, in the page: no field, no dialog, no OK. Every tap reports through `onChange` at once, so it is the calendar to put beside a list rather than behind a field.',
+    render: Static,
+  },
+  {
+    name: "StaticRange",
+    title: "Static range",
+    render: StaticRange,
   },
 ];

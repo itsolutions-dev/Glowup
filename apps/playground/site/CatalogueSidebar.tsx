@@ -47,7 +47,7 @@ export const CatalogueSidebar = () => {
       <View style={styles.search}>
         <SearchBar
           value={query}
-          onChangeText={setQuery}
+          onChange={setQuery}
           placeholder="Filter components…"
         />
         <Typography

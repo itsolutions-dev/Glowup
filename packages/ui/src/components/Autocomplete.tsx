@@ -21,8 +21,11 @@ import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import CircularProgress from "./Progress/CircularProgress";
 import { useDebouncedCallback } from "../hooks/useDebounce";
+import Chip from "./Chip";
 import HelperText from "./HelperText";
 import Portal, { usePortalHost } from "./Portal";
+import { fieldWidth } from "./internal/fieldWidth";
+import { filledField } from "./internal/fieldVariant";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface AutocompleteOption {
@@ -34,14 +37,42 @@ export interface AutocompleteOption {
   icon?: MaterialCommunityIconsGlyphs;
 }
 
-export interface AutocompleteProps {
+interface AutocompleteBaseProps {
   /** The text in the field. Free text is allowed — this is not a Select. */
   value: string;
-  onChangeText: (text: string) => void;
+  /**
+   * Called with the text as it changes: typed, cleared, or filled in by a
+   * picked option (its label; empty after a pick with `multiple`).
+   */
+  onChange: (text: string) => void;
   options: AutocompleteOption[];
-  onSelect: (option: AutocompleteOption) => void;
+  /**
+   * The suggestions offered while the field has fewer than `minChars`
+   * characters — before the user has typed, or before a first search has
+   * returned — instead of keeping the list closed. They are shown as given,
+   * not filtered. From `minChars` on, the list is `options`. Leave out for
+   * no list until the user types.
+   */
+  defaultOptions?: AutocompleteOption[];
   label?: string;
   placeholder?: string;
+  /**
+   * The look of the box: `"outlined"` is a bordered box on the surface,
+   * `"filled"` a tinted box (like `PinInput`'s) that shows its border only
+   * while focused or in error. Where the label sits is `labelPlacement`'s
+   * business, not the variant's. Defaults to `"outlined"`.
+   */
+  variant?: "filled" | "outlined";
+  /**
+   * Where the label is drawn: `"outside"` above the box, or `"inside"` within
+   * it. Independent of `variant`. Defaults to `"outside"`.
+   */
+  labelPlacement?: "inside" | "outside";
+  /**
+   * Stretches the field to its container's width. `false` shrinks it to its
+   * content, with a minimum width. Defaults to `true`.
+   */
+  fullWidth?: boolean;
   /**
    * Custom matcher. Defaults to a case- and accent-insensitive substring test
    * over `label`, or to no filtering at all when `onSearch` is given (the
@@ -49,25 +80,19 @@ export interface AutocompleteProps {
    */
   filter?: (option: AutocompleteOption, query: string) => boolean;
   /**
-   * Called with the text after the user stops typing for `debounceMs`, once it
-   * has `minChars` characters, and with `""` when the field is cleared. Fetch
-   * the options there and pass them in `options`; use `loading` meanwhile.
-   * Not called for the text an option fills in.
+   * Called with the text after the user stops typing for `debounce` ms, once
+   * it has `minChars` characters, and with `""` when the field is cleared.
+   * Fetch the options there and pass them in `options`; use `loading`
+   * meanwhile. Not called for the text an option fills in.
    */
   onSearch?: (text: string) => void;
-  /** Quiet time before `onSearch`. Defaults to 300. */
-  debounceMs?: number;
-  /**
-   * The chosen option, kept apart from the text being typed. Pass it (even as
-   * `null`) to control the choice; editing the text away from its label, or
-   * clearing the field, reports `null` through `onSelectedChange`.
-   */
-  selected?: AutocompleteOption | null;
-  onSelectedChange?: (option: AutocompleteOption | null) => void;
+  /** Quiet time in ms before `onSearch`. Defaults to 300. */
+  debounce?: number;
   /**
    * Whether text that is not an option may stay in the field. Defaults to
    * `true`. With `false`, leaving the field puts back the chosen option's
-   * label, or empties it when nothing is chosen.
+   * label, or empties it when nothing is chosen (always empties it with
+   * `multiple`, where the text is only a query).
    */
   allowCustomValue?: boolean;
   /** Characters required before suggestions appear. Defaults to 1. */
@@ -90,6 +115,36 @@ export interface AutocompleteProps {
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
+
+export interface AutocompleteSingleProps extends AutocompleteBaseProps {
+  /** Picks one option (the default). Set to `true` to pick several. */
+  multiple?: false;
+  /**
+   * The chosen option, kept apart from the text being typed. Pass it (even as
+   * `null`) to control the choice; editing the text away from its label, or
+   * clearing the field, reports `null` through `onSelectedChange`.
+   */
+  selected?: AutocompleteOption | null;
+  /** Called on every pick with the option, and with `null` when the choice is cleared. */
+  onSelectedChange?: (option: AutocompleteOption | null) => void;
+}
+
+export interface AutocompleteMultipleProps extends AutocompleteBaseProps {
+  /**
+   * Picks several options: each shows as a removable chip in the field,
+   * picking a chosen option again removes it, and the text clears after a pick.
+   */
+  multiple: true;
+  /** The chosen options. Pass it to control them; left out, the field keeps its own. */
+  selected?: AutocompleteOption[];
+  /** Called with the whole new set of chosen options on every pick or chip removal. */
+  onSelectedChange?: (options: AutocompleteOption[]) => void;
+}
+
+export type AutocompleteProps =
+  AutocompleteSingleProps | AutocompleteMultipleProps;
+
+const NO_OPTIONS: AutocompleteOption[] = [];
 
 /** Strips diacritics so "cafe" matches "Café". */
 const normalize = (text: string) =>
@@ -120,14 +175,18 @@ const keepFocus =
  */
 const Autocomplete = ({
   value,
-  onChangeText,
+  onChange,
   options,
-  onSelect,
+  defaultOptions,
   label,
   placeholder,
+  variant = "outlined",
+  labelPlacement,
+  fullWidth = true,
   filter: filterProp,
   onSearch,
-  debounceMs = 300,
+  debounce = 300,
+  multiple = false,
   selected,
   onSelectedChange,
   allowCustomValue = true,
@@ -145,6 +204,7 @@ const Autocomplete = ({
   style,
   testID,
 }: AutocompleteProps) => {
+  const labelInside = labelPlacement === "inside";
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const inputRef = useRef<TextInput>(null);
@@ -163,29 +223,49 @@ const Autocomplete = ({
   // Selecting an option fills the field, which would otherwise immediately
   // re-open the list with a single exact match in it.
   const [suppressed, setSuppressed] = useState(false);
+  // `selected` is one option or an array depending on `multiple`; the
+  // component works with the two shapes separately from here on.
+  const [ownChosen, setOwnChosen] = useState<AutocompleteOption[]>([]);
+  const chosenMany = multiple
+    ? ((selected as AutocompleteOption[] | undefined) ?? ownChosen)
+    : NO_OPTIONS;
+  const chosenOne = multiple
+    ? undefined
+    : (selected as AutocompleteOption | null | undefined);
+  const reportSelected = onSelectedChange as
+    | ((chosen: AutocompleteOption | null | AutocompleteOption[]) => void)
+    | undefined;
 
   // With a server search the options already match: filtering them again by
   // label would hide results the server found on other fields.
   const serverSide = !!onSearch;
   const search = useDebouncedCallback(
     (text: string) => onSearch?.(text),
-    debounceMs,
+    debounce,
   );
 
+  const belowMinChars = value.length < minChars;
   const suggestions = useMemo(() => {
-    if (value.length < minChars) return [];
+    if (belowMinChars) return (defaultOptions ?? []).slice(0, maxSuggestions);
     const match = filterProp ?? (serverSide ? () => true : defaultFilter);
     return options
       .filter((option) => match(option, value))
       .slice(0, maxSuggestions);
-  }, [options, value, filterProp, serverSide, minChars, maxSuggestions]);
+  }, [
+    options,
+    defaultOptions,
+    value,
+    belowMinChars,
+    filterProp,
+    serverSide,
+    maxSuggestions,
+  ]);
 
   const listVisible =
     focused &&
     !suppressed &&
     !disabled &&
-    value.length >= minChars &&
-    (suggestions.length > 0 || !!emptyMessage);
+    (suggestions.length > 0 || (!belowMinChars && !!emptyMessage));
 
   useEffect(() => {
     if (!hasPortalHost || !listVisible || !anchorRef.current) return;
@@ -220,24 +300,50 @@ const Autocomplete = ({
   // the block below stays put in the source either way.
   const ListContainer = hasPortalHost ? Portal : React.Fragment;
 
+  const setChosenMany = useCallback(
+    (next: AutocompleteOption[]) => {
+      if (selected === undefined) setOwnChosen(next);
+      reportSelected?.(next);
+    },
+    [selected, reportSelected],
+  );
+
   const commit = useCallback(
     (option: AutocompleteOption) => {
-      setSuppressed(true);
       // The label this fills in is not a query.
       search.cancel();
-      onChangeText(option.label);
-      onSelectedChange?.(option);
-      onSelect(option);
+      if (multiple) {
+        // Picking toggles; the text was only a query, so it goes.
+        setChosenMany(
+          chosenMany.some((item) => item.id === option.id)
+            ? chosenMany.filter((item) => item.id !== option.id)
+            : [...chosenMany, option],
+        );
+        onChange("");
+        onSearch?.("");
+        return;
+      }
+      setSuppressed(true);
+      onChange(option.label);
+      reportSelected?.(option);
     },
-    [onChangeText, onSelect, onSelectedChange, search],
+    [
+      multiple,
+      chosenMany,
+      setChosenMany,
+      onChange,
+      onSearch,
+      reportSelected,
+      search,
+    ],
   );
 
   const handleChange = (text: string) => {
     setSuppressed(false);
     // A new query invalidates the old highlight position.
     setHighlighted(0);
-    onChangeText(text);
-    if (selected && text !== selected.label) onSelectedChange?.(null);
+    onChange(text);
+    if (chosenOne && text !== chosenOne.label) reportSelected?.(null);
     if (onSearch && text.length >= minChars) search(text);
     else search.cancel();
   };
@@ -245,13 +351,17 @@ const Autocomplete = ({
   const handleBlur = () => {
     setFocused(false);
     if (allowCustomValue) return;
+    if (multiple) {
+      if (value) onChange("");
+      return;
+    }
     const chosen =
-      selected !== undefined
-        ? selected
+      chosenOne !== undefined
+        ? chosenOne
         : (options.find((option) => option.label === value) ?? null);
     const wanted = chosen ? chosen.label : "";
-    if (value !== wanted) onChangeText(wanted);
-    if (!chosen && selected) onSelectedChange?.(null);
+    if (value !== wanted) onChange(wanted);
+    if (!chosen && chosenOne) reportSelected?.(null);
   };
 
   // Arrow/Enter navigation over the suggestion list. Web only: React Native
@@ -287,23 +397,27 @@ const Autocomplete = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [listVisible, suggestions, highlighted, commit]);
 
+  const labelColor = focused
+    ? error
+      ? theme.colors.error
+      : theme.colors.primary
+    : theme.colors.onSurfaceVariant;
+  const labelText = required ? `${label} *` : label;
+
   return (
-    <View style={[styles.wrapper, style]} testID={testID}>
-      {!!label && (
+    <View
+      style={[styles.wrapper, fieldWidth(fullWidth), style]}
+      testID={testID}
+    >
+      {!!label && !labelInside && (
         <Text
           style={[
             theme.typography.bodySmall,
             styles.label,
-            {
-              color: focused
-                ? error
-                  ? theme.colors.error
-                  : theme.colors.primary
-                : theme.colors.onSurfaceVariant,
-            },
+            { color: labelColor },
           ]}
         >
-          {required ? `${label} *` : label}
+          {labelText}
         </Text>
       )}
 
@@ -312,6 +426,7 @@ const Autocomplete = ({
           style={[
             styles.field,
             getGlowStyles(theme, focused, error),
+            variant === "filled" && filledField(theme, focused, error),
             disabled && styles.disabled,
           ]}
         >
@@ -322,27 +437,60 @@ const Autocomplete = ({
               color={theme.colors.onSurfaceVariant}
             />
           )}
-          <TextInput
-            ref={inputRef}
-            value={value}
-            onChangeText={handleChange}
-            onFocus={() => setFocused(true)}
-            // Blur closes the list; `keepFocus` stops option presses from
-            // blurring in the first place.
-            onBlur={handleBlur}
-            editable={!disabled}
-            placeholder={placeholder}
-            placeholderTextColor={theme.colors.onSurfaceVariant}
-            autoCorrect={false}
-            autoCapitalize="none"
-            accessibilityLabel={label}
-            accessibilityState={{ disabled: !!disabled, expanded: listVisible }}
-            style={[
-              styles.input,
-              theme.typography.bodyLarge,
-              { color: theme.colors.onSurface },
-            ]}
-          />
+          <View style={styles.body}>
+            {!!label && labelInside && (
+              <Text
+                style={[theme.typography.labelSmall, { color: labelColor }]}
+              >
+                {labelText}
+              </Text>
+            )}
+            <View style={[styles.entry, multiple && styles.entryWrap]}>
+              {chosenMany.map((option) => (
+                <Chip
+                  key={option.id}
+                  label={option.label}
+                  size="small"
+                  onClose={
+                    disabled
+                      ? undefined
+                      : () =>
+                          setChosenMany(
+                            chosenMany.filter((item) => item.id !== option.id),
+                          )
+                  }
+                />
+              ))}
+              <TextInput
+                ref={inputRef}
+                value={value}
+                onChangeText={handleChange}
+                onFocus={() => setFocused(true)}
+                // Blur closes the list; `keepFocus` stops option presses from
+                // blurring in the first place.
+                onBlur={handleBlur}
+                editable={!disabled}
+                placeholder={placeholder}
+                placeholderTextColor={theme.colors.onSurfaceVariant}
+                autoCorrect={false}
+                autoCapitalize="none"
+                accessibilityLabel={label}
+                accessibilityState={{
+                  disabled: !!disabled,
+                  expanded: listVisible,
+                }}
+                style={[
+                  styles.input,
+                  multiple && styles.inputMultiple,
+                  theme.typography.bodyLarge,
+                  {
+                    color: theme.colors.onSurface,
+                    paddingVertical: labelInside ? 2 : multiple ? 8 : 12,
+                  },
+                ]}
+              />
+            </View>
+          </View>
           {loading && (
             <CircularProgress size={18} color={theme.colors.primary} />
           )}
@@ -354,8 +502,8 @@ const Autocomplete = ({
               onPress={() => {
                 setSuppressed(false);
                 search.cancel();
-                onChangeText("");
-                onSelectedChange?.(null);
+                onChange("");
+                if (!multiple) reportSelected?.(null);
                 onSearch?.("");
                 inputRef.current?.focus();
               }}
@@ -401,51 +549,67 @@ const Autocomplete = ({
                 </Text>
               ) : (
                 <ScrollView keyboardShouldPersistTaps="handled">
-                  {suggestions.map((option, index) => (
-                    <Pressable
-                      key={option.id}
-                      accessibilityRole="menuitem"
-                      accessibilityState={{ selected: index === highlighted }}
-                      onPress={() => commit(option)}
-                      onHoverIn={() => setHighlighted(index)}
-                      style={({ hovered, pressed }: PressableState) => [
-                        styles.option,
-                        (index === highlighted || hovered || pressed) && {
-                          backgroundColor: theme.colors.surfaceContainerHighest,
-                        },
-                      ]}
-                    >
-                      {!!option.icon && (
-                        <Icons
-                          name={option.icon}
-                          size={20}
-                          color={theme.colors.onSurfaceVariant}
-                        />
-                      )}
-                      <View style={styles.optionText}>
-                        <Text
-                          numberOfLines={1}
-                          style={[
-                            theme.typography.bodyLarge,
-                            { color: theme.colors.onSurface },
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                        {!!option.description && (
+                  {suggestions.map((option, index) => {
+                    const isChosen = chosenMany.some(
+                      (item) => item.id === option.id,
+                    );
+                    return (
+                      <Pressable
+                        key={option.id}
+                        accessibilityRole="menuitem"
+                        accessibilityState={{
+                          selected: index === highlighted,
+                          ...(multiple && { checked: isChosen }),
+                        }}
+                        onPress={() => commit(option)}
+                        onHoverIn={() => setHighlighted(index)}
+                        style={({ hovered, pressed }: PressableState) => [
+                          styles.option,
+                          (index === highlighted || hovered || pressed) && {
+                            backgroundColor:
+                              theme.colors.surfaceContainerHighest,
+                          },
+                        ]}
+                      >
+                        {!!option.icon && (
+                          <Icons
+                            name={option.icon}
+                            size={20}
+                            color={theme.colors.onSurfaceVariant}
+                          />
+                        )}
+                        <View style={styles.optionText}>
                           <Text
                             numberOfLines={1}
                             style={[
-                              theme.typography.bodySmall,
-                              { color: theme.colors.onSurfaceVariant },
+                              theme.typography.bodyLarge,
+                              { color: theme.colors.onSurface },
                             ]}
                           >
-                            {option.description}
+                            {option.label}
                           </Text>
+                          {!!option.description && (
+                            <Text
+                              numberOfLines={1}
+                              style={[
+                                theme.typography.bodySmall,
+                                { color: theme.colors.onSurfaceVariant },
+                              ]}
+                            >
+                              {option.description}
+                            </Text>
+                          )}
+                        </View>
+                        {isChosen && (
+                          <Icons
+                            name="check"
+                            size={18}
+                            color={theme.colors.primary}
+                          />
                         )}
-                      </View>
-                    </Pressable>
-                  ))}
+                      </Pressable>
+                    );
+                  })}
                 </ScrollView>
               )}
             </View>
@@ -466,7 +630,7 @@ export default Autocomplete;
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
-    wrapper: { marginBottom: theme.spacing.m, width: "100%" },
+    wrapper: { marginBottom: theme.spacing.m },
     label: { marginBottom: theme.spacing.xs, marginLeft: theme.spacing.xs },
     anchor: { position: "relative", zIndex: 10 },
     field: {
@@ -478,11 +642,20 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.m,
       backgroundColor: theme.colors.surface,
     },
+    body: { flex: 1 },
+    entry: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    // Chips and the text share the rows; the text takes what is left of the last.
+    entryWrap: { flexWrap: "wrap" },
     input: {
       flex: 1,
       paddingVertical: 12,
       ...Platform.select({ web: { outlineStyle: "none" as any } }),
     },
+    inputMultiple: { minWidth: 96 },
     clearButton: {
       width: 28,
       height: 28,

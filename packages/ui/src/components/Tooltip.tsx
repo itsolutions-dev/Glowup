@@ -39,6 +39,14 @@ export interface TooltipProps {
   children: React.ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   disabled?: boolean;
+  /**
+   * Native only. Whether the anchor is one accessibility element named by
+   * `content`. Turn it off when the child is a control with a name of its own
+   * (an `IconButton`): behind an accessible wrapper a screen reader never
+   * reaches the control, only the wrapper, which does nothing when activated.
+   * The long press still shows the tip. Defaults to `true`.
+   */
+  anchorAccessible?: boolean;
   /** Auto-hide delay (ms) after long-press on native. */
   hideDelay?: number;
   /**
@@ -60,6 +68,7 @@ const Tooltip = ({
   children,
   position = "top",
   disabled,
+  anchorAccessible = true,
   hideDelay = 1500,
   enterDelay = 500,
   leaveDelay = 100,
@@ -253,8 +262,8 @@ const Tooltip = ({
       {action && (
         <View style={styles.richActions}>
           <Button
-            mode="text"
-            onPress={() => {
+            variant="text"
+            onClick={() => {
               setVisible(false);
               action.onPress();
             }}
@@ -290,7 +299,14 @@ const Tooltip = ({
         <Pressable
           ref={anchorRef}
           onLayout={onAnchorLayout}
-          accessibilityLabel={title ? `${title}. ${content}` : content}
+          accessible={anchorAccessible}
+          accessibilityLabel={
+            anchorAccessible
+              ? title
+                ? `${title}. ${content}`
+                : content
+              : undefined
+          }
           onLongPress={handleLongPress}
         >
           {children}

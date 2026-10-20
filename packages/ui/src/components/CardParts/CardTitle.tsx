@@ -6,9 +6,9 @@ export interface CardTitleProps {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   /** Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`. */
-  left?: React.ReactNode;
+  startIcon?: React.ReactNode;
   /** Trailing slot — an `IconButton`, a `Menu` anchor, a `Chip`. */
-  right?: React.ReactNode;
+  endIcon?: React.ReactNode;
   titleNumberOfLines?: number;
   subtitleNumberOfLines?: number;
   style?: StyleProp<ViewStyle>;
@@ -22,8 +22,8 @@ export interface CardTitleProps {
 const CardTitle = ({
   title,
   subtitle,
-  left,
-  right,
+  startIcon,
+  endIcon,
   titleNumberOfLines = 1,
   subtitleNumberOfLines = 2,
   style,
@@ -33,7 +33,7 @@ const CardTitle = ({
 
   return (
     <View style={[styles.row, style]}>
-      {!!left && <View style={styles.slot}>{left}</View>}
+      {!!startIcon && <View style={styles.slot}>{startIcon}</View>}
 
       <View style={styles.text}>
         <Text style={styles.title} numberOfLines={titleNumberOfLines}>
@@ -46,7 +46,7 @@ const CardTitle = ({
         )}
       </View>
 
-      {!!right && <View style={styles.slot}>{right}</View>}
+      {!!endIcon && <View style={styles.slot}>{endIcon}</View>}
     </View>
   );
 };

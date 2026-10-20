@@ -1,8 +1,8 @@
 import type { Variant } from "../types";
-import { variants as AnimatedFAB } from "./AnimatedFAB";
 import { variants as Autocomplete } from "./Autocomplete";
 import { variants as BottomSheet } from "./BottomSheet";
 import { variants as ConfirmDialog } from "./ConfirmDialog";
+import { variants as FAB } from "./FAB";
 import { variants as Icon } from "./Icon";
 import { variants as Menu } from "./Menu";
 import { variants as Modal } from "./Modal";
@@ -32,7 +32,7 @@ import {
  *
  * Three reasons a component ends up here. Either its authored preview uses a
  * browser API that has no mechanical React Native equivalent — raw SVG in a
- * render prop (Icon), a scrolling div with onScroll (AnimatedFAB), a synthetic
+ * render prop (Icon), a scrolling div with onScroll (FAB's animated variant), a synthetic
  * pointer event or a querySelector used to force a transient state open for a
  * screenshot (Tooltip, Autocomplete) — or it has no authored preview at all
  * (Toast, which is an imperative API rather than a component, and the four Card
@@ -48,10 +48,10 @@ import {
  * matter of deleting its file.
  */
 export const MANUAL_VARIANTS: Record<string, Variant[]> = {
-  AnimatedFAB,
   Autocomplete,
   BottomSheet,
   ConfirmDialog,
+  FAB,
   Icon,
   Menu,
   Modal,

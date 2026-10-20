@@ -49,13 +49,13 @@ export const AlongsideInput = () => (
     <Input
       label="Email"
       value="jane.doe"
-      onChangeText={() => {}}
+      onChange={() => {}}
       error="Missing the @"
     />
     <Input
       label="Phone"
       value="+44 7700 900123"
-      onChangeText={() => {}}
+      onChange={() => {}}
       helperText="Include the country code"
     />
   </View>

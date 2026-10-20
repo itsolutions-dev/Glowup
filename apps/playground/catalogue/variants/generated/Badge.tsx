@@ -29,21 +29,21 @@ export const OnIconButtons = () => (
   <View style={row}>
     <View style={stack}>
       <View style={anchor}>
-        <Button mode="tonal" iconName="email-outline" onPress={() => {}} />
+        <Button variant="tonal" iconName="email-outline" onClick={() => {}} />
         <Badge count={3} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Inbox</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button mode="tonal" iconName="bell-outline" onPress={() => {}} />
+        <Button variant="tonal" iconName="bell-outline" onClick={() => {}} />
         <Badge count={12} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Alerts</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button mode="tonal" iconName="cart-outline" onPress={() => {}} />
+        <Button variant="tonal" iconName="cart-outline" onClick={() => {}} />
         <Badge count={128} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Cart</Typography>
@@ -55,14 +55,22 @@ export const Sizes = () => (
   <View style={row}>
     <View style={stack}>
       <View style={anchor}>
-        <Button mode="outlined" iconName="message-outline" onPress={() => {}} />
+        <Button
+          variant="outlined"
+          iconName="message-outline"
+          onClick={() => {}}
+        />
         <Badge count={7} size="large" style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">large (count)</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button mode="outlined" iconName="message-outline" onPress={() => {}} />
+        <Button
+          variant="outlined"
+          iconName="message-outline"
+          onClick={() => {}}
+        />
         <Badge size="small" style={{ top: 2, right: 2 }} />
       </View>
       <Typography variant="labelSmall">small (dot)</Typography>

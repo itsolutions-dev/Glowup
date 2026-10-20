@@ -499,7 +499,7 @@ function SaveButton() {
     const ok = await submit();
     haptics.notification(ok ? "success" : "error");
   };
-  return <Button onPress={save}>Save</Button>;
+  return <Button onClick={save}>Save</Button>;
 }
 ```
 
@@ -544,7 +544,7 @@ function RevealCard({ onReveal }: { onReveal(): void }) {
       showMessage("Sblocca il telefono e riprova.");
   };
   return (
-    <Button onPress={reveal} disabled={biometrics.level === "none"}>
+    <Button onClick={reveal} disabled={biometrics.level === "none"}>
       Mostra
     </Button>
   );
@@ -820,7 +820,7 @@ function Altimeter() {
   const { reading } = useBarometer();
   if (permission.status === "undetermined") {
     // On the web, call request() directly from the press handler.
-    return <Button onPress={permission.request}>Allow motion data</Button>;
+    return <Button onClick={permission.request}>Allow motion data</Button>;
   }
   return <Text>{reading ? `${reading.pressure.toFixed(1)} hPa` : "…"}</Text>;
 }
@@ -858,7 +858,7 @@ function AvatarButton() {
     <Button
       disabled={isPicking}
       // On the web, straight from the press: a browser opens its dialog only in the gesture.
-      onPress={async () => {
+      onClick={async () => {
         const result = await pick({ edit: true, aspect: [1, 1], quality: 0.8 });
         if (result.status === "picked") upload(result.assets[0]);
       }}
@@ -907,12 +907,12 @@ function SaveButton({ uri }: { uri: string }) {
   if (!library.isSupported) return null; // the web has no photo library
   if (library.status === "denied") {
     return (
-      <Button onPress={library.openSettings}>Allow saving in Settings</Button>
+      <Button onClick={library.openSettings}>Allow saving in Settings</Button>
     );
   }
   return (
     <Button
-      onPress={async () => {
+      onClick={async () => {
         const result = await library.save(uri); // asks the first time
         if (result.status === "saved") toast("Saved to Photos");
       }}
@@ -969,13 +969,13 @@ function TripButton() {
   const trip = useBackgroundLocation("trip");
   if (!trip.isSupported) return null;
   if (permission.status !== "granted") {
-    return <Button onPress={permission.request}>Use my location</Button>;
+    return <Button onClick={permission.request}>Use my location</Button>;
   }
   return trip.isRunning ? (
-    <Button onPress={trip.stop}>Stop recording</Button>
+    <Button onClick={trip.stop}>Stop recording</Button>
   ) : (
     <Button
-      onPress={() =>
+      onClick={() =>
         trip.start({
           accuracy: "high",
           distanceInterval: 20,

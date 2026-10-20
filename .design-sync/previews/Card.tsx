@@ -76,14 +76,14 @@ export const ProfileCard = () => (
         <Chip
           label="Design system"
           size="small"
-          mode="tonal"
-          onPress={() => {}}
+          variant="tonal"
+          onClick={() => {}}
         />
         <Chip
           label="Accessibility"
           size="small"
-          mode="tonal"
-          onPress={() => {}}
+          variant="tonal"
+          onClick={() => {}}
         />
       </div>
     </Card>
@@ -94,7 +94,7 @@ export const Pressable = () => (
   <div style={stack}>
     <Card
       variant="filled"
-      onPress={() => {}}
+      onClick={() => {}}
       accessibilityLabel="Open billing settings"
     >
       <div
@@ -115,7 +115,7 @@ export const Pressable = () => (
     </Card>
     <Card
       variant="outlined"
-      onPress={() => {}}
+      onClick={() => {}}
       accessibilityLabel="Review failed payment"
     >
       <div
@@ -146,13 +146,13 @@ export const WithActions = () => (
         </Typography>
       </CardContent>
       <CardActions>
-        <Button mode="text" onPress={() => {}}>
+        <Button variant="text" onClick={() => {}}>
           Not now
         </Button>
         <Button
-          mode="filled"
+          variant="filled"
           iconName="account-plus-outline"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Invite
         </Button>
@@ -183,8 +183,8 @@ export const ComposedFromParts = () => (
       <CardTitle
         title="Material You 0.2.0"
         subtitle="Released 9 September"
-        left={<Avatar name="Glowup UI" size={40} />}
-        right={<StatusBadge type="success" label="Stable" />}
+        startIcon={<Avatar name="Glowup UI" size={40} />}
+        endIcon={<StatusBadge type="success" label="Stable" />}
       />
       <CardContent>
         <Typography variant="bodyMedium">
@@ -193,15 +193,15 @@ export const ComposedFromParts = () => (
           surface.
         </Typography>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Chip label="87 components" mode="tonal" onPress={() => {}} />
-          <Chip label="Breaking" mode="outlined" onPress={() => {}} />
+          <Chip label="87 components" variant="tonal" onClick={() => {}} />
+          <Chip label="Breaking" variant="outlined" onClick={() => {}} />
         </div>
       </CardContent>
       <CardActions align="space-between">
-        <Button mode="text" onPress={() => {}}>
+        <Button variant="text" onClick={() => {}}>
           Changelog
         </Button>
-        <Button mode="filled" onPress={() => {}}>
+        <Button variant="filled" onClick={() => {}}>
           Update
         </Button>
       </CardActions>

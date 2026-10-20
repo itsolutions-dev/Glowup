@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner } from "@its/glowup-ui";
+import { NumberField } from "@its/glowup-ui";
 
 const row: React.CSSProperties = {
   display: "flex",
@@ -13,13 +13,13 @@ const noop = () => {};
 
 export const Default = () => (
   <div style={row}>
-    <Spinner label="Guests" value={2} min={1} max={12} onChange={noop} />
+    <NumberField label="Guests" value={2} min={1} max={12} onChange={noop} />
   </div>
 );
 
 export const Steps = () => (
   <div style={row}>
-    <Spinner
+    <NumberField
       label="Quantity"
       value={6}
       step={1}
@@ -27,7 +27,7 @@ export const Steps = () => (
       max={99}
       onChange={noop}
     />
-    <Spinner
+    <NumberField
       label="Seats (packs of 5)"
       value={25}
       step={5}
@@ -40,14 +40,14 @@ export const Steps = () => (
 
 export const AtBounds = () => (
   <div style={row}>
-    <Spinner label="Nights" value={1} min={1} max={14} onChange={noop} />
-    <Spinner label="Nights" value={14} min={1} max={14} onChange={noop} />
+    <NumberField label="Nights" value={1} min={1} max={14} onChange={noop} />
+    <NumberField label="Nights" value={14} min={1} max={14} onChange={noop} />
   </div>
 );
 
 export const Disabled = () => (
   <div style={row}>
-    <Spinner
+    <NumberField
       label="Licences"
       value={10}
       min={1}

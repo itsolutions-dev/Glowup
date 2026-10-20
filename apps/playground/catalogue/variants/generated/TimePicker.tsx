@@ -65,6 +65,16 @@ export const Formats = () => (
   </View>
 );
 
+/**
+ * `variant="static"` puts the clock face in the page, with no field and no
+ * dialog; each hour and minute you pick reports through `onChange`.
+ */
+export const Static = () => (
+  <View style={stack}>
+    <TimePicker variant="static" value={afternoon} onChange={noop} />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Basic",
@@ -79,5 +89,12 @@ export const variants: Variant[] = [
     description:
       "The clock format follows the locale — the capture browser is it-IT, which is 24-hour — and `minuteInterval` is the granularity the dial snaps to. `use24HourClock` can force the 24-hour face but cannot force the 12-hour one; that takes a 12-hour `locale`.",
     render: Formats,
+  },
+  {
+    name: "Static",
+    title: "Static",
+    description:
+      '`variant="static"` puts the clock face in the page, with no field and no dialog; each hour and minute you pick reports through `onChange`.',
+    render: Static,
   },
 ];

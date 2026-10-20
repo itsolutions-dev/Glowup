@@ -17,7 +17,7 @@ const formatting = [
     key={icon}
     icon={icon as "format-bold"}
     accessibilityLabel={icon.replace("format-", "")}
-    onPress={() => {}}
+    onClick={() => {}}
   />
 ));
 
@@ -52,7 +52,7 @@ export const WithFab = () => (
       variant="floating"
       safeArea={false}
       accessibilityLabel="Formatting"
-      fab={<FAB icon="plus" placement="inline" onPress={() => {}} />}
+      fab={<FAB icon="plus" placement="inline" onClick={() => {}} />}
     >
       {formatting}
     </Toolbar>
@@ -76,7 +76,7 @@ export const Docked = () => (
           key={icon}
           icon={icon as "heart-outline"}
           accessibilityLabel={icon.replace("-outline", "")}
-          onPress={() => {}}
+          onClick={() => {}}
         />
       ))}
     </Toolbar>

@@ -65,7 +65,7 @@ const SideSheet = ({
           <IconButton
             icon="arrow-left"
             accessibilityLabel="Back"
-            onPress={onBack}
+            onClick={onBack}
           />
         )}
         <Typography
@@ -80,7 +80,7 @@ const SideSheet = ({
           <IconButton
             icon="close"
             accessibilityLabel="Close"
-            onPress={onDismiss}
+            onClick={onDismiss}
             testID={testID ? `${testID}-close` : undefined}
           />
         )}

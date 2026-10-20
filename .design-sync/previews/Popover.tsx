@@ -28,7 +28,7 @@ export const AccountCard = () => (
       visible
       onDismiss={() => {}}
       anchor={
-        <Button mode="tonal" iconName="account-outline" onPress={() => {}}>
+        <Button variant="tonal" iconName="account-outline" onClick={() => {}}>
           Marta Rossi
         </Button>
       }
@@ -42,10 +42,15 @@ export const AccountCard = () => (
           </div>
         </div>
         <Divider contentSpacing={0} />
-        <Button mode="text" fullWidth iconName="cog-outline" onPress={() => {}}>
+        <Button
+          variant="text"
+          fullWidth
+          iconName="cog-outline"
+          onClick={() => {}}
+        >
           Settings
         </Button>
-        <Button mode="text" fullWidth iconName="logout" onPress={() => {}}>
+        <Button variant="text" fullWidth iconName="logout" onClick={() => {}}>
           Sign out
         </Button>
       </div>
@@ -61,27 +66,27 @@ export const MatchAnchorWidth = () => (
       onDismiss={() => {}}
       anchor={
         <Button
-          mode="outlined"
+          variant="outlined"
           fullWidth
           iconName="chevron-down"
-          iconPosition="right"
-          onPress={() => {}}
+          iconPosition="end"
+          onClick={() => {}}
         >
           Buttons &amp; actions
         </Button>
       }
     >
       <div style={{ display: "flex", flexDirection: "column", padding: 8 }}>
-        <Button mode="text" fullWidth onPress={() => {}}>
+        <Button variant="text" fullWidth onClick={() => {}}>
           Buttons &amp; actions
         </Button>
-        <Button mode="text" fullWidth onPress={() => {}}>
+        <Button variant="text" fullWidth onClick={() => {}}>
           Inputs &amp; forms
         </Button>
-        <Button mode="text" fullWidth onPress={() => {}}>
+        <Button variant="text" fullWidth onClick={() => {}}>
           Feedback &amp; overlays
         </Button>
-        <Button mode="text" fullWidth onPress={() => {}}>
+        <Button variant="text" fullWidth onClick={() => {}}>
           Navigation
         </Button>
       </div>
@@ -96,9 +101,9 @@ export const HelpBubble = () => (
       onDismiss={() => {}}
       anchor={
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="help-circle-outline"
-          onPress={() => {}}
+          onClick={() => {}}
         >
           Token sets
         </Button>

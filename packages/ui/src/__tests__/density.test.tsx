@@ -8,7 +8,7 @@ const json = async (ui: React.ReactElement) =>
 describe("density", () => {
   it("makes Input 40 high when dense, 56 otherwise, unless minHeight is given", async () => {
     const input = (props = {}) => (
-      <Input label="Nome" value="" onChangeText={() => {}} {...props} />
+      <Input label="Nome" value="" onChange={() => {}} {...props} />
     );
     expect(await json(input({ density: "dense" }))).toContain('"minHeight":40');
     expect(await json(input())).toContain('"minHeight":56');
@@ -22,7 +22,7 @@ describe("density", () => {
       <Select
         options={[{ id: "1", label: "Uno", value: 1 }]}
         value={null}
-        onSelect={() => {}}
+        onChange={() => {}}
         {...props}
       />
     );
@@ -53,7 +53,7 @@ describe("ThemeProvider density", () => {
       ).toJSON(),
     );
   const field = (props = {}) => (
-    <Input label="Nome" value="" onChangeText={() => {}} {...props} />
+    <Input label="Nome" value="" onChange={() => {}} {...props} />
   );
 
   it("sets the default for every control inside", async () => {

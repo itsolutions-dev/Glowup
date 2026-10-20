@@ -19,7 +19,7 @@ export const PushesApart = () => (
   >
     <Typography variant="titleMedium">Invoices</Typography>
     <Spacer />
-    <Button mode="tonal" onPress={() => {}}>
+    <Button variant="tonal" onClick={() => {}}>
       Export
     </Button>
   </HStack>

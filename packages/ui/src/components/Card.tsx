@@ -17,7 +17,7 @@ import CardTitle from "./CardParts/CardTitle";
 export interface CardProps {
   children: React.ReactNode;
   variant?: "elevated" | "filled" | "outlined" | "glow";
-  onPress?: () => void;
+  onClick?: () => void;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -25,7 +25,7 @@ export interface CardProps {
 const CardBase = ({
   children,
   variant = "filled",
-  onPress,
+  onClick,
   style,
   accessibilityLabel,
 }: CardProps) => {
@@ -34,9 +34,9 @@ const CardBase = ({
 
   return (
     <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? "button" : undefined}
+      onPress={onClick}
+      disabled={!onClick}
+      accessibilityRole={onClick ? "button" : undefined}
       accessibilityLabel={accessibilityLabel}
       style={({ hovered, pressed }: PressableState) => [
         styles.base,
@@ -47,7 +47,7 @@ const CardBase = ({
 
         hovered && styles.hovered,
         pressed && styles.pressed,
-        onPress && Platform.OS === "web" && { cursor: "pointer" },
+        onClick && Platform.OS === "web" && { cursor: "pointer" },
         style,
       ]}
     >
@@ -115,15 +115,15 @@ const makeStyles = (theme: Theme) =>
  * so a card header is composed rather than hand-built each time.
  *
  * ```tsx
- * <Card variant="elevated" onPress={open}>
+ * <Card variant="elevated" onClick={open}>
  *   <Card.Cover source={photo} alt="Line 4" />
  *   <Card.Title title="Line 4" subtitle="Scheduled maintenance" />
  *   <Card.Content>
- *     <Typography variant="bodyMedium">Next service: 12 March</Typography>
+ *     <Typography variant="body2">Next service: 12 March</Typography>
  *   </Card.Content>
  *   <Card.Actions>
- *     <Button mode="text" onPress={postpone}>Postpone</Button>
- *     <Button onPress={confirm}>Confirm</Button>
+ *     <Button variant="text" onClick={postpone}>Postpone</Button>
+ *     <Button onClick={confirm}>Confirm</Button>
  *   </Card.Actions>
  * </Card>
  * ```

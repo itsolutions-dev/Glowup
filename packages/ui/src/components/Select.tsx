@@ -16,6 +16,8 @@ import Checkbox from "./Checkbox";
 import Chip from "./Chip";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
+import { fieldWidth } from "./internal/fieldWidth";
+import { filledField } from "./internal/fieldVariant";
 
 export interface Option {
   id: string;
@@ -31,15 +33,56 @@ export interface SelectProps {
   error?: string;
   disabled?: boolean;
   options: Option[];
+  /** The `value` of the selected option; `null` for none. Ignored with `multiple`. */
   value: any;
-  onSelect: (value: any) => void;
+  /**
+   * Called with the picked option's `value`, or with `null` when a
+   * `nullable` select is cleared. Not called with `multiple`: see
+   * `toggleOptions`.
+   */
+  onChange: (value: any) => void;
   placeholder?: string;
+  /**
+   * The look of the box: `"outlined"` is a bordered box on the surface,
+   * `"filled"` a tinted box (like `PinInput`'s) that shows its border only
+   * while focused or in error. Where the label sits is `labelPlacement`'s
+   * business, not the variant's. Defaults to `"outlined"`.
+   */
   variant?: SelectVariant;
+  /**
+   * Where the label is drawn: `"outside"` above the box, or `"inside"`, small,
+   * above the value. Independent of `variant`; with chips showing it stays
+   * above the box. Defaults to `"outside"`.
+   */
+  labelPlacement?: "inside" | "outside";
+  /**
+   * Stretches the select to its container's width. `false` shrinks it to its
+   * content, with a minimum width. Defaults to `true`.
+   */
+  fullWidth?: boolean;
+  /**
+   * Lets the user go back to no selection: a clear button shows in the field
+   * while an option is selected, and pressing the selected option again
+   * deselects it. Both call `onChange(null)`. Ignored with `multiple`, where
+   * every option can already be unchecked. Defaults to `false`.
+   */
+  nullable?: boolean;
+  /** Shown in the open list when `options` is empty. Defaults to `"No options"`. */
+  emptyMessage?: string;
+  /**
+   * Options that stay visible but cannot be picked, announced as disabled:
+   * the `value`s to disable, or a pattern tested against each `String(value)`.
+   */
+  disabledOptions?: RegExp | (string | number)[];
   style?: object;
   optionStyle?: object;
-  multiSelect?: boolean;
+  /** Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too. */
+  multiple?: boolean;
+  /** With `multiple`, shows the selection as removable chips in the field. */
   showAsChips?: boolean;
+  /** With `multiple`: the `value`s of the selected options. */
   selectedValues?: any[];
+  /** With `multiple`: called with the new array of selected `value`s after each toggle. */
   toggleOptions?: (value: any) => void;
   /** Mount with the option list already open. Uncontrolled after that. */
   defaultOpen?: boolean;
@@ -55,12 +98,17 @@ const Select = ({
   disabled,
   options,
   value,
-  onSelect,
+  onChange,
   placeholder = "Select an option",
   variant = "outlined",
+  labelPlacement = "outside",
+  fullWidth = true,
+  nullable = false,
+  emptyMessage = "No options",
+  disabledOptions,
   style,
   optionStyle,
-  multiSelect = false,
+  multiple = false,
   showAsChips = false,
   selectedValues = [],
   toggleOptions,
@@ -76,6 +124,12 @@ const Select = ({
     : theme.typography.bodyLarge;
 
   const labelColor = error ? theme.colors.error : theme.colors.primary;
+
+  const isOptionDisabled = (option: Option) =>
+    Array.isArray(disabledOptions)
+      ? disabledOptions.includes(option.value)
+      : // `search` ignores a global/sticky flag's lastIndex, which `test` would not.
+        !!disabledOptions && String(option.value).search(disabledOptions) >= 0;
 
   const selectedOption = useMemo(
     () => options.find((opt) => opt.value === value),
@@ -100,7 +154,7 @@ const Select = ({
     : theme.colors.onSurfaceVariant;
 
   const getDisplayContent = useCallback(() => {
-    if (showAsChips && multiSelect && selectedValues.length > 0) {
+    if (showAsChips && multiple && selectedValues.length > 0) {
       return options
         .filter((opt) => selectedValues.includes(opt.value))
         .map((opt) => (
@@ -111,7 +165,7 @@ const Select = ({
           />
         ));
     }
-    if (multiSelect) {
+    if (multiple) {
       const selectedLabels = options
         .filter((opt) => selectedValues.includes(opt.value))
         .map((opt) => opt.label);
@@ -159,7 +213,7 @@ const Select = ({
     );
   }, [
     showAsChips,
-    multiSelect,
+    multiple,
     selectedValues,
     options,
     selectedOption,
@@ -178,6 +232,11 @@ const Select = ({
     setContainerWidth(width);
   };
 
+  const chipsShown = showAsChips && multiple && selectedValues.length > 0;
+  // With chips the field has no row for a label, so it stays above the box.
+  const labelInside = labelPlacement === "inside" && !!label && !chipsShown;
+  const clearable = nullable && !multiple && !!selectedOption && !disabled;
+
   const Anchor = (
     <Pressable
       accessibilityLabel={selectedOption?.label || label || placeholder}
@@ -185,19 +244,32 @@ const Select = ({
       accessibilityState={{ expanded: visible, disabled }}
       disabled={disabled}
       onPress={() => setVisible(true)}
-      style={[styles.selectContainer, getGlowStyles(theme, visible, error)]}
+      style={[
+        styles.selectContainer,
+        getGlowStyles(theme, visible, error),
+        variant === "filled" && filledField(theme, visible, error),
+      ]}
     >
-      {(!showAsChips || !multiSelect || selectedValues.length === 0) && (
-        <View style={styles.content}>{getDisplayContent()}</View>
+      {!chipsShown && (
+        <View style={[styles.content, labelInside && styles.contentStacked]}>
+          {labelInside && (
+            <Text
+              style={[
+                theme.typography.labelSmall,
+                { color: visible ? labelColor : theme.colors.onSurfaceVariant },
+              ]}
+            >
+              {label}
+            </Text>
+          )}
+          {getDisplayContent()}
+        </View>
       )}
       <View
         onLayout={onLayout}
-        style={[
-          { flexDirection: "row" },
-          showAsChips && selectedValues.length > 0 && { width: "100%" },
-        ]}
+        style={[{ flexDirection: "row" }, chipsShown && { width: "100%" }]}
       >
-        {showAsChips && selectedValues.length > 0 && (
+        {chipsShown && (
           <View
             style={{
               flexDirection: "row",
@@ -210,6 +282,21 @@ const Select = ({
         )}
 
         <View style={{ flexDirection: "row", alignItems: "center" }}>
+          {clearable && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear selection"
+              hitSlop={8}
+              onPress={() => onChange(null)}
+              style={styles.clearButton}
+            >
+              <Icons
+                name="close"
+                size={18}
+                color={theme.colors.onSurfaceVariant}
+              />
+            </Pressable>
+          )}
           <Icons
             name={visible ? "menu-up" : "menu-down"}
             size={24}
@@ -221,8 +308,15 @@ const Select = ({
   );
 
   return (
-    <View style={[styles.wrapper, style, disabled && { opacity: 0.38 }]}>
-      {!!label && variant === "outlined" && (
+    <View
+      style={[
+        styles.wrapper,
+        fieldWidth(fullWidth),
+        style,
+        disabled && { opacity: 0.38 },
+      ]}
+    >
+      {!!label && !labelInside && (
         <Text
           style={[
             theme.typography.bodySmall,
@@ -240,106 +334,122 @@ const Select = ({
         anchor={Anchor}
       >
         <View style={styles.menuContent}>
-          <ScrollView bounces={false} style={{ maxHeight: 250 }}>
-            {options.map((option) => (
-              <Pressable
-                key={option.id}
-                onPress={() => {
-                  if (multiSelect) {
-                    // Keep the menu open while toggling multiple options
-                    internalToggleOption(option.value);
-                  } else {
-                    onSelect(option.value);
-                    setVisible(false);
-                  }
-                }}
-                disabled={disabled}
-                accessibilityLabel={option.label}
-                accessibilityRole={
-                  (Platform.OS === "web" ? "option" : "none") as any
-                }
-                accessibilityState={{
-                  selected: multiSelect
-                    ? selectedValues.includes(option.value)
-                    : value === option.value,
-                }}
-                style={({ hovered, pressed }: PressableState) => [
-                  styles.optionItem,
-                  multiSelect && { paddingVertical: 0 },
-                  optionStyle,
-                  {
-                    backgroundColor: pressed
-                      ? theme.colors.primaryContainer // Pressed state
-                      : hovered
-                        ? theme.colors.surfaceContainerHigh // Hover state (Web only)
-                        : "transparent",
-                  },
-                ]}
-                {...(Platform.OS === "android" && {
-                  android_ripple: { color: theme.colors.onPrimary },
-                })}
-              >
-                <View style={styles.optionLabelRow}>
-                  {multiSelect && (
-                    <Checkbox
-                      label={option.label}
-                      checked={selectedValues.includes(option.value)}
-                      onValueChange={() => internalToggleOption(option.value)}
-                    />
-                  )}
-                  {!multiSelect && (
-                    <View style={styles.innerContent}>
-                      {variant === "filled" && !!label && !!option.value && (
-                        <Text
-                          style={[
-                            theme.typography.labelSmall,
-                            { color: labelColor },
-                          ]}
-                        >
-                          {label}
-                        </Text>
+          {options.length === 0 ? (
+            <Text
+              style={[
+                theme.typography.bodyMedium,
+                styles.emptyMessage,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              {emptyMessage}
+            </Text>
+          ) : (
+            <ScrollView bounces={false} style={{ maxHeight: 250 }}>
+              {options.map((option) => {
+                const optionDisabled = disabled || isOptionDisabled(option);
+                const isSelected = multiple
+                  ? selectedValues.includes(option.value)
+                  : value === option.value;
+                return (
+                  <Pressable
+                    key={option.id}
+                    // Not `disabled`: a disabled Pressable lets the touch through to
+                    // the popover's backdrop, which would close the list.
+                    onPress={() => {
+                      if (optionDisabled) return;
+                      if (multiple) {
+                        // Keep the menu open while toggling multiple options
+                        internalToggleOption(option.value);
+                      } else {
+                        onChange(nullable && isSelected ? null : option.value);
+                        setVisible(false);
+                      }
+                    }}
+                    aria-disabled={optionDisabled}
+                    accessibilityLabel={option.label}
+                    accessibilityRole={
+                      (Platform.OS === "web" ? "option" : "none") as any
+                    }
+                    accessibilityState={{
+                      selected: isSelected,
+                      disabled: optionDisabled,
+                    }}
+                    style={({ hovered, pressed }: PressableState) => [
+                      styles.optionItem,
+                      multiple && { paddingVertical: 0 },
+                      optionStyle,
+                      {
+                        backgroundColor: optionDisabled
+                          ? "transparent"
+                          : pressed
+                            ? theme.colors.primaryContainer // Pressed state
+                            : hovered
+                              ? theme.colors.surfaceContainerHigh // Hover state (Web only)
+                              : "transparent",
+                      },
+                      // The checkbox dims itself in a multiple select.
+                      optionDisabled && !multiple && { opacity: 0.38 },
+                    ]}
+                    {...(Platform.OS === "android" &&
+                      !optionDisabled && {
+                        android_ripple: { color: theme.colors.onPrimary },
+                      })}
+                  >
+                    <View style={styles.optionLabelRow}>
+                      {multiple && (
+                        <Checkbox
+                          label={option.label}
+                          checked={isSelected}
+                          disabled={optionDisabled}
+                          onValueChange={() =>
+                            internalToggleOption(option.value)
+                          }
+                        />
                       )}
-
-                      <View style={styles.leftSlot}>
-                        {!!option.icon && (
-                          <Icons
-                            name={option.icon}
-                            size={20}
-                            color={
-                              value === option.value
-                                ? theme.colors.primary
-                                : theme.colors.onSurfaceVariant
-                            }
-                            style={styles.leadingIcon}
-                          />
-                        )}
-                        <Text
-                          style={[
-                            theme.typography.bodyLarge,
-                            {
-                              color:
-                                value === option.value
-                                  ? theme.colors.primary
-                                  : theme.colors.onSurface,
-                            },
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                      </View>
+                      {!multiple && (
+                        <View style={styles.innerContent}>
+                          <View style={styles.leftSlot}>
+                            {!!option.icon && (
+                              <Icons
+                                name={option.icon}
+                                size={20}
+                                color={
+                                  isSelected
+                                    ? theme.colors.primary
+                                    : theme.colors.onSurfaceVariant
+                                }
+                                style={styles.leadingIcon}
+                              />
+                            )}
+                            <Text
+                              style={[
+                                theme.typography.bodyLarge,
+                                {
+                                  color: isSelected
+                                    ? theme.colors.primary
+                                    : theme.colors.onSurface,
+                                },
+                              ]}
+                            >
+                              {option.label}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                      {!multiple && isSelected && !!option.value && (
+                        <Icons
+                          name="check"
+                          size={18}
+                          color={theme.colors.primary}
+                        />
+                      )}
                     </View>
-                  )}
-                  {!multiSelect && value === option.value && !!option.value && (
-                    <Icons
-                      name="check"
-                      size={18}
-                      color={theme.colors.primary}
-                    />
-                  )}
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
         </View>
       </Popover>
       {!!error && (
@@ -362,7 +472,6 @@ const makeStyles = (theme: Theme, dense: boolean) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: dense ? 12 : 20,
-      width: "100%",
     },
     selectContainer: {
       minHeight: dense ? 40 : 52,
@@ -377,6 +486,14 @@ const makeStyles = (theme: Theme, dense: boolean) =>
     content: {
       flexDirection: "row",
       alignItems: "center",
+    },
+    // The label sits on its own line above the value.
+    contentStacked: {
+      flexDirection: "column",
+      alignItems: "flex-start",
+    },
+    clearButton: {
+      marginRight: 4,
     },
     leftSlot: {
       flexDirection: "row",
@@ -394,6 +511,10 @@ const makeStyles = (theme: Theme, dense: boolean) =>
     },
     menuContent: {
       minWidth: 150,
+    },
+    emptyMessage: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     optionItem: {
       paddingHorizontal: 8,

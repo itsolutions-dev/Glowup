@@ -2,8 +2,29 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 103,
+  "componentCount": 99,
   "components": {
+    "ViewportProvider": {
+      "name": "ViewportProvider",
+      "source": "packages/ui/src/providers/Viewport.tsx",
+      "propsTypeName": "ViewportProviderProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "description": "The width, in dp, to report instead of the window's. Leave it out (or\n`undefined`) and the real window width is reported, so the provider can sit\nin place permanently and be switched on by a value.",
+          "deprecated": false
+        }
+      ]
+    },
     "Accordion": {
       "name": "Accordion",
       "source": "packages/ui/src/components/Accordion.tsx",
@@ -47,111 +68,6 @@
           "type": "StyleProp<TextStyle>",
           "required": false,
           "default": "{}",
-          "deprecated": false
-        }
-      ]
-    },
-    "AnimatedFAB": {
-      "name": "AnimatedFAB",
-      "source": "packages/ui/src/components/AnimatedFAB.tsx",
-      "propsTypeName": "AnimatedFABProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "icon",
-          "type": "MaterialCommunityIconsGlyphs",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": true,
-          "description": "Always required: it is the label that animates.",
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "animateFrom",
-          "type": "\"left\" | \"right\"",
-          "required": false,
-          "default": "\"right\"",
-          "description": "Edge the label grows from. Match it to the FAB's own corner.",
-          "values": [
-            "left",
-            "right"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "deprecated": false
-        },
-        {
-          "name": "duration",
-          "type": "number",
-          "required": false,
-          "default": "150",
-          "description": "Animation duration (ms).",
-          "deprecated": false
-        },
-        {
-          "name": "extended",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "`true` shows the label, `false` collapses to the icon. Drive it from a\nscroll offset to get the M3 \"shrink on scroll\" behaviour.",
-          "deprecated": false
-        },
-        {
-          "name": "iconMode",
-          "type": "\"static\" | \"dynamic\"",
-          "required": false,
-          "default": "\"static\"",
-          "description": "`static` keeps the icon put and slides the label out beside it.\n`dynamic` lets the icon travel with the label as the pill grows.",
-          "values": [
-            "static",
-            "dynamic"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "placement",
-          "type": "\"floating\" | \"inline\"",
-          "required": false,
-          "default": "\"floating\"",
-          "description": "`inline` drops the absolute positioning (toolbar, card action row).",
-          "values": [
-            "floating",
-            "inline"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "position",
-          "type": "AnimatedFABPosition",
-          "required": false,
-          "default": "\"bottom-right\"",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
           "deprecated": false
         }
       ]
@@ -218,18 +134,15 @@
       "name": "Autocomplete",
       "source": "packages/ui/src/components/Autocomplete.tsx",
       "propsTypeName": "AutocompleteProps",
-      "extends": [],
+      "extends": [
+        "AutocompleteSingleProps | AutocompleteMultipleProps"
+      ],
       "props": [
         {
-          "name": "onChangeText",
+          "name": "onChange",
           "type": "(text: string) => void",
           "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onSelect",
-          "type": "(option: AutocompleteOption) => void",
-          "required": true,
+          "description": "Called with the text as it changes: typed, cleared, or filled in by a\npicked option (its label; empty after a pick with `multiple`).",
           "deprecated": false
         },
         {
@@ -250,7 +163,7 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Whether text that is not an option may stay in the field. Defaults to\n`true`. With `false`, leaving the field puts back the chosen option's\nlabel, or empties it when nothing is chosen.",
+          "description": "Whether text that is not an option may stay in the field. Defaults to\n`true`. With `false`, leaving the field puts back the chosen option's\nlabel, or empties it when nothing is chosen (always empties it with\n`multiple`, where the text is only a query).",
           "deprecated": false
         },
         {
@@ -268,11 +181,18 @@
           "deprecated": false
         },
         {
-          "name": "debounceMs",
+          "name": "debounce",
           "type": "number",
           "required": false,
           "default": "300",
-          "description": "Quiet time before `onSearch`. Defaults to 300.",
+          "description": "Quiet time in ms before `onSearch`. Defaults to 300.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOptions",
+          "type": "AutocompleteOption[]",
+          "required": false,
+          "description": "The suggestions offered while the field has fewer than `minChars`\ncharacters — before the user has typed, or before a first search has\nreturned — instead of keeping the list closed. They are shown as given,\nnot filtered. From `minChars` on, the list is `options`. Leave out for\nno list until the user types.",
           "deprecated": false
         },
         {
@@ -302,6 +222,14 @@
           "deprecated": false
         },
         {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Stretches the field to its container's width. `false` shrinks it to its\ncontent, with a minimum width. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
           "name": "helperText",
           "type": "string",
           "required": false,
@@ -312,6 +240,17 @@
           "name": "label",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPlacement",
+          "type": "\"inside\" | \"outside\"",
+          "required": false,
+          "description": "Where the label is drawn: `\"outside\"` above the box, or `\"inside\"` within\nit. Independent of `variant`. Defaults to `\"outside\"`.",
+          "values": [
+            "inside",
+            "outside"
+          ],
           "deprecated": false
         },
         {
@@ -344,16 +283,25 @@
           "deprecated": false
         },
         {
+          "name": "multiple",
+          "type": "false",
+          "required": false,
+          "default": "false",
+          "description": "Picks one option (the default). Set to `true` to pick several.",
+          "deprecated": false
+        },
+        {
           "name": "onSearch",
           "type": "(text: string) => void",
           "required": false,
-          "description": "Called with the text after the user stops typing for `debounceMs`, once it\nhas `minChars` characters, and with `\"\"` when the field is cleared. Fetch\nthe options there and pass them in `options`; use `loading` meanwhile.\nNot called for the text an option fills in.",
+          "description": "Called with the text after the user stops typing for `debounce` ms, once\nit has `minChars` characters, and with `\"\"` when the field is cleared.\nFetch the options there and pass them in `options`; use `loading`\nmeanwhile. Not called for the text an option fills in.",
           "deprecated": false
         },
         {
           "name": "onSelectedChange",
           "type": "(option: AutocompleteOption | null) => void",
           "required": false,
+          "description": "Called on every pick with the option, and with `null` when the choice is cleared.",
           "deprecated": false
         },
         {
@@ -386,6 +334,18 @@
           "type": "string",
           "required": false,
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"filled\" | \"outlined\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box (like `PinInput`'s) that shows its border only\nwhile focused or in error. Where the label sits is `labelPlacement`'s\nbusiness, not the variant's. Defaults to `\"outlined\"`.",
+          "values": [
+            "filled",
+            "outlined"
+          ],
+          "deprecated": false
         }
       ]
     },
@@ -412,19 +372,21 @@
           "name": "name",
           "type": "string",
           "required": false,
+          "description": "Initials are drawn from it when there is no `source`, and it is shown as a\ntooltip on hover (web) or long press (native).",
           "deprecated": false
         },
         {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "deprecated": false
         },
         {
           "name": "size",
-          "type": "number",
+          "type": "number | \"large\" | \"medium\" | \"small\"",
           "required": false,
-          "default": "40",
+          "default": "\"medium\"",
+          "description": "A size in pixels, or `\"small\"` (32), `\"medium\"` (40) or `\"large\"` (56). Defaults to `\"medium\"`.",
           "deprecated": false
         },
         {
@@ -467,6 +429,14 @@
       "extends": [],
       "props": [
         {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "default": "\"error\"",
+          "description": "Colour role of the badge. Defaults to `\"error\"`.",
+          "deprecated": false
+        },
+        {
           "name": "count",
           "type": "number",
           "required": false,
@@ -478,6 +448,19 @@
           "required": false,
           "default": "99",
           "description": "Cap shown as \"max+\" when count exceeds it.",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "\"top-right\" | \"bottom-right\" | \"top-left\" | \"bottom-left\"",
+          "required": false,
+          "description": "The corner of the parent the badge is pinned to, overlapping it slightly.\nLeft out, the badge is only absolutely placed and the parent (or `style`)\npositions it.",
+          "values": [
+            "top-right",
+            "bottom-right",
+            "top-left",
+            "bottom-left"
+          ],
           "deprecated": false
         },
         {
@@ -877,6 +860,14 @@
           "deprecated": false
         },
         {
+          "name": "color",
+          "type": "ButtonColor",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Colour role. `error` is the destructive treatment (delete, discard);\n`success`, `warning`, `info` and `neutral` come from fixed hues kept off\nthe seed.",
+          "deprecated": false
+        },
+        {
           "name": "density",
           "type": "Density",
           "required": false,
@@ -914,13 +905,13 @@
         },
         {
           "name": "iconPosition",
-          "type": "\"left\" | \"right\"",
+          "type": "\"start\" | \"end\"",
           "required": false,
-          "default": "\"left\"",
+          "default": "\"start\"",
           "description": "Icon side relative to the label.",
           "values": [
-            "left",
-            "right"
+            "start",
+            "end"
           ],
           "deprecated": false
         },
@@ -946,14 +937,7 @@
           "deprecated": false
         },
         {
-          "name": "mode",
-          "type": "ButtonMode",
-          "required": false,
-          "default": "\"filled\"",
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "deprecated": false
@@ -978,18 +962,17 @@
           "deprecated": false
         },
         {
-          "name": "tone",
-          "type": "ButtonTone",
-          "required": false,
-          "default": "\"primary\"",
-          "description": "Colour role. `error` is the destructive treatment (delete, discard);\n`success` is confirmation feedback, from a fixed green kept off the seed.",
-          "deprecated": false
-        },
-        {
           "name": "underlay",
           "type": "React.ReactNode",
           "required": false,
           "description": "Drawn behind the label across the whole surface, clipped to its shape:\na progress fill, a state animation. It receives no touches.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "required": false,
+          "default": "\"filled\"",
           "deprecated": false
         }
       ]
@@ -1079,164 +1062,6 @@
         }
       ]
     },
-    "Calendar": {
-      "name": "Calendar",
-      "source": "packages/ui/src/components/Calendar.tsx",
-      "propsTypeName": "CalendarProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "autoFocus",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Moves keyboard focus into the calendar when it mounts, so the arrow keys\nwork at once. Web only. The date pickers set it; leave it off for a\ncalendar that is part of a page.",
-          "deprecated": false
-        },
-        {
-          "name": "dates",
-          "type": "Date[]",
-          "required": false,
-          "description": "Selected days in `multiple` mode.",
-          "deprecated": false
-        },
-        {
-          "name": "endYear",
-          "type": "number",
-          "required": false,
-          "description": "Last year reachable from the year grid and the endless scroller.",
-          "deprecated": false
-        },
-        {
-          "name": "firstDayOfWeek",
-          "type": "number",
-          "required": false,
-          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
-          "deprecated": false
-        },
-        {
-          "name": "isDateDisabled",
-          "type": "(date: Date) => boolean",
-          "required": false,
-          "description": "Excludes days `validRange` cannot express (weekends, computed holidays).",
-          "deprecated": false
-        },
-        {
-          "name": "keyboardNavigation",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Arrow-key/PageUp/Home/Enter navigation. Web only — there is no key event\nsource on native. Default `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "labels",
-          "type": "DateTimePickerLabels",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "locale",
-          "type": "string",
-          "required": false,
-          "description": "Formatting/labelling locale. Defaults to the device locale.",
-          "deprecated": false
-        },
-        {
-          "name": "onChange",
-          "type": "(date: Date) => void",
-          "required": false,
-          "description": "Fires in `single` mode.",
-          "deprecated": false
-        },
-        {
-          "name": "onDatesChange",
-          "type": "(dates: Date[]) => void",
-          "required": false,
-          "description": "Fires in `multiple` mode with the full set after the tap.",
-          "deprecated": false
-        },
-        {
-          "name": "onRangeChange",
-          "type": "(range: DateRange) => void",
-          "required": false,
-          "description": "Fires in `range` mode with the interval after the tap.",
-          "deprecated": false
-        },
-        {
-          "name": "onRequestClose",
-          "type": "() => void",
-          "required": false,
-          "description": "Called on Escape while keyboard navigation is active.",
-          "deprecated": false
-        },
-        {
-          "name": "range",
-          "type": "DateRange",
-          "required": false,
-          "default": "EMPTY_RANGE",
-          "description": "Selected interval in `range` mode.",
-          "deprecated": false
-        },
-        {
-          "name": "scrollMode",
-          "type": "CalendarScrollMode",
-          "required": false,
-          "default": "\"endless\"",
-          "description": "`endless` scrolls through months in one virtualized list; `paged` shows one\nmonth at a time behind the chevrons. Defaults to `endless`.",
-          "deprecated": false
-        },
-        {
-          "name": "selectionMode",
-          "type": "DateSelectionMode",
-          "required": false,
-          "default": "\"single\"",
-          "description": "How many days the grid collects. Defaults to `\"single\"`.",
-          "deprecated": false
-        },
-        {
-          "name": "showToday",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Renders the \"Today\" shortcut row. Default `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "startYear",
-          "type": "number",
-          "required": false,
-          "description": "First year reachable from the year grid and the endless scroller.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "validRange",
-          "type": "ValidRange",
-          "required": false,
-          "description": "The selectable window plus individual excluded days.",
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "Date | null",
-          "required": false,
-          "description": "Selected day in `single` mode.",
-          "deprecated": false
-        }
-      ]
-    },
     "Card": {
       "name": "Card",
       "source": "packages/ui/src/components/Card.tsx",
@@ -1256,7 +1081,7 @@
           "deprecated": false
         },
         {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "deprecated": false
@@ -1389,17 +1214,17 @@
           "deprecated": false
         },
         {
-          "name": "left",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`.",
-          "deprecated": false
-        },
-        {
-          "name": "right",
+          "name": "endIcon",
           "type": "React.ReactNode",
           "required": false,
           "description": "Trailing slot — an `IconButton`, a `Menu` anchor, a `Chip`.",
+          "deprecated": false
+        },
+        {
+          "name": "startIcon",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`.",
           "deprecated": false
         },
         {
@@ -1705,6 +1530,99 @@
         }
       ]
     },
+    "CheckboxGroup": {
+      "name": "CheckboxGroup",
+      "source": "packages/ui/src/components/CheckboxGroup.tsx",
+      "propsTypeName": "CheckboxGroupProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(values: any[]) => void",
+          "required": true,
+          "description": "Receives the new set of checked values after each toggle.",
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "CheckboxOption[]",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "any[]",
+          "required": true,
+          "description": "The values of the checked options.",
+          "deprecated": false
+        },
+        {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "Stacks the options (`\"column\"`) or lays them in a wrapping line (`\"row\"`). Defaults to `\"column\"`.",
+          "values": [
+            "column",
+            "row"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "Error text below the group; it also turns the checkboxes and the label red.",
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report each toggle to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the group; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Marks the label with an asterisk.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
     "Chip": {
       "name": "Chip",
       "source": "packages/ui/src/components/Chip.tsx",
@@ -1730,6 +1648,26 @@
           "deprecated": false
         },
         {
+          "name": "border",
+          "type": "\"rounded\" | \"squared\" | \"circular\"",
+          "required": false,
+          "default": "\"rounded\"",
+          "description": "Corner shape: `\"rounded\"` (the default), `\"squared\"` for square corners,\n`\"circular\"` for a pill.",
+          "values": [
+            "rounded",
+            "squared",
+            "circular"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "description": "Colour role. `filled` takes the role's accent, `tonal` its container,\n`outlined` draws the label and the outline in it. Left out, the chip keeps\nthe neutral secondary look. `toneFrom` wins over it.",
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -1751,25 +1689,13 @@
           "deprecated": false
         },
         {
-          "name": "mode",
-          "type": "\"filled\" | \"tonal\" | \"outlined\"",
-          "required": false,
-          "default": "\"filled\"",
-          "values": [
-            "filled",
-            "tonal",
-            "outlined"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "onClose",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "deprecated": false
         },
         {
-          "name": "onPress",
+          "name": "onClose",
           "type": "() => void",
           "required": false,
           "deprecated": false
@@ -1783,13 +1709,14 @@
         },
         {
           "name": "size",
-          "type": "\"small\" | \"medium\"",
+          "type": "\"small\" | \"medium\" | \"large\"",
           "required": false,
           "default": "\"medium\"",
-          "description": "\"small\" renders a compact 24px chip.",
+          "description": "\"small\" renders a compact 24px chip, \"large\" a 40px one.",
           "values": [
             "small",
-            "medium"
+            "medium",
+            "large"
           ],
           "deprecated": false
         },
@@ -1806,6 +1733,18 @@
           "required": false,
           "description": "Tints a `\"filled\"` or `\"tonal\"` chip from a `#RRGGBB` colour or from any\ntext (the same text always gives the same colour), readable in light and dark.",
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"filled\" | \"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"filled\"",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
         }
       ]
     },
@@ -1816,7 +1755,7 @@
       "extends": [],
       "props": [
         {
-          "name": "onValueChange",
+          "name": "onChange",
           "type": "(value: any) => void",
           "required": true,
           "deprecated": false
@@ -1831,7 +1770,7 @@
           "name": "value",
           "type": "string | string[] | null",
           "required": true,
-          "description": "The selected value (or `null`), or the selected values with `multiSelect`.",
+          "description": "The selected value (or `null`), or the selected values with `multiple`.",
           "deprecated": false
         },
         {
@@ -1842,20 +1781,7 @@
           "deprecated": false
         },
         {
-          "name": "mode",
-          "type": "\"filled\" | \"tonal\" | \"outlined\"",
-          "required": false,
-          "default": "\"outlined\"",
-          "description": "Chip look. Defaults to `\"outlined\"`, the M3 filter chip.",
-          "values": [
-            "filled",
-            "tonal",
-            "outlined"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "multiSelect",
+          "name": "multiple",
           "type": "boolean",
           "required": false,
           "default": "false",
@@ -1883,174 +1809,24 @@
           "deprecated": false
         },
         {
+          "name": "variant",
+          "type": "\"filled\" | \"tonal\" | \"outlined\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "Chip look. Defaults to `\"outlined\"`, the M3 filter chip.",
+          "values": [
+            "filled",
+            "tonal",
+            "outlined"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "wrap",
           "type": "boolean",
           "required": false,
           "default": "true",
           "description": "`true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`.",
-          "deprecated": false
-        }
-      ]
-    },
-    "ClockDial": {
-      "name": "ClockDial",
-      "source": "packages/ui/src/components/ClockDial.tsx",
-      "propsTypeName": "ClockDialProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "hours",
-          "type": "number",
-          "required": true,
-          "description": "Current hour, always 0–23 regardless of the displayed clock format.",
-          "deprecated": false
-        },
-        {
-          "name": "minutes",
-          "type": "number",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onChangeHours",
-          "type": "(hours: number) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onChangeMinutes",
-          "type": "(minutes: number) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "unit",
-          "type": "ClockUnit",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "isTimeDisabled",
-          "type": "(hours: number, minutes: number) => boolean",
-          "required": false,
-          "description": "Greys out and refuses values the caller does not allow.",
-          "deprecated": false
-        },
-        {
-          "name": "minuteInterval",
-          "type": "number",
-          "required": false,
-          "default": "1",
-          "description": "Minute granularity the dial snaps to. Defaults to 1.",
-          "deprecated": false
-        },
-        {
-          "name": "onUnitComplete",
-          "type": "() => void",
-          "required": false,
-          "description": "Fires when a press on the hour dial ends, to hand over to the minutes.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "use24HourClock",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Renders two rings (1–12 outer, 13–00 inner) instead of one.",
-          "deprecated": false
-        }
-      ]
-    },
-    "ClockPicker": {
-      "name": "ClockPicker",
-      "source": "packages/ui/src/components/ClockPicker.tsx",
-      "propsTypeName": "ClockPickerProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "onChange",
-          "type": "(date: Date) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "Date",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "inputType",
-          "type": "PickerInputType",
-          "required": false,
-          "default": "\"picker\"",
-          "description": "`picker` shows the dial, `keyboard` two text fields. Defaults to `picker`.",
-          "deprecated": false
-        },
-        {
-          "name": "labels",
-          "type": "DateTimePickerLabels",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "locale",
-          "type": "string",
-          "required": false,
-          "description": "Formatting locale; decides 12h vs 24h. Defaults to the device locale.",
-          "deprecated": false
-        },
-        {
-          "name": "maximumDate",
-          "type": "Date",
-          "required": false,
-          "description": "Clamps the selectable times on the maximum's own day.",
-          "deprecated": false
-        },
-        {
-          "name": "minimumDate",
-          "type": "Date",
-          "required": false,
-          "description": "Clamps the selectable times on the minimum's own day.",
-          "deprecated": false
-        },
-        {
-          "name": "minuteInterval",
-          "type": "MinuteInterval",
-          "required": false,
-          "default": "1",
-          "description": "Minute granularity. Defaults to 1.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "use24HourClock",
-          "type": "boolean",
-          "required": false,
-          "description": "Forces the 24-hour face. Left unset, the locale decides.",
           "deprecated": false
         }
       ]
@@ -2260,7 +2036,7 @@
           "name": "defaultInputType",
           "type": "PickerInputType",
           "required": false,
-          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "description": "Which surface the dialog opens on, `\"picker\"` or typed `\"keyboard\"` entry.\nThere is no toggle between the two in the dialog, so this is the only way\nto get typed entry there. Default `\"picker\"`.",
           "deprecated": false
         },
         {
@@ -2288,6 +2064,17 @@
           "type": "string",
           "required": false,
           "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "fieldVariant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "description": "The look of the field's box, as `variant` on `Input`: `\"outlined\"` is a\nbordered box on the surface, `\"filled\"` a tinted box that shows its border\nonly while the picker is open, the typed text has focus, or there is an\n`error`. Named apart from `variant`, which already chooses between the\nfield and the inline picker. Does nothing for `variant=\"static\"`, which has\nno field. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
           "deprecated": false
         },
         {
@@ -2328,7 +2115,7 @@
           "name": "labels",
           "type": "DateTimePickerLabels",
           "required": false,
-          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"OK\", …).",
           "deprecated": false
         },
         {
@@ -2356,6 +2143,13 @@
           "type": "string",
           "required": false,
           "description": "Shown while the field has no value.",
+          "deprecated": false
+        },
+        {
+          "name": "presentation",
+          "type": "DateTimePickerPresentation",
+          "required": false,
+          "description": "Web only, `variant=\"default\"` only: whether the picker opens docked to its\nfield or as a dialog. Decided each time it opens. Native always opens the\ndialog. Defaults to `\"auto\"`.",
           "deprecated": false
         },
         {
@@ -2386,182 +2180,10 @@
           "deprecated": false
         },
         {
-          "name": "startYear",
-          "type": "number",
-          "required": false,
-          "description": "First year offered by the year grid. Defaults to 100 years back.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "use24HourClock",
+          "name": "showToday",
           "type": "boolean",
           "required": false,
-          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
-          "deprecated": false
-        },
-        {
-          "name": "validRange",
-          "type": "ValidRange",
-          "required": false,
-          "description": "The selectable window plus individual excluded days.",
-          "deprecated": false
-        }
-      ]
-    },
-    "DatePickerInput": {
-      "name": "DatePickerInput",
-      "source": "packages/ui/src/components/DatePickerInput.tsx",
-      "propsTypeName": "DatePickerInputProps",
-      "extends": [
-        "Omit< SingleDateTimePickerProps, \"mode\" | \"selectionMode\" | \"inputEnabled\" >"
-      ],
-      "props": [
-        {
-          "name": "onChange",
-          "type": "(date: Date) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "Date | null",
-          "required": true,
-          "description": "`null` renders `placeholder` instead of a formatted value.",
-          "deprecated": false
-        },
-        {
-          "name": "clearable",
-          "type": "boolean",
-          "required": false,
-          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
-          "deprecated": false
-        },
-        {
-          "name": "defaultInputType",
-          "type": "PickerInputType",
-          "required": false,
-          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
-          "deprecated": false
-        },
-        {
-          "name": "defaultOpen",
-          "type": "boolean",
-          "required": false,
-          "description": "Mount with the picker already open. Uncontrolled after that.",
-          "deprecated": false
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "endYear",
-          "type": "number",
-          "required": false,
-          "description": "Last year offered by the year grid. Defaults to 100 years on.",
-          "deprecated": false
-        },
-        {
-          "name": "error",
-          "type": "string",
-          "required": false,
-          "description": "Error text below the field; also recolors the field.",
-          "deprecated": false
-        },
-        {
-          "name": "firstDayOfWeek",
-          "type": "number",
-          "required": false,
-          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
-          "deprecated": false
-        },
-        {
-          "name": "helperText",
-          "type": "string",
-          "required": false,
-          "description": "Supporting text below the field; hidden while an error is shown.",
-          "deprecated": false
-        },
-        {
-          "name": "isDateDisabled",
-          "type": "(date: Date) => boolean",
-          "required": false,
-          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
-          "deprecated": false
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "labels",
-          "type": "DateTimePickerLabels",
-          "required": false,
-          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
-          "deprecated": false
-        },
-        {
-          "name": "locale",
-          "type": "string",
-          "required": false,
-          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
-          "deprecated": false
-        },
-        {
-          "name": "minuteInterval",
-          "type": "MinuteInterval",
-          "required": false,
-          "description": "Minute granularity of the clock. Defaults to 1.",
-          "deprecated": false
-        },
-        {
-          "name": "onClear",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
-          "required": false,
-          "description": "Shown while the field has no value.",
-          "deprecated": false
-        },
-        {
-          "name": "relativeLabels",
-          "type": "DateTimePickerRelativeLabels",
-          "required": false,
-          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
-          "deprecated": false
-        },
-        {
-          "name": "required",
-          "type": "boolean",
-          "required": false,
-          "description": "Appends an asterisk to the label.",
-          "deprecated": false
-        },
-        {
-          "name": "scrollMode",
-          "type": "CalendarScrollMode",
-          "required": false,
-          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "description": "Offers a \"Today\" button next to the month arrows. Default `true`. Only a\nsingle-date calendar has one, and it is disabled while today is outside\n`validRange` or excluded by `isDateDisabled`.",
           "deprecated": false
         },
         {
@@ -2596,190 +2218,12 @@
           "required": false,
           "description": "The selectable window plus individual excluded days.",
           "deprecated": false
-        }
-      ]
-    },
-    "DateRangePicker": {
-      "name": "DateRangePicker",
-      "source": "packages/ui/src/components/DateRangePicker.tsx",
-      "propsTypeName": "DateRangePickerProps",
-      "extends": [
-        "Omit< RangeDateTimePickerProps, \"mode\" | \"selectionMode\" >"
-      ],
-      "props": [
-        {
-          "name": "onChange",
-          "type": "(range: DateRange) => void",
-          "required": true,
-          "deprecated": false
         },
         {
-          "name": "value",
-          "type": "DateRange",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "clearable",
-          "type": "boolean",
+          "name": "variant",
+          "type": "DateTimePickerVariant",
           "required": false,
-          "description": "Adds a clear affordance to the field. Needs `onClear` to do anything.",
-          "deprecated": false
-        },
-        {
-          "name": "defaultInputType",
-          "type": "PickerInputType",
-          "required": false,
-          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
-          "deprecated": false
-        },
-        {
-          "name": "defaultOpen",
-          "type": "boolean",
-          "required": false,
-          "description": "Mount with the picker already open. Uncontrolled after that.",
-          "deprecated": false
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "endYear",
-          "type": "number",
-          "required": false,
-          "description": "Last year offered by the year grid. Defaults to 100 years on.",
-          "deprecated": false
-        },
-        {
-          "name": "error",
-          "type": "string",
-          "required": false,
-          "description": "Error text below the field; also recolors the field.",
-          "deprecated": false
-        },
-        {
-          "name": "firstDayOfWeek",
-          "type": "number",
-          "required": false,
-          "description": "0 = Sunday … 6 = Saturday. Defaults to the locale's own week start.",
-          "deprecated": false
-        },
-        {
-          "name": "helperText",
-          "type": "string",
-          "required": false,
-          "description": "Supporting text below the field; hidden while an error is shown.",
-          "deprecated": false
-        },
-        {
-          "name": "inputEnabled",
-          "type": "boolean",
-          "required": false,
-          "description": "Lets the user type the value straight into the field. Default `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "isDateDisabled",
-          "type": "(date: Date) => boolean",
-          "required": false,
-          "description": "Excludes days `validRange` cannot express (weekends, a computed holiday set).",
-          "deprecated": false
-        },
-        {
-          "name": "label",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "labels",
-          "type": "DateTimePickerLabels",
-          "required": false,
-          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
-          "deprecated": false
-        },
-        {
-          "name": "locale",
-          "type": "string",
-          "required": false,
-          "description": "Overrides the formatting/labelling locale. Defaults to the device locale.",
-          "deprecated": false
-        },
-        {
-          "name": "minuteInterval",
-          "type": "MinuteInterval",
-          "required": false,
-          "description": "Minute granularity of the clock. Defaults to 1.",
-          "deprecated": false
-        },
-        {
-          "name": "onClear",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
-          "required": false,
-          "description": "Shown while the field has no value.",
-          "deprecated": false
-        },
-        {
-          "name": "relativeLabels",
-          "type": "DateTimePickerRelativeLabels",
-          "required": false,
-          "description": "Overrides the relative day labels, e.g. from i18n:\n`relativeLabels={{ today: t(\"TODAY\"), yesterday: t(\"YESTERDAY\") }}`.\nDefaults to the device locale via Intl.RelativeTimeFormat.",
-          "deprecated": false
-        },
-        {
-          "name": "required",
-          "type": "boolean",
-          "required": false,
-          "description": "Appends an asterisk to the label.",
-          "deprecated": false
-        },
-        {
-          "name": "scrollMode",
-          "type": "CalendarScrollMode",
-          "required": false,
-          "description": "Month navigation inside the dialog. Default `\"endless\"`.",
-          "deprecated": false
-        },
-        {
-          "name": "startYear",
-          "type": "number",
-          "required": false,
-          "description": "First year offered by the year grid. Defaults to 100 years back.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "use24HourClock",
-          "type": "boolean",
-          "required": false,
-          "description": "Forces the 24-hour clock face. Left unset, the locale decides.",
-          "deprecated": false
-        },
-        {
-          "name": "validRange",
-          "type": "ValidRange",
-          "required": false,
-          "description": "The selectable window plus individual excluded days.",
+          "description": "`\"default\"` shows a field that opens the picker in a popover (web) or a\ndialog; dismiss it by tapping outside, with the back gesture or with Escape.\n`\"static\"` draws the picker inline in the page instead: no field, no popup,\nno OK, and every selection calls `onChange` at once with the live value.\nOf the field props only `disabled` and `style` apply to a static picker, and\nit always shows the calendar and the clock, never typed entry.",
           "deprecated": false
         }
       ]
@@ -2816,7 +2260,7 @@
           "name": "defaultInputType",
           "type": "PickerInputType",
           "required": false,
-          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "description": "Which surface the dialog opens on, `\"picker\"` or typed `\"keyboard\"` entry.\nThere is no toggle between the two in the dialog, so this is the only way\nto get typed entry there. Default `\"picker\"`.",
           "deprecated": false
         },
         {
@@ -2844,6 +2288,17 @@
           "type": "string",
           "required": false,
           "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "fieldVariant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "description": "The look of the field's box, as `variant` on `Input`: `\"outlined\"` is a\nbordered box on the surface, `\"filled\"` a tinted box that shows its border\nonly while the picker is open, the typed text has focus, or there is an\n`error`. Named apart from `variant`, which already chooses between the\nfield and the inline picker. Does nothing for `variant=\"static\"`, which has\nno field. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
           "deprecated": false
         },
         {
@@ -2884,7 +2339,7 @@
           "name": "labels",
           "type": "DateTimePickerLabels",
           "required": false,
-          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"OK\", …).",
           "deprecated": false
         },
         {
@@ -2921,6 +2376,13 @@
           "deprecated": false
         },
         {
+          "name": "presentation",
+          "type": "DateTimePickerPresentation",
+          "required": false,
+          "description": "Web only, `variant=\"default\"` only: whether the picker opens docked to its\nfield or as a dialog. Decided each time it opens. Native always opens the\ndialog. Defaults to `\"auto\"`.",
+          "deprecated": false
+        },
+        {
           "name": "relativeLabels",
           "type": "DateTimePickerRelativeLabels",
           "required": false,
@@ -2945,6 +2407,13 @@
           "name": "selectionMode",
           "type": "\"single\"",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showToday",
+          "type": "boolean",
+          "required": false,
+          "description": "Offers a \"Today\" button next to the month arrows. Default `true`. Only a\nsingle-date calendar has one, and it is disabled while today is outside\n`validRange` or excluded by `isDateDisabled`.",
           "deprecated": false
         },
         {
@@ -2978,6 +2447,13 @@
           "type": "ValidRange",
           "required": false,
           "description": "The selectable window plus individual excluded days.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "DateTimePickerVariant",
+          "required": false,
+          "description": "`\"default\"` shows a field that opens the picker in a popover (web) or a\ndialog; dismiss it by tapping outside, with the back gesture or with Escape.\n`\"static\"` draws the picker inline in the page instead: no field, no popup,\nno OK, and every selection calls `onChange` at once with the live value.\nOf the field props only `disabled` and `style` apply to a static picker, and\nit always shows the calendar and the clock, never typed entry.",
           "deprecated": false
         }
       ]
@@ -3084,9 +2560,20 @@
           "deprecated": false
         },
         {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "animateFrom",
+          "type": "\"left\" | \"right\"",
+          "required": false,
+          "description": "`animated` only: edge the label grows from. Match it to the FAB's corner.",
+          "values": [
+            "left",
+            "right"
+          ],
           "deprecated": false
         },
         {
@@ -3096,44 +2583,80 @@
           "deprecated": false
         },
         {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "description": "`animated` only: animation duration (ms). Defaults to 150.",
+          "deprecated": false
+        },
+        {
+          "name": "extended",
+          "type": "boolean",
+          "required": false,
+          "description": "`animated` only. `true` shows the label, `false` collapses to the icon.\nDrive it from a scroll offset to get the M3 \"shrink on scroll\" behaviour.\nDefaults to `true`.",
+          "deprecated": false
+        },
+        {
           "name": "feedback",
           "type": "boolean",
           "required": false,
-          "default": "true",
           "description": "Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics).\nDefaults to true.",
+          "deprecated": false
+        },
+        {
+          "name": "iconMode",
+          "type": "\"static\" | \"dynamic\"",
+          "required": false,
+          "description": "`animated` only. `static` keeps the icon put and slides the label out\nbeside it; `dynamic` lets the icon travel with the label as the pill grows.",
+          "values": [
+            "static",
+            "dynamic"
+          ],
           "deprecated": false
         },
         {
           "name": "label",
           "type": "string",
           "required": false,
+          "description": "The text of `extended` and `animated`, and the accessible name of every\nvariant. Without it those two variants fall back to the icon alone.",
           "deprecated": false
         },
         {
           "name": "placement",
           "type": "FABPlacement",
           "required": false,
-          "default": "\"floating\"",
           "deprecated": false
         },
         {
           "name": "position",
           "type": "FABPosition",
           "required": false,
-          "default": "\"bottom-right\"",
           "deprecated": false
         },
         {
           "name": "size",
           "type": "FABSize",
           "required": false,
-          "default": "\"regular\"",
+          "description": "Defaults to `\"medium\"`.",
           "deprecated": false
         },
         {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "FABVariant",
+          "required": false,
+          "description": "Defaults to `\"icon\"`.",
           "deprecated": false
         }
       ]
@@ -3373,6 +2896,13 @@
           "deprecated": false
         },
         {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "description": "Colour role of the button. Left out, it keeps the neutral M3 look\n(`onSurfaceVariant`, `primary` once selected).",
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -3393,15 +2923,7 @@
           "deprecated": false
         },
         {
-          "name": "mode",
-          "type": "IconButtonMode",
-          "required": false,
-          "default": "\"standard\"",
-          "description": "M3 icon-button container styles. Defaults to `\"standard\"`.",
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "deprecated": false
@@ -3430,6 +2952,21 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "A tooltip with this text: on hover or focus on the web, on long press on\nnative. It is a label for sighted users; `accessibilityLabel` stays the\naccessible name.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "IconButtonVariant",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "M3 icon-button container styles. Defaults to `\"standard\"`.",
           "deprecated": false
         }
       ]
@@ -3542,9 +3079,10 @@
       "extends": [],
       "props": [
         {
-          "name": "onChangeText",
+          "name": "onChange",
           "type": "(text: string) => void",
           "required": true,
+          "description": "Called with the new text on every edit (for `type=\"number\"`, already cleaned).",
           "deprecated": false
         },
         {
@@ -3566,7 +3104,7 @@
           "type": "\".\" | \",\"",
           "required": false,
           "default": "\".\"",
-          "description": "The decimal mark a `type=\"number\"` field types and shows: `\",\"` for a user\nwho writes 12,50. `value` and `onChangeText` stay in the plain form\n(\"12.50\"), so the app parses nothing; a typed \".\" is then ignored, as a\nthousands mark. Defaults to `\".\"`.",
+          "description": "The decimal mark a `type=\"number\"` field types and shows: `\",\"` for a user\nwho writes 12,50. `value` and `onChange` stay in the plain form\n(\"12.50\"), so the app parses nothing; a typed \".\" is then ignored, as a\nthousands mark. Defaults to `\".\"`.",
           "values": [
             ".",
             ","
@@ -3593,6 +3131,14 @@
           "deprecated": false
         },
         {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Stretches the field to its container's width. `false` shrinks it to its\ncontent, with a minimum width so an empty field stays usable. Defaults to\n`true`.",
+          "deprecated": false
+        },
+        {
           "name": "helperText",
           "type": "string",
           "required": false,
@@ -3603,6 +3149,17 @@
           "name": "label",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPlacement",
+          "type": "\"inside\" | \"outside\"",
+          "required": false,
+          "description": "Where the label is drawn: `\"outside\"` above the box, or `\"inside\"`, small,\nabove the text within it. Independent of `variant`. Defaults to `\"outside\"`.",
+          "values": [
+            "inside",
+            "outside"
+          ],
           "deprecated": false
         },
         {
@@ -3629,25 +3186,21 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "deprecated": false
-        },
-        {
-          "name": "numberOfLines",
-          "type": "number",
-          "required": false,
-          "default": "4",
+          "description": "Lets the text wrap over several lines; see `rows`.",
           "deprecated": false
         },
         {
           "name": "onBlur",
           "type": "() => void",
           "required": false,
+          "description": "Called when the field loses focus.",
           "deprecated": false
         },
         {
           "name": "onFocus",
           "type": "() => void",
           "required": false,
+          "description": "Called when the field gains focus.",
           "deprecated": false
         },
         {
@@ -3696,6 +3249,14 @@
           "deprecated": false
         },
         {
+          "name": "rows",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "description": "Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4.",
+          "deprecated": false
+        },
+        {
           "name": "secureTextEntry",
           "type": "boolean",
           "required": false,
@@ -3735,6 +3296,7 @@
           "type": "\"outlined\" | \"filled\"",
           "required": false,
           "default": "\"outlined\"",
+          "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box (like `PinInput`'s) that shows its border only\nwhile focused or in error. Where the label sits is `labelPlacement`'s\nbusiness, not the variant's. Defaults to `\"outlined\"`.",
           "values": [
             "outlined",
             "filled"
@@ -3931,7 +3493,7 @@
           "name": "trailing",
           "type": "React.ReactNode",
           "required": false,
-          "description": "Trailing slot — a value, a Toggle, a chevron.",
+          "description": "Trailing slot — a value, a Switch, a chevron.",
           "deprecated": false
         },
         {
@@ -4538,9 +4100,10 @@
       "extends": [],
       "props": [
         {
-          "name": "onChangeText",
+          "name": "onChange",
           "type": "(value: string) => void",
           "required": true,
+          "description": "Called with the whole code, not the single cell, on every edit.",
           "deprecated": false
         },
         {
@@ -4638,6 +4201,18 @@
           "values": [
             "numeric",
             "alphanumeric"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"filled\" | \"outlined\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "Cell style: `\"outlined\"` draws each cell as a bordered box on the surface,\n`\"filled\"` as a tinted box that shows its border only while focused or in\nerror. Defaults to `\"outlined\"`.",
+          "values": [
+            "filled",
+            "outlined"
           ],
           "deprecated": false
         }
@@ -4914,14 +4489,7 @@
           "deprecated": false
         },
         {
-          "name": "mode",
-          "type": "ButtonMode",
-          "required": false,
-          "default": "\"filled\"",
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "description": "Fires in every status but `loading`, where the button is busy.",
@@ -4998,6 +4566,13 @@
           "required": false,
           "description": "Colour behind the bar, and behind the fill on outlined and text.",
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "required": false,
+          "default": "\"filled\"",
+          "deprecated": false
         }
       ]
     },
@@ -5068,13 +4643,33 @@
           "name": "value",
           "type": "number",
           "required": true,
-          "description": "Current rating; halves are rendered (e.g. 3.5).",
+          "description": "Current rating; fractions are drawn as a partly filled icon (e.g. 3.5).",
           "deprecated": false
         },
         {
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "OutlinedGlyph",
+          "required": false,
+          "default": "\"star\"",
+          "description": "The filled glyph. Its `-outline` variant draws the empty state, so it has\nto be one that has one (`\"heart\"` does, `\"star\"` does). Defaults to `\"star\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "interval",
+          "type": "0.5 | 1",
+          "required": false,
+          "default": "1",
+          "description": "The step of the rating: `1` rates whole icons, `0.5` lets the pointer pick\neither half of an icon. Defaults to `1`.",
+          "values": [
+            0.5,
+            1
+          ],
           "deprecated": false
         },
         {
@@ -5088,7 +4683,15 @@
           "name": "onChange",
           "type": "(value: number) => void",
           "required": false,
-          "description": "Interactive when provided; tapping a star sets a whole value.",
+          "description": "Interactive when provided.",
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The rating cannot be cleared: tapping the current value keeps it. Without\nit, tapping the current value resets the rating to 0.",
           "deprecated": false
         },
         {
@@ -5107,9 +4710,10 @@
       "extends": [],
       "props": [
         {
-          "name": "onChangeText",
+          "name": "onChange",
           "type": "(text: string) => void",
           "required": true,
+          "description": "Called with the text as it changes. With `debounceTime` it waits until the\nuser has stopped typing; submitting or clearing reports at once.",
           "deprecated": false
         },
         {
@@ -5125,16 +4729,25 @@
           "deprecated": false
         },
         {
+          "name": "debounceTime",
+          "type": "number",
+          "required": false,
+          "default": "0",
+          "description": "Milliseconds the user must stop typing before `onChange` fires. The field\nitself always updates at once; a `value` set from outside replaces the\ntext and drops a pending `onChange`. Defaults to 0: every keystroke.",
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
           "deprecated": false
         },
         {
-          "name": "leadingIcon",
+          "name": "icon",
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
           "default": "\"magnify\"",
+          "description": "Glyph at the start of the bar. Defaults to `\"magnify\"`.",
           "deprecated": false
         },
         {
@@ -5158,6 +4771,14 @@
           "deprecated": false
         },
         {
+          "name": "showLoading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Tells the bar a search is running: a progress indicator takes the place of\nthe clear button. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
@@ -5172,9 +4793,10 @@
       "extends": [],
       "props": [
         {
-          "name": "onSelect",
+          "name": "onChange",
           "type": "(value: any) => void",
           "required": true,
+          "description": "Called with the picked option's `value`, or with `null` when a\n`nullable` select is cleared. Not called with `multiple`: see\n`toggleOptions`.",
           "deprecated": false
         },
         {
@@ -5187,6 +4809,7 @@
           "name": "value",
           "type": "any",
           "required": true,
+          "description": "The `value` of the selected option; `null` for none. Ignored with `multiple`.",
           "deprecated": false
         },
         {
@@ -5211,9 +4834,32 @@
           "deprecated": false
         },
         {
+          "name": "disabledOptions",
+          "type": "RegExp | (string | number)[]",
+          "required": false,
+          "description": "Options that stay visible but cannot be picked, announced as disabled:\nthe `value`s to disable, or a pattern tested against each `String(value)`.",
+          "deprecated": false
+        },
+        {
+          "name": "emptyMessage",
+          "type": "string",
+          "required": false,
+          "default": "\"No options\"",
+          "description": "Shown in the open list when `options` is empty. Defaults to `\"No options\"`.",
+          "deprecated": false
+        },
+        {
           "name": "error",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Stretches the select to its container's width. `false` shrinks it to its\ncontent, with a minimum width. Defaults to `true`.",
           "deprecated": false
         },
         {
@@ -5223,10 +4869,31 @@
           "deprecated": false
         },
         {
-          "name": "multiSelect",
+          "name": "labelPlacement",
+          "type": "\"inside\" | \"outside\"",
+          "required": false,
+          "default": "\"outside\"",
+          "description": "Where the label is drawn: `\"outside\"` above the box, or `\"inside\"`, small,\nabove the value. Independent of `variant`; with chips showing it stays\nabove the box. Defaults to `\"outside\"`.",
+          "values": [
+            "inside",
+            "outside"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "multiple",
           "type": "boolean",
           "required": false,
           "default": "false",
+          "description": "Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too.",
+          "deprecated": false
+        },
+        {
+          "name": "nullable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Lets the user go back to no selection: a clear button shows in the field\nwhile an option is selected, and pressing the selected option again\ndeselects it. Both call `onChange(null)`. Ignored with `multiple`, where\nevery option can already be unchecked. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -5247,6 +4914,7 @@
           "type": "any[]",
           "required": false,
           "default": "[]",
+          "description": "With `multiple`: the `value`s of the selected options.",
           "deprecated": false
         },
         {
@@ -5254,6 +4922,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
+          "description": "With `multiple`, shows the selection as removable chips in the field.",
           "deprecated": false
         },
         {
@@ -5266,6 +4935,7 @@
           "name": "toggleOptions",
           "type": "(value: any) => void",
           "required": false,
+          "description": "With `multiple`: called with the new array of selected `value`s after each toggle.",
           "deprecated": false
         },
         {
@@ -5273,6 +4943,7 @@
           "type": "SelectVariant",
           "required": false,
           "default": "\"outlined\"",
+          "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box (like `PinInput`'s) that shows its border only\nwhile focused or in error. Where the label sits is `labelPlacement`'s\nbusiness, not the variant's. Defaults to `\"outlined\"`.",
           "deprecated": false
         }
       ]
@@ -5706,10 +5377,10 @@
         }
       ]
     },
-    "Spinner": {
-      "name": "Spinner",
-      "source": "packages/ui/src/components/Spinner.tsx",
-      "propsTypeName": "SpinnerProps",
+    "NumberField": {
+      "name": "NumberField",
+      "source": "packages/ui/src/components/NumberField.tsx",
+      "propsTypeName": "NumberFieldProps",
       "extends": [],
       "props": [
         {
@@ -6174,7 +5845,7 @@
           "name": "defaultInputType",
           "type": "PickerInputType",
           "required": false,
-          "description": "Which surface the dialog opens on. Default `\"picker\"`.",
+          "description": "Which surface the dialog opens on, `\"picker\"` or typed `\"keyboard\"` entry.\nThere is no toggle between the two in the dialog, so this is the only way\nto get typed entry there. Default `\"picker\"`.",
           "deprecated": false
         },
         {
@@ -6202,6 +5873,17 @@
           "type": "string",
           "required": false,
           "description": "Error text below the field; also recolors the field.",
+          "deprecated": false
+        },
+        {
+          "name": "fieldVariant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "description": "The look of the field's box, as `variant` on `Input`: `\"outlined\"` is a\nbordered box on the surface, `\"filled\"` a tinted box that shows its border\nonly while the picker is open, the typed text has focus, or there is an\n`error`. Named apart from `variant`, which already chooses between the\nfield and the inline picker. Does nothing for `variant=\"static\"`, which has\nno field. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
           "deprecated": false
         },
         {
@@ -6242,7 +5924,7 @@
           "name": "labels",
           "type": "DateTimePickerLabels",
           "required": false,
-          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"Clear\", …).",
+          "description": "Chrome strings of the picker surface (nav buttons, \"Today\", \"OK\", …).",
           "deprecated": false
         },
         {
@@ -6273,6 +5955,13 @@
           "deprecated": false
         },
         {
+          "name": "presentation",
+          "type": "DateTimePickerPresentation",
+          "required": false,
+          "description": "Web only, `variant=\"default\"` only: whether the picker opens docked to its\nfield or as a dialog. Decided each time it opens. Native always opens the\ndialog. Defaults to `\"auto\"`.",
+          "deprecated": false
+        },
+        {
           "name": "relativeLabels",
           "type": "DateTimePickerRelativeLabels",
           "required": false,
@@ -6291,6 +5980,13 @@
           "type": "CalendarScrollMode",
           "required": false,
           "description": "Month navigation inside the dialog. Default `\"endless\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "showToday",
+          "type": "boolean",
+          "required": false,
+          "description": "Offers a \"Today\" button next to the month arrows. Default `true`. Only a\nsingle-date calendar has one, and it is disabled while today is outside\n`validRange` or excluded by `isDateDisabled`.",
           "deprecated": false
         },
         {
@@ -6325,19 +6021,27 @@
           "required": false,
           "description": "The selectable window plus individual excluded days.",
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "DateTimePickerVariant",
+          "required": false,
+          "description": "`\"default\"` shows a field that opens the picker in a popover (web) or a\ndialog; dismiss it by tapping outside, with the back gesture or with Escape.\n`\"static\"` draws the picker inline in the page instead: no field, no popup,\nno OK, and every selection calls `onChange` at once with the live value.\nOf the field props only `disabled` and `style` apply to a static picker, and\nit always shows the calendar and the clock, never typed entry.",
+          "deprecated": false
         }
       ]
     },
-    "Toggle": {
-      "name": "Toggle",
-      "source": "packages/ui/src/components/Toggle.tsx",
-      "propsTypeName": "ToggleProps",
+    "Switch": {
+      "name": "Switch",
+      "source": "packages/ui/src/components/Switch.tsx",
+      "propsTypeName": "SwitchProps",
       "extends": [],
       "props": [
         {
-          "name": "onValueChange",
+          "name": "onChange",
           "type": "(value: boolean) => void",
           "required": true,
+          "description": "Called with the new state when the switch, or its label, is pressed.",
           "deprecated": false
         },
         {
@@ -6373,16 +6077,50 @@
           "name": "height",
           "type": "number",
           "required": false,
-          "default": "18",
-          "description": "Track height; the thumb scales with it. Defaults to 18.",
+          "default": "SIZES[size].height",
+          "description": "Track height; the thumb scales with it. Defaults to the `size`'s (18 for medium).",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "Text next to the switch. Pressing it toggles the switch too.",
+          "deprecated": false
+        },
+        {
+          "name": "labelPlacement",
+          "type": "\"start\" | \"end\" | \"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"end\"",
+          "description": "Where the label sits relative to the switch: `\"start\"` and `\"end\"` are\nthe left and right in a left-to-right layout, `\"top\"` and `\"bottom\"`\nstack them. Defaults to `\"end\"`.",
+          "values": [
+            "start",
+            "end",
+            "top",
+            "bottom"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "Switch size: `\"small\"` is 24 x 14, `\"medium\"` 32 x 18, `\"large\"` 40 x 22.\n`width` and `height` override it. Defaults to `\"medium\"`.",
+          "values": [
+            "small",
+            "medium",
+            "large"
+          ],
           "deprecated": false
         },
         {
           "name": "width",
           "type": "number",
           "required": false,
-          "default": "32",
-          "description": "Track width. Defaults to 32.",
+          "default": "SIZES[size].width",
+          "description": "Track width. Defaults to the `size`'s (32 for medium).",
           "deprecated": false
         }
       ]
@@ -6663,6 +6401,14 @@
           "deprecated": false
         },
         {
+          "name": "anchorAccessible",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Native only. Whether the anchor is one accessibility element named by\n`content`. Turn it off when the child is a control with a name of its own\n(an `IconButton`): behind an accessible wrapper a screen reader never\nreaches the control, only the wrapper, which does nothing when activated.\nThe long press still shows the tip. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
@@ -6874,7 +6620,7 @@
       "source": "packages/ui/src/components/Typography.tsx",
       "propsTypeName": "TypographyProps",
       "extends": [
-        "TextProps"
+        "Omit<TextProps, \"onPress\">"
       ],
       "props": [
         {
@@ -6884,11 +6630,53 @@
           "deprecated": false
         },
         {
-          "name": "variant",
-          "type": "TypographyVariant",
+          "name": "align",
+          "type": "\"left\" | \"center\" | \"right\" | \"justify\"",
           "required": false,
-          "default": "\"displayLarge\"",
-          "description": "M3 type-scale role. Defaults to `\"displayLarge\"`.",
+          "description": "Horizontal alignment of the text within its box.",
+          "values": [
+            "left",
+            "center",
+            "right",
+            "justify"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "keyof ThemeColorTokens | (string & {})",
+          "required": false,
+          "description": "A theme colour token (`\"primary\"`, `\"onSurfaceVariant\"`, `\"error\"`, …) or,\nfailing that, any colour string. Defaults to `onSurface`.",
+          "deprecated": false
+        },
+        {
+          "name": "fontSize",
+          "type": "number",
+          "required": false,
+          "description": "Overrides the size of the variant; the line height scales with it.",
+          "deprecated": false
+        },
+        {
+          "name": "nowrap",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps the text on one line, ending it with an ellipsis when it is cut.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "TextProps[\"onPress\"]",
+          "required": false,
+          "description": "Makes the text pressable.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "TypographyName | TypographyVariant",
+          "required": false,
+          "default": "\"h1\"",
+          "description": "Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`,\n`button`, `caption`, `overline`. The M3 role names (`displayLarge`,\n`bodyMedium`, …) still work and name the same styles. Defaults to `\"h1\"`.",
           "deprecated": false
         }
       ]

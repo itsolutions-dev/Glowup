@@ -92,13 +92,13 @@ export default function Profile() {
           </Box>
           <HStack spacing="s">
             <Button
-              mode={following ? "tonal" : "filled"}
+              variant={following ? "tonal" : "filled"}
               iconName={following ? "check" : "account-plus-outline"}
-              onPress={() => setFollowing((value) => !value)}
+              onClick={() => setFollowing((value) => !value)}
             >
               {following ? "Following" : "Follow"}
             </Button>
-            <Button mode="outlined" iconName="message-outline">
+            <Button variant="outlined" iconName="message-outline">
               Message
             </Button>
             <IconButton icon="dots-vertical" accessibilityLabel="More" />
@@ -122,7 +122,7 @@ export default function Profile() {
 
         <HStack spacing="s" wrap>
           {SKILLS.map((skill) => (
-            <Chip key={skill} label={skill} mode="outlined" size="small" />
+            <Chip key={skill} label={skill} variant="outlined" size="small" />
           ))}
         </HStack>
 
@@ -182,7 +182,7 @@ export default function Profile() {
                 <CardTitle
                   title={project.name}
                   subtitle={project.summary}
-                  right={
+                  endIcon={
                     <StatusBadge
                       label={project.live ? "Live" : "Draft"}
                       type={project.live ? "success" : "warning"}
@@ -201,7 +201,7 @@ export default function Profile() {
                   </VStack>
                 </CardContent>
                 <CardActions>
-                  <Button mode="text">Open</Button>
+                  <Button variant="text">Open</Button>
                 </CardActions>
               </Card>
             ))}

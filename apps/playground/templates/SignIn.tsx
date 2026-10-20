@@ -132,12 +132,12 @@ export default function SignIn() {
 
         <HStack spacing="s" wrap>
           <View style={{ flexGrow: 1 }}>
-            <Button mode="outlined" iconName="google" fullWidth>
+            <Button variant="outlined" iconName="google" fullWidth>
               Google
             </Button>
           </View>
           <View style={{ flexGrow: 1 }}>
-            <Button mode="outlined" iconName="microsoft" fullWidth>
+            <Button variant="outlined" iconName="microsoft" fullWidth>
               Microsoft
             </Button>
           </View>
@@ -149,7 +149,7 @@ export default function SignIn() {
           <Input
             label="Email"
             value={email}
-            onChangeText={setEmail}
+            onChange={setEmail}
             leadingIcon="email-outline"
             placeholder="you@company.com"
             error={emailError}
@@ -158,7 +158,7 @@ export default function SignIn() {
           <Input
             label="Password"
             value={password}
-            onChangeText={setPassword}
+            onChange={setPassword}
             secureTextEntry={!showPassword}
             leadingIcon="lock-outline"
             trailingIcon={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -177,7 +177,7 @@ export default function SignIn() {
           </HStack>
         </VStack>
 
-        <Button mode="filled" iconName="login" fullWidth onPress={signIn}>
+        <Button variant="filled" iconName="login" fullWidth onClick={signIn}>
           Sign in
         </Button>
 

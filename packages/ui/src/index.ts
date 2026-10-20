@@ -11,6 +11,10 @@ export {
 export * from "./providers/palettes";
 export * from "./providers/toneFrom";
 export { useDensity, type Density } from "./providers/Density";
+export {
+  default as ViewportProvider,
+  type ViewportProviderProps,
+} from "./providers/Viewport";
 export * from "./providers/AlertProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";
@@ -23,8 +27,6 @@ export { useReduceMotion } from "./components/internal/useReduceMotion";
 // --- Components ---
 export { default as Accordion } from "./components/Accordion";
 export type { AccordionProps } from "./components/Accordion";
-export { default as AnimatedFAB } from "./components/AnimatedFAB";
-export * from "./components/AnimatedFAB";
 export { default as AppBar } from "./components/AppBar";
 export * from "./components/AppBar";
 export { default as AspectRatio } from "./components/Layout/AspectRatio";
@@ -44,11 +46,13 @@ export * from "./components/Layout/Box";
 export { default as Breadcrumbs } from "./components/Breadcrumbs";
 export * from "./components/Breadcrumbs";
 export { default as Button } from "./components/Button";
-export type { ButtonMode, ButtonTone, ButtonProps } from "./components/Button";
+export type {
+  ButtonVariant,
+  ButtonColor,
+  ButtonProps,
+} from "./components/Button";
 export { default as ButtonGroup } from "./components/ButtonGroup";
 export * from "./components/ButtonGroup";
-export { default as Calendar } from "./components/Calendar";
-export * from "./components/Calendar";
 export { default as Card } from "./components/Card";
 export type { CardProps } from "./components/Card";
 export { default as CardActions } from "./components/CardParts/CardActions";
@@ -65,31 +69,25 @@ export { default as Center } from "./components/Layout/Center";
 export * from "./components/Layout/Center";
 export { default as Checkbox } from "./components/Checkbox";
 export type { CheckboxProps } from "./components/Checkbox";
+export { default as CheckboxGroup } from "./components/CheckboxGroup";
+export * from "./components/CheckboxGroup";
 export { default as Chip } from "./components/Chip";
 export type { ChipProps } from "./components/Chip";
 export { default as ChipGroup } from "./components/ChipGroup";
 export * from "./components/ChipGroup";
-export { default as ClockDial } from "./components/ClockDial";
-export * from "./components/ClockDial";
-export { default as ClockPicker } from "./components/ClockPicker";
-export * from "./components/ClockPicker";
 export { default as Collapse } from "./components/Collapse";
 export * from "./components/Collapse";
 export { default as DataGrid } from "./components/DataGrid";
 export * from "./components/DataGrid";
 export { default as DatePicker } from "./components/DatePicker";
 export * from "./components/DatePicker";
-export { default as DatePickerInput } from "./components/DatePickerInput";
-export * from "./components/DatePickerInput";
-export { default as DateRangePicker } from "./components/DateRangePicker";
-export * from "./components/DateRangePicker";
 export { default as DateTimePicker } from "./components/DateTimePicker";
 export { default as Divider } from "./components/Divider";
 export type { DividerProps } from "./components/Divider";
 export { default as EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
 export { default as FAB } from "./components/FAB";
-export type { FABProps } from "./components/FAB";
+export type { FABProps, FABSize, FABVariant } from "./components/FAB";
 export { default as FormControl } from "./components/FormControl";
 export * from "./components/FormControl";
 export { default as Grid } from "./components/Layout/Grid";
@@ -162,8 +160,8 @@ export { default as SpeedDial } from "./components/SpeedDial";
 export * from "./components/SpeedDial";
 export { default as SplitButton } from "./components/SplitButton";
 export * from "./components/SplitButton";
-export { default as Spinner } from "./components/Spinner";
-export type { SpinnerProps } from "./components/Spinner";
+export { default as NumberField } from "./components/NumberField";
+export type { NumberFieldProps } from "./components/NumberField";
 export { default as Stack } from "./components/Layout/Stack";
 export * from "./components/Layout/Stack";
 export { default as Stat } from "./components/Stat";
@@ -182,8 +180,8 @@ export { default as Table } from "./components/Table";
 export * from "./components/Table";
 export { default as TimePicker } from "./components/TimePicker";
 export * from "./components/TimePicker";
-export { default as Toggle } from "./components/Toggle";
-export type { ToggleProps } from "./components/Toggle";
+export { default as Switch } from "./components/Switch";
+export type { SwitchProps } from "./components/Switch";
 export { default as ToggleButton } from "./components/ToggleButton/ToggleButton";
 export type { ToggleButtonProps } from "./components/ToggleButton/ToggleButton";
 export { default as ToggleButtonGroup } from "./components/ToggleButton/ToggleButtonGroup";
@@ -207,6 +205,8 @@ export type {
   RangeDateTimePickerProps,
   MultipleDateTimePickerProps,
   DateTimePickerMode,
+  DateTimePickerVariant,
+  DateTimePickerPresentation,
   DateSelectionMode,
   CalendarScrollMode,
   PickerInputType,

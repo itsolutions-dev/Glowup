@@ -42,14 +42,14 @@ export const Variants = () => (
       label="Billing country"
       options={countries}
       value="it"
-      onSelect={noop}
+      onChange={noop}
     />
     <Select
       variant="filled"
       label="Billing country"
       options={countries}
       value="fr"
-      onSelect={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -61,7 +61,7 @@ export const States = () => (
       placeholder="Choose a plan…"
       options={plans}
       value={undefined}
-      onSelect={noop}
+      onChange={noop}
     />
     <Select
       label="Subscription plan"
@@ -69,14 +69,14 @@ export const States = () => (
       placeholder="Choose a plan…"
       options={plans}
       value={undefined}
-      onSelect={noop}
+      onChange={noop}
     />
     <Select
       label="Subscription plan"
       disabled
       options={plans}
       value="ent"
-      onSelect={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -85,23 +85,23 @@ export const MultiSelect = () => (
   <div style={stack}>
     <Select
       label="Notify me via"
-      multiSelect
+      multiple
       placeholder="Select channels"
       options={notifications}
       value={undefined}
       selectedValues={["email", "push"]}
       toggleOptions={noop}
-      onSelect={noop}
+      onChange={noop}
     />
     <Select
       label="Notify me via"
-      multiSelect
+      multiple
       placeholder="Select channels"
       options={notifications}
       value={undefined}
       selectedValues={["email", "push", "slack"]}
       toggleOptions={noop}
-      onSelect={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -110,14 +110,14 @@ export const MultiSelectChips = () => (
   <div style={stack}>
     <Select
       label="Shipping destinations"
-      multiSelect
+      multiple
       showAsChips
       placeholder="Select countries"
       options={countries}
       value={undefined}
       selectedValues={["it", "fr", "es"]}
       toggleOptions={noop}
-      onSelect={noop}
+      onChange={noop}
     />
   </div>
 );

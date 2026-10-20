@@ -143,7 +143,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           <IconButton
             icon="menu"
             accessibilityLabel="Open navigation"
-            onPress={() => setDrawerRequested(true)}
+            onClick={() => setDrawerRequested(true)}
           />
         )}
         <Link href="/" asChild>
@@ -210,7 +210,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           <IconButton
             icon="magnify"
             accessibilityLabel="Search components and pages"
-            onPress={() => setPaletteOpen(true)}
+            onClick={() => setPaletteOpen(true)}
           />
         )}
 
@@ -219,12 +219,12 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           accessibilityLabel={
             theme.isDark ? "Switch to light theme" : "Switch to dark theme"
           }
-          onPress={toggleTheme}
+          onClick={toggleTheme}
         />
         <IconButton
           icon="github"
           accessibilityLabel="Open the repository on GitHub"
-          onPress={() => Linking.openURL(GITHUB_URL)}
+          onClick={() => Linking.openURL(GITHUB_URL)}
         />
       </View>
 
@@ -443,13 +443,13 @@ const NavFooter = ({ showLabels }: { showLabels: boolean }) => {
           icon="npm"
           size="small"
           accessibilityLabel="Open the package on npm"
-          onPress={() => Linking.openURL(NPM_URL)}
+          onClick={() => Linking.openURL(NPM_URL)}
         />
         <IconButton
           icon="github"
           size="small"
           accessibilityLabel="Open the repository on GitHub"
-          onPress={() => Linking.openURL(GITHUB_URL)}
+          onClick={() => Linking.openURL(GITHUB_URL)}
         />
       </View>
     </View>

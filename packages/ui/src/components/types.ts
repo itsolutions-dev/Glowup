@@ -11,6 +11,8 @@ export type MaterialCommunityIconsGlyphs = ComponentProps<
   typeof MaterialCommunityIcons
 >["name"];
 
+export type { ColorRole } from "./internal/colorRole";
+
 /**
  * Pressable state including the web-only `hovered` and `focused` flags that
  * react-native-web provides but the core react-native typings omit.

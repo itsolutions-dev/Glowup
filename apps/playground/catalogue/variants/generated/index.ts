@@ -10,26 +10,21 @@ import { variants as Box } from "./Box";
 import { variants as Breadcrumbs } from "./Breadcrumbs";
 import { variants as Button } from "./Button";
 import { variants as ButtonGroup } from "./ButtonGroup";
-import { variants as Calendar } from "./Calendar";
 import { variants as CaptionValue } from "./CaptionValue";
 import { variants as Card } from "./Card";
 import { variants as Carousel } from "./Carousel";
 import { variants as Center } from "./Center";
 import { variants as Checkbox } from "./Checkbox";
+import { variants as CheckboxGroup } from "./CheckboxGroup";
 import { variants as Chip } from "./Chip";
 import { variants as ChipGroup } from "./ChipGroup";
 import { variants as CircularProgress } from "./CircularProgress";
-import { variants as ClockDial } from "./ClockDial";
-import { variants as ClockPicker } from "./ClockPicker";
 import { variants as Collapse } from "./Collapse";
 import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
-import { variants as DatePickerInput } from "./DatePickerInput";
-import { variants as DateRangePicker } from "./DateRangePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
 import { variants as Divider } from "./Divider";
 import { variants as EmptyState } from "./EmptyState";
-import { variants as FAB } from "./FAB";
 import { variants as FormControl } from "./FormControl";
 import { variants as Grid } from "./Grid";
 import { variants as HelperText } from "./HelperText";
@@ -44,6 +39,7 @@ import { variants as ListSubheader } from "./ListSubheader";
 import { variants as NavigationBar } from "./NavigationBar";
 import { variants as NavigationDrawer } from "./NavigationDrawer";
 import { variants as NavigationRail } from "./NavigationRail";
+import { variants as NumberField } from "./NumberField";
 import { variants as Pagination } from "./Pagination";
 import { variants as Paper } from "./Paper";
 import { variants as PinInput } from "./PinInput";
@@ -60,17 +56,16 @@ import { variants as Slider } from "./Slider";
 import { variants as Snackbar } from "./Snackbar";
 import { variants as Spacer } from "./Spacer";
 import { variants as SpeedDial } from "./SpeedDial";
-import { variants as Spinner } from "./Spinner";
 import { variants as SplitButton } from "./SplitButton";
 import { variants as Stack } from "./Stack";
 import { variants as Stat } from "./Stat";
 import { variants as StatusBadge } from "./StatusBadge";
 import { variants as Stepper } from "./Stepper";
+import { variants as Switch } from "./Switch";
 import { variants as TabContent } from "./TabContent";
 import { variants as Table } from "./Table";
 import { variants as Tabs } from "./Tabs";
 import { variants as TimePicker } from "./TimePicker";
-import { variants as Toggle } from "./Toggle";
 import { variants as ToggleButton } from "./ToggleButton";
 import { variants as ToggleButtonGroup } from "./ToggleButtonGroup";
 import { variants as Toolbar } from "./Toolbar";
@@ -88,26 +83,21 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Breadcrumbs,
   Button,
   ButtonGroup,
-  Calendar,
   CaptionValue,
   Card,
   Carousel,
   Center,
   Checkbox,
+  CheckboxGroup,
   Chip,
   ChipGroup,
   CircularProgress,
-  ClockDial,
-  ClockPicker,
   Collapse,
   DataGrid,
   DatePicker,
-  DatePickerInput,
-  DateRangePicker,
   DateTimePicker,
   Divider,
   EmptyState,
-  FAB,
   FormControl,
   Grid,
   HelperText,
@@ -122,6 +112,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   NavigationBar,
   NavigationDrawer,
   NavigationRail,
+  NumberField,
   Pagination,
   Paper,
   PinInput,
@@ -138,17 +129,16 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Snackbar,
   Spacer,
   SpeedDial,
-  Spinner,
   SplitButton,
   Stack,
   Stat,
   StatusBadge,
   Stepper,
+  Switch,
   TabContent,
   Table,
   Tabs,
   TimePicker,
-  Toggle,
   ToggleButton,
   ToggleButtonGroup,
   Toolbar,

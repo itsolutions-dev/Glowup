@@ -25,7 +25,7 @@ export const Default = () => (
             <IconButton
               icon="bell-outline"
               accessibilityLabel="Notifications"
-              onPress={() => {}}
+              onClick={() => {}}
             />
             <Avatar name="Marta Rossi" size={32} />
           </div>
@@ -44,7 +44,7 @@ export const WithBackAction = () => (
         title: "Invoice #10428",
         headerRight: () => (
           <div style={trailing}>
-            <Button mode="text" iconName="download" onPress={() => {}}>
+            <Button variant="text" iconName="download" onClick={() => {}}>
               PDF
             </Button>
           </div>

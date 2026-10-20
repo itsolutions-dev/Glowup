@@ -36,7 +36,6 @@ export const Basic = () => (
 /**
  * Only `mode` is locked, so `selectionMode` still switches the shape of the
  * value: one `Date`, a `{ startDate, endDate }` pair, or an array of days.
- * (`DateRangePicker` is this same component with the range mode fixed too.)
  */
 export const SelectionModes = () => (
   <div style={stack}>
@@ -75,6 +74,28 @@ export const States = () => (
       label="Contract start"
       value={new Date(2024, 0, 8)}
       disabled
+      onChange={noop}
+    />
+  </div>
+);
+
+/**
+ * `variant="static"` draws the calendar inline, in the page: no field, no
+ * dialog, no OK. Every tap reports through `onChange` at once, so it is the
+ * calendar to put beside a list rather than behind a field.
+ */
+export const Static = () => (
+  <div style={stack}>
+    <DatePicker variant="static" value={later} onChange={noop} />
+  </div>
+);
+
+export const StaticRange = () => (
+  <div style={stack}>
+    <DatePicker
+      variant="static"
+      selectionMode="range"
+      value={{ startDate: today, endDate: later }}
       onChange={noop}
     />
   </div>

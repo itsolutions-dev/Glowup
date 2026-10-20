@@ -9,7 +9,7 @@ export interface ListItemProps {
   onPress?: () => void;
   /** Leading slot — an Avatar, an icon, a Checkbox. */
   leading?: React.ReactNode;
-  /** Trailing slot — a value, a Toggle, a chevron. */
+  /** Trailing slot — a value, a Switch, a chevron. */
   trailing?: React.ReactNode;
   /** Second line below `children`. Text or any node, like `children`. */
   secondary?: React.ReactNode;
@@ -123,7 +123,7 @@ function ListItem({
       ) : (
         // Not a disabled Pressable: that marks the row disabled for screen
         // readers (aria-disabled on the web), and with it the controls in
-        // its slots, such as a Toggle in `trailing`.
+        // its slots, such as a Switch in `trailing`.
         <View style={[styles.itemContainer, accent, itemContainerStyle]}>
           {content}
         </View>

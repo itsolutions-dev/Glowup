@@ -280,10 +280,15 @@ export const WrapsTheApp = () => (
             flexWrap: "wrap",
           }}
         >
-          <Button mode="filled" onPress={() => {}}>
+          <Button variant="filled" onClick={() => {}}>
             Renew
           </Button>
-          <Chip label="Annual" mode="tonal" size="small" onPress={() => {}} />
+          <Chip
+            label="Annual"
+            variant="tonal"
+            size="small"
+            onClick={() => {}}
+          />
           <StatusBadge label="Active" type="success" />
         </div>
       </Paper>
@@ -336,13 +341,13 @@ const PalettePicker = () => {
       </div>
       <Paper outline style={{ padding: 16 }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Button mode="filled" onPress={() => {}}>
+          <Button variant="filled" onClick={() => {}}>
             Filled
           </Button>
-          <Button mode="tonal" onPress={() => {}}>
+          <Button variant="tonal" onClick={() => {}}>
             Tonal
           </Button>
-          <Chip label="Selected" mode="tonal" selected onPress={() => {}} />
+          <Chip label="Selected" variant="tonal" selected onClick={() => {}} />
           <ProgressButton status="loading" progress={0.6}>
             Loading
           </ProgressButton>

@@ -17,6 +17,22 @@ export type DateSelectionMode = "single" | "range" | "multiple";
 /** Which surface the open dialog shows: the calendar/clock, or text fields. */
 export type PickerInputType = "picker" | "keyboard";
 
+/**
+ * How the picker is presented.
+ * - `default` — a field that opens the picker in a popover (web) or a dialog.
+ * - `static` — the picker itself, drawn inline in the page: no field, no
+ *   popup, no OK; every selection is reported through `onChange` at once.
+ */
+export type DateTimePickerVariant = "default" | "static";
+
+/**
+ * How the `default` variant opens on the web: `"popover"` docks the picker to
+ * its field, `"dialog"` centres it over a scrim, as Material's mobile pickers
+ * do. `"auto"` picks the dialog for a touch device or a window narrower than
+ * 600 px and the popover otherwise.
+ */
+export type DateTimePickerPresentation = "auto" | "popover" | "dialog";
+
 /** How the calendar moves between months. */
 export type CalendarScrollMode = "endless" | "paged";
 
@@ -59,15 +75,18 @@ export interface DateTimePickerLabels {
   selectDates?: string;
   /** Dialog headline over the clock. */
   selectTime?: string;
+  /** The "Today" button next to the month arrows. */
   today?: string;
   clear?: string;
-  cancel?: string;
+  /** The single action of a picker that a tap does not finish. */
   confirm?: string;
   previousMonth?: string;
   nextMonth?: string;
   previousYears?: string;
   nextYears?: string;
+  /** @deprecated The calendar header is one control, labelled by `selectYear`. */
   selectMonth?: string;
+  /** Accessible name of the "October 2026" header button, which opens the year grid. */
   selectYear?: string;
   openPicker?: string;
   closePicker?: string;
@@ -79,12 +98,6 @@ export interface DateTimePickerLabels {
   startDate?: string;
   /** Placeholder/label of the range end field. */
   endDate?: string;
-  /** Toggles from calendar to typed entry. */
-  switchToKeyboard?: string;
-  /** Toggles from typed entry back to the calendar. */
-  switchToCalendar?: string;
-  /** Toggles from typed entry back to the clock. */
-  switchToClock?: string;
   /** Shown under a field whose text is not a date at all. */
   invalidDate?: string;
   /** Shown under a field whose date falls outside `validRange`. */
@@ -93,9 +106,10 @@ export interface DateTimePickerLabels {
   invalidDateRange?: string;
   /** Summary of a multi-date selection; `{{count}}` is substituted. */
   selectedCount?: string;
-  /** Advances a `datetime` picker from the calendar step to the clock step. */
-  next?: string;
-  /** Returns a `datetime` picker from the clock step to the calendar step. */
+  /**
+   * Hint of the date readout on a `datetime` picker's clock step, which takes
+   * the user back to the calendar step.
+   */
   back?: string;
 }
 
@@ -106,7 +120,6 @@ export const DEFAULT_LABELS: Required<DateTimePickerLabels> = {
   selectTime: "Select time",
   today: "Today",
   clear: "Clear",
-  cancel: "Cancel",
   confirm: "OK",
   previousMonth: "Previous month",
   nextMonth: "Next month",
@@ -122,19 +135,39 @@ export const DEFAULT_LABELS: Required<DateTimePickerLabels> = {
   pm: "PM",
   startDate: "Start",
   endDate: "End",
-  switchToKeyboard: "Switch to text input",
-  switchToCalendar: "Switch to calendar",
-  switchToClock: "Switch to clock",
   invalidDate: "Not a valid date",
   dateOutOfRange: "Date outside the allowed range",
   invalidDateRange: "The end date precedes the start date",
   selectedCount: "{{count}} selected",
-  next: "Next",
-  back: "Back",
+  back: "Back to date",
 };
 
 /** Props shared by every selection mode. */
 export interface DateTimePickerCommonProps {
+  /**
+   * `"default"` shows a field that opens the picker in a popover (web) or a
+   * dialog; dismiss it by tapping outside, with the back gesture or with Escape.
+   * `"static"` draws the picker inline in the page instead: no field, no popup,
+   * no OK, and every selection calls `onChange` at once with the live value.
+   * Of the field props only `disabled` and `style` apply to a static picker, and
+   * it always shows the calendar and the clock, never typed entry.
+   */
+  variant?: DateTimePickerVariant;
+  /**
+   * Web only, `variant="default"` only: whether the picker opens docked to its
+   * field or as a dialog. Decided each time it opens. Native always opens the
+   * dialog. Defaults to `"auto"`.
+   */
+  presentation?: DateTimePickerPresentation;
+  /**
+   * The look of the field's box, as `variant` on `Input`: `"outlined"` is a
+   * bordered box on the surface, `"filled"` a tinted box that shows its border
+   * only while the picker is open, the typed text has focus, or there is an
+   * `error`. Named apart from `variant`, which already chooses between the
+   * field and the inline picker. Does nothing for `variant="static"`, which has
+   * no field. Defaults to `"outlined"`.
+   */
+  fieldVariant?: "outlined" | "filled";
   label?: string;
   /** Shown while the field has no value. */
   placeholder?: string;
@@ -153,7 +186,7 @@ export interface DateTimePickerCommonProps {
   validRange?: ValidRange;
   /** Excludes days `validRange` cannot express (weekends, a computed holiday set). */
   isDateDisabled?: (date: Date) => boolean;
-  /** Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). */
+  /** Chrome strings of the picker surface (nav buttons, "Today", "OK", …). */
   labels?: DateTimePickerLabels;
   /**
    * Overrides the relative day labels, e.g. from i18n:
@@ -171,8 +204,18 @@ export interface DateTimePickerCommonProps {
   use24HourClock?: boolean;
   /** Lets the user type the value straight into the field. Default `true`. */
   inputEnabled?: boolean;
-  /** Which surface the dialog opens on. Default `"picker"`. */
+  /**
+   * Which surface the dialog opens on, `"picker"` or typed `"keyboard"` entry.
+   * There is no toggle between the two in the dialog, so this is the only way
+   * to get typed entry there. Default `"picker"`.
+   */
   defaultInputType?: PickerInputType;
+  /**
+   * Offers a "Today" button next to the month arrows. Default `true`. Only a
+   * single-date calendar has one, and it is disabled while today is outside
+   * `validRange` or excluded by `isDateDisabled`.
+   */
+  showToday?: boolean;
   /** Month navigation inside the dialog. Default `"endless"`. */
   scrollMode?: CalendarScrollMode;
   /** First year offered by the year grid. Defaults to 100 years back. */

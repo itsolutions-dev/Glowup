@@ -4,7 +4,7 @@ import {
   Button,
   Input,
   Select,
-  Toggle,
+  Switch,
   Typography,
   useTheme,
   type Theme,
@@ -83,7 +83,7 @@ export const PropControls = ({
       )}
 
       {dirty && (
-        <Button mode="text" iconName="restore" onPress={onReset}>
+        <Button variant="text" iconName="restore" onClick={onReset}>
           Reset to defaults
         </Button>
       )}
@@ -116,7 +116,7 @@ const PropControl = ({
         <Input
           label={definition.label}
           value={value?.toString() ?? ""}
-          onChangeText={onChange}
+          onChange={onChange}
         />
       );
 
@@ -126,7 +126,7 @@ const PropControl = ({
           type="number"
           label={definition.label}
           value={draft ?? value?.toString() ?? ""}
-          onChangeText={(text) => {
+          onChange={(text) => {
             setDraft(text);
             const parsed = Number(text);
             // Commit only a complete number; an empty field falls back to the
@@ -146,7 +146,7 @@ const PropControl = ({
           >
             {definition.label}
           </Typography>
-          <Toggle value={!!value} onValueChange={onChange} />
+          <Switch value={!!value} onChange={onChange} />
         </View>
       );
 
@@ -159,7 +159,7 @@ const PropControl = ({
             ...option,
           }))}
           value={value}
-          onSelect={onChange}
+          onChange={onChange}
         />
       );
 

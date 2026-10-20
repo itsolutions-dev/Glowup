@@ -6,7 +6,6 @@ import {
   SpeedDial,
   ToggleButtonGroup,
   IconButton,
-  AnimatedFAB,
   ToggleButton,
   ButtonGroup,
   SplitButton,
@@ -22,10 +21,10 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: Button,
     props: {
       children: { type: "text", default: "Click Me", label: "Label" },
-      mode: {
+      variant: {
         type: "select",
         default: "filled",
-        label: "Mode",
+        label: "Variant",
         options: [
           { label: "Filled", value: "filled" },
           { label: "Tonal", value: "tonal" },
@@ -33,14 +32,29 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Text", value: "text" },
         ],
       },
+      color: {
+        type: "select",
+        default: "primary",
+        label: "Color",
+        options: [
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
+        ],
+      },
       iconName: { type: "text", default: "plus", label: "Icon Name" },
       iconPosition: {
         type: "select",
-        default: "left",
+        default: "start",
         label: "Icon Position",
         options: [
-          { label: "Left", value: "left" },
-          { label: "Right", value: "right" },
+          { label: "Start", value: "start" },
+          { label: "End", value: "end" },
         ],
       },
       fullWidth: { type: "boolean", default: false, label: "Full Width" },
@@ -102,10 +116,10 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Bar", value: "bar" },
         ],
       },
-      mode: {
+      variant: {
         type: "select",
         default: "filled",
-        label: "Mode",
+        label: "Variant",
         options: [
           { label: "Filled", value: "filled" },
           { label: "Tonal", value: "tonal" },
@@ -127,15 +141,32 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: IconButton,
     props: {
       icon: { type: "text", default: "heart-outline", label: "Icon" },
-      mode: {
+      title: { type: "text", default: "", label: "Title (tooltip)" },
+      variant: {
         type: "select",
         default: "standard",
-        label: "Mode",
+        label: "Variant",
         options: [
           { label: "Standard", value: "standard" },
           { label: "Filled", value: "filled" },
           { label: "Tonal", value: "tonal" },
           { label: "Outlined", value: "outlined" },
+        ],
+      },
+      color: {
+        type: "select",
+        default: "",
+        label: "Color",
+        options: [
+          { label: "Default", value: "" },
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
         ],
       },
       size: {
@@ -159,14 +190,30 @@ export const actions: Record<string, ComponentMetadata> = {
     props: {
       label: { type: "text", default: "React Native", label: "Label" },
       selected: { type: "boolean", default: false, label: "Selected" },
-      mode: {
+      variant: {
         type: "select",
         default: "filled",
-        label: "Mode",
+        label: "Variant",
         options: [
           { label: "Filled", value: "filled" },
           { label: "Tonal", value: "tonal" },
           { label: "Outlined", value: "outlined" },
+        ],
+      },
+      color: {
+        type: "select",
+        default: "",
+        label: "Color",
+        options: [
+          { label: "Default", value: "" },
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
         ],
       },
       size: {
@@ -174,8 +221,19 @@ export const actions: Record<string, ComponentMetadata> = {
         default: "medium",
         label: "Size",
         options: [
-          { label: "Medium", value: "medium" },
           { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
+      border: {
+        type: "select",
+        default: "rounded",
+        label: "Border",
+        options: [
+          { label: "Rounded", value: "rounded" },
+          { label: "Squared", value: "squared" },
+          { label: "Circular", value: "circular" },
         ],
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -186,17 +244,56 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: FAB,
     props: {
       icon: { type: "text", default: "plus", label: "Icon" },
-      label: { type: "text", default: "Create", label: "Label (extended)" },
+      label: {
+        type: "text",
+        default: "Create",
+        label: "Label (extended, animated)",
+      },
+      variant: {
+        type: "select",
+        default: "icon",
+        label: "Variant",
+        options: [
+          { label: "Icon", value: "icon" },
+          { label: "Extended", value: "extended" },
+          { label: "Animated", value: "animated" },
+        ],
+      },
       size: {
         type: "select",
-        default: "regular",
+        default: "medium",
         label: "Size",
         options: [
           { label: "Small", value: "small" },
-          { label: "Regular", value: "regular" },
+          { label: "Medium", value: "medium" },
           { label: "Large", value: "large" },
-          { label: "Extended", value: "extended" },
         ],
+      },
+      extended: {
+        type: "boolean",
+        default: true,
+        label: "Extended",
+        appliesWhen: (values) => values.variant === "animated",
+      },
+      animateFrom: {
+        type: "select",
+        default: "right",
+        label: "Animate from",
+        options: [
+          { label: "Right", value: "right" },
+          { label: "Left", value: "left" },
+        ],
+        appliesWhen: (values) => values.variant === "animated",
+      },
+      iconMode: {
+        type: "select",
+        default: "static",
+        label: "Icon mode",
+        options: [
+          { label: "Static", value: "static" },
+          { label: "Dynamic", value: "dynamic" },
+        ],
+        appliesWhen: (values) => values.variant === "animated",
       },
       position: {
         type: "select",
@@ -207,43 +304,6 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Bottom Left", value: "bottom-left" },
           { label: "Top Right", value: "top-right" },
           { label: "Top Left", value: "top-left" },
-        ],
-      },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
-    },
-  },
-  AnimatedFAB: {
-    name: "AnimatedFAB",
-    Component: AnimatedFAB,
-    props: {
-      icon: { type: "text", default: "plus", label: "Icon" },
-      label: { type: "text", default: "New ticket", label: "Label" },
-      extended: { type: "boolean", default: true, label: "Extended" },
-      animateFrom: {
-        type: "select",
-        default: "right",
-        label: "Animate from",
-        options: [
-          { label: "Right", value: "right" },
-          { label: "Left", value: "left" },
-        ],
-      },
-      iconMode: {
-        type: "select",
-        default: "static",
-        label: "Icon mode",
-        options: [
-          { label: "Static", value: "static" },
-          { label: "Dynamic", value: "dynamic" },
-        ],
-      },
-      placement: {
-        type: "select",
-        default: "inline",
-        label: "Placement",
-        options: [
-          { label: "Inline", value: "inline" },
-          { label: "Floating", value: "floating" },
         ],
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -349,18 +409,18 @@ export const actions: Record<string, ComponentMetadata> = {
     Component: ChipGroup,
     Demo: ChipGroupDemo,
     props: {
-      multiSelect: { type: "boolean", default: false, label: "Multi select" },
+      multiple: { type: "boolean", default: false, label: "Multiple" },
       required: {
         type: "boolean",
         default: false,
         label: "Required",
-        appliesWhen: (values) => !values.multiSelect,
+        appliesWhen: (values) => !values.multiple,
       },
       wrap: { type: "boolean", default: true, label: "Wrap" },
-      mode: {
+      variant: {
         type: "select",
         default: "outlined",
-        label: "Mode",
+        label: "Variant",
         options: [
           { label: "Outlined", value: "outlined" },
           { label: "Tonal", value: "tonal" },

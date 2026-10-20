@@ -15,7 +15,7 @@ const Positions = () => (
         content={`Opens on the ${position}`}
         position={position}
       >
-        <Button mode="tonal" onPress={() => {}}>
+        <Button variant="tonal" onClick={() => {}}>
           {position}
         </Button>
       </Tooltip>
@@ -29,21 +29,21 @@ const OnIconButtons = () => (
       <IconButton
         icon="content-copy"
         accessibilityLabel="Duplicate"
-        onPress={() => {}}
+        onClick={() => {}}
       />
     </Tooltip>
     <Tooltip content="Archive">
       <IconButton
         icon="archive-outline"
         accessibilityLabel="Archive"
-        onPress={() => {}}
+        onClick={() => {}}
       />
     </Tooltip>
     <Tooltip content="Delete — this cannot be undone" position="bottom">
       <IconButton
         icon="delete-outline"
         accessibilityLabel="Delete"
-        onPress={() => {}}
+        onClick={() => {}}
       />
     </Tooltip>
     <Typography variant="bodySmall">
@@ -55,17 +55,17 @@ const OnIconButtons = () => (
 const Delays = () => (
   <View style={demo.row}>
     <Tooltip content="Opens at once" enterDelay={0}>
-      <Button mode="outlined" onPress={() => {}}>
+      <Button variant="outlined" onClick={() => {}}>
         No delay
       </Button>
     </Tooltip>
     <Tooltip content="Waits a second first" enterDelay={1000}>
-      <Button mode="outlined" onPress={() => {}}>
+      <Button variant="outlined" onClick={() => {}}>
         Slow
       </Button>
     </Tooltip>
     <Tooltip content="Never shown" disabled>
-      <Button mode="outlined" onPress={() => {}}>
+      <Button variant="outlined" onClick={() => {}}>
         Disabled
       </Button>
     </Tooltip>
@@ -82,7 +82,7 @@ const Rich = () => (
       <IconButton
         icon="cloud-sync-outline"
         accessibilityLabel="Offline sync"
-        onPress={() => {}}
+        onClick={() => {}}
       />
     </Tooltip>
     <Tooltip
@@ -91,7 +91,7 @@ const Rich = () => (
       content="Adds a code from your phone to every sign-in."
       action={{ label: "Learn more", onPress: () => {} }}
     >
-      <Button mode="outlined" onPress={() => {}}>
+      <Button variant="outlined" onClick={() => {}}>
         Security
       </Button>
     </Tooltip>

@@ -7,12 +7,21 @@ import { OG_IMAGE_URL } from "./siteNav";
 
 const SITE_NAME = "Glowup";
 
+/** How much wider than the text column a landing page's hero may be. */
+const HERO_EXTRA = 240;
+
 interface PageProps {
   title: string;
   /** Meta description and the lead paragraph under the title. */
   description: string;
   /** Small uppercase line above the title. */
   eyebrow?: string;
+  /**
+   * Replaces the title block, for a landing page that draws its own, in a band
+   * wider than the readable column under it. The title and the description
+   * still feed the document head.
+   */
+  hero?: React.ReactNode;
   /** Rendered full-bleed between the header and the body. */
   banner?: React.ReactNode;
   children: React.ReactNode;
@@ -32,6 +41,7 @@ export const Page = ({
   title,
   description,
   eyebrow,
+  hero,
   banner,
   children,
   scroll = true,
@@ -66,11 +76,23 @@ export const Page = ({
   );
 
   const body = (
-    <View style={[styles.column, { maxWidth: layout.contentMaxWidth }]}>
-      {header}
-      {banner}
-      {children}
-    </View>
+    <>
+      {hero ? (
+        <View
+          style={[
+            styles.hero,
+            { maxWidth: layout.contentMaxWidth + HERO_EXTRA },
+          ]}
+        >
+          {hero}
+        </View>
+      ) : null}
+      <View style={[styles.column, { maxWidth: layout.contentMaxWidth }]}>
+        {hero ? null : header}
+        {banner}
+        {children}
+      </View>
+    </>
   );
 
   return (
@@ -172,6 +194,7 @@ const makeStyles = (theme: Theme) =>
       alignItems: "center",
     },
     column: { width: "100%", gap: theme.spacing.xl },
+    hero: { width: "100%", marginBottom: theme.spacing.xl },
     header: { gap: theme.spacing.xs, maxWidth: 720 },
     eyebrow: {
       textTransform: "uppercase",

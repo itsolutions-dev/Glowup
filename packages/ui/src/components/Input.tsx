@@ -13,6 +13,8 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import HelperText from "./HelperText";
 import { useDensity, type Density } from "../providers/Density";
+import { fieldWidth } from "./internal/fieldWidth";
+import { filledField } from "./internal/fieldVariant";
 
 export interface InputProps {
   label?: string;
@@ -20,7 +22,7 @@ export interface InputProps {
   precision?: number;
   /**
    * The decimal mark a `type="number"` field types and shows: `","` for a user
-   * who writes 12,50. `value` and `onChangeText` stay in the plain form
+   * who writes 12,50. `value` and `onChange` stay in the plain form
    * ("12.50"), so the app parses nothing; a typed "." is then ignored, as a
    * thousands mark. Defaults to `"."`.
    */
@@ -37,8 +39,26 @@ export interface InputProps {
   value: string;
   type?: "text" | "number";
   maxLength?: number;
-  onChangeText: (text: string) => void;
+  /** Called with the new text on every edit (for `type="number"`, already cleaned). */
+  onChange: (text: string) => void;
+  /**
+   * The look of the box: `"outlined"` is a bordered box on the surface,
+   * `"filled"` a tinted box (like `PinInput`'s) that shows its border only
+   * while focused or in error. Where the label sits is `labelPlacement`'s
+   * business, not the variant's. Defaults to `"outlined"`.
+   */
   variant?: "outlined" | "filled";
+  /**
+   * Where the label is drawn: `"outside"` above the box, or `"inside"`, small,
+   * above the text within it. Independent of `variant`. Defaults to `"outside"`.
+   */
+  labelPlacement?: "inside" | "outside";
+  /**
+   * Stretches the field to its container's width. `false` shrinks it to its
+   * content, with a minimum width so an empty field stays usable. Defaults to
+   * `true`.
+   */
+  fullWidth?: boolean;
   error?: string;
   /** Supporting text below the field; hidden while an error is shown. */
   helperText?: string;
@@ -47,13 +67,17 @@ export interface InputProps {
   disabled?: boolean;
   readonly?: boolean;
   secureTextEntry?: boolean;
+  /** Called when the field gains focus. */
   onFocus?: () => void;
+  /** Called when the field loses focus. */
   onBlur?: () => void;
   leadingIcon?: MaterialCommunityIconsGlyphs;
   trailingIcon?: MaterialCommunityIconsGlyphs;
   onTrailingIconPress?: () => void;
+  /** Lets the text wrap over several lines; see `rows`. */
   multiline?: boolean;
-  numberOfLines?: number;
+  /** Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4. */
+  rows?: number;
   /**
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.
    */
@@ -75,8 +99,10 @@ const Input = ({
   suffix,
   value,
   maxLength,
-  onChangeText,
+  onChange,
   variant = "outlined",
+  labelPlacement,
+  fullWidth = true,
   error,
   helperText,
   required,
@@ -89,7 +115,7 @@ const Input = ({
   trailingIcon,
   onTrailingIconPress,
   multiline = false,
-  numberOfLines = 4,
+  rows = 4,
   density,
   minHeight,
   style,
@@ -99,6 +125,7 @@ const Input = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);
   const activeColor = error ? theme.colors.error : theme.colors.primary;
+  const labelInside = labelPlacement === "inside";
 
   const handleTextChange = useCallback(
     (text: string) => {
@@ -117,12 +144,12 @@ const Input = ({
             ? rest.join("")
             : rest.join("").slice(0, precision);
         const cleaned = rest.length > 0 ? `${whole}.${fraction}` : whole;
-        onChangeText(sign + cleaned);
+        onChange(sign + cleaned);
       } else {
-        onChangeText(allUpperCase ? text.toUpperCase() : text);
+        onChange(allUpperCase ? text.toUpperCase() : text);
       }
     },
-    [type, precision, decimalSeparator, allUpperCase, onChangeText],
+    [type, precision, decimalSeparator, allUpperCase, onChange],
   );
 
   // Focus ring + error border, both driven by the theme's glow helper.
@@ -132,8 +159,8 @@ const Input = ({
   );
 
   return (
-    <View style={[styles.wrapper, style]}>
-      {!!label && variant === "outlined" && (
+    <View style={[styles.wrapper, fieldWidth(fullWidth), style]}>
+      {!!label && !labelInside && (
         <Text
           style={[
             theme.typography.bodySmall,
@@ -153,6 +180,7 @@ const Input = ({
           styles.inputContainer,
           { minHeight: minHeight ?? (dense ? 40 : 56) },
           dynamicStyles,
+          variant === "filled" && filledField(theme, isFocused, error),
           disabled && styles.disabled,
         ]}
       >
@@ -175,7 +203,7 @@ const Input = ({
         )}
 
         <View style={styles.textInputWrapper}>
-          {!!label && variant === "filled" && (
+          {!!label && labelInside && (
             <Text
               style={[
                 theme.typography.labelSmall,
@@ -196,7 +224,7 @@ const Input = ({
             accessibilityValue={{ text: value }}
             accessibilityHint={placeholder}
             multiline={multiline}
-            numberOfLines={numberOfLines}
+            numberOfLines={multiline ? rows : undefined}
             readOnly={readonly}
             maxLength={maxLength}
             style={[
@@ -204,7 +232,7 @@ const Input = ({
               dense ? theme.typography.bodyMedium : theme.typography.bodyLarge,
               {
                 color: theme.colors.onSurface,
-                paddingVertical: variant === "filled" ? 2 : dense ? 8 : 12,
+                paddingVertical: labelInside ? 2 : dense ? 8 : 12,
                 textAlign: type === "number" ? "right" : "left",
               },
             ]}
@@ -272,7 +300,6 @@ const makeStyles = (theme: Theme, dense: boolean) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: dense ? 12 : 20,
-      width: "100%",
     },
     inputContainer: {
       minHeight: 52,

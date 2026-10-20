@@ -10,16 +10,16 @@ const row: React.CSSProperties = {
 
 export const Modes = () => (
   <div style={row}>
-    <Button mode="filled" onPress={() => {}}>
+    <Button variant="filled" onClick={() => {}}>
       Save changes
     </Button>
-    <Button mode="tonal" onPress={() => {}}>
+    <Button variant="tonal" onClick={() => {}}>
       Duplicate
     </Button>
-    <Button mode="outlined" onPress={() => {}}>
+    <Button variant="outlined" onClick={() => {}}>
       Export CSV
     </Button>
-    <Button mode="text" onPress={() => {}}>
+    <Button variant="text" onClick={() => {}}>
       Cancel
     </Button>
   </div>
@@ -27,17 +27,17 @@ export const Modes = () => (
 
 export const WithIcons = () => (
   <div style={row}>
-    <Button mode="filled" iconName="plus" onPress={() => {}}>
+    <Button variant="filled" iconName="plus" onClick={() => {}}>
       New invoice
     </Button>
-    <Button mode="tonal" iconName="download" onPress={() => {}}>
+    <Button variant="tonal" iconName="download" onClick={() => {}}>
       Download
     </Button>
     <Button
-      mode="outlined"
+      variant="outlined"
       iconName="arrow-right"
-      iconPosition="right"
-      onPress={() => {}}
+      iconPosition="end"
+      onClick={() => {}}
     >
       Continue
     </Button>
@@ -46,13 +46,18 @@ export const WithIcons = () => (
 
 export const States = () => (
   <div style={row}>
-    <Button mode="filled" loading onPress={() => {}}>
+    <Button variant="filled" loading onClick={() => {}}>
       Submitting
     </Button>
-    <Button mode="filled" disabled onPress={() => {}}>
+    <Button variant="filled" disabled onClick={() => {}}>
       Unavailable
     </Button>
-    <Button mode="outlined" disabled iconName="lock-outline" onPress={() => {}}>
+    <Button
+      variant="outlined"
+      disabled
+      iconName="lock-outline"
+      onClick={() => {}}
+    >
       Locked
     </Button>
   </div>
@@ -62,10 +67,10 @@ export const FullWidth = () => (
   <div
     style={{ display: "flex", flexDirection: "column", gap: 12, width: 320 }}
   >
-    <Button mode="filled" fullWidth iconName="check" onPress={() => {}}>
+    <Button variant="filled" fullWidth iconName="check" onClick={() => {}}>
       Confirm booking
     </Button>
-    <Button mode="text" fullWidth onPress={() => {}}>
+    <Button variant="text" fullWidth onClick={() => {}}>
       Not now
     </Button>
   </div>
@@ -73,16 +78,16 @@ export const FullWidth = () => (
 
 export const WithBadge = () => (
   <div style={row}>
-    <Button mode="outlined" iconName="filter-outline">
+    <Button variant="outlined" iconName="filter-outline">
       Filters
     </Button>
     <Button iconName="filter-variant" badge={3}>
       Filters
     </Button>
-    <Button mode="tonal" badge={12}>
+    <Button variant="tonal" badge={12}>
       Inbox
     </Button>
-    <Button mode="outlined" badge={120}>
+    <Button variant="outlined" badge={120}>
       Alerts
     </Button>
   </div>

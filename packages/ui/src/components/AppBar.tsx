@@ -39,13 +39,13 @@ const AppBar = ({
     <IconButton
       icon="arrow-left"
       accessibilityLabel="Go back"
-      onPress={navigation.goBack}
+      onClick={navigation.goBack}
     />
   ) : !hideDrawerToggle && navigation.openDrawer ? (
     <IconButton
       icon="menu"
       accessibilityLabel="Open navigation menu"
-      onPress={navigation.openDrawer}
+      onClick={navigation.openDrawer}
     />
   ) : undefined;
 

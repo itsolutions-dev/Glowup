@@ -14,7 +14,7 @@ import Icons from "./Glyph";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
-export interface SpinnerProps {
+export interface NumberFieldProps {
   label?: string;
   value: number;
   onChange: (val: number) => void;
@@ -24,7 +24,7 @@ export interface SpinnerProps {
   disabled?: boolean;
 }
 
-const Spinner = ({
+const NumberField = ({
   label,
   value,
   onChange,
@@ -32,7 +32,7 @@ const Spinner = ({
   min = 0,
   max = 100,
   disabled,
-}: SpinnerProps) => {
+}: NumberFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [text, setText] = useState(String(value));
   const [prevValue, setPrevValue] = useState(value);
@@ -164,9 +164,9 @@ const Spinner = ({
   );
 };
 
-export default Spinner;
+export default NumberField;
 
-type SpinnerStyles = {
+type NumberFieldStyles = {
   wrapper: ViewStyle;
   staticLabel: TextStyle;
   container: ViewStyle;
@@ -175,13 +175,13 @@ type SpinnerStyles = {
   button: ViewStyle;
 };
 
-const makeStyles: (theme: Theme) => StyleSheet.NamedStyles<SpinnerStyles> = (
+const makeStyles: (
   theme: Theme,
-) =>
+) => StyleSheet.NamedStyles<NumberFieldStyles> = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
       marginBottom: 20,
-      width: 160, // Spinners are usually narrower than standard inputs
+      width: 160, // Number fields are usually narrower than standard inputs
     },
     staticLabel: {
       marginBottom: 8,

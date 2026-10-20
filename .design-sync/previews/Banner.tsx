@@ -94,12 +94,17 @@ export const AboveContent = () => (
       <Typography variant="titleMedium">Component health</Typography>
       <div style={{ height: 8 }} />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <Chip label="32 passing" size="small" mode="tonal" onPress={() => {}} />
+        <Chip
+          label="32 passing"
+          size="small"
+          variant="tonal"
+          onClick={() => {}}
+        />
         <Chip
           label="2 failing"
           size="small"
-          mode="outlined"
-          onPress={() => {}}
+          variant="outlined"
+          onClick={() => {}}
         />
       </div>
     </Card>

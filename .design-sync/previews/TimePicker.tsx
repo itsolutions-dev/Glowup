@@ -60,3 +60,13 @@ export const Formats = () => (
     />
   </div>
 );
+
+/**
+ * `variant="static"` puts the clock face in the page, with no field and no
+ * dialog; each hour and minute you pick reports through `onChange`.
+ */
+export const Static = () => (
+  <div style={stack}>
+    <TimePicker variant="static" value={afternoon} onChange={noop} />
+  </div>
+);

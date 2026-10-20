@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import {
   useTheme,
   useToast,
@@ -39,6 +39,9 @@ interface ComponentPreviewProps {
  */
 const DEMO_DATE = new Date(2024, 4, 15, 10, 30);
 
+/** The components whose press handler is `onClick`; the rest still take `onPress`. */
+const CLICKABLE = new Set(["Button", "Chip", "Avatar", "Typography"]);
+
 /**
  * Renders one catalogue entry with the props the panel currently holds.
  * Most entries are just `<Component {...props} />`; the ones below need a
@@ -62,6 +65,7 @@ const ComponentPreview = ({
   const [dateList, setDateList] = useState<Date[]>([]);
   const [pinValue, setPinValue] = useState("");
   const [autocompleteQuery, setAutocompleteQuery] = useState("");
+  const [autocompleteChosen, setAutocompleteChosen] = useState<any[]>([]);
   const [collapseOpen, setCollapseOpen] = useState(false);
 
   const gridData = useMemo(
@@ -117,7 +121,7 @@ const ComponentPreview = ({
     props.onValueChange = (v: number) => updateProp("value", v);
   }
 
-  if (selectedComponentName === "Spinner") {
+  if (selectedComponentName === "NumberField") {
     props.value = Number(props.value) || 0;
     props.min = Number(props.min) || 0;
     props.max = Number(props.max) || 100;
@@ -127,7 +131,7 @@ const ComponentPreview = ({
   if (selectedComponentName === "Tooltip") {
     return (
       <Component {...props}>
-        <Button mode="tonal" onPress={() => {}}>
+        <Button variant="tonal" onClick={() => {}}>
           Hover / long-press me
         </Button>
       </Component>
@@ -155,7 +159,7 @@ const ComponentPreview = ({
     ];
     props.onDismiss = () => updateProp("visible", false);
     props.anchor = (
-      <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+      <Button variant="tonal" onClick={() => updateProp("visible", true)}>
         Open Menu
       </Button>
     );
@@ -166,7 +170,7 @@ const ComponentPreview = ({
     props.onDismiss = () => updateProp("visible", false);
     return (
       <>
-        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
           Open Bottom Sheet
         </Button>
         <Component {...props}>
@@ -209,7 +213,7 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "SearchBar") {
-    props.onChangeText = (t: string) => updateProp("value", t);
+    props.onChange = (t: string) => updateProp("value", t);
   }
 
   if (selectedComponentName === "Banner") {
@@ -280,37 +284,10 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "ClockPicker") {
-    if (!props.locale) delete props.locale;
-    props.minuteInterval = Number(props.minuteInterval) || 1;
-    // The surface edits an instant, so it needs a non-null value.
-    props.value = dateValue ?? DEMO_DATE;
-    props.onChange = (d: Date) => setDateValue(d);
-    // The M3 time surface has an intrinsic ~278px width (it is sized for a
-    // 328dp dialog); the stage is narrower than that below ~1400px, so let it
-    // scroll rather than clipping the AM/PM switch off the edge.
-    return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 4,
-          flexGrow: 1,
-          justifyContent: "center",
-        }}
-      >
-        <Component {...props} />
-      </ScrollView>
-    );
-  }
-
   if (
     selectedComponentName === "DateTimePicker" ||
     selectedComponentName === "DatePicker" ||
-    selectedComponentName === "TimePicker" ||
-    selectedComponentName === "DatePickerInput" ||
-    selectedComponentName === "DateRangePicker" ||
-    selectedComponentName === "Calendar"
+    selectedComponentName === "TimePicker"
   ) {
     // limitToThisMonth / noWeekends are playground switches, not component
     // props — they stand in for a real validRange / isDateDisabled.
@@ -331,41 +308,24 @@ const ComponentPreview = ({
         date.getDay() === 0 || date.getDay() === 6;
     }
 
-    // Each selection mode reports through its own callback and reads from
-    // its own state, so the three are wired separately. `DateRangePicker`
-    // locks the mode away as a prop, hence the name check.
-    const selection =
-      selectedComponentName === "DateRangePicker"
-        ? "range"
-        : (props.selectionMode ?? "single");
+    // Each selection mode reports through the same `onChange` but reads from
+    // its own state, so the three are wired separately.
+    const selection = props.selectionMode ?? "single";
 
     if (selection === "range") {
-      if (selectedComponentName === "Calendar") {
-        props.range = dateRange;
-        props.onRangeChange = setDateRange;
-      } else {
-        props.value = dateRange;
-        props.onChange = setDateRange;
-        props.onClear = () => setDateRange(EMPTY_RANGE);
-      }
+      props.value = dateRange;
+      props.onChange = setDateRange;
+      props.onClear = () => setDateRange(EMPTY_RANGE);
     } else if (selection === "multiple") {
-      if (selectedComponentName === "Calendar") {
-        props.dates = dateList;
-        props.onDatesChange = setDateList;
-      } else {
-        props.value = dateList;
-        props.onChange = setDateList;
-        props.onClear = () => setDateList([]);
-      }
+      props.value = dateList;
+      props.onChange = setDateList;
+      props.onClear = () => setDateList([]);
     } else {
       props.value = dateValue;
       props.onChange = (d: Date) => setDateValue(d);
       props.onClear = () => setDateValue(null);
     }
 
-    if (selectedComponentName === "Calendar") {
-      return <Component {...props} />;
-    }
     props.minuteInterval = Number(props.minuteInterval) || 1;
     return (
       <View style={{ width: "100%", maxWidth: 360 }}>
@@ -379,11 +339,14 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "IconButton") {
+    // Optional props the panel leaves empty are not passed at all.
+    if (!props.title) delete props.title;
+    if (!props.color) delete props.color;
     return (
       <Component
         {...props}
         accessibilityLabel={props.icon || "Icon button"}
-        onPress={() => {}}
+        onClick={() => {}}
       />
     );
   }
@@ -408,7 +371,7 @@ const ComponentPreview = ({
   if (selectedComponentName === "PinInput") {
     props.length = Math.max(2, Math.min(10, Number(props.length) || 6));
     props.value = pinValue;
-    props.onChangeText = setPinValue;
+    props.onChange = setPinValue;
     if (!props.error) delete props.error;
     if (!props.helperText) delete props.helperText;
     return (
@@ -421,8 +384,7 @@ const ComponentPreview = ({
   if (selectedComponentName === "Autocomplete") {
     props.minChars = Math.max(0, Number(props.minChars) || 0);
     props.value = autocompleteQuery;
-    props.onChangeText = setAutocompleteQuery;
-    props.onSelect = () => {};
+    props.onChange = setAutocompleteQuery;
     props.options = [
       {
         id: "it",
@@ -437,6 +399,14 @@ const ComponentPreview = ({
       { id: "ie", label: "Ireland", value: "IE", description: "Europe" },
       { id: "jp", label: "Japan", value: "JP", description: "Asia" },
     ];
+    // What the field offers before anything is typed.
+    props.defaultOptions = props.defaultOptions
+      ? props.options.slice(0, 3)
+      : undefined;
+    if (props.multiple) {
+      props.selected = autocompleteChosen;
+      props.onSelectedChange = setAutocompleteChosen;
+    }
     if (!props.error) delete props.error;
     if (!props.helperText) delete props.helperText;
     if (!props.emptyMessage) delete props.emptyMessage;
@@ -473,7 +443,7 @@ const ComponentPreview = ({
     props.duration = Number(props.duration) || 200;
     return (
       <View style={{ width: "100%", maxWidth: 420, gap: 12 }}>
-        <Button mode="tonal" onPress={() => setCollapseOpen((o) => !o)}>
+        <Button variant="tonal" onClick={() => setCollapseOpen((o) => !o)}>
           {collapseOpen ? "Collapse" : "Expand"}
         </Button>
         <Component {...props} open={collapseOpen}>
@@ -579,24 +549,24 @@ const ComponentPreview = ({
           }}
         >
           <Button
-            mode="tonal"
-            onPress={() => toast.show({ message, duration, action })}
+            variant="tonal"
+            onClick={() => toast.show({ message, duration, action })}
           >
             Show
           </Button>
           <Button
-            mode="tonal"
-            onPress={() => toast.success(message, { duration, action })}
+            variant="tonal"
+            onClick={() => toast.success(message, { duration, action })}
           >
             Success
           </Button>
           <Button
-            mode="tonal"
-            onPress={() => toast.error(message, { duration, action })}
+            variant="tonal"
+            onClick={() => toast.error(message, { duration, action })}
           >
             Error
           </Button>
-          <Button mode="outlined" onPress={() => toast.hide()}>
+          <Button variant="outlined" onClick={() => toast.hide()}>
             Clear queue
           </Button>
         </View>
@@ -608,26 +578,40 @@ const ComponentPreview = ({
     if (!props.label) delete props.label;
     return (
       <View style={{ width: "100%", height: 200 }}>
-        <Component {...props} onPress={() => {}} />
+        <Component {...props} onClick={() => {}} />
       </View>
     );
   }
 
-  if (selectedComponentName === "Toggle") {
-    props.width = Number(props.width) || 48;
-    props.height = Number(props.height) || 28;
-    props.onValueChange = (v: boolean) => updateProp("value", v);
+  if (selectedComponentName === "Switch") {
+    if (!props.label) delete props.label;
+    props.onChange = (v: boolean) => updateProp("value", v);
     return <Component {...props} />;
   }
 
+  if (selectedComponentName === "Input") {
+    props.rows = Math.max(1, Number(props.rows) || 4);
+    props.onChange = (text: string) => updateProp("value", text);
+    if (!props.error) delete props.error;
+    if (!props.helperText) delete props.helperText;
+    return (
+      <View style={{ width: "100%", maxWidth: 360 }}>
+        <Component {...props} />
+      </View>
+    );
+  }
+
   if (selectedComponentName === "Select") {
-    props.options = [
-      { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
-      { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
-      { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
-      { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
-    ];
-    props.onSelect = (v: any) => updateProp("value", v);
+    props.options = props.empty
+      ? []
+      : [
+          { id: "it", label: "Italy", value: "it", icon: "flag-outline" },
+          { id: "fr", label: "France", value: "fr", icon: "flag-outline" },
+          { id: "de", label: "Germany", value: "de", icon: "flag-outline" },
+          { id: "es", label: "Spain", value: "es", icon: "flag-outline" },
+        ];
+    delete props.empty;
+    props.onChange = (v: any) => updateProp("value", v);
     return (
       <View style={{ width: "100%", maxWidth: 360 }}>
         <Component {...props} />
@@ -698,7 +682,7 @@ const ComponentPreview = ({
     if (!props.icon) delete props.icon;
     return (
       <View style={{ width: "100%", height: 160 }}>
-        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
           Show Snackbar
         </Button>
         <Component {...props} />
@@ -724,7 +708,7 @@ const ComponentPreview = ({
     const { children, ...modalProps } = props;
     return (
       <>
-        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
           Open Modal
         </Button>
         <Component {...modalProps}>{children}</Component>
@@ -737,7 +721,7 @@ const ComponentPreview = ({
     props.onCancel = () => updateProp("visible", false);
     return (
       <>
-        <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
           Open Confirm Dialog
         </Button>
         <Component {...props} />
@@ -748,7 +732,7 @@ const ComponentPreview = ({
   if (selectedComponentName === "Popover") {
     props.onDismiss = () => updateProp("visible", false);
     props.anchor = (
-      <Button mode="tonal" onPress={() => updateProp("visible", true)}>
+      <Button variant="tonal" onClick={() => updateProp("visible", true)}>
         Open Popover
       </Button>
     );
@@ -842,7 +826,7 @@ const ComponentPreview = ({
             <IconButton
               icon="dots-vertical"
               accessibilityLabel="More actions"
-              onPress={() => {}}
+              onClick={() => {}}
             />
           }
         />
@@ -880,10 +864,10 @@ const ComponentPreview = ({
       <Card variant="elevated" style={{ width: "100%", maxWidth: 420 }}>
         <CardTitle title="Line 4" subtitle="Confirm the service call" />
         <Component {...props}>
-          <Button mode="text" onPress={() => {}}>
+          <Button variant="text" onClick={() => {}}>
             Postpone
           </Button>
-          <Button onPress={() => {}}>Confirm</Button>
+          <Button onClick={() => {}}>Confirm</Button>
         </Component>
       </Card>
     );
@@ -897,16 +881,6 @@ const ComponentPreview = ({
   if (selectedComponentName === "ToggleButton") {
     props.onPress = () => updateProp("active", !props.active);
     return <Component {...props} />;
-  }
-
-  if (selectedComponentName === "AnimatedFAB") {
-    props.onPress = () => {};
-    // Floating pins it to the screen corner, so give it room to sit in.
-    return (
-      <View style={{ width: "100%", height: 160, justifyContent: "center" }}>
-        <Component {...props} />
-      </View>
-    );
   }
 
   if (selectedComponentName === "AspectRatio") {
@@ -1030,24 +1004,6 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "ClockDial") {
-    const current = dateValue ?? DEMO_DATE;
-    props.minuteInterval = Number(props.minuteInterval) || 1;
-    props.hours = current.getHours();
-    props.minutes = current.getMinutes();
-    props.onChangeHours = (hours: number) => {
-      const next = new Date(current);
-      next.setHours(hours);
-      setDateValue(next);
-    };
-    props.onChangeMinutes = (minutes: number) => {
-      const next = new Date(current);
-      next.setMinutes(minutes);
-      setDateValue(next);
-    };
-    return <Component {...props} />;
-  }
-
   if (isContainer) {
     const { children, ...otherProps } = props;
     return (
@@ -1061,7 +1017,12 @@ const ComponentPreview = ({
     );
   }
 
-  return <Component {...props} onPress={() => console.log("Pressed")} />;
+  const pressed = () => console.log("Pressed");
+  return CLICKABLE.has(selectedComponentName) ? (
+    <Component {...props} onClick={pressed} />
+  ) : (
+    <Component {...props} onPress={pressed} />
+  );
 };
 
 /**
@@ -1113,24 +1074,24 @@ const ProgressButtonStage = ({
         {...props}
         loadingLabel={props.loadingLabel || undefined}
         iconName={props.iconName || undefined}
-        onPress={() => run()}
+        onClick={() => run()}
         onSuccessEnd={() => updateProp("status", "idle")}
       />
       <View style={{ flexDirection: "row", gap: 8 }}>
         <Button
-          mode="text"
+          variant="text"
           iconName="play"
           disabled={running}
-          onPress={() => run()}
+          onClick={() => run()}
         >
           Run the task
         </Button>
         <Button
-          mode="text"
-          tone="error"
+          variant="text"
+          color="error"
           iconName="alert-outline"
           disabled={running}
-          onPress={() => run(0.7)}
+          onClick={() => run(0.7)}
         >
           Fail at 70%
         </Button>

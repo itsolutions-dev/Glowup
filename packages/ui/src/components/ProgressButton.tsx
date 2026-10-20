@@ -18,7 +18,7 @@ import { useTheme } from "../providers/ThemeProvider";
 import Button, {
   getButtonColors,
   type ButtonColors,
-  type ButtonMode,
+  type ButtonVariant,
 } from "./Button";
 import LinearProgress from "./Progress/LinearProgress";
 import { MaterialCommunityIconsGlyphs } from "./types";
@@ -56,9 +56,9 @@ export interface ProgressButtonProps {
    * line along its bottom edge.
    */
   indicator?: "fill" | "bar";
-  mode?: ButtonMode;
+  variant?: ButtonVariant;
   /** Fires in every status but `loading`, where the button is busy. */
-  onPress?: () => void;
+  onClick?: () => void;
   disabled?: boolean;
   fullWidth?: boolean;
   /**
@@ -101,9 +101,9 @@ const toneOf = (status: ProgressButtonStatus) =>
  * under it, and towards it on tonal and transparent ones, whose label contrast
  * has room to spare and whose container would otherwise barely change.
  */
-const fillColorOf = (mode: ButtonMode, { bg, on }: ButtonColors) => {
+const fillColorOf = (variant: ButtonVariant, { bg, on }: ButtonColors) => {
   if (bg === "transparent") return rgba(on, 0.16);
-  if (mode === "filled") {
+  if (variant === "filled") {
     return mix(0.28, getLuminance(on) > 0.5 ? "#000000" : "#FFFFFF", bg);
   }
   return mix(0.16, on, bg);
@@ -112,7 +112,7 @@ const fillColorOf = (mode: ButtonMode, { bg, on }: ButtonColors) => {
 /**
  * A button that carries the progress of the task it started, inside its own
  * surface: idle → loading (with a fill or a bar) → success or error. Built on
- * `Button` — same modes, shape and state layers — and `LinearProgress`.
+ * `Button` — same variants, shape and state layers — and `LinearProgress`.
  */
 const ProgressButton = ({
   status = "idle",
@@ -125,8 +125,8 @@ const ProgressButton = ({
   successIconName = "check",
   errorIconName = "alert-circle-outline",
   indicator = "fill",
-  mode = "filled",
-  onPress,
+  variant = "filled",
+  onClick,
   disabled = false,
   fullWidth = false,
   successDuration = 2000,
@@ -147,10 +147,10 @@ const ProgressButton = ({
   const fraction = Math.min(1, Math.max(0, progress ?? 0));
 
   const colors = useMemo(
-    () => getButtonColors(theme, mode, toneOf(status)),
-    [theme, mode, status],
+    () => getButtonColors(theme, variant, toneOf(status)),
+    [theme, variant, status],
   );
-  const fillColor = progressColor ?? fillColorOf(mode, colors);
+  const fillColor = progressColor ?? fillColorOf(variant, colors);
 
   const label =
     status === "loading"
@@ -303,13 +303,13 @@ const ProgressButton = ({
   return (
     <>
       <Button
-        mode={mode}
-        tone={toneOf(status)}
+        variant={variant}
+        color={toneOf(status)}
         iconName={icon}
         busy={loading}
         disabled={disabled}
         fullWidth={fullWidth}
-        onPress={onPress}
+        onClick={onClick}
         underlay={underlay}
         style={StyleSheet.flatten(style)}
         labelStyle={labelStyle}

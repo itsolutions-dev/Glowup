@@ -10,7 +10,7 @@ import {
   ListSection,
   Skeleton,
   StatusBadge,
-  Toggle,
+  Switch,
   ToggleButtonGroup,
   Typography,
   VStack,
@@ -98,8 +98,8 @@ function NearbyShops() {
 
   if (!granted) {
     return permission.canAskAgain
-      ? <Button onPress={permission.request}>Use my location</Button>
-      : <Button onPress={permission.openSettings}>Open settings</Button>;
+      ? <Button onClick={permission.request}>Use my location</Button>
+      : <Button onClick={permission.openSettings}>Open settings</Button>;
   }
   if (error?.code === "services-disabled") return <TurnOnLocation />;
   return <ShopList near={position?.coords} loading={isLoading} onRetry={refresh} />;
@@ -280,7 +280,7 @@ const CurrentPositionSection = ({ granted }: { granted: boolean }) => {
       <ListSection>
         <ListItem
           secondary="maxAge: 60 000 — fast, but the user may have moved since."
-          trailing={<Toggle value={useCache} onValueChange={setUseCache} />}
+          trailing={<Switch value={useCache} onChange={setUseCache} />}
         >
           Accept a fix up to a minute old
         </ListItem>
@@ -290,7 +290,7 @@ const CurrentPositionSection = ({ granted }: { granted: boolean }) => {
           iconName="crosshairs-gps"
           disabled={!granted}
           loading={isLoading}
-          onPress={refresh}
+          onClick={refresh}
         >
           Locate me
         </Button>
@@ -326,10 +326,10 @@ const WatchSection = ({ granted }: { granted: boolean }) => {
               : "Needs the permission."
           }
           trailing={
-            <Toggle
+            <Switch
               value={following && granted}
               disabled={!granted}
-              onValueChange={setFollowing}
+              onChange={setFollowing}
             />
           }
         >
@@ -370,9 +370,9 @@ const CompassSection = ({ granted }: { granted: boolean }) => {
       <HStack>
         <Button
           iconName={following ? "compass-off-outline" : "compass-outline"}
-          mode={following ? "outlined" : "filled"}
+          variant={following ? "outlined" : "filled"}
           disabled={!granted || noCompass}
-          onPress={() => setFollowing((value) => !value)}
+          onClick={() => setFollowing((value) => !value)}
         >
           {following ? "Stop the compass" : "Start the compass"}
         </Button>
@@ -540,7 +540,7 @@ const GeocodingSection = ({ granted }: { granted: boolean }) => {
       <Input
         label="Address"
         value={address}
-        onChangeText={setAddress}
+        onChange={setAddress}
         leadingIcon="map-search-outline"
         disabled={isSupported === false}
       />
@@ -549,7 +549,7 @@ const GeocodingSection = ({ granted }: { granted: boolean }) => {
           iconName="magnify"
           disabled={isSupported === false || address.trim() === ""}
           loading={places.status === "loading"}
-          onPress={search}
+          onClick={search}
         >
           Find
         </Button>
@@ -573,10 +573,10 @@ const GeocodingSection = ({ granted }: { granted: boolean }) => {
       <HStack>
         <Button
           iconName="map-marker-question-outline"
-          mode="outlined"
+          variant="outlined"
           disabled={isSupported === false || !granted}
           loading={here.isLoading || addresses.status === "loading"}
-          onPress={here.refresh}
+          onClick={here.refresh}
         >
           What is here?
         </Button>

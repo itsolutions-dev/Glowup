@@ -34,7 +34,7 @@ export interface HelperTextProps {
  * makes a form look like a form.
  *
  * ```tsx
- * <Input label="Email" value={email} onChangeText={setEmail} />
+ * <Input label="Email" value={email} onChange={setEmail} />
  * <HelperText type="error" visible={!email.includes("@")}>
  *   Enter a valid email address
  * </HelperText>

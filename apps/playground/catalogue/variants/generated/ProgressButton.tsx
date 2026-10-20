@@ -24,7 +24,7 @@ const column: ViewStyle = {
 // as the task reports, and `progress` (0–1) only counts while loading.
 export const Statuses = () => (
   <View style={row}>
-    <ProgressButton iconName="navigation-variant-outline" onPress={() => {}}>
+    <ProgressButton iconName="navigation-variant-outline" onClick={() => {}}>
       Start navigation
     </ProgressButton>
     <ProgressButton
@@ -41,7 +41,7 @@ export const Statuses = () => (
     <ProgressButton
       status="error"
       errorLabel="No route found"
-      onPress={() => {}}
+      onClick={() => {}}
     >
       Start navigation
     </ProgressButton>
@@ -70,16 +70,16 @@ export const Indicators = () => (
 // colours so the label keeps its contrast as the fill passes under it.
 export const Modes = () => (
   <View style={row}>
-    <ProgressButton status="loading" progress={0.5} mode="filled">
+    <ProgressButton status="loading" progress={0.5} variant="filled">
       Filled
     </ProgressButton>
-    <ProgressButton status="loading" progress={0.5} mode="tonal">
+    <ProgressButton status="loading" progress={0.5} variant="tonal">
       Tonal
     </ProgressButton>
-    <ProgressButton status="loading" progress={0.5} mode="outlined">
+    <ProgressButton status="loading" progress={0.5} variant="outlined">
       Outlined
     </ProgressButton>
-    <ProgressButton status="loading" progress={0.5} mode="text">
+    <ProgressButton status="loading" progress={0.5} variant="text">
       Text
     </ProgressButton>
   </View>
@@ -152,7 +152,7 @@ export const TryIt = () => {
         iconName="navigation-variant-outline"
         loadingLabel="Calculating route…"
         successLabel="Route ready"
-        onPress={run}
+        onClick={run}
         onSuccessEnd={() => setStatus("idle")}
       >
         Start navigation

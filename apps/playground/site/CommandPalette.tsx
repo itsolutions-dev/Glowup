@@ -140,7 +140,7 @@ export const CommandPalette = ({ onDismiss }: { onDismiss: () => void }) => {
         <View style={styles.field}>
           <Input
             value={query}
-            onChangeText={(text) => {
+            onChange={(text) => {
               setQuery(text);
               setHighlighted(0);
             }}

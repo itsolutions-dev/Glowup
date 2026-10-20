@@ -79,10 +79,10 @@ export default function NetworkPage() {
             type={online === false ? "error" : online ? "success" : "warning"}
           />
           <Button
-            mode="outlined"
+            variant="outlined"
             iconName="refresh"
             loading={refreshing}
-            onPress={refresh}
+            onClick={refresh}
           >
             Check again
           </Button>

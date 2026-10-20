@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   Animated,
+  View,
+  Text,
   StyleSheet,
   Platform,
   StyleProp,
@@ -12,15 +14,29 @@ import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
 
-export interface ToggleProps {
+export interface SwitchProps {
   value: boolean;
-  onValueChange: (value: boolean) => void;
+  /** Called with the new state when the switch, or its label, is pressed. */
+  onChange: (value: boolean) => void;
   disabled?: boolean;
+  /** Text next to the switch. Pressing it toggles the switch too. */
+  label?: string;
+  /**
+   * Where the label sits relative to the switch: `"start"` and `"end"` are
+   * the left and right in a left-to-right layout, `"top"` and `"bottom"`
+   * stack them. Defaults to `"end"`.
+   */
+  labelPlacement?: "start" | "end" | "top" | "bottom";
+  /**
+   * Switch size: `"small"` is 24 x 14, `"medium"` 32 x 18, `"large"` 40 x 22.
+   * `width` and `height` override it. Defaults to `"medium"`.
+   */
+  size?: "small" | "medium" | "large";
   /** Style for the outer Pressable. */
   containerStyle?: StyleProp<ViewStyle>;
-  /** Track width. Defaults to 32. */
+  /** Track width. Defaults to the `size`'s (32 for medium). */
   width?: number;
-  /** Track height; the thumb scales with it. Defaults to 18. */
+  /** Track height; the thumb scales with it. Defaults to the `size`'s (18 for medium). */
   height?: number;
   /**
    * Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics).
@@ -35,16 +51,25 @@ const TRACK_BORDER_WIDTH = 2;
 const THUMB_OFF_RATIO = 0.8;
 const THUMB_ON_RATIO = 0.9;
 const DURATION = 200;
+// Track sizes: medium is the original 32 x 18, the others scale it by 0.75 and 1.25.
+const SIZES = {
+  small: { width: 24, height: 14 },
+  medium: { width: 32, height: 18 },
+  large: { width: 40, height: 22 },
+} as const;
 
-const Toggle = ({
+const Switch = ({
   value,
-  onValueChange,
+  onChange,
   disabled = false,
+  label,
+  labelPlacement = "end",
+  size = "medium",
   containerStyle = {},
-  width = 32,
-  height = 18,
+  width = SIZES[size].width,
+  height = SIZES[size].height,
   feedback = true,
-}: ToggleProps) => {
+}: SwitchProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
   const TRACK_WIDTH = width;
@@ -101,6 +126,14 @@ const Toggle = ({
     () => makeStyles(theme, TRACK_WIDTH, TRACK_HEIGHT),
     [theme, TRACK_WIDTH, TRACK_HEIGHT],
   );
+  const labelFirst = labelPlacement === "start" || labelPlacement === "top";
+  const labelNode = !!label && (
+    <Text
+      style={[theme.typography.bodyLarge, { color: theme.colors.onSurface }]}
+    >
+      {label}
+    </Text>
+  );
 
   const [animatedValue] = useState(() => new Animated.Value(value ? 1 : 0));
 
@@ -142,14 +175,24 @@ const Toggle = ({
       disabled={disabled}
       onPress={() => {
         emitFeedback("toggle");
-        onValueChange(!value);
+        onChange(!value);
       }}
-      style={({ hovered }: PressableState) => [
-        styles.container,
+      style={[
+        label
+          ? [
+              styles.labelled,
+              {
+                flexDirection:
+                  labelPlacement === "top" || labelPlacement === "bottom"
+                    ? "column"
+                    : "row",
+              },
+            ]
+          : styles.container,
         containerStyle,
-        hovered && !disabled && getGlowStyles(theme, true),
         disabled && styles.disabled,
       ]}
+      accessibilityLabel={label}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       aria-checked={value}
@@ -160,29 +203,44 @@ const Toggle = ({
         },
       })}
     >
-      <Animated.View style={[styles.track, { backgroundColor: trackColor }]}>
-        <Animated.View
-          style={[
-            styles.thumb,
-            {
-              transform: [{ translateX }],
-              backgroundColor: thumbColor,
-              width: thumbSize,
-              height: thumbSize,
-              borderRadius: thumbBorderRadius,
-              marginTop: animatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Use calculated margins
-              }),
-              marginBottom: animatedValue.interpolate({
-                // If you truly need marginBottom for some reason
-                inputRange: [0, 1],
-                outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Same as marginTop for centering
-              }),
-            },
-          ]}
-        />
-      </Animated.View>
+      {({ hovered }: PressableState) => (
+        <>
+          {labelFirst && labelNode}
+          <View
+            style={[
+              styles.container,
+              hovered && !disabled && getGlowStyles(theme, true),
+            ]}
+          >
+            <Animated.View
+              style={[styles.track, { backgroundColor: trackColor }]}
+            >
+              <Animated.View
+                style={[
+                  styles.thumb,
+                  {
+                    transform: [{ translateX }],
+                    backgroundColor: thumbColor,
+                    width: thumbSize,
+                    height: thumbSize,
+                    borderRadius: thumbBorderRadius,
+                    marginTop: animatedValue.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Use calculated margins
+                    }),
+                    marginBottom: animatedValue.interpolate({
+                      // If you truly need marginBottom for some reason
+                      inputRange: [0, 1],
+                      outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Same as marginTop for centering
+                    }),
+                  },
+                ]}
+              />
+            </Animated.View>
+          </View>
+          {!labelFirst && labelNode}
+        </>
+      )}
     </Pressable>
   );
 };
@@ -194,6 +252,11 @@ const makeStyles = (theme: Theme, TRACK_WIDTH: number, TRACK_HEIGHT: number) =>
       height: TRACK_HEIGHT,
       justifyContent: "center",
       borderRadius: TRACK_HEIGHT / 2, // Ensures a pill shape based on height
+    },
+    labelled: {
+      alignItems: "center",
+      alignSelf: "flex-start",
+      gap: theme.spacing.s,
     },
     disabled: {
       opacity: 0.38,
@@ -213,4 +276,4 @@ const makeStyles = (theme: Theme, TRACK_WIDTH: number, TRACK_HEIGHT: number) =>
     },
   });
 
-export default Toggle;
+export default Switch;

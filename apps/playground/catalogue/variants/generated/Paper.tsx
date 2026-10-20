@@ -58,10 +58,10 @@ export const Glow = () => (
       </Typography>
       <View style={{ height: 16 }} />
       <Button
-        mode="filled"
+        variant="filled"
         iconName="arrow-right"
-        iconPosition="right"
-        onPress={() => {}}
+        iconPosition="end"
+        onClick={() => {}}
       >
         Upgrade
       </Button>

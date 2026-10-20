@@ -126,7 +126,7 @@ export default function Inbox() {
       <VStack spacing="s" px="m" pt="m">
         <SearchBar
           value={query}
-          onChangeText={setQuery}
+          onChange={setQuery}
           placeholder="Search mail"
         />
         <ChipGroup
@@ -134,7 +134,7 @@ export default function Inbox() {
           accessibilityLabel="Filter"
           options={[...FILTERS]}
           value={filter}
-          onValueChange={setFilter}
+          onChange={setFilter}
         />
       </VStack>
       {visible.length === 0 ? (
@@ -191,7 +191,7 @@ export default function Inbox() {
           <IconButton
             icon="arrow-left"
             accessibilityLabel="Back to inbox"
-            onPress={() => setReading(false)}
+            onClick={() => setReading(false)}
           />
         ) : (
           <View />
@@ -201,13 +201,13 @@ export default function Inbox() {
             icon={selected.starred ? "star" : "star-outline"}
             selected={selected.starred}
             accessibilityLabel="Star"
-            onPress={() => toggleStar(selected.id)}
+            onClick={() => toggleStar(selected.id)}
           />
           <IconButton icon="archive-outline" accessibilityLabel="Archive" />
           <IconButton
             icon="delete-outline"
             accessibilityLabel="Delete"
-            onPress={() => setConfirmDelete(true)}
+            onClick={() => setConfirmDelete(true)}
           />
         </HStack>
       </HStack>
@@ -246,7 +246,7 @@ export default function Inbox() {
 
       <HStack spacing="s" wrap>
         <Button iconName="reply">Reply</Button>
-        <Button mode="outlined" iconName="share-outline">
+        <Button variant="outlined" iconName="share-outline">
           Forward
         </Button>
       </HStack>

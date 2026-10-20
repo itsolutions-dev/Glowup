@@ -12,7 +12,7 @@ import {
   ListItem,
   ListSection,
   StatusBadge,
-  Toggle,
+  Switch,
   ToggleButtonGroup,
   Typography,
   useTheme,
@@ -60,7 +60,7 @@ function AvatarButton() {
     <Button
       disabled={isPicking}
       // On the web, straight from the press: a browser opens its dialog only in the gesture.
-      onPress={async () => {
+      onClick={async () => {
         const result = await pick({ edit: true, aspect: [1, 1], quality: 0.8 });
         if (result.status === "picked") upload(result.assets[0]);
       }}
@@ -195,14 +195,14 @@ export default function MediaPickerPage() {
         <ListSection>
           <ListItem
             secondary="multiple: true, in the order picked."
-            trailing={<Toggle value={multiple} onValueChange={setMultiple} />}
+            trailing={<Switch value={multiple} onChange={setMultiple} />}
           >
             Several at once
           </ListItem>
           {multiple ? (
             <ListItem
               secondary="limit: 3 (the web keeps the first three files)."
-              trailing={<Toggle value={limited} onValueChange={setLimited} />}
+              trailing={<Switch value={limited} onChange={setLimited} />}
             >
               At most three
             </ListItem>
@@ -216,10 +216,10 @@ export default function MediaPickerPage() {
                   : "One item only: not with multiple."
             }
             trailing={
-              <Toggle
+              <Switch
                 value={canEdit && edit}
                 disabled={!canEdit}
-                onValueChange={setEdit}
+                onChange={setEdit}
               />
             }
           >
@@ -231,7 +231,7 @@ export default function MediaPickerPage() {
             iconName="image-multiple-outline"
             loading={picker.isPicking}
             disabled={picker.isSupported === false}
-            onPress={pick}
+            onClick={pick}
           >
             Choose
           </Button>

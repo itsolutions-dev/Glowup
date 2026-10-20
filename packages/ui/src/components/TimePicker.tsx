@@ -7,7 +7,10 @@ export type TimePickerProps = Omit<
   "mode" | "selectionMode"
 >;
 
-/** `DateTimePicker` locked to time-of-day selection on the M3 clock dial. */
+/**
+ * `DateTimePicker` locked to time-of-day selection on the M3 clock dial. With
+ * `variant="static"` it is the clock alone, inline in the page.
+ */
 const TimePicker = (props: TimePickerProps) => (
   <DateTimePicker {...props} mode="time" />
 );

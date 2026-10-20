@@ -16,7 +16,7 @@ export const Direction = () => (
         direction=&quot;vertical&quot;
       </Typography>
       {items.map((i) => (
-        <Chip key={i} label={i} mode="tonal" onPress={() => {}} />
+        <Chip key={i} label={i} variant="tonal" onClick={() => {}} />
       ))}
     </Stack>
     <Stack
@@ -28,7 +28,7 @@ export const Direction = () => (
     >
       <Typography variant="labelSmall">horizontal</Typography>
       {items.map((i) => (
-        <Chip key={i} label={i} mode="tonal" onPress={() => {}} />
+        <Chip key={i} label={i} variant="tonal" onClick={() => {}} />
       ))}
     </Stack>
   </Stack>
@@ -39,12 +39,12 @@ export const Reverse = () => (
   <Stack direction="vertical" spacing="m" width={420}>
     <Stack direction="horizontal" spacing="s">
       {items.map((i) => (
-        <Chip key={i} label={i} mode="outlined" onPress={() => {}} />
+        <Chip key={i} label={i} variant="outlined" onClick={() => {}} />
       ))}
     </Stack>
     <Stack direction="horizontal" spacing="s" reverse>
       {items.map((i) => (
-        <Chip key={i} label={i} mode="tonal" onPress={() => {}} />
+        <Chip key={i} label={i} variant="tonal" onClick={() => {}} />
       ))}
     </Stack>
   </Stack>
@@ -68,7 +68,7 @@ export const Wrapped = () => (
       "Foundations",
       "Providers",
     ].map((i) => (
-      <Chip key={i} label={i} mode="tonal" onPress={() => {}} />
+      <Chip key={i} label={i} variant="tonal" onClick={() => {}} />
     ))}
   </Stack>
 );

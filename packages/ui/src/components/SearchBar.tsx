@@ -9,17 +9,35 @@ import {
   ViewStyle,
 } from "react-native";
 import Icons from "./Glyph";
+import CircularProgress from "./Progress/CircularProgress";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useDebouncedCallback } from "../hooks/useDebounce";
 import { MaterialCommunityIconsGlyphs } from "./types";
 
 export interface SearchBarProps {
   value: string;
-  onChangeText: (text: string) => void;
+  /**
+   * Called with the text as it changes. With `debounceTime` it waits until the
+   * user has stopped typing; submitting or clearing reports at once.
+   */
+  onChange: (text: string) => void;
   onSubmit?: (text: string) => void;
   /** Called after the clear button empties the field. */
   onClear?: () => void;
   placeholder?: string;
-  leadingIcon?: MaterialCommunityIconsGlyphs;
+  /** Glyph at the start of the bar. Defaults to `"magnify"`. */
+  icon?: MaterialCommunityIconsGlyphs;
+  /**
+   * Milliseconds the user must stop typing before `onChange` fires. The field
+   * itself always updates at once; a `value` set from outside replaces the
+   * text and drops a pending `onChange`. Defaults to 0: every keystroke.
+   */
+  debounceTime?: number;
+  /**
+   * Tells the bar a search is running: a progress indicator takes the place of
+   * the clear button. Defaults to `false`.
+   */
+  showLoading?: boolean;
   disabled?: boolean;
   autoFocus?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -27,11 +45,13 @@ export interface SearchBarProps {
 
 const SearchBar = ({
   value,
-  onChangeText,
+  onChange,
   onSubmit,
   onClear,
   placeholder = "Search",
-  leadingIcon = "magnify",
+  icon = "magnify",
+  debounceTime = 0,
+  showLoading = false,
   disabled,
   autoFocus,
   style,
@@ -39,6 +59,24 @@ const SearchBar = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [isFocused, setIsFocused] = useState(false);
+
+  // With a delay the field shows what was typed while `value` still holds what
+  // was last reported; without one `value` stays the single source of truth.
+  const [text, setText] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+  const debounced = useDebouncedCallback(onChange, debounceTime);
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setText(value);
+    debounced.cancel();
+  }
+  const shown = debounceTime > 0 ? text : value;
+
+  const handleChange = (next: string) => {
+    setText(next);
+    if (debounceTime > 0) debounced(next);
+    else onChange(next);
+  };
 
   return (
     <View
@@ -50,16 +88,19 @@ const SearchBar = ({
       ]}
     >
       <Icons
-        name={leadingIcon}
+        name={icon}
         size={24}
         color={theme.colors.onSurfaceVariant}
         style={styles.leadingIcon}
       />
 
       <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        onSubmitEditing={() => onSubmit?.(value)}
+        value={shown}
+        onChangeText={handleChange}
+        onSubmitEditing={() => {
+          debounced.flush();
+          onSubmit?.(shown);
+        }}
         placeholder={placeholder}
         placeholderTextColor={theme.colors.onSurfaceVariant}
         editable={!disabled}
@@ -72,10 +113,22 @@ const SearchBar = ({
         style={[theme.typography.bodyLarge, styles.input]}
       />
 
-      {value.length > 0 && (
+      {showLoading && (
+        <View style={styles.loading}>
+          <CircularProgress
+            size={20}
+            strokeWidth={2}
+            color={theme.colors.onSurfaceVariant}
+            accessibilityLabel="Searching"
+          />
+        </View>
+      )}
+      {!showLoading && shown.length > 0 && (
         <Pressable
           onPress={() => {
-            onChangeText("");
+            setText("");
+            debounced.cancel();
+            onChange("");
             onClear?.();
           }}
           accessibilityLabel="Clear search"
@@ -112,6 +165,13 @@ const makeStyles = (theme: Theme) =>
       ...Platform.select({
         web: { outlineStyle: "none" as any },
       }),
+    },
+    loading: {
+      width: 32,
+      height: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 8,
     },
     clearButton: {
       width: 32,

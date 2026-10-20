@@ -31,7 +31,7 @@ export const Alignment = () => (
         radius="medium"
       >
         <Typography variant="labelSmall">align=&quot;{align}&quot;</Typography>
-        <Button mode="tonal" onPress={() => {}}>
+        <Button variant="tonal" onClick={() => {}}>
           Continue
         </Button>
       </VStack>
@@ -46,10 +46,10 @@ export const FormColumn = () => (
       This removes every component, token and screen. It cannot be undone.
     </Typography>
     <VStack spacing="xs" align="stretch">
-      <Button mode="filled" tone="error" onPress={() => {}}>
+      <Button variant="filled" color="error" onClick={() => {}}>
         Delete workspace
       </Button>
-      <Button mode="text" onPress={() => {}}>
+      <Button variant="text" onClick={() => {}}>
         Cancel
       </Button>
     </VStack>

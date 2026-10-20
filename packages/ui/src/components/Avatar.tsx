@@ -10,13 +10,21 @@ import {
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 
 import Icons from "./Glyph";
+import Tooltip from "./Tooltip";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+
+const SIZES = { small: 32, medium: 40, large: 56 } as const;
 
 export interface AvatarProps {
   source?: ImageSourcePropType;
+  /**
+   * Initials are drawn from it when there is no `source`, and it is shown as a
+   * tooltip on hover (web) or long press (native).
+   */
   name?: string;
-  size?: number;
-  onPress?: () => void;
+  /** A size in pixels, or `"small"` (32), `"medium"` (40) or `"large"` (56). Defaults to `"medium"`. */
+  size?: number | "large" | "medium" | "small";
+  onClick?: () => void;
   icon?: MaterialCommunityIconsGlyphs;
   backgroundColor?: string;
   textColor?: string;
@@ -28,8 +36,8 @@ export interface AvatarProps {
 const Avatar = ({
   source,
   name,
-  size = 40,
-  onPress,
+  size: sizeProp = "medium",
+  onClick,
   icon = "account",
   backgroundColor,
   textColor,
@@ -47,6 +55,7 @@ const Avatar = ({
       .substring(0, 2);
   };
 
+  const size = typeof sizeProp === "number" ? sizeProp : SIZES[sizeProp];
   const initials = getInitials(name);
   const fontSize = size * 0.4;
 
@@ -71,12 +80,12 @@ const Avatar = ({
         ? theme.shape.medium
         : 0;
 
-  return (
+  const avatar = (
     <View style={{ width: size, height: size }}>
       <Pressable
-        onPress={onPress}
-        disabled={!onPress}
-        accessibilityRole={onPress ? "button" : "image"}
+        onPress={onClick}
+        disabled={!onClick}
+        accessibilityRole={onClick ? "button" : "image"}
         accessibilityLabel={name ? `${name} Avatar` : "User Avatar"}
         style={({ hovered, pressed }: PressableState) => [
           styles.container,
@@ -86,7 +95,7 @@ const Avatar = ({
             borderRadius,
             backgroundColor: backgroundColor || theme.colors.primaryContainer,
           },
-          onPress && (hovered || pressed) && getGlowStyles(theme, true),
+          onClick && (hovered || pressed) && getGlowStyles(theme, true),
         ]}
       >
         {source ? (
@@ -148,6 +157,14 @@ const Avatar = ({
         </View>
       )}
     </View>
+  );
+
+  return name?.trim() ? (
+    <Tooltip content={name} anchorAccessible={false}>
+      {avatar}
+    </Tooltip>
+  ) : (
+    avatar
   );
 };
 

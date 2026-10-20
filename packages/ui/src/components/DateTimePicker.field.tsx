@@ -12,9 +12,12 @@ import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import HelperText from "./HelperText";
+import { filledField } from "./internal/fieldVariant";
 
 export interface PickerFieldProps {
   label?: string;
+  /** The look of the box, as `Input`'s `variant`. Defaults to `"outlined"`. */
+  variant?: "outlined" | "filled";
   required?: boolean;
   /** Formatted value; falls back to `placeholder` when empty. */
   displayValue: string;
@@ -29,7 +32,7 @@ export interface PickerFieldProps {
   onClear?: () => void;
   clearAccessibilityLabel?: string;
   /** Opens the picker. Bound to the whole row, or to the icon when editable. */
-  onPress?: () => void;
+  onClick?: () => void;
   accessibilityLabel?: string;
   /**
    * Turns the value area into a text field. The trailing icon keeps opening the
@@ -53,12 +56,13 @@ export interface PickerFieldProps {
 /**
  * The trigger row shared by every date/time picker surface: label, value or
  * placeholder, trailing icon, optional clear button, error/helper text.
- * Mirrors `Input`'s outlined variant so pickers line up with text fields.
+ * Mirrors `Input`'s two variants so pickers line up with text fields.
  */
 const PickerField = forwardRef<View, PickerFieldProps>(
   (
     {
       label,
+      variant = "outlined",
       required,
       displayValue,
       placeholder,
@@ -70,7 +74,7 @@ const PickerField = forwardRef<View, PickerFieldProps>(
       clearable,
       onClear,
       clearAccessibilityLabel,
-      onPress,
+      onClick,
       accessibilityLabel,
       editable,
       inputValue,
@@ -98,7 +102,7 @@ const PickerField = forwardRef<View, PickerFieldProps>(
         accessibilityLabel={openAccessibilityLabel ?? label}
         accessibilityState={{ disabled, expanded: active }}
         disabled={disabled}
-        onPress={onPress}
+        onPress={onClick}
         hitSlop={8}
         style={({ hovered }: PressableState) => [
           styles.iconButton,
@@ -174,6 +178,7 @@ const PickerField = forwardRef<View, PickerFieldProps>(
     const containerStyle = [
       styles.container,
       getGlowStyles(theme, highlighted, error),
+      variant === "filled" && filledField(theme, highlighted, error),
       disabled && styles.disabled,
     ];
 
@@ -212,7 +217,7 @@ const PickerField = forwardRef<View, PickerFieldProps>(
               accessibilityValue={{ text: displayValue }}
               accessibilityState={{ disabled, expanded: active }}
               disabled={disabled}
-              onPress={onPress}
+              onPress={onClick}
               style={styles.trigger}
             >
               {body}

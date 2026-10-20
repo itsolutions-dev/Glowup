@@ -69,7 +69,7 @@ export const Disabled = () => (
       />
     </FormControl>
     <FormControl label="Workspace name" helperText="Shown on every invoice.">
-      <Input value="Acme Inc." onChangeText={() => {}} />
+      <Input value="Acme Inc." onChange={() => {}} />
     </FormControl>
   </VStack>
 );

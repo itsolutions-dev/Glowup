@@ -48,10 +48,10 @@ function ConfirmDialog({
       dismissable={dismissable}
       actions={
         <>
-          <Button onPress={onCancel} mode="text">
+          <Button onClick={onCancel} variant="text">
             {cancelText}
           </Button>
-          <Button onPress={onConfirm} tone={destructive ? "error" : "primary"}>
+          <Button onClick={onConfirm} color={destructive ? "error" : "primary"}>
             {confirmText}
           </Button>
         </>

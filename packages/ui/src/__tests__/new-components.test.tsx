@@ -176,7 +176,7 @@ describe("TopAppBar and AppBar", () => {
             <IconButton
               icon="menu"
               accessibilityLabel="Menu"
-              onPress={() => {}}
+              onClick={() => {}}
             />
           }
         />,
@@ -290,7 +290,7 @@ describe("Toolbar", () => {
           <IconButton
             icon="undo"
             accessibilityLabel="Undo"
-            onPress={() => {}}
+            onClick={() => {}}
           />
         </Toolbar>,
       );
@@ -391,42 +391,33 @@ describe("ChipGroup", () => {
   ];
 
   it("single select deselects on a second press", async () => {
-    const onValueChange = jest.fn();
+    const onChange = jest.fn();
     const { getByRole } = await wrap(
-      <ChipGroup
-        options={options}
-        value="open"
-        onValueChange={onValueChange}
-      />,
+      <ChipGroup options={options} value="open" onChange={onChange} />,
     );
     await fireEvent.press(getByRole("radio", { name: "Open" }));
-    expect(onValueChange).toHaveBeenLastCalledWith(null);
+    expect(onChange).toHaveBeenLastCalledWith(null);
   });
 
   it("required single select keeps its choice", async () => {
-    const onValueChange = jest.fn();
+    const onChange = jest.fn();
     const { getByRole } = await wrap(
-      <ChipGroup
-        options={options}
-        value="open"
-        required
-        onValueChange={onValueChange}
-      />,
+      <ChipGroup options={options} value="open" required onChange={onChange} />,
     );
     await fireEvent.press(getByRole("radio", { name: "Open" }));
-    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
     await fireEvent.press(getByRole("radio", { name: "Closed" }));
-    expect(onValueChange).toHaveBeenCalledWith("closed");
+    expect(onChange).toHaveBeenCalledWith("closed");
   });
 
   it("multi select reports checkbox states", async () => {
-    const onValueChange = jest.fn();
+    const onChange = jest.fn();
     const { getByRole } = await wrap(
       <ChipGroup
         options={options}
         value={["open"]}
-        multiSelect
-        onValueChange={onValueChange}
+        multiple
+        onChange={onChange}
       />,
     );
     expect(
@@ -435,7 +426,7 @@ describe("ChipGroup", () => {
       checked: true,
     });
     await fireEvent.press(getByRole("checkbox", { name: "Closed" }));
-    expect(onValueChange).toHaveBeenCalledWith(["open", "closed"]);
+    expect(onChange).toHaveBeenCalledWith(["open", "closed"]);
   });
 });
 

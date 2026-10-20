@@ -16,7 +16,7 @@ const Dialog = () => {
       <Typography variant="bodyMedium">
         34 components · last synced 4 minutes ago
       </Typography>
-      <Button mode="filled" iconName="publish" onPress={show}>
+      <Button variant="filled" iconName="publish" onClick={show}>
         Publish 0.1.0
       </Button>
       <Modal
@@ -41,7 +41,7 @@ const RichContent = () => {
       <Typography variant="bodyMedium">
         3 members · 2 pending invites
       </Typography>
-      <Button mode="tonal" iconName="account-plus-outline" onPress={show}>
+      <Button variant="tonal" iconName="account-plus-outline" onClick={show}>
         Invite your team
       </Button>
       <Modal visible={open} title="Invite your team" onDismiss={hide}>
@@ -57,13 +57,13 @@ const RichContent = () => {
           <View
             style={{ flexDirection: "row", gap: 8, justifyContent: "flex-end" }}
           >
-            <Button mode="text" onPress={hide}>
+            <Button variant="text" onClick={hide}>
               Not now
             </Button>
             <Button
-              mode="filled"
+              variant="filled"
               iconName="account-plus-outline"
-              onPress={hide}
+              onClick={hide}
             >
               Send invites
             </Button>
@@ -81,7 +81,7 @@ const Untitled = () => {
     <View style={demo.panel}>
       <Typography variant="headlineSmall">Release notes</Typography>
       <Typography variant="bodyMedium">@its/glowup-ui 0.1.0</Typography>
-      <Button mode="outlined" iconName="text-box-outline" onPress={show}>
+      <Button variant="outlined" iconName="text-box-outline" onClick={show}>
         What changed
       </Button>
       <Modal visible={open} closeText="Got it" onClose={hide}>

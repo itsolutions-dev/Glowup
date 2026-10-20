@@ -47,8 +47,8 @@ export default function App() {
       <AlertProvider>
         <ToastProvider>
           <VStack p="m" spacing="s">
-            <Typography variant="headlineMedium">Hello</Typography>
-            <Button onPress={() => {}}>Tap me</Button>
+            <Typography variant="h5">Hello</Typography>
+            <Button onClick={() => {}}>Tap me</Button>
           </VStack>
         </ToastProvider>
       </AlertProvider>
@@ -123,7 +123,7 @@ The handler gets one of `"press" | "toggle" | "selection" | "longPress"`:
 | Kind        | Reported by                                                                                                                              |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `press`     | `Button`, `IconButton`, `FAB`, an action `Chip` and a chip's close button                                                                |
-| `toggle`    | `Toggle`, `Checkbox`, a `selected` `IconButton`, a `"checkbox"` `Chip`, a multi-select `ToggleButtonGroup`                               |
+| `toggle`    | `Switch`, `Checkbox` / `CheckboxGroup`, a `selected` `IconButton`, a `"checkbox"` `Chip`, a multi-select `ToggleButtonGroup`             |
 | `selection` | `RadioButton` / `RadioGroup`, a `"radio"` `Chip`, a single-choice `ToggleButtonGroup`, each step a `Slider` crosses (with a `step` only) |
 | `longPress` | nothing in the library yet: for your own components                                                                                      |
 
@@ -149,7 +149,7 @@ device locale (or a `locale` override). Chrome strings default to English — pa
   clearable
   minimumDate={new Date()}
   isDateDisabled={(d) => d.getDay() === 0 || d.getDay() === 6}
-  labels={{ today: t("TODAY"), confirm: t("OK"), cancel: t("CANCEL") }}
+  labels={{ today: t("TODAY"), confirm: t("OK") }}
 />
 ```
 
@@ -220,6 +220,9 @@ Exported from the library alongside the components:
   `Alert.alert` on iOS/Android, custom `Modal` on web. Mounting `AlertProvider` is enough.
 - **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
+- **`ViewportProvider`** (`width`) — makes `useBreakpoint`, `Grid` and the date pickers' dialog-or-popover
+  choice see `width` instead of the window's, to preview a phone layout inside a desktop page (the
+  playground's 360 / 720 frames use it). It resizes nothing; with no `width` the real window is reported.
 
 Theme tokens: colors (primary/secondary/tertiary/error + container & surface tones, the inverse
 pair `inverseSurface` / `inverseOnSurface` / `inversePrimary`, plus `surfaceTint` and `scrim`, all
@@ -232,11 +235,23 @@ with light/dark values), a full M3 type scale (`displayLarge` → `labelSmall`),
 
 Renders themed text at an M3 type scale.
 
-| Prop     | Type                                         | Default        | Req |
-| -------- | -------------------------------------------- | -------------- | --- |
-| children | ReactNode                                    | —              | ✓   |
-| variant  | type-scale key (`displayLarge`…`labelSmall`) | `displayLarge` |     |
-| style    | TextStyle                                    |                |     |
+| Prop     | Type                                                                                                     | Default     | Req |
+| -------- | -------------------------------------------------------------------------------------------------------- | ----------- | --- |
+| children | ReactNode                                                                                                | —           | ✓   |
+| variant  | `"h1"`…`"h6"`, `"subtitle1"`, `"subtitle2"`, `"body1"`, `"body2"`, `"button"`, `"caption"`, `"overline"` | `h1`        |     |
+| color    | theme colour token (`primary`, `onSurfaceVariant`, `error`…) or any colour string                        | `onSurface` |     |
+| fontSize | number (the line height scales with it)                                                                  |             |     |
+| nowrap   | boolean (one line, ending in an ellipsis)                                                                | `false`     |     |
+| align    | `"left" \| "center" \| "right" \| "justify"`                                                             |             |     |
+| onClick  | () => void (makes the text pressable)                                                                    |             |     |
+| style    | TextStyle                                                                                                |             |     |
+
+The names are drawn with the theme's type-scale roles: `h1`–`h3` are `displayLarge`–`displaySmall`,
+`h4` / `h5` are `headlineLarge` / `headlineSmall`, `h6` is `titleLarge`, `subtitle1` / `subtitle2` are
+`titleMedium` / `titleSmall`, `body1` / `body2` are `bodyLarge` / `bodyMedium`, `button` is
+`labelLarge`, `caption` is `bodySmall` and `overline` is `labelSmall`. The role names themselves
+(`displayLarge`…`labelSmall`) are accepted too and give the same styles. Every other `Text` prop is
+forwarded.
 
 #### `Divider`
 
@@ -269,44 +284,46 @@ Pressable content surface.
 | ------------------ | ------------------------------------------------ | -------- |
 | children           | ReactNode (required)                             | —        |
 | variant            | `"elevated" \| "filled" \| "outlined" \| "glow"` | `filled` |
-| onPress            | () => void (makes it interactive, button role)   |          |
+| onClick            | () => void (makes it interactive, button role)   |          |
 | accessibilityLabel | string                                           |          |
 
 Compound parts, also exported standalone as `CardTitle` / `CardContent` / `CardCover` /
 `CardActions`. Compose these instead of hand-building a header row:
 
 ```tsx
-<Card variant="elevated" onPress={open}>
+<Card variant="elevated" onClick={open}>
   <Card.Cover source={photo} alt="Impianto 4" />
   <Card.Title title="Impianto 4" subtitle="Manutenzione programmata" />
   <Card.Content>
-    <Typography variant="bodyMedium">Prossimo intervento: 12 marzo</Typography>
+    <Typography variant="body2">Prossimo intervento: 12 marzo</Typography>
   </Card.Content>
   <Card.Actions>
-    <Button mode="text" onPress={postpone}>Rinvia</Button>
-    <Button onPress={confirm}>Conferma</Button>
+    <Button variant="text" onClick={postpone}>
+      Rinvia
+    </Button>
+    <Button onClick={confirm}>Conferma</Button>
   </Card.Actions>
 </Card>
 ```
 
-| Part            | Props                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------- |
-| `Card.Title`    | `title` (required), `subtitle`, `left`, `right`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2)   |
-| `Card.Content`  | `children` (required)                                                                                    |
-| `Card.Cover`    | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding                        |
-| `Card.Actions`  | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)                            |
+| Part           | Props                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Card.Title`   | `title` (required), `subtitle`, `startIcon`, `endIcon`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2) |
+| `Card.Content` | `children` (required)                                                                                         |
+| `Card.Cover`   | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding                             |
+| `Card.Actions` | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)                                 |
 
 #### `Icon`
 
 Source-agnostic icon primitive. Use it when the icon may not be a MaterialCommunityIcons glyph —
 a bundled bitmap, an SVG, a custom glyph set.
 
-| Prop       | Type                                                                                  | Default     |
-| ---------- | ------------------------------------------------------------------------------------- | ----------- |
-| source     | `IconSource` (required)                                                               | —           |
-| size       | number                                                                                | `24`        |
-| color      | string (tints a glyph; leave unset for a full-colour bitmap)                          | `onSurface` |
-| flipForRTL | boolean (mirrors directional glyphs under RTL)                                        | `false`     |
+| Prop       | Type                                                         | Default     |
+| ---------- | ------------------------------------------------------------ | ----------- |
+| source     | `IconSource` (required)                                      | —           |
+| size       | number                                                       | `24`        |
+| color      | string (tints a glyph; leave unset for a full-colour bitmap) | `onSurface` |
+| flipForRTL | boolean (mirrors directional glyphs under RTL)               | `false`     |
 
 `IconSource` is a MaterialCommunityIcons name, an `ImageSourcePropType`, a
 `({ size, color }) => ReactNode` render function, or a ready-made element.
@@ -316,14 +333,14 @@ a bundled bitmap, an SVG, a custom glyph set.
 A `Pressable` that paints the M3 state layer — 8% hover, 10% focus, 12% press — over a surface,
 with the platform ripple on Android. Reach for it instead of re-deriving hover/press colours.
 
-| Prop          | Type                                                       | Default     |
-| ------------- | ---------------------------------------------------------- | ----------- |
-| children      | ReactNode (required)                                       | —           |
-| underlayColor | string (the surface the layer sits on)                     | `surface`   |
-| rippleColor   | string (the "on" role of that surface)                     | `onSurface` |
-| borderless    | boolean (tint only, no container background)               | `false`     |
-| borderRadius  | number (match the parent so the layer doesn't bleed out)   |             |
-| activeStyle   | ViewStyle (applied while hovered or pressed)               |             |
+| Prop          | Type                                                     | Default     |
+| ------------- | -------------------------------------------------------- | ----------- |
+| children      | ReactNode (required)                                     | —           |
+| underlayColor | string (the surface the layer sits on)                   | `surface`   |
+| rippleColor   | string (the "on" role of that surface)                   | `onSurface` |
+| borderless    | boolean (tint only, no container background)             | `false`     |
+| borderRadius  | number (match the parent so the layer doesn't bleed out) |             |
+| activeStyle   | ViewStyle (applied while hovered or pressed)             |             |
 
 Plus every `Pressable` prop except `style`/`children`. The `useStateLayer(base, on)` hook exports
 the same colours for a component that already owns its `Pressable`.
@@ -416,29 +433,36 @@ rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `ro
 | Prop               | Type                                          | Default              |
 | ------------------ | --------------------------------------------- | -------------------- |
 | children           | ReactNode (label)                             |                      |
-| onPress            | () => void                                    |                      |
-| mode               | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |
+| onClick            | () => void                                    |                      |
+| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |
+| color              | `ButtonColor` (a colour role, see below)      | `primary`            |
 | iconName           | icon                                          |                      |
-| iconPosition       | `"left" \| "right"`                           | `left`               |
+| iconPosition       | `"start" \| "end"`                            | `start`              |
 | size               | number (icon size)                            | `theme.shape.medium` |
 | fullWidth          | boolean                                       | `false`              |
 | loading            | boolean (inline spinner)                      | `false`              |
 | disabled           | boolean                                       | `false`              |
 | accessibilityLabel | string (falls back to string child)           |                      |
 
+`color` takes a colour role: `primary`, `secondary`, `tertiary`, `error` (the destructive
+treatment), `success`, `warning`, `info` or `neutral`. `IconButton`, `Chip` and `Badge` take the
+same roles.
+
 #### `IconButton`
 
 Square, icon-only action — `Button` with only an icon comes out pill-shaped and label-padded.
 
-| Prop               | Type                                                   | Default    |
-| ------------------ | ------------------------------------------------------ | ---------- |
-| icon               | icon (required)                                        | —          |
-| accessibilityLabel | string (required — an icon carries no accessible name) | —          |
-| onPress            | () => void                                             |            |
-| mode               | `"standard" \| "filled" \| "tonal" \| "outlined"`      | `standard` |
-| size               | `"small" \| "medium" \| "large"` (32 / 40 / 48)        | `medium`   |
-| selected           | boolean — M3 toggle-icon-button state                  |            |
-| loading / disabled | boolean                                                |            |
+| Prop               | Type                                                              | Default    |
+| ------------------ | ----------------------------------------------------------------- | ---------- |
+| icon               | icon (required)                                                   | —          |
+| accessibilityLabel | string (required — an icon carries no accessible name)            | —          |
+| onClick            | () => void                                                        |            |
+| variant            | `"standard" \| "filled" \| "tonal" \| "outlined"`                 | `standard` |
+| color              | same roles as `Button` (omit for the neutral M3 look)             |            |
+| title              | string (tooltip text: hover / focus on web, long press on native) |            |
+| size               | `"small" \| "medium" \| "large"` (32 / 40 / 48)                   | `medium`   |
+| selected           | boolean — M3 toggle-icon-button state                             |            |
+| loading / disabled | boolean                                                           |            |
 
 #### `Link`
 
@@ -460,34 +484,26 @@ Inline navigational text.
 
 Floating by default: absolutely positioned, respecting safe-area insets. Set
 `placement="inline"` to drop the positioning and put the FAB in a toolbar or a card action row.
+`variant` picks the shape: `"icon"` (a round, icon-only button), `"extended"` (the label beside the
+icon) or `"animated"` (the label folds into the icon and back).
 
-| Prop      | Type                                                           | Default        |
-| --------- | -------------------------------------------------------------- | -------------- |
-| icon      | icon (required)                                                | —              |
-| onPress   | () => void (required)                                          | —              |
-| label     | string (only when `size="extended"`)                           |                |
-| size      | `"small" \| "regular" \| "large" \| "extended"`                | `regular`      |
-| placement | `"floating" \| "inline"`                                       | `floating`     |
-| position  | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
-| disabled  | boolean                                                        |                |
+| Prop        | Type                                                                               | Default        |
+| ----------- | ---------------------------------------------------------------------------------- | -------------- |
+| icon        | icon (required)                                                                    | —              |
+| onClick     | () => void (required)                                                              | —              |
+| label       | string (the text of `extended` / `animated`; the accessible name of every variant) |                |
+| variant     | `"icon" \| "extended" \| "animated"`                                               | `icon`         |
+| size        | `"small" \| "medium" \| "large"` (40 / 56 / 96)                                    | `medium`       |
+| placement   | `"floating" \| "inline"`                                                           | `floating`     |
+| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"`                     | `bottom-right` |
+| disabled    | boolean                                                                            |                |
+| extended    | boolean (`animated` only: shows the label or collapses to the icon)                | `true`         |
+| animateFrom | `"left" \| "right"` (`animated` only: edge the label grows from)                   | `right`        |
+| iconMode    | `"static" \| "dynamic"` (`animated` only: icon stays put, or travels)              | `static`       |
+| duration    | number (ms, `animated` only)                                                       | `150`          |
+| testID      | string                                                                             |                |
 
-#### `AnimatedFAB`
-
-A FAB that animates between an icon-only circle and a labelled pill. Drive `extended` from a
-scroll offset to get the M3 shrink-on-scroll behaviour.
-
-| Prop        | Type                                                           | Default        |
-| ----------- | -------------------------------------------------------------- | -------------- |
-| icon        | icon (required)                                                | —              |
-| label       | string (required — it is the label that animates)              | —              |
-| onPress     | () => void (required)                                          | —              |
-| extended    | boolean                                                        | `true`         |
-| animateFrom | `"left" \| "right"` (edge the label grows from)                | `right`        |
-| iconMode    | `"static" \| "dynamic"` (icon stays put, or travels)           | `static`       |
-| placement   | `"floating" \| "inline"`                                       | `floating`     |
-| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |
-| duration    | number (ms)                                                    | `150`          |
-| disabled    | boolean                                                        | `false`        |
+Drive `extended` from a scroll offset to get the M3 shrink-on-scroll behaviour:
 
 ```tsx
 const [extended, setExtended] = useState(true);
@@ -498,7 +514,7 @@ const [extended, setExtended] = useState(true);
 >
   …
 </ScrollView>
-<AnimatedFAB icon="plus" label="Nuovo intervento" extended={extended} onPress={create} />
+<FAB variant="animated" icon="plus" label="Nuovo intervento" extended={extended} onClick={create} />
 ```
 
 #### `SpeedDial`
@@ -534,29 +550,31 @@ Segmented button set (single or multi select).
 Announces itself correctly: a single-select group is a `radiogroup` of `radio`s, a multi-select
 one a set of `checkbox`es.
 
-| Prop               | Type                                                            | Default |
-| ------------------ | --------------------------------------------------------------- | ------- |
-| options            | `{ label?, icon?, value, disabled? }[]` (required)              | —       |
-| value              | string \| string[] (array when `multiSelect`, required)         | —       |
-| onValueChange      | (val) => void (required)                                        | —       |
-| multiSelect        | boolean                                                         | `false` |
-| disabled           | boolean (whole group)                                           | `false` |
-| fullWidth          | boolean (segments share the row equally)                        | `false` |
-| showSelectedCheck  | boolean (M3 segmented-button check mark)                        | `false` |
-| accessibilityLabel | string (names the group — a set of choices needs a question)     |         |
+| Prop               | Type                                                         | Default |
+| ------------------ | ------------------------------------------------------------ | ------- |
+| options            | `{ label?, icon?, value, disabled? }[]` (required)           | —       |
+| value              | string \| string[] (array when `multiSelect`, required)      | —       |
+| onValueChange      | (val) => void (required)                                     | —       |
+| multiSelect        | boolean                                                      | `false` |
+| disabled           | boolean (whole group)                                        | `false` |
+| fullWidth          | boolean (segments share the row equally)                     | `false` |
+| showSelectedCheck  | boolean (M3 segmented-button check mark)                     | `false` |
+| accessibilityLabel | string (names the group — a set of choices needs a question) |         |
 
 #### `Chip`
 
-| Prop     | Type                                 | Default  |
-| -------- | ------------------------------------ | -------- |
-| label    | string (required)                    | —        |
-| onPress  | () => void (makes body pressable)    |          |
-| onClose  | () => void (renders trailing X)      |          |
-| icon     | icon (leading)                       |          |
-| selected | boolean (check + tertiary tone)      | `false`  |
-| mode     | `"filled" \| "tonal" \| "outlined"`  | `filled` |
-| size     | `"small" \| "medium"` (small = 24px) | `medium` |
-| disabled | boolean                              | `false`  |
+| Prop     | Type                                                         | Default   |
+| -------- | ------------------------------------------------------------ | --------- |
+| label    | string (required)                                            | —         |
+| onClick  | () => void (makes body pressable)                            |           |
+| onClose  | () => void (renders trailing X)                              |           |
+| icon     | icon (leading)                                               |           |
+| selected | boolean (check + tertiary tone)                              | `false`   |
+| variant  | `"filled" \| "tonal" \| "outlined"`                          | `filled`  |
+| color    | same roles as `Button` (omit for the neutral secondary look) |           |
+| size     | `"small" \| "medium" \| "large"` (24 / 32 / 40px)            | `medium`  |
+| border   | `"rounded" \| "squared" \| "circular"` (corner shape)        | `rounded` |
+| disabled | boolean                                                      | `false`   |
 
 #### `ButtonGroup`
 
@@ -571,8 +589,9 @@ A primary action (`children`, `iconName`, `onPress`) joined to a trailing button
 
 #### `ChipGroup`
 
-Filter chips with the selection handled: single (optionally `required`) or `multiSelect`,
-wrapping or horizontally scrolling.
+Filter chips with the selection handled: single (optionally `required`) or `multiple`,
+wrapping or horizontally scrolling. `onChange` receives the selected value (or the array of values
+with `multiple`); `variant` is the look of the chips, `outlined` by default.
 
 ### Inputs & forms
 
@@ -580,46 +599,53 @@ wrapping or horizontally scrolling.
 
 Text field (outlined or filled) with affixes, icons, multiline and number mode.
 
-| Prop                       | Type                                                        | Default    |
-| -------------------------- | ----------------------------------------------------------- | ---------- |
-| value                      | string (required)                                           | —          |
-| onChangeText               | (text) => void (required)                                   | —          |
-| label / placeholder        | string                                                      |            |
-| type                       | `"text" \| "number"` (number = decimal keypad + sanitizing) | `text`     |
-| variant                    | `"outlined" \| "filled"`                                    | `outlined` |
-| precision                  | number (decimals, number type)                              |            |
-| prefix / suffix            | string (inline affix)                                       |            |
-| leadingIcon / trailingIcon | icon                                                        |            |
-| onTrailingIconPress        | () => void                                                  |            |
-| error                      | string (message + error styling)                            |            |
-| helperText                 | string (hidden while error shown)                           |            |
-| required                   | boolean (asterisk on label)                                 |            |
-| disabled / readonly        | boolean                                                     |            |
-| secureTextEntry            | boolean (password)                                          |            |
-| maxLength                  | number                                                      |            |
-| multiline                  | boolean                                                     | `false`    |
-| numberOfLines              | number                                                      | `4`        |
-| minHeight                  | number                                                      | `56`       |
-| onFocus / onBlur           | () => void                                                  |            |
+| Prop                       | Type                                                                                                                                        | Default    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| value                      | string (required)                                                                                                                           | —          |
+| onChange                   | (text) => void (required)                                                                                                                   | —          |
+| label / placeholder        | string                                                                                                                                      |            |
+| type                       | `"text" \| "number"` (number = decimal keypad + sanitizing)                                                                                 | `text`     |
+| variant                    | `"outlined" \| "filled"` (the look of the box: `filled` is tinted, with its border only while focused or in error, like `PinInput`'s cells) | `outlined` |
+| labelPlacement             | `"inside" \| "outside"` (outside = above the box; independent of `variant`)                                                                 | `outside`  |
+| fullWidth                  | boolean (`false` shrinks the field to its content)                                                                                          | `true`     |
+| precision                  | number (decimals, number type)                                                                                                              |            |
+| prefix / suffix            | string (inline affix)                                                                                                                       |            |
+| leadingIcon / trailingIcon | icon                                                                                                                                        |            |
+| onTrailingIconPress        | () => void                                                                                                                                  |            |
+| error                      | string (message + error styling)                                                                                                            |            |
+| helperText                 | string (hidden while error shown)                                                                                                           |            |
+| required                   | boolean (asterisk on label)                                                                                                                 |            |
+| disabled / readonly        | boolean                                                                                                                                     |            |
+| secureTextEntry            | boolean (password)                                                                                                                          |            |
+| maxLength                  | number                                                                                                                                      |            |
+| multiline                  | boolean                                                                                                                                     | `false`    |
+| rows                       | number (visible lines of a `multiline` field)                                                                                               | `4`        |
+| minHeight                  | number                                                                                                                                      | `56`       |
+| onFocus / onBlur           | () => void                                                                                                                                  |            |
 
 #### `Select`
 
 Dropdown built on `Popover`; single or multi select, optional chip display.
 
-| Prop           | Type                                                  | Default            |
-| -------------- | ----------------------------------------------------- | ------------------ |
-| options        | `Option[]` = `{ id, label, value, icon? }` (required) | —                  |
-| value          | any (single selection, required)                      | —                  |
-| onSelect       | (value) => void (required)                            | —                  |
-| label          | string                                                |                    |
-| placeholder    | string                                                | `Select an option` |
-| variant        | `"outlined" \| "filled"`                              | `outlined`         |
-| error          | string                                                |                    |
-| disabled       | boolean                                               |                    |
-| multiSelect    | boolean                                               | `false`            |
-| showAsChips    | boolean (render selection as chips)                   | `false`            |
-| selectedValues | any[] (multi-select set)                              | `[]`               |
-| toggleOptions  | (value) => void (multi-select handler)                |                    |
+| Prop            | Type                                                                                                                                        | Default            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| options         | `Option[]` = `{ id, label, value, icon? }` (required)                                                                                       | —                  |
+| value           | any (single selection, `null` for none, required)                                                                                           | —                  |
+| onChange        | (value) => void (required; `null` when a `nullable` select is cleared)                                                                      | —                  |
+| label           | string                                                                                                                                      |                    |
+| placeholder     | string                                                                                                                                      | `Select an option` |
+| variant         | `"outlined" \| "filled"` (the look of the box: `filled` is tinted, with its border only while focused or in error, like `PinInput`'s cells) | `outlined`         |
+| labelPlacement  | `"inside" \| "outside"` (inside = small, above the value; independent of `variant`)                                                         | `outside`          |
+| fullWidth       | boolean (`false` shrinks the select to its content)                                                                                         | `true`             |
+| nullable        | boolean (clear button; picking the selected option again deselects)                                                                         | `false`            |
+| emptyMessage    | string (shown in the open list when `options` is empty)                                                                                     | `No options`       |
+| disabledOptions | `RegExp` \| `(string \| number)[]` (values that stay visible but cannot be picked)                                                          |                    |
+| error           | string                                                                                                                                      |                    |
+| disabled        | boolean                                                                                                                                     |                    |
+| multiple        | boolean                                                                                                                                     | `false`            |
+| showAsChips     | boolean (render selection as chips)                                                                                                         | `false`            |
+| selectedValues  | any[] (multi-select set)                                                                                                                    | `[]`               |
+| toggleOptions   | (value) => void (multi-select handler)                                                                                                      |                    |
 
 #### `Checkbox`
 
@@ -631,6 +657,37 @@ Dropdown built on `Popover`; single or multi select, optional chip display.
 | labelPosition    | `"left" \| "right"`        | `right` |
 | indeterminate    | boolean (mixed state)      |         |
 | disabled / error | boolean                    |         |
+
+#### `CheckboxGroup`
+
+Several independent choices under one label — the checkbox counterpart of `RadioGroup`. The group
+owns the array of checked values.
+
+| Prop       | Type                                                            | Default  |
+| ---------- | --------------------------------------------------------------- | -------- |
+| options    | `{ label, value, disabled? }[]` (required)                      | —        |
+| value      | any[] (the checked values, required)                            | —        |
+| onChange   | (values) => void (the new set after each toggle, required)      | —        |
+| label      | string                                                          |          |
+| direction  | `"column" \| "row"`                                             | `column` |
+| disabled   | boolean                                                         |          |
+| required   | boolean (asterisk on label)                                     |          |
+| error      | string (message below the group; also turns the checkboxes red) |          |
+| helperText | string (hidden while error shown)                               |          |
+| feedback   | boolean (report each toggle to `onInteractionFeedback`)         | `true`   |
+
+```tsx
+<CheckboxGroup
+  label="Notifiche"
+  options={[
+    { label: "Email", value: "email" },
+    { label: "Push", value: "push" },
+    { label: "SMS", value: "sms", disabled: true },
+  ]}
+  value={channels}
+  onChange={setChannels}
+/>
+```
 
 #### `RadioButton` / `RadioGroup`
 
@@ -650,19 +707,20 @@ RadioGroup:
 | direction     | `"column" \| "row"`                                            | `column` |
 | error         | string (group-level message)                                   |          |
 
-#### `Toggle` — Switch
+#### `Switch`
 
-Animated M3 switch with fully configurable dimensions.
+Animated M3 switch, in three sizes or with fully configurable dimensions.
 
-| Prop                                 | Type                       | Default       |
-| ------------------------------------ | -------------------------- | ------------- |
-| value                                | boolean (required)         | —             |
-| onValueChange                        | (value) => void (required) | —             |
-| disabled                             | boolean                    | `false`       |
-| width / height                       | number                     | `32` / `18`   |
-| trackBorderWidth                     | number                     | `2`           |
-| animationDuration                    | number (ms)                | `200`         |
-| thumbOffSizeRatio / thumbOnSizeRatio | number                     | `0.8` / `0.9` |
+| Prop           | Type                                                     | Default     |
+| -------------- | -------------------------------------------------------- | ----------- |
+| value          | boolean (required)                                       | —           |
+| onChange       | (value) => void (required)                               | —           |
+| disabled       | boolean                                                  | `false`     |
+| label          | string (pressing it toggles the switch too)              |             |
+| labelPlacement | `"start" \| "end" \| "top" \| "bottom"`                  | `end`       |
+| size           | `"small" \| "medium" \| "large"` (24×14 / 32×18 / 40×22) | `medium`    |
+| width / height | number (override the `size`)                             | from `size` |
+| containerStyle | ViewStyle                                                |             |
 
 #### `Slider`
 
@@ -678,7 +736,7 @@ Animated M3 switch with fully configurable dimensions.
 | marks             | boolean (ticks at each step, needs step) |             |
 | disabled          | boolean                                  |             |
 
-#### `Spinner` — number stepper
+#### `NumberField` — number stepper
 
 Numeric field with +/- steppers. (Distinct from the progress spinners below.)
 
@@ -693,17 +751,19 @@ Numeric field with +/- steppers. (Distinct from the progress spinners below.)
 
 #### `SearchBar`
 
-| Prop                 | Type                                   | Default |
-| -------------------- | -------------------------------------- | ------- |
-| value                | string (required)                      | —       |
-| onChangeText         | (text) => void (required)              | —       |
-| onSubmit             | (text) => void                         |         |
-| onClear              | () => void (after clear empties field) |         |
-| placeholder          | string                                 |         |
-| leadingIcon          | icon                                   |         |
-| disabled / autoFocus | boolean                                |         |
+| Prop                 | Type                                                          | Default   |
+| -------------------- | ------------------------------------------------------------- | --------- |
+| value                | string (required)                                             | —         |
+| onChange             | (text) => void (required; waits for `debounceTime` when set)  | —         |
+| onSubmit             | (text) => void                                                |           |
+| onClear              | () => void (after clear empties field)                        |           |
+| placeholder          | string                                                        | `Search`  |
+| icon                 | icon (start of the bar)                                       | `magnify` |
+| debounceTime         | number (ms the user must stop typing before `onChange` fires) | `0`       |
+| showLoading          | boolean (a progress indicator replaces the clear button)      | `false`   |
+| disabled / autoFocus | boolean                                                       |           |
 
-#### `DateTimePicker` / `DatePicker` / `DatePickerInput` / `DateRangePicker` / `TimePicker`
+#### `DateTimePicker` / `DatePicker` / `TimePicker`
 
 Field that opens a Material 3 date/time picker. There is no OS picker underneath: the same
 in-house surface renders on iOS, Android and web — as a dialog on native, as a popover docked to
@@ -712,52 +772,69 @@ ships. Everything locale-dependent — month and weekday names, week start, 12h/
 typed-entry field order, the per-day screen-reader announcement — is derived from `Intl` and
 memoized per locale. Relative labels (Today/Yesterday/Tomorrow) come from `Intl.RelativeTimeFormat`.
 
-`DatePicker`, `DateRangePicker` and `TimePicker` are the same component with `mode`/`selectionMode`
-locked; `DatePickerInput` is `DatePicker` with typed entry always on.
+`DatePicker` and `TimePicker` are the same component with `mode` locked. `DatePicker` still takes
+`selectionMode`, so a date range is `<DatePicker selectionMode="range" />` and a set of days
+`selectionMode="multiple"`; typed entry is `inputEnabled` / `defaultInputType`. These three are the
+only public pickers: the calendar and the clock they are built from are not exported on their own,
+use `variant="static"` for an inline one.
 
-| Prop                          | Type                                                                          | Default       |
-| ----------------------------- | ----------------------------------------------------------------------------- | ------------- |
-| value                         | `Date \| null` · `DateRange` · `Date[]`, following `selectionMode` (required) | —             |
-| onChange                      | matching setter (required)                                                    | —             |
-| label                         | string                                                                        |               |
-| mode                          | `"date" \| "datetime" \| "time"`                                              | `date`        |
-| selectionMode                 | `"single" \| "range" \| "multiple"` (ignored when `mode="time"`)              | `single`      |
-| validRange                    | `{ startDate?, endDate?, disabledDates? }`                                    |               |
-| isDateDisabled                | (date) => boolean — for rules `validRange` can't express                      |               |
-| scrollMode                    | `"endless" \| "paged"` month navigation                                       | `endless`     |
-| inputEnabled                  | boolean — typed entry in the field and in the dialog                          | `true`        |
-| defaultInputType              | `"picker" \| "keyboard"` — which surface the dialog opens on                  | `picker`      |
-| use24HourClock                | boolean — forces the 24-hour dial                                             | locale's own  |
-| minuteInterval                | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`                                        | `1`           |
-| startYear / endYear           | number — bounds of the year grid and the endless scroller                     | ±100 years    |
-| placeholder                   | string (shown while the value is empty)                                       |               |
-| clearable / onClear           | boolean / () => void                                                          |               |
-| error / helperText / required | string / string / boolean                                                     |               |
-| locale                        | string                                                                        | device locale |
-| firstDayOfWeek                | 0–6 (0 = Sunday)                                                              | locale's own  |
-| labels                        | `DateTimePickerLabels` — chrome strings, pass i18n values                     | English       |
-| relativeLabels                | `{ today?, yesterday?, tomorrow? }`                                           | `Intl`        |
-| disabled                      | boolean                                                                       |               |
+| Prop                          | Type                                                                                                                                                                           | Default       |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| value                         | `Date \| null` · `DateRange` · `Date[]`, following `selectionMode` (required)                                                                                                  | —             |
+| onChange                      | matching setter (required)                                                                                                                                                     | —             |
+| variant                       | `"default" \| "static"` — a field with a dialog, or the picker inline                                                                                                          | `default`     |
+| presentation                  | `"auto" \| "popover" \| "dialog"` — web only: docked to the field, or a centred dialog (`auto`: the dialog on a touch device or under 600 px, as Material UI's mobile pickers) | `auto`        |
+| fieldVariant                  | `"outlined" \| "filled"` — the look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                          |
+| label                         | string                                                                                                                                                                         |               |
+| mode                          | `"date" \| "datetime" \| "time"`                                                                                                                                               | `date`        |
+| selectionMode                 | `"single" \| "range" \| "multiple"` (ignored when `mode="time"`)                                                                                                               | `single`      |
+| validRange                    | `{ startDate?, endDate?, disabledDates? }`                                                                                                                                     |               |
+| isDateDisabled                | (date) => boolean — for rules `validRange` can't express                                                                                                                       |               |
+| scrollMode                    | `"endless" \| "paged"` month navigation                                                                                                                                        | `endless`     |
+| inputEnabled                  | boolean — lets the user type a single date into the field                                                                                                                      | `true`        |
+| defaultInputType              | `"picker" \| "keyboard"` — which surface the dialog opens on                                                                                                                   | `picker`      |
+| showToday                     | boolean — the "Today" button in the calendar header (single dates)                                                                                                             | `true`        |
+| use24HourClock                | boolean — forces the 24-hour dial                                                                                                                                              | locale's own  |
+| minuteInterval                | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`                                                                                                                                         | `1`           |
+| startYear / endYear           | number — bounds of the year grid and the endless scroller                                                                                                                      | ±100 years    |
+| placeholder                   | string (shown while the value is empty)                                                                                                                                        |               |
+| clearable / onClear           | boolean / () => void                                                                                                                                                           |               |
+| error / helperText / required | string / string / boolean                                                                                                                                                      |               |
+| locale                        | string                                                                                                                                                                         | device locale |
+| firstDayOfWeek                | 0–6 (0 = Sunday)                                                                                                                                                               | locale's own  |
+| labels                        | `DateTimePickerLabels` — chrome strings, pass i18n values                                                                                                                      | English       |
+| relativeLabels                | `{ today?, yesterday?, tomorrow? }`                                                                                                                                            | `Intl`        |
+| disabled                      | boolean                                                                                                                                                                        |               |
 
 Typed entry follows the locale's own field order — `22/11/2026` in `it-IT`, `11/22/2026` in
 `en-US` — and is validated against `validRange` on blur. The field itself only accepts typing for
-a single calendar date; a range types its two ends inside the dialog, reached from the pencil
-toggle in its header.
+a single calendar date; a range types its two ends inside the dialog, which opens on the typed
+fields with `defaultInputType="keyboard"` (there is no toggle between the calendar and the keyboard
+once it is open; `multiple` has no typed form).
 
-`mode="datetime"` collects the day first and the time second, with **Back / Next** in the footer.
+The dialog has no Cancel or Next button: dismiss it by tapping outside, with the back gesture or
+with Escape. In single `date` mode a day tap confirms and closes; **OK** stays for the time step, a
+range, multiple dates and typed entry. The calendar header is one control, the visible month and the
+year ("October 2026 ▾", which opens the year grid), with an outlined "Today" button between the
+month arrows. In a range, once the first day is chosen the days from it to the one under the
+pointer are shaded as a preview (pointer devices only); nothing is reported until the second tap.
+
+`mode="datetime"` collects the day first and the time second: tapping a day moves to the time step
+by itself, and tapping the date readout there goes back to the calendar (its hint is `labels.back`,
+"Back to date" by default).
+
+`variant="static"` draws the surface inline in the page instead of behind a field: no field, no
+popup and no OK, and every selection calls `onChange` at once with the live value. Of the field
+props only `disabled` and `style` apply, and it always shows the calendar and the clock, never typed
+entry. A static `DatePicker` is the inline calendar; a static `TimePicker` is the inline clock.
+
+The calendar and the clock are pure React Native — no SVG, no native modules — so they render
+identically on web and native. The calendar has month and year sub-views, single / range / multiple
+selection and virtualized endless month scrolling; the clock is the M3 hour/minute readout with
+its AM/PM switch, over an analog dial you drag to set.
 
 Keyboard (web): arrows = day/week, PageUp/PageDown = month (Shift = year), Home/End = ends of the
 week, Enter/Space = select, Escape = close.
-
-#### `Calendar` / `ClockPicker` / `ClockDial`
-
-The surfaces `DateTimePicker` composes, exported on their own for inline use. All three are pure
-React Native — no SVG, no native modules — so they render identically on web and native.
-`Calendar` adds month and year sub-views, single/range/multiple selection, virtualized endless
-month scrolling and the keyboard navigation above; `ClockPicker` is the M3 hour/minute readout
-with its AM/PM switch, over `ClockDial` (the analog face, drag to set) or two text fields.
-Full prop tables in
-[`components.md`](https://github.com/itsolutions-dev/Glowup/blob/master/packages/ui/src/components/components.md).
 
 #### `Autocomplete`
 
@@ -766,19 +843,24 @@ matching by default, `description` lines, `loading` for server-side filtering, a
 ArrowUp/ArrowDown/Enter/Escape on web. The list renders inside the field's own container (a modal
 would steal focus from the input), so the parent must not clip overflow while it is open.
 
-| Prop                                                           | Type                                                                            | Default                      |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------- |
-| value / onChangeText                                           | string / (text) => void (required)                                              | —                            |
-| options                                                        | `AutocompleteOption[]` — `{ id, label, value, description?, icon? }` (required) | —                            |
-| onSelect                                                       | (option) => void (required)                                                     | —                            |
-| filter                                                         | (option, query) => boolean                                                      | accent-insensitive substring |
-| minChars / maxSuggestions                                      | number                                                                          | `1` / `8`                    |
-| loading                                                        | boolean                                                                         |                              |
-| emptyMessage                                                   | string (omit to hide the list on no match)                                      |                              |
-| label / placeholder / error / helperText / required / disabled | as `Input`                                                                      |                              |
-| leadingIcon                                                    | icon                                                                            |                              |
-| clearable                                                      | boolean                                                                         | `true`                       |
-
+| Prop                                                           | Type                                                                                                                                        | Default                      |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| value / onChange                                               | string / (text) => void (required)                                                                                                          | —                            |
+| options                                                        | `AutocompleteOption[]` — `{ id, label, value, description?, icon? }` (required)                                                             | —                            |
+| selected / onSelectedChange                                    | option / (option \| null) => void — every pick; `null` on clear                                                                             |                              |
+| multiple                                                       | boolean (several options as chips; `selected` / `onSelectedChange` take arrays)                                                             | `false`                      |
+| variant                                                        | `"outlined" \| "filled"` (the look of the box: `filled` is tinted, with its border only while focused or in error, like `PinInput`'s cells) | `outlined`                   |
+| labelPlacement                                                 | `"inside" \| "outside"` (outside = above the box; independent of `variant`)                                                                 | `outside`                    |
+| fullWidth                                                      | boolean (`false` shrinks the field to its content)                                                                                          | `true`                       |
+| defaultOptions                                                 | `AutocompleteOption[]` — offered until `minChars` characters are typed                                                                      |                              |
+| onSearch / debounce                                            | (text) => void, once the user stops typing / number (ms)                                                                                    | — / `300`                    |
+| filter                                                         | (option, query) => boolean                                                                                                                  | accent-insensitive substring |
+| minChars / maxSuggestions                                      | number                                                                                                                                      | `1` / `8`                    |
+| loading                                                        | boolean                                                                                                                                     |                              |
+| emptyMessage                                                   | string (omit to hide the list on no match)                                                                                                  |                              |
+| label / placeholder / error / helperText / required / disabled | as `Input`                                                                                                                                  |                              |
+| leadingIcon                                                    | icon                                                                                                                                        |                              |
+| clearable                                                      | boolean                                                                                                                                     | `true`                       |
 
 With a `Portal.Host` mounted the suggestion list renders through it, so it escapes a
 clipping or scrolling parent and flips above the field when there is no room below;
@@ -790,16 +872,17 @@ native `Modal` like `Select` does — that would take focus off the field being 
 One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
 Backspace retreats, and pasting a whole code into any cell fills the row.
 
-| Prop                                             | Type                                           | Default   |
-| ------------------------------------------------ | ---------------------------------------------- | --------- |
-| value / onChangeText                             | string / (value) => void (required)            | —         |
-| length                                           | number                                         | `6`       |
-| onComplete                                       | (value) => void — fired once, on becoming full |           |
-| type                                             | `"numeric" \| "alphanumeric"`                  | `numeric` |
-| mask                                             | boolean                                        | `false`   |
-| label / error / helperText / required / disabled | as `Input`                                     |           |
-| autoFocus                                        | boolean (first cell only)                      |           |
-| cellSize                                         | number                                         | `48`      |
+| Prop                                             | Type                                           | Default    |
+| ------------------------------------------------ | ---------------------------------------------- | ---------- |
+| value / onChange                                 | string / (value) => void (required)            | —          |
+| length                                           | number                                         | `6`        |
+| onComplete                                       | (value) => void — fired once, on becoming full |            |
+| type                                             | `"numeric" \| "alphanumeric"`                  | `numeric`  |
+| variant                                          | `"filled" \| "outlined"` (cell style)          | `outlined` |
+| mask                                             | boolean                                        | `false`    |
+| label / error / helperText / required / disabled | as `Input`                                     |            |
+| autoFocus                                        | boolean (first cell only)                      |            |
+| cellSize                                         | number                                         | `48`       |
 
 #### `FormControl`
 
@@ -819,28 +902,32 @@ The supporting text under a form control. `Input`, `FormControl`, `PinInput`, `A
 the date/time picker field render this internally via their own `helperText` / `error` props —
 use it directly for a control that has neither.
 
-| Prop           | Type                                                   | Default  |
-| -------------- | ------------------------------------------------------ | -------- |
-| children       | ReactNode (required)                                   | —        |
-| type           | `"info" \| "error"` (error adds the alert glyph)        | `info`   |
-| visible        | boolean (fades out instead of unmounting)              | `true`   |
-| disabled       | boolean (dims to match a disabled field)               | `false`  |
-| padding        | `"normal" \| "none"` (the 16px field gutter)           | `normal` |
+| Prop     | Type                                             | Default  |
+| -------- | ------------------------------------------------ | -------- |
+| children | ReactNode (required)                             | —        |
+| type     | `"info" \| "error"` (error adds the alert glyph) | `info`   |
+| visible  | boolean (fades out instead of unmounting)        | `true`   |
+| disabled | boolean (dims to match a disabled field)         | `false`  |
+| padding  | `"normal" \| "none"` (the 16px field gutter)     | `normal` |
 
 Hiding it keeps the text mounted so the field height doesn't jump, but takes it out of the
 accessibility tree.
 
 #### `Rating`
 
-Star rating; renders half-stars, sets whole values on tap.
+Star rating; renders half-stars, sets whole values on tap (halves with `interval={0.5}`), and
+previews the value under the pointer on hover.
 
-| Prop     | Type                                         | Default |
-| -------- | -------------------------------------------- | ------- |
-| value    | number (supports halves, e.g. 3.5, required) | —       |
-| onChange | (value) => void (interactive when provided)  |         |
-| max      | number                                       | `5`     |
-| size     | number                                       | `24`    |
-| disabled | boolean                                      |         |
+| Prop     | Type                                                                  | Default |
+| -------- | --------------------------------------------------------------------- | ------- |
+| value    | number (supports halves, e.g. 3.5, required)                          | —       |
+| onChange | (value) => void (interactive when provided)                           |         |
+| max      | number                                                                | `5`     |
+| size     | number                                                                | `24`    |
+| interval | `0.5 \| 1` (step of the input: half icons or whole ones)              | `1`     |
+| icon     | icon (a glyph that has an `-outline` twin, drawn for the empty state) | `star`  |
+| required | boolean (the current value cannot be tapped away to 0)                | `false` |
+| disabled | boolean                                                               |         |
 
 ### Data display
 
@@ -849,25 +936,27 @@ Star rating; renders half-stars, sets whole values on tap.
 | Prop                        | Type                                                             | Default    |
 | --------------------------- | ---------------------------------------------------------------- | ---------- |
 | source                      | image source (else initials, else icon)                          |            |
-| name                        | string (initials fallback)                                       |            |
+| name                        | string (initials fallback; also a tooltip on hover / long press) |            |
 | icon                        | icon (icon fallback)                                             | `account`  |
-| size                        | number                                                           | `40`       |
+| size                        | number \| `"small" \| "medium" \| "large"` (32 / 40 / 56)        | `medium`   |
 | variant                     | `"circular" \| "rounded" \| "square"`                            | `circular` |
 | status                      | `"online" \| "offline" \| "busy" \| "away" \| null` (status dot) |            |
 | backgroundColor / textColor | string                                                           |            |
-| onPress                     | () => void                                                       |            |
+| onClick                     | () => void                                                       |            |
 
 #### `Badge`
 
 Small count/dot overlay (position it over its target).
 
-| Prop     | Type                                | Default |
-| -------- | ----------------------------------- | ------- |
-| count    | number (omit → dot)                 |         |
-| size     | `"small" \| "large"` (small = dot)  | `large` |
-| max      | number (shows `max+` when exceeded) | `99`    |
-| showZero | boolean                             | `false` |
-| visible  | boolean                             | `true`  |
+| Prop     | Type                                                                                                  | Default |
+| -------- | ----------------------------------------------------------------------------------------------------- | ------- |
+| count    | number (omit → dot)                                                                                   |         |
+| size     | `"small" \| "large"` (small = dot)                                                                    | `large` |
+| max      | number (shows `max+` when exceeded)                                                                   | `99`    |
+| showZero | boolean                                                                                               | `false` |
+| color    | same roles as `Button`                                                                                | `error` |
+| position | `"top-right" \| "bottom-right" \| "top-left" \| "bottom-left"` (pins it to that corner of the parent) |         |
+| visible  | boolean                                                                                               | `true`  |
 
 #### `StatusBadge`
 
@@ -912,24 +1001,25 @@ Single pressable list row.
 Groups related `ListItem`s under a heading. Use this for a settings screen rather than wrapping
 each group in a `Card` — a sequence of labelled groups, not a pile of equal surfaces.
 
-| Component        | Props                                                                    |
-| ---------------- | ------------------------------------------------------------------------ |
-| `ListSection`    | `children` (required), `title` (heading above the rows), `divider` (`false`) |
-| `ListSubheader`  | `children` (required) — a standalone group label, marked as a heading    |
+| Component       | Props                                                                        |
+| --------------- | ---------------------------------------------------------------------------- |
+| `ListSection`   | `children` (required), `title` (heading above the rows), `divider` (`false`) |
+| `ListSubheader` | `children` (required) — a standalone group label, marked as a heading        |
 
 #### `Tooltip`
 
 Wraps a child; shows a bubble on hover (web) / long-press (native).
 
-| Prop       | Type                                       | Default |
-| ---------- | ------------------------------------------ | ------- |
-| content    | string (required)                          | —       |
-| children   | ReactNode (anchor, required)                | —       |
-| position   | `"top" \| "bottom" \| "left" \| "right"`   | `top`   |
-| disabled   | boolean                                    |         |
-| hideDelay  | number (ms, native auto-hide)               | `1500`  |
-| enterDelay | number (ms hover dwell before showing, web) | `500`   |
-| leaveDelay | number (ms grace before hiding, web)        | `100`   |
+| Prop             | Type                                                                                                                   | Default |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
+| content          | string (required)                                                                                                      | —       |
+| children         | ReactNode (anchor, required)                                                                                           | —       |
+| position         | `"top" \| "bottom" \| "left" \| "right"`                                                                               | `top`   |
+| disabled         | boolean                                                                                                                |         |
+| hideDelay        | number (ms, native auto-hide)                                                                                          | `1500`  |
+| anchorAccessible | boolean — native: the anchor is one accessibility element named by `content`; turn off for a control with its own name | `true`  |
+| enterDelay       | number (ms hover dwell before showing, web)                                                                            | `500`   |
+| leaveDelay       | number (ms grace before hiding, web)                                                                                   | `100`   |
 
 Also shows on keyboard focus, not only on hover. With a `Portal.Host` mounted the bubble
 renders through it, so it escapes an `overflow: hidden` parent and is clamped to the window
@@ -1029,37 +1119,37 @@ Inline prominent message with up to two actions.
 
 Centered dialog surface.
 
-| Prop          | Type                                                     | Default |
-| ------------- | -------------------------------------------------------- | ------- |
-| visible       | boolean                                                  |         |
-| children      | ReactNode \| string (string → styled text, required)     | —       |
-| title         | string                                                   |         |
-| icon          | `IconSource` (hero glyph above the title)                |         |
-| animationType | `"none" \| "slide" \| "fade"`                            | `fade`  |
-| transparent   | boolean                                                  | `true`  |
-| onClose       | () => void (renders close button)                        |         |
-| onDismiss     | () => void (Android back / ESC / scrim tap)              |         |
-| closeText     | string                                                   | `Close` |
-| dismissable   | boolean (scrim tap and ESC dismiss)                      | `true`  |
-| scrollable    | boolean (scrolls a body taller than the dialog)          | `false` |
-| actions       | ReactNode (trailing action row; replaces `closeText`)    |         |
-| testID        | string (the scrim gets `${testID}-scrim`)                | `modal` |
+| Prop          | Type                                                  | Default |
+| ------------- | ----------------------------------------------------- | ------- |
+| visible       | boolean                                               |         |
+| children      | ReactNode \| string (string → styled text, required)  | —       |
+| title         | string                                                |         |
+| icon          | `IconSource` (hero glyph above the title)             |         |
+| animationType | `"none" \| "slide" \| "fade"`                         | `fade`  |
+| transparent   | boolean                                               | `true`  |
+| onClose       | () => void (renders close button)                     |         |
+| onDismiss     | () => void (Android back / ESC / scrim tap)           |         |
+| closeText     | string                                                | `Close` |
+| dismissable   | boolean (scrim tap and ESC dismiss)                   | `true`  |
+| scrollable    | boolean (scrolls a body taller than the dialog)       | `false` |
+| actions       | ReactNode (trailing action row; replaces `closeText`) |         |
+| testID        | string (the scrim gets `${testID}-scrim`)             | `modal` |
 
 #### `ConfirmDialog`
 
 Modal preset with confirm/cancel actions.
 
-| Prop            | Type                                  | Default   |
-| --------------- | ------------------------------------- | --------- |
-| visible         | boolean (required)                    | —         |
-| onConfirm       | () => void (required)                 | —         |
-| onCancel        | () => void (required)                 | —         |
-| title / message | string                                |           |
-| confirmText     | string                                | `Confirm` |
-| cancelText      | string                                | `Cancel`  |
-| destructive     | boolean (confirm in the error tone)   | `false`   |
-| icon            | `IconSource` (hero glyph)             |           |
-| dismissable     | boolean (scrim tap and ESC cancel)    | `true`    |
+| Prop            | Type                                | Default   |
+| --------------- | ----------------------------------- | --------- |
+| visible         | boolean (required)                  | —         |
+| onConfirm       | () => void (required)               | —         |
+| onCancel        | () => void (required)               | —         |
+| title / message | string                              |           |
+| confirmText     | string                              | `Confirm` |
+| cancelText      | string                              | `Cancel`  |
+| destructive     | boolean (confirm in the error tone) | `false`   |
+| icon            | `IconSource` (hero glyph)           |           |
+| dismissable     | boolean (scrim tap and ESC cancel)  | `true`    |
 
 #### `Popover`
 
@@ -1190,7 +1280,7 @@ the content), with back / close buttons and an `actions` row.
 
 ### Navigation
 
-> The library is **navigation-agnostic**: it ships navigation *widgets* (app bar, bottom bar,
+> The library is **navigation-agnostic**: it ships navigation _widgets_ (app bar, bottom bar,
 > tabs, breadcrumbs, pagination, stepper) but no navigator. `DrawerNavigation` and
 > `StackNavigation` were removed in `0.5.0`; the changelog entry for that release shows the
 > app-side wiring that replaces them.

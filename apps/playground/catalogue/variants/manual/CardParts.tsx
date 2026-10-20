@@ -34,12 +34,12 @@ const TitleWithSlots = () => (
       <CardTitle
         title="Marta Rossi"
         subtitle="Lead product designer"
-        left={<Avatar name="Marta Rossi" size={40} status="online" />}
-        right={
+        startIcon={<Avatar name="Marta Rossi" size={40} status="online" />}
+        endIcon={
           <IconButton
             icon="dots-vertical"
             accessibilityLabel="More"
-            onPress={() => {}}
+            onClick={() => {}}
           />
         }
       />
@@ -73,9 +73,9 @@ const ContentWithChildren = () => (
       <CardTitle title="Filters" />
       <CardContent>
         <View style={demo.row}>
-          <Chip label="Paid" mode="tonal" selected onPress={() => {}} />
-          <Chip label="Overdue" mode="tonal" onPress={() => {}} />
-          <Chip label="Draft" mode="tonal" onPress={() => {}} />
+          <Chip label="Paid" variant="tonal" selected onClick={() => {}} />
+          <Chip label="Overdue" variant="tonal" onClick={() => {}} />
+          <Chip label="Draft" variant="tonal" onClick={() => {}} />
         </View>
       </CardContent>
     </Card>
@@ -101,10 +101,10 @@ const ActionAlignment = () => (
       <Card key={align} variant="outlined">
         <CardTitle title={`align="${align}"`} />
         <CardActions align={align}>
-          <Button mode="text" onPress={() => {}}>
+          <Button variant="text" onClick={() => {}}>
             Not now
           </Button>
-          <Button mode="filled" iconName="check" onPress={() => {}}>
+          <Button variant="filled" iconName="check" onClick={() => {}}>
             Confirm
           </Button>
         </CardActions>
@@ -120,7 +120,7 @@ const Composed = () => (
       <CardTitle
         title="Quarterly report"
         subtitle="Published 3 days ago"
-        left={<Avatar name="Ada Lovelace" size={36} />}
+        startIcon={<Avatar name="Ada Lovelace" size={36} />}
       />
       <CardContent>
         <Typography variant="bodyMedium">
@@ -128,10 +128,10 @@ const Composed = () => (
         </Typography>
       </CardContent>
       <CardActions>
-        <Button mode="text" onPress={() => {}}>
+        <Button variant="text" onClick={() => {}}>
           Share
         </Button>
-        <Button mode="tonal" iconName="download" onPress={() => {}}>
+        <Button variant="tonal" iconName="download" onClick={() => {}}>
           Download
         </Button>
       </CardActions>

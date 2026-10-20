@@ -14,7 +14,7 @@ import {
   ListSection,
   Select,
   Slider,
-  Toggle,
+  Switch,
   Typography,
   VStack,
   useTheme,
@@ -90,7 +90,7 @@ export default function Settings() {
         <ListItem
           leading={<Avatar name="Ada Lovelace" size={40} status="online" />}
           secondary="ada@example.com"
-          trailing={<Chip label="Admin" size="small" mode="tonal" />}
+          trailing={<Chip label="Admin" size="small" variant="tonal" />}
           onPress={() => {}}
         >
           Ada Lovelace
@@ -140,7 +140,7 @@ export default function Settings() {
           <Select
             label="Language"
             value={draft.language}
-            onSelect={(value) => set("language", value)}
+            onChange={(value) => set("language", value)}
             options={LANGUAGES}
           />
         </VStack>
@@ -150,9 +150,9 @@ export default function Settings() {
         <ListItem
           secondary="Mentions, replies and assignments"
           trailing={
-            <Toggle
+            <Switch
               value={draft.push}
-              onValueChange={(value) => set("push", value)}
+              onChange={(value) => set("push", value)}
             />
           }
         >
@@ -161,9 +161,9 @@ export default function Settings() {
         <ListItem
           secondary="Everything that needs your attention"
           trailing={
-            <Toggle
+            <Switch
               value={draft.email}
-              onValueChange={(value) => set("email", value)}
+              onChange={(value) => set("email", value)}
             />
           }
         >
@@ -172,9 +172,9 @@ export default function Settings() {
         <ListItem
           secondary="One summary every Monday"
           trailing={
-            <Toggle
+            <Switch
               value={draft.digest}
-              onValueChange={(value) => set("digest", value)}
+              onChange={(value) => set("digest", value)}
             />
           }
         >
@@ -195,10 +195,10 @@ export default function Settings() {
             Delete the account and every project in it. This cannot be undone.
           </Typography>
           <Button
-            mode="outlined"
-            tone="error"
+            variant="outlined"
+            color="error"
             iconName="delete-outline"
-            onPress={() => setConfirmDelete(true)}
+            onClick={() => setConfirmDelete(true)}
           >
             Delete account
           </Button>

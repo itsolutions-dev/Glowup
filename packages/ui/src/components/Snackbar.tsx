@@ -148,8 +148,8 @@ const Snackbar = ({
 
         {action && (
           <Button
-            mode="tonal"
-            onPress={() => {
+            variant="tonal"
+            onClick={() => {
               action.onPress();
               onDismiss();
             }}

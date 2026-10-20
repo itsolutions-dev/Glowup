@@ -58,9 +58,9 @@ export const Suggestions = () => (
   <Focused>
     <Autocomplete
       value="o"
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="Delivery city"
       helperText="Free text is allowed - this is not a Select."
     />
@@ -71,18 +71,18 @@ export const ClosedField = () => (
   <VStack spacing="m" width={380}>
     <Autocomplete
       value="Milan"
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="Delivery city"
       leadingIcon="magnify"
       helperText="Clearable once there is text."
     />
     <Autocomplete
       value=""
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="Delivery city"
       placeholder="Start typing a city"
       required
@@ -94,26 +94,26 @@ export const States = () => (
   <VStack spacing="m" width={380}>
     <Autocomplete
       value="Mila"
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="City"
       loading
       helperText="Fetching matches…"
     />
     <Autocomplete
       value="Zzz"
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="City"
       error="No delivery hub covers that city."
     />
     <Autocomplete
       value="Milan"
-      onChangeText={noop}
+      onChange={noop}
       options={cities}
-      onSelect={noop}
+      onSelectedChange={noop}
       label="City"
       disabled
     />

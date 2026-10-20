@@ -53,8 +53,8 @@ const Overview = () => (
       32-hour battery.
     </Typography>
     <View style={row}>
-      <Chip label="In stock" mode="tonal" size="small" icon="check" />
-      <Chip label="Free returns" mode="outlined" size="small" />
+      <Chip label="In stock" variant="tonal" size="small" icon="check" />
+      <Chip label="Free returns" variant="outlined" size="small" />
     </View>
   </View>
 );

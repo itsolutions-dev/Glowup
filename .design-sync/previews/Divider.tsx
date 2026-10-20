@@ -47,11 +47,16 @@ export const WithLabel = () => (
   <div
     style={{ width: 380, display: "flex", flexDirection: "column", gap: 16 }}
   >
-    <Button mode="filled" fullWidth onPress={() => {}}>
+    <Button variant="filled" fullWidth onClick={() => {}}>
       Sign in with email
     </Button>
     <Divider contentSpacing={12}>OR</Divider>
-    <Button mode="outlined" fullWidth iconName="fingerprint" onPress={() => {}}>
+    <Button
+      variant="outlined"
+      fullWidth
+      iconName="fingerprint"
+      onClick={() => {}}
+    >
       Use a passkey
     </Button>
     <Divider contentSpacing={12} inset={24}>

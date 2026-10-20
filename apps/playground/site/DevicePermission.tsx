@@ -61,14 +61,14 @@ export function DevicePermission({
       {isLoading ||
       status === "granted" ||
       status === "unsupported" ? null : canAskAgain ? (
-        <Button iconName="shield-check-outline" loading={busy} onPress={ask}>
+        <Button iconName="shield-check-outline" loading={busy} onClick={ask}>
           {requestLabel}
         </Button>
       ) : openSettings ? (
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="cog-outline"
-          onPress={() => void openSettings().catch(() => {})}
+          onClick={() => void openSettings().catch(() => {})}
         >
           Open settings
         </Button>

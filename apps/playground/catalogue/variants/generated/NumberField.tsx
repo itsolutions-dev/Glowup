@@ -1,10 +1,10 @@
 // GENERATED — do not edit.
-// Source: .design-sync/previews/Spinner.tsx
+// Source: .design-sync/previews/NumberField.tsx
 // Regenerate with `npm run variants -w @its/glowup-playground`.
 import React from "react";
 import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
-import { Spinner } from "@its/glowup-ui";
+import { NumberField } from "@its/glowup-ui";
 
 const row: ViewStyle = {
   flexDirection: "row",
@@ -17,13 +17,13 @@ const noop = () => {};
 
 export const Default = () => (
   <View style={row}>
-    <Spinner label="Guests" value={2} min={1} max={12} onChange={noop} />
+    <NumberField label="Guests" value={2} min={1} max={12} onChange={noop} />
   </View>
 );
 
 export const Steps = () => (
   <View style={row}>
-    <Spinner
+    <NumberField
       label="Quantity"
       value={6}
       step={1}
@@ -31,7 +31,7 @@ export const Steps = () => (
       max={99}
       onChange={noop}
     />
-    <Spinner
+    <NumberField
       label="Seats (packs of 5)"
       value={25}
       step={5}
@@ -44,14 +44,14 @@ export const Steps = () => (
 
 export const AtBounds = () => (
   <View style={row}>
-    <Spinner label="Nights" value={1} min={1} max={14} onChange={noop} />
-    <Spinner label="Nights" value={14} min={1} max={14} onChange={noop} />
+    <NumberField label="Nights" value={1} min={1} max={14} onChange={noop} />
+    <NumberField label="Nights" value={14} min={1} max={14} onChange={noop} />
   </View>
 );
 
 export const Disabled = () => (
   <View style={row}>
-    <Spinner
+    <NumberField
       label="Licences"
       value={10}
       min={1}

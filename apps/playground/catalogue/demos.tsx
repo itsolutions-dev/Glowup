@@ -6,6 +6,7 @@ import { View } from "react-native";
 import {
   Button,
   ButtonGroup,
+  CheckboxGroup,
   ChipGroup,
   DrawerItem,
   DrawerSection,
@@ -13,6 +14,7 @@ import {
   IconButton,
   NavigationDrawer,
   NavigationRail,
+  Rating,
   SideSheet,
   SplitButton,
   Table,
@@ -52,8 +54,8 @@ export const NavigationRailDemo = ({ props, updateProp }: DemoProps) => (
       header={
         props.withFab ? (
           <>
-            <IconButton icon="menu" accessibilityLabel="Menu" onPress={noop} />
-            <FAB icon="pencil-outline" placement="inline" onPress={noop} />
+            <IconButton icon="menu" accessibilityLabel="Menu" onClick={noop} />
+            <FAB icon="pencil-outline" placement="inline" onClick={noop} />
           </>
         ) : undefined
       }
@@ -139,7 +141,7 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
   if (props.variant === "modal") {
     return (
       <>
-        <Button mode="tonal" iconName="menu" onPress={() => setOpen(true)}>
+        <Button variant="tonal" iconName="menu" onClick={() => setOpen(true)}>
           Open drawer
         </Button>
         <NavigationDrawer
@@ -171,10 +173,10 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
               <IconButton
                 icon="domain"
                 accessibilityLabel="Acme"
-                onPress={noop}
+                onClick={noop}
               />
             ) : (
-              <Button mode="outlined">Acme · Rome</Button>
+              <Button variant="outlined">Acme · Rome</Button>
             )
           ) : undefined
         }
@@ -201,7 +203,7 @@ export const TopAppBarDemo = ({ props }: DemoProps) => (
         <IconButton
           icon="arrow-left"
           accessibilityLabel="Back"
-          onPress={noop}
+          onClick={noop}
         />
       }
       actions={
@@ -209,12 +211,12 @@ export const TopAppBarDemo = ({ props }: DemoProps) => (
           <IconButton
             icon="magnify"
             accessibilityLabel="Search"
-            onPress={noop}
+            onClick={noop}
           />
           <IconButton
             icon="dots-vertical"
             accessibilityLabel="More"
-            onPress={noop}
+            onClick={noop}
           />
         </>
       }
@@ -291,7 +293,7 @@ export const ToolbarDemo = ({ props }: DemoProps) => {
       key={icon}
       icon={icon as any}
       accessibilityLabel={icon.replace("format-", "")}
-      onPress={noop}
+      onClick={noop}
     />
   ));
   return (
@@ -304,7 +306,7 @@ export const ToolbarDemo = ({ props }: DemoProps) => {
         accessibilityLabel="Formatting"
         fab={
           props.variant === "floating" && props.withFab ? (
-            <FAB icon="plus" placement="inline" onPress={noop} />
+            <FAB icon="plus" placement="inline" onClick={noop} />
           ) : undefined
         }
       >
@@ -333,8 +335,8 @@ export const SideSheetDemo = ({ props }: DemoProps) => {
       title={props.title}
       actions={
         <>
-          <Button onPress={() => setOpen(false)}>Apply</Button>
-          <Button mode="outlined" onPress={() => setOpen(false)}>
+          <Button onClick={() => setOpen(false)}>Apply</Button>
+          <Button variant="outlined" onClick={() => setOpen(false)}>
             Reset
           </Button>
         </>
@@ -351,9 +353,9 @@ export const SideSheetDemo = ({ props }: DemoProps) => {
   return (
     <>
       <Button
-        mode="tonal"
+        variant="tonal"
         iconName="filter-variant"
-        onPress={() => setOpen(true)}
+        onClick={() => setOpen(true)}
       >
         Open side sheet
       </Button>
@@ -369,6 +371,46 @@ const STATUSES = [
   { value: "archived", label: "Archived", disabled: true },
 ];
 
+const CHANNELS = [
+  { label: "Email", value: "email" },
+  { label: "SMS", value: "sms" },
+  { label: "Push (unavailable)", value: "push", disabled: true },
+  { label: "Phone call", value: "call" },
+];
+
+/** The group owns an array, so the stage keeps it. */
+export const CheckboxGroupDemo = ({ props }: DemoProps) => {
+  const [channels, setChannels] = useState<string[]>(["email"]);
+  return (
+    <View style={{ width: "100%", maxWidth: 420 }}>
+      <CheckboxGroup
+        options={CHANNELS}
+        value={channels}
+        onChange={setChannels}
+        label={props.label}
+        direction={props.direction}
+        required={props.required}
+        disabled={props.disabled}
+        error={props.error || undefined}
+      />
+    </View>
+  );
+};
+
+/** Controlled, because hover and the half step only exist on an interactive rating. */
+export const RatingDemo = ({ props, updateProp }: DemoProps) => (
+  <Rating
+    value={props.value}
+    max={props.max}
+    size={props.size}
+    disabled={props.disabled}
+    interval={props.interval}
+    icon={props.icon}
+    required={props.required}
+    onChange={(value) => updateProp("value", value)}
+  />
+);
+
 export const ChipGroupDemo = ({ props }: DemoProps) => {
   const [single, setSingle] = useState<string | null>("open");
   const [many, setMany] = useState<string[]>(["open", "review"]);
@@ -376,12 +418,12 @@ export const ChipGroupDemo = ({ props }: DemoProps) => {
     <View style={{ width: "100%", maxWidth: 420 }}>
       <ChipGroup
         options={STATUSES}
-        value={props.multiSelect ? many : single}
-        onValueChange={props.multiSelect ? setMany : setSingle}
-        multiSelect={props.multiSelect}
+        value={props.multiple ? many : single}
+        onChange={props.multiple ? setMany : setSingle}
+        multiple={props.multiple}
         required={props.required}
         wrap={props.wrap}
-        mode={props.mode}
+        variant={props.variant}
         accessibilityLabel="Status"
       />
     </View>

@@ -77,7 +77,7 @@ export const PropsTable = ({ doc }: PropsTableProps) => {
         <Input
           label="Filter props"
           value={filter}
-          onChangeText={setFilter}
+          onChange={setFilter}
           leadingIcon="magnify"
         />
       )}

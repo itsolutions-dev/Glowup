@@ -15,17 +15,17 @@ export interface ChipGroupOption {
 
 export interface ChipGroupProps {
   options: ChipGroupOption[];
-  /** The selected value (or `null`), or the selected values with `multiSelect`. */
+  /** The selected value (or `null`), or the selected values with `multiple`. */
   value: string | string[] | null;
-  onValueChange: (value: any) => void;
+  onChange: (value: any) => void;
   /** Filter chips: any number selected. Defaults to `false` (one at most). */
-  multiSelect?: boolean;
+  multiple?: boolean;
   /** Single select only: the selected chip cannot be deselected. */
   required?: boolean;
   /** `true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`. */
   wrap?: boolean;
   /** Chip look. Defaults to `"outlined"`, the M3 filter chip. */
-  mode?: "filled" | "tonal" | "outlined";
+  variant?: "filled" | "tonal" | "outlined";
   /** Names the group for assistive tech. */
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -34,16 +34,16 @@ export interface ChipGroupProps {
 
 /**
  * A set of filter chips with the selection handled: one at a time, or any
- * number with `multiSelect`.
+ * number with `multiple`.
  */
 const ChipGroup = ({
   options,
   value,
-  onValueChange,
-  multiSelect = false,
+  onChange,
+  multiple = false,
   required = false,
   wrap = true,
-  mode = "outlined",
+  variant = "outlined",
   accessibilityLabel,
   style,
   testID,
@@ -51,11 +51,11 @@ const ChipGroup = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const roles = selectionRoles(multiSelect);
+  const roles = selectionRoles(multiple);
   const press = (v: string) => {
-    if (multiSelect) onValueChange(toggleIn(value, v));
-    else if (value !== v) onValueChange(v);
-    else if (!required) onValueChange(null);
+    if (multiple) onChange(toggleIn(value, v));
+    else if (value !== v) onChange(v);
+    else if (!required) onChange(null);
   };
 
   const chips = options.map((option) => (
@@ -63,10 +63,10 @@ const ChipGroup = ({
       key={option.value}
       label={option.label}
       icon={option.icon}
-      mode={mode}
-      selected={isSelected(value, option.value, multiSelect)}
+      variant={variant}
+      selected={isSelected(value, option.value, multiple)}
       disabled={option.disabled}
-      onPress={() => press(option.value)}
+      onClick={() => press(option.value)}
       accessibilityRole={roles.item}
     />
   ));

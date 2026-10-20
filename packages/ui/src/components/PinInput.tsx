@@ -17,13 +17,20 @@ export interface PinInputProps {
   /** Number of cells. Defaults to 6. */
   length?: number;
   value: string;
-  onChangeText: (value: string) => void;
+  /** Called with the whole code, not the single cell, on every edit. */
+  onChange: (value: string) => void;
   /** Fired once the last cell is filled. */
   onComplete?: (value: string) => void;
   /** Renders dots instead of characters. */
   mask?: boolean;
   /** Restricts the accepted characters. Defaults to `"numeric"`. */
   type?: "numeric" | "alphanumeric";
+  /**
+   * Cell style: `"outlined"` draws each cell as a bordered box on the surface,
+   * `"filled"` as a tinted box that shows its border only while focused or in
+   * error. Defaults to `"outlined"`.
+   */
+  variant?: "filled" | "outlined";
   label?: string;
   error?: string;
   /** Supporting text below the cells; hidden while an error is shown. */
@@ -50,10 +57,11 @@ const PATTERNS: Record<NonNullable<PinInputProps["type"]>, RegExp> = {
 const PinInput = ({
   length = 6,
   value,
-  onChangeText,
+  onChange,
   onComplete,
   mask = false,
   type = "numeric",
+  variant = "outlined",
   label,
   error,
   helperText,
@@ -93,14 +101,14 @@ const PinInput = ({
     if (cleaned.length > 1) {
       // Paste (or an autofilled SMS code): spread it from this cell onward.
       const next = (value.slice(0, index) + cleaned).slice(0, length);
-      onChangeText(next);
+      onChange(next);
       focusCell(Math.min(next.length, length - 1));
       return;
     }
 
     const chars = value.padEnd(length, " ").split("");
     chars[index] = cleaned;
-    onChangeText(chars.join("").trimEnd().slice(0, length));
+    onChange(chars.join("").trimEnd().slice(0, length));
     focusCell(index + 1);
   };
 
@@ -113,7 +121,7 @@ const PinInput = ({
       // Clear this cell but stay put, matching native OTP fields.
       const chars = value.split("");
       chars.splice(index, 1);
-      onChangeText(chars.join(""));
+      onChange(chars.join(""));
       return;
     }
     focusCell(index - 1);
@@ -139,6 +147,7 @@ const PinInput = ({
         {Array.from({ length }, (_, index) => {
           const character = characters[index] ?? "";
           const filled = character.length > 0;
+          const focused = focusedIndex === index;
           return (
             <TextInput
               key={index}
@@ -169,8 +178,13 @@ const PinInput = ({
                   height: cellSize,
                   color: theme.colors.onSurface,
                 },
-                getGlowStyles(theme, focusedIndex === index, error),
-                filled && !error && { borderColor: theme.colors.primary },
+                getGlowStyles(theme, focused, error),
+                variant === "filled"
+                  ? [
+                      styles.cellFilled,
+                      !focused && !error && styles.cellFilledIdle,
+                    ]
+                  : filled && !error && { borderColor: theme.colors.primary },
                 disabled && styles.disabled,
               ]}
             />
@@ -205,6 +219,8 @@ const makeStyles = (theme: Theme) =>
       // Suppress the browser focus ring; getGlowStyles draws the M3 one.
       ...Platform.select({ web: { outlineWidth: 0 } }),
     },
+    cellFilled: { backgroundColor: theme.colors.surfaceContainerHighest },
+    cellFilledIdle: { borderColor: "transparent" },
     disabled: { opacity: 0.38 },
     supportingText: {
       marginLeft: theme.spacing.xs,

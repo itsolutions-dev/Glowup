@@ -2,16 +2,9 @@ import React from "react";
 import { Text, View } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import {
-  AnimatedFAB,
-  Autocomplete,
-  Portal,
-  ThemeProvider,
-  Tooltip,
-} from "../index";
+import { FAB, Autocomplete, Portal, ThemeProvider, Tooltip } from "../index";
 
-// SafeAreaProvider is part of the kit's provider contract — FAB, AnimatedFAB,
-// AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.
+// SafeAreaProvider is part of the kit's provider contract — FAB, AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.
 const Providers = ({ children }: { children: React.ReactNode }) => (
   <SafeAreaProvider
     initialMetrics={{
@@ -34,26 +27,32 @@ const wrap = (ui: React.ReactElement) => render(<Providers>{ui}</Providers>);
 const wrapHosted = (ui: React.ReactElement) =>
   render(<HostedProviders>{ui}</HostedProviders>);
 
-describe("AnimatedFAB", () => {
-  it("renders the label and fires onPress", async () => {
-    const onPress = jest.fn();
+describe("FAB variant animated", () => {
+  it("renders the label and fires onClick", async () => {
+    const onClick = jest.fn();
     const { getByLabelText } = await wrap(
-      <AnimatedFAB icon="plus" label="New ticket" onPress={onPress} />,
+      <FAB
+        variant="animated"
+        icon="plus"
+        label="New ticket"
+        onClick={onClick}
+      />,
     );
 
     const fab = getByLabelText("New ticket");
     await fireEvent.press(fab);
-    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 
   it("reports its expanded state for assistive tech", async () => {
     const { getByLabelText, rerender } = await wrapHosted(
       // duration={0} lets the collapse settle inside the test instead of
       // updating Animated after teardown.
-      <AnimatedFAB
+      <FAB
+        variant="animated"
         icon="plus"
         label="Add"
-        onPress={() => {}}
+        onClick={() => {}}
         extended
         duration={0}
       />,
@@ -64,10 +63,11 @@ describe("AnimatedFAB", () => {
 
     await rerender(
       <HostedProviders>
-        <AnimatedFAB
+        <FAB
+          variant="animated"
           icon="plus"
           label="Add"
-          onPress={() => {}}
+          onClick={() => {}}
           extended={false}
           duration={0}
         />
@@ -82,14 +82,27 @@ describe("AnimatedFAB", () => {
     );
   });
 
-  it("does not fire onPress while disabled", async () => {
-    const onPress = jest.fn();
+  it("does not fire onClick while disabled", async () => {
+    const onClick = jest.fn();
     const { getByLabelText } = await wrap(
-      <AnimatedFAB icon="plus" label="Disabled" onPress={onPress} disabled />,
+      <FAB
+        variant="animated"
+        icon="plus"
+        label="Disabled"
+        onClick={onClick}
+        disabled
+      />,
     );
 
     await fireEvent.press(getByLabelText("Disabled"));
-    expect(onPress).not.toHaveBeenCalled();
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("is the same FAB: a static extended variant shows the label too", async () => {
+    const { getByText } = await wrap(
+      <FAB variant="extended" icon="plus" label="Static" onClick={() => {}} />,
+    );
+    expect(getByText("Static")).toBeTruthy();
   });
 });
 
@@ -142,15 +155,14 @@ describe("Autocomplete", () => {
   const renderWith = (
     renderer: typeof wrap,
     value: string,
-    onChangeText = () => {},
+    onChange = () => {},
   ) =>
     renderer(
       <Autocomplete
         label="Città"
         value={value}
         options={options}
-        onChangeText={onChangeText}
-        onSelect={() => {}}
+        onChange={onChange}
       />,
     );
 
@@ -167,22 +179,22 @@ describe("Autocomplete", () => {
   });
 
   it("selects an option from the portalled list", async () => {
-    const onSelect = jest.fn();
+    const onSelectedChange = jest.fn();
     const { getByLabelText, getByText } = await render(
       <HostedProviders>
         <Autocomplete
           label="Città"
           value="M"
           options={options}
-          onChangeText={() => {}}
-          onSelect={onSelect}
+          onChange={() => {}}
+          onSelectedChange={onSelectedChange}
         />
       </HostedProviders>,
     );
 
     await fireEvent(getByLabelText("Città"), "focus");
     await fireEvent.press(getByText("Modena"));
-    expect(onSelect).toHaveBeenCalledWith(
+    expect(onSelectedChange).toHaveBeenCalledWith(
       expect.objectContaining({ label: "Modena" }),
     );
   });

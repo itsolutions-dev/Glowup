@@ -45,8 +45,12 @@ export interface ClockPickerProps {
 }
 
 /**
- * The Material 3 time picker surface: the hour and minute readouts double as
- * the unit selector, with the analog dial (or two text fields) underneath.
+ * Internal: the Material 3 time picker surface of `TimePicker` and
+ * `DateTimePicker`, which render it in their popup or, with
+ * `variant="static"`, inline. Not exported from the package.
+ *
+ * The hour and minute readouts double as the unit selector, with the analog dial
+ * (or two text fields) underneath.
  */
 const ClockPicker = ({
   value,

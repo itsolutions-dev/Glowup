@@ -38,9 +38,9 @@ export const WithFab = () => (
           <IconButton
             icon="menu"
             accessibilityLabel="Menu"
-            onPress={() => {}}
+            onClick={() => {}}
           />
-          <FAB icon="pencil-outline" placement="inline" onPress={() => {}} />
+          <FAB icon="pencil-outline" placement="inline" onClick={() => {}} />
         </>
       }
     />

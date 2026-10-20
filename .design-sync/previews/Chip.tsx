@@ -17,9 +17,9 @@ const stack: React.CSSProperties = {
 
 export const Modes = () => (
   <div style={row}>
-    <Chip label="React Native" mode="filled" onPress={() => {}} />
-    <Chip label="Expo" mode="tonal" onPress={() => {}} />
-    <Chip label="Material You" mode="outlined" onPress={() => {}} />
+    <Chip label="React Native" variant="filled" onClick={() => {}} />
+    <Chip label="Expo" variant="tonal" onClick={() => {}} />
+    <Chip label="Material You" variant="outlined" onClick={() => {}} />
   </div>
 );
 
@@ -31,22 +31,22 @@ export const FilterRow = () => (
         label="Paid"
         icon="check-circle-outline"
         selected
-        mode="tonal"
-        onPress={() => {}}
+        variant="tonal"
+        onClick={() => {}}
       />
       <Chip
         label="Overdue"
         icon="alert-circle-outline"
-        mode="tonal"
-        onPress={() => {}}
+        variant="tonal"
+        onClick={() => {}}
       />
       <Chip
         label="Draft"
         icon="file-document-outline"
-        mode="tonal"
-        onPress={() => {}}
+        variant="tonal"
+        onClick={() => {}}
       />
-      <Chip label="This quarter" selected mode="tonal" onPress={() => {}} />
+      <Chip label="This quarter" selected variant="tonal" onClick={() => {}} />
     </div>
   </div>
 );
@@ -57,17 +57,17 @@ export const Removable = () => (
     <div style={row}>
       <Chip
         label="marta.rossi@example.com"
-        mode="tonal"
+        variant="tonal"
         icon="email-outline"
         onClose={() => {}}
       />
       <Chip
         label="Design team"
-        mode="tonal"
+        variant="tonal"
         icon="account-group-outline"
         onClose={() => {}}
       />
-      <Chip label="QA" mode="outlined" onClose={() => {}} />
+      <Chip label="QA" variant="outlined" onClose={() => {}} />
     </div>
   </div>
 );
@@ -77,26 +77,31 @@ export const Sizes = () => (
     <div style={row}>
       <Chip
         label="Medium"
-        mode="filled"
+        variant="filled"
         icon="tag-outline"
-        onPress={() => {}}
+        onClick={() => {}}
       />
-      <Chip label="Medium tonal" mode="tonal" onPress={() => {}} />
+      <Chip label="Medium tonal" variant="tonal" onClick={() => {}} />
     </div>
     <div style={row}>
       <Chip
         label="Small"
         size="small"
-        mode="filled"
+        variant="filled"
         icon="tag-outline"
-        onPress={() => {}}
+        onClick={() => {}}
       />
-      <Chip label="Small tonal" size="small" mode="tonal" onPress={() => {}} />
+      <Chip
+        label="Small tonal"
+        size="small"
+        variant="tonal"
+        onClick={() => {}}
+      />
       <Chip
         label="Small outlined"
         size="small"
-        mode="outlined"
-        onPress={() => {}}
+        variant="outlined"
+        onClick={() => {}}
       />
     </div>
   </div>
@@ -104,14 +109,14 @@ export const Sizes = () => (
 
 export const Disabled = () => (
   <div style={row}>
-    <Chip label="Archived" mode="filled" disabled onPress={() => {}} />
+    <Chip label="Archived" variant="filled" disabled onClick={() => {}} />
     <Chip
       label="Read only"
-      mode="tonal"
+      variant="tonal"
       disabled
       icon="lock-outline"
-      onPress={() => {}}
+      onClick={() => {}}
     />
-    <Chip label="Locked tag" mode="outlined" disabled onClose={() => {}} />
+    <Chip label="Locked tag" variant="outlined" disabled onClose={() => {}} />
   </div>
 );

@@ -65,6 +65,8 @@ export interface ClockDialProps {
 }
 
 /**
+ * Internal: the dial inside `ClockPicker`, not exported from the package.
+ *
  * The Material 3 analog clock face: a rotating hand with a knob at its tip, a
  * ring of labels, and drag-to-set. Drawn with plain Views so the kit does not
  * take on an SVG dependency for one component.

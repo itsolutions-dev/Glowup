@@ -46,8 +46,8 @@ const EmptyState = ({
 
       {action && (
         <Button
-          mode="tonal"
-          onPress={action.onPress}
+          variant="tonal"
+          onClick={action.onPress}
           iconName={action.iconName}
           style={styles.actionButton}
         >

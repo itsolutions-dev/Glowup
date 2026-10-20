@@ -21,7 +21,7 @@ const AccountCard = () => {
         visible={open}
         onDismiss={hide}
         anchor={
-          <Button mode="tonal" iconName="account-outline" onPress={show}>
+          <Button variant="tonal" iconName="account-outline" onClick={show}>
             Marta Rossi
           </Button>
         }
@@ -35,10 +35,15 @@ const AccountCard = () => {
             </View>
           </View>
           <Divider contentSpacing={0} />
-          <Button mode="text" fullWidth iconName="cog-outline" onPress={hide}>
+          <Button
+            variant="text"
+            fullWidth
+            iconName="cog-outline"
+            onClick={hide}
+          >
             Settings
           </Button>
-          <Button mode="text" fullWidth iconName="logout" onPress={hide}>
+          <Button variant="text" fullWidth iconName="logout" onClick={hide}>
             Sign out
           </Button>
         </View>
@@ -58,27 +63,27 @@ const MatchAnchorWidth = () => {
         onDismiss={hide}
         anchor={
           <Button
-            mode="outlined"
+            variant="outlined"
             fullWidth
             iconName="chevron-down"
-            iconPosition="right"
-            onPress={show}
+            iconPosition="end"
+            onClick={show}
           >
             Buttons & actions
           </Button>
         }
       >
         <View style={{ flexDirection: "column", padding: 8 }}>
-          <Button mode="text" fullWidth onPress={hide}>
+          <Button variant="text" fullWidth onClick={hide}>
             Buttons & actions
           </Button>
-          <Button mode="text" fullWidth onPress={hide}>
+          <Button variant="text" fullWidth onClick={hide}>
             Inputs & forms
           </Button>
-          <Button mode="text" fullWidth onPress={hide}>
+          <Button variant="text" fullWidth onClick={hide}>
             Feedback & overlays
           </Button>
-          <Button mode="text" fullWidth onPress={hide}>
+          <Button variant="text" fullWidth onClick={hide}>
             Navigation
           </Button>
         </View>
@@ -96,7 +101,11 @@ const HelpBubble = () => {
         visible={open}
         onDismiss={hide}
         anchor={
-          <Button mode="outlined" iconName="help-circle-outline" onPress={show}>
+          <Button
+            variant="outlined"
+            iconName="help-circle-outline"
+            onClick={show}
+          >
             Token sets
           </Button>
         }

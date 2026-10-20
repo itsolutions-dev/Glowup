@@ -50,9 +50,9 @@ const EXCLUDED = new Set([
   // (Card and Image also contain `<svg`, but inside data-URI strings, which
   // pass through untouched.)
   "Icon",
-  // A scrollable list built as a div with onScroll — that is a ScrollView in
-  // React Native, not a View with a handler.
-  "AnimatedFAB",
+  // The animated variant's demo is a scrollable list built as a div with
+  // onScroll — that is a ScrollView in React Native, not a View with a handler.
+  "FAB",
   // Measures its anchor with querySelector.
   "Autocomplete",
   // Lays its examples out with CSS grid.
@@ -268,8 +268,13 @@ const exportedVariants = (source) => {
   return found;
 };
 
-rmSync(OUT_DIR, { recursive: true, force: true });
+// The directory is overwritten in place and only files that are no longer
+// generated are removed, at the end. Deleting the whole directory first leaves
+// a moment with no `generated/index.ts`, and a Metro server that is running
+// then fails with "Unable to resolve module ./generated" until it is restarted
+// with a cleared cache.
 mkdirSync(OUT_DIR, { recursive: true });
+const written = new Set(["index.ts"]);
 
 const modules = [];
 const skipped = [];
@@ -326,6 +331,7 @@ ${variants
   const body = convert(source);
 
   writeFileSync(join(OUT_DIR, file), header + body + footer, "utf8");
+  written.add(file);
   modules.push({ component, file, count: variants.length });
 }
 
@@ -362,6 +368,11 @@ execFileSync(
   ],
   { stdio: "inherit" },
 );
+
+// What an earlier run wrote for a component that has since gone.
+for (const file of readdirSync(OUT_DIR)) {
+  if (!written.has(file)) rmSync(join(OUT_DIR, file), { force: true });
+}
 
 const total = modules.reduce((sum, m) => sum + m.count, 0);
 console.log(

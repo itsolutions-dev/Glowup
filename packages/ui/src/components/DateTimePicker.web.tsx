@@ -9,86 +9,133 @@ import { createPortal } from "react-dom";
 import { View, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import PickerField from "./DateTimePicker.field";
-import PickerSurface from "./DateTimePicker.surface";
+import PickerDialog from "./DateTimePicker.dialog";
+import PickerSurface, { StaticPicker } from "./DateTimePicker.surface";
 import { usePickerParts } from "./DateTimePicker.hooks";
-import { DateTimePickerProps } from "./DateTimePicker.shared";
+import {
+  DateTimePickerPresentation,
+  DateTimePickerProps,
+} from "./DateTimePicker.shared";
 import { useEscapeKey } from "./internal/useEscapeKey";
+import { useWindowWidth } from "./internal/useWindowWidth";
+import { placeBesideAnchor, Placement } from "./internal/popoverPlacement";
 
-/** M3 docked-picker width; matches the native dialog so the two agree. */
+/** M3 docked-picker width; matches the dialog so the two agree. */
 const SURFACE_WIDTH = 328;
-/** Only used for the very first frame, before the surface has been measured. */
-const ESTIMATED_HEIGHT = 600;
+/**
+ * Only used for the very first frame, before the surface has been measured: the
+ * height of the date step.
+ */
+const ESTIMATED_HEIGHT = 431;
+/**
+ * The date-and-time picker is about 431 px tall on its date step and 555 on its
+ * time step, which it moves to by itself. Placing it for the first height would
+ * leave the second one cut off, so it is placed for the taller.
+ */
+const DATETIME_HEIGHT = 560;
 const GAP = 6;
 const MARGIN = 8;
-
-interface AnchorPosition {
-  top: number;
-  left: number;
-}
+/** The top of M3's compact window class: narrower than this opens the dialog. */
+const COMPACT_WIDTH = 600;
 
 /**
- * A viewport shorter than the surface scrolls it instead of cutting the
- * actions off the bottom. Both declarations are CSS-only, hence the cast past
- * the react-native style typings.
+ * Whether this opening should be the dialog: asked for, or a touch device (no
+ * fine pointer, as in Material UI's own responsive pickers), or a viewport too
+ * narrow to dock a 328 px card beside a field. The viewport is `width`, which a
+ * `ViewportProvider` can set to something other than the window's. Evaluated
+ * when the picker opens, not while rendering, so server rendering never touches
+ * `window`.
  */
-const VIEWPORT_CLAMP = {
-  maxHeight: `calc(100vh - ${MARGIN * 2}px)`,
-  overflowY: "auto",
-} as unknown as ViewStyle;
+const wantsDialog = (
+  width: number,
+  presentation: DateTimePickerPresentation = "auto",
+) => {
+  if (presentation !== "auto") return presentation === "dialog";
+  const finePointer = window.matchMedia?.("(pointer: fine)")?.matches ?? true;
+  return width < COMPACT_WIDTH || !finePointer;
+};
 
 /**
- * Material 3 picker, docked to its field. Same surface as the native dialog,
- * presented as an anchored popover because a mouse has somewhere to point.
+ * A surface taller than the room beside the field scrolls instead of moving
+ * over it. CSS-only, hence the cast past the react-native style typings.
  */
-const DateTimePicker = (props: DateTimePickerProps) => {
+const SCROLLS = { overflowY: "auto" } as unknown as ViewStyle;
+
+/**
+ * The field and its picker: the `default` variant. On a mouse the surface is
+ * docked to the field; on a touch device or a narrow window it opens as a
+ * dialog, the same card the native pickers use. Tapping outside or pressing
+ * Escape dismisses either.
+ */
+const PopupPicker = (props: DateTimePickerProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const viewportWidth = useWindowWidth();
   const { controller, open, setOpen, close, fieldProps, surfaceProps } =
     usePickerParts(props);
 
   const triggerRef = useRef<View>(null);
-  const [anchor, setAnchor] = useState<AnchorPosition | null>(null);
-  // The surface's real height depends on the mode, the locale and the month
-  // grid, so it is measured once it is on screen rather than guessed at.
-  const [measuredHeight, setMeasuredHeight] = useState<number | null>(null);
+  const surfaceRef = useRef<View>(null);
+  const [asDialog, setAsDialog] = useState(false);
+  const [placement, setPlacement] = useState<Placement | null>(null);
+  // The surface's height when it opened. Where the popover goes is worked out
+  // from this (and `DATETIME_HEIGHT`) alone: the height changes as the user
+  // moves between the date and the time, and a popover that re-placed itself
+  // on every change would jump about the page under the pointer.
+  const [openHeight, setOpenHeight] = useState<number | null>(null);
 
   const reposition = useCallback(() => {
     const element = triggerRef.current as unknown as HTMLElement | null;
     if (!element?.getBoundingClientRect) return;
-    const rect = element.getBoundingClientRect();
-    const available = window.innerHeight - MARGIN * 2;
-    const height = Math.min(measuredHeight ?? ESTIMATED_HEIGHT, available);
-
-    // Flip above the field when there is not enough room below it, then clamp
-    // both axes so the surface never hangs off the viewport.
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const preferred =
-      spaceBelow < height + GAP + MARGIN && rect.top > height + GAP + MARGIN
-        ? rect.top - height - GAP
-        : rect.bottom + GAP;
-    const top = Math.max(
+    const view = { width: window.innerWidth, height: window.innerHeight };
+    const planned = Math.max(
+      openHeight ?? ESTIMATED_HEIGHT,
+      props.mode === "datetime" ? DATETIME_HEIGHT : 0,
+    );
+    const next = placeBesideAnchor(
+      element.getBoundingClientRect(),
+      view,
+      {
+        width: SURFACE_WIDTH,
+        height: Math.min(planned, view.height - MARGIN * 2),
+      },
+      GAP,
       MARGIN,
-      Math.min(preferred, window.innerHeight - height - MARGIN),
     );
-    const left = Math.min(
-      Math.max(MARGIN, rect.left),
-      Math.max(MARGIN, window.innerWidth - SURFACE_WIDTH - MARGIN),
+    // Until measured the surface is laid out in full, so it has a height to report.
+    setPlacement(
+      openHeight === null
+        ? { ...next, maxHeight: view.height - MARGIN * 2 }
+        : next,
     );
-    setAnchor({ top, left });
-  }, [measuredHeight]);
+  }, [openHeight, props.mode]);
+
+  const popoverOpen = open && !asDialog;
 
   useEffect(() => {
-    if (!open) return;
+    if (!popoverOpen) return;
     reposition();
-    // `position: fixed` coordinates go stale the moment anything scrolls, so
-    // track both scroll (capture phase, to catch nested scrollers) and resize.
-    window.addEventListener("scroll", reposition, true);
+    // `position: fixed` coordinates go stale the moment the page scrolls, so
+    // follow scroll (capture phase, to catch nested scrollers) and resize. The
+    // surface's own scrolling, in the calendar or in a tall surface, moves
+    // nothing and is left alone.
+    const onScroll = (event: Event) => {
+      const surface = surfaceRef.current as unknown as HTMLElement | null;
+      if (
+        surface &&
+        event.target instanceof Node &&
+        surface.contains(event.target)
+      )
+        return;
+      reposition();
+    };
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", reposition);
     return () => {
-      window.removeEventListener("scroll", reposition, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", reposition);
     };
-  }, [open, reposition]);
+  }, [popoverOpen, reposition]);
 
   // Escape lives here rather than in Calendar so a single owner closes the
   // surface in every mode, `time` included (which renders no Calendar).
@@ -97,12 +144,13 @@ const DateTimePicker = (props: DateTimePickerProps) => {
   const openSurface = () => {
     if (props.disabled) return;
     controller.resetInput();
-    setMeasuredHeight(null);
-    reposition();
+    setAsDialog(wantsDialog(viewportWidth, props.presentation));
+    setOpenHeight(null);
+    setPlacement(null);
     setOpen(true);
   };
 
-  const surface = (
+  const popover = (
     <>
       <Pressable
         accessibilityRole="button"
@@ -111,17 +159,27 @@ const DateTimePicker = (props: DateTimePickerProps) => {
         style={styles.scrim}
       />
       <View
+        ref={surfaceRef}
         role="dialog"
         accessibilityLabel={props.label ?? controller.labels.openPicker}
-        onLayout={(event) =>
-          setMeasuredHeight(Math.ceil(event.nativeEvent.layout.height))
-        }
+        onLayout={() => {
+          // Only the first measurement counts: see `openHeight`. Read off the
+          // element, not the event: react-native-web reports `offsetHeight`,
+          // which rounds to the nearest pixel, and a 430.3 px surface placed in
+          // a 430 px box scrolls by the odd 0.3.
+          const element = surfaceRef.current as unknown as HTMLElement | null;
+          const height = element?.getBoundingClientRect().height;
+          if (height) setOpenHeight((known) => known ?? Math.ceil(height));
+        }}
         style={[
           styles.surface,
-          VIEWPORT_CLAMP,
+          SCROLLS,
           {
-            top: anchor?.top ?? 0,
-            left: anchor?.left ?? 0,
+            ...placement,
+            left: placement?.left ?? 0,
+            maxHeight: placement?.maxHeight,
+            // Hidden for the frame before it is measured and placed.
+            opacity: openHeight === null ? 0 : 1,
             backgroundColor: theme.colors.surfaceContainer,
             borderColor: theme.colors.outlineVariant,
           },
@@ -134,11 +192,30 @@ const DateTimePicker = (props: DateTimePickerProps) => {
 
   return (
     <>
-      <PickerField {...fieldProps} ref={triggerRef} onPress={openSurface} />
-      {open && createPortal(surface, document.body)}
+      <PickerField {...fieldProps} ref={triggerRef} onClick={openSurface} />
+      {popoverOpen && createPortal(popover, document.body)}
+      <PickerDialog
+        visible={open && asDialog}
+        onClose={close}
+        closeLabel={controller.labels.closePicker}
+      >
+        <PickerSurface {...surfaceProps} />
+      </PickerDialog>
     </>
   );
 };
+
+/**
+ * Material 3 date / time / date-time picker, docked to its field on a mouse
+ * and a dialog on a touch device or a narrow window. `variant="static"` draws
+ * the picker inline instead of behind a field.
+ */
+const DateTimePicker = (props: DateTimePickerProps) =>
+  props.variant === "static" ? (
+    <StaticPicker {...props} />
+  ) : (
+    <PopupPicker {...props} />
+  );
 
 export default DateTimePicker;
 

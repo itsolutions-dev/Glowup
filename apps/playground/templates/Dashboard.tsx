@@ -245,9 +245,9 @@ export default function Dashboard() {
                     Recent orders
                   </Typography>
                   <Button
-                    mode="text"
+                    variant="text"
                     iconName="arrow-right"
-                    iconPosition="right"
+                    iconPosition="end"
                   >
                     View all
                   </Button>

@@ -126,7 +126,7 @@ export default function NativeCheck() {
         decimalSeparator=","
         precision={2}
         value={amount}
-        onChangeText={setAmount}
+        onChange={setAmount}
       />
       <Text
         style={{ color: theme.colors.onSurface }}
@@ -134,10 +134,10 @@ export default function NativeCheck() {
 
       <View style={{ flexDirection: "row" }}>
         <Button
-          mode="outlined"
+          variant="outlined"
           iconName="filter-outline"
           badge={filters}
-          onPress={() => setFilters((n) => n + 1)}
+          onClick={() => setFilters((n) => n + 1)}
         >
           Filters
         </Button>
@@ -166,7 +166,7 @@ export default function NativeCheck() {
       </View>
 
       <View style={{ flexDirection: "row" }}>
-        <Button mode="tonal" onPress={() => setSheet(true)}>
+        <Button variant="tonal" onClick={() => setSheet(true)}>
           Open sheet
         </Button>
       </View>
@@ -178,7 +178,7 @@ export default function NativeCheck() {
         onDismiss={() => setSheet(false)}
         title="Filters"
         showCloseButton
-        actions={<Button onPress={() => setSheet(false)}>Apply</Button>}
+        actions={<Button onClick={() => setSheet(false)}>Apply</Button>}
       >
         <Text style={{ color: theme.colors.onSurface }}>Sheet content</Text>
       </BottomSheet>
@@ -186,10 +186,10 @@ export default function NativeCheck() {
       {/* Laid out only to be measured. */}
       <View style={{ width: 280 }}>
         <Measured id="inputNormal" onSize={onSize}>
-          <Input label="Normal" value="" onChangeText={noop} />
+          <Input label="Normal" value="" onChange={noop} />
         </Measured>
         <Measured id="inputDense" onSize={onSize}>
-          <Input label="Dense" density="dense" value="" onChangeText={noop} />
+          <Input label="Dense" density="dense" value="" onChange={noop} />
         </Measured>
         <Measured id="buttonNormal" onSize={onSize}>
           <Button>Normal</Button>
@@ -198,10 +198,10 @@ export default function NativeCheck() {
           <Button density="dense">Dense</Button>
         </Measured>
         <Measured id="selectNormal" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onSelect={noop} />
+          <Select options={OPTIONS} value={1} onChange={noop} />
         </Measured>
         <Measured id="selectDense" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onSelect={noop} density="dense" />
+          <Select options={OPTIONS} value={1} onChange={noop} density="dense" />
         </Measured>
         <Measured id="badgeOff" onSize={onSize}>
           <Button>Filters</Button>

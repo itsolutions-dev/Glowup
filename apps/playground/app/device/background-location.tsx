@@ -234,9 +234,9 @@ const TripSection = () => {
         {trip.isRunning ? (
           <Button
             iconName="stop"
-            mode="outlined"
+            variant="outlined"
             loading={busy}
-            onPress={() => run(trip.stop)}
+            onClick={() => run(trip.stop)}
           >
             Stop recording
           </Button>
@@ -245,7 +245,7 @@ const TripSection = () => {
             iconName="record-circle-outline"
             disabled={trip.isSupported === false}
             loading={busy}
-            onPress={() =>
+            onClick={() =>
               run(() =>
                 trip.start({
                   accuracy: "balanced",
@@ -299,10 +299,10 @@ const SitesSection = () => {
         <RunningBadge running={sites.isRunning} />
         <Button
           iconName="crosshairs-gps"
-          mode="outlined"
+          variant="outlined"
           disabled={sites.isSupported === false}
           loading={here.isLoading}
-          onPress={here.refresh}
+          onClick={here.refresh}
         >
           Locate me
         </Button>
@@ -310,7 +310,7 @@ const SitesSection = () => {
           iconName="map-marker-radius-outline"
           disabled={!coords || sites.isSupported === false}
           loading={busy}
-          onPress={() =>
+          onClick={() =>
             coords &&
             run(() =>
               sites.start([
@@ -329,9 +329,9 @@ const SitesSection = () => {
         {sites.isRunning ? (
           <Button
             iconName="stop"
-            mode="text"
+            variant="text"
             loading={busy}
-            onPress={() => run(sites.stop)}
+            onClick={() => run(sites.stop)}
           >
             Stop watching
           </Button>
@@ -379,8 +379,8 @@ const LogSection = () => {
           <HStack>
             <Button
               iconName="delete-outline"
-              mode="text"
-              onPress={clearTaskLog}
+              variant="text"
+              onClick={clearTaskLog}
             >
               Clear
             </Button>

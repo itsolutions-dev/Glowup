@@ -125,9 +125,9 @@ export const TheApi = () => (
     </Paper>
     <Divider contentSpacing={0} />
     <Button
-      mode="outlined"
+      variant="outlined"
       iconName="alert-outline"
-      onPress={() =>
+      onClick={() =>
         Alert("Delete workspace?", "All 42 projects will be removed.", [
           { text: "Cancel" },
           { text: "Delete" },

@@ -23,10 +23,10 @@ export const SingleSelect = () => (
   <View style={field}>
     <Typography variant="labelLarge">Status</Typography>
     <ChipGroup
-      mode="filled"
+      variant="filled"
       options={STATUSES}
       value="open"
-      onValueChange={() => {}}
+      onChange={() => {}}
       accessibilityLabel="Status"
     />
   </View>
@@ -36,10 +36,10 @@ export const MultiSelect = () => (
   <View style={field}>
     <Typography variant="labelLarge">Status</Typography>
     <ChipGroup
-      multiSelect
+      multiple
       options={STATUSES}
       value={["open", "review"]}
-      onValueChange={() => {}}
+      onChange={() => {}}
       accessibilityLabel="Status"
     />
   </View>
@@ -49,8 +49,8 @@ export const WithIcons = () => (
   <View style={field}>
     <Typography variant="labelLarge">Amenities</Typography>
     <ChipGroup
-      multiSelect
-      mode="outlined"
+      multiple
+      variant="outlined"
       options={[
         { value: "wifi", label: "Wi-Fi", icon: "wifi" },
         { value: "parking", label: "Parking", icon: "parking" },
@@ -58,7 +58,7 @@ export const WithIcons = () => (
         { value: "pool", label: "Pool", icon: "pool" },
       ]}
       value={["wifi", "pets"]}
-      onValueChange={() => {}}
+      onChange={() => {}}
       accessibilityLabel="Amenities"
     />
   </View>
@@ -69,7 +69,7 @@ export const Scrolling = () => (
     <Typography variant="labelLarge">Category</Typography>
     <ChipGroup
       wrap={false}
-      mode="tonal"
+      variant="tonal"
       options={[
         { value: "all", label: "All" },
         { value: "design", label: "Design" },
@@ -79,7 +79,7 @@ export const Scrolling = () => (
         { value: "support", label: "Support" },
       ]}
       value="design"
-      onValueChange={() => {}}
+      onChange={() => {}}
       accessibilityLabel="Category"
     />
   </View>

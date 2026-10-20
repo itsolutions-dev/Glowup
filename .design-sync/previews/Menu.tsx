@@ -18,7 +18,7 @@ export const ContextMenu = () => (
       visible
       onDismiss={() => {}}
       anchor={
-        <Button mode="tonal" iconName="dots-vertical" onPress={() => {}}>
+        <Button variant="tonal" iconName="dots-vertical" onClick={() => {}}>
           Chip
         </Button>
       }
@@ -60,7 +60,7 @@ export const WithDisabledItems = () => (
       visible
       onDismiss={() => {}}
       anchor={
-        <Button mode="outlined" iconName="export-variant" onPress={() => {}}>
+        <Button variant="outlined" iconName="export-variant" onClick={() => {}}>
           Export
         </Button>
       }
@@ -99,7 +99,7 @@ export const AccountMenu = () => (
           name="Marta Rossi"
           size={40}
           status="online"
-          onPress={() => {}}
+          onClick={() => {}}
         />
       }
       items={[

@@ -11,7 +11,7 @@ import {
   ListItem,
   ListSection,
   StatusBadge,
-  Toggle,
+  Switch,
   ToggleButtonGroup,
   Typography,
 } from "@its/glowup-ui";
@@ -54,7 +54,7 @@ function RevealCard({ onReveal }: { onReveal(): void }) {
     });
     if (result.success) onReveal();
   };
-  return <Button onPress={reveal}>Show</Button>;
+  return <Button onClick={reveal}>Show</Button>;
 }`;
 
 const APP_LOCK = `import { useAppLock } from "@its/glowup-device/biometrics";
@@ -178,7 +178,7 @@ export default function BiometricsPage() {
         <Button
           iconName="fingerprint"
           disabled={!supported || biometrics.isAuthenticating}
-          onPress={() => void authenticate()}
+          onClick={() => void authenticate()}
         >
           Authenticate
         </Button>
@@ -215,10 +215,10 @@ export default function BiometricsPage() {
                   : 'No lock screen on this device: the lock stays open (whenUnavailable: "unlock").'
             }
             trailing={
-              <Toggle
+              <Switch
                 value={lockWanted && supported}
                 disabled={!supported}
-                onValueChange={setLockWanted}
+                onChange={setLockWanted}
               />
             }
           >
@@ -238,19 +238,19 @@ export default function BiometricsPage() {
           <CardActions align="end">
             {lock.isLocked ? (
               <Button
-                mode="filled"
+                variant="filled"
                 iconName="lock-open-outline"
                 disabled={lock.isAuthenticating}
-                onPress={() => void lock.unlock()}
+                onClick={() => void lock.unlock()}
               >
                 Unlock
               </Button>
             ) : (
               <Button
-                mode="text"
+                variant="text"
                 iconName="lock-outline"
                 disabled={!lockWanted || !supported}
-                onPress={lock.lock}
+                onClick={lock.lock}
               >
                 Lock now
               </Button>

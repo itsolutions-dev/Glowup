@@ -116,21 +116,21 @@ export default function SecureStorePage() {
         <Input
           label="Note"
           value={draft}
-          onChangeText={setDraft}
+          onChange={setDraft}
           disabled={!supported}
         />
         <HStack spacing="s" wrap>
           <Button
             iconName="content-save-outline"
             disabled={!supported || draft.length === 0}
-            onPress={() => void save()}
+            onClick={() => void save()}
           >
             Save
           </Button>
           <Button
-            mode="outlined"
+            variant="outlined"
             disabled={!supported || note.value === null}
-            onPress={() => void note.remove()}
+            onClick={() => void note.remove()}
           >
             Remove
           </Button>
@@ -146,14 +146,14 @@ export default function SecureStorePage() {
         <Input
           label="Secret"
           value={secretDraft}
-          onChangeText={setSecretDraft}
+          onChange={setSecretDraft}
           disabled={!supported}
         />
         <HStack spacing="s" wrap>
           <Button
             iconName="lock-outline"
             disabled={!supported || secretDraft.length === 0}
-            onPress={async () => {
+            onClick={async () => {
               setOutcome(
                 await store.setProtected(
                   SECRET.key,
@@ -167,19 +167,19 @@ export default function SecureStorePage() {
             Save protected
           </Button>
           <Button
-            mode="tonal"
+            variant="tonal"
             iconName="fingerprint"
             disabled={!supported}
-            onPress={async () =>
+            onClick={async () =>
               setOutcome(await store.getProtected(SECRET.key, SECRET.options))
             }
           >
             Read
           </Button>
           <Button
-            mode="outlined"
+            variant="outlined"
             disabled={!supported}
-            onPress={async () => {
+            onClick={async () => {
               await store.removeProtected(SECRET.key, {
                 service: SECRET.options.service,
               });

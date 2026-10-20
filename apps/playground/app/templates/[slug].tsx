@@ -125,11 +125,11 @@ export default function TemplatePage() {
                 key={name}
                 label={name}
                 icon="cube-outline"
-                mode="outlined"
-                onPress={() => router.push(`/components/${name}` as never)}
+                variant="outlined"
+                onClick={() => router.push(`/components/${name}` as never)}
               />
             ) : (
-              <Chip key={name} label={name} mode="outlined" />
+              <Chip key={name} label={name} variant="outlined" />
             ),
           )}
         </View>
@@ -147,9 +147,9 @@ export default function TemplatePage() {
       <View style={styles.pager}>
         {previous ? (
           <Button
-            mode="text"
+            variant="text"
             iconName="chevron-left"
-            onPress={() => router.push(`/templates/${previous.slug}` as never)}
+            onClick={() => router.push(`/templates/${previous.slug}` as never)}
           >
             {previous.title}
           </Button>
@@ -158,10 +158,10 @@ export default function TemplatePage() {
         )}
         {next ? (
           <Button
-            mode="text"
+            variant="text"
             iconName="chevron-right"
-            iconPosition="right"
-            onPress={() => router.push(`/templates/${next.slug}` as never)}
+            iconPosition="end"
+            onClick={() => router.push(`/templates/${next.slug}` as never)}
           >
             {next.title}
           </Button>

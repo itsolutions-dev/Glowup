@@ -31,9 +31,9 @@ export const Modes = () => (
       <View key={mode} style={caption}>
         <IconButton
           icon="pencil-outline"
-          mode={mode}
+          variant={mode}
           accessibilityLabel="Edit"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <Typography variant="labelSmall">{mode}</Typography>
       </View>
@@ -47,10 +47,10 @@ export const Sizes = () => (
       <View key={size} style={caption}>
         <IconButton
           icon="magnify"
-          mode="tonal"
+          variant="tonal"
           size={size}
           accessibilityLabel="Search"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <Typography variant="labelSmall">{size}</Typography>
       </View>
@@ -63,36 +63,36 @@ export const States = () => (
     <View style={caption}>
       <IconButton
         icon="heart-outline"
-        mode="tonal"
+        variant="tonal"
         accessibilityLabel="Save"
-        onPress={() => {}}
+        onClick={() => {}}
       />
       <Typography variant="labelSmall">default</Typography>
     </View>
     <View style={caption}>
       <IconButton
         icon="heart"
-        mode="tonal"
+        variant="tonal"
         selected
         accessibilityLabel="Saved"
-        onPress={() => {}}
+        onClick={() => {}}
       />
       <Typography variant="labelSmall">selected</Typography>
     </View>
     <View style={caption}>
       <IconButton
         icon="refresh"
-        mode="filled"
+        variant="filled"
         loading
         accessibilityLabel="Refreshing"
-        onPress={() => {}}
+        onClick={() => {}}
       />
       <Typography variant="labelSmall">loading</Typography>
     </View>
     <View style={caption}>
       <IconButton
         icon="delete-outline"
-        mode="outlined"
+        variant="outlined"
         disabled
         accessibilityLabel="Delete"
       />
@@ -110,24 +110,24 @@ export const InAToolbar = () => (
       <View style={row}>
         <IconButton
           icon="download"
-          mode="tonal"
+          variant="tonal"
           accessibilityLabel="Download"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <IconButton
           icon="share-variant"
           accessibilityLabel="Share"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <IconButton
           icon="pencil-outline"
           accessibilityLabel="Rename"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <IconButton
           icon="delete-outline"
           accessibilityLabel="Delete"
-          onPress={() => {}}
+          onClick={() => {}}
         />
       </View>
     </Paper>
@@ -139,13 +139,13 @@ export const WithBadge = () => (
     <IconButton icon="bell-outline" accessibilityLabel="Alerts" badge={3} />
     <IconButton
       icon="filter-outline"
-      mode="tonal"
+      variant="tonal"
       accessibilityLabel="Filters"
       badge={12}
     />
     <IconButton
       icon="email-outline"
-      mode="outlined"
+      variant="outlined"
       accessibilityLabel="Inbox"
       badge={120}
     />

@@ -67,7 +67,12 @@ const ErrorCard = ({
       >
         {error.message}
       </Typography>
-      <Button mode="tonal" tone="error" iconName="refresh" onPress={onRetry}>
+      <Button
+        variant="tonal"
+        color="error"
+        iconName="refresh"
+        onClick={onRetry}
+      >
         Try again
       </Button>
     </View>

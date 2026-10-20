@@ -90,11 +90,11 @@ return (
     style={styles.preview}
   >
     {/* Material controls, drawn over the preview */}
-    <IconButton icon="camera-flip-outline" mode="tonal"
-      accessibilityLabel="Switch camera" onPress={flip} />
-    <IconButton icon="camera-iris" mode="filled" size="large"
+    <IconButton icon="camera-flip-outline" variant="tonal"
+      accessibilityLabel="Switch camera" onClick={flip} />
+    <IconButton icon="camera-iris" variant="filled" size="large"
       accessibilityLabel="Take a photo" disabled={!ready}
-      onPress={async () => setPicture(await camera.current?.takePicture())} />
+      onClick={async () => setPicture(await camera.current?.takePicture())} />
   </CameraView>
 );`;
 
@@ -335,17 +335,17 @@ const CameraRecipe = ({
               <HStack spacing="s">
                 <IconButton
                   icon={FLASH_ICON[flash]}
-                  mode="tonal"
+                  variant="tonal"
                   accessibilityLabel={`Flash: ${flash}`}
                   disabled={mode === "scan" || recording}
-                  onPress={() => setFlash(NEXT_FLASH[flash])}
+                  onClick={() => setFlash(NEXT_FLASH[flash])}
                 />
                 <IconButton
                   icon="camera-flip-outline"
-                  mode="tonal"
+                  variant="tonal"
                   accessibilityLabel="Switch camera"
                   disabled={recording}
-                  onPress={() =>
+                  onClick={() =>
                     setFacing(facing === "back" ? "front" : "back")
                   }
                 />
@@ -362,17 +362,17 @@ const CameraRecipe = ({
               ) : mode === "photo" ? (
                 <IconButton
                   icon="camera-iris"
-                  mode="filled"
+                  variant="filled"
                   size="large"
                   accessibilityLabel="Take a photo"
                   disabled={!ready}
                   loading={busy}
-                  onPress={takePicture}
+                  onClick={takePicture}
                 />
               ) : (
                 <IconButton
                   icon={recording ? "stop" : "record-rec"}
-                  mode="filled"
+                  variant="filled"
                   size="large"
                   selected={recording}
                   accessibilityLabel={
@@ -381,7 +381,7 @@ const CameraRecipe = ({
                   disabled={!ready}
                   // Resolves only when the recording ends: don't hand the
                   // press a promise to wait on.
-                  onPress={() => void toggleRecording()}
+                  onClick={() => void toggleRecording()}
                 />
               )}
             </HStack>

@@ -193,7 +193,7 @@ const BottomSheet = ({
                 <IconButton
                   icon="close"
                   accessibilityLabel="Close"
-                  onPress={onDismiss}
+                  onClick={onDismiss}
                 />
               )}
             </View>

@@ -19,7 +19,7 @@ export const Default = () => (
     <SearchBar
       value="invoice 2024-118"
       placeholder="Search invoices"
-      onChangeText={noop}
+      onChange={noop}
       onSubmit={noop}
       onClear={noop}
     />
@@ -28,7 +28,7 @@ export const Default = () => (
 
 export const Empty = () => (
   <View style={stack}>
-    <SearchBar value="" placeholder="Search invoices" onChangeText={noop} />
+    <SearchBar value="" placeholder="Search invoices" onChange={noop} />
   </View>
 );
 
@@ -37,20 +37,20 @@ export const LeadingIcons = () => (
     <SearchBar
       value="Ada Lovelace"
       placeholder="Search team members"
-      leadingIcon="account-multiple-outline"
-      onChangeText={noop}
+      icon="account-multiple-outline"
+      onChange={noop}
     />
     <SearchBar
       value=""
       placeholder="Filter by tag"
-      leadingIcon="tag-outline"
-      onChangeText={noop}
+      icon="tag-outline"
+      onChange={noop}
     />
     <SearchBar
       value=""
       placeholder="Search the docs"
-      leadingIcon="bookshelf"
-      onChangeText={noop}
+      icon="bookshelf"
+      onChange={noop}
     />
   </View>
 );
@@ -61,7 +61,7 @@ export const Disabled = () => (
       value="archived orders"
       placeholder="Search orders"
       disabled
-      onChangeText={noop}
+      onChange={noop}
     />
   </View>
 );

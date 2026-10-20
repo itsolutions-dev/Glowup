@@ -9,7 +9,7 @@ radius comes from the theme object at runtime. Class names you invent will not r
 
 Three providers, in this order. `ThemeProvider` supplies every token — without it
 components mount but render unthemed. `SafeAreaProvider` is required by `TopAppBar`
-(and `AppBar`, which wraps it), `Toolbar`, `FAB`, `AnimatedFAB`, `SpeedDial`, and the
+(and `AppBar`, which wraps it), `Toolbar`, `FAB`, `SpeedDial`, and the
 modal `NavigationDrawer` / `SideSheet` (they read insets and throw without it). `AlertProviderWrapper` is what binds
 the imperative `Alert()` singleton; omit it and every `Alert()` call is a no-op warning.
 

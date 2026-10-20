@@ -86,7 +86,7 @@ export const BacksTheTooltip = () => (
       >
         <Hovered>
           <Tooltip content="Not clipped" position="bottom" enterDelay={0}>
-            <Button mode="tonal" onPress={() => {}}>
+            <Button variant="tonal" onClick={() => {}}>
               Hover me
             </Button>
           </Tooltip>

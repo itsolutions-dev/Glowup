@@ -24,8 +24,9 @@ import type {
 
 /**
  * Everything the native and the web picker need in common: locale resolution,
- * the field's display text, typed entry, and turning a confirmed draft back
- * into the caller's own `onChange` shape.
+ * the field's display text, typed entry, and turning a confirmed draft (or, in
+ * the static variant, each live change) back into the caller's own `onChange`
+ * shape.
  */
 export const usePickerController = (props: DateTimePickerProps) => {
   const {
@@ -211,6 +212,7 @@ export const usePickerParts = (props: DateTimePickerProps) => {
   const {
     label,
     placeholder,
+    fieldVariant,
     mode = "date",
     disabled,
     required,
@@ -224,15 +226,16 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     firstDayOfWeek,
     minuteInterval,
     use24HourClock,
-    inputEnabled,
     defaultInputType,
     scrollMode,
     startYear,
     endYear,
+    showToday,
     style,
     testID,
     defaultOpen = false,
   } = props;
+  const live = props.variant === "static";
 
   const controller = usePickerController(props);
   const [open, setOpen] = useState(defaultOpen);
@@ -243,8 +246,9 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     controller.handleConfirm(selection);
   };
 
-  const fieldProps: Omit<PickerFieldProps, "onPress"> = {
+  const fieldProps: Omit<PickerFieldProps, "onClick"> = {
     label,
+    variant: fieldVariant,
     required,
     displayValue: controller.displayValue,
     placeholder,
@@ -274,8 +278,11 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     mode,
     fieldLabel: label,
     selection: controller.selection,
-    onConfirm: confirm,
-    onCancel: close,
+    // An inline picker has no dialog to close: each change is the answer.
+    onConfirm: live ? controller.handleConfirm : confirm,
+    onRequestClose: live ? undefined : close,
+    live,
+    disabled: live ? disabled : undefined,
     validRange,
     isDateDisabled,
     locale: controller.locale,
@@ -286,9 +293,11 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     scrollMode,
     startYear,
     endYear,
-    inputEnabled,
+    showToday,
     defaultInputType,
-    testID: testID ? `${testID}-surface` : undefined,
+    // The popup's field owns `style` and `testID`; inline there is no field.
+    style: live ? style : undefined,
+    testID: live ? testID : testID ? `${testID}-surface` : undefined,
   };
 
   return { controller, open, setOpen, close, fieldProps, surfaceProps };

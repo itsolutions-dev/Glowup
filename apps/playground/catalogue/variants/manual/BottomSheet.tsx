@@ -14,7 +14,7 @@ const FilterSheet = () => {
     <View style={demo.panel}>
       <Typography variant="headlineSmall">Components</Typography>
       <Typography variant="bodyMedium">34 results</Typography>
-      <Button mode="tonal" iconName="filter-variant" onPress={show}>
+      <Button variant="tonal" iconName="filter-variant" onClick={show}>
         Filter components
       </Button>
       <BottomSheet visible={open} title="Filter components" onDismiss={hide}>
@@ -24,27 +24,27 @@ const FilterSheet = () => {
             <Chip
               label="Buttons & actions"
               size="small"
-              mode="tonal"
+              variant="tonal"
               selected
-              onPress={() => {}}
+              onClick={() => {}}
             />
             <Chip
               label="Inputs & forms"
               size="small"
-              mode="outlined"
-              onPress={() => {}}
+              variant="outlined"
+              onClick={() => {}}
             />
             <Chip
               label="Feedback"
               size="small"
-              mode="outlined"
-              onPress={() => {}}
+              variant="outlined"
+              onClick={() => {}}
             />
             <Chip
               label="Navigation"
               size="small"
-              mode="outlined"
-              onPress={() => {}}
+              variant="outlined"
+              onClick={() => {}}
             />
           </View>
           <Divider contentSpacing={0} />
@@ -53,18 +53,18 @@ const FilterSheet = () => {
             <Chip
               label="Stable"
               size="small"
-              mode="tonal"
+              variant="tonal"
               selected
-              onPress={() => {}}
+              onClick={() => {}}
             />
             <Chip
               label="Deprecated"
               size="small"
-              mode="outlined"
-              onPress={() => {}}
+              variant="outlined"
+              onClick={() => {}}
             />
           </View>
-          <Button mode="filled" fullWidth onPress={hide}>
+          <Button variant="filled" fullWidth onClick={hide}>
             Show 12 components
           </Button>
         </View>
@@ -80,31 +80,41 @@ const ActionSheet = () => {
     <View style={demo.panel}>
       <Typography variant="headlineSmall">Chip</Typography>
       <Typography variant="bodyMedium">Buttons & actions</Typography>
-      <Button mode="outlined" iconName="dots-horizontal" onPress={show}>
+      <Button variant="outlined" iconName="dots-horizontal" onClick={show}>
         More actions
       </Button>
       <BottomSheet visible={open} title="Chip" onDismiss={hide}>
         <View style={demo.stack}>
           <Button
-            mode="text"
+            variant="text"
             fullWidth
             iconName="pencil-outline"
-            onPress={hide}
+            onClick={hide}
           >
             Edit props
           </Button>
-          <Button mode="text" fullWidth iconName="content-copy" onPress={hide}>
+          <Button
+            variant="text"
+            fullWidth
+            iconName="content-copy"
+            onClick={hide}
+          >
             Duplicate component
           </Button>
-          <Button mode="text" fullWidth iconName="share-variant" onPress={hide}>
+          <Button
+            variant="text"
+            fullWidth
+            iconName="share-variant"
+            onClick={hide}
+          >
             Share preview link
           </Button>
           <Divider contentSpacing={0} />
           <Button
-            mode="text"
+            variant="text"
             fullWidth
             iconName="delete-outline"
-            onPress={hide}
+            onClick={hide}
           >
             Delete
           </Button>
@@ -119,7 +129,7 @@ const NoHandle = () => {
 
   return (
     <View style={demo.panel}>
-      <Button mode="outlined" iconName="sort" onPress={show}>
+      <Button variant="outlined" iconName="sort" onClick={show}>
         Sort by
       </Button>
       <BottomSheet
@@ -131,13 +141,13 @@ const NoHandle = () => {
         <View style={demo.stack}>
           <Chip
             label="Recently updated"
-            mode="tonal"
+            variant="tonal"
             selected
-            onPress={() => {}}
+            onClick={() => {}}
           />
-          <Chip label="Name A–Z" mode="outlined" onPress={() => {}} />
-          <Chip label="Most used" mode="outlined" onPress={() => {}} />
-          <Button mode="filled" fullWidth onPress={hide}>
+          <Chip label="Name A–Z" variant="outlined" onClick={() => {}} />
+          <Chip label="Most used" variant="outlined" onClick={() => {}} />
+          <Button variant="filled" fullWidth onClick={hide}>
             Apply
           </Button>
         </View>
@@ -151,7 +161,7 @@ const ReleaseNotes = () => {
 
   return (
     <View style={demo.panel}>
-      <Button mode="tonal" iconName="text-box-outline" onPress={show}>
+      <Button variant="tonal" iconName="text-box-outline" onClick={show}>
         Release notes 0.1.0
       </Button>
       <BottomSheet
@@ -166,7 +176,7 @@ const ReleaseNotes = () => {
             gained a compact size, and DataGrid now keeps its header pinned
             while the body scrolls.
           </Typography>
-          <Button mode="tonal" fullWidth onPress={hide}>
+          <Button variant="tonal" fullWidth onClick={hide}>
             Read the full changelog
           </Button>
         </View>

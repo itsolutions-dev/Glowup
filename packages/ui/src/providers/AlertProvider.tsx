@@ -74,14 +74,14 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
             <Text style={styles.message}>{config.message}</Text>
           </View>
           {config.buttons.length === 0 && (
-            <Button onPress={closeAlert}>OK</Button>
+            <Button onClick={closeAlert}>OK</Button>
           )}
           {config.buttons.map((button, index) => (
             <Button
               key={index}
-              mode={button.style === "cancel" ? "text" : "filled"}
-              tone={button.style === "destructive" ? "error" : "primary"}
-              onPress={() => {
+              variant={button.style === "cancel" ? "text" : "filled"}
+              color={button.style === "destructive" ? "error" : "primary"}
+              onClick={() => {
                 closeAlert();
                 button.onPress?.();
               }}

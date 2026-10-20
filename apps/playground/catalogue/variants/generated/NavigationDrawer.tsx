@@ -52,7 +52,7 @@ export const WithFooter = () => (
       title="Acme workspace"
       width={320}
       footer={
-        <Button mode="text" iconName="logout" onPress={() => {}}>
+        <Button variant="text" iconName="logout" onClick={() => {}}>
           Sign out
         </Button>
       }

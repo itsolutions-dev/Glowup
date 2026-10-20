@@ -120,7 +120,7 @@ function Modal({
               <IconButton
                 icon="close"
                 accessibilityLabel={closeText}
-                onPress={dismiss}
+                onClick={dismiss}
                 testID={`${testID}-close`}
               />
             )}
@@ -203,7 +203,7 @@ function Modal({
           {actions ? (
             <View style={styles.actions}>{actions}</View>
           ) : (
-            onClose && <Button onPress={onClose}>{closeText}</Button>
+            onClose && <Button onClick={onClose}>{closeText}</Button>
           )}
         </View>
       </View>

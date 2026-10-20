@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 103 componenti.
+Ora: versione 0.11.1, 99 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,40 +11,59 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 1 | 15 |
-| Aggiornati | 20 | 234 |
-| Tenuti (invariati) | 82 | 737 |
+| Aggiunti | 5 | 46 |
+| Aggiornati | 35 | 472 |
+| Tenuti (invariati) | 59 | 426 |
 
 ## Aggiunti
 
 - [CaptionValue](#captionvalue)
+- [CheckboxGroup](#checkboxgroup)
+- [NumberField](#numberfield)
+- [Switch](#switch)
+- [ViewportProvider](#viewportprovider)
 
 ## Aggiornati
 
-- [Autocomplete](#autocomplete): comportamento · + allowCustomValue, debounceMs, onSearch, onSelectedChange, selected · ~ filter
+- [Autocomplete](#autocomplete): comportamento · + onChange, allowCustomValue, debounce, defaultOptions, fullWidth, labelPlacement, multiple, onSearch, onSelectedChange, selected, variant · ~ filter · − onChangeText, onSelect
+- [Avatar](#avatar): + onClick · ~ size · − onPress
+- [Badge](#badge): + color, position
 - [Banner](#banner): comportamento
 - [BottomSheet](#bottomsheet): comportamento · + actions, showCloseButton
-- [Button](#button): comportamento · + badge, density
-- [Chip](#chip): + toneFrom
+- [Button](#button): comportamento · + badge, color, density, onClick, variant · ~ iconPosition · − mode, onPress, tone
+- [Card](#card): + onClick · − onPress
+- [CardTitle](#cardtitle): + endIcon, startIcon · − left, right
+- [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
+- [ChipGroup](#chipgroup): + onChange, multiple, variant · − onValueChange, mode, multiSelect
 - [DataGrid](#datagrid): comportamento · + emptyState · ~ density, rowStyle
+- [DatePicker](#datepicker): + fieldVariant, presentation, showToday, variant
+- [DateTimePicker](#datetimepicker): + fieldVariant, presentation, showToday, variant
 - [DrawerItem](#draweritem): + children, defaultExpanded, onToggle · ~ onPress
 - [DrawerSection](#drawersection): + collapsible, defaultExpanded, onToggle
-- [IconButton](#iconbutton): + badge
-- [Input](#input): comportamento · + allUpperCase, decimalSeparator, density, reserveHelperText · ~ minHeight
+- [FAB](#fab): + onClick, animateFrom, duration, extended, iconMode, testID, variant · ~ feedback, placement, position, size · − onPress
+- [IconButton](#iconbutton): + badge, color, onClick, title, variant · − mode, onPress
+- [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, fullWidth, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
 - [ListItem](#listitem): comportamento · + dimmed, indicatorColor, trailingWidth
 - [Modal](#modal): + size
 - [NavigationDrawer](#navigationdrawer): + collapsed, header
-- [Select](#select): comportamento · + density
+- [PinInput](#pininput): + onChange, variant · − onChangeText
+- [ProgressButton](#progressbutton): + onClick, variant · − mode, onPress
+- [Rating](#rating): + icon, interval, required
+- [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
+- [Select](#select): comportamento · + onChange, density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable · − onSelect, multiSelect
 - [Snackbar](#snackbar): comportamento · ~ type
 - [StatusBadge](#statusbadge): + toneFrom
 - [TableCell](#tablecell): + align
 - [TableHeaderCell](#tableheadercell): comportamento · + align
 - [Tabs](#tabs): comportamento · + activeKey · ~ onChange, tabs, activeTab
 - [ThemeProvider](#themeprovider): + density
+- [TimePicker](#timepicker): + fieldVariant, presentation, showToday, variant
+- [Tooltip](#tooltip): + anchorAccessible
+- [Typography](#typography): + align, color, fontSize, nowrap, onClick · ~ variant
 
 ## Tenuti
 
-[Accordion](#accordion) · [AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AnimatedFAB](#animatedfab) · [AppBar](#appbar) · [AspectRatio](#aspectratio) · [Avatar](#avatar) · [Badge](#badge) · [Box](#box) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [Calendar](#calendar) · [Card](#card) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [CardTitle](#cardtitle) · [Carousel](#carousel) · [Center](#center) · [Checkbox](#checkbox) · [ChipGroup](#chipgroup) · [CircularProgress](#circularprogress) · [ClockDial](#clockdial) · [ClockPicker](#clockpicker) · [Collapse](#collapse) · [ConfirmDialog](#confirmdialog) · [DatePicker](#datepicker) · [DatePickerInput](#datepickerinput) · [DateRangePicker](#daterangepicker) · [DateTimePicker](#datetimepicker) · [Divider](#divider) · [EmptyState](#emptystate) · [FAB](#fab) · [FormControl](#formcontrol) · [Grid](#grid) · [HelperText](#helpertext) · [HStack](#hstack) · [Icon](#icon) · [Image](#image) · [LinearProgress](#linearprogress) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Menu](#menu) · [NavigationBar](#navigationbar) · [NavigationRail](#navigationrail) · [Pagination](#pagination) · [Paper](#paper) · [PinInput](#pininput) · [Popover](#popover) · [Portal](#portal) · [PortalHost](#portalhost) · [ProgressButton](#progressbutton) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Rating](#rating) · [SearchBar](#searchbar) · [SideSheet](#sidesheet) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [Spinner](#spinner) · [SplitButton](#splitbutton) · [Stack](#stack) · [Stat](#stat) · [Stepper](#stepper) · [TabContent](#tabcontent) · [Table](#table) · [TableHead](#tablehead) · [TableRow](#tablerow) · [TimePicker](#timepicker) · [ToastProvider](#toastprovider) · [Toggle](#toggle) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [Tooltip](#tooltip) · [TopAppBar](#topappbar) · [TouchableRipple](#touchableripple) · [Typography](#typography) · [VStack](#vstack)
+[Accordion](#accordion) · [AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AppBar](#appbar) · [AspectRatio](#aspectratio) · [Box](#box) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Center](#center) · [Checkbox](#checkbox) · [CircularProgress](#circularprogress) · [Collapse](#collapse) · [ConfirmDialog](#confirmdialog) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [Grid](#grid) · [HelperText](#helpertext) · [HStack](#hstack) · [Icon](#icon) · [Image](#image) · [LinearProgress](#linearprogress) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Menu](#menu) · [NavigationBar](#navigationbar) · [NavigationRail](#navigationrail) · [Pagination](#pagination) · [Paper](#paper) · [Popover](#popover) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [SideSheet](#sidesheet) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [Stack](#stack) · [Stat](#stat) · [Stepper](#stepper) · [TabContent](#tabcontent) · [Table](#table) · [TableHead](#tablehead) · [TableRow](#tablerow) · [ToastProvider](#toastprovider) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TopAppBar](#topappbar) · [TouchableRipple](#touchableripple) · [VStack](#vstack)
 
 ## Altre aggiunte (non componenti)
 
@@ -88,39 +107,133 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | valueColor | `string` |  |  | Any colour; defaults to the on-surface role. |
 | valueStyle | `StyleProp<TextStyle>` |  |  |  |
 
+### CheckboxGroup
+
+`packages/ui/src/components/CheckboxGroup.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(values: any[]) => void` |  |  | Receives the new set of checked values after each toggle. |
+| options * | `CheckboxOption[]` |  |  |  |
+| value * | `any[]` |  |  | The values of the checked options. |
+| direction | `"column" \| "row"` | "column" |  | Stacks the options (`"column"`) or lays them in a wrapping line (`"row"`). Defaults to `"column"`. |
+| disabled | `boolean` |  |  |  |
+| error | `string` |  |  | Error text below the group; it also turns the checkboxes and the label red. |
+| feedback | `boolean` | true |  | Report each toggle to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
+| helperText | `string` |  |  | Supporting text below the group; hidden while an error is shown. |
+| label | `string` |  |  |  |
+| required | `boolean` |  |  | Marks the label with an asterisk. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
+### NumberField
+
+`packages/ui/src/components/NumberField.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(val: number) => void` |  |  |  |
+| value * | `number` |  |  |  |
+| disabled | `boolean` |  |  |  |
+| label | `string` |  |  |  |
+| max | `number` | 100 |  |  |
+| min | `number` | 0 |  |  |
+| step | `number` | 1 |  |  |
+
+### Switch
+
+`packages/ui/src/components/Switch.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(value: boolean) => void` |  |  | Called with the new state when the switch, or its label, is pressed. |
+| value * | `boolean` |  |  |  |
+| containerStyle | `StyleProp<ViewStyle>` | {} |  | Style for the outer Pressable. |
+| disabled | `boolean` | false |  |  |
+| feedback | `boolean` | true |  | Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
+| height | `number` | SIZES[size].height |  | Track height; the thumb scales with it. Defaults to the `size`'s (18 for medium). |
+| label | `string` |  |  | Text next to the switch. Pressing it toggles the switch too. |
+| labelPlacement | `"start" \| "end" \| "top" \| "bottom"` | "end" |  | Where the label sits relative to the switch: `"start"` and `"end"` are the left and right in a left-to-right layout, `"top"` and `"bottom"` stack them. Defaults to `"end"`. |
+| size | `"small" \| "medium" \| "large"` | "medium" |  | Switch size: `"small"` is 24 x 14, `"medium"` 32 x 18, `"large"` 40 x 22. `width` and `height` override it. Defaults to `"medium"`. |
+| width | `number` | SIZES[size].width |  | Track width. Defaults to the `size`'s (32 for medium). |
+
+### ViewportProvider
+
+`packages/ui/src/providers/Viewport.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| width | `number` |  |  | The width, in dp, to report instead of the window's. Leave it out (or `undefined`) and the real window width is reported, so the provider can sit in place permanently and be switched on by a value. |
+
 # Componenti aggiornati
 
 ### Autocomplete
 
-`packages/ui/src/components/Autocomplete.tsx` — comportamento: `onSearch` toglie il filtro per etichetta; `allowCustomValue={false}` ripristina o svuota all'uscita dal campo; prop nuove: `allowCustomValue`, `debounceMs`, `onSearch`, `onSelectedChange`, `selected`; prop cambiate: `filter`
+`packages/ui/src/components/Autocomplete.tsx` — comportamento: `onSearch` toglie il filtro per etichetta; `allowCustomValue={false}` ripristina o svuota all'uscita dal campo; prop nuove: `onChange`, `allowCustomValue`, `debounce`, `defaultOptions`, `fullWidth`, `labelPlacement`, `multiple`, `onSearch`, `onSelectedChange`, `selected`, `variant`; prop cambiate: `filter`; prop tolte: `onChangeText`, `onSelect`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| onChangeText * | `(text: string) => void` |  |  |  |
-| onSelect * | `(option: AutocompleteOption) => void` |  |  |  |
+| onChange * | `(text: string) => void` |  | nuova | Called with the text as it changes: typed, cleared, or filled in by a picked option (its label; empty after a pick with `multiple`). |
 | options * | `AutocompleteOption[]` |  |  |  |
 | value * | `string` |  |  | The text in the field. Free text is allowed — this is not a Select. |
-| allowCustomValue | `boolean` | true | nuova | Whether text that is not an option may stay in the field. Defaults to `true`. With `false`, leaving the field puts back the chosen option's label, or empties it when nothing is chosen. |
+| allowCustomValue | `boolean` | true | nuova | Whether text that is not an option may stay in the field. Defaults to `true`. With `false`, leaving the field puts back the chosen option's label, or empties it when nothing is chosen (always empties it with `multiple`, where the text is only a query). |
 | clearable | `boolean` | true |  | Adds a clear button once there is text. Defaults to `true`. |
 | clearAccessibilityLabel | `string` |  |  |  |
-| debounceMs | `number` | 300 | nuova | Quiet time before `onSearch`. Defaults to 300. |
+| debounce | `number` | 300 | nuova | Quiet time in ms before `onSearch`. Defaults to 300. |
+| defaultOptions | `AutocompleteOption[]` |  | nuova | The suggestions offered while the field has fewer than `minChars` characters — before the user has typed, or before a first search has returned — instead of keeping the list closed. They are shown as given, not filtered. From `minChars` on, the list is `options`. Leave out for no list until the user types. |
 | disabled | `boolean` |  |  |  |
 | emptyMessage | `string` |  |  | Shown when nothing matches. Omit to hide the list instead. |
 | error | `string` |  |  |  |
 | filter | `(option: AutocompleteOption, query: string) => boolean` |  | cambiata | Custom matcher. Defaults to a case- and accent-insensitive substring test over `label`, or to no filtering at all when `onSearch` is given (the server already filtered). |
+| fullWidth | `boolean` | true | nuova | Stretches the field to its container's width. `false` shrinks it to its content, with a minimum width. Defaults to `true`. |
 | helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
 | label | `string` |  |  |  |
+| labelPlacement | `"inside" \| "outside"` |  | nuova | Where the label is drawn: `"outside"` above the box, or `"inside"` within it. Independent of `variant`. Defaults to `"outside"`. |
 | leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
 | loading | `boolean` |  |  | Shows a spinner in the field — for options still being fetched. |
 | maxSuggestions | `number` | 8 |  | Caps the visible suggestions. Defaults to 8. |
 | minChars | `number` | 1 |  | Characters required before suggestions appear. Defaults to 1. |
-| onSearch | `(text: string) => void` |  | nuova | Called with the text after the user stops typing for `debounceMs`, once it has `minChars` characters, and with `""` when the field is cleared. Fetch the options there and pass them in `options`; use `loading` meanwhile. Not called for the text an option fills in. |
-| onSelectedChange | `(option: AutocompleteOption \| null) => void` |  | nuova |  |
+| multiple | `false` | false | nuova | Picks one option (the default). Set to `true` to pick several. |
+| onSearch | `(text: string) => void` |  | nuova | Called with the text after the user stops typing for `debounce` ms, once it has `minChars` characters, and with `""` when the field is cleared. Fetch the options there and pass them in `options`; use `loading` meanwhile. Not called for the text an option fills in. |
+| onSelectedChange | `(option: AutocompleteOption \| null) => void` |  | nuova | Called on every pick with the option, and with `null` when the choice is cleared. |
 | placeholder | `string` |  |  |  |
 | required | `boolean` |  |  |  |
 | selected | `AutocompleteOption \| null` |  | nuova | The chosen option, kept apart from the text being typed. Pass it (even as `null`) to control the choice; editing the text away from its label, or clearing the field, reports `null` through `onSelectedChange`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
+| variant | `"filled" \| "outlined"` | "outlined" | nuova | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
+
+### Avatar
+
+`packages/ui/src/components/Avatar.tsx` — prop nuove: `onClick`; prop cambiate: `size`; prop tolte: `onPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| backgroundColor | `string` |  |  |  |
+| icon | `MaterialCommunityIconsGlyphs` | "account" |  |  |
+| name | `string` |  |  | Initials are drawn from it when there is no `source`, and it is shown as a tooltip on hover (web) or long press (native). |
+| onClick | `() => void` |  | nuova |  |
+| size | `number \| "large" \| "medium" \| "small"` | "medium" | cambiata | A size in pixels, or `"small"` (32), `"medium"` (40) or `"large"` (56). Defaults to `"medium"`. |
+| source | `ImageSourcePropType` |  |  |  |
+| status | `"online" \| "offline" \| "busy" \| "away" \| null` |  |  |  |
+| textColor | `string` |  |  |  |
+| variant | `"circular" \| "rounded" \| "square"` | "circular" |  | Shape: full circle, rounded corners, or square. |
+
+### Badge
+
+`packages/ui/src/components/Badge.tsx` — prop nuove: `color`, `position`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| color | `ColorRole` | "error" | nuova | Colour role of the badge. Defaults to `"error"`. |
+| count | `number` |  |  |  |
+| max | `number` | 99 |  | Cap shown as "max+" when count exceeds it. |
+| position | `"top-right" \| "bottom-right" \| "top-left" \| "bottom-left"` |  | nuova | The corner of the parent the badge is pinned to, overlapping it slightly. Left out, the badge is only absolutely placed and the parent (or `style`) positions it. |
+| showZero | `boolean` | false |  | Render the badge even when count is 0 (hidden by default). |
+| size | `"small" \| "large"` | "large" |  |  |
+| style | `any` |  |  |  |
+| visible | `boolean` | true |  |  |
 
 ### Banner
 
@@ -154,7 +267,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Button
 
-`packages/ui/src/components/Button.tsx` — comportamento: `tone="success"` legge i ruoli `success` del tema; prop nuove: `badge`, `density`
+`packages/ui/src/components/Button.tsx` — comportamento: `tone="success"` legge i ruoli `success` del tema; prop nuove: `badge`, `color`, `density`, `onClick`, `variant`; prop cambiate: `iconPosition`; prop tolte: `mode`, `onPress`, `tone`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -163,41 +276,86 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | badge | `number` |  | nuova | A count shown after the label (a `Badge`): active filters, unread items. Hidden at 0 or when left out. |
 | busy | `boolean` | false |  | Blocks presses and announces the button as busy, but — unlike `loading` — keeps the label, the icon and the full-strength colours on screen. |
 | children | `React.ReactNode` |  |  |  |
+| color | `ButtonColor` | "primary" | nuova | Colour role. `error` is the destructive treatment (delete, discard); `success`, `warning`, `info` and `neutral` come from fixed hues kept off the seed. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: about 36 px instead of 48. |
 | disabled | `boolean` | false |  |  |
 | feedback | `boolean` | true |  | Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | fullWidth | `boolean` | false |  | Stretch to fill the parent width. |
 | iconName | `MaterialCommunityIconsGlyphs` |  |  |  |
-| iconPosition | `"left" \| "right"` | "left" |  | Icon side relative to the label. |
+| iconPosition | `"start" \| "end"` | "start" | cambiata | Icon side relative to the label. |
 | iconStyle | `object` | {} |  |  |
 | labelStyle | `StyleProp<TextStyle>` |  |  | Applied to the label text, after the theme's type style. |
 | loading | `boolean` | false |  |  |
-| mode | `ButtonMode` | "filled" |  |  |
-| onPress | `() => void` |  |  |  |
+| onClick | `() => void` |  | nuova |  |
 | size | `number` |  |  |  |
 | style | `object` | {} |  |  |
 | testID | `string` |  |  |  |
-| tone | `ButtonTone` | "primary" |  | Colour role. `error` is the destructive treatment (delete, discard); `success` is confirmation feedback, from a fixed green kept off the seed. |
 | underlay | `React.ReactNode` |  |  | Drawn behind the label across the whole surface, clipped to its shape: a progress fill, a state animation. It receives no touches. |
+| variant | `ButtonVariant` | "filled" | nuova |  |
+
+### Card
+
+`packages/ui/src/components/Card.tsx` — prop nuove: `onClick`; prop tolte: `onPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| accessibilityLabel | `string` |  |  |  |
+| onClick | `() => void` |  | nuova |  |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| variant | `"elevated" \| "filled" \| "outlined" \| "glow"` | "filled" |  |  |
+
+### CardTitle
+
+`packages/ui/src/components/CardParts/CardTitle.tsx` — prop nuove: `endIcon`, `startIcon`; prop tolte: `left`, `right`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| title * | `React.ReactNode` |  |  |  |
+| endIcon | `React.ReactNode` |  | nuova | Trailing slot — an `IconButton`, a `Menu` anchor, a `Chip`. |
+| startIcon | `React.ReactNode` |  | nuova | Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| subtitle | `React.ReactNode` |  |  |  |
+| subtitleNumberOfLines | `number` | 2 |  |  |
+| titleNumberOfLines | `number` | 1 |  |  |
 
 ### Chip
 
-`packages/ui/src/components/Chip.tsx` — prop nuove: `toneFrom`
+`packages/ui/src/components/Chip.tsx` — prop nuove: `border`, `color`, `onClick`, `toneFrom`, `variant`; prop cambiate: `size`; prop tolte: `mode`, `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | label * | `string` |  |  |  |
 | accessibilityRole | `"button" \| "radio" \| "checkbox"` |  |  | Overrides the role of a pressable chip (`"button"`). A chip that toggles inside a group is a `"radio"` or a `"checkbox"`, and then reports `selected` as checked. |
+| border | `"rounded" \| "squared" \| "circular"` | "rounded" | nuova | Corner shape: `"rounded"` (the default), `"squared"` for square corners, `"circular"` for a pill. |
+| color | `ColorRole` |  | nuova | Colour role. `filled` takes the role's accent, `tonal` its container, `outlined` draws the label and the outline in it. Left out, the chip keeps the neutral secondary look. `toneFrom` wins over it. |
 | disabled | `boolean` | false |  |  |
 | feedback | `boolean` | true |  | Report presses: a `"checkbox"` chip toggles, a `"radio"` one selects to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | icon | `MaterialCommunityIconsGlyphs` |  |  |  |
-| mode | `"filled" \| "tonal" \| "outlined"` | "filled" |  |  |
+| onClick | `() => void` |  | nuova |  |
 | onClose | `() => void` |  |  |  |
-| onPress | `() => void` |  |  |  |
 | selected | `boolean` | false |  |  |
-| size | `"small" \| "medium"` | "medium" |  | "small" renders a compact 24px chip. |
+| size | `"small" \| "medium" \| "large"` | "medium" | cambiata | "small" renders a compact 24px chip, "large" a 40px one. |
 | style | `object` | {} |  |  |
 | toneFrom | `string` |  | nuova | Tints a `"filled"` or `"tonal"` chip from a `#RRGGBB` colour or from any text (the same text always gives the same colour), readable in light and dark. |
+| variant | `"filled" \| "tonal" \| "outlined"` | "filled" | nuova |  |
+
+### ChipGroup
+
+`packages/ui/src/components/ChipGroup.tsx` — prop nuove: `onChange`, `multiple`, `variant`; prop tolte: `onValueChange`, `mode`, `multiSelect`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(value: any) => void` |  | nuova |  |
+| options * | `ChipGroupOption[]` |  |  |  |
+| value * | `string \| string[] \| null` |  |  | The selected value (or `null`), or the selected values with `multiple`. |
+| accessibilityLabel | `string` |  |  | Names the group for assistive tech. |
+| multiple | `boolean` | false | nuova | Filter chips: any number selected. Defaults to `false` (one at most). |
+| required | `boolean` | false |  | Single select only: the selected chip cannot be deselected. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| variant | `"filled" \| "tonal" \| "outlined"` | "outlined" | nuova | Chip look. Defaults to `"outlined"`, the M3 filter chip. |
+| wrap | `boolean` | true |  | `true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`. |
 
 ### DataGrid
 
@@ -220,6 +378,83 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | sortColumn | `string` |  |  |  |
 | sortDirection | `"asc" \| "desc"` |  |  |  |
 | style | `ViewStyle` |  |  |  |
+
+### DatePicker
+
+`packages/ui/src/components/DatePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(date: Date) => void` |  |  |  |
+| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
+| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
+| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on, `"picker"` or typed `"keyboard"` entry. There is no toggle between the two in the dialog, so this is the only way to get typed entry there. Default `"picker"`. |
+| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
+| disabled | `boolean` |  |  |  |
+| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
+| error | `string` |  |  | Error text below the field; also recolors the field. |
+| fieldVariant | `"outlined" \| "filled"` |  | nuova | The look of the field's box, as `variant` on `Input`: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box that shows its border only while the picker is open, the typed text has focus, or there is an `error`. Named apart from `variant`, which already chooses between the field and the inline picker. Does nothing for `variant="static"`, which has no field. Defaults to `"outlined"`. |
+| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
+| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
+| label | `string` |  |  |  |
+| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "OK", …). |
+| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
+| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
+| onClear | `() => void` |  |  |  |
+| placeholder | `string` |  |  | Shown while the field has no value. |
+| presentation | `DateTimePickerPresentation` |  | nuova | Web only, `variant="default"` only: whether the picker opens docked to its field or as a dialog. Decided each time it opens. Native always opens the dialog. Defaults to `"auto"`. |
+| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
+| required | `boolean` |  |  | Appends an asterisk to the label. |
+| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
+| selectionMode | `"single"` |  |  |  |
+| showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
+| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
+| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
+| variant | `DateTimePickerVariant` |  | nuova | `"default"` shows a field that opens the picker in a popover (web) or a dialog; dismiss it by tapping outside, with the back gesture or with Escape. `"static"` draws the picker inline in the page instead: no field, no popup, no OK, and every selection calls `onChange` at once with the live value. Of the field props only `disabled` and `style` apply to a static picker, and it always shows the calendar and the clock, never typed entry. |
+
+### DateTimePicker
+
+`packages/ui/src/components/DateTimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(date: Date) => void` |  |  |  |
+| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
+| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
+| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on, `"picker"` or typed `"keyboard"` entry. There is no toggle between the two in the dialog, so this is the only way to get typed entry there. Default `"picker"`. |
+| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
+| disabled | `boolean` |  |  |  |
+| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
+| error | `string` |  |  | Error text below the field; also recolors the field. |
+| fieldVariant | `"outlined" \| "filled"` |  | nuova | The look of the field's box, as `variant` on `Input`: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box that shows its border only while the picker is open, the typed text has focus, or there is an `error`. Named apart from `variant`, which already chooses between the field and the inline picker. Does nothing for `variant="static"`, which has no field. Defaults to `"outlined"`. |
+| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
+| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
+| label | `string` |  |  |  |
+| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "OK", …). |
+| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
+| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
+| mode | `DateTimePickerMode` |  |  |  |
+| onClear | `() => void` |  |  |  |
+| placeholder | `string` |  |  | Shown while the field has no value. |
+| presentation | `DateTimePickerPresentation` |  | nuova | Web only, `variant="default"` only: whether the picker opens docked to its field or as a dialog. Decided each time it opens. Native always opens the dialog. Defaults to `"auto"`. |
+| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
+| required | `boolean` |  |  | Appends an asterisk to the label. |
+| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
+| selectionMode | `"single"` |  |  |  |
+| showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
+| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
+| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
+| variant | `DateTimePickerVariant` |  | nuova | `"default"` shows a field that opens the picker in a popover (web) or a dialog; dismiss it by tapping outside, with the back gesture or with Escape. `"static"` draws the picker inline in the page instead: no field, no popup, no OK, and every selection calls `onChange` at once with the live value. Of the field props only `disabled` and `style` apply to a static picker, and it always shows the calendar and the clock, never typed entry. |
 
 ### DrawerItem
 
@@ -251,47 +486,72 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | showDivider | `boolean` | false |  | Draws a divider above the section — between it and the one before. |
 | title | `string` |  |  | Section headline. |
 
+### FAB
+
+`packages/ui/src/components/FAB.tsx` — prop nuove: `onClick`, `animateFrom`, `duration`, `extended`, `iconMode`, `testID`, `variant`; prop cambiate: `feedback`, `placement`, `position`, `size`; prop tolte: `onPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| icon * | `MaterialCommunityIconsGlyphs` |  |  |  |
+| onClick * | `() => void` |  | nuova |  |
+| animateFrom | `"left" \| "right"` |  | nuova | `animated` only: edge the label grows from. Match it to the FAB's corner. |
+| disabled | `boolean` |  |  |  |
+| duration | `number` |  | nuova | `animated` only: animation duration (ms). Defaults to 150. |
+| extended | `boolean` |  | nuova | `animated` only. `true` shows the label, `false` collapses to the icon. Drive it from a scroll offset to get the M3 "shrink on scroll" behaviour. Defaults to `true`. |
+| feedback | `boolean` |  | cambiata | Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
+| iconMode | `"static" \| "dynamic"` |  | nuova | `animated` only. `static` keeps the icon put and slides the label out beside it; `dynamic` lets the icon travel with the label as the pill grows. |
+| label | `string` |  |  | The text of `extended` and `animated`, and the accessible name of every variant. Without it those two variants fall back to the icon alone. |
+| placement | `FABPlacement` |  | cambiata |  |
+| position | `FABPosition` |  | cambiata |  |
+| size | `FABSize` |  | cambiata | Defaults to `"medium"`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  | nuova |  |
+| variant | `FABVariant` |  | nuova | Defaults to `"icon"`. |
+
 ### IconButton
 
-`packages/ui/src/components/IconButton.tsx` — prop nuove: `badge`
+`packages/ui/src/components/IconButton.tsx` — prop nuove: `badge`, `color`, `onClick`, `title`, `variant`; prop tolte: `mode`, `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | accessibilityLabel * | `string` |  |  | Required: an icon alone carries no accessible name. |
 | icon * | `MaterialCommunityIconsGlyphs` |  |  |  |
 | badge | `number` |  | nuova | A count on the top-right corner (a `Badge`). Hidden at 0 or when left out. |
+| color | `ColorRole` |  | nuova | Colour role of the button. Left out, it keeps the neutral M3 look (`onSurfaceVariant`, `primary` once selected). |
 | disabled | `boolean` |  |  |  |
 | feedback | `boolean` | true |  | Report the press (a toggle when `selected` is set) to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | loading | `boolean` |  |  |  |
-| mode | `IconButtonMode` | "standard" |  | M3 icon-button container styles. Defaults to `"standard"`. |
-| onPress | `() => void` |  |  |  |
+| onClick | `() => void` |  | nuova |  |
 | selected | `boolean` |  |  | Renders the M3 "selected" container of a toggle icon button. |
 | size | `IconButtonSize` | "medium" |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
+| title | `string` |  | nuova | A tooltip with this text: on hover or focus on the web, on long press on native. It is a label for sighted users; `accessibilityLabel` stays the accessible name. |
+| variant | `IconButtonVariant` | "standard" | nuova | M3 icon-button container styles. Defaults to `"standard"`. |
 
 ### Input
 
-`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `allUpperCase`, `decimalSeparator`, `density`, `reserveHelperText`; prop cambiate: `minHeight`
+`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `onChange`, `allUpperCase`, `decimalSeparator`, `density`, `fullWidth`, `labelPlacement`, `reserveHelperText`, `rows`; prop cambiate: `minHeight`; prop tolte: `onChangeText`, `numberOfLines`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| onChangeText * | `(text: string) => void` |  |  |  |
+| onChange * | `(text: string) => void` |  | nuova | Called with the new text on every edit (for `type="number"`, already cleaned). |
 | value * | `string` |  |  |  |
 | allUpperCase | `boolean` | false | nuova | Capitalises what is typed (codes, plates, tax ids). Not for `type="number"`. |
-| decimalSeparator | `"." \| ","` | "." | nuova | The decimal mark a `type="number"` field types and shows: `","` for a user who writes 12,50. `value` and `onChangeText` stay in the plain form ("12.50"), so the app parses nothing; a typed "." is then ignored, as a thousands mark. Defaults to `"."`. |
+| decimalSeparator | `"." \| ","` | "." | nuova | The decimal mark a `type="number"` field types and shows: `","` for a user who writes 12,50. `value` and `onChange` stay in the plain form ("12.50"), so the app parses nothing; a typed "." is then ignored, as a thousands mark. Defaults to `"."`. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
 | error | `string` |  |  |  |
+| fullWidth | `boolean` | true | nuova | Stretches the field to its container's width. `false` shrinks it to its content, with a minimum width so an empty field stays usable. Defaults to `true`. |
 | helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
 | label | `string` |  |  |  |
+| labelPlacement | `"inside" \| "outside"` |  | nuova | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the text within it. Independent of `variant`. Defaults to `"outside"`. |
 | leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
 | maxLength | `number` |  |  |  |
 | minHeight | `number` |  | cambiata | Overrides the height `density` gives (56, or 40 when dense). |
-| multiline | `boolean` | false |  |  |
-| numberOfLines | `number` | 4 |  |  |
-| onBlur | `() => void` |  |  |  |
-| onFocus | `() => void` |  |  |  |
+| multiline | `boolean` | false |  | Lets the text wrap over several lines; see `rows`. |
+| onBlur | `() => void` |  |  | Called when the field loses focus. |
+| onFocus | `() => void` |  |  | Called when the field gains focus. |
 | onTrailingIconPress | `() => void` |  |  |  |
 | placeholder | `string` |  |  |  |
 | precision | `number` |  |  |  |
@@ -299,12 +559,13 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | readonly | `boolean` |  |  |  |
 | required | `boolean` |  |  | Marks the label with an asterisk. |
 | reserveHelperText | `boolean` | false | nuova | Keeps the line under the field even with no helper or error text, so a message appearing does not push the next field down. Default false. |
+| rows | `number` | 4 | nuova | Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4. |
 | secureTextEntry | `boolean` |  |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | suffix | `string` |  |  |  |
 | trailingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
 | type | `"text" \| "number"` | "text" |  |  |
-| variant | `"outlined" \| "filled"` | "outlined" |  |  |
+| variant | `"outlined" \| "filled"` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
 
 ### ListItem
 
@@ -323,7 +584,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | leading | `React.ReactNode` |  |  | Leading slot — an Avatar, an icon, a Checkbox. |
 | onPress | `() => void` |  |  |  |
 | secondary | `React.ReactNode` |  |  | Second line below `children`. Text or any node, like `children`. |
-| trailing | `React.ReactNode` |  |  | Trailing slot — a value, a Toggle, a chevron. |
+| trailing | `React.ReactNode` |  |  | Trailing slot — a value, a Switch, a chevron. |
 | trailingWidth | `number` |  | nuova | Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up. |
 
 ### Modal
@@ -366,28 +627,119 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | visible | `boolean` | false |  | Modal only: whether the drawer is open. |
 | width | `number` | DRAWER_WIDTH |  | Defaults to 360 (M3), capped at the window width when modal. |
 
-### Select
+### PinInput
 
-`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`
+`packages/ui/src/components/PinInput.tsx` — prop nuove: `onChange`, `variant`; prop tolte: `onChangeText`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| onSelect * | `(value: any) => void` |  |  |  |
+| onChange * | `(value: string) => void` |  | nuova | Called with the whole code, not the single cell, on every edit. |
+| value * | `string` |  |  |  |
+| autoFocus | `boolean` |  |  |  |
+| cellSize | `number` | 48 |  | Cell edge length. Defaults to 48. |
+| disabled | `boolean` |  |  |  |
+| error | `string` |  |  |  |
+| helperText | `string` |  |  | Supporting text below the cells; hidden while an error is shown. |
+| label | `string` |  |  |  |
+| length | `number` | 6 |  | Number of cells. Defaults to 6. |
+| mask | `boolean` | false |  | Renders dots instead of characters. |
+| onComplete | `(value: string) => void` |  |  | Fired once the last cell is filled. |
+| required | `boolean` |  |  |  |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| type | `"numeric" \| "alphanumeric"` | "numeric" |  | Restricts the accepted characters. Defaults to `"numeric"`. |
+| variant | `"filled" \| "outlined"` | "outlined" | nuova | Cell style: `"outlined"` draws each cell as a bordered box on the surface, `"filled"` as a tinted box that shows its border only while focused or in error. Defaults to `"outlined"`. |
+
+### ProgressButton
+
+`packages/ui/src/components/ProgressButton.tsx` — prop nuove: `onClick`, `variant`; prop tolte: `mode`, `onPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| accessibilityLabel | `string` |  |  | Accessible name while idle. Falls back to the label. |
+| children | `string` |  |  | The idle label. Also the loading label unless `loadingLabel` is set. |
+| disabled | `boolean` | false |  |  |
+| duration | `number` | 300 |  | Duration of each progress step's transition, in ms. |
+| errorIconName | `MaterialCommunityIconsGlyphs` | "alert-circle-outline" |  |  |
+| errorLabel | `string` | "Try again" |  | Label once the task failed. The button stays pressable, to retry. |
+| fullWidth | `boolean` | false |  |  |
+| iconName | `MaterialCommunityIconsGlyphs` |  |  | Leading icon while idle and loading. |
+| indicator | `"fill" \| "bar"` | "fill" |  | How progress is drawn inside the surface: `fill` sweeps a darker (or, in the dark scheme, lighter) tone of the button across it; `bar` runs a 4dp line along its bottom edge. |
+| labelStyle | `StyleProp<TextStyle>` |  |  | Applied to the label: font family, size, weight. |
+| loadingLabel | `string` |  |  | Label while loading, e.g. "Calculating route…". |
+| onClick | `() => void` |  | nuova | Fires in every status but `loading`, where the button is busy. |
+| onSuccessEnd | `() => void` |  |  | Called `successDuration` ms after the button turned to success. |
+| progress | `number` |  |  | Completion while `status` is `"loading"`, from 0 to 1. Leave it undefined when the task cannot say how far along it is, for an indeterminate sweep. |
+| progressColor | `string` |  |  | Colour of the fill or the bar. Derived from the button's colours if unset. |
+| status | `ProgressButtonStatus` | "idle" |  | Which moment of the task to show. Controlled: the button never moves itself from one status to the next — the caller does, as the task reports. |
+| style | `StyleProp<ViewStyle>` |  |  | Applied to the surface: corner radius, padding, width. |
+| successDuration | `number` | 2000 |  | How long the success status holds before `onSuccessEnd` fires, in ms. `0` keeps it until the caller changes `status`. |
+| successIconName | `MaterialCommunityIconsGlyphs` | "check" |  |  |
+| successLabel | `string` | "Done" |  | Label once the task succeeded. |
+| testID | `string` |  |  |  |
+| trackColor | `string` |  |  | Colour behind the bar, and behind the fill on outlined and text. |
+| variant | `ButtonVariant` | "filled" | nuova |  |
+
+### Rating
+
+`packages/ui/src/components/Rating.tsx` — prop nuove: `icon`, `interval`, `required`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| value * | `number` |  |  | Current rating; fractions are drawn as a partly filled icon (e.g. 3.5). |
+| disabled | `boolean` |  |  |  |
+| icon | `OutlinedGlyph` | "star" | nuova | The filled glyph. Its `-outline` variant draws the empty state, so it has to be one that has one (`"heart"` does, `"star"` does). Defaults to `"star"`. |
+| interval | `0.5 \| 1` | 1 | nuova | The step of the rating: `1` rates whole icons, `0.5` lets the pointer pick either half of an icon. Defaults to `1`. |
+| max | `number` | 5 |  |  |
+| onChange | `(value: number) => void` |  |  | Interactive when provided. |
+| required | `boolean` | false | nuova | The rating cannot be cleared: tapping the current value keeps it. Without it, tapping the current value resets the rating to 0. |
+| size | `number` | 24 |  |  |
+
+### SearchBar
+
+`packages/ui/src/components/SearchBar.tsx` — prop nuove: `onChange`, `debounceTime`, `icon`, `showLoading`; prop tolte: `onChangeText`, `leadingIcon`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(text: string) => void` |  | nuova | Called with the text as it changes. With `debounceTime` it waits until the user has stopped typing; submitting or clearing reports at once. |
+| value * | `string` |  |  |  |
+| autoFocus | `boolean` |  |  |  |
+| debounceTime | `number` | 0 | nuova | Milliseconds the user must stop typing before `onChange` fires. The field itself always updates at once; a `value` set from outside replaces the text and drops a pending `onChange`. Defaults to 0: every keystroke. |
+| disabled | `boolean` |  |  |  |
+| icon | `MaterialCommunityIconsGlyphs` | "magnify" | nuova | Glyph at the start of the bar. Defaults to `"magnify"`. |
+| onClear | `() => void` |  |  | Called after the clear button empties the field. |
+| onSubmit | `(text: string) => void` |  |  |  |
+| placeholder | `string` | "Search" |  |  |
+| showLoading | `boolean` | false | nuova | Tells the bar a search is running: a progress indicator takes the place of the clear button. Defaults to `false`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+
+### Select
+
+`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `onChange`, `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`; prop tolte: `onSelect`, `multiSelect`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(value: any) => void` |  | nuova | Called with the picked option's `value`, or with `null` when a `nullable` select is cleared. Not called with `multiple`: see `toggleOptions`. |
 | options * | `Option[]` |  |  |  |
-| value * | `any` |  |  |  |
+| value * | `any` |  |  | The `value` of the selected option; `null` for none. Ignored with `multiple`. |
 | defaultOpen | `boolean` | false |  | Mount with the option list already open. Uncontrolled after that. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
+| disabledOptions | `RegExp \| (string \| number)[]` |  | nuova | Options that stay visible but cannot be picked, announced as disabled: the `value`s to disable, or a pattern tested against each `String(value)`. |
+| emptyMessage | `string` | "No options" | nuova | Shown in the open list when `options` is empty. Defaults to `"No options"`. |
 | error | `string` |  |  |  |
+| fullWidth | `boolean` | true | nuova | Stretches the select to its container's width. `false` shrinks it to its content, with a minimum width. Defaults to `true`. |
 | label | `string` |  |  |  |
-| multiSelect | `boolean` | false |  |  |
+| labelPlacement | `"inside" \| "outside"` | "outside" | nuova | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the value. Independent of `variant`; with chips showing it stays above the box. Defaults to `"outside"`. |
+| multiple | `boolean` | false | nuova | Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too. |
+| nullable | `boolean` | false | nuova | Lets the user go back to no selection: a clear button shows in the field while an option is selected, and pressing the selected option again deselects it. Both call `onChange(null)`. Ignored with `multiple`, where every option can already be unchecked. Defaults to `false`. |
 | optionStyle | `object` |  |  |  |
 | placeholder | `string` | "Select an option" |  |  |
-| selectedValues | `any[]` | [] |  |  |
-| showAsChips | `boolean` | false |  |  |
+| selectedValues | `any[]` | [] |  | With `multiple`: the `value`s of the selected options. |
+| showAsChips | `boolean` | false |  | With `multiple`, shows the selection as removable chips in the field. |
 | style | `object` |  |  |  |
-| toggleOptions | `(value: any) => void` |  |  |  |
-| variant | `SelectVariant` | "outlined" |  |  |
+| toggleOptions | `(value: any) => void` |  |  | With `multiple`: called with the new array of selected `value`s after each toggle. |
+| variant | `SelectVariant` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
 
 ### Snackbar
 
@@ -464,6 +816,75 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | initialPalette | `ThemePalette` | palettes.baseline |  | The colour set to start on — one of `palettes`, or anything `createPalette` returns. Read once, on mount: call `setPalette` from `useTheme()` to change it afterwards. |
 | onInteractionFeedback | `InteractionFeedbackHandler` |  |  | Called when the user presses, toggles or selects through one of the library's controls: wire it to haptics (`@its/glowup-device/haptics`'s `hapticFeedback`) or anything else. A control opts out with `feedback={false}`. Without it a nested provider inherits the outer one's. |
 
+### TimePicker
+
+`packages/ui/src/components/TimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(date: Date) => void` |  |  |  |
+| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
+| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
+| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on, `"picker"` or typed `"keyboard"` entry. There is no toggle between the two in the dialog, so this is the only way to get typed entry there. Default `"picker"`. |
+| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
+| disabled | `boolean` |  |  |  |
+| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
+| error | `string` |  |  | Error text below the field; also recolors the field. |
+| fieldVariant | `"outlined" \| "filled"` |  | nuova | The look of the field's box, as `variant` on `Input`: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box that shows its border only while the picker is open, the typed text has focus, or there is an `error`. Named apart from `variant`, which already chooses between the field and the inline picker. Does nothing for `variant="static"`, which has no field. Defaults to `"outlined"`. |
+| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
+| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
+| label | `string` |  |  |  |
+| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "OK", …). |
+| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
+| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
+| onClear | `() => void` |  |  |  |
+| placeholder | `string` |  |  | Shown while the field has no value. |
+| presentation | `DateTimePickerPresentation` |  | nuova | Web only, `variant="default"` only: whether the picker opens docked to its field or as a dialog. Decided each time it opens. Native always opens the dialog. Defaults to `"auto"`. |
+| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
+| required | `boolean` |  |  | Appends an asterisk to the label. |
+| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
+| showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
+| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
+| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
+| variant | `DateTimePickerVariant` |  | nuova | `"default"` shows a field that opens the picker in a popover (web) or a dialog; dismiss it by tapping outside, with the back gesture or with Escape. `"static"` draws the picker inline in the page instead: no field, no popup, no OK, and every selection calls `onChange` at once with the live value. Of the field props only `disabled` and `style` apply to a static picker, and it always shows the calendar and the clock, never typed entry. |
+
+### Tooltip
+
+`packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| content * | `string` |  |  | The tip's text; the body text of a rich tooltip. |
+| action | `{ label: string; onPress: () => void }` |  |  | Rich only: a text button. A rich tooltip with an action stays open while the pointer is over it (web) and until the action is taken or the anchor is long-pressed again (native). |
+| anchorAccessible | `boolean` | true | nuova | Native only. Whether the anchor is one accessibility element named by `content`. Turn it off when the child is a control with a name of its own (an `IconButton`): behind an accessible wrapper a screen reader never reaches the control, only the wrapper, which does nothing when activated. The long press still shows the tip. Defaults to `true`. |
+| disabled | `boolean` |  |  |  |
+| enterDelay | `number` | 500 |  | Hover dwell (ms) before the tip appears on web. Without it, sweeping the pointer across a toolbar flashes every tooltip in the row. |
+| hideDelay | `number` | 1500 |  | Auto-hide delay (ms) after long-press on native. |
+| leaveDelay | `number` | 100 |  | Grace period (ms) before the tip leaves on hover-out. |
+| position | `"top" \| "bottom" \| "left" \| "right"` | "top" |  |  |
+| title | `string` |  |  | Rich only: the subhead. |
+| variant | `"plain" \| "rich"` | "plain" |  | `"plain"` is the one-line label for an icon-only control. `"rich"` adds a `title` and an `action`, for context a label cannot carry. Defaults to `"plain"`. |
+
+### Typography
+
+`packages/ui/src/components/Typography.tsx` — prop nuove: `align`, `color`, `fontSize`, `nowrap`, `onClick`; prop cambiate: `variant`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| align | `"left" \| "center" \| "right" \| "justify"` |  | nuova | Horizontal alignment of the text within its box. |
+| color | `keyof ThemeColorTokens \| (string & {})` |  | nuova | A theme colour token (`"primary"`, `"onSurfaceVariant"`, `"error"`, …) or, failing that, any colour string. Defaults to `onSurface`. |
+| fontSize | `number` |  | nuova | Overrides the size of the variant; the line height scales with it. |
+| nowrap | `boolean` | false | nuova | Keeps the text on one line, ending it with an ellipsis when it is cut. |
+| onClick | `TextProps["onPress"]` |  | nuova | Makes the text pressable. |
+| variant | `TypographyName \| TypographyVariant` | "h1" | cambiata | Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline`. The M3 role names (`displayLarge`, `bodyMedium`, …) still work and name the same styles. Defaults to `"h1"`. |
+
 # Componenti tenuti
 
 ### Accordion
@@ -495,25 +916,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
 
-### AnimatedFAB
-
-`packages/ui/src/components/AnimatedFAB.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| icon * | `MaterialCommunityIconsGlyphs` |  |  |  |
-| label * | `string` |  |  | Always required: it is the label that animates. |
-| onPress * | `() => void` |  |  |  |
-| animateFrom | `"left" \| "right"` | "right" |  | Edge the label grows from. Match it to the FAB's own corner. |
-| disabled | `boolean` | false |  |  |
-| duration | `number` | 150 |  | Animation duration (ms). |
-| extended | `boolean` | true |  | `true` shows the label, `false` collapses to the icon. Drive it from a scroll offset to get the M3 "shrink on scroll" behaviour. |
-| iconMode | `"static" \| "dynamic"` | "static" |  | `static` keeps the icon put and slides the label out beside it. `dynamic` lets the icon travel with the label as the pill grows. |
-| placement | `"floating" \| "inline"` | "floating" |  | `inline` drops the absolute positioning (toolbar, card action row). |
-| position | `AnimatedFABPosition` | "bottom-right" |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-
 ### AppBar
 
 `packages/ui/src/components/AppBar.tsx`
@@ -533,35 +935,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | ratio | `number` | 1 |  | Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`. |
-
-### Avatar
-
-`packages/ui/src/components/Avatar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| backgroundColor | `string` |  |  |  |
-| icon | `MaterialCommunityIconsGlyphs` | "account" |  |  |
-| name | `string` |  |  |  |
-| onPress | `() => void` |  |  |  |
-| size | `number` | 40 |  |  |
-| source | `ImageSourcePropType` |  |  |  |
-| status | `"online" \| "offline" \| "busy" \| "away" \| null` |  |  |  |
-| textColor | `string` |  |  |  |
-| variant | `"circular" \| "rounded" \| "square"` | "circular" |  | Shape: full circle, rounded corners, or square. |
-
-### Badge
-
-`packages/ui/src/components/Badge.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| count | `number` |  |  |  |
-| max | `number` | 99 |  | Cap shown as "max+" when count exceeds it. |
-| showZero | `boolean` | false |  | Render the badge even when count is 0 (hidden by default). |
-| size | `"small" \| "large"` | "large" |  |  |
-| style | `any` |  |  |  |
-| visible | `boolean` | true |  |  |
 
 ### Box
 
@@ -623,46 +996,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | type | `"standard" \| "connected"` | "standard" |  | `"standard"` spaces the buttons apart; `"connected"` joins them into one control (the successor of segmented buttons). Defaults to `"standard"`. |
 
-### Calendar
-
-`packages/ui/src/components/Calendar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| autoFocus | `boolean` | false |  | Moves keyboard focus into the calendar when it mounts, so the arrow keys work at once. Web only. The date pickers set it; leave it off for a calendar that is part of a page. |
-| dates | `Date[]` |  |  | Selected days in `multiple` mode. |
-| endYear | `number` |  |  | Last year reachable from the year grid and the endless scroller. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, computed holidays). |
-| keyboardNavigation | `boolean` | true |  | Arrow-key/PageUp/Home/Enter navigation. Web only — there is no key event source on native. Default `true`. |
-| labels | `DateTimePickerLabels` |  |  |  |
-| locale | `string` |  |  | Formatting/labelling locale. Defaults to the device locale. |
-| onChange | `(date: Date) => void` |  |  | Fires in `single` mode. |
-| onDatesChange | `(dates: Date[]) => void` |  |  | Fires in `multiple` mode with the full set after the tap. |
-| onRangeChange | `(range: DateRange) => void` |  |  | Fires in `range` mode with the interval after the tap. |
-| onRequestClose | `() => void` |  |  | Called on Escape while keyboard navigation is active. |
-| range | `DateRange` | EMPTY_RANGE |  | Selected interval in `range` mode. |
-| scrollMode | `CalendarScrollMode` | "endless" |  | `endless` scrolls through months in one virtualized list; `paged` shows one month at a time behind the chevrons. Defaults to `endless`. |
-| selectionMode | `DateSelectionMode` | "single" |  | How many days the grid collects. Defaults to `"single"`. |
-| showToday | `boolean` | true |  | Renders the "Today" shortcut row. Default `true`. |
-| startYear | `number` |  |  | First year reachable from the year grid and the endless scroller. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-| value | `Date \| null` |  |  | Selected day in `single` mode. |
-
-### Card
-
-`packages/ui/src/components/Card.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| accessibilityLabel | `string` |  |  |  |
-| onPress | `() => void` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| variant | `"elevated" \| "filled" \| "outlined" \| "glow"` | "filled" |  |  |
-
 ### CardActions
 
 `packages/ui/src/components/CardParts/CardActions.tsx`
@@ -693,20 +1026,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ratio | `number` | 16 / 9 |  | Width divided by height. M3 card covers default to 16:9. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
-
-### CardTitle
-
-`packages/ui/src/components/CardParts/CardTitle.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| title * | `React.ReactNode` |  |  |  |
-| left | `React.ReactNode` |  |  | Leading slot — an `Avatar`, an `Icon`, a `StatusBadge`. |
-| right | `React.ReactNode` |  |  | Trailing slot — an `IconButton`, a `Menu` anchor, a `Chip`. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| subtitle | `React.ReactNode` |  |  |  |
-| subtitleNumberOfLines | `number` | 2 |  |  |
-| titleNumberOfLines | `number` | 1 |  |  |
 
 ### Carousel
 
@@ -767,23 +1086,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | label | `string` |  |  |  |
 | labelPosition | `"left" \| "right"` | "right" |  |  |
 
-### ChipGroup
-
-`packages/ui/src/components/ChipGroup.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onValueChange * | `(value: any) => void` |  |  |  |
-| options * | `ChipGroupOption[]` |  |  |  |
-| value * | `string \| string[] \| null` |  |  | The selected value (or `null`), or the selected values with `multiSelect`. |
-| accessibilityLabel | `string` |  |  | Names the group for assistive tech. |
-| mode | `"filled" \| "tonal" \| "outlined"` | "outlined" |  | Chip look. Defaults to `"outlined"`, the M3 filter chip. |
-| multiSelect | `boolean` | false |  | Filter chips: any number selected. Defaults to `false` (one at most). |
-| required | `boolean` | false |  | Single select only: the selected chip cannot be deselected. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| wrap | `boolean` | true |  | `true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`. |
-
 ### CircularProgress
 
 `packages/ui/src/components/Progress/CircularProgress.tsx`
@@ -798,42 +1100,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | size | `number` | 48 |  |  |
 | strokeWidth | `number` | 4 |  |  |
 | testID | `string` |  |  |  |
-
-### ClockDial
-
-`packages/ui/src/components/ClockDial.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| hours * | `number` |  |  | Current hour, always 0–23 regardless of the displayed clock format. |
-| minutes * | `number` |  |  |  |
-| onChangeHours * | `(hours: number) => void` |  |  |  |
-| onChangeMinutes * | `(minutes: number) => void` |  |  |  |
-| unit * | `ClockUnit` |  |  |  |
-| isTimeDisabled | `(hours: number, minutes: number) => boolean` |  |  | Greys out and refuses values the caller does not allow. |
-| minuteInterval | `number` | 1 |  | Minute granularity the dial snaps to. Defaults to 1. |
-| onUnitComplete | `() => void` |  |  | Fires when a press on the hour dial ends, to hand over to the minutes. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` | false |  | Renders two rings (1–12 outer, 13–00 inner) instead of one. |
-
-### ClockPicker
-
-`packages/ui/src/components/ClockPicker.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(date: Date) => void` |  |  |  |
-| value * | `Date` |  |  |  |
-| inputType | `PickerInputType` | "picker" |  | `picker` shows the dial, `keyboard` two text fields. Defaults to `picker`. |
-| labels | `DateTimePickerLabels` |  |  |  |
-| locale | `string` |  |  | Formatting locale; decides 12h vs 24h. Defaults to the device locale. |
-| maximumDate | `Date` |  |  | Clamps the selectable times on the maximum's own day. |
-| minimumDate | `Date` |  |  | Clamps the selectable times on the minimum's own day. |
-| minuteInterval | `MinuteInterval` | 1 |  | Minute granularity. Defaults to 1. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour face. Left unset, the locale decides. |
 
 ### Collapse
 
@@ -867,140 +1133,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | message | `string` |  |  |  |
 | title | `string` |  |  |  |
 
-### DatePicker
-
-`packages/ui/src/components/DatePicker.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(date: Date) => void` |  |  |  |
-| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
-| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
-| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on. Default `"picker"`. |
-| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
-| disabled | `boolean` |  |  |  |
-| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
-| error | `string` |  |  | Error text below the field; also recolors the field. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
-| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
-| label | `string` |  |  |  |
-| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). |
-| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
-| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
-| onClear | `() => void` |  |  |  |
-| placeholder | `string` |  |  | Shown while the field has no value. |
-| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
-| required | `boolean` |  |  | Appends an asterisk to the label. |
-| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
-| selectionMode | `"single"` |  |  |  |
-| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-
-### DatePickerInput
-
-`packages/ui/src/components/DatePickerInput.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(date: Date) => void` |  |  |  |
-| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
-| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
-| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on. Default `"picker"`. |
-| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
-| disabled | `boolean` |  |  |  |
-| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
-| error | `string` |  |  | Error text below the field; also recolors the field. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
-| label | `string` |  |  |  |
-| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). |
-| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
-| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
-| onClear | `() => void` |  |  |  |
-| placeholder | `string` |  |  | Shown while the field has no value. |
-| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
-| required | `boolean` |  |  | Appends an asterisk to the label. |
-| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
-| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-
-### DateRangePicker
-
-`packages/ui/src/components/DateRangePicker.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(range: DateRange) => void` |  |  |  |
-| value * | `DateRange` |  |  |  |
-| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
-| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on. Default `"picker"`. |
-| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
-| disabled | `boolean` |  |  |  |
-| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
-| error | `string` |  |  | Error text below the field; also recolors the field. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
-| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
-| label | `string` |  |  |  |
-| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). |
-| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
-| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
-| onClear | `() => void` |  |  |  |
-| placeholder | `string` |  |  | Shown while the field has no value. |
-| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
-| required | `boolean` |  |  | Appends an asterisk to the label. |
-| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
-| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-
-### DateTimePicker
-
-`packages/ui/src/components/DateTimePicker.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(date: Date) => void` |  |  |  |
-| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
-| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
-| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on. Default `"picker"`. |
-| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
-| disabled | `boolean` |  |  |  |
-| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
-| error | `string` |  |  | Error text below the field; also recolors the field. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
-| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
-| label | `string` |  |  |  |
-| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). |
-| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
-| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
-| mode | `DateTimePickerMode` |  |  |  |
-| onClear | `() => void` |  |  |  |
-| placeholder | `string` |  |  | Shown while the field has no value. |
-| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
-| required | `boolean` |  |  | Appends an asterisk to the label. |
-| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
-| selectionMode | `"single"` |  |  |  |
-| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-
 ### Divider
 
 `packages/ui/src/components/Divider.tsx`
@@ -1024,22 +1156,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | action | `EmptyStateAction` |  |  |  |
 | description | `string` |  |  |  |
 | icon | `MaterialCommunityIconsGlyphs` | "inbox-outline" |  |  |
-
-### FAB
-
-`packages/ui/src/components/FAB.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| icon * | `MaterialCommunityIconsGlyphs` |  |  |  |
-| onPress * | `() => void` |  |  |  |
-| disabled | `boolean` |  |  |  |
-| feedback | `boolean` | true |  | Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
-| label | `string` |  |  |  |
-| placement | `FABPlacement` | "floating" |  |  |
-| position | `FABPosition` | "bottom-right" |  |  |
-| size | `FABSize` | "regular" |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
 
 ### FormControl
 
@@ -1268,28 +1384,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | outline | `boolean` | false |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 
-### PinInput
-
-`packages/ui/src/components/PinInput.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChangeText * | `(value: string) => void` |  |  |  |
-| value * | `string` |  |  |  |
-| autoFocus | `boolean` |  |  |  |
-| cellSize | `number` | 48 |  | Cell edge length. Defaults to 48. |
-| disabled | `boolean` |  |  |  |
-| error | `string` |  |  |  |
-| helperText | `string` |  |  | Supporting text below the cells; hidden while an error is shown. |
-| label | `string` |  |  |  |
-| length | `number` | 6 |  | Number of cells. Defaults to 6. |
-| mask | `boolean` | false |  | Renders dots instead of characters. |
-| onComplete | `(value: string) => void` |  |  | Fired once the last cell is filled. |
-| required | `boolean` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| type | `"numeric" \| "alphanumeric"` | "numeric" |  | Restricts the accepted characters. Defaults to `"numeric"`. |
-
 ### Popover
 
 `packages/ui/src/components/Popover.tsx`
@@ -1317,36 +1411,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
-
-### ProgressButton
-
-`packages/ui/src/components/ProgressButton.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| accessibilityLabel | `string` |  |  | Accessible name while idle. Falls back to the label. |
-| children | `string` |  |  | The idle label. Also the loading label unless `loadingLabel` is set. |
-| disabled | `boolean` | false |  |  |
-| duration | `number` | 300 |  | Duration of each progress step's transition, in ms. |
-| errorIconName | `MaterialCommunityIconsGlyphs` | "alert-circle-outline" |  |  |
-| errorLabel | `string` | "Try again" |  | Label once the task failed. The button stays pressable, to retry. |
-| fullWidth | `boolean` | false |  |  |
-| iconName | `MaterialCommunityIconsGlyphs` |  |  | Leading icon while idle and loading. |
-| indicator | `"fill" \| "bar"` | "fill" |  | How progress is drawn inside the surface: `fill` sweeps a darker (or, in the dark scheme, lighter) tone of the button across it; `bar` runs a 4dp line along its bottom edge. |
-| labelStyle | `StyleProp<TextStyle>` |  |  | Applied to the label: font family, size, weight. |
-| loadingLabel | `string` |  |  | Label while loading, e.g. "Calculating route…". |
-| mode | `ButtonMode` | "filled" |  |  |
-| onPress | `() => void` |  |  | Fires in every status but `loading`, where the button is busy. |
-| onSuccessEnd | `() => void` |  |  | Called `successDuration` ms after the button turned to success. |
-| progress | `number` |  |  | Completion while `status` is `"loading"`, from 0 to 1. Leave it undefined when the task cannot say how far along it is, for an indeterminate sweep. |
-| progressColor | `string` |  |  | Colour of the fill or the bar. Derived from the button's colours if unset. |
-| status | `ProgressButtonStatus` | "idle" |  | Which moment of the task to show. Controlled: the button never moves itself from one status to the next — the caller does, as the task reports. |
-| style | `StyleProp<ViewStyle>` |  |  | Applied to the surface: corner radius, padding, width. |
-| successDuration | `number` | 2000 |  | How long the success status holds before `onSuccessEnd` fires, in ms. `0` keeps it until the caller changes `status`. |
-| successIconName | `MaterialCommunityIconsGlyphs` | "check" |  |  |
-| successLabel | `string` | "Done" |  | Label once the task succeeded. |
-| testID | `string` |  |  |  |
-| trackColor | `string` |  |  | Colour behind the bar, and behind the fill on outlined and text. |
 
 ### RadioButton
 
@@ -1376,34 +1440,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | error | `string` |  |  |  |
 | feedback | `boolean` | true |  | Report each selection to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | label | `string` |  |  |  |
-
-### Rating
-
-`packages/ui/src/components/Rating.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| value * | `number` |  |  | Current rating; halves are rendered (e.g. 3.5). |
-| disabled | `boolean` |  |  |  |
-| max | `number` | 5 |  |  |
-| onChange | `(value: number) => void` |  |  | Interactive when provided; tapping a star sets a whole value. |
-| size | `number` | 24 |  |  |
-
-### SearchBar
-
-`packages/ui/src/components/SearchBar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChangeText * | `(text: string) => void` |  |  |  |
-| value * | `string` |  |  |  |
-| autoFocus | `boolean` |  |  |  |
-| disabled | `boolean` |  |  |  |
-| leadingIcon | `MaterialCommunityIconsGlyphs` | "magnify" |  |  |
-| onClear | `() => void` |  |  | Called after the clear button empties the field. |
-| onSubmit | `(text: string) => void` |  |  |  |
-| placeholder | `string` | "Search" |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
 
 ### SideSheet
 
@@ -1476,20 +1512,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | mainIcon * | `MaterialCommunityIconsGlyphs` |  |  |  |
 | defaultOpen | `boolean` | false |  | Mount with the action stack already expanded. Uncontrolled after that. |
 | position | `SpeedDialPosition` | "bottom-right" |  |  |
-
-### Spinner
-
-`packages/ui/src/components/Spinner.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(val: number) => void` |  |  |  |
-| value * | `number` |  |  |  |
-| disabled | `boolean` |  |  |  |
-| label | `string` |  |  |  |
-| max | `number` | 100 |  |  |
-| min | `number` | 0 |  |  |
-| step | `number` | 1 |  |  |
 
 ### SplitButton
 
@@ -1581,39 +1603,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | children * | `ReactNode` |  |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 
-### TimePicker
-
-`packages/ui/src/components/TimePicker.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(date: Date) => void` |  |  |  |
-| value * | `Date \| null` |  |  | `null` renders `placeholder` instead of a formatted value. |
-| clearable | `boolean` |  |  | Adds a clear affordance to the field. Needs `onClear` to do anything. |
-| defaultInputType | `PickerInputType` |  |  | Which surface the dialog opens on. Default `"picker"`. |
-| defaultOpen | `boolean` |  |  | Mount with the picker already open. Uncontrolled after that. |
-| disabled | `boolean` |  |  |  |
-| endYear | `number` |  |  | Last year offered by the year grid. Defaults to 100 years on. |
-| error | `string` |  |  | Error text below the field; also recolors the field. |
-| firstDayOfWeek | `number` |  |  | 0 = Sunday … 6 = Saturday. Defaults to the locale's own week start. |
-| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
-| inputEnabled | `boolean` |  |  | Lets the user type the value straight into the field. Default `true`. |
-| isDateDisabled | `(date: Date) => boolean` |  |  | Excludes days `validRange` cannot express (weekends, a computed holiday set). |
-| label | `string` |  |  |  |
-| labels | `DateTimePickerLabels` |  |  | Chrome strings of the picker surface (nav buttons, "Today", "Clear", …). |
-| locale | `string` |  |  | Overrides the formatting/labelling locale. Defaults to the device locale. |
-| minuteInterval | `MinuteInterval` |  |  | Minute granularity of the clock. Defaults to 1. |
-| onClear | `() => void` |  |  |  |
-| placeholder | `string` |  |  | Shown while the field has no value. |
-| relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
-| required | `boolean` |  |  | Appends an asterisk to the label. |
-| scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
-| startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| use24HourClock | `boolean` |  |  | Forces the 24-hour clock face. Left unset, the locale decides. |
-| validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
-
 ### ToastProvider
 
 `packages/ui/src/providers/ToastProvider.tsx`
@@ -1621,20 +1610,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
-
-### Toggle
-
-`packages/ui/src/components/Toggle.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onValueChange * | `(value: boolean) => void` |  |  |  |
-| value * | `boolean` |  |  |  |
-| containerStyle | `StyleProp<ViewStyle>` | {} |  | Style for the outer Pressable. |
-| disabled | `boolean` | false |  |  |
-| feedback | `boolean` | true |  | Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
-| height | `number` | 18 |  | Track height; the thumb scales with it. Defaults to 18. |
-| width | `number` | 32 |  | Track width. Defaults to 32. |
 
 ### ToggleButton
 
@@ -1687,23 +1662,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | variant | `"docked" \| "floating"` | "docked" |  | `"docked"` spans the width of the screen's bottom edge (it replaces the bottom app bar); `"floating"` is a pill that floats over the content. Defaults to `"docked"`. |
 
-### Tooltip
-
-`packages/ui/src/components/Tooltip.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| content * | `string` |  |  | The tip's text; the body text of a rich tooltip. |
-| action | `{ label: string; onPress: () => void }` |  |  | Rich only: a text button. A rich tooltip with an action stays open while the pointer is over it (web) and until the action is taken or the anchor is long-pressed again (native). |
-| disabled | `boolean` |  |  |  |
-| enterDelay | `number` | 500 |  | Hover dwell (ms) before the tip appears on web. Without it, sweeping the pointer across a toolbar flashes every tooltip in the row. |
-| hideDelay | `number` | 1500 |  | Auto-hide delay (ms) after long-press on native. |
-| leaveDelay | `number` | 100 |  | Grace period (ms) before the tip leaves on hover-out. |
-| position | `"top" \| "bottom" \| "left" \| "right"` | "top" |  |  |
-| title | `string` |  |  | Rich only: the subhead. |
-| variant | `"plain" \| "rich"` | "plain" |  | `"plain"` is the one-line label for an icon-only control. `"rich"` adds a `title` and an `action`, for context a label cannot carry. Defaults to `"plain"`. |
-
 ### TopAppBar
 
 `packages/ui/src/components/TopAppBar.tsx`
@@ -1734,15 +1692,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | rippleColor | `string` |  |  | Colour of the state layer itself — the M3 "on" role of the surface. Defaults to `onSurface`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | underlayColor | `string` |  |  | Surface the state layer is drawn over. Defaults to `surface`. |
-
-### Typography
-
-`packages/ui/src/components/Typography.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| variant | `TypographyVariant` | "displayLarge" |  | M3 type-scale role. Defaults to `"displayLarge"`. |
 
 ### VStack
 

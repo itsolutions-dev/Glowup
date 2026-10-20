@@ -40,9 +40,6 @@
       "primaryStory": "BindsTheSingleton",
       "viewport": "560x420"
     },
-    "AnimatedFAB": {
-      "cardMode": "column"
-    },
     "AppBar": {
       "cardMode": "column"
     },
@@ -65,10 +62,6 @@
     "Breadcrumbs": {
       "cardMode": "column"
     },
-    "Calendar": {
-      "cardMode": "column",
-      "viewport": "1100x480"
-    },
     "Card": {
       "cardMode": "column"
     },
@@ -81,16 +74,13 @@
     "Checkbox": {
       "cardMode": "column"
     },
+    "CheckboxGroup": {
+      "cardMode": "column"
+    },
     "Chip": {
       "cardMode": "column"
     },
     "CircularProgress": {
-      "cardMode": "column"
-    },
-    "ClockDial": {
-      "cardMode": "column"
-    },
-    "ClockPicker": {
       "cardMode": "column"
     },
     "Collapse": {
@@ -104,13 +94,8 @@
       "cardMode": "column"
     },
     "DatePicker": {
-      "cardMode": "column"
-    },
-    "DatePickerInput": {
-      "cardMode": "column"
-    },
-    "DateRangePicker": {
-      "cardMode": "column"
+      "cardMode": "column",
+      "viewport": "1100x480"
     },
     "DateTimePicker": {
       "cardMode": "column"
@@ -233,6 +218,9 @@
     "Stepper": {
       "cardMode": "column"
     },
+    "Switch": {
+      "cardMode": "column"
+    },
     "TabContent": {
       "cardMode": "column"
     },
@@ -246,9 +234,6 @@
       "cardMode": "column"
     },
     "ToastProvider": {
-      "cardMode": "column"
-    },
-    "Toggle": {
       "cardMode": "column"
     },
     "Tooltip": {

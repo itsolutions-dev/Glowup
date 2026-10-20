@@ -107,7 +107,7 @@ const SpeedDial = ({
 
                 <FAB
                   icon={action.icon}
-                  onPress={() => {
+                  onClick={() => {
                     action.onPress();
                     toggle();
                   }}
@@ -134,8 +134,8 @@ const SpeedDial = ({
         >
           <FAB
             icon={mainIcon}
-            onPress={toggle}
-            size="regular"
+            onClick={toggle}
+            size="medium"
             placement="inline"
           />
         </Animated.View>

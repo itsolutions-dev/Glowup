@@ -13,7 +13,7 @@ import {
   ListItem,
   ProgressButton,
   RadioGroup,
-  Spinner,
+  NumberField,
   Typography,
   VStack,
   useTheme,
@@ -101,26 +101,18 @@ export default function Checkout() {
           <VStack spacing="m">
             {sectionTitle("Shipping address")}
             <Grid columns={2} spacing="m">
-              <Input label="First name" value="Ada" onChangeText={() => {}} />
-              <Input
-                label="Last name"
-                value="Lovelace"
-                onChangeText={() => {}}
-              />
+              <Input label="First name" value="Ada" onChange={() => {}} />
+              <Input label="Last name" value="Lovelace" onChange={() => {}} />
             </Grid>
             <Input
               label="Address"
               value="12 St James's Square"
-              onChangeText={() => {}}
+              onChange={() => {}}
               leadingIcon="map-marker-outline"
             />
             <Grid columns={2} spacing="m">
-              <Input label="City" value="London" onChangeText={() => {}} />
-              <Input
-                label="Postcode"
-                value="SW1Y 4LB"
-                onChangeText={() => {}}
-              />
+              <Input label="City" value="London" onChange={() => {}} />
+              <Input label="Postcode" value="SW1Y 4LB" onChange={() => {}} />
             </Grid>
             <Checkbox
               checked={sameAddress}
@@ -156,7 +148,7 @@ export default function Checkout() {
                 <Input
                   label="Card number"
                   value=""
-                  onChangeText={() => {}}
+                  onChange={() => {}}
                   placeholder="1234 1234 1234 1234"
                   leadingIcon="credit-card-outline"
                 />
@@ -164,13 +156,13 @@ export default function Checkout() {
                   <Input
                     label="Expiry"
                     value=""
-                    onChangeText={() => {}}
+                    onChange={() => {}}
                     placeholder="MM / YY"
                   />
                   <Input
                     label="CVC"
                     value=""
-                    onChangeText={() => {}}
+                    onChange={() => {}}
                     placeholder="123"
                   />
                 </Grid>
@@ -209,7 +201,12 @@ export default function Checkout() {
             >
               Quantity
             </Typography>
-            <Spinner value={quantity} onChange={setQuantity} min={1} max={9} />
+            <NumberField
+              value={quantity}
+              onChange={setQuantity}
+              min={1}
+              max={9}
+            />
           </HStack>
           <ListItem
             leading={<Avatar icon="cable-data" variant="rounded" size={48} />}
@@ -222,14 +219,14 @@ export default function Checkout() {
             <Input
               label="Promo code"
               value={promo}
-              onChangeText={setPromo}
+              onChange={setPromo}
               helperText={discount ? "GLOWUP10 applied" : "Try GLOWUP10"}
               style={{ flex: 1 }}
             />
             <Button
-              mode="tonal"
+              variant="tonal"
               style={{ marginTop: theme.spacing.s }}
-              onPress={() =>
+              onClick={() =>
                 setDiscount(promo.trim().toUpperCase() === "GLOWUP10" ? 10 : 0)
               }
             >
@@ -282,7 +279,7 @@ export default function Checkout() {
             progress={progress}
             loadingLabel="Processing payment…"
             successLabel="Payment complete"
-            onPress={() => {
+            onClick={() => {
               setProgress(0);
               setStatus("loading");
             }}

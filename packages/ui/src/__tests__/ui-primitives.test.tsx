@@ -10,8 +10,8 @@ import {
   ListSection,
   Modal,
   Portal,
+  Switch,
   ThemeProvider,
-  Toggle,
   ToggleButtonGroup,
   TouchableRipple,
   useTheme,
@@ -209,7 +209,7 @@ describe("ListItem", () => {
     const { toJSON, getByRole } = await wrap(
       <ListItem
         secondary="Keeps the screen on"
-        trailing={<Toggle value onValueChange={() => {}} />}
+        trailing={<Switch value onChange={() => {}} />}
       >
         Keep awake
       </ListItem>,

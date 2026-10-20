@@ -50,7 +50,7 @@ export const Interactive = () => {
     >
       <Typography variant="titleMedium">Billing preferences</Typography>
       <Collapse open={open}>{body}</Collapse>
-      <Button mode="text" onPress={() => setOpen((o) => !o)}>
+      <Button variant="text" onClick={() => setOpen((o) => !o)}>
         {open ? "Show less" : "Show more"}
       </Button>
     </VStack>

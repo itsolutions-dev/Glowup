@@ -18,8 +18,8 @@ const content: ViewStyle = {
 
 const filterActions = (
   <>
-    <Button onPress={() => {}}>Apply</Button>
-    <Button mode="outlined" onPress={() => {}}>
+    <Button onClick={() => {}}>Apply</Button>
+    <Button variant="outlined" onClick={() => {}}>
       Reset
     </Button>
   </>

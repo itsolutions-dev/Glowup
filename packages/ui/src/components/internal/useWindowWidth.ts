@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Dimensions } from "react-native";
+import { useViewportWidthOverride } from "../../providers/Viewport";
 
 const subscribe = (onChange: () => void) => {
   const subscription = Dimensions.addEventListener("change", onChange);
@@ -19,6 +20,10 @@ const getServerSnapshot = () => 0;
  * except that it reports 0 while hydrating a prerendered page and the real
  * width right after. On native and in a client-only web app there is no
  * hydration, and it is the window width from the first render.
+ *
+ * Under a `ViewportProvider` it is the width that provider sets instead.
  */
-export const useWindowWidth = () =>
-  useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+export const useWindowWidth = () => {
+  const real = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return useViewportWidthOverride() ?? real;
+};

@@ -63,9 +63,9 @@ function EnableNotifications() {
     useNotificationPermission();
   if (status === "granted" || status === "unsupported") return null;
   return canAskAgain ? (
-    <Button onPress={() => request()}>Enable notifications</Button>
+    <Button onClick={() => request()}>Enable notifications</Button>
   ) : (
-    <Button onPress={openSettings}>Open settings</Button>
+    <Button onClick={openSettings}>Open settings</Button>
   );
 }
 ```

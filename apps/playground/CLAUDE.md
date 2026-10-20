@@ -34,7 +34,8 @@ and a first render at width 0 matches the prerendered HTML.
   `.design-sync/previews/*.tsx` (the authored demos) into React Native primitives by
   `catalogue/variants/generate.mjs`. The previews stay in the browser dialect because the
   design-sync converter cannot resolve `react-native`; **edit the preview, then run
-  `npm run variants -w @its/glowup-playground`**. Seven previews are excluded by name in the
+  `npm run variants -w @its/glowup-playground`** (it overwrites the folder in place and removes
+  only stale files, so a running Metro keeps resolving `./generated`). Seven previews are excluded by name in the
   generator, each with its reason; hand-written galleries live in
   `catalogue/variants/manual/` and win over the generated entry for the same component.
   A catalogued component with no gallery at all fails the playground test.

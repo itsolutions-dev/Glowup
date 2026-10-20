@@ -43,25 +43,25 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 
 ### 1.3 Typography scale (M3)
 
-`fontFamily: System` for all. `variant` prop selects one.
+`fontFamily: System` for all. `variant` prop selects one, by its M3 role name or by its alias.
 
-| Variant        | Size | Line | Weight | Tracking |
-| -------------- | ---- | ---- | ------ | -------- |
-| displayLarge   | 57   | 64   | 400    | -0.25    |
-| displayMedium  | 45   | 52   | 400    | 0        |
-| displaySmall   | 36   | 44   | 400    | 0        |
-| headlineLarge  | 32   | 40   | 400    | 0        |
-| headlineMedium | 28   | 36   | 400    | 0        |
-| headlineSmall  | 24   | 32   | 400    | 0        |
-| titleLarge     | 22   | 28   | 400    | 0        |
-| titleMedium    | 16   | 24   | 500    | 0.15     |
-| titleSmall     | 14   | 20   | 500    | 0.1      |
-| bodyLarge      | 16   | 24   | 400    | 0.5      |
-| bodyMedium     | 14   | 20   | 400    | 0.25     |
-| bodySmall      | 12   | 16   | 400    | 0.4      |
-| labelLarge     | 14   | 20   | 500    | 0.1      |
-| labelMedium    | 12   | 16   | 500    | 0.5      |
-| labelSmall     | 11   | 16   | 500    | 0.5      |
+| Variant        | Alias     | Size | Line | Weight | Tracking |
+| -------------- | --------- | ---- | ---- | ------ | -------- |
+| displayLarge   | h1        | 57   | 64   | 400    | -0.25    |
+| displayMedium  | h2        | 45   | 52   | 400    | 0        |
+| displaySmall   | h3        | 36   | 44   | 400    | 0        |
+| headlineLarge  | h4        | 32   | 40   | 400    | 0        |
+| headlineMedium | —         | 28   | 36   | 400    | 0        |
+| headlineSmall  | h5        | 24   | 32   | 400    | 0        |
+| titleLarge     | h6        | 22   | 28   | 400    | 0        |
+| titleMedium    | subtitle1 | 16   | 24   | 500    | 0.15     |
+| titleSmall     | subtitle2 | 14   | 20   | 500    | 0.1      |
+| bodyLarge      | body1     | 16   | 24   | 400    | 0.5      |
+| bodyMedium     | body2     | 14   | 20   | 400    | 0.25     |
+| bodySmall      | caption   | 12   | 16   | 400    | 0.4      |
+| labelLarge     | button    | 14   | 20   | 500    | 0.1      |
+| labelMedium    | —         | 12   | 16   | 500    | 0.5      |
+| labelSmall     | overline  | 11   | 16   | 500    | 0.5      |
 
 ### 1.4 Spacing & Shape
 
@@ -113,12 +113,17 @@ Outline variants append `-outline`. Any prop typed "icon" below takes one of the
 
 Renders themed text at an M3 scale.
 
-| Prop     | Type                     | Default        | Req | Description  |
-| -------- | ------------------------ | -------------- | --- | ------------ |
-| children | ReactNode                | —              | ✓   | Text content |
-| variant  | typography key (see 1.3) | `displayLarge` |     | Type scale   |
-| style    | TextStyle                |                |     | Override     |
-| …rest    | TextProps                |                |     | Forwarded to `Text` (`numberOfLines`, `selectable`, `testID`…) |
+| Prop     | Type                                         | Default     | Req | Description                                                                                        |
+| -------- | -------------------------------------------- | ----------- | --- | -------------------------------------------------------------------------------------------------- |
+| children | ReactNode                                    | —           | ✓   | Text content                                                                                       |
+| variant  | alias or M3 role name (see 1.3)              | `h1`        |     | Type scale: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline` |
+| color    | theme colour token or any colour string      | `onSurface` |     | `"primary"`, `"onSurfaceVariant"`, `"error"`, … or `"#RRGGBB"`                                     |
+| fontSize | number                                       |             |     | Overrides the variant's size; the line height scales with it                                       |
+| nowrap   | boolean                                      | `false`     |     | One line, ending in an ellipsis when cut                                                           |
+| align    | `"left" \| "center" \| "right" \| "justify"` |             |     | Horizontal alignment                                                                               |
+| onClick  | () => void                                   |             |     | Makes the text pressable                                                                           |
+| style    | TextStyle                                    |             |     | Override                                                                                           |
+| …rest    | TextProps                                    |             |     | Forwarded to `Text` (`numberOfLines`, `selectable`, `testID`…)                                     |
 
 ### Divider
 
@@ -153,7 +158,7 @@ Pressable content surface.
 | ------------------ | ------------------------------------------------ | -------- | --- | ---------------------------------- |
 | children           | ReactNode                                        | —        | ✓   |                                    |
 | variant            | `"elevated" \| "filled" \| "outlined" \| "glow"` | `filled` |     |                                    |
-| onPress            | () => void                                       |          |     | Makes it interactive (button role) |
+| onClick            | () => void                                       |          |     | Makes it interactive (button role) |
 | accessibilityLabel | string                                           |          |     |                                    |
 | style              | ViewStyle                                        |          |     |                                    |
 
@@ -164,13 +169,13 @@ Pressable content surface.
 Source-agnostic icon primitive. Use it wherever the icon may not be a
 MaterialCommunityIcons glyph — a bundled bitmap, an SVG, a custom glyph set.
 
-| Prop       | Type                            | Default     | Description                            |
-| ---------- | ------------------------------- | ----------- | -------------------------------------- |
-| source     | `IconSource` (required)         | —           | Glyph name, image source, render fn, or element |
-| size       | number                          | `24`        |                                        |
-| color      | string                          | `onSurface` | Tints a glyph; omit for a colour bitmap |
-| flipForRTL | boolean                         | `false`     | Mirrors directional glyphs under RTL   |
-| style      | ImageStyle                      |             |                                        |
+| Prop       | Type                    | Default     | Description                                     |
+| ---------- | ----------------------- | ----------- | ----------------------------------------------- |
+| source     | `IconSource` (required) | —           | Glyph name, image source, render fn, or element |
+| size       | number                  | `24`        |                                                 |
+| color      | string                  | `onSurface` | Tints a glyph; omit for a colour bitmap         |
+| flipForRTL | boolean                 | `false`     | Mirrors directional glyphs under RTL            |
+| style      | ImageStyle              |             |                                                 |
 
 `IconSource` is a MaterialCommunityIcons name, an `ImageSourcePropType`, a
 `({ size, color }) => ReactNode` render function, or a ready-made element.
@@ -181,14 +186,14 @@ A `Pressable` that paints the M3 state layer — 8% hover, 10% focus, 12% press 
 surface, with the platform ripple on Android. Reach for it instead of re-deriving
 hover/press colours in a component.
 
-| Prop          | Type                    | Default     | Description                                |
-| ------------- | ----------------------- | ----------- | ------------------------------------------ |
-| children      | ReactNode (required)    | —           |                                            |
-| underlayColor | string                  | `surface`   | Surface the layer sits on                  |
-| rippleColor   | string                  | `onSurface` | The "on" role of that surface              |
-| borderless    | boolean                 | `false`     | Tint only, no container background         |
-| borderRadius  | number                  |             | Match the parent so the layer doesn't bleed |
-| activeStyle   | ViewStyle               |             | Applied while hovered or pressed           |
+| Prop          | Type                 | Default     | Description                                 |
+| ------------- | -------------------- | ----------- | ------------------------------------------- |
+| children      | ReactNode (required) | —           |                                             |
+| underlayColor | string               | `surface`   | Surface the layer sits on                   |
+| rippleColor   | string               | `onSurface` | The "on" role of that surface               |
+| borderless    | boolean              | `false`     | Tint only, no container background          |
+| borderRadius  | number               |             | Match the parent so the layer doesn't bleed |
+| activeStyle   | ViewStyle            |             | Applied while hovered or pressed            |
 
 Plus every `Pressable` prop except `style`/`children`. The `useStateLayer(base, on)` hook
 exports the same colours for a component that already owns its `Pressable`.
@@ -202,23 +207,25 @@ standalone exports. Compose them instead of hand-building a header row.
 identifier-shaped names, so a `Card.Title`-style heading would be dropped along with this
 whole section.)
 
-| Part           | Props                                                                                  |
-| -------------- | -------------------------------------------------------------------------------------- |
-| `Card.Title`   | `title` (required), `subtitle`, `left`, `right`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2) |
-| `Card.Content` | `children` (required)                                                                  |
-| `Card.Cover`   | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding       |
-| `Card.Actions` | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)          |
+| Part           | Props                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Card.Title`   | `title` (required), `subtitle`, `startIcon`, `endIcon`, `titleNumberOfLines` (1), `subtitleNumberOfLines` (2) |
+| `Card.Content` | `children` (required)                                                                                         |
+| `Card.Cover`   | `source` + `alt` (both required), `ratio` (`16/9`) — bleeds past the card padding                             |
+| `Card.Actions` | `children` (required), `align`: `"start" \| "end" \| "space-between"` (`end`)                                 |
 
 ```tsx
-<Card variant="elevated" onPress={open}>
+<Card variant="elevated" onClick={open}>
   <Card.Cover source={photo} alt="Line 4" />
   <Card.Title title="Line 4" subtitle="Scheduled maintenance" />
   <Card.Content>
-    <Typography variant="bodyMedium">Next service: 12 March</Typography>
+    <Typography variant="body2">Next service: 12 March</Typography>
   </Card.Content>
   <Card.Actions>
-    <Button mode="text" onPress={postpone}>Postpone</Button>
-    <Button onPress={confirm}>Confirm</Button>
+    <Button variant="text" onClick={postpone}>
+      Postpone
+    </Button>
+    <Button onClick={confirm}>Confirm</Button>
   </Card.Actions>
 </Card>
 ```
@@ -227,26 +234,30 @@ whole section.)
 
 ### Button
 
-| Prop               | Type                                          | Default              | Req | Description                |
-| ------------------ | --------------------------------------------- | -------------------- | --- | -------------------------- |
-| children           | ReactNode                                     |                      |     | Label                      |
-| onPress            | () => void                                    |                      |     |                            |
-| mode               | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |     |                            |
-| tone               | `"primary" \| "error" \| "success"`           | `primary`            |     | `success`: fixed green     |
-| iconName           | icon                                          |                      |     | Leading/trailing icon      |
-| iconPosition       | `"left" \| "right"`                           | `left`               |     |                            |
-| iconStyle          | object                                        |                      |     |                            |
-| size               | number                                        | `theme.shape.medium` |     | Icon size                  |
-| fullWidth          | boolean                                       | `false`              |     | Stretch to parent width    |
-| disabled           | boolean                                       | `false`              |     |                            |
-| loading            | boolean                                       | `false`              |     | Shows inline spinner       |
-| busy               | boolean                                       | `false`              |     | Blocks presses, aria-busy  |
-| underlay           | ReactNode                                     |                      |     | Drawn behind the label     |
-| labelStyle         | TextStyle                                     |                      |     | After the type style       |
-| accessibilityLabel | string                                        |                      |     | Falls back to string child |
-| accessibilityHint  | string                                        |                      |     |                            |
-| testID             | string                                        |                      |     |                            |
-| style              | object                                        |                      |     |                            |
+| Prop               | Type                                          | Default              | Req | Description                     |
+| ------------------ | --------------------------------------------- | -------------------- | --- | ------------------------------- |
+| children           | ReactNode                                     |                      |     | Label                           |
+| onClick            | () => void                                    |                      |     |                                 |
+| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |     |                                 |
+| color              | `ButtonColor`                                 | `primary`            |     | Colour role, see below          |
+| iconName           | icon                                          |                      |     | Leading/trailing icon           |
+| iconPosition       | `"start" \| "end"`                            | `start`              |     | Icon side relative to the label |
+| iconStyle          | object                                        |                      |     |                                 |
+| size               | number                                        | `theme.shape.medium` |     | Icon size                       |
+| fullWidth          | boolean                                       | `false`              |     | Stretch to parent width         |
+| disabled           | boolean                                       | `false`              |     |                                 |
+| loading            | boolean                                       | `false`              |     | Shows inline spinner            |
+| busy               | boolean                                       | `false`              |     | Blocks presses, aria-busy       |
+| underlay           | ReactNode                                     |                      |     | Drawn behind the label          |
+| labelStyle         | TextStyle                                     |                      |     | After the type style            |
+| accessibilityLabel | string                                        |                      |     | Falls back to string child      |
+| accessibilityHint  | string                                        |                      |     |                                 |
+| testID             | string                                        |                      |     |                                 |
+| style              | object                                        |                      |     |                                 |
+
+`color` takes a colour role (`ColorRole`, also the `color` of `IconButton`, `Chip` and `Badge`):
+`primary`, `secondary`, `tertiary`, `error` (the destructive treatment), `success`, `warning`,
+`info` or `neutral`. The last four come from fixed hues kept off the seed.
 
 `busy` is `loading` without the spinner: label, icon and full-strength colours stay on
 screen. `underlay` fills the whole surface behind the content, clipped to its shape and
@@ -256,33 +267,33 @@ blind to touches — it is how `ProgressButton` draws its fill.
 
 A `Button` that carries the progress of the task it started inside its own surface
 (the Google Maps "Start" pattern): **idle → loading → success | error**. Built on `Button`
-(same modes, shape, state layers) and `LinearProgress`.
+(same variants, shape, state layers) and `LinearProgress`.
 
-| Prop               | Type                                             | Default                | Description                                         |
-| ------------------ | ------------------------------------------------ | ---------------------- | --------------------------------------------------- |
-| status             | `"idle" \| "loading" \| "success" \| "error"`    | `idle`                 | Controlled — the caller moves it                    |
-| progress           | number 0–1                                       |                        | While loading. Undefined → indeterminate sweep      |
-| children           | string                                           |                        | Idle label (and loading label by default)           |
-| loadingLabel       | string                                           | `children`             | e.g. "Calculating route…"                           |
-| successLabel       | string                                           | `"Done"`               |                                                     |
-| errorLabel         | string                                           | `"Try again"`          |                                                     |
-| iconName           | icon                                             |                        | Idle and loading                                    |
-| successIconName    | icon                                             | `check`                |                                                     |
-| errorIconName      | icon                                             | `alert-circle-outline` |                                                     |
-| indicator          | `"fill" \| "bar"`                                | `fill`                 | Tone sweep across the surface, or a 4dp bottom line |
-| mode               | `"filled" \| "tonal" \| "outlined" \| "text"`    | `filled`               |                                                     |
-| onPress            | () => void                                       |                        | Fires in every status but `loading`                 |
-| disabled           | boolean                                          | `false`                |                                                     |
-| fullWidth          | boolean                                          | `false`                |                                                     |
-| successDuration    | number (ms)                                      | `2000`                 | Then `onSuccessEnd`; `0` holds success              |
-| onSuccessEnd       | () => void                                       |                        | Typically sets `status` back to `idle`              |
-| progressColor      | string                                           | derived                | Fill or bar colour                                  |
-| trackColor         | string                                           | `on` at 20% / 6%       | Behind the bar; behind the fill on outlined / text  |
-| duration           | number (ms)                                      | `300`                  | Each progress step's transition                     |
-| style              | ViewStyle                                        |                        | Surface: radius, padding, width                     |
-| labelStyle         | TextStyle                                        |                        | Label: font family, size, weight                    |
-| accessibilityLabel | string                                           | label                  | Idle accessible name                                |
-| testID             | string                                           |                        |                                                     |
+| Prop               | Type                                          | Default                | Description                                         |
+| ------------------ | --------------------------------------------- | ---------------------- | --------------------------------------------------- |
+| status             | `"idle" \| "loading" \| "success" \| "error"` | `idle`                 | Controlled — the caller moves it                    |
+| progress           | number 0–1                                    |                        | While loading. Undefined → indeterminate sweep      |
+| children           | string                                        |                        | Idle label (and loading label by default)           |
+| loadingLabel       | string                                        | `children`             | e.g. "Calculating route…"                           |
+| successLabel       | string                                        | `"Done"`               |                                                     |
+| errorLabel         | string                                        | `"Try again"`          |                                                     |
+| iconName           | icon                                          |                        | Idle and loading                                    |
+| successIconName    | icon                                          | `check`                |                                                     |
+| errorIconName      | icon                                          | `alert-circle-outline` |                                                     |
+| indicator          | `"fill" \| "bar"`                             | `fill`                 | Tone sweep across the surface, or a 4dp bottom line |
+| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`               |                                                     |
+| onClick            | () => void                                    |                        | Fires in every status but `loading`                 |
+| disabled           | boolean                                       | `false`                |                                                     |
+| fullWidth          | boolean                                       | `false`                |                                                     |
+| successDuration    | number (ms)                                   | `2000`                 | Then `onSuccessEnd`; `0` holds success              |
+| onSuccessEnd       | () => void                                    |                        | Typically sets `status` back to `idle`              |
+| progressColor      | string                                        | derived                | Fill or bar colour                                  |
+| trackColor         | string                                        | `on` at 20% / 6%       | Behind the bar; behind the fill on outlined / text  |
+| duration           | number (ms)                                   | `300`                  | Each progress step's transition                     |
+| style              | ViewStyle                                     |                        | Surface: radius, padding, width                     |
+| labelStyle         | TextStyle                                     |                        | Label: font family, size, weight                    |
+| accessibilityLabel | string                                        | label                  | Idle accessible name                                |
+| testID             | string                                        |                        |                                                     |
 
 - **Loading** is busy (`aria-busy="true"`), not disabled: full-strength colours, presses
   blocked. The fill grows with `transform: scaleX` on the native driver, never `width`.
@@ -296,72 +307,79 @@ A `Button` that carries the progress of the task it started inside its own surfa
   (darker in light, lighter in dark) so the label keeps its contrast; on `tonal` a step
   towards it; on `outlined` / `text` the label colour at 16%.
 - No CSS classes or variables: customise through `style`, `labelStyle`, `progressColor`,
-  `trackColor`, `mode`, and the theme.
+  `trackColor`, `variant`, and the theme.
 
 ### IconButton
 
 Square, icon-only action. `Button` with only an icon comes out pill-shaped and label-padded.
 
-| Prop               | Type                                              | Default    | Req | Description                                  |
-| ------------------ | ------------------------------------------------- | ---------- | --- | -------------------------------------------- |
-| icon               | icon                                              | —          | ✓   |                                              |
-| accessibilityLabel | string                                            | —          | ✓   | Required: an icon carries no accessible name |
-| onPress            | () => void                                        |            |     |                                              |
-| mode               | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` |     |                                              |
-| size               | `"small" \| "medium" \| "large"`                  | `medium`   |     | 32 / 40 / 48                                 |
-| selected           | boolean                                           |            |     | M3 toggle-icon-button state                  |
-| loading            | boolean                                           |            |     | Inline spinner                               |
-| disabled           | boolean                                           |            |     |                                              |
-| style              | ViewStyle                                         |            |     |                                              |
+| Prop               | Type                                              | Default    | Req | Description                                          |
+| ------------------ | ------------------------------------------------- | ---------- | --- | ---------------------------------------------------- |
+| icon               | icon                                              | —          | ✓   |                                                      |
+| accessibilityLabel | string                                            | —          | ✓   | Required: an icon carries no accessible name         |
+| onClick            | () => void                                        |            |     |                                                      |
+| variant            | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` |     |                                                      |
+| color              | `ColorRole`                                       |            |     | Same roles as `Button`; omit for the neutral M3 look |
+| title              | string                                            |            |     | Tooltip: hover / focus on web, long press on native  |
+| size               | `"small" \| "medium" \| "large"`                  | `medium`   |     | 32 / 40 / 48                                         |
+| selected           | boolean                                           |            |     | M3 toggle-icon-button state                          |
+| loading            | boolean                                           |            |     | Inline spinner                                       |
+| disabled           | boolean                                           |            |     |                                                      |
+| style              | ViewStyle                                         |            |     |                                                      |
 
 ### Link
 
 Inline navigational text.
 
-| Prop             | Type                            | Default                  | Req | Description                                                  |
-| ---------------- | ------------------------------- | ------------------------ | --- | ------------------------------------------------------------ |
-| children         | string                          | —                        | ✓   | Label                                                        |
-| href             | string                          |                          |     | Opened with `Linking.openURL`; ignored when `onPress` is set |
-| allowedSchemes   | string[]                        | `http, https, mailto, tel` |   | An `href` with any other scheme does nothing                 |
-| onPress          | () => void                      |                          |     |                                                              |
-| variant          | typography key                  | `bodyMedium`             |     |                                                              |
-| underline        | `"always" \| "hover" \| "none"` | `hover`                  |     |                                                              |
-| showExternalIcon | boolean                         | `true` for remote `href` |     |                                                              |
-| externalIcon     | icon                            | `open-in-new`            |     |                                                              |
-| color            | string                          | `colors.primary`         |     |                                                              |
-| disabled         | boolean                         |                          |     |                                                              |
+| Prop             | Type                            | Default                    | Req | Description                                                  |
+| ---------------- | ------------------------------- | -------------------------- | --- | ------------------------------------------------------------ |
+| children         | string                          | —                          | ✓   | Label                                                        |
+| href             | string                          |                            |     | Opened with `Linking.openURL`; ignored when `onPress` is set |
+| allowedSchemes   | string[]                        | `http, https, mailto, tel` |     | An `href` with any other scheme does nothing                 |
+| onPress          | () => void                      |                            |     |                                                              |
+| variant          | typography key                  | `bodyMedium`               |     |                                                              |
+| underline        | `"always" \| "hover" \| "none"` | `hover`                    |     |                                                              |
+| showExternalIcon | boolean                         | `true` for remote `href`   |     |                                                              |
+| externalIcon     | icon                            | `open-in-new`              |     |                                                              |
+| color            | string                          | `colors.primary`           |     |                                                              |
+| disabled         | boolean                         |                            |     |                                                              |
 
 ### FAB (Floating Action Button)
 
-Absolutely positioned; respects safe-area insets.
+Absolutely positioned by default; respects safe-area insets. `placement="inline"` drops the
+positioning, to put the FAB in a toolbar or a card action row. `variant` picks the shape:
+`"icon"` (a round, icon-only button), `"extended"` (the label beside the icon) or `"animated"`
+(a FAB that animates between an icon-only circle and a labelled pill). Drive `extended` from a
+scroll offset for the M3 shrink-on-scroll behaviour.
 
-| Prop     | Type                                                           | Default        | Req | Description                       |
-| -------- | -------------------------------------------------------------- | -------------- | --- | --------------------------------- |
-| icon     | icon                                                           | —              | ✓   |                                   |
-| onPress  | () => void                                                     | —              | ✓   |                                   |
-| label    | string                                                         |                |     | Shown only when `size="extended"` |
-| size     | `"small" \| "regular" \| "large" \| "extended"`                | `regular`      |     |                                   |
-| position | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |     |                                   |
-| disabled | boolean                                                        |                |     |                                   |
-| style    | ViewStyle                                                      |                |     |                                   |
+| Prop        | Type                                                           | Default        | Req | Description                                                          |
+| ----------- | -------------------------------------------------------------- | -------------- | --- | -------------------------------------------------------------------- |
+| icon        | icon                                                           | —              | ✓   |                                                                      |
+| onClick     | () => void                                                     | —              | ✓   |                                                                      |
+| label       | string                                                         |                |     | The text of `extended` / `animated`; every variant's accessible name |
+| variant     | `"icon" \| "extended" \| "animated"`                           | `icon`         |     |                                                                      |
+| size        | `"small" \| "medium" \| "large"`                               | `medium`       |     | 40 / 56 / 96                                                         |
+| placement   | `"floating" \| "inline"`                                       | `floating`     |     | `inline` drops absolute positioning                                  |
+| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` |     |                                                                      |
+| disabled    | boolean                                                        |                |     |                                                                      |
+| extended    | boolean                                                        | `true`         |     | `animated` only: shows the label, or collapses to the icon           |
+| animateFrom | `"left" \| "right"`                                            | `right`        |     | `animated` only: edge the label grows from                           |
+| iconMode    | `"static" \| "dynamic"`                                        | `static`       |     | `animated` only: icon stays put, or travels                          |
+| duration    | number (ms)                                                    | `150`          |     | `animated` only                                                      |
+| style       | ViewStyle                                                      |                |     |                                                                      |
+| testID      | string                                                         |                |     |                                                                      |
 
-### AnimatedFAB
+```tsx
+const [extended, setExtended] = useState(true);
 
-A FAB that animates between an icon-only circle and a labelled pill. Drive `extended`
-from a scroll offset for the M3 shrink-on-scroll behaviour.
-
-| Prop        | Type                                            | Default        | Description                        |
-| ----------- | ----------------------------------------------- | -------------- | ---------------------------------- |
-| icon        | icon (required)                                 | —              |                                    |
-| label       | string (required)                               | —              | It is the label that animates      |
-| onPress     | () => void (required)                           | —              |                                    |
-| extended    | boolean                                         | `true`         | Shows the label, or collapses      |
-| animateFrom | `"left" \| "right"`                             | `right`        | Edge the label grows from          |
-| iconMode    | `"static" \| "dynamic"`                         | `static`       | Icon stays put, or travels         |
-| placement   | `"floating" \| "inline"`                        | `floating`     | `inline` drops absolute positioning |
-| position    | `"bottom-right" \| "bottom-left" \| "top-right" \| "top-left"` | `bottom-right` | |
-| duration    | number (ms)                                     | `150`          |                                    |
-| disabled    | boolean                                         | `false`        |                                    |
+<ScrollView
+  onScroll={(e) => setExtended(e.nativeEvent.contentOffset.y <= 0)}
+  scrollEventThrottle={16}
+>
+  …
+</ScrollView>
+<FAB variant="animated" icon="plus" label="New ticket" extended={extended} onClick={create} />
+```
 
 ### SpeedDial
 
@@ -410,22 +428,26 @@ A primary action (`children`, `iconName`, `onPress`) joined to a trailing button
 
 ### Chip
 
-| Prop     | Type                                | Default  | Req | Description                  |
-| -------- | ----------------------------------- | -------- | --- | ---------------------------- |
-| label    | string                              | —        | ✓   |                              |
-| onPress  | () => void                          |          |     | Makes body pressable         |
-| onClose  | () => void                          |          |     | Renders a trailing close (X) |
-| icon     | icon                                |          |     | Leading icon                 |
-| selected | boolean                             | `false`  |     | Shows check + tertiary tone  |
-| mode     | `"filled" \| "tonal" \| "outlined"` | `filled` |     |                              |
-| size     | `"small" \| "medium"`               | `medium` |     | small = 24px                 |
-| disabled | boolean                             | `false`  |     |                              |
-| style    | object                              |          |     |                              |
+| Prop     | Type                                   | Default   | Req | Description                                                 |
+| -------- | -------------------------------------- | --------- | --- | ----------------------------------------------------------- |
+| label    | string                                 | —         | ✓   |                                                             |
+| onClick  | () => void                             |           |     | Makes body pressable                                        |
+| onClose  | () => void                             |           |     | Renders a trailing close (X)                                |
+| icon     | icon                                   |           |     | Leading icon                                                |
+| selected | boolean                                | `false`   |     | Shows check + tertiary tone                                 |
+| variant  | `"filled" \| "tonal" \| "outlined"`    | `filled`  |     |                                                             |
+| color    | `ColorRole`                            |           |     | Same roles as `Button`; omit for the neutral secondary look |
+| size     | `"small" \| "medium" \| "large"`       | `medium`  |     | 24 / 32 / 40px                                              |
+| border   | `"rounded" \| "squared" \| "circular"` | `rounded` |     | Corner shape                                                |
+| disabled | boolean                                | `false`   |     |                                                             |
+| style    | object                                 |           |     |                                                             |
 
 ### ChipGroup
 
-A set of filter chips with the selection handled: single (optionally `required`) or `multiSelect`,
-wrapping or scrolling (`wrap`). Chips report radio/checkbox semantics. Props: see the API reference on its page of the docs site (generated from the source).
+A set of filter chips with the selection handled: single (optionally `required`) or `multiple`,
+wrapping or scrolling (`wrap`). Chips report radio/checkbox semantics. `onChange` receives the
+selected value, or the array of values with `multiple`; `variant` is the chips' look (`outlined` by
+default). Props: see the API reference on its page of the docs site (generated from the source).
 
 ---
 
@@ -435,50 +457,57 @@ wrapping or scrolling (`wrap`). Chips report radio/checkbox semantics. Props: se
 
 Text field, outlined or filled; supports affixes, icons, multiline, number mode.
 
-| Prop                       | Type                     | Default    | Req | Description                          |
-| -------------------------- | ------------------------ | ---------- | --- | ------------------------------------ |
-| value                      | string                   | —          | ✓   |                                      |
-| onChangeText               | (text) => void           | —          | ✓   |                                      |
-| label                      | string                   |            |     |                                      |
-| placeholder                | string                   |            |     |                                      |
-| type                       | `"text" \| "number"`     | `text`     |     | number = decimal keypad + sanitizing |
-| variant                    | `"outlined" \| "filled"` | `outlined` |     |                                      |
-| precision                  | number                   |            |     | Decimal places (number type)         |
-| prefix / suffix            | string                   |            |     | Inline affix text                    |
-| leadingIcon / trailingIcon | icon                     |            |     |                                      |
-| onTrailingIconPress        | () => void               |            |     |                                      |
-| error                      | string                   |            |     | Error message + error styling        |
-| helperText                 | string                   |            |     | Hidden while error shown             |
-| required                   | boolean                  |            |     | Asterisk on label                    |
-| disabled                   | boolean                  |            |     |                                      |
-| readonly                   | boolean                  |            |     |                                      |
-| secureTextEntry            | boolean                  |            |     | Password mode                        |
-| maxLength                  | number                   |            |     |                                      |
-| multiline                  | boolean                  | `false`    |     |                                      |
-| numberOfLines              | number                   | `4`        |     |                                      |
-| minHeight                  | number                   | `56`       |     |                                      |
-| onFocus / onBlur           | () => void               |            |     |                                      |
-| style                      | ViewStyle                |            |     |                                      |
+| Prop                       | Type                     | Default    | Req | Description                                                                                             |
+| -------------------------- | ------------------------ | ---------- | --- | ------------------------------------------------------------------------------------------------------- |
+| value                      | string                   | —          | ✓   |                                                                                                         |
+| onChange                   | (text) => void           | —          | ✓   |                                                                                                         |
+| label                      | string                   |            |     |                                                                                                         |
+| placeholder                | string                   |            |     |                                                                                                         |
+| type                       | `"text" \| "number"`     | `text`     |     | number = decimal keypad + sanitizing                                                                    |
+| variant                    | `"outlined" \| "filled"` | `outlined` |     | The look of the box: `filled` is tinted, with its border only on focus / error, like `PinInput`'s cells |
+| labelPlacement             | `"inside" \| "outside"`  | `outside`  |     | `outside` draws the label above the box, `inside` small within it; independent of `variant`             |
+| fullWidth                  | boolean                  | `true`     |     | `false` shrinks the field to its content                                                                |
+| precision                  | number                   |            |     | Decimal places (number type)                                                                            |
+| prefix / suffix            | string                   |            |     | Inline affix text                                                                                       |
+| leadingIcon / trailingIcon | icon                     |            |     |                                                                                                         |
+| onTrailingIconPress        | () => void               |            |     |                                                                                                         |
+| error                      | string                   |            |     | Error message + error styling                                                                           |
+| helperText                 | string                   |            |     | Hidden while error shown                                                                                |
+| required                   | boolean                  |            |     | Asterisk on label                                                                                       |
+| disabled                   | boolean                  |            |     |                                                                                                         |
+| readonly                   | boolean                  |            |     |                                                                                                         |
+| secureTextEntry            | boolean                  |            |     | Password mode                                                                                           |
+| maxLength                  | number                   |            |     |                                                                                                         |
+| multiline                  | boolean                  | `false`    |     |                                                                                                         |
+| rows                       | number                   | `4`        |     | Visible lines of a `multiline` field                                                                    |
+| minHeight                  | number                   | `56`       |     |                                                                                                         |
+| onFocus / onBlur           | () => void               |            |     |                                                                                                         |
+| style                      | ViewStyle                |            |     |                                                                                                         |
 
 ### Select
 
 Dropdown built on Popover; single or multi select, optional chip display.
 
-| Prop                | Type                     | Default            | Req | Description                   |
-| ------------------- | ------------------------ | ------------------ | --- | ----------------------------- |
-| options             | `Option[]`               | —                  | ✓   | `{ id, label, value, icon? }` |
-| value               | any                      | —                  | ✓   | Selected value (single)       |
-| onSelect            | (value) => void          | —                  | ✓   |                               |
-| label               | string                   |                    |     |                               |
-| placeholder         | string                   | `Select an option` |     |                               |
-| variant             | `"outlined" \| "filled"` | `outlined`         |     |                               |
-| error               | string                   |                    |     |                               |
-| disabled            | boolean                  |                    |     |                               |
-| multiSelect         | boolean                  | `false`            |     |                               |
-| showAsChips         | boolean                  | `false`            |     | Render selection as chips     |
-| selectedValues      | any[]                    | `[]`               |     | Multi-select value set        |
-| toggleOptions       | (value) => void          |                    |     | Multi-select handler          |
-| style / optionStyle | object                   |                    |     |                               |
+| Prop                | Type                               | Default            | Req | Description                                                                                 |
+| ------------------- | ---------------------------------- | ------------------ | --- | ------------------------------------------------------------------------------------------- |
+| options             | `Option[]`                         | —                  | ✓   | `{ id, label, value, icon? }`                                                               |
+| value               | any                                | —                  | ✓   | Selected value (single); `null` for none                                                    |
+| onChange            | (value) => void                    | —                  | ✓   | The picked `value`; `null` when a `nullable` select is cleared                              |
+| label               | string                             |                    |     |                                                                                             |
+| placeholder         | string                             | `Select an option` |     |                                                                                             |
+| variant             | `"outlined" \| "filled"`           | `outlined`         |     | The look of the box, as `Input`                                                             |
+| labelPlacement      | `"inside" \| "outside"`            | `outside`          |     | `inside` draws the label small above the value; independent of `variant`                    |
+| fullWidth           | boolean                            | `true`             |     | `false` shrinks the select to its content                                                   |
+| nullable            | boolean                            | `false`            |     | Clear button; picking the selected option again deselects                                   |
+| emptyMessage        | string                             | `No options`       |     | Shown in the open list when `options` is empty                                              |
+| disabledOptions     | `RegExp` \| `(string \| number)[]` |                    |     | Values that stay visible but cannot be picked (a pattern is tested against `String(value)`) |
+| error               | string                             |                    |     |                                                                                             |
+| disabled            | boolean                            |                    |     |                                                                                             |
+| multiple            | boolean                            | `false`            |     |                                                                                             |
+| showAsChips         | boolean                            | `false`            |     | Render selection as chips                                                                   |
+| selectedValues      | any[]                              | `[]`               |     | Multi-select value set                                                                      |
+| toggleOptions       | (value) => void                    |                    |     | Multi-select handler                                                                        |
+| style / optionStyle | object                             |                    |     |                                                                                             |
 
 ### Checkbox
 
@@ -491,6 +520,26 @@ Dropdown built on Popover; single or multi select, optional chip display.
 | indeterminate | boolean             |         |     | Mixed state |
 | disabled      | boolean             |         |     |             |
 | error         | boolean             |         |     |             |
+
+### CheckboxGroup
+
+Several independent choices under one label: the checkbox counterpart of `RadioGroup`. The group
+owns the array of checked values.
+
+| Prop       | Type                            | Default  | Req | Description                                             |
+| ---------- | ------------------------------- | -------- | --- | ------------------------------------------------------- |
+| options    | `{ label, value, disabled? }[]` | —        | ✓   | `disabled` disables only that option                    |
+| value      | any[]                           | —        | ✓   | The values of the checked options                       |
+| onChange   | (values) => void                | —        | ✓   | The new set of checked values after each toggle         |
+| label      | string                          |          |     |                                                         |
+| direction  | `"column" \| "row"`             | `column` |     | `row` lays the options in a wrapping line               |
+| disabled   | boolean                         |          |     | Whole group                                             |
+| required   | boolean                         |          |     | Asterisk on label                                       |
+| error      | string                          |          |     | Message below the group; also turns the checkboxes red  |
+| helperText | string                          |          |     | Hidden while `error` is set                             |
+| feedback   | boolean                         | `true`   |     | Report each toggle to `onInteractionFeedback` (haptics) |
+| style      | ViewStyle                       |          |     |                                                         |
+| testID     | string                          |          |     |                                                         |
 
 ### RadioButton / RadioGroup
 
@@ -518,18 +567,21 @@ RadioGroup:
 | disabled      | boolean             |          |     |                                   |
 | error         | string              |          |     | Group-level error message         |
 
-### Toggle (Switch)
+### Switch
 
 Animated M3 switch.
 
-| Prop              | Type            | Default | Req | Description         |
-| ----------------- | --------------- | ------- | --- | ------------------- |
-| value             | boolean         | —       | ✓   |                     |
-| onValueChange     | (value) => void | —       | ✓   |                     |
-| disabled          | boolean         | `false` |     |                     |
-| width             | number          | `32`    |     |                     |
-| height            | number          | `18`    |     |                     |
-| containerStyle    | ViewStyle       |         |     |                     |
+| Prop           | Type                                    | Default     | Req | Description                                                |
+| -------------- | --------------------------------------- | ----------- | --- | ---------------------------------------------------------- |
+| value          | boolean                                 | —           | ✓   |                                                            |
+| onChange       | (value) => void                         | —           | ✓   | Called with the new state; pressing the label counts       |
+| disabled       | boolean                                 | `false`     |     |                                                            |
+| label          | string                                  |             |     | Text next to the switch; pressing it toggles too           |
+| labelPlacement | `"start" \| "end" \| "top" \| "bottom"` | `end`       |     | `start` / `end` are left / right in a left-to-right layout |
+| size           | `"small" \| "medium" \| "large"`        | `medium`    |     | Track 24×14 / 32×18 / 40×22                                |
+| width          | number                                  | from `size` |     | Overrides the track width                                  |
+| height         | number                                  | from `size` |     | Overrides the track height; the thumb scales with it       |
+| containerStyle | ViewStyle                               |             |     |                                                            |
 
 ### Slider
 
@@ -547,7 +599,7 @@ Animated M3 switch.
 | disabled          | boolean         |         |     |                                 |
 | style             | ViewStyle       |         |     |                                 |
 
-### Spinner (Number stepper)
+### NumberField (Number stepper)
 
 Numeric field with +/- steppers. (Distinct from progress spinners in §6.)
 
@@ -563,19 +615,21 @@ Numeric field with +/- steppers. (Distinct from progress spinners in §6.)
 
 ### SearchBar
 
-| Prop         | Type           | Default | Req | Description                      |
-| ------------ | -------------- | ------- | --- | -------------------------------- |
-| value        | string         | —       | ✓   |                                  |
-| onChangeText | (text) => void | —       | ✓   |                                  |
-| onSubmit     | (text) => void |         |     |                                  |
-| onClear      | () => void     |         |     | After clear button empties field |
-| placeholder  | string         |         |     |                                  |
-| leadingIcon  | icon           |         |     |                                  |
-| disabled     | boolean        |         |     |                                  |
-| autoFocus    | boolean        |         |     |                                  |
-| style        | ViewStyle      |         |     |                                  |
+| Prop         | Type           | Default   | Req | Description                                                                                  |
+| ------------ | -------------- | --------- | --- | -------------------------------------------------------------------------------------------- |
+| value        | string         | —         | ✓   |                                                                                              |
+| onChange     | (text) => void | —         | ✓   | Waits for `debounceTime` when set; submit and clear report at once                           |
+| onSubmit     | (text) => void |           |     |                                                                                              |
+| onClear      | () => void     |           |     | After clear button empties field                                                             |
+| placeholder  | string         | `Search`  |     |                                                                                              |
+| icon         | icon           | `magnify` |     | Glyph at the start of the bar                                                                |
+| debounceTime | number (ms)    | `0`       |     | How long the user must stop typing before `onChange` fires; the field itself updates at once |
+| showLoading  | boolean        | `false`   |     | A progress indicator replaces the clear button                                               |
+| disabled     | boolean        |           |     |                                                                                              |
+| autoFocus    | boolean        |           |     |                                                                                              |
+| style        | ViewStyle      |           |     |                                                                                              |
 
-### DateTimePicker / DatePicker / DatePickerInput / DateRangePicker / TimePicker
+### DateTimePicker / DatePicker / TimePicker
 
 Field that opens a Material 3 date/time picker. There is no OS picker underneath: the same
 in-house surface renders everywhere — a dialog on native, a popover docked to the field on web —
@@ -584,120 +638,91 @@ weekday names, week start, 12h/24h, AM/PM, typed-entry field order, day announce
 from `Intl` and memoized per locale; nothing is hardcoded to a language. Relative day labels
 (Today/Yesterday/Tomorrow) come from `Intl.RelativeTimeFormat` unless overridden.
 
-`DatePicker`, `DateRangePicker`, `TimePicker` and `DatePickerInput` are the same component with
-`mode` / `selectionMode` / `inputEnabled` locked.
+`DatePicker` and `TimePicker` are the same component with `mode` locked. `DatePicker` still takes
+`selectionMode`: a date range is `<DatePicker selectionMode="range" />`, a set of days
+`selectionMode="multiple"`. Typed entry is `inputEnabled` / `defaultInputType`. These three are the
+only public pickers; the calendar and the clock they are built from are not exported on their own,
+`variant="static"` draws them inline.
 
-| Prop                | Type                                       | Default       | Req | Description                                                         |
-| ------------------- | ------------------------------------------ | ------------- | --- | ------------------------------------------------------------------- |
-| value               | `Date \| null` · `DateRange` · `Date[]`    | —             | ✓   | Shape follows `selectionMode`                                       |
-| onChange            | matching setter                            | —             | ✓   | Single mode is never called with `null`; clearing goes to `onClear` |
-| label               | string                                     |               |     | Also labels the typed-entry field inside the dialog                 |
-| mode                | `"date" \| "datetime" \| "time"`           | `date`        |     | `datetime` collects the day, then the time                          |
-| selectionMode       | `"single" \| "range" \| "multiple"`        | `single`      |     | Ignored when `mode="time"`                                          |
-| validRange          | `{ startDate?, endDate?, disabledDates? }` |               |     | Inclusive bounds compared at day granularity                        |
-| isDateDisabled      | (date) => boolean                          |               |     | For rules `validRange` cannot express                               |
-| scrollMode          | `"endless" \| "paged"`                     | `endless`     |     | `endless` virtualizes the months in one list                        |
-| inputEnabled        | boolean                                    | `true`        |     | Typed entry in the field and the calendar↔keyboard toggle           |
-| defaultInputType    | `"picker" \| "keyboard"`                   | `picker`      |     | Which surface the dialog opens on                                   |
-| use24HourClock      | boolean                                    | locale's own  |     | `true` forces the 24-hour dial                                      |
-| minuteInterval      | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`     | `1`           |     | Granularity the dial snaps to                                       |
-| startYear / endYear | number                                     | ±100 years    |     | Bounds of the year grid and the endless scroller                    |
-| placeholder         | string                                     |               |     | Shown while the value is empty                                      |
-| clearable           | boolean                                    |               |     | Adds a clear button; needs `onClear`                                |
-| onClear             | () => void                                 |               |     |                                                                     |
-| error               | string                                     |               |     | Error text; also recolors the field                                 |
-| helperText          | string                                     |               |     | Hidden while `error` is set                                         |
-| required            | boolean                                    |               |     | Appends `*` to the label                                            |
-| locale              | string                                     | device locale |     | Formatting/labelling override                                       |
-| firstDayOfWeek      | 0–6 (0 = Sunday)                           | locale's own  |     |                                                                     |
-| labels              | `DateTimePickerLabels`                     | English       |     | Chrome strings (`selectDate`, `confirm`, `next`, …)                 |
-| relativeLabels      | `{ today?, yesterday?, tomorrow? }`        | `Intl`        |     |                                                                     |
-| defaultOpen         | boolean                                    | `false`       |     | Mount with the picker open                                          |
-| disabled            | boolean                                    |               |     |                                                                     |
-| style               | ViewStyle                                  |               |     |                                                                     |
-| testID              | string                                     |               |     |                                                                     |
+| Prop                | Type                                       | Default       | Req | Description                                                                                                   |
+| ------------------- | ------------------------------------------ | ------------- | --- | ------------------------------------------------------------------------------------------------------------- |
+| value               | `Date \| null` · `DateRange` · `Date[]`    | —             | ✓   | Shape follows `selectionMode`                                                                                 |
+| onChange            | matching setter                            | —             | ✓   | Single mode is never called with `null`; clearing goes to `onClear`                                           |
+| variant             | `"default" \| "static"`                    | `default`     |     | `static` draws the picker inline: see below                                                                   |
+| presentation        | `"auto" \| "popover" \| "dialog"`          | `auto`        |     | Web only: docked to the field, or a centred dialog. `auto` picks the dialog on a touch device or under 600 px |
+| fieldVariant        | `"outlined" \| "filled"`                   | `outlined`    |     | The look of the field's box, as `variant` on `Input` (`variant` here is default or static)                    |
+| label               | string                                     |               |     | Also labels the typed-entry field inside the dialog                                                           |
+| mode                | `"date" \| "datetime" \| "time"`           | `date`        |     | `datetime` collects the day, then the time                                                                    |
+| selectionMode       | `"single" \| "range" \| "multiple"`        | `single`      |     | Ignored when `mode="time"`                                                                                    |
+| validRange          | `{ startDate?, endDate?, disabledDates? }` |               |     | Inclusive bounds compared at day granularity                                                                  |
+| isDateDisabled      | (date) => boolean                          |               |     | For rules `validRange` cannot express                                                                         |
+| scrollMode          | `"endless" \| "paged"`                     | `endless`     |     | `endless` virtualizes the months in one list                                                                  |
+| inputEnabled        | boolean                                    | `true`        |     | Typed entry in the field (a single calendar date)                                                             |
+| defaultInputType    | `"picker" \| "keyboard"`                   | `picker`      |     | Which surface the dialog opens on; no toggle once it is open                                                  |
+| showToday           | boolean                                    | `true`        |     | "Today" button in the calendar header (single dates only)                                                     |
+| use24HourClock      | boolean                                    | locale's own  |     | `true` forces the 24-hour dial                                                                                |
+| minuteInterval      | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`     | `1`           |     | Granularity the dial snaps to                                                                                 |
+| startYear / endYear | number                                     | ±100 years    |     | Bounds of the year grid and the endless scroller                                                              |
+| placeholder         | string                                     |               |     | Shown while the value is empty                                                                                |
+| clearable           | boolean                                    |               |     | Adds a clear button; needs `onClear`                                                                          |
+| onClear             | () => void                                 |               |     |                                                                                                               |
+| error               | string                                     |               |     | Error text; also recolors the field                                                                           |
+| helperText          | string                                     |               |     | Hidden while `error` is set                                                                                   |
+| required            | boolean                                    |               |     | Appends `*` to the label                                                                                      |
+| locale              | string                                     | device locale |     | Formatting/labelling override                                                                                 |
+| firstDayOfWeek      | 0–6 (0 = Sunday)                           | locale's own  |     |                                                                                                               |
+| labels              | `DateTimePickerLabels`                     | English       |     | Chrome strings (`selectDate`, `confirm`, `back`, …)                                                           |
+| relativeLabels      | `{ today?, yesterday?, tomorrow? }`        | `Intl`        |     |                                                                                                               |
+| defaultOpen         | boolean                                    | `false`       |     | Mount with the picker open                                                                                    |
+| disabled            | boolean                                    |               |     |                                                                                                               |
+| style               | ViewStyle                                  |               |     |                                                                                                               |
+| testID              | string                                     |               |     |                                                                                                               |
+
+**Dialog.** There is no Cancel or Next button: dismiss it by tapping outside, with the back
+gesture or with Escape. In single `date` mode a day tap confirms and closes; OK stays for the time
+step, a range, multiple dates and typed entry. In `datetime` a day tap moves to the time step by
+itself, and tapping the date readout there goes back to the calendar (its hint is `labels.back`,
+"Back to date" by default). The calendar header is one control, the visible month and the year
+("October 2026 ▾", which opens the year grid), with an outlined "Today" button between the month
+arrows. In a range, once the first day is chosen the days from it to the one under the pointer are
+shaded as a preview (pointer devices only); nothing is reported until the second tap.
+
+**Static.** `variant="static"` draws the surface inline in the page: no field, no popup, no OK, and
+every selection calls `onChange` at once with the live value. Of the field props only `disabled`
+and `style` apply, and it always shows the calendar and the clock, never typed entry. A static
+`DatePicker` is the inline calendar; a static `TimePicker` is the inline clock.
 
 **Typed entry.** The field accepts a date typed in the locale's own order (`22/11/2026` in
 `it-IT`, `11/22/2026` in `en-US`), validated against `validRange` on blur. Only a single calendar
-date is typable in the field itself; a range types its two ends inside the dialog, reached from
-the pencil toggle in its header. `multiple` has no typed form, so the toggle is hidden there.
+date is typable in the field itself; a range types its two ends inside the dialog, which opens on
+the typed fields with `defaultInputType="keyboard"` (there is no toggle between the calendar and
+the keyboard). `multiple` has no typed form.
+
+**Surfaces.** The calendar and the clock are pure React Native — no SVG, no native modules — so
+they render identically on web and native. The calendar has month and year sub-views, single /
+range / multiple selection and virtualized endless month scrolling; the clock is the M3
+hour/minute readout with its AM/PM switch, over the analog dial (drag to set) or two text fields.
 
 **Keyboard (web).** Arrows = day/week, PageUp/PageDown = month (Shift = year), Home/End = ends of
 the week, Enter/Space = select, Escape = close.
-
-### Calendar
-
-The month grid used by `DateTimePicker`, exported on its own. Cross-platform, with month and year
-sub-views and virtualized endless scrolling.
-
-| Prop                | Type                                       | Default       | Req | Description                                       |
-| ------------------- | ------------------------------------------ | ------------- | --- | ------------------------------------------------- |
-| selectionMode       | `"single" \| "range" \| "multiple"`        | `single`      |     |                                                   |
-| value               | `Date \| null`                             |               |     | Selection in `single` mode                        |
-| range               | `DateRange`                                |               |     | Selection in `range` mode                         |
-| dates               | `Date[]`                                   |               |     | Selection in `multiple` mode                      |
-| onChange            | (date) => void                             |               |     | `single` mode; always a start-of-day `Date`       |
-| onRangeChange       | (range) => void                            |               |     | `range` mode                                      |
-| onDatesChange       | (dates) => void                            |               |     | `multiple` mode                                   |
-| validRange          | `{ startDate?, endDate?, disabledDates? }` |               |     | Whole-day comparison                              |
-| isDateDisabled      | (date) => boolean                          |               |     |                                                   |
-| scrollMode          | `"endless" \| "paged"`                     | `endless`     |     | `paged` shows the month dropdown and outside days |
-| startYear / endYear | number                                     | ±100 years    |     |                                                   |
-| locale              | string                                     | device locale |     |                                                   |
-| firstDayOfWeek      | 0–6                                        | locale's own  |     |                                                   |
-| labels              | `DateTimePickerLabels`                     | English       |     |                                                   |
-| showToday           | boolean                                    | `true`        |     | "Today" shortcut row                              |
-| keyboardNavigation  | boolean                                    | `true`        |     | Web only                                          |
-| onRequestClose      | () => void                                 |               |     | Called on Escape                                  |
-
-### ClockPicker
-
-The Material 3 time surface: the hour and minute readouts double as the unit selector, with the
-analog dial (or two text fields) underneath.
-
-| Prop                      | Type                     | Default       | Req | Description                           |
-| ------------------------- | ------------------------ | ------------- | --- | ------------------------------------- |
-| value                     | Date                     | —             | ✓   |                                       |
-| onChange                  | (date) => void           | —             | ✓   |                                       |
-| minimumDate / maximumDate | Date                     |               |     | Only clamp on the boundary day itself |
-| minuteInterval            | `MinuteInterval`         | `1`           |     |                                       |
-| locale                    | string                   | device locale |     | Decides 12h vs 24h                    |
-| use24HourClock            | boolean                  | from locale   |     | `true` forces the 24-hour face        |
-| inputType                 | `"picker" \| "keyboard"` | `picker`      |     | Dial or text fields                   |
-| labels                    | `DateTimePickerLabels`   | English       |     |                                       |
-
-### ClockDial
-
-The analog face on its own: a rotating hand with a knob, a ring of labels, and drag-to-set. Drawn
-with plain Views, so it adds no SVG dependency.
-
-| Prop                            | Type                        | Default | Req | Description                                          |
-| ------------------------------- | --------------------------- | ------- | --- | ---------------------------------------------------- |
-| unit                            | `"hours" \| "minutes"`      | —       | ✓   | Which unit the face is editing                       |
-| hours                           | number (0–23)               | —       | ✓   | Always 24-hour, whatever the face shows              |
-| minutes                         | number (0–59)               | —       | ✓   |                                                      |
-| use24HourClock                  | boolean                     | `false` |     | Adds the inner 13–00 ring                            |
-| minuteInterval                  | number                      | `1`     |     |                                                      |
-| onChangeHours / onChangeMinutes | (value) => void             | —       | ✓   |                                                      |
-| onUnitComplete                  | () => void                  |         |     | Fires when a press ends, to hand over to the minutes |
-| isTimeDisabled                  | (hours, minutes) => boolean |         |     | Greys out and refuses values                         |
 
 ### PinInput
 
 One-time-code / PIN entry: single-character cells that behave as one field. Typing advances,
 Backspace retreats, pasting a whole code into any cell fills the row.
 
-| Prop                                             | Type                          | Default   | Req | Description                  |
-| ------------------------------------------------ | ----------------------------- | --------- | --- | ---------------------------- |
-| value                                            | string                        | —         | ✓   |                              |
-| onChangeText                                     | (value) => void               | —         | ✓   |                              |
-| length                                           | number                        | `6`       |     |                              |
-| onComplete                                       | (value) => void               |           |     | Fired once, on becoming full |
-| type                                             | `"numeric" \| "alphanumeric"` | `numeric` |     |                              |
-| mask                                             | boolean                       | `false`   |     | Renders dots                 |
-| label / error / helperText / required / disabled |                               |           |     | As `Input`                   |
-| autoFocus                                        | boolean                       |           |     | First cell only              |
-| cellSize                                         | number                        | `48`      |     |                              |
+| Prop                                             | Type                          | Default    | Req | Description                                                                   |
+| ------------------------------------------------ | ----------------------------- | ---------- | --- | ----------------------------------------------------------------------------- |
+| value                                            | string                        | —          | ✓   |                                                                               |
+| onChange                                         | (value) => void               | —          | ✓   |                                                                               |
+| length                                           | number                        | `6`        |     |                                                                               |
+| onComplete                                       | (value) => void               |            |     | Fired once, on becoming full                                                  |
+| type                                             | `"numeric" \| "alphanumeric"` | `numeric`  |     |                                                                               |
+| variant                                          | `"filled" \| "outlined"`      | `outlined` |     | Cell style: bordered box, or tinted box with the border only on focus / error |
+| mask                                             | boolean                       | `false`    |     | Renders dots                                                                  |
+| label / error / helperText / required / disabled |                               |            |     | As `Input`                                                                    |
+| autoFocus                                        | boolean                       |            |     | First cell only                                                               |
+| cellSize                                         | number                        | `48`       |     |                                                                               |
 
 ### Autocomplete
 
@@ -705,20 +730,28 @@ Text field with a suggestion list. Free text allowed — this is not a `Select`.
 inside the field's own container (a modal would steal focus from the input), so the parent must
 not clip overflow while it is open.
 
-| Prop                                                           | Type                       | Default                      | Req | Description                                 |
-| -------------------------------------------------------------- | -------------------------- | ---------------------------- | --- | ------------------------------------------- |
-| value                                                          | string                     | —                            | ✓   |                                             |
-| onChangeText                                                   | (text) => void             | —                            | ✓   |                                             |
-| options                                                        | `AutocompleteOption[]`     | —                            | ✓   | `{ id, label, value, description?, icon? }` |
-| onSelect                                                       | (option) => void           | —                            | ✓   |                                             |
-| filter                                                         | (option, query) => boolean | accent-insensitive substring |     | `() => true` for server-side filtering      |
-| minChars                                                       | number                     | `1`                          |     |                                             |
-| maxSuggestions                                                 | number                     | `8`                          |     |                                             |
-| loading                                                        | boolean                    |                              |     | Spinner in the field                        |
-| emptyMessage                                                   | string                     |                              |     | Omit to hide the list on no match           |
-| label / placeholder / error / helperText / required / disabled |                            |                              |     | As `Input`                                  |
-| leadingIcon                                                    | icon                       |                              |     |                                             |
-| clearable                                                      | boolean                    | `true`                       |     |                                             |
+| Prop                                                           | Type                       | Default                      | Req | Description                                                  |
+| -------------------------------------------------------------- | -------------------------- | ---------------------------- | --- | ------------------------------------------------------------ |
+| value                                                          | string                     | —                            | ✓   |                                                              |
+| onChange                                                       | (text) => void             | —                            | ✓   | Typed, cleared, or an option's label after a pick            |
+| options                                                        | `AutocompleteOption[]`     | —                            | ✓   | `{ id, label, value, description?, icon? }`                  |
+| selected                                                       | option \| null             |                              |     | Chosen option; pass it to control it (array with `multiple`) |
+| onSelectedChange                                               | (option \| null) => void   |                              |     | Every pick; `null` on clear (the new array with `multiple`)  |
+| multiple                                                       | boolean                    | `false`                      |     | Picks show as removable chips; the text clears after a pick  |
+| variant                                                        | `"outlined" \| "filled"`   | `outlined`                   |     | As `Input`                                                   |
+| labelPlacement                                                 | `"inside" \| "outside"`    | `outside`                    |     | As `Input`                                                   |
+| fullWidth                                                      | boolean                    | `true`                       |     | `false` shrinks the field to its content                     |
+| defaultOptions                                                 | `AutocompleteOption[]`     |                              |     | Shown, unfiltered, until `minChars` characters are typed     |
+| filter                                                         | (option, query) => boolean | accent-insensitive substring |     | `() => true` for server-side filtering                       |
+| onSearch                                                       | (text) => void             |                              |     | After `debounce` ms without typing: fetch the options there  |
+| debounce                                                       | number (ms)                | `300`                        |     | Quiet time before `onSearch`                                 |
+| minChars                                                       | number                     | `1`                          |     |                                                              |
+| maxSuggestions                                                 | number                     | `8`                          |     |                                                              |
+| loading                                                        | boolean                    |                              |     | Spinner in the field                                         |
+| emptyMessage                                                   | string                     |                              |     | Omit to hide the list on no match                            |
+| label / placeholder / error / helperText / required / disabled |                            |                              |     | As `Input`                                                   |
+| leadingIcon                                                    | icon                       |                              |     |                                                              |
+| clearable                                                      | boolean                    | `true`                       |     |                                                              |
 
 **Keyboard (web).** ArrowUp/ArrowDown move the highlight, Enter selects, Escape closes.
 
@@ -739,15 +772,19 @@ Checkbox, RadioGroup, Slider, custom composites.
 
 ### Rating
 
-Star rating; half-stars rendered, whole values on tap.
+Star rating; half-stars rendered, whole values on tap (halves with `interval={0.5}`). The value
+under the pointer is previewed on hover.
 
-| Prop     | Type            | Default | Req | Description               |
-| -------- | --------------- | ------- | --- | ------------------------- |
-| value    | number          | —       | ✓   | Supports halves (3.5)     |
-| onChange | (value) => void |         |     | Interactive when provided |
-| max      | number          | `5`     |     |                           |
-| size     | number          | `24`    |     |                           |
-| disabled | boolean         |         |     |                           |
+| Prop     | Type            | Default | Req | Description                                                    |
+| -------- | --------------- | ------- | --- | -------------------------------------------------------------- |
+| value    | number          | —       | ✓   | Supports halves (3.5)                                          |
+| onChange | (value) => void |         |     | Interactive when provided                                      |
+| max      | number          | `5`     |     |                                                                |
+| size     | number          | `24`    |     |                                                                |
+| interval | `0.5 \| 1`      | `1`     |     | Step of the input: half icons or whole ones                    |
+| icon     | icon            | `star`  |     | A glyph that has an `-outline` twin, drawn for the empty state |
+| required | boolean         | `false` |     | The current value cannot be tapped away to 0                   |
+| disabled | boolean         |         |     |                                                                |
 
 ---
 
@@ -757,13 +794,13 @@ Supporting text under a form control. `Input`, `FormControl`, `PinInput`, `Autoc
 and the date/time picker field all render this internally via their own `helperText` /
 `error` props — use it directly for a control that has neither.
 
-| Prop     | Type                    | Default  | Description                              |
-| -------- | ----------------------- | -------- | ---------------------------------------- |
-| children | ReactNode (required)    | —        |                                          |
-| type     | `"info" \| "error"`     | `info`   | `error` adds the alert glyph             |
-| visible  | boolean                 | `true`   | Fades out instead of unmounting          |
-| disabled | boolean                 | `false`  | Dims to match a disabled field           |
-| padding  | `"normal" \| "none"`    | `normal` | The 16px field gutter                    |
+| Prop     | Type                 | Default  | Description                     |
+| -------- | -------------------- | -------- | ------------------------------- |
+| children | ReactNode (required) | —        |                                 |
+| type     | `"info" \| "error"`  | `info`   | `error` adds the alert glyph    |
+| visible  | boolean              | `true`   | Fades out instead of unmounting |
+| disabled | boolean              | `false`  | Dims to match a disabled field  |
+| padding  | `"normal" \| "none"` | `normal` | The 16px field gutter           |
 
 Hiding it keeps the text mounted so the field height does not jump, but takes it out of
 the accessibility tree.
@@ -772,29 +809,31 @@ the accessibility tree.
 
 ### Avatar
 
-| Prop                        | Type                                                | Default    | Req | Description                     |
-| --------------------------- | --------------------------------------------------- | ---------- | --- | ------------------------------- |
-| source                      | image source                                        |            |     | Image; else initials; else icon |
-| name                        | string                                              |            |     | Initials fallback               |
-| icon                        | icon                                                | `account`  |     | Icon fallback                   |
-| size                        | number                                              | `40`       |     |                                 |
-| variant                     | `"circular" \| "rounded" \| "square"`               | `circular` |     |                                 |
-| status                      | `"online" \| "offline" \| "busy" \| "away" \| null` |            |     | Status dot                      |
-| backgroundColor / textColor | string                                              |            |     |                                 |
-| onPress                     | () => void                                          |            |     |                                 |
+| Prop                        | Type                                                | Default    | Req | Description                                                            |
+| --------------------------- | --------------------------------------------------- | ---------- | --- | ---------------------------------------------------------------------- |
+| source                      | image source                                        |            |     | Image; else initials; else icon                                        |
+| name                        | string                                              |            |     | Initials fallback; also a tooltip on hover (web) / long press (native) |
+| icon                        | icon                                                | `account`  |     | Icon fallback                                                          |
+| size                        | number \| `"small" \| "medium" \| "large"`          | `medium`   |     | A pixel size, or 32 / 40 / 56                                          |
+| variant                     | `"circular" \| "rounded" \| "square"`               | `circular` |     |                                                                        |
+| status                      | `"online" \| "offline" \| "busy" \| "away" \| null` |            |     | Status dot                                                             |
+| backgroundColor / textColor | string                                              |            |     |                                                                        |
+| onClick                     | () => void                                          |            |     |                                                                        |
 
 ### Badge
 
 Small count/dot overlay (position it over its target).
 
-| Prop     | Type                 | Default | Description                |
-| -------- | -------------------- | ------- | -------------------------- |
-| count    | number               |         | Omit → dot                 |
-| size     | `"small" \| "large"` | `large` | small = dot                |
-| max      | number               | `99`    | Shows `max+` when exceeded |
-| showZero | boolean              | `false` | Render at count 0          |
-| visible  | boolean              | `true`  |                            |
-| style    | any                  |         |                            |
+| Prop     | Type                                                           | Default | Description                                                          |
+| -------- | -------------------------------------------------------------- | ------- | -------------------------------------------------------------------- |
+| count    | number                                                         |         | Omit → dot                                                           |
+| size     | `"small" \| "large"`                                           | `large` | small = dot                                                          |
+| max      | number                                                         | `99`    | Shows `max+` when exceeded                                           |
+| showZero | boolean                                                        | `false` | Render at count 0                                                    |
+| color    | `ColorRole`                                                    | `error` | Same roles as `Button`                                               |
+| position | `"top-right" \| "bottom-right" \| "top-left" \| "bottom-left"` |         | Pins the badge to that corner of its parent, overlapping it slightly |
+| visible  | boolean                                                        | `true`  |                                                                      |
+| style    | any                                                            |         |                                                                      |
 
 ### StatusBadge
 
@@ -846,23 +885,24 @@ Single pressable list row (centered title text).
 Groups related `ListItem`s under a heading. Use this for a settings screen rather than
 wrapping each group in a `Card` — a sequence of labelled groups, not a pile of surfaces.
 
-| Component       | Props                                                                     |
-| --------------- | ------------------------------------------------------------------------- |
+| Component       | Props                                                                        |
+| --------------- | ---------------------------------------------------------------------------- |
 | `ListSection`   | `children` (required), `title` (heading above the rows), `divider` (`false`) |
-| `ListSubheader` | `children` (required) — a standalone group label, marked as a heading      |
+| `ListSubheader` | `children` (required) — a standalone group label, marked as a heading        |
 
 ### Tooltip
 
 Wraps a child; shows a bubble on hover (web) / long-press (native).
 
-| Prop      | Type                                     | Default | Req | Description      |
-| --------- | ---------------------------------------- | ------- | --- | ---------------- |
-| content   | string                                   | —       | ✓   |                  |
-| children  | ReactNode                                | —       | ✓   | Anchor           |
-| position  | `"top" \| "bottom" \| "left" \| "right"` | `top`   |     |                  |
-| disabled  | boolean                                  |         |     |                  |
-| hideDelay | number (ms)                              | `1500`  |     | Native auto-hide |
-| variant   | `"plain" \| "rich"`                     | `plain` |     | Rich: `title`, body, optional `action`; persistent with an action |
+| Prop             | Type                                     | Default | Req | Description                                                                                                                                 |
+| ---------------- | ---------------------------------------- | ------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| content          | string                                   | —       | ✓   |                                                                                                                                             |
+| children         | ReactNode                                | —       | ✓   | Anchor                                                                                                                                      |
+| position         | `"top" \| "bottom" \| "left" \| "right"` | `top`   |     |                                                                                                                                             |
+| disabled         | boolean                                  |         |     |                                                                                                                                             |
+| hideDelay        | number (ms)                              | `1500`  |     | Native auto-hide                                                                                                                            |
+| anchorAccessible | boolean                                  | `true`  |     | Native: the anchor is one accessibility element named by `content`; turn off for a control with its own name (`IconButton` and `Avatar` do) |
+| variant          | `"plain" \| "rich"`                      | `plain` |     | Rich: `title`, body, optional `action`; persistent with an action                                                                           |
 
 ### Accordion
 
@@ -981,16 +1021,16 @@ not steal focus from the field being typed into.
 
 Centered dialog surface.
 
-| Prop          | Type                          | Default | Req | Description                 |
-| ------------- | ----------------------------- | ------- | --- | --------------------------- |
-| visible       | boolean                       | —       | ✓   |                             |
-| children      | ReactNode \| string           | —       | ✓   | Body (string → styled text) |
-| title         | string                        |         |     |                             |
-| animationType | `"none" \| "slide" \| "fade"` | `fade`  |     |                             |
-| transparent   | boolean                       | `true`  |     |                             |
-| onClose       | () => void                    |         |     | Renders a close button      |
-| onDismiss     | () => void                    |         |     | Android back / ESC          |
-| closeText     | string                        | `Close` |     |                             |
+| Prop          | Type                          | Default | Req | Description                                                   |
+| ------------- | ----------------------------- | ------- | --- | ------------------------------------------------------------- |
+| visible       | boolean                       | —       | ✓   |                                                               |
+| children      | ReactNode \| string           | —       | ✓   | Body (string → styled text)                                   |
+| title         | string                        |         |     |                                                               |
+| animationType | `"none" \| "slide" \| "fade"` | `fade`  |     |                                                               |
+| transparent   | boolean                       | `true`  |     |                                                               |
+| onClose       | () => void                    |         |     | Renders a close button                                        |
+| onDismiss     | () => void                    |         |     | Android back / ESC                                            |
+| closeText     | string                        | `Close` |     |                                                               |
 | fullScreen    | boolean                       | `false` |     | M3 full-screen dialog: close, title and `actions` in a header |
 
 ### ConfirmDialog
@@ -1068,12 +1108,12 @@ Loading placeholder with pulse.
 
 Indeterminate spinner (SVG), or a determinate ring when `progress` is set.
 
-| Prop        | Type        | Default   | Description     |
-| ----------- | ----------- | --------- | --------------- |
-| size        | number      | `48`      |                 |
-| strokeWidth | number      | `4`       |                 |
-| color       | string      | `primary` |                 |
-| duration    | number (ms) | `1000`    | Rotation period |
+| Prop        | Type        | Default   | Description                   |
+| ----------- | ----------- | --------- | ----------------------------- |
+| size        | number      | `48`      |                               |
+| strokeWidth | number      | `4`       |                               |
+| color       | string      | `primary` |                               |
+| duration    | number (ms) | `1000`    | Rotation period               |
 | progress    | number 0–1  |           | Determinate ring over a track |
 
 ### LinearProgress
@@ -1084,7 +1124,7 @@ Determinate or indeterminate bar.
 | --------------------- | ----------- | ------------------------- | ---------------------- |
 | progress              | number 0–1  | `0`                       | Determinate value      |
 | indeterminate         | boolean     | `false`                   |                        |
-| height                | number \| %  | `4`                       | `"100%"` fills parent  |
+| height                | number \| % | `4`                       | `"100%"` fills parent  |
 | color                 | string      | `primary`                 |                        |
 | trackColor            | string      | `surfaceContainerHighest` |                        |
 | duration              | number (ms) | `500`                     | Determinate transition |
@@ -1300,8 +1340,8 @@ never pushes a cell onto the next line and a short last row keeps its cells at c
 
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
 **Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
-**Actions**: Button, ProgressButton, IconButton, Link, FAB, AnimatedFAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
-**Inputs**: Input, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, RadioButton/RadioGroup, Toggle, Slider, Spinner, SearchBar, DateTimePicker/DatePicker/DatePickerInput/DateRangePicker/TimePicker, Calendar, ClockPicker, ClockDial, Rating
+**Actions**: Button, ProgressButton, IconButton, Link, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
+**Inputs**: Input, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
 **Data display**: Avatar, Badge, StatusBadge, DataGrid, Table, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, Image
 **Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, SideSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: TopAppBar, AppBar, NavigationBar, NavigationRail, NavigationDrawer, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
@@ -1314,7 +1354,7 @@ Requirements this kit implies for a target framework:
 
 - **Theming**: runtime light/dark token switch, component-level theme access (context/hook or CSS vars).
 - **Cross-platform** (if keeping native + web): React Native / Expo, or split web (React/Vue/Svelte) + native.
-- **Animation**: springs/timing for Toggle, Tabs indicator, SpeedDial, Snackbar, BottomSheet, Carousel.
+- **Animation**: springs/timing for Switch, Tabs indicator, SpeedDial, Snackbar, BottomSheet, Carousel.
 - **Overlays/portals**: Modal, Popover, Menu, BottomSheet, Tooltip need portal/z-index layering + outside-viewport positioning.
 - **Icons**: a Material Community icon set (kebab-case names, outline variants).
 - **SVG**: CircularProgress uses SVG stroke animation.

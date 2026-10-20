@@ -2,27 +2,24 @@ import {
   Input,
   Select,
   Checkbox,
-  Toggle,
-  Spinner,
+  CheckboxGroup,
+  Switch,
+  NumberField,
   RadioGroup,
   Slider,
   SearchBar,
   Rating,
-  DatePickerInput,
-  DateRangePicker,
   DateTimePicker,
   Autocomplete,
-  Calendar,
-  ClockPicker,
   FormControl,
   PinInput,
   HelperText,
   RadioButton,
-  ClockDial,
   DatePicker,
   TimePicker,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
+import { CheckboxGroupDemo, RatingDemo } from "../demos";
 
 /**
  * Which surface a DateTimePicker's `mode` puts up. A prop the other surface
@@ -31,6 +28,59 @@ import type { ComponentMetadata } from "../types";
  */
 const HAS_CALENDAR = (values: Record<string, any>) => values.mode !== "time";
 const HAS_CLOCK = (values: Record<string, any>) => values.mode !== "date";
+const FIELD_VARIANT = {
+  type: "select" as const,
+  default: "outlined",
+  label: "Variant",
+  options: [
+    { label: "Outlined", value: "outlined" },
+    { label: "Filled", value: "filled" },
+  ],
+};
+
+/** Where the label goes has nothing to do with the variant, which is the look of the box. */
+const LABEL_PLACEMENT = {
+  type: "select" as const,
+  default: "outside",
+  label: "Label placement",
+  options: [
+    { label: "Outside", value: "outside" },
+    { label: "Inside", value: "inside" },
+  ],
+};
+
+/** Web only: how the default variant opens. Static pickers open nothing. */
+const PRESENTATION = {
+  type: "select" as const,
+  default: "auto",
+  label: "Presentation (web)",
+  options: [
+    { label: "Auto (dialog on touch / narrow)", value: "auto" },
+    { label: "Popover", value: "popover" },
+    { label: "Dialog", value: "dialog" },
+  ],
+  appliesWhen: (values: Record<string, any>) => values.variant !== "static",
+};
+
+/** A static picker is just the surface: no field, so none of the field's props. */
+const HAS_FIELD = (values: Record<string, any>) => values.variant !== "static";
+
+/** The look of a picker's field, as `variant` on `Input`: `variant` on a picker is default or static. */
+const FIELD_VARIANT_PICKER = {
+  ...FIELD_VARIANT,
+  label: "Field variant",
+  appliesWhen: HAS_FIELD,
+};
+
+const VARIANT = {
+  type: "select" as const,
+  default: "default",
+  label: "Variant",
+  options: [
+    { label: "Default (field and dialog)", value: "default" },
+    { label: "Static (inline)", value: "static" },
+  ],
+};
 
 /** Inputs: 22 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
@@ -45,6 +95,17 @@ export const inputs: Record<string, ComponentMetadata> = {
         label: "Placeholder",
       },
       value: { type: "text", default: "", label: "Value" },
+      variant: FIELD_VARIANT,
+      labelPlacement: LABEL_PLACEMENT,
+      fullWidth: { type: "boolean", default: true, label: "Full width" },
+      multiline: { type: "boolean", default: false, label: "Multiline" },
+      rows: {
+        type: "number",
+        default: 4,
+        label: "Rows",
+        // Only a multiline field has lines to count.
+        appliesWhen: (values) => !!values.multiline,
+      },
       error: { type: "text", default: "", label: "Error Message" },
       helperText: {
         type: "text",
@@ -73,6 +134,17 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "Filled", value: "filled" },
         ],
       },
+      labelPlacement: LABEL_PLACEMENT,
+      fullWidth: { type: "boolean", default: true, label: "Full width" },
+      nullable: { type: "boolean", default: false, label: "Nullable" },
+      empty: { type: "boolean", default: false, label: "Empty options" },
+      emptyMessage: {
+        type: "text",
+        default: "No options",
+        label: "Empty message",
+        // Shown in place of the list, so only an empty list uses it.
+        appliesWhen: (values) => !!values.empty,
+      },
       error: { type: "text", default: "", label: "Error Message" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -99,6 +171,26 @@ export const inputs: Record<string, ComponentMetadata> = {
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
       error: { type: "boolean", default: false, label: "Error" },
+    },
+  },
+  CheckboxGroup: {
+    name: "CheckboxGroup",
+    Component: CheckboxGroup,
+    Demo: CheckboxGroupDemo,
+    props: {
+      label: { type: "text", default: "Notify me about", label: "Label" },
+      direction: {
+        type: "select",
+        default: "column",
+        label: "Direction",
+        options: [
+          { label: "Column", value: "column" },
+          { label: "Row", value: "row" },
+        ],
+      },
+      required: { type: "boolean", default: false, label: "Required" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      error: { type: "text", default: "", label: "Error Message" },
     },
   },
   RadioButton: {
@@ -139,13 +231,35 @@ export const inputs: Record<string, ComponentMetadata> = {
       error: { type: "text", default: "", label: "Error Message" },
     },
   },
-  Toggle: {
-    name: "Toggle",
-    Component: Toggle,
+  Switch: {
+    name: "Switch",
+    Component: Switch,
     props: {
       value: { type: "boolean", default: true, label: "Value" },
-      width: { type: "number", default: 48, label: "Width" },
-      height: { type: "number", default: 28, label: "Height" },
+      label: { type: "text", default: "Email notifications", label: "Label" },
+      labelPlacement: {
+        type: "select",
+        default: "end",
+        label: "Label placement",
+        options: [
+          { label: "End", value: "end" },
+          { label: "Start", value: "start" },
+          { label: "Top", value: "top" },
+          { label: "Bottom", value: "bottom" },
+        ],
+        // Without a label there is nothing to place.
+        appliesWhen: (values) => !!values.label,
+      },
+      size: {
+        type: "select",
+        default: "medium",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -177,9 +291,9 @@ export const inputs: Record<string, ComponentMetadata> = {
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
-  Spinner: {
-    name: "Spinner",
-    Component: Spinner,
+  NumberField: {
+    name: "NumberField",
+    Component: NumberField,
     props: {
       label: { type: "text", default: "Loading...", label: "Label" },
       value: { type: "number", default: 10, label: "Value" },
@@ -193,6 +307,9 @@ export const inputs: Record<string, ComponentMetadata> = {
     props: {
       value: { type: "text", default: "", label: "Value" },
       placeholder: { type: "text", default: "Search", label: "Placeholder" },
+      icon: { type: "text", default: "magnify", label: "Icon" },
+      debounceTime: { type: "number", default: 0, label: "Debounce (ms)" },
+      showLoading: { type: "boolean", default: false, label: "Show loading" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -205,6 +322,15 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "text",
         default: "Start typing…",
         label: "Placeholder",
+      },
+      variant: FIELD_VARIANT,
+      labelPlacement: LABEL_PLACEMENT,
+      fullWidth: { type: "boolean", default: true, label: "Full width" },
+      multiple: { type: "boolean", default: false, label: "Multiple" },
+      defaultOptions: {
+        type: "boolean",
+        default: false,
+        label: "Default options",
       },
       minChars: { type: "number", default: 1, label: "Min Chars" },
       loading: { type: "boolean", default: false, label: "Loading" },
@@ -230,6 +356,15 @@ export const inputs: Record<string, ComponentMetadata> = {
     props: {
       label: { type: "text", default: "Verification code", label: "Label" },
       length: { type: "number", default: 6, label: "Length" },
+      variant: {
+        type: "select",
+        default: "outlined",
+        label: "Variant",
+        options: [
+          { label: "Outlined", value: "outlined" },
+          { label: "Filled", value: "filled" },
+        ],
+      },
       type: {
         type: "select",
         default: "numeric",
@@ -273,7 +408,15 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: DateTimePicker,
     clientOnly: true,
     props: {
-      label: { type: "text", default: "Pick a date", label: "Label" },
+      variant: VARIANT,
+      presentation: PRESENTATION,
+      fieldVariant: FIELD_VARIANT_PICKER,
+      label: {
+        type: "text",
+        default: "Pick a date",
+        label: "Label",
+        appliesWhen: HAS_FIELD,
+      },
       mode: {
         type: "select",
         default: "date",
@@ -336,24 +479,42 @@ export const inputs: Record<string, ComponentMetadata> = {
         type: "text",
         default: "No date selected",
         label: "Placeholder",
+        appliesWhen: HAS_FIELD,
       },
       helperText: {
         type: "text",
         default: "",
         label: "Helper Text",
         // Every field in the kit hides its helper text while an error shows.
-        appliesWhen: (values) => !values.error,
+        appliesWhen: (values) => !values.error && HAS_FIELD(values),
       },
-      error: { type: "text", default: "", label: "Error Message" },
-      required: { type: "boolean", default: false, label: "Required" },
-      clearable: { type: "boolean", default: true, label: "Clearable" },
+      error: {
+        type: "text",
+        default: "",
+        label: "Error Message",
+        appliesWhen: HAS_FIELD,
+      },
+      required: {
+        type: "boolean",
+        default: false,
+        label: "Required",
+        appliesWhen: HAS_FIELD,
+      },
+      clearable: {
+        type: "boolean",
+        default: true,
+        label: "Clearable",
+        appliesWhen: HAS_FIELD,
+      },
       inputEnabled: {
         type: "boolean",
         default: true,
         label: "Typed entry",
         // The keyboard surface is only offered for one plain date.
         appliesWhen: (values) =>
-          values.mode === "date" && values.selectionMode === "single",
+          HAS_FIELD(values) &&
+          values.mode === "date" &&
+          values.selectionMode === "single",
       },
       use24HourClock: {
         type: "boolean",
@@ -381,90 +542,15 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: DatePicker,
     clientOnly: true,
     props: {
-      label: { type: "text", default: "Service date", label: "Label" },
-    },
-  },
-  DatePickerInput: {
-    name: "DatePickerInput",
-    Component: DatePickerInput,
-    clientOnly: true,
-    props: {
-      label: { type: "text", default: "Date of birth", label: "Label" },
-      placeholder: { type: "text", default: "Not set", label: "Placeholder" },
-      helperText: {
+      variant: VARIANT,
+      presentation: PRESENTATION,
+      fieldVariant: FIELD_VARIANT_PICKER,
+      label: {
         type: "text",
-        default: "Type it, or pick it from the calendar",
-        label: "Helper Text",
-        // Every field in the kit hides its helper text while an error shows.
-        appliesWhen: (values) => !values.error,
+        default: "Service date",
+        label: "Label",
+        appliesWhen: HAS_FIELD,
       },
-      locale: {
-        type: "select",
-        default: "",
-        label: "Locale override",
-        options: [
-          { label: "Device", value: "" },
-          { label: "it-IT", value: "it-IT" },
-          { label: "en-US", value: "en-US" },
-          { label: "ja-JP", value: "ja-JP" },
-        ],
-      },
-      error: { type: "text", default: "", label: "Error Message" },
-      required: { type: "boolean", default: false, label: "Required" },
-      clearable: { type: "boolean", default: true, label: "Clearable" },
-      limitToThisMonth: {
-        type: "boolean",
-        default: false,
-        label: "Valid range = this month",
-      },
-      noWeekends: {
-        type: "boolean",
-        default: false,
-        label: "Disable weekends",
-      },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
-    },
-  },
-  DateRangePicker: {
-    name: "DateRangePicker",
-    Component: DateRangePicker,
-    clientOnly: true,
-    props: {
-      label: { type: "text", default: "Reporting period", label: "Label" },
-      placeholder: { type: "text", default: "No period", label: "Placeholder" },
-      scrollMode: {
-        type: "select",
-        default: "endless",
-        label: "Month scrolling",
-        options: [
-          { label: "Endless", value: "endless" },
-          { label: "Paged", value: "paged" },
-        ],
-      },
-      locale: {
-        type: "select",
-        default: "",
-        label: "Locale override",
-        options: [
-          { label: "Device", value: "" },
-          { label: "it-IT", value: "it-IT" },
-          { label: "en-US", value: "en-US" },
-          { label: "ja-JP", value: "ja-JP" },
-        ],
-      },
-      helperText: { type: "text", default: "", label: "Helper Text" },
-      clearable: { type: "boolean", default: true, label: "Clearable" },
-      limitToThisMonth: {
-        type: "boolean",
-        default: false,
-        label: "Valid range = this month",
-      },
-      noWeekends: {
-        type: "boolean",
-        default: false,
-        label: "Disable weekends",
-      },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   TimePicker: {
@@ -472,138 +558,46 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: TimePicker,
     clientOnly: true,
     props: {
-      label: { type: "text", default: "Service time", label: "Label" },
-    },
-  },
-  Calendar: {
-    name: "Calendar",
-    Component: Calendar,
-    clientOnly: true,
-    props: {
-      selectionMode: {
-        type: "select",
-        default: "single",
-        label: "Selection",
-        options: [
-          { label: "Single", value: "single" },
-          { label: "Range", value: "range" },
-          { label: "Multiple", value: "multiple" },
-        ],
-      },
-      scrollMode: {
-        type: "select",
-        default: "endless",
-        label: "Month scrolling",
-        options: [
-          { label: "Endless", value: "endless" },
-          { label: "Paged", value: "paged" },
-        ],
-      },
-      showToday: { type: "boolean", default: true, label: "Show 'Today'" },
-      keyboardNavigation: {
-        type: "boolean",
-        default: true,
-        label: "Keyboard nav (web)",
-      },
-      locale: {
-        type: "select",
-        default: "",
-        label: "Locale override",
-        options: [
-          { label: "Device", value: "" },
-          { label: "it-IT", value: "it-IT" },
-          { label: "en-US", value: "en-US" },
-          { label: "ja-JP", value: "ja-JP" },
-        ],
-      },
-      noWeekends: {
-        type: "boolean",
-        default: false,
-        label: "Disable weekends",
-      },
-    },
-  },
-  ClockPicker: {
-    name: "ClockPicker",
-    Component: ClockPicker,
-    clientOnly: true,
-    props: {
-      inputType: {
-        type: "select",
-        default: "picker",
-        label: "Surface",
-        options: [
-          { label: "Clock dial", value: "picker" },
-          { label: "Text fields", value: "keyboard" },
-        ],
-      },
-      use24HourClock: {
-        type: "boolean",
-        default: false,
-        label: "Force 24h face",
-      },
-      minuteInterval: {
-        type: "select",
-        default: 1,
-        label: "Minute interval",
-        options: [
-          { label: "1", value: 1 },
-          { label: "5", value: 5 },
-          { label: "15", value: 15 },
-          { label: "30", value: 30 },
-        ],
-        // Only the dial snaps to it; the text fields take any two digits.
-        appliesWhen: (values) => values.inputType !== "keyboard",
-      },
-      locale: {
-        type: "select",
-        default: "",
-        label: "Locale override",
-        options: [
-          { label: "Device", value: "" },
-          { label: "it-IT", value: "it-IT" },
-          { label: "en-US", value: "en-US" },
-          { label: "ja-JP", value: "ja-JP" },
-        ],
-      },
-    },
-  },
-  ClockDial: {
-    name: "ClockDial",
-    Component: ClockDial,
-    props: {
-      unit: {
-        type: "select",
-        default: "hours",
-        label: "Unit",
-        options: [
-          { label: "Hours", value: "hours" },
-          { label: "Minutes", value: "minutes" },
-        ],
-      },
-      use24HourClock: {
-        type: "boolean",
-        default: true,
-        label: "24-hour clock",
-        // The minute face is the same twelve labels either way.
-        appliesWhen: (values) => values.unit === "hours",
-      },
-      minuteInterval: {
-        type: "number",
-        default: 5,
-        label: "Minute interval",
-        // The hour face has twelve fixed positions to snap to.
-        appliesWhen: (values) => values.unit === "minutes",
+      variant: VARIANT,
+      presentation: PRESENTATION,
+      fieldVariant: FIELD_VARIANT_PICKER,
+      label: {
+        type: "text",
+        default: "Service time",
+        label: "Label",
+        appliesWhen: HAS_FIELD,
       },
     },
   },
   Rating: {
     name: "Rating",
     Component: Rating,
+    Demo: RatingDemo,
     props: {
       value: { type: "number", default: 3.5, label: "Value" },
       max: { type: "number", default: 5, label: "Max" },
       size: { type: "number", default: 24, label: "Size" },
+      interval: {
+        type: "select",
+        default: 1,
+        label: "Interval",
+        options: [
+          { label: "1", value: 1 },
+          { label: "0.5", value: 0.5 },
+        ],
+      },
+      icon: {
+        type: "select",
+        default: "star",
+        label: "Icon",
+        options: [
+          { label: "Star", value: "star" },
+          { label: "Heart", value: "heart" },
+          { label: "Thumb up", value: "thumb-up" },
+          { label: "Circle", value: "circle" },
+        ],
+      },
+      required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },

@@ -3,7 +3,6 @@ import { View, StyleSheet, StyleProp, ViewStyle } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import Typography from "./Typography";
 import Button from "./Button";
-import IconButton from "./IconButton";
 import Divider from "./Divider";
 import Input from "./Input";
 import Calendar from "./Calendar";
@@ -16,6 +15,7 @@ import {
   DateTimePickerMode,
   EMPTY_RANGE,
   MinuteInterval,
+  DateTimePickerProps,
   PickerInputType,
   ValidRange,
   clampDate,
@@ -29,6 +29,7 @@ import {
   startOfDay,
   useLabels,
 } from "./DateTimePicker.shared";
+import { usePickerParts } from "./DateTimePicker.hooks";
 
 /** The draft the surface edits, tagged so the caller can narrow it on confirm. */
 export type PickerSelection =
@@ -43,10 +44,25 @@ export interface PickerSurfaceProps {
   mode: DateTimePickerMode;
   /** The picker field's own label, reused by the typed-entry field. */
   fieldLabel?: string;
-  /** The selection the surface opens on; edits stay local until confirm. */
+  /**
+   * The selection the surface opens on. A dialog edits a draft of it until OK;
+   * with `live` it is the value on screen and is never copied.
+   */
   selection: PickerSelection;
+  /**
+   * Receives the finished selection: once, when the user confirms or taps the
+   * day that settles a single date — or, with `live`, on every change.
+   */
   onConfirm: (selection: PickerSelection) => void;
-  onCancel: () => void;
+  /** Asks the host to close the surface (Escape inside the calendar). */
+  onRequestClose?: () => void;
+  /**
+   * Draws the surface inline in the page: no headline and no OK, typed entry is
+   * off, and each change goes to `onConfirm` at once.
+   */
+  live?: boolean;
+  /** Greys the surface out and ignores touches. */
+  disabled?: boolean;
   validRange?: ValidRange;
   isDateDisabled?: (date: Date) => boolean;
   locale: string;
@@ -57,23 +73,26 @@ export interface PickerSurfaceProps {
   scrollMode?: CalendarScrollMode;
   startYear?: number;
   endYear?: number;
-  /** Offers the calendar↔keyboard toggle. Default `true`. */
-  inputEnabled?: boolean;
+  /** Offers the calendar's "Today" button (single dates only). Default `true`. */
+  showToday?: boolean;
   defaultInputType?: PickerInputType;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
 /**
- * The Material 3 picker dialog body: headline, calendar or clock, actions.
- * Shared by the native modal and the web popover so the two never drift.
+ * The Material 3 picker body: headline, calendar or clock, and an OK where a
+ * tap does not finish the selection. Shared by the native modal, the web
+ * popover and the inline `static` picker so the three never drift.
  */
 const PickerSurface = ({
   mode,
   fieldLabel,
   selection,
   onConfirm,
-  onCancel,
+  onRequestClose,
+  live = false,
+  disabled = false,
   validRange,
   isDateDisabled,
   locale,
@@ -84,7 +103,7 @@ const PickerSurface = ({
   scrollMode = "endless",
   startYear,
   endYear,
-  inputEnabled = true,
+  showToday = true,
   defaultInputType = "picker",
   style,
   testID,
@@ -124,7 +143,26 @@ const PickerSurface = ({
   const [step, setStep] = useState<SurfaceStep>(
     mode === "time" ? "time" : "date",
   );
-  const [inputType, setInputType] = useState<PickerInputType>(defaultInputType);
+
+  // An inline picker is the caller's value, not a draft of it.
+  const date =
+    live && selection.selectionMode === "single" && selection.value
+      ? selection.value
+      : draftDate;
+  const dateRange =
+    live && selection.selectionMode === "range" ? selection.value : draftRange;
+  const dates =
+    live && selection.selectionMode === "multiple"
+      ? selection.value
+      : draftDates;
+
+  // Typed entry needs an OK to confirm it, which an inline picker does not have,
+  // and an unordered set of days has no text form.
+  const inputType: PickerInputType =
+    live || selectionMode === "multiple" ? "picker" : defaultInputType;
+  // Only a single date has a time to go with it; a range or a set stays on the
+  // calendar.
+  const twoSteps = mode === "datetime" && selectionMode === "single";
 
   // --- Typed entry ----------------------------------------------------------
   // The text fields are only mounted in keyboard mode, so their drafts live
@@ -223,6 +261,43 @@ const PickerSurface = ({
     onConfirm({ selectionMode: "single", value });
   };
 
+  // --- Edits ----------------------------------------------------------------
+  // Each one updates the draft; an inline picker also reports it straight away.
+
+  const reportSingle = (value: Date) =>
+    onConfirm({ selectionMode: "single", value });
+
+  /** A tap on a day of a single-date calendar. */
+  const handleDay = (day: Date) => {
+    if (mode === "date") {
+      // The day is the whole answer, so the tap settles it: a dialog closes on
+      // it and an inline picker reports it like any other change.
+      setDraftDate(day);
+      reportSingle(day);
+      return;
+    }
+    // The tap hands over to the clock, keeping the time already chosen.
+    const next = mergeDateAndTime(day, date);
+    setDraftDate(next);
+    if (live) reportSingle(next);
+    setStep("time");
+  };
+
+  const handleTime = (next: Date) => {
+    setDraftDate(next);
+    if (live) reportSingle(next);
+  };
+
+  const handleRange = (next: DateRange) => {
+    setDraftRange(next);
+    if (live) onConfirm({ selectionMode: "range", value: next });
+  };
+
+  const handleDates = (next: Date[]) => {
+    setDraftDates(next);
+    if (live) onConfirm({ selectionMode: "multiple", value: next });
+  };
+
   // --- Chrome ---------------------------------------------------------------
 
   const supportingText =
@@ -236,49 +311,50 @@ const PickerSurface = ({
 
   const headline = useMemo(() => {
     if (step === "time" || mode === "time") {
-      return formatHeadline(draftDate, "time", locale);
+      return formatHeadline(date, "time", locale);
     }
     if (selectionMode === "range") {
-      const start = draftRange.startDate
-        ? formatHeadline(draftRange.startDate, "date", locale)
+      const start = dateRange.startDate
+        ? formatHeadline(dateRange.startDate, "date", locale)
         : labels.startDate;
-      const end = draftRange.endDate
-        ? formatHeadline(draftRange.endDate, "date", locale)
+      const end = dateRange.endDate
+        ? formatHeadline(dateRange.endDate, "date", locale)
         : labels.endDate;
       return `${start} – ${end}`;
     }
     if (selectionMode === "multiple") {
-      return labels.selectedCount.replace(
-        "{{count}}",
-        String(draftDates.length),
-      );
+      return labels.selectedCount.replace("{{count}}", String(dates.length));
     }
-    return formatHeadline(draftDate, "date", locale);
-  }, [
-    step,
-    mode,
-    selectionMode,
-    draftDate,
-    draftRange,
-    draftDates,
-    locale,
-    labels,
-  ]);
+    return formatHeadline(date, "date", locale);
+  }, [step, mode, selectionMode, date, dateRange, dates, locale, labels]);
 
-  // Typed entry has no counterpart for an unordered set of days.
-  const showInputToggle = inputEnabled && selectionMode !== "multiple";
-  const toggleIcon =
-    inputType === "keyboard"
-      ? step === "time"
-        ? "clock-outline"
-        : "calendar-blank-outline"
-      : "pencil-outline";
-  const toggleLabel =
-    inputType === "keyboard"
-      ? step === "time"
-        ? labels.switchToClock
-        : labels.switchToCalendar
-      : labels.switchToKeyboard;
+  // The calendar step is where a datetime picker is entered, so the way back to
+  // it is the date itself, shown as a button on the clock step.
+  const backToDate = twoSteps && step === "time" && (
+    <Button
+      variant="text"
+      density="dense"
+      iconName="chevron-left"
+      accessibilityHint={labels.back}
+      onClick={() => setStep("date")}
+    >
+      {formatHeadline(date, "date", locale)}
+    </Button>
+  );
+
+  // A day tap settles a single date and every change of an inline picker is
+  // already reported, so OK is only for what a tap leaves open: a time, a range,
+  // a set, typed text, and a datetime's clock step.
+  const showConfirm =
+    !live &&
+    (inputType === "keyboard" ||
+      mode === "time" ||
+      selectionMode !== "single" ||
+      step === "time");
+
+  // The first step of a datetime picker only reaches OK through typed text, where
+  // there is no day tap to hand over to the clock.
+  const isFirstOfTwoSteps = twoSteps && step === "date";
 
   const renderKeyboardEntry = () => {
     if (selectionMode === "range") {
@@ -289,7 +365,7 @@ const PickerSurface = ({
             placeholder={hint}
             helperText={hint}
             value={startText}
-            onChangeText={setStartText}
+            onChange={setStartText}
             error={startError}
           />
           <Input
@@ -297,7 +373,7 @@ const PickerSurface = ({
             placeholder={hint}
             helperText={hint}
             value={endText}
-            onChangeText={setEndText}
+            onChange={setEndText}
             error={endError ?? rangeOrderError}
           />
         </View>
@@ -312,7 +388,7 @@ const PickerSurface = ({
           placeholder={hint}
           helperText={hint}
           value={singleText}
-          onChangeText={setSingleText}
+          onChange={setSingleText}
           error={singleError}
         />
       </View>
@@ -323,8 +399,8 @@ const PickerSurface = ({
     if (step === "time") {
       return (
         <ClockPicker
-          value={draftDate}
-          onChange={setDraftDate}
+          value={date}
+          onChange={handleTime}
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           minuteInterval={minuteInterval}
@@ -340,12 +416,12 @@ const PickerSurface = ({
     return (
       <Calendar
         selectionMode={selectionMode}
-        value={draftDate}
-        range={draftRange}
-        dates={draftDates}
-        onChange={setDraftDate}
-        onRangeChange={setDraftRange}
-        onDatesChange={setDraftDates}
+        value={date}
+        range={dateRange}
+        dates={dates}
+        onChange={handleDay}
+        onRangeChange={handleRange}
+        onDatesChange={handleDates}
         validRange={validRange}
         isDateDisabled={isDateDisabled}
         locale={locale}
@@ -354,20 +430,35 @@ const PickerSurface = ({
         scrollMode={scrollMode}
         startYear={startYear}
         endYear={endYear}
-        showToday={selectionMode === "single"}
-        onRequestClose={onCancel}
-        autoFocus
+        showToday={showToday && selectionMode === "single"}
+        onRequestClose={onRequestClose}
+        // Grabbing the keyboard is right for a popup that just opened, wrong for
+        // a calendar that is part of a page.
+        autoFocus={!live}
         testID={testID ? `${testID}-calendar` : undefined}
       />
     );
   };
 
-  // A datetime picker collects the day first and the time second, so the
-  // primary action advances instead of confirming on the first step.
-  const isFirstOfTwoSteps = mode === "datetime" && step === "date";
+  if (live) {
+    return (
+      <View
+        pointerEvents={disabled ? "none" : "auto"}
+        style={[disabled && styles.faded, style]}
+        testID={testID}
+      >
+        {!!backToDate && <View style={styles.backRow}>{backToDate}</View>}
+        {renderBody()}
+      </View>
+    );
+  }
 
   return (
-    <View style={[styles.surface, style]} testID={testID}>
+    <View
+      pointerEvents={disabled ? "none" : "auto"}
+      style={[styles.surface, disabled && styles.faded, style]}
+      testID={testID}
+    >
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Typography variant="labelMedium" style={styles.supporting}>
@@ -377,41 +468,35 @@ const PickerSurface = ({
             {headline}
           </Typography>
         </View>
-        {showInputToggle && (
-          <IconButton
-            icon={toggleIcon}
-            accessibilityLabel={toggleLabel}
-            onPress={() =>
-              setInputType(inputType === "keyboard" ? "picker" : "keyboard")
-            }
-          />
-        )}
+        {backToDate}
       </View>
 
       <Divider />
 
       <View style={styles.body}>{renderBody()}</View>
 
-      <View style={styles.footer}>
-        {mode === "datetime" && step === "time" && (
-          <Button mode="text" onPress={() => setStep("date")}>
-            {labels.back}
+      {showConfirm && (
+        <View style={styles.footer}>
+          <Button
+            variant="text"
+            disabled={!canConfirm}
+            onClick={isFirstOfTwoSteps ? () => setStep("time") : confirm}
+          >
+            {labels.confirm}
           </Button>
-        )}
-        <View style={styles.footerSpacer} />
-        <Button mode="text" onPress={onCancel}>
-          {labels.cancel}
-        </Button>
-        <Button
-          mode="text"
-          disabled={!canConfirm}
-          onPress={isFirstOfTwoSteps ? () => setStep("time") : confirm}
-        >
-          {isFirstOfTwoSteps ? labels.next : labels.confirm}
-        </Button>
-      </View>
+        </View>
+      )}
     </View>
   );
+};
+
+/**
+ * The `static` variant: the surface alone, in the page, wired to the same
+ * controller as the popup so the props mean the same thing in both.
+ */
+export const StaticPicker = (props: DateTimePickerProps) => {
+  const { surfaceProps } = usePickerParts(props);
+  return <PickerSurface {...surfaceProps} />;
 };
 
 export default PickerSurface;
@@ -438,12 +523,12 @@ const makeStyles = (theme: Theme) =>
       width: "100%",
       paddingHorizontal: theme.spacing.s,
     },
+    backRow: { alignItems: "flex-start" },
     footer: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.s,
+      justifyContent: "flex-end",
       paddingHorizontal: theme.spacing.m,
       paddingBottom: theme.spacing.m,
     },
-    footerSpacer: { flex: 1 },
+    faded: { opacity: 0.38 },
   });

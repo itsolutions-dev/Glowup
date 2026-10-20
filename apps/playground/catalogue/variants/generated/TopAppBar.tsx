@@ -9,16 +9,16 @@ import { Avatar, IconButton, TopAppBar } from "@its/glowup-ui";
 const bar: ViewStyle = { width: 400, flexDirection: "row" };
 
 const back = (
-  <IconButton icon="arrow-left" accessibilityLabel="Back" onPress={() => {}} />
+  <IconButton icon="arrow-left" accessibilityLabel="Back" onClick={() => {}} />
 );
 
 const actions = (
   <>
-    <IconButton icon="magnify" accessibilityLabel="Search" onPress={() => {}} />
+    <IconButton icon="magnify" accessibilityLabel="Search" onClick={() => {}} />
     <IconButton
       icon="dots-vertical"
       accessibilityLabel="More"
-      onPress={() => {}}
+      onClick={() => {}}
     />
   </>
 );
@@ -40,7 +40,7 @@ export const CenterAligned = () => (
       variant="center"
       title="Glowup"
       leading={
-        <IconButton icon="menu" accessibilityLabel="Menu" onPress={() => {}} />
+        <IconButton icon="menu" accessibilityLabel="Menu" onClick={() => {}} />
       }
       actions={<Avatar name="Marta Rossi" size={32} />}
       safeArea={false}

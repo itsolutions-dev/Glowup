@@ -6,7 +6,7 @@ import {
   ListItem,
   ListSection,
   StatusBadge,
-  Toggle,
+  Switch,
   ToggleButtonGroup,
   Typography,
   VStack,
@@ -89,7 +89,7 @@ function Altimeter() {
   const { reading } = useBarometer();
   if (permission.status === "undetermined") {
     // On the web, straight from the press: Safari grants only in the gesture.
-    return <Button onPress={permission.request}>Allow motion data</Button>;
+    return <Button onClick={permission.request}>Allow motion data</Button>;
   }
   return <Typography>{reading ? \`\${reading.pressure.toFixed(1)} hPa\` : "…"}</Typography>;
 }`;
@@ -287,7 +287,7 @@ export default function SensorsPage() {
         <ListSection>
           <ListItem
             secondary="{ enabled } on every hook below."
-            trailing={<Toggle value={listening} onValueChange={setListening} />}
+            trailing={<Switch value={listening} onChange={setListening} />}
           >
             Read the sensors
           </ListItem>

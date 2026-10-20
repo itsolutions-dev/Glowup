@@ -138,14 +138,14 @@ export default function SignUp() {
           <Input
             label="Work email"
             value={email}
-            onChangeText={setEmail}
+            onChange={setEmail}
             leadingIcon="email-outline"
             required
           />
           <Input
             label="Password"
             value={password}
-            onChangeText={setPassword}
+            onChange={setPassword}
             leadingIcon="lock-outline"
             secureTextEntry
             required
@@ -179,11 +179,11 @@ export default function SignUp() {
           </Typography>
           <PinInput
             value={code}
-            onChangeText={setCode}
+            onChange={setCode}
             length={6}
             helperText="Any six digits will do in this demo"
           />
-          <Button mode="text" iconName="refresh" onPress={() => setCode("")}>
+          <Button variant="text" iconName="refresh" onClick={() => setCode("")}>
             Resend code
           </Button>
         </VStack>
@@ -194,14 +194,14 @@ export default function SignUp() {
           <Input
             label="Full name"
             value={name}
-            onChangeText={setName}
+            onChange={setName}
             leadingIcon="account-outline"
             required
           />
           <Select
             label="Role"
             value={role}
-            onSelect={setRole}
+            onChange={setRole}
             options={ROLES}
           />
           <VStack spacing="s">
@@ -212,12 +212,12 @@ export default function SignUp() {
               What are you building?
             </Typography>
             <ChipGroup
-              multiSelect
+              multiple
               wrap
               accessibilityLabel="Interests"
               options={[...INTERESTS]}
               value={interests}
-              onValueChange={setInterests}
+              onChange={setInterests}
             />
           </VStack>
           <Checkbox
@@ -230,19 +230,19 @@ export default function SignUp() {
 
       <HStack justify="space-between" align="center">
         <Button
-          mode="text"
+          variant="text"
           iconName="arrow-left"
           disabled={step === 0}
-          onPress={() => setStep(step - 1)}
+          onClick={() => setStep(step - 1)}
         >
           Back
         </Button>
         {step < STEPS.length - 1 ? (
           <Button
             iconName="arrow-right"
-            iconPosition="right"
+            iconPosition="end"
             disabled={!canContinue}
-            onPress={() => setStep(step + 1)}
+            onClick={() => setStep(step + 1)}
           >
             Continue
           </Button>
@@ -250,7 +250,7 @@ export default function SignUp() {
           <Button
             iconName="check"
             disabled={!canContinue}
-            onPress={() => setDone(true)}
+            onClick={() => setDone(true)}
           >
             Create account
           </Button>

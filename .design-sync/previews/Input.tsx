@@ -17,14 +17,14 @@ export const Variants = () => (
       label="Full name"
       placeholder="Ada Lovelace"
       value="Ada Lovelace"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       variant="outlined"
       label="Company"
       placeholder="Acme Inc."
       value="Acme Inc."
-      onChangeText={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -35,7 +35,7 @@ export const WithIcons = () => (
       label="Work email"
       leadingIcon="email-outline"
       value="ada@acme.example"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       label="Password"
@@ -43,7 +43,7 @@ export const WithIcons = () => (
       trailingIcon="eye-off-outline"
       secureTextEntry
       value="correct-horse"
-      onChangeText={noop}
+      onChange={noop}
       onTrailingIconPress={noop}
     />
     <Input
@@ -53,7 +53,7 @@ export const WithIcons = () => (
       suffix="EUR"
       precision={2}
       value="1240.50"
-      onChangeText={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -69,21 +69,21 @@ export const ValidationStates = () => (
       required
       helperText="11 digits, no country prefix."
       value="0123456789"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       label="VAT number"
       required
       error="Must be exactly 11 digits."
       value="01234"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       label="Invoice reference"
       placeholder="Optional"
       helperText="Shown on the PDF and the bank transfer."
       value=""
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       label="Seats"
@@ -91,7 +91,7 @@ export const ValidationStates = () => (
       maxLength={3}
       helperText="Max 250 per workspace."
       value="24"
-      onChangeText={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -102,12 +102,12 @@ export const Multiline = () => (
       label="Delivery notes"
       placeholder="Anything the courier should know?"
       multiline
-      numberOfLines={4}
+      rows={4}
       maxLength={280}
       value={
         "Ring the bell twice — the intercom is broken.\nIf nobody answers, leave it with the concierge."
       }
-      onChangeText={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -121,7 +121,7 @@ export const DecimalComma = () => (
       precision={2}
       suffix="€"
       value="1250.50"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       type="number"
@@ -129,7 +129,7 @@ export const DecimalComma = () => (
       precision={2}
       suffix="€"
       value="1250.50"
-      onChangeText={noop}
+      onChange={noop}
     />
   </div>
 );
@@ -141,7 +141,7 @@ export const UpperCaseAndReservedHelper = () => (
       allUpperCase
       reserveHelperText
       value="RSSMRA80A01H501U"
-      onChangeText={noop}
+      onChange={noop}
     />
     <Input
       label="Plate"
@@ -149,8 +149,8 @@ export const UpperCaseAndReservedHelper = () => (
       reserveHelperText
       error="Not a valid plate"
       value="AB123C"
-      onChangeText={noop}
+      onChange={noop}
     />
-    <Input label="Next field" value="" onChangeText={noop} />
+    <Input label="Next field" value="" onChange={noop} />
   </div>
 );

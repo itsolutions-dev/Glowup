@@ -21,63 +21,54 @@ import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
+import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 
-export type ButtonMode = "filled" | "tonal" | "outlined" | "text";
-export type ButtonTone = "primary" | "error" | "success";
+export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
+export type ButtonColor = ColorRole;
 
-/** The colours a button resolves to for a mode and a tone. */
+/** The colours a button resolves to for a variant and a colour. */
 export interface ButtonColors {
   /** Surface fill; `"transparent"` for outlined and text. */
   bg: string;
   /** Label and icon colour. */
   on: string;
-  /** Outline colour, outlined mode only. */
+  /** Outline colour, outlined variant only. */
   border?: string;
-  /** What a state layer is drawn over: `bg`, or `surface` for the transparent modes. */
+  /** What a state layer is drawn over: `bg`, or `surface` for the transparent variants. */
   underlay: string;
 }
 
 /**
- * Resolves a mode and a tone to colours, exactly as `Button` paints them.
+ * Resolves a variant and a colour to colours, exactly as `Button` paints them.
  * Exported for components built on `Button` that draw inside its surface.
  */
 export const getButtonColors = (
   theme: Theme,
-  mode: ButtonMode,
-  tone: ButtonTone,
+  variant: ButtonVariant,
+  color: ButtonColor,
 ): ButtonColors => {
   const { colors } = theme;
+  const role = colorRoleTokens(theme, color);
+  // The primary tonal button sits on the secondary container, as in M3.
   const [accent, onAccent, container, onContainer] =
-    tone === "success"
+    color === "primary"
       ? [
-          colors.success,
-          colors.onSuccess,
-          colors.successContainer,
-          colors.onSuccessContainer,
+          colors.primary,
+          colors.onPrimary,
+          colors.secondaryContainer,
+          colors.onSecondaryContainer,
         ]
-      : tone === "error"
-        ? [
-            colors.error,
-            colors.onError,
-            colors.errorContainer,
-            colors.onErrorContainer,
-          ]
-        : [
-            colors.primary,
-            colors.onPrimary,
-            colors.secondaryContainer,
-            colors.onSecondaryContainer,
-          ];
+      : [role.main, role.onMain, role.container, role.onContainer];
 
   const surface = theme.colors.surface;
-  switch (mode) {
+  switch (variant) {
     case "tonal":
       return { bg: container, on: onContainer, underlay: container };
     case "outlined":
       return {
         bg: "transparent",
         on: accent,
-        border: tone === "primary" ? theme.colors.outline : accent,
+        border: color === "primary" ? theme.colors.outline : accent,
         underlay: surface,
       };
     case "text":
@@ -89,15 +80,16 @@ export const getButtonColors = (
 };
 
 export interface ButtonProps {
-  onPress?: () => void;
+  onClick?: () => void;
   iconName?: MaterialCommunityIconsGlyphs;
   size?: number;
-  mode?: ButtonMode;
+  variant?: ButtonVariant;
   /**
    * Colour role. `error` is the destructive treatment (delete, discard);
-   * `success` is confirmation feedback, from a fixed green kept off the seed.
+   * `success`, `warning`, `info` and `neutral` come from fixed hues kept off
+   * the seed.
    */
-  tone?: ButtonTone;
+  color?: ButtonColor;
   style?: object;
   iconStyle?: object;
   disabled?: boolean;
@@ -127,7 +119,7 @@ export interface ButtonProps {
   /** Stretch to fill the parent width. */
   fullWidth?: boolean;
   /** Icon side relative to the label. */
-  iconPosition?: "left" | "right";
+  iconPosition?: "start" | "end";
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
@@ -142,11 +134,11 @@ export interface ButtonProps {
 const noop = () => {};
 
 const Button = ({
-  onPress,
+  onClick,
   iconName,
   size,
-  mode = "filled",
-  tone = "primary",
+  variant = "filled",
+  color = "primary",
   disabled = false,
   style = {},
   iconStyle = {},
@@ -157,7 +149,7 @@ const Button = ({
   fullWidth = false,
   density,
   badge,
-  iconPosition = "left",
+  iconPosition = "start",
   accessibilityLabel,
   accessibilityHint,
   testID,
@@ -174,7 +166,10 @@ const Button = ({
     on,
     border,
     underlay: stateBase,
-  } = useMemo(() => getButtonColors(theme, mode, tone), [theme, mode, tone]);
+  } = useMemo(
+    () => getButtonColors(theme, variant, color),
+    [theme, variant, color],
+  );
 
   const isInteractive = !disabled && !loading && !busy;
 
@@ -196,10 +191,10 @@ const Button = ({
       // whatever is listening further up.
       onPress={
         isInteractive
-          ? onPress &&
+          ? onClick &&
             (() => {
               emitFeedback("press");
-              onPress();
+              onClick();
             })
           : noop
       }
@@ -220,7 +215,7 @@ const Button = ({
           (hovered || pressed) && isInteractive
             ? getGlowStyles(theme, true)
             : {
-                borderWidth: mode === "outlined" ? 1 : 0,
+                borderWidth: variant === "outlined" ? 1 : 0,
                 borderColor: border || "transparent",
               };
 
@@ -252,7 +247,7 @@ const Button = ({
           <CircularProgress size={20} strokeWidth={2.5} color={on} />
         ) : (
           <>
-            {!!iconName && iconPosition === "left" && (
+            {!!iconName && iconPosition === "start" && (
               <Icons
                 name={iconName}
                 size={size || theme.shape.medium}
@@ -269,7 +264,7 @@ const Button = ({
                 <Badge count={badge} />
               </View>
             )}
-            {!!iconName && iconPosition === "right" && (
+            {!!iconName && iconPosition === "end" && (
               <Icons
                 name={iconName}
                 size={size || theme.shape.medium}

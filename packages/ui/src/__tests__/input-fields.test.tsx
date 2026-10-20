@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Input, ThemeProvider } from "..";
+import { FIELD_MIN_WIDTH } from "../components/internal/fieldWidth";
 
 type Props = Partial<React.ComponentProps<typeof Input>>;
 
@@ -12,7 +13,7 @@ const type = async (text: string, props: Props = {}) => {
       <Input
         label="Campo"
         value={value}
-        onChangeText={(v) => seen.push(v)}
+        onChange={(v) => seen.push(v)}
         {...props}
       />
     </ThemeProvider>
@@ -60,7 +61,7 @@ describe("Input allUpperCase", () => {
     expect((await type("ab12", {})).reported).toBe("ab12");
     const view = await render(
       <ThemeProvider>
-        <Input label="Campo" value="" onChangeText={() => {}} allUpperCase />
+        <Input label="Campo" value="" onChange={() => {}} allUpperCase />
       </ThemeProvider>,
     );
     expect(view.getByLabelText("Campo").props.autoCapitalize).toBe(
@@ -73,7 +74,7 @@ describe("Input reserveHelperText", () => {
   const rows = async (props: Props) => {
     const { toJSON } = await render(
       <ThemeProvider>
-        <Input label="Campo" value="" onChangeText={() => {}} {...props} />
+        <Input label="Campo" value="" onChange={() => {}} {...props} />
       </ThemeProvider>,
     );
     // The helper is the only place the field draws the alert glyph or its text.
@@ -90,5 +91,139 @@ describe("Input reserveHelperText", () => {
     expect(await rows({ helperText: "Aiuto", reserveHelperText: true })).toBe(
       await rows({ helperText: "Aiuto" }),
     );
+  });
+});
+
+describe("Input labelPlacement", () => {
+  /** The label sits above the box (outside) when it carries a bottom margin. */
+  const placement = async (props: Props) => {
+    const { getByText } = await render(
+      <ThemeProvider>
+        <Input label="Campo" value="" onChange={() => {}} {...props} />
+      </ThemeProvider>,
+    );
+    return JSON.stringify(getByText("Campo").props.style).includes(
+      "marginBottom",
+    )
+      ? "outside"
+      : "inside";
+  };
+
+  it("keeps the label above the box whatever the variant", async () => {
+    expect(await placement({})).toBe("outside");
+    expect(await placement({ variant: "outlined" })).toBe("outside");
+    expect(await placement({ variant: "filled" })).toBe("outside");
+  });
+
+  it("puts the label inside the box when labelPlacement says so, in either variant", async () => {
+    expect(await placement({ labelPlacement: "inside" })).toBe("inside");
+    expect(
+      await placement({ variant: "filled", labelPlacement: "inside" }),
+    ).toBe("inside");
+  });
+});
+
+describe("Input variant", () => {
+  const transparent = async (props: Props) => {
+    const { toJSON, getByLabelText } = await render(
+      <ThemeProvider>
+        <Input label="Campo" value="" onChange={() => {}} {...props} />
+      </ThemeProvider>,
+    );
+    const count = () =>
+      (JSON.stringify(toJSON()).match(/"borderColor":"transparent"/g) ?? [])
+        .length;
+    return { count, input: getByLabelText("Campo") };
+  };
+
+  it("draws a filled box with no border until it is focused or in error, like PinInput's cells", async () => {
+    const outlined = (await transparent({})).count();
+    const filled = await transparent({ variant: "filled" });
+    expect(filled.count()).toBe(outlined + 1);
+    await fireEvent(filled.input, "focus");
+    expect(filled.count()).toBe(outlined);
+    expect(
+      (await transparent({ variant: "filled", error: "No" })).count(),
+    ).toBe(outlined);
+  });
+
+  it("changes the box, not the label", async () => {
+    const label = async (variant: "outlined" | "filled") => {
+      const { getByText } = await render(
+        <ThemeProvider>
+          <Input label="Campo" value="" onChange={() => {}} variant={variant} />
+        </ThemeProvider>,
+      );
+      return JSON.stringify(getByText("Campo").props.style);
+    };
+    expect(await label("filled")).toBe(await label("outlined"));
+  });
+});
+
+describe("Input fullWidth", () => {
+  const json = async (props: Props) =>
+    JSON.stringify(
+      (
+        await render(
+          <ThemeProvider>
+            <Input label="Campo" value="" onChange={() => {}} {...props} />
+          </ThemeProvider>,
+        )
+      ).toJSON(),
+    );
+
+  it("fills its container by default", async () => {
+    const full = await json({});
+    expect(full).toContain('"width":"100%"');
+    expect(full).not.toContain('"alignSelf":"flex-start"');
+  });
+
+  it("shrinks to its content, with a minimum width, when false", async () => {
+    const narrow = await json({ fullWidth: false });
+    expect(narrow).not.toContain('"width":"100%"');
+    expect(narrow).toContain('"alignSelf":"flex-start"');
+    expect(narrow).toContain(`"minWidth":${FIELD_MIN_WIDTH}`);
+  });
+});
+
+describe("Input rows", () => {
+  const lines = async (props: Props) =>
+    (
+      await render(
+        <ThemeProvider>
+          <Input label="Campo" value="" onChange={() => {}} {...props} />
+        </ThemeProvider>,
+      )
+    ).getByLabelText("Campo").props.numberOfLines;
+
+  it("sizes a multiline field: 4 lines by default, or as many as asked", async () => {
+    expect(await lines({ multiline: true })).toBe(4);
+    expect(await lines({ multiline: true, rows: 7 })).toBe(7);
+  });
+
+  it("is ignored on a single-line field", async () => {
+    expect(await lines({ rows: 7 })).toBeUndefined();
+  });
+});
+
+describe("Input focus callbacks", () => {
+  it("reports focus and blur", async () => {
+    const onFocus = jest.fn();
+    const onBlur = jest.fn();
+    const { getByLabelText } = await render(
+      <ThemeProvider>
+        <Input
+          label="Campo"
+          value=""
+          onChange={() => {}}
+          onFocus={onFocus}
+          onBlur={onBlur}
+        />
+      </ThemeProvider>,
+    );
+    await fireEvent(getByLabelText("Campo"), "focus");
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    await fireEvent(getByLabelText("Campo"), "blur");
+    expect(onBlur).toHaveBeenCalledTimes(1);
   });
 });

@@ -18,7 +18,9 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from "react-native";
+import { rgba } from "polished";
 import Icons from "./Glyph";
+import Button from "./Button";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import {
@@ -35,8 +37,6 @@ import {
   fromMonthIndex,
   getDeviceLocale,
   getFirstDayOfWeek,
-  getMonthNames,
-  getShortMonthNames,
   getWeekdayNames,
   isRangeEnd,
   isRangeStart,
@@ -51,8 +51,14 @@ import {
   useLabels,
 } from "./DateTimePicker.shared";
 
+/**
+ * Internal: the month grid of `DatePicker` and `DateTimePicker`, which render it
+ * in their popup or, with `variant="static"`, inline. Not exported from the
+ * package.
+ */
+
 /** Which grid the calendar is currently showing. */
-type CalendarView = "days" | "months" | "years";
+type CalendarView = "days" | "years";
 
 const YEARS_PER_PAGE = 12;
 /** How far the endless scroller reaches when no year bounds are given. */
@@ -60,9 +66,8 @@ const DEFAULT_YEAR_SPAN = 100;
 
 const CELL = 40;
 const WEEK_ROWS = 6;
-const MONTH_TITLE_HEIGHT = 40;
 /** Constant so `getItemLayout` can place months without measuring them. */
-const MONTH_ITEM_HEIGHT = MONTH_TITLE_HEIGHT + WEEK_ROWS * CELL;
+const MONTH_ITEM_HEIGHT = WEEK_ROWS * CELL;
 const ENDLESS_VIEWPORT_HEIGHT = MONTH_ITEM_HEIGHT;
 
 export interface CalendarProps {
@@ -98,7 +103,7 @@ export interface CalendarProps {
   startYear?: number;
   /** Last year reachable from the year grid and the endless scroller. */
   endYear?: number;
-  /** Renders the "Today" shortcut row. Default `true`. */
+  /** Renders the "Today" button next to the month arrows. Default `true`. */
   showToday?: boolean;
   /**
    * Arrow-key/PageUp/Home/Enter navigation. Web only — there is no key event
@@ -146,14 +151,17 @@ const Calendar = ({
 
   const locale = localeProp ?? getDeviceLocale();
   const firstDayOfWeek = firstDayOfWeekProp ?? getFirstDayOfWeek(locale);
-  const monthNames = getMonthNames(locale);
-  const shortMonthNames = getShortMonthNames(locale);
   const weekdayNames = useMemo(
     () => rotateWeekdays(getWeekdayNames(locale), firstDayOfWeek),
     [locale, firstDayOfWeek],
   );
   const dayLabelFormat = useMemo(
     () => new Intl.DateTimeFormat(locale, { dateStyle: "full" }),
+    [locale],
+  );
+  // "October 2026", in the locale's own order and form.
+  const monthYearFormat = useMemo(
+    () => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }),
     [locale],
   );
 
@@ -180,6 +188,8 @@ const Calendar = ({
   const [yearPageStart, setYearPageStart] = useState(
     () => anchorDay.getFullYear() - 6,
   );
+  // The day under the pointer while a range waits for its end; see `preview`.
+  const [hoverDay, setHoverDay] = useState<Date | null>(null);
 
   const isDisabled = useMemo(
     () => makeDayPredicate(validRange, isDateDisabled),
@@ -189,6 +199,21 @@ const Calendar = ({
     () => resolveBounds(validRange),
     [validRange],
   );
+
+  /**
+   * While a range has its start and waits for its end, the stretch from the start
+   * to the day under the pointer, in either direction; `null` otherwise. Only
+   * drawn: nothing is reported until a day is pressed.
+   */
+  const preview = useMemo<DateRange | null>(() => {
+    const { startDate, endDate } = range;
+    if (selectionMode !== "range" || !startDate || endDate) return null;
+    if (!hoverDay || isDisabled(hoverDay)) return null;
+    const start = startOfDay(startDate);
+    return hoverDay.getTime() < start.getTime()
+      ? { startDate: hoverDay, endDate: start }
+      : { startDate: start, endDate: hoverDay };
+  }, [selectionMode, range, hoverDay, isDisabled]);
 
   // --- Endless scroller bounds ----------------------------------------------
   // Clamped to validRange when it is narrower than the year span, so the list
@@ -333,6 +358,12 @@ const Calendar = ({
     [goToMonth, visibleMonth],
   );
 
+  // The month the list was last seen on. The header follows the list only when
+  // it moves on from there: the arrows name the new month first and scroll to it
+  // after, and the events of that scroll, still on the old month, must not take
+  // the header back to it.
+  const listMonth = useRef(toMonthIndex(visibleMonth));
+
   /**
    * Keeps the header title on the month filling the viewport. Every row is
    * `MONTH_ITEM_HEIGHT` tall, so the offset alone identifies it.
@@ -341,9 +372,9 @@ const Calendar = ({
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offset = event.nativeEvent.contentOffset.y;
       const index = firstMonthIndex + Math.round(offset / MONTH_ITEM_HEIGHT);
-      setVisibleMonth((current) =>
-        toMonthIndex(current) === index ? current : fromMonthIndex(index),
-      );
+      if (index === listMonth.current) return;
+      listMonth.current = index;
+      setVisibleMonth(fromMonthIndex(index));
     },
     [firstMonthIndex],
   );
@@ -467,13 +498,18 @@ const Calendar = ({
       const disabled = isDisabled(day);
       const focused = isSameDay(day, focusedDay);
       const isCurrentDay = isSameDay(day, today);
-      const inRange = selectionMode === "range" && isWithinRange(day, range);
-      const rangeStart = selectionMode === "range" && isRangeStart(day, range);
-      const rangeEnd =
+      // The interval drawn as a band: the real one, or its preview. A band of a
+      // single day is no band, so it is the selected circle alone.
+      const span = preview ?? range;
+      const spanned =
         selectionMode === "range" &&
-        isRangeEnd(day, range) &&
-        !!range.startDate &&
-        !isSameDay(range.startDate, day);
+        !!span.startDate &&
+        !!span.endDate &&
+        !isSameDay(span.startDate, span.endDate);
+      const inRange = spanned && isWithinRange(day, span);
+      const rangeStart = spanned && isRangeStart(day, span);
+      const rangeEnd = spanned && isRangeEnd(day, span);
+      const banded = inRange || rangeStart || rangeEnd;
 
       return (
         <View
@@ -482,8 +518,10 @@ const Calendar = ({
             styles.cellWrapper,
             // The band is drawn behind the circular cell so consecutive days
             // read as one continuous interval.
-            (inRange || rangeStart || rangeEnd) && {
-              backgroundColor: theme.colors.primaryContainer,
+            banded && {
+              backgroundColor: preview
+                ? rgba(theme.colors.primaryContainer, 0.5)
+                : theme.colors.primaryContainer,
             },
             rangeStart && styles.bandStart,
             rangeEnd && styles.bandEnd,
@@ -495,6 +533,14 @@ const Calendar = ({
             accessibilityState={{ selected, disabled }}
             disabled={disabled}
             onPress={() => select(day)}
+            // Only while a range is open: any other hover would re-render the
+            // grid for nothing.
+            onHoverIn={
+              selectionMode === "range" && range.startDate && !range.endDate
+                ? () => setHoverDay(day)
+                : undefined
+            }
+            onHoverOut={() => setHoverDay(null)}
             style={({ hovered, pressed }: PressableState) => [
               styles.dayCell,
               selected && { backgroundColor: theme.colors.primary },
@@ -509,7 +555,7 @@ const Calendar = ({
                   borderColor: theme.colors.outline,
                 },
               !selected &&
-                !inRange &&
+                !banded &&
                 (hovered || pressed) && {
                   backgroundColor: theme.colors.surfaceContainerHighest,
                 },
@@ -522,7 +568,7 @@ const Calendar = ({
                 {
                   color: selected
                     ? theme.colors.onPrimary
-                    : inRange
+                    : banded
                       ? theme.colors.onPrimaryContainer
                       : outsideMonth
                         ? theme.colors.outline
@@ -547,6 +593,7 @@ const Calendar = ({
       today,
       selectionMode,
       range,
+      preview,
       theme,
       dayLabelFormat,
       select,
@@ -581,99 +628,109 @@ const Calendar = ({
     [styles, firstDayOfWeek, renderDay],
   );
 
+  const todayDisabled = isDisabled(today);
+
+  const goToToday = () => {
+    setView("days");
+    select(today);
+    if (scrollMode === "endless") {
+      scrollToMonth(new Date(today.getFullYear(), today.getMonth(), 1), false);
+    }
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
+      {/* One control for month and year, in M3's label size so the longest
+          English month still fits beside Today; it opens the year grid. */}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={
-          view === "years" ? labels.previousYears : labels.previousMonth
-        }
-        accessibilityState={{ disabled: view === "days" && !canStepBack }}
-        disabled={view === "days" && !canStepBack}
-        onPress={() =>
-          view === "years"
-            ? setYearPageStart((start) => start - YEARS_PER_PAGE)
-            : stepMonth(-1)
-        }
-        style={({ hovered }: PressableState) => [
-          styles.navButton,
-          hovered && { backgroundColor: theme.colors.surfaceContainerHighest },
-          view === "days" && !canStepBack && styles.faded,
-        ]}
+        accessibilityLabel={labels.selectYear}
+        accessibilityState={{ expanded: view === "years" }}
+        onPress={() => {
+          setYearPageStart(visibleMonth.getFullYear() - 6);
+          setView(view === "years" ? "days" : "years");
+        }}
+        style={styles.headerButton}
       >
-        <Icons name="chevron-left" size={22} color={theme.colors.onSurface} />
+        <Text
+          numberOfLines={1}
+          style={[
+            theme.typography.labelLarge,
+            styles.headerTitle,
+            { color: theme.colors.onSurface },
+          ]}
+        >
+          {monthYearFormat.format(visibleMonth)}
+        </Text>
+        <Icons
+          name={view === "years" ? "menu-up" : "menu-down"}
+          size={18}
+          color={theme.colors.onSurfaceVariant}
+        />
       </Pressable>
 
-      <View style={styles.headerCenter}>
-        {scrollMode === "paged" && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={labels.selectMonth}
-            accessibilityState={{ expanded: view === "months" }}
-            onPress={() => setView(view === "months" ? "days" : "months")}
-            style={styles.headerButton}
-          >
-            <Text
-              style={[
-                theme.typography.titleMedium,
-                { color: theme.colors.onSurface },
-              ]}
-            >
-              {monthNames[visibleMonth.getMonth()]}
-            </Text>
-            <Icons
-              name={view === "months" ? "menu-up" : "menu-down"}
-              size={18}
-              color={theme.colors.onSurfaceVariant}
-            />
-          </Pressable>
-        )}
+      <View style={styles.headerControls}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={labels.selectYear}
-          accessibilityState={{ expanded: view === "years" }}
-          onPress={() => {
-            setYearPageStart(visibleMonth.getFullYear() - 6);
-            setView(view === "years" ? "days" : "years");
-          }}
-          style={styles.headerButton}
+          accessibilityLabel={
+            view === "years" ? labels.previousYears : labels.previousMonth
+          }
+          accessibilityState={{ disabled: view === "days" && !canStepBack }}
+          disabled={view === "days" && !canStepBack}
+          onPress={() =>
+            view === "years"
+              ? setYearPageStart((start) => start - YEARS_PER_PAGE)
+              : stepMonth(-1)
+          }
+          style={({ hovered }: PressableState) => [
+            styles.navButton,
+            hovered && {
+              backgroundColor: theme.colors.surfaceContainerHighest,
+            },
+            view === "days" && !canStepBack && styles.faded,
+          ]}
         >
-          <Text
-            style={[
-              theme.typography.titleMedium,
-              { color: theme.colors.onSurface },
-            ]}
+          <Icons name="chevron-left" size={22} color={theme.colors.onSurface} />
+        </Pressable>
+
+        {showToday && (
+          <Button
+            variant="outlined"
+            onClick={goToToday}
+            disabled={todayDisabled}
+            style={styles.todayButton}
           >
-            {visibleMonth.getFullYear()}
-          </Text>
+            {labels.today}
+          </Button>
+        )}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            view === "years" ? labels.nextYears : labels.nextMonth
+          }
+          accessibilityState={{ disabled: view === "days" && !canStepForward }}
+          disabled={view === "days" && !canStepForward}
+          onPress={() =>
+            view === "years"
+              ? setYearPageStart((start) => start + YEARS_PER_PAGE)
+              : stepMonth(1)
+          }
+          style={({ hovered }: PressableState) => [
+            styles.navButton,
+            hovered && {
+              backgroundColor: theme.colors.surfaceContainerHighest,
+            },
+            view === "days" && !canStepForward && styles.faded,
+          ]}
+        >
           <Icons
-            name={view === "years" ? "menu-up" : "menu-down"}
-            size={18}
-            color={theme.colors.onSurfaceVariant}
+            name="chevron-right"
+            size={22}
+            color={theme.colors.onSurface}
           />
         </Pressable>
       </View>
-
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={
-          view === "years" ? labels.nextYears : labels.nextMonth
-        }
-        accessibilityState={{ disabled: view === "days" && !canStepForward }}
-        disabled={view === "days" && !canStepForward}
-        onPress={() =>
-          view === "years"
-            ? setYearPageStart((start) => start + YEARS_PER_PAGE)
-            : stepMonth(1)
-        }
-        style={({ hovered }: PressableState) => [
-          styles.navButton,
-          hovered && { backgroundColor: theme.colors.surfaceContainerHighest },
-          view === "days" && !canStepForward && styles.faded,
-        ]}
-      >
-        <Icons name="chevron-right" size={22} color={theme.colors.onSurface} />
-      </Pressable>
     </View>
   );
 
@@ -682,6 +739,7 @@ const Calendar = ({
       {renderWeekRow()}
       <FlatList
         ref={listRef}
+        testID={testID ? `${testID}-months` : undefined}
         data={monthIndices}
         keyExtractor={(index) => String(index)}
         style={styles.endlessList}
@@ -696,23 +754,11 @@ const Calendar = ({
         })}
         onScroll={handleScroll}
         scrollEventThrottle={32}
-        renderItem={({ item }) => {
-          const month = fromMonthIndex(item);
-          return (
-            <View style={styles.monthItem}>
-              <Text
-                style={[
-                  theme.typography.titleSmall,
-                  styles.monthTitle,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-              >
-                {`${monthNames[month.getMonth()]} ${month.getFullYear()}`}
-              </Text>
-              {renderMonthGrid(month)}
-            </View>
-          );
-        }}
+        renderItem={({ item }) => (
+          <View style={styles.monthItem}>
+            {renderMonthGrid(fromMonthIndex(item))}
+          </View>
+        )}
       />
     </>
   );
@@ -722,53 +768,6 @@ const Calendar = ({
       {renderWeekRow()}
       {renderMonthGrid(visibleMonth)}
     </>
-  );
-
-  const renderMonths = () => (
-    <View style={styles.pickerGrid}>
-      {shortMonthNames.map((name, monthOfYear) => {
-        const active = monthOfYear === visibleMonth.getMonth();
-        const disabled = isMonthOutOfRange(
-          new Date(visibleMonth.getFullYear(), monthOfYear, 1),
-          minimumDate,
-          maximumDate,
-        );
-        return (
-          <Pressable
-            key={name}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active, disabled }}
-            disabled={disabled}
-            onPress={() => {
-              goToMonth(new Date(visibleMonth.getFullYear(), monthOfYear, 1));
-              setView("days");
-            }}
-            style={({ hovered }: PressableState) => [
-              styles.pickerCell,
-              active && { backgroundColor: theme.colors.primary },
-              !active &&
-                hovered && {
-                  backgroundColor: theme.colors.surfaceContainerHighest,
-                },
-              disabled && styles.faded,
-            ]}
-          >
-            <Text
-              style={[
-                theme.typography.bodyMedium,
-                {
-                  color: active
-                    ? theme.colors.onPrimary
-                    : theme.colors.onSurface,
-                },
-              ]}
-            >
-              {name}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 
   const renderYears = () => (
@@ -819,8 +818,6 @@ const Calendar = ({
     </ScrollView>
   );
 
-  const todayDisabled = isDisabled(today);
-
   return (
     <View
       ref={rootRef}
@@ -832,48 +829,7 @@ const Calendar = ({
       {renderHeader()}
       {view === "days" &&
         (scrollMode === "endless" ? renderEndlessDays() : renderPagedDays())}
-      {view === "months" && renderMonths()}
       {view === "years" && renderYears()}
-      {showToday && (
-        <View
-          style={[
-            styles.footer,
-            { borderTopColor: theme.colors.outlineVariant },
-          ]}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ disabled: todayDisabled }}
-            disabled={todayDisabled}
-            onPress={() => {
-              setView("days");
-              select(today);
-              if (scrollMode === "endless") {
-                scrollToMonth(
-                  new Date(today.getFullYear(), today.getMonth(), 1),
-                  false,
-                );
-              }
-            }}
-            style={({ hovered }: PressableState) => [
-              styles.footerButton,
-              hovered && {
-                backgroundColor: theme.colors.surfaceContainerHighest,
-              },
-              todayDisabled && styles.faded,
-            ]}
-          >
-            <Text
-              style={[
-                theme.typography.labelLarge,
-                { color: theme.colors.primary },
-              ]}
-            >
-              {labels.today}
-            </Text>
-          </Pressable>
-        </View>
-      )}
     </View>
   );
 };
@@ -903,18 +859,30 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.s,
       paddingVertical: theme.spacing.s,
     },
+    // One row in every language: the title gives way (ellipsis) to the controls.
     header: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      gap: theme.spacing.xs,
       marginBottom: theme.spacing.s,
     },
-    headerCenter: {
+    headerTitle: { flexShrink: 1 },
+    headerControls: {
       flexDirection: "row",
       alignItems: "center",
-      gap: theme.spacing.s,
+      flexShrink: 0,
+    },
+    // Button's own margin and padding are sized for a form; here it sits between
+    // two 32 px arrows, so it is trimmed to sit level with them.
+    todayButton: {
+      marginTop: 0,
+      marginBottom: 0,
+      paddingVertical: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.s,
     },
     headerButton: {
+      flexShrink: 1,
       flexDirection: "row",
       alignItems: "center",
       gap: 2,
@@ -937,11 +905,6 @@ const makeStyles = (theme: Theme) =>
     },
     endlessList: { height: ENDLESS_VIEWPORT_HEIGHT },
     monthItem: { height: MONTH_ITEM_HEIGHT },
-    monthTitle: {
-      height: MONTH_TITLE_HEIGHT,
-      lineHeight: MONTH_TITLE_HEIGHT,
-      paddingHorizontal: theme.spacing.xs,
-    },
     grid: { flexDirection: "row", flexWrap: "wrap" },
     cellWrapper: {
       width: CELL,
@@ -977,17 +940,5 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 6,
     },
     yearScroll: { maxHeight: CELL * 6 },
-    footer: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      borderTopWidth: 1,
-      marginTop: theme.spacing.s,
-      paddingTop: theme.spacing.s,
-    },
-    footerButton: {
-      paddingVertical: 6,
-      paddingHorizontal: theme.spacing.s,
-      borderRadius: theme.shape.small,
-    },
     faded: { opacity: 0.38 },
   });

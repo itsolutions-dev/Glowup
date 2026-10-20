@@ -52,13 +52,13 @@ export const RichContent = () => (
         <Divider contentSpacing={0} />
         <div style={{ height: 12 }} />
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          <Button mode="text" onPress={() => {}}>
+          <Button variant="text" onClick={() => {}}>
             Not now
           </Button>
           <Button
-            mode="filled"
+            variant="filled"
             iconName="account-plus-outline"
-            onPress={() => {}}
+            onClick={() => {}}
           >
             Send invites
           </Button>

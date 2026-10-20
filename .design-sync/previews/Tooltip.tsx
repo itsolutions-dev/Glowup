@@ -36,7 +36,7 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Duplicate" position="top">
-          <Button mode="tonal" iconName="content-copy" onPress={() => {}} />
+          <Button variant="tonal" iconName="content-copy" onClick={() => {}} />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">top</Typography>
@@ -44,7 +44,7 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Share" position="bottom">
-          <Button mode="tonal" iconName="share-variant" onPress={() => {}} />
+          <Button variant="tonal" iconName="share-variant" onClick={() => {}} />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">bottom</Typography>
@@ -52,7 +52,11 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Rename" position="left">
-          <Button mode="tonal" iconName="pencil-outline" onPress={() => {}} />
+          <Button
+            variant="tonal"
+            iconName="pencil-outline"
+            onClick={() => {}}
+          />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">left</Typography>
@@ -60,7 +64,11 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Delete" position="right">
-          <Button mode="tonal" iconName="delete-outline" onPress={() => {}} />
+          <Button
+            variant="tonal"
+            iconName="delete-outline"
+            onClick={() => {}}
+          />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">right</Typography>
@@ -81,17 +89,25 @@ export const ToolbarHints = () => (
   >
     <Hovered>
       <Tooltip content="Download" position="bottom">
-        <Button mode="outlined" iconName="download" onPress={() => {}} />
+        <Button variant="outlined" iconName="download" onClick={() => {}} />
       </Tooltip>
     </Hovered>
     <Hovered>
       <Tooltip content="Archive" position="bottom">
-        <Button mode="outlined" iconName="archive-outline" onPress={() => {}} />
+        <Button
+          variant="outlined"
+          iconName="archive-outline"
+          onClick={() => {}}
+        />
       </Tooltip>
     </Hovered>
     <Hovered>
       <Tooltip content="Print" position="bottom">
-        <Button mode="outlined" iconName="printer-outline" onPress={() => {}} />
+        <Button
+          variant="outlined"
+          iconName="printer-outline"
+          onClick={() => {}}
+        />
       </Tooltip>
     </Hovered>
   </div>
@@ -118,7 +134,7 @@ export const DisabledHint = () => (
     >
       <Hovered>
         <Tooltip content="Ctrl+Enter" position="top">
-          <Button mode="filled" onPress={() => {}}>
+          <Button variant="filled" onClick={() => {}}>
             Publish
           </Button>
         </Tooltip>
@@ -135,7 +151,7 @@ export const DisabledHint = () => (
     >
       <Hovered>
         <Tooltip content="Ctrl+S" position="top" disabled>
-          <Button mode="outlined" onPress={() => {}}>
+          <Button variant="outlined" onClick={() => {}}>
             Save draft
           </Button>
         </Tooltip>

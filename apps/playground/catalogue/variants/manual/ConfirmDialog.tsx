@@ -17,10 +17,10 @@ const Destructive = () => {
         Buttons & actions · 4 variants
       </Typography>
       <Button
-        mode="outlined"
-        tone="error"
+        variant="outlined"
+        color="error"
         iconName="delete-outline"
-        onPress={show}
+        onClick={show}
       >
         Delete Chip
       </Button>
@@ -43,7 +43,7 @@ const Confirm = () => {
 
   return (
     <View style={demo.panel}>
-      <Button mode="filled" iconName="publish" onPress={show}>
+      <Button variant="filled" iconName="publish" onClick={show}>
         Publish 0.1.0
       </Button>
       <ConfirmDialog
@@ -64,7 +64,7 @@ const DefaultLabels = () => {
 
   return (
     <View style={demo.panel}>
-      <Button mode="tonal" iconName="undo-variant" onPress={show}>
+      <Button variant="tonal" iconName="undo-variant" onClick={show}>
         Discard draft
       </Button>
       <ConfirmDialog

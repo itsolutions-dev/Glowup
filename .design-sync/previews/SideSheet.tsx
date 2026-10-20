@@ -14,8 +14,8 @@ const content: React.CSSProperties = {
 
 const filterActions = (
   <>
-    <Button onPress={() => {}}>Apply</Button>
-    <Button mode="outlined" onPress={() => {}}>
+    <Button onClick={() => {}}>Apply</Button>
+    <Button variant="outlined" onClick={() => {}}>
       Reset
     </Button>
   </>

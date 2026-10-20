@@ -12,19 +12,19 @@ const Kinds = () => {
 
   return (
     <View style={demo.row}>
-      <Button mode="tonal" onPress={() => toast.success("Changes saved")}>
+      <Button variant="tonal" onClick={() => toast.success("Changes saved")}>
         Success
       </Button>
       <Button
-        mode="tonal"
-        tone="error"
-        onPress={() => toast.error("Upload failed")}
+        variant="tonal"
+        color="error"
+        onClick={() => toast.error("Upload failed")}
       >
         Error
       </Button>
       <Button
-        mode="outlined"
-        onPress={() => toast.show({ message: "Draft restored" })}
+        variant="outlined"
+        onClick={() => toast.show({ message: "Draft restored" })}
       >
         Default
       </Button>
@@ -38,8 +38,8 @@ const WithAction = () => {
   return (
     <View style={demo.row}>
       <Button
-        mode="filled"
-        onPress={() =>
+        variant="filled"
+        onClick={() =>
           toast.error("Upload failed", {
             action: {
               label: "Retry",
@@ -63,8 +63,8 @@ const Queued = () => {
   return (
     <View style={demo.row}>
       <Button
-        mode="tonal"
-        onPress={() => {
+        variant="tonal"
+        onClick={() => {
           toast.show({ message: "First", duration: 2000 });
           toast.show({ message: "Second", duration: 2000 });
           toast.show({ message: "Third", duration: 2000 });
@@ -73,8 +73,8 @@ const Queued = () => {
         Raise three
       </Button>
       <Button
-        mode="outlined"
-        onPress={() =>
+        variant="outlined"
+        onClick={() =>
           toast.show({
             id: "sync",
             message: `Syncing — ${new Date().toLocaleTimeString()}`,

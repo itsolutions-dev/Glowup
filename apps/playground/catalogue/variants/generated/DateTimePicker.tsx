@@ -182,6 +182,21 @@ export const Disabled = () => (
   </View>
 );
 
+/**
+ * Static `datetime`: tapping a day moves straight on to the time, and the
+ * date readout above the clock goes back.
+ */
+export const Static = () => (
+  <View style={stack}>
+    <DateTimePicker
+      variant="static"
+      mode="datetime"
+      value={new Date(2024, 4, 15, 9, 25)}
+      onChange={noop}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Modes",
@@ -217,5 +232,12 @@ export const variants: Variant[] = [
     name: "Disabled",
     title: "Disabled",
     render: Disabled,
+  },
+  {
+    name: "Static",
+    title: "Static",
+    description:
+      "Static `datetime`: tapping a day moves straight on to the time, and the date readout above the clock goes back.",
+    render: Static,
   },
 ];

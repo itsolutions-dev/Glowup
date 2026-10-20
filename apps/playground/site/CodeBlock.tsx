@@ -64,7 +64,7 @@ export const CodeBlock = ({
           icon={copied ? "check" : "content-copy"}
           size="small"
           accessibilityLabel={copied ? "Copied" : "Copy code"}
-          onPress={copy}
+          onClick={copy}
         />
       </View>
       {/* Code is the one thing allowed to scroll sideways: wrapping a JSX

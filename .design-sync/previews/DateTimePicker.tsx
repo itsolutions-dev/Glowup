@@ -177,3 +177,18 @@ export const Disabled = () => (
     />
   </div>
 );
+
+/**
+ * Static `datetime`: tapping a day moves straight on to the time, and the
+ * date readout above the clock goes back.
+ */
+export const Static = () => (
+  <div style={stack}>
+    <DateTimePicker
+      variant="static"
+      mode="datetime"
+      value={new Date(2024, 4, 15, 9, 25)}
+      onChange={noop}
+    />
+  </div>
+);

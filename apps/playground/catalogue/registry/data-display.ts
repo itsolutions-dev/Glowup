@@ -68,6 +68,33 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
       count: { type: "number", default: 5, label: "Count" },
       max: { type: "number", default: 99, label: "Max" },
       showZero: { type: "boolean", default: false, label: "Show Zero" },
+      color: {
+        type: "select",
+        default: "error",
+        label: "Color",
+        options: [
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
+        ],
+      },
+      position: {
+        type: "select",
+        default: "",
+        label: "Position",
+        options: [
+          { label: "None", value: "" },
+          { label: "Top right", value: "top-right" },
+          { label: "Bottom right", value: "bottom-right" },
+          { label: "Top left", value: "top-left" },
+          { label: "Bottom left", value: "bottom-left" },
+        ],
+      },
       size: {
         type: "select",
         default: "large",

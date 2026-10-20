@@ -29,9 +29,9 @@ const Suggestions = () => {
       </Typography>
       <Autocomplete
         value={query}
-        onChangeText={setQuery}
+        onChange={setQuery}
         options={CITIES}
-        onSelect={(option) => setQuery(String(option.value))}
+        onSelectedChange={(option) => option && setQuery(String(option.value))}
         label="Delivery city"
         leadingIcon="map-marker-outline"
         helperText="Matches anywhere in the name, not just the start."
@@ -47,9 +47,9 @@ const Loading = () => {
     <View style={demo.panel}>
       <Autocomplete
         value={query}
-        onChangeText={setQuery}
+        onChange={setQuery}
         options={[]}
-        onSelect={() => {}}
+        onSelectedChange={() => {}}
         label="Delivery city"
         loading
         helperText="Waiting on the server."
@@ -65,9 +65,9 @@ const WithError = () => {
     <View style={demo.panel}>
       <Autocomplete
         value={query}
-        onChangeText={setQuery}
+        onChange={setQuery}
         options={CITIES}
-        onSelect={() => {}}
+        onSelectedChange={() => {}}
         label="Delivery city"
         required
         error="We do not deliver there yet"
@@ -81,9 +81,9 @@ const Disabled = () => (
   <View style={demo.panel}>
     <Autocomplete
       value="Milano"
-      onChangeText={() => {}}
+      onChange={() => {}}
       options={CITIES}
-      onSelect={() => {}}
+      onSelectedChange={() => {}}
       label="Delivery city"
       disabled
     />

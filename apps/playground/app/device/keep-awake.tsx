@@ -6,7 +6,7 @@ import {
   ListItem,
   ListSection,
   StatusBadge,
-  Toggle,
+  Switch,
 } from "@its/glowup-ui";
 import {
   useKeepAwake,
@@ -64,10 +64,10 @@ export default function KeepAwakePage() {
                 : "This browser has no Screen Wake Lock."
             }
             trailing={
-              <Toggle
+              <Switch
                 value={wanted && supported}
                 disabled={!supported}
-                onValueChange={setWanted}
+                onChange={setWanted}
               />
             }
           >

@@ -95,7 +95,7 @@ export const TheApi = () => (
       Toasts play back FIFO, one at a time; a repeated event reuses its id
       instead of stacking up.
     </Typography>
-    <Button mode="tonal" onPress={() => {}}>
+    <Button variant="tonal" onClick={() => {}}>
       Publish
     </Button>
   </VStack>

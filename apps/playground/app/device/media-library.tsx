@@ -41,11 +41,11 @@ function SaveButton({ uri }: { uri: string }) {
   const library = useMediaLibrary();
   if (!library.isSupported) return null; // the web has no photo library
   if (library.status === "denied") {
-    return <Button onPress={library.openSettings}>Allow saving in Settings</Button>;
+    return <Button onClick={library.openSettings}>Allow saving in Settings</Button>;
   }
   return (
     <Button
-      onPress={async () => {
+      onClick={async () => {
         const result = await library.save(uri); // asks the first time
         if (result.status === "saved") toast("Saved to Photos");
       }}
@@ -135,10 +135,10 @@ export default function MediaLibraryPage() {
       >
         <HStack spacing="m" align="center" wrap>
           <Button
-            mode="outlined"
+            variant="outlined"
             iconName="image-outline"
             loading={picker.isPicking}
-            onPress={choose}
+            onClick={choose}
           >
             {photo ? "Choose another" : "Choose a photo"}
           </Button>
@@ -146,7 +146,7 @@ export default function MediaLibraryPage() {
             iconName="download-outline"
             loading={saving}
             disabled={!photo || library.isSupported !== true}
-            onPress={() => void save()}
+            onClick={() => void save()}
           >
             Save to Photos
           </Button>

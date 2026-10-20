@@ -7,7 +7,7 @@ import type { Variant } from "../types";
 import {
   ListSection,
   ListItem,
-  Toggle,
+  Switch,
   Typography,
   Paper,
 } from "@its/glowup-ui";
@@ -46,19 +46,17 @@ export const SettingsScreen = () => {
             here: an unlabelled Divider still opened a contentSpacing-wide gap
             in the middle of itself, so the group ended in line + gap + line. */}
         <ListSection title="Notifications" divider>
-          <ListItem
-            trailing={<Toggle value={digest} onValueChange={setDigest} />}
-          >
+          <ListItem trailing={<Switch value={digest} onChange={setDigest} />}>
             Email digest
           </ListItem>
           <ListItem
-            trailing={<Toggle value={mentions} onValueChange={setMentions} />}
+            trailing={<Switch value={mentions} onChange={setMentions} />}
           >
             Mentions
           </ListItem>
         </ListSection>
         <ListSection title="Advanced">
-          <ListItem trailing={<Toggle value={beta} onValueChange={setBeta} />}>
+          <ListItem trailing={<Switch value={beta} onChange={setBeta} />}>
             Experimental features
           </ListItem>
         </ListSection>

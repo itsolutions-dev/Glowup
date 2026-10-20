@@ -9,7 +9,7 @@ describe("Button busy", () => {
   it("blocks presses and reports busy while keeping its label", async () => {
     const onPress = jest.fn();
     const { getByRole, getByText } = await wrap(
-      <Button busy onPress={onPress}>
+      <Button busy onClick={onPress}>
         Send
       </Button>,
     );
@@ -30,7 +30,7 @@ describe("ProgressButton", () => {
   it("shows the idle label and fires onPress", async () => {
     const onPress = jest.fn();
     const { getByRole, getByText } = await wrap(
-      <ProgressButton iconName="navigation-variant" onPress={onPress}>
+      <ProgressButton iconName="navigation-variant" onClick={onPress}>
         Start navigation
       </ProgressButton>,
     );
@@ -47,7 +47,7 @@ describe("ProgressButton", () => {
         status="loading"
         progress={0.42}
         loadingLabel="Calculating route…"
-        onPress={onPress}
+        onClick={onPress}
       >
         Start navigation
       </ProgressButton>,
@@ -112,7 +112,7 @@ describe("ProgressButton", () => {
   it("stays pressable on error, so the task can be retried", async () => {
     const onPress = jest.fn();
     const { getByRole, getByText } = await wrap(
-      <ProgressButton status="error" onPress={onPress}>
+      <ProgressButton status="error" onClick={onPress}>
         Start navigation
       </ProgressButton>,
     );

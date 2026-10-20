@@ -8,7 +8,7 @@ import {
   ListSection,
   Slider,
   StatusBadge,
-  Toggle,
+  Switch,
 } from "@its/glowup-ui";
 import { useHaptics } from "@its/glowup-device/haptics";
 
@@ -26,7 +26,7 @@ import { hapticFeedback } from "@its/glowup-device/haptics";
 </ThemeProvider>;
 
 // One control opts out:
-<Button feedback={false} onPress={save}>Save</Button>;`;
+<Button feedback={false} onClick={save}>Save</Button>;`;
 
 const USAGE = `import { useHaptics } from "@its/glowup-device/haptics";
 
@@ -36,7 +36,7 @@ function SaveButton() {
     const ok = await submit();
     haptics.notification(ok ? "success" : "error");
   };
-  return <Button onPress={save}>Save</Button>;
+  return <Button onClick={save}>Save</Button>;
 }`;
 
 export default function HapticsPage() {
@@ -70,11 +70,11 @@ export default function HapticsPage() {
       >
         <ListSection>
           <ListItem
-            secondary="press · toggle · selection, from Button, Toggle, Checkbox, Radio, Chip, segmented buttons and stepped sliders."
+            secondary="press · toggle · selection, from Button, Switch, Checkbox, Radio, Chip, segmented buttons and stepped sliders."
             trailing={
-              <Toggle
+              <Switch
                 value={preference.enabled}
-                onValueChange={preference.setEnabled}
+                onChange={preference.setEnabled}
               />
             }
           >
@@ -109,9 +109,9 @@ export default function HapticsPage() {
           {(["light", "medium", "heavy"] as const).map((style) => (
             <Button
               key={style}
-              mode="tonal"
+              variant="tonal"
               feedback={false}
-              onPress={() => void haptics.impact(style)}
+              onClick={() => void haptics.impact(style)}
             >
               {`Impact ${style}`}
             </Button>
@@ -121,17 +121,17 @@ export default function HapticsPage() {
           {(["success", "warning", "error"] as const).map((type) => (
             <Button
               key={type}
-              mode="outlined"
+              variant="outlined"
               feedback={false}
-              onPress={() => void haptics.notification(type)}
+              onClick={() => void haptics.notification(type)}
             >
               {`Notify ${type}`}
             </Button>
           ))}
           <Button
-            mode="outlined"
+            variant="outlined"
             feedback={false}
-            onPress={() => void haptics.selection()}
+            onClick={() => void haptics.selection()}
           >
             Selection
           </Button>

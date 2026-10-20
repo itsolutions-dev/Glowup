@@ -9,7 +9,7 @@ import {
   Icon,
   ListItem,
   StatusBadge,
-  Toggle,
+  Switch,
   Typography,
 } from "@its/glowup-ui";
 
@@ -41,7 +41,7 @@ export const SettingsList = () => (
     <ListItem
       leading={<Icon source="email-outline" size={24} />}
       secondary="Weekly digest"
-      trailing={<Toggle value onValueChange={() => {}} />}
+      trailing={<Switch value onChange={() => {}} />}
     >
       Email notifications
     </ListItem>

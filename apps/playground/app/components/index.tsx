@@ -102,7 +102,7 @@ export default function ComponentsIndex() {
           <View style={styles.searchField}>
             <SearchBar
               value={query}
-              onChangeText={setQuery}
+              onChange={setQuery}
               placeholder="Search components…"
             />
           </View>

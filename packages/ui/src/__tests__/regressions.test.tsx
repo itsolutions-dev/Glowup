@@ -17,26 +17,21 @@ const wrap = (ui: React.ReactElement) =>
 
 describe("Input type=number", () => {
   it("applies precision after merging extra decimal points", async () => {
-    const onChangeText = jest.fn();
+    const onChange = jest.fn();
     const { getByDisplayValue } = await wrap(
-      <Input
-        type="number"
-        precision={2}
-        value="1"
-        onChangeText={onChangeText}
-      />,
+      <Input type="number" precision={2} value="1" onChange={onChange} />,
     );
     await fireEvent.changeText(getByDisplayValue("1"), "1.2.34");
-    expect(onChangeText).toHaveBeenLastCalledWith("1.23");
+    expect(onChange).toHaveBeenLastCalledWith("1.23");
   });
 
   it("keeps a leading minus and drops other characters", async () => {
-    const onChangeText = jest.fn();
+    const onChange = jest.fn();
     const { getByDisplayValue } = await wrap(
-      <Input type="number" value="0" onChangeText={onChangeText} />,
+      <Input type="number" value="0" onChange={onChange} />,
     );
     await fireEvent.changeText(getByDisplayValue("0"), "-12a.5");
-    expect(onChangeText).toHaveBeenLastCalledWith("-12.5");
+    expect(onChange).toHaveBeenLastCalledWith("-12.5");
   });
 });
 

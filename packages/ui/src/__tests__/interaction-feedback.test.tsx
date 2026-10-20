@@ -11,8 +11,8 @@ import {
   RadioButton,
   RadioGroup,
   Slider,
+  Switch,
   ThemeProvider,
-  Toggle,
   ToggleButtonGroup,
   useInteractionFeedback,
   type InteractionFeedbackKind,
@@ -40,7 +40,7 @@ describe("onInteractionFeedback", () => {
   it("reports a press, before the handler runs", async () => {
     const order: string[] = [];
     const { getByText } = await wrap(
-      <Button onPress={() => order.push(`handler after ${kinds.length}`)}>
+      <Button onClick={() => order.push(`handler after ${kinds.length}`)}>
         Save
       </Button>,
     );
@@ -52,10 +52,10 @@ describe("onInteractionFeedback", () => {
   it("stays silent for a disabled, loading or handler-less control", async () => {
     const { getByText } = await wrap(
       <>
-        <Button disabled onPress={() => {}}>
+        <Button disabled onClick={() => {}}>
           Off
         </Button>
-        <Button loading onPress={() => {}}>
+        <Button loading onClick={() => {}}>
           Busy
         </Button>
         <Button>Inert</Button>
@@ -69,7 +69,7 @@ describe("onInteractionFeedback", () => {
   it("is switched off per control with feedback={false}", async () => {
     const onPress = jest.fn();
     const { getByText } = await wrap(
-      <Button feedback={false} onPress={onPress}>
+      <Button feedback={false} onClick={onPress}>
         Quiet
       </Button>,
     );
@@ -81,12 +81,12 @@ describe("onInteractionFeedback", () => {
   it("tells a press from a toggle on IconButton", async () => {
     const { getByLabelText } = await wrap(
       <>
-        <IconButton icon="plus" accessibilityLabel="Add" onPress={() => {}} />
+        <IconButton icon="plus" accessibilityLabel="Add" onClick={() => {}} />
         <IconButton
           icon="star"
           accessibilityLabel="Favourite"
           selected={false}
-          onPress={() => {}}
+          onClick={() => {}}
         />
       </>,
     );
@@ -95,11 +95,11 @@ describe("onInteractionFeedback", () => {
     expect(kinds).toEqual(["press", "toggle"]);
   });
 
-  it("reports FAB, Toggle and Checkbox", async () => {
+  it("reports FAB, Switch and Checkbox", async () => {
     const { getByLabelText, getByRole, getByText } = await wrap(
       <>
-        <FAB icon="pencil" label="Compose" onPress={() => {}} />
-        <Toggle value={false} onValueChange={() => {}} />
+        <FAB icon="pencil" label="Compose" onClick={() => {}} />
+        <Switch value={false} onChange={() => {}} />
         <Checkbox label="Remember" checked={false} onValueChange={() => {}} />
       </>,
     );
@@ -154,11 +154,11 @@ describe("onInteractionFeedback", () => {
   it("reads a chip's role: action, filter, choice and its close button", async () => {
     const { getByText, getByLabelText } = await wrap(
       <>
-        <Chip label="Action" onPress={() => {}} />
-        <Chip label="Filter" accessibilityRole="checkbox" onPress={() => {}} />
-        <Chip label="Choice" accessibilityRole="radio" onPress={() => {}} />
+        <Chip label="Action" onClick={() => {}} />
+        <Chip label="Filter" accessibilityRole="checkbox" onClick={() => {}} />
+        <Chip label="Choice" accessibilityRole="radio" onClick={() => {}} />
         <Chip label="Tag" onClose={() => {}} />
-        <Chip label="Off" disabled onPress={() => {}} />
+        <Chip label="Off" disabled onClick={() => {}} />
       </>,
     );
     await fireEvent.press(getByText("Action"));
@@ -204,7 +204,7 @@ describe("onInteractionFeedback", () => {
     const { getByText } = await render(
       <ThemeProvider onInteractionFeedback={onFeedback}>
         <ThemeProvider>
-          <Button onPress={() => {}}>Inner</Button>
+          <Button onClick={() => {}}>Inner</Button>
         </ThemeProvider>
       </ThemeProvider>,
     );
@@ -248,7 +248,7 @@ describe("onInteractionFeedback", () => {
           throw new Error("haptics unavailable");
         }}
       >
-        <Button onPress={onPress}>Go</Button>
+        <Button onClick={onPress}>Go</Button>
       </ThemeProvider>,
     );
     await fireEvent.press(getByText("Go"));
@@ -259,7 +259,7 @@ describe("onInteractionFeedback", () => {
     const onPress = jest.fn();
     const { getByText } = await render(
       <ThemeProvider>
-        <Button onPress={onPress}>Plain</Button>
+        <Button onClick={onPress}>Plain</Button>
       </ThemeProvider>,
     );
     await fireEvent.press(getByText("Plain"));

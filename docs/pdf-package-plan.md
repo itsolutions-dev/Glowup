@@ -4,8 +4,8 @@ Riguarda la Fase 6 di `docs/solaris-native.md`. **Sostituisce la decisione D9** 
 `react-native-pdf` e `react-native-blob-util`): vedi §2. Esito dello spike su cui poggiava D9: `docs/spike-0.3-pdf.md`.
 A chi lavora a questo pacchetto: leggere anche `packages/pdf/CLAUDE.md`.
 
-Stato: **piano, nessun codice scritto** (esiste solo l'impalcatura vuota di `packages/pdf`, commit `b9e2ad3`). Aggiornato il
-2026-10-19 con i requisiti funzionali (§1) e la decisione sulla ricerca su Android (§5).
+Stato al 2026-10-20: **passi 0–6 e 8 fatti**; web provato in Chrome, iOS e Android solo nella CI nativa (mai su un telefono);
+passo 7 non iniziato. Dettaglio per passo in §8, limiti in §2, stato corrente in `packages/pdf/README.md`.
 
 ---
 
@@ -47,7 +47,7 @@ Nota: `react-native-pdf`, in ogni caso, non ha ricerca né stampa, quindi non av
 | Download con chiave      | `react-native-blob-util`                 | `expo-file-system`                                                         |
 | Dipendenze del pacchetto | 3 librerie di terzi                      | nessuna (solo Expo)                                                        |
 
-Da fare a fine lavoro: riscrivere D9 e la Fase 6 in `docs/solaris-native.md`. `docs/spike-0.3-pdf.md` resta come storia (ciò che
+Fatto il 2026-10-20: D9 e la Fase 6 sono riscritte in `docs/solaris-native.md`. `docs/spike-0.3-pdf.md` resta come storia (ciò che
 ha provato rimane vero: i file si scaricano con le intestazioni e poi si aprono).
 
 **Limiti che restano** (da scrivere nel README):
@@ -228,7 +228,7 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 5   | **Verifica nativa in CI (scritta 2026-10-19, nessun run ancora):** estendere `/native-check` con un PDF d'esempio di 3 pagine con parole note (quello dello spike, commit `3076ad8`): scrive pagine, dimensione dell'immagine disegnata, **risultati della ricerca di una parola nota**, più screenshot                                                                                                                                                                           | righe `NATIVECHECK` e screenshot negli artefatti del run                                                                                          |
 | 6   | **Android, ricerca di sistema (**fatto e provato su emulatore Android 15 il 2026-10-20**: pagine 1 e 2, primo risultato a y=0,13 dall'alto; su Android 14 senza estensione 13 la ricerca è spenta come previsto; il percorso `PdfRendererPreV` non è ancora stato provato) (§5, via 1):** `PdfRenderer.Page.searchText` (API 35) e `PdfRendererPreV.Page.searchText` (API 30–34 con estensione SDK 13), `capabilities()`; verificato sulla documentazione ufficiale il 2026-10-20 | CI: la riga della ricerca; **verificare prima sulla documentazione** che `PdfRendererPreV` abbia `searchText`                                     |
 | 7   | **Solo se serve — Android, ricerca di riserva (§5, via 2):** copiare da PdfBox-Android la sola lettura del testo in `packages/pdf/android`, con licenza e `NOTICE`, adattarla, trasformare le posizioni in rettangoli normalizzati; `docs/pdf-upstream.md`; opzione per forzarla                                                                                                                                                                                                  | CI su più versioni di Android (almeno 14 e una vecchia); misure su PDF reali del CRM: tempo e memoria                                             |
-| 8   | **Documentazione:** README con limiti (§2), `docs/solaris-native.md` (D9 e Fase 6), `docs/work-split.md`, `packages/pdf/CLAUDE.md`, changeset quando il pacchetto esce da `private`                                                                                                                                                                                                                                                                                               |                                                                                                                                                   |
+| 8   | **Documentazione (fatto 2026-10-20, tranne il changeset):** README con limiti (§2), `docs/solaris-native.md` (D9 e Fase 6), `docs/work-split.md`, `packages/pdf/CLAUDE.md`, changeset quando il pacchetto esce da `private`                                                                                                                                                                                                                                                       |                                                                                                                                                   |
 
 **Cosa non si può verificare dal portatile di lavoro:** iOS e Android a runtime (niente amministratore, rete aziendale). Ogni
 tentativo dei passi 3–6 costa un push e circa 15 minuti di CI. Quindi il modulo nativo va scritto **piccolo e con errori

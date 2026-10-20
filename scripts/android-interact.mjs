@@ -130,70 +130,66 @@ const expectText = async (pattern, what) => {
   );
 };
 
-// Whether the soft keyboard is up, from what the window dump lists: `dumpsys input_method`
-// no longer says on Android 15 (its `mInputShown` is gone, so the old check was always false).
-// A dump can itself take the focus off the field: use this after typing, never before.
-const keyboardShown = () => screen().some((n) => n.pkg.includes("inputmethod"));
-
 const expectGone = async (label, what) => {
   await sleep(700);
   if (named(screen(), label))
     throw new Error(`${what}: "${label}" still there`);
 };
 
-// Android key codes of what the amount field takes: 0-9 are 7-16, "," is 55, "." is 56.
+// Android key codes: 0-9 are 7-16, "," is 55, "." is 56, a-z are 29-54.
 const keyCode = (char) =>
-  char === "," ? 55 : char === "." ? 56 : 7 + Number(char);
+  char === ","
+    ? 55
+    : char === "."
+      ? 56
+      : /[0-9]/.test(char)
+        ? 7 + Number(char)
+        : 29 + (char.charCodeAt(0) - 97);
+
+/**
+ * Taps the text field with this label, types with key events and checks what the screen then says.
+ * No dump and no `dumpsys` between the tap and the keys (a dump can take the focus off the
+ * field). Enter closes the keyboard (the field's action is "done"): Back would leave the screen
+ * when there were none, and a keyboard left open covers the rest of the page.
+ */
+const typeInto = async (label, text, photoName, expectations) => {
+  await scrollToTop();
+  // By label, not by position: the page scrolls, and the first field in view is not always the same.
+  const field = (nodes) =>
+    nodes.find((n) => n.cls.endsWith("EditText") && n.desc.startsWith(label));
+  await tapNode(field, `the ${label} field`);
+  await sleep(1500);
+  for (const char of text) {
+    adb("shell", "input", "keyevent", keyCode(char));
+    await sleep(150);
+  }
+  await sleep(700);
+  photo(photoName);
+  adb("shell", "input", "keyevent", "66");
+  await sleep(700);
+  for (const [pattern, what] of expectations) await expectText(pattern, what);
+};
 
 const steps = [
   [
-    "a plain text field takes keys (the control for the next step)",
-    async () => {
-      await scrollToTop();
-      const plainField = (nodes) =>
-        nodes.filter((n) => n.cls.endsWith("EditText"))[1];
-      await tapNode(plainField, "the plain field");
-      await sleep(1500);
-      for (const char of "12") {
-        adb("shell", "input", "keyevent", keyCode(char));
-        await sleep(150);
-      }
-      await sleep(700);
-      photo("android-plain.png");
-      try {
-        await expectText(/^plain=12$/, "plain value");
-      } finally {
-        if (keyboardShown()) adb("shell", "input", "keyevent", "4");
-        await sleep(500);
-      }
-    },
+    "a plain text field takes keys (the control for the next two steps)",
+    () =>
+      typeInto("Plain field", "12", "android-plain.png", [
+        [/^plain=12$/, "plain value"],
+      ]),
+  ],
+  [
+    "the library's text Input takes keys",
+    () =>
+      typeInto("Name", "ab", "android-name.png", [[/^name=ab$/, "name value"]]),
   ],
   [
     "a decimal comma is typed and reported as a plain number",
-    async () => {
-      await scrollToTop();
-      // The field itself: its label sits above the box, so tapping the label
-      // would not focus it.
-      const field = (nodes) => nodes.find((n) => n.cls.endsWith("EditText"));
-      await tapNode(field, "the Amount field");
-      // No dump and no `dumpsys` between the tap and the keys: the last run showed the keyboard
-      // starting for this field, then the keys going nowhere after a dump had been taken.
-      await sleep(1500);
-      for (const char of "12,50") {
-        adb("shell", "input", "keyevent", keyCode(char));
-        await sleep(150);
-      }
-      await sleep(700);
-      photo("android-typed.png");
-      try {
-        await expectText(/^reported=12\.50$/, "reported value");
-        await expectText(/^12,50$/, "text shown in the field");
-      } finally {
-        // Back closes the keyboard, but leaves the screen when there is none.
-        if (keyboardShown()) adb("shell", "input", "keyevent", "4");
-        await sleep(500);
-      }
-    },
+    () =>
+      typeInto("Amount", "12,50", "android-typed.png", [
+        [/^reported=12\.50$/, "reported value"],
+        [/^12,50$/, "text shown in the field"],
+      ]),
   ],
   [
     "the badge on a button counts presses",

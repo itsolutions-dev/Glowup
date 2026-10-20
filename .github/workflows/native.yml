@@ -235,6 +235,7 @@ jobs:
             android-step-*.png
             android-typed.png
             android-plain.png
+            android-name.png
             android-interaction.txt
             android-nativecheck.txt
             android-logcat.txt

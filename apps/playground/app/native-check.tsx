@@ -197,6 +197,7 @@ export default function NativeCheck() {
 
   const [amount, setAmount] = useState("");
   const [plain, setPlain] = useState("");
+  const [name, setName] = useState("");
   const [filters, setFilters] = useState(0);
   const [tab, setTab] = useState("overview");
   const [sheet, setSheet] = useState(false);
@@ -302,6 +303,10 @@ export default function NativeCheck() {
         }}
       />
       <Text style={{ color: theme.colors.onSurface }}>{`plain=${plain}`}</Text>
+
+      {/* The library's Input with nothing special set: tells a fault of every Input from one of the number type. */}
+      <Input label="Name" value={name} onChangeText={setName} />
+      <Text style={{ color: theme.colors.onSurface }}>{`name=${name}`}</Text>
 
       <View style={{ flexDirection: "row" }}>
         <Button

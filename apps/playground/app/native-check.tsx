@@ -233,6 +233,9 @@ export default function NativeCheck() {
 
   return (
     <ScrollView
+      // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
+      // as it opens: the Android run showed the hide request 45 ms after the show.
+      keyboardShouldPersistTaps="handled"
       style={{ flex: 1, backgroundColor: theme.colors.surface }}
       contentContainerStyle={{ padding: 16, gap: 12 }}
     >

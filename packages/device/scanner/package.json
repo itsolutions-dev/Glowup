@@ -1,0 +1,5 @@
+{
+  "main": "../lib/commonjs/scanner/index.js",
+  "types": "../lib/typescript/scanner/index.d.ts",
+  "source": "../src/scanner/index.ts"
+}

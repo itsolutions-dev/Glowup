@@ -25,6 +25,8 @@ const DEVICE_CAPABILITIES = {
   bluetooth: ["react-native-ble-manager"],
   // The contract and its engine: the vendors' native code is in @its/rfid-*.
   rfid: [],
+  // Likewise: the vendors' native code is in @its/scanner-*.
+  scanner: [],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
@@ -64,6 +66,11 @@ const DEVICE_BASE_PATTERNS = [
     group: ["@its/rfid-*", "**/packages/rfid-*/**"],
     message:
       "The device package holds the RFID contract; vendor packages (@its/rfid-*) implement it and the app chooses one. The arrow never points back.",
+  },
+  {
+    group: ["@its/scanner-*", "**/packages/scanner-*/**"],
+    message:
+      "The device package holds the barcode scanner contract; vendor packages (@its/scanner-*) implement it and the app chooses one. The arrow never points back.",
   },
   noPackages(
     ["ui", "notifications"],
@@ -310,10 +317,14 @@ module.exports = defineConfig([
       ],
     },
   },
-  {
-    // A vendor package implements `@its/glowup-device/rfid` and knows nothing
-    // else of the repo: no UI kit, no other capability, no app.
-    files: ["packages/rfid-*/**/*.ts", "packages/rfid-*/**/*.tsx"],
+  // A vendor package implements one contract of `@its/glowup-device`
+  // (`/rfid`, `/scanner`) and knows nothing else of the repo: no UI kit, no
+  // other capability, no app.
+  ...[
+    ["rfid", "packages/rfid-*"],
+    ["scanner", "packages/scanner-*"],
+  ].map(([contract, folder]) => ({
+    files: [`${folder}/**/*.ts`, `${folder}/**/*.tsx`],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -322,21 +333,20 @@ module.exports = defineConfig([
             noPlayground("A vendor package cannot depend on an app."),
             noPackages(
               ["ui", "notifications"],
-              "A vendor package is headless: it implements @its/glowup-device/rfid only.",
+              `A vendor package is headless: it implements @its/glowup-device/${contract} only.`,
             ),
-            ...publicOnly("device", ["rfid", "testing"]),
+            ...publicOnly("device", [contract, "testing"]),
           ],
           paths: [
             {
               name: "@its/glowup-device",
-              message:
-                "A vendor package imports @its/glowup-device/rfid (and /testing in tests), not the root entry.",
+              message: `A vendor package imports @its/glowup-device/${contract} (and /testing in tests), not the root entry.`,
             },
           ],
         },
       ],
     },
-  },
+  })),
   {
     // examples/consumer is outside the npm workspaces on purpose (it installs the
     // published package), so it has its own node_modules that the root `npm

@@ -92,7 +92,7 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/rfid`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/rfid`, `/scanner`, `/testing`) to their `src` entry, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint
@@ -101,7 +101,8 @@ same rule towards both: it imports neither, and neither imports it.
 
 RFID vendor packages (`packages/rfid-*`, `@its/rfid-*`) implement `@its/glowup-device/rfid`:
 they import only its `/rfid` (and `/testing` in tests), never its root entry, and the device
-package never imports them (all ESLint errors). Their `tsconfig.json` and Jest map those two
+package never imports them (all ESLint errors). Barcode scanner vendor packages
+(`packages/scanner-*`, `@its/scanner-*`, from phase C2) follow the same rules with `/scanner`. Their `tsconfig.json` and Jest map those two
 subpaths to the device package's `src`, since CI type-checks and tests before it builds. The
 vendors' SDKs they wrap **never enter the repository**: Honeywell's licence lets it travel only
 inside an app's build, and Zebra's comes from its support portal, not a public repository

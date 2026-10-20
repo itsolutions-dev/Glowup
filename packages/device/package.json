@@ -101,6 +101,11 @@
       "types": "./lib/typescript/rfid/index.d.ts",
       "default": "./lib/commonjs/rfid/index.js"
     },
+    "./scanner": {
+      "source": "./src/scanner/index.ts",
+      "types": "./lib/typescript/scanner/index.d.ts",
+      "default": "./lib/commonjs/scanner/index.js"
+    },
     "./testing": {
       "source": "./src/testing/index.ts",
       "types": "./lib/typescript/testing/index.d.ts",
@@ -128,6 +133,7 @@
     "background-location",
     "bluetooth",
     "rfid",
+    "scanner",
     "testing",
     "app.plugin.js",
     "!**/*.map",
@@ -166,7 +172,8 @@
     "bluetooth",
     "ble",
     "rfid",
-    "uhf"
+    "uhf",
+    "barcode-scanner"
   ],
   "peerDependencies": {
     "@react-native-community/netinfo": ">=12",

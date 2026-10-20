@@ -52,6 +52,7 @@ Expo SDK 57 or later. The design and its trade-offs are recorded in the
 | `@its/glowup-device/background-location` | `expo-location`, `expo-task-manager` | `defineLocationTask`, `useBackgroundLocation`, `defineGeofenceTask`, `useGeofencing`, `useBackgroundLocationPermission`                |
 | `@its/glowup-device/bluetooth`           | `react-native-ble-manager`           | `useBluetoothState`, `useBluetoothPermission`, `useBluetoothScan`, `useBluetoothDevice`, `useBluetoothNotifications`, `BluetoothError` |
 | `@its/glowup-device/rfid`                | a vendor package (`@its/rfid-*`)     | `useRfidReader`, `useRfidInventory`, `useRfidLocate`, `useRfidSingleRead`, `useRfidTrigger`, `RfidAdapter`, `RfidError`                |
+| `@its/glowup-device/scanner`             | a vendor package (`@its/scanner-*`)  | `useBarcodeScanner`, `BarcodeScannerAdapter`, `BarcodeScannerError`                                                                    |
 | `@its/glowup-device/testing`             | nothing native                       | in-memory adapters for every capability                                                                                                |
 
 Import a subpath and you need only its Expo modules: an app that reads device info never
@@ -320,7 +321,10 @@ function Recorder() {
   `invalid-mode`, `capture-failed`, `unsupported`.
 - **Scanning** is on while `onBarcodeScanned` is set. The same code is reported once per
   `scanInterval` (default 1000 ms), because scanners fire on every frame the code stays in
-  view. `type` is normalised (`"qr"`, `"ean13"`, …, or `"unknown"` with `rawType`).
+  view. `type` is normalised (`"qr"`, `"ean13"`, …, or `"unknown"` with `rawType`). A
+  handler that returns a promise (a confirmation that submits the code) makes the view drop
+  codes until it settles, so the confirmation cannot run twice; it is the same handler a
+  hardware scanner takes (`/scanner`, below).
 - **`active={false}`** pauses the preview without unmounting it: do it when the screen loses
   focus.
 - **Web**: preview, pictures (`uri` is a data URI) and scanning (`BarcodeDetector`, or a
@@ -1410,6 +1414,77 @@ time, with `@its/glowup-device` as a peer):
   the link drops. `onStop` is only for a mode that ends by itself, never after a stop.
 - Pass the conformance kit, below.
 
+## Barcode scanner
+
+`@its/glowup-device/scanner` is a rugged device's hardware imager (Honeywell's CT40, …) behind
+one contract: a screen hands each read to `onScan`, which confirms by itself (submits the form,
+calls the API), with no keypress. A vendor package implements `BarcodeScannerAdapter`; this
+subpath ships no vendor and no native code, and without an adapter it reads unsupported.
+
+```tsx
+import { DeviceAdaptersProvider } from "@its/glowup-device";
+import { getHoneywellBarcodeScannerAdapter } from "@its/scanner-honeywell"; // a vendor package
+
+<DeviceAdaptersProvider
+  adapters={{ barcodeScanner: getHoneywellBarcodeScannerAdapter() }}
+>
+  <App />
+</DeviceAdaptersProvider>;
+```
+
+```tsx
+import { CameraView } from "@its/glowup-device/camera";
+import {
+  useBarcodeScanner,
+  type BarcodeScan,
+} from "@its/glowup-device/scanner";
+
+const SYMBOLOGIES = ["qr", "code128", "ean13", "datamatrix"] as const;
+
+function ScanScreen({ focused }: { focused: boolean }) {
+  const onScan = (scan: BarcodeScan) => submit(scan.data); // a promise: see below
+  const scanner = useBarcodeScanner({
+    onScan,
+    enabled: focused, // a stack keeps the screens behind mounted
+    symbologies: SYMBOLOGIES,
+  });
+  // A phone without an imager reads through the camera, with the same handler.
+  return scanner.isSupported ? (
+    <Text>{scanner.isBusy ? "Sending…" : "Pull the trigger"}</Text>
+  ) : (
+    <CameraView onBarcodeScanned={onScan} barcodeTypes={SYMBOLOGIES} />
+  );
+}
+```
+
+- **Holding the scanner.** The hook holds it while mounted, `enabled` and the app in the
+  foreground, and releases it otherwise, so the device's own keyboard wedge (or another app)
+  gets it back. The latest hook to hold it receives the reads; when it lets go, the one below
+  gets them back. `state` is `"closed"`, `"opening"` or `"open"`; `isActive` says whether this
+  hook receives the reads.
+- **One confirmation at a time.** While the promise `onScan` returned is pending, reads are
+  dropped (`isBusy`; `dropWhileBusy: false` delivers them). The same code is delivered once per
+  `repeatInterval` (default 1000 ms; 0 delivers every read: counting the same item).
+- **Symbologies.** `symbologies` turns those on and every other off, from
+  `capabilities.symbologies`; without it the scanner keeps the device's own configuration. A
+  symbology the scanner cannot decode is a `RangeError`. Each read names its `type` from the
+  ISO/IEC 15424 AIM id (`aimId`, `]Q1`), with the vendor's own id in `rawType`.
+- **Triggers.** The hardware trigger decodes by itself; `isTriggerPressed` follows it.
+  `softwareTrigger(true)` / `(false)` is an on-screen scan button (`capabilities.softwareTrigger`),
+  `not-open` while the hook does not hold the scanner.
+- **Errors** are `BarcodeScannerError`s: `unsupported`, `incompatible-adapter`, `unavailable`
+  (another app holds the scanner: `retry()` once it lets go), `not-open`, `failed`.
+
+### Writing a vendor adapter
+
+A vendor package implements `BarcodeScannerAdapter` (`import type` from this subpath;
+`BarcodeScannerError` at run time, with `@its/glowup-device` as a peer): `open(request,
+handlers)` claims the scanner and applies the symbologies (called again while open, it reapplies
+them and keeps one listener), `close()` releases it, and reads go to `onRead` with the text
+unchanged (the SDK's charset applied, no prefix or suffix), the AIM id and the vendor's id.
+`onClose` is only for a scanner taken away, never after `close()`. Declare `contractVersion` as a
+number literal, and pass the conformance kit (below).
+
 ## Config plugin
 
 The package's plugin configures the native projects for the capabilities you list, through
@@ -1719,3 +1794,15 @@ describeRfidAdapterContract({ describe, it }, () => {
 ```
 
 It uses real timers and its own assertions, so it needs no Jest globals beyond the two passed.
+
+`createMockBarcodeScannerAdapter()` decodes every `BarcodeType` and has a software trigger and
+the scanner's identity (`softwareTrigger: false`, `scannerInfo: null`, `symbologies: [...]`
+leave them out). `scan({ data, type })` decodes a code as the imager would: only while a hook
+holds the scanner and, with a symbology list, only for a symbology turned on (it returns
+whether the read went out). `pressTrigger()`, `takeAway()` (another app claims it),
+`failNextOpen()` and `holdNextOpen()` / `releaseOpen()` drive the rest; `isOpen`, `request`,
+the counters and `softwareTriggerCalls` record what the app did.
+
+`describeBarcodeScannerAdapterContract()` is the vendors' suite for `/scanner`, built the same
+way: the harness gives a supported, closed adapter and `emitRead({ data, type })`, and
+optionally `pressTrigger` and `takeAway`.

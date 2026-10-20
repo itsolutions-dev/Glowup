@@ -173,8 +173,9 @@ note. Stime mondiali (StatCounter, luglio 2026, dal traffico web): Android 15–
 **PDF che sono scansioni** (immagini senza testo): nessuna ricerca li trova, né quella del sistema né una nostra, perché non c'è un
 riconoscimento dei caratteri. Da scrivere nel README.
 
-**Come si prova.** La CI nativa usa un emulatore Android 14: su quello si legge subito se la ricerca del sistema c'è. Per provarla
-su Android 15 e sul minimo supportato va aggiunto un emulatore alla CI, almeno una volta (costa minuti di CI).
+**Come si prova.** La CI nativa gira su due emulatori Android, 14 (API 34) e 15 (API 35): su Android 14 si legge se il telefono ha
+l'estensione SDK 13 (senza, la ricerca resta spenta e la riga dice "PENDING" con la versione), su Android 15 si prova la ricerca
+di `PdfRenderer` stessa. Il minimo supportato (Android 7) non è in CI.
 
 ## 6. Il modulo nativo
 
@@ -225,7 +226,7 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 3   | **iOS (scritto 2026-10-19, da provare in CI):** modulo Swift con PDFKit (`open`, `renderPage`, `search`, `close`, `capabilities`)                                                                                                                                                                       | solo CI (`native.yml`)                                                                                                                            |
 | 4   | **Android, disegno (scritto 2026-10-19, da provare in CI):** modulo Kotlin con `PdfRenderer` (`open`, `renderPage`, `close`)                                                                                                                                                                            | solo CI                                                                                                                                           |
 | 5   | **Verifica nativa in CI (scritta 2026-10-19, nessun run ancora):** estendere `/native-check` con un PDF d'esempio di 3 pagine con parole note (quello dello spike, commit `3076ad8`): scrive pagine, dimensione dell'immagine disegnata, **risultati della ricerca di una parola nota**, più screenshot | righe `NATIVECHECK` e screenshot negli artefatti del run                                                                                          |
-| 6   | **Android, ricerca di sistema (§5, via 1):** `searchText` / `PdfRendererPreV`, `capabilities()`                                                                                                                                                                                                         | CI: la riga della ricerca; **verificare prima sulla documentazione** che `PdfRendererPreV` abbia `searchText`                                     |
+| 6   | **Android, ricerca di sistema (scritto 2026-10-20, da provare in CI) (§5, via 1):** `PdfRenderer.Page.searchText` (API 35) e `PdfRendererPreV.Page.searchText` (API 30–34 con estensione SDK 13), `capabilities()`; verificato sulla documentazione ufficiale il 2026-10-20                             | CI: la riga della ricerca; **verificare prima sulla documentazione** che `PdfRendererPreV` abbia `searchText`                                     |
 | 7   | **Solo se serve — Android, ricerca di riserva (§5, via 2):** copiare da PdfBox-Android la sola lettura del testo in `packages/pdf/android`, con licenza e `NOTICE`, adattarla, trasformare le posizioni in rettangoli normalizzati; `docs/pdf-upstream.md`; opzione per forzarla                        | CI su più versioni di Android (almeno 14 e una vecchia); misure su PDF reali del CRM: tempo e memoria                                             |
 | 8   | **Documentazione:** README con limiti (§2), `docs/solaris-native.md` (D9 e Fase 6), `docs/work-split.md`, `packages/pdf/CLAUDE.md`, changeset quando il pacchetto esce da `private`                                                                                                                     |                                                                                                                                                   |
 
@@ -260,7 +261,7 @@ non lo mostra. **Non verificati in ogni caso:** telefono vero, PDF molto grandi,
 ## 11. Domande aperte
 
 1. **Quali versioni di Android usano gli utenti del CRM?** Decide se serve la via di riserva della ricerca (passo 7) e quali emulatori provare per primi.
-2. **`PdfRendererPreV` ha `searchText`?** Da verificare sulla documentazione ufficiale e sul codice prima del passo 6.
+2. **`PdfRendererPreV` ha `searchText`?** **Sì** (documentazione ufficiale, 2026-10-20: "Added in API level 35, also in S Extensions 13", restituisce `List<PageMatchBounds>`). Resta da provare su un emulatore con l'estensione 13, e se la ricerca distingue maiuscole e minuscole (il campione ha "hello" e "Hello").
 3. **Formato delle immagini:** per ora JPEG al 90% su iOS e Android (più leggero e veloce da scrivere); se sul testo piccolo si vede la perdita, passare a PNG (una riga per piattaforma). Da giudicare sugli screenshot.
 4. **Tetto alla larghezza e numero di pagine in memoria:** valori da misurare, non fissati.
 5. **Zoom con due dita e selezione del testo:** dopo la prima versione, solo se una schermata li chiede.

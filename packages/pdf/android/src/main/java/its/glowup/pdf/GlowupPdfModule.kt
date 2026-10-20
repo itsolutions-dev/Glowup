@@ -1,10 +1,15 @@
 package its.glowup.pdf
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
+import android.graphics.pdf.PdfRendererPreV
+import android.graphics.pdf.models.PageMatchBounds
 import android.net.Uri
+import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.ext.SdkExtensions
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
@@ -23,13 +28,26 @@ import java.util.concurrent.Executors
  * `PdfRenderer` is not thread safe and shows one page at a time, so every call runs on one
  * thread and `documents` needs no lock.
  */
+private const val MAX_MATCHES = 500
+
 class GlowupPdfModule : Module() {
-  private class Document(val renderer: PdfRenderer, val descriptor: ParcelFileDescriptor) {
+  private class Document(
+    val renderer: PdfRenderer,
+    val descriptor: ParcelFileDescriptor,
+    val file: File,
+  ) {
     val images = mutableListOf<File>()
+
+    // Android 11 to 14 search through PdfRendererPreV, which needs a file descriptor of its own:
+    // opened on the first search, closed with the document.
+    var preV: PdfRendererPreV? = null
+    var preVDescriptor: ParcelFileDescriptor? = null
 
     fun close() {
       images.forEach { it.delete() }
       images.clear()
+      preV?.close()
+      preVDescriptor?.close()
       renderer.close()
       descriptor.close()
     }
@@ -42,9 +60,8 @@ class GlowupPdfModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("GlowupPdf")
 
-    // Search arrives with the system's own text search (plan step 6); until then it is off.
     AsyncFunction("capabilities") {
-      mapOf("search" to false)
+      mapOf("search" to canSearch)
     }
 
     AsyncFunction("open") Coroutine { uri: String ->
@@ -55,11 +72,8 @@ class GlowupPdfModule : Module() {
       withContext(worker) { renderImage(uri, index, width) }
     }
 
-    AsyncFunction("search") Coroutine { uri: String, _: String ->
-      withContext(worker) {
-        if (!documents.containsKey(uri)) throw PdfNotOpenException()
-        emptyList<Map<String, Any>>()
-      }
+    AsyncFunction("search") Coroutine { uri: String, query: String ->
+      withContext(worker) { findText(uri, query) }
     }
 
     AsyncFunction("close") Coroutine { uri: String ->
@@ -96,7 +110,7 @@ class GlowupPdfModule : Module() {
       throw PdfFormatException()
     }
 
-    documents[uri] = Document(renderer, descriptor)
+    documents[uri] = Document(renderer, descriptor, File(path))
     val pages = (0 until renderer.pageCount).map { index ->
       renderer.openPage(index).use { page ->
         mapOf("width" to page.width.toDouble(), "height" to page.height.toDouble())
@@ -137,6 +151,86 @@ class GlowupPdfModule : Module() {
     }
     if (!document.images.contains(file)) document.images.add(file)
     return Uri.fromFile(file).toString()
+  }
+
+  /**
+   * The system's own text search: `PdfRenderer.Page.searchText` from Android 15 (API 35), and
+   * `PdfRendererPreV.Page.searchText` on Android 11 to 14 where the device has SDK extension 13.
+   * Anything older finds nothing (`capabilities` says so, and the viewer hides the search).
+   */
+  private val canSearch: Boolean
+    get() = Build.VERSION.SDK_INT >= 35 ||
+      (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+        SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 13)
+
+  @SuppressLint("NewApi")
+  private fun findText(uri: String, query: String): List<Map<String, Any>> {
+    val document = documents[uri] ?: throw PdfNotOpenException()
+    val text = query.trim()
+    if (text.isEmpty() || !canSearch) return emptyList()
+
+    val matches = mutableListOf<Map<String, Any>>()
+    try {
+      if (Build.VERSION.SDK_INT >= 35) {
+        for (index in 0 until document.renderer.pageCount) {
+          document.renderer.openPage(index).use { page ->
+            addMatches(matches, page.searchText(text), index, page.width, page.height)
+          }
+          if (matches.size >= MAX_MATCHES) break
+        }
+      } else {
+        val renderer = document.preV ?: openPreV(document)
+        for (index in 0 until renderer.pageCount) {
+          renderer.openPage(index).use { page ->
+            addMatches(matches, page.searchText(text), index, page.width, page.height)
+          }
+          if (matches.size >= MAX_MATCHES) break
+        }
+      }
+    } catch (error: IOException) {
+      throw PdfRenderException(error)
+    }
+    return matches
+  }
+
+  @SuppressLint("NewApi")
+  private fun openPreV(document: Document): PdfRendererPreV {
+    val descriptor = ParcelFileDescriptor.open(document.file, ParcelFileDescriptor.MODE_READ_ONLY)
+    return try {
+      PdfRendererPreV(descriptor).also {
+        document.preV = it
+        document.preVDescriptor = descriptor
+      }
+    } catch (error: Exception) {
+      descriptor.close()
+      throw PdfRenderException(error)
+    }
+  }
+
+  /**
+   * One match is a rectangle per line it covers, in points on the page (origin at the top left,
+   * as the page is drawn); the viewer wants fractions (0..1) of the page.
+   */
+  @SuppressLint("NewApi")
+  private fun addMatches(
+    into: MutableList<Map<String, Any>>,
+    found: List<PageMatchBounds>,
+    page: Int,
+    width: Int,
+    height: Int,
+  ) {
+    if (width <= 0 || height <= 0) return
+    for (match in found) {
+      val rects = match.bounds.map {
+        mapOf(
+          "x" to it.left.toDouble() / width,
+          "y" to it.top.toDouble() / height,
+          "width" to it.width().toDouble() / width,
+          "height" to it.height().toDouble() / height,
+        )
+      }
+      if (rects.isNotEmpty()) into.add(mapOf("page" to page, "rects" to rects))
+    }
   }
 
   private fun closeDocument(uri: String) {

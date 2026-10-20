@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
+  Platform,
   ScrollView,
   Text,
   View,
@@ -91,7 +92,11 @@ const usePdfChecks = () => {
       try {
         const caps = await pdf.native.capabilities();
         if (!caps.search) {
-          set(PDF_SEARCH, null, "search is off on this device");
+          set(
+            PDF_SEARCH,
+            null,
+            `search is off on this device (${Platform.OS} ${Platform.Version})`,
+          );
         } else {
           const hits = await pdf.native.search(uri, "hello");
           const found = hits.map((hit) => hit.page).join(",");
@@ -106,10 +111,14 @@ const usePdfChecks = () => {
                 r.y + r.height <= 1.001,
             ),
           );
+          // "hello" on page 1 is the second line, 720 points up a page 842 high: 0.12 to 0.14 from
+          // the top. A rectangle measured from the bottom, or in points, would not land there.
+          const top = hits[0]?.rects[0]?.y ?? -1;
+          const fromTop = top > 0.05 && top < 0.25;
           set(
             PDF_SEARCH,
-            found === "0,1" && inside,
-            `pages ${found || "none"}, rectangles ${inside ? "inside" : "outside"} the page`,
+            found === "0,1" && inside && fromTop,
+            `pages ${found || "none"}, rectangles ${inside ? "inside" : "outside"} the page, first ${fromTop ? "near" : "not near"} the top (y=${top.toFixed(2)})`,
           );
         }
       } catch (error) {

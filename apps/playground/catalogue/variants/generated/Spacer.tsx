@@ -16,8 +16,8 @@ import {
 export const PushesApart = () => (
   <HStack
     align="center"
-    p="m"
-    bg="surfaceContainerLow"
+    padding={16}
+    background="surfaceContainerLow"
     radius="medium"
     width={420}
   >
@@ -30,10 +30,15 @@ export const PushesApart = () => (
 );
 
 export const FixedSize = () => (
-  <VStack p="m" bg="surfaceContainerLow" radius="medium" width={420}>
+  <VStack
+    padding={16}
+    background="surfaceContainerLow"
+    radius="medium"
+    width={420}
+  >
     <Typography variant="bodyMedium">size=&quot;xs&quot; below</Typography>
     <Spacer size="xs" />
-    <Box bg="primaryContainer" p="xs" radius="small" />
+    <Box background="primaryContainer" padding={4} radius="small" />
     <Spacer size="l" />
     <Typography variant="bodyMedium">size=&quot;l&quot; above</Typography>
   </VStack>
@@ -42,8 +47,8 @@ export const FixedSize = () => (
 export const HorizontalAxis = () => (
   <HStack
     align="center"
-    p="m"
-    bg="surfaceContainerLow"
+    padding={16}
+    background="surfaceContainerLow"
     radius="medium"
     width={420}
   >

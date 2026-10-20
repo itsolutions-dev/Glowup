@@ -15,7 +15,7 @@ import {
   Button,
   DrawerItem,
   Input,
-  NavigationDrawer,
+  Drawer,
   Select,
   Tabs,
   useTheme,
@@ -158,11 +158,11 @@ export default function NativeCheck() {
       <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
 
       <View style={{ height: 200 }}>
-        <NavigationDrawer width={280}>
+        <Drawer width={280}>
           <DrawerItem label="Reports" icon="chart-box-outline">
-            <DrawerItem label="Sales" onPress={noop} />
+            <DrawerItem label="Sales" onClick={noop} />
           </DrawerItem>
-        </NavigationDrawer>
+        </Drawer>
       </View>
 
       <View style={{ flexDirection: "row" }}>
@@ -175,7 +175,7 @@ export default function NativeCheck() {
       >{`sheet=${sheet ? "open" : "closed"}`}</Text>
       <BottomSheet
         visible={sheet}
-        onDismiss={() => setSheet(false)}
+        onClose={() => setSheet(false)}
         title="Filters"
         showCloseButton
         actions={<Button onClick={() => setSheet(false)}>Apply</Button>}

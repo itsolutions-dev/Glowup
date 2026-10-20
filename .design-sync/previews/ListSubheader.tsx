@@ -7,11 +7,11 @@ export const GroupLabel = () => (
       {/* Marked as a heading, so assistive tech can jump between groups —
           which a plain Typography line cannot do. */}
       <ListSubheader>Today</ListSubheader>
-      <ListItem>Inspect line 4</ListItem>
-      <ListItem>Calibrate line 2 sensors</ListItem>
+      <ListItem primaryText="Inspect line 4" />
+      <ListItem primaryText="Calibrate line 2 sensors" />
       <Divider contentSpacing={0} />
       <ListSubheader>Tomorrow</ListSubheader>
-      <ListItem>Replace filters</ListItem>
+      <ListItem primaryText="Replace filters" />
     </Paper>
   </div>
 );

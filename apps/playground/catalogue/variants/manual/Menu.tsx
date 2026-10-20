@@ -15,7 +15,7 @@ const ContextMenu = () => {
     <View style={demo.panel}>
       <Menu
         visible={open}
-        onDismiss={hide}
+        onClose={hide}
         anchor={
           <Button variant="tonal" iconName="dots-vertical" onClick={show}>
             Chip
@@ -61,7 +61,7 @@ const WithDisabledItems = () => {
     <View style={demo.panel}>
       <Menu
         visible={open}
-        onDismiss={hide}
+        onClose={hide}
         anchor={
           <Button variant="outlined" iconName="export-variant" onClick={show}>
             Export
@@ -100,7 +100,7 @@ const AccountMenu = () => {
       <Menu
         visible={open}
         closeOnSelect={false}
-        onDismiss={hide}
+        onClose={hide}
         anchor={
           <Avatar name="Marta Rossi" size={40} status="online" onClick={show} />
         }

@@ -1,22 +1,22 @@
 import React from "react";
 import { Text } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
-import { BottomSheet, Modal, ThemeProvider } from "..";
+import { BottomSheet, Dialog, ThemeProvider } from "..";
 
 const draw = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
 
-describe("Modal size", () => {
-  const maxWidth = async (size?: "xs" | "sm" | "md" | "lg") => {
+describe("Dialog width", () => {
+  const maxWidth = async (width?: "xs" | "sm" | "md" | "lg") => {
     const { toJSON } = await draw(
-      <Modal visible title="T" size={size}>
+      <Dialog visible title="T" width={width}>
         Body
-      </Modal>,
+      </Dialog>,
     );
     return JSON.stringify(toJSON());
   };
 
-  it("caps the dialog at the width of its size, 560 by default", async () => {
+  it("caps the dialog at the width asked for, 560 by default", async () => {
     expect(await maxWidth("xs")).toContain('"maxWidth":360');
     expect(await maxWidth("sm")).toContain('"maxWidth":480');
     expect(await maxWidth("lg")).toContain('"maxWidth":800');
@@ -30,7 +30,7 @@ describe("BottomSheet", () => {
     const { getByText } = await draw(
       <BottomSheet
         visible
-        onDismiss={() => {}}
+        onClose={() => {}}
         title="Filters"
         actions={<Text>Apply</Text>}
       >
@@ -43,26 +43,51 @@ describe("BottomSheet", () => {
   });
 
   it("has no close button unless asked, and the button dismisses", async () => {
-    const onDismiss = jest.fn();
+    const onClose = jest.fn();
     const plain = await draw(
-      <BottomSheet visible onDismiss={onDismiss} title="Filters">
+      <BottomSheet visible onClose={onClose} title="Filters">
         <Text>Content</Text>
       </BottomSheet>,
     );
     expect(plain.queryByLabelText("Close")).toBeNull();
 
     const withClose = await draw(
-      <BottomSheet
-        visible
-        onDismiss={onDismiss}
-        title="Filters"
-        showCloseButton
-      >
+      <BottomSheet visible onClose={onClose} title="Filters" showCloseButton>
         <Text>Content</Text>
       </BottomSheet>,
     );
     await fireEvent.press(withClose.getByLabelText("Close"));
-    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes on a scrim tap and on Android back, and the scrim can be locked", async () => {
+    const onClose = jest.fn();
+    const open = await draw(
+      <BottomSheet visible onClose={onClose}>
+        <Text>Content</Text>
+      </BottomSheet>,
+    );
+    await fireEvent.press(
+      open.getByLabelText("Close bottom sheet", {
+        includeHiddenElements: true,
+      }),
+    );
+    expect(onClose).toHaveBeenCalledTimes(1);
+    const modal = open.container.queryAll((n) => n.type === "Modal")[0];
+    modal.props.onRequestClose();
+    expect(onClose).toHaveBeenCalledTimes(2);
+
+    const locked = await draw(
+      <BottomSheet visible onClose={onClose} dismissOnScrimTap={false}>
+        <Text>Content</Text>
+      </BottomSheet>,
+    );
+    await fireEvent.press(
+      locked.getByLabelText("Close bottom sheet", {
+        includeHiddenElements: true,
+      }),
+    );
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
   it("adds a divider and a row only when there are actions", async () => {
@@ -70,7 +95,7 @@ describe("BottomSheet", () => {
       JSON.stringify(
         (
           await draw(
-            <BottomSheet visible onDismiss={() => {}} actions={actions}>
+            <BottomSheet visible onClose={() => {}} actions={actions}>
               <Text>Content</Text>
             </BottomSheet>,
           )

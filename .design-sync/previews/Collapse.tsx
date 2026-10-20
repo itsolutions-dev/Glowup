@@ -11,11 +11,11 @@ const body = (
 
 export const OpenAndClosed = () => (
   <VStack spacing="m" width={380}>
-    <Box bg="surfaceContainerLow" p="m" radius="medium">
+    <Box background="surfaceContainerLow" padding={16} radius="medium">
       <Typography variant="labelSmall">open</Typography>
       <Collapse open>{body}</Collapse>
     </Box>
-    <Box bg="surfaceContainerLow" p="m" radius="medium">
+    <Box background="surfaceContainerLow" padding={16} radius="medium">
       <Typography variant="labelSmall">
         closed — height animates to 0
       </Typography>
@@ -26,7 +26,12 @@ export const OpenAndClosed = () => (
 
 /** `collapsedHeight` leaves a teaser visible instead of hiding everything. */
 export const Peek = () => (
-  <Box bg="surfaceContainerLow" p="m" radius="medium" width={380}>
+  <Box
+    background="surfaceContainerLow"
+    padding={16}
+    radius="medium"
+    width={380}
+  >
     <Typography variant="labelSmall">collapsedHeight = 40</Typography>
     <Collapse open={false} collapsedHeight={40} animateOpacity={false}>
       {body}
@@ -39,8 +44,8 @@ export const Interactive = () => {
   return (
     <VStack
       spacing="s"
-      p="m"
-      bg="surfaceContainerLow"
+      padding={16}
+      background="surfaceContainerLow"
       radius="medium"
       width={380}
     >

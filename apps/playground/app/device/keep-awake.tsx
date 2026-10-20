@@ -58,23 +58,22 @@ export default function KeepAwakePage() {
       <Section title="Try it">
         <ListSection>
           <ListItem
-            secondary={
+            secondaryText={
               supported
                 ? "useKeepAwake({ enabled }) while this page is focused."
                 : "This browser has no Screen Wake Lock."
             }
-            trailing={
+            action={
               <Switch
                 value={wanted && supported}
                 disabled={!supported}
                 onChange={setWanted}
               />
             }
-          >
-            Keep the screen on
-          </ListItem>
+            primaryText="Keep the screen on"
+          />
           <ListItem
-            trailing={
+            action={
               <StatusBadge
                 label={
                   !supported ? "Unsupported" : holding ? "Holding" : "Released"
@@ -82,9 +81,8 @@ export default function KeepAwakePage() {
                 type={!supported ? "warning" : holding ? "success" : "warning"}
               />
             }
-          >
-            Wake lock
-          </ListItem>
+            primaryText="Wake lock"
+          />
         </ListSection>
       </Section>
 

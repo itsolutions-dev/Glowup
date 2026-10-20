@@ -1,5 +1,10 @@
 import React from "react";
-import { Modal, Typography, Button, Divider } from "@its/glowup-ui";
+import {
+  Dialog as GlowupDialog,
+  Typography,
+  Button,
+  Divider,
+} from "@its/glowup-ui";
 
 // Modal renders through react-native-web's Modal, which is a real portal into
 // document.body with a position: fixed scrim — so it fills the capture
@@ -27,10 +32,15 @@ export const Dialog = () => (
     <Typography variant="bodyMedium">
       34 components · last synced 4 minutes ago
     </Typography>
-    <Modal visible title="Publish 0.1.0" closeText="Close" onClose={() => {}}>
+    <GlowupDialog
+      visible
+      title="Publish 0.1.0"
+      closeText="Close"
+      onClose={() => {}}
+    >
       Publishing makes every component in this library available to the Glowup
       playground and to any workspace that depends on it.
-    </Modal>
+    </GlowupDialog>
   </div>
 );
 
@@ -38,7 +48,7 @@ export const RichContent = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Team</Typography>
     <Typography variant="bodyMedium">3 members · 2 pending invites</Typography>
-    <Modal visible title="Invite your team">
+    <GlowupDialog visible title="Invite your team">
       <div style={lines}>
         <Typography variant="bodyMedium">
           Everyone you invite gets read access to the shared component library.
@@ -64,7 +74,7 @@ export const RichContent = () => (
           </Button>
         </div>
       </div>
-    </Modal>
+    </GlowupDialog>
   </div>
 );
 
@@ -72,8 +82,8 @@ export const Untitled = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Release notes</Typography>
     <Typography variant="bodyMedium">@its/glowup-ui 0.1.0</Typography>
-    <Modal visible closeText="Got it" onClose={() => {}}>
+    <GlowupDialog visible closeText="Got it" onClose={() => {}}>
       Dark mode contrast was corrected across every tonal surface.
-    </Modal>
+    </GlowupDialog>
   </div>
 );

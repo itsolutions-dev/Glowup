@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useTheme, Theme } from "./ThemeProvider";
 
-import Modal from "../components/Modal/Modal";
+import Dialog from "../components/Dialog/Dialog";
 import Button from "../components/Button";
 
 type ShowAlert = (
@@ -50,7 +50,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // If on Web, trigger the custom Modal
+    // If on Web, trigger the custom Dialog
     setConfig({ title, message, buttons: buttons || [{ text: "OK" }] });
     setVisible(true);
   }, []);
@@ -67,29 +67,40 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
   return (
     <>
       {children}
-      {/* The Web-only Modal Component */}
+      {/* The Web-only Dialog Component */}
       {Platform.OS === "web" && (
-        <Modal visible={visible} title={config.title} onDismiss={closeAlert}>
+        <Dialog
+          visible={visible}
+          title={config.title}
+          onClose={closeAlert}
+          // The buttons are the way out, as in a native alert.
+          closeIcon={false}
+          actions={
+            config.buttons.length === 0 ? (
+              <Button onClick={closeAlert}>OK</Button>
+            ) : (
+              config.buttons.map((button, index) => (
+                <Button
+                  key={index}
+                  variant={button.style === "cancel" ? "text" : "filled"}
+                  color={button.style === "destructive" ? "error" : "primary"}
+                  onClick={() => {
+                    closeAlert();
+                    button.onPress?.();
+                  }}
+                >
+                  {button.text}
+                </Button>
+              ))
+            )
+          }
+        >
           <View style={styles.messageContainer}>
-            <Text style={styles.message}>{config.message}</Text>
+            {!!config.message && (
+              <Text style={styles.message}>{config.message}</Text>
+            )}
           </View>
-          {config.buttons.length === 0 && (
-            <Button onClick={closeAlert}>OK</Button>
-          )}
-          {config.buttons.map((button, index) => (
-            <Button
-              key={index}
-              variant={button.style === "cancel" ? "text" : "filled"}
-              color={button.style === "destructive" ? "error" : "primary"}
-              onClick={() => {
-                closeAlert();
-                button.onPress?.();
-              }}
-            >
-              {button.text}
-            </Button>
-          ))}
-        </Modal>
+        </Dialog>
       )}
     </>
   );
@@ -97,11 +108,12 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
-    messageContainer: { flex: 1, padding: 20 },
+    messageContainer: { alignItems: "center", width: "100%" },
     message: {
-      marginBottom: 20,
-      color: theme.colors.onSurface,
-      fontSize: 16,
+      ...theme.typography.bodyLarge,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: "center",
+      paddingHorizontal: theme.spacing.s,
     },
   });
 

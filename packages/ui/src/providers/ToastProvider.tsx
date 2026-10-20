@@ -6,18 +6,32 @@ import React, {
   useState,
 } from "react";
 import { View, StyleSheet } from "react-native";
-import Snackbar, { type SnackbarType } from "../components/Snackbar";
+import Snackbar, {
+  type SnackbarPosition,
+  type SnackbarSeverity,
+  type SnackbarVariant,
+} from "../components/Snackbar";
 import { MaterialCommunityIconsGlyphs } from "../components/types";
 
 export interface ToastOptions {
   message: string;
-  /** Drives the container colors and the default icon. */
-  type?: SnackbarType;
-  /** Auto-hide delay in ms. Defaults to 4000. */
+  /** Drives the colors and the default icon. Left out, the toast is the neutral inverse surface. */
+  severity?: SnackbarSeverity;
+  /** `"contained"` (the default) fills the toast; `"outlined"` draws it on the surface with an outline. */
+  variant?: SnackbarVariant;
+  /** Where it appears. Defaults to the provider's `position`. */
+  position?: SnackbarPosition;
+  /** Auto-hide delay in ms. Defaults to 4000. Not used when `onClose` is set. */
   duration?: number;
-  /** Overrides the icon implied by `type`. */
+  /** Overrides the icon implied by `severity`. */
   icon?: MaterialCommunityIconsGlyphs;
-  action?: { label: string; onPress: () => void };
+  /** A text button after the message; clicking it runs `onClick` and dismisses the toast. */
+  action?: { label: string; onClick: () => void };
+  /**
+   * Keeps the toast up until the user closes it, with a close button: the
+   * `duration` is not used. Called after the toast has left the queue.
+   */
+  onClose?: () => void;
   /**
    * Replaces any queued toast carrying the same id instead of appending one.
    * Use it to keep a repeated event (a retry, a poll) from stacking up.
@@ -32,25 +46,25 @@ interface QueuedToast extends ToastOptions {
 interface ToastApi {
   /** Enqueues a toast and returns its key. */
   show: (options: ToastOptions) => string;
-  /** Shorthand for `show({ type: "success" })`. */
+  /** Shorthand for `show({ severity: "success" })`. */
   success: (
     message: string,
-    options?: Omit<ToastOptions, "message" | "type">,
+    options?: Omit<ToastOptions, "message" | "severity">,
   ) => string;
-  /** Shorthand for `show({ type: "error" })`. */
+  /** Shorthand for `show({ severity: "error" })`. */
   error: (
     message: string,
-    options?: Omit<ToastOptions, "message" | "type">,
+    options?: Omit<ToastOptions, "message" | "severity">,
   ) => string;
-  /** Shorthand for `show({ type: "warning" })`. */
+  /** Shorthand for `show({ severity: "warning" })`. */
   warning: (
     message: string,
-    options?: Omit<ToastOptions, "message" | "type">,
+    options?: Omit<ToastOptions, "message" | "severity">,
   ) => string;
-  /** Shorthand for `show({ type: "info" })`. */
+  /** Shorthand for `show({ severity: "info" })`. */
   info: (
     message: string,
-    options?: Omit<ToastOptions, "message" | "type">,
+    options?: Omit<ToastOptions, "message" | "severity">,
   ) => string;
   /** Dismisses one toast by key, or the whole queue when called bare. */
   hide: (key?: string) => void;
@@ -75,11 +89,20 @@ export const useToast = () => {
 let counter = 0;
 const nextKey = () => `toast-${++counter}`;
 
+export interface ToastProviderProps {
+  children: React.ReactNode;
+  /** Where toasts appear unless one asks for another. Defaults to `"bottom-center"`. */
+  position?: SnackbarPosition;
+}
+
 /**
  * Renders one toast at a time from a FIFO queue, so a burst of events plays
  * back in order instead of overwriting itself.
  */
-export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+export const ToastProvider = ({
+  children,
+  position = "bottom-center",
+}: ToastProviderProps) => {
   const [queue, setQueue] = useState<QueuedToast[]>([]);
 
   const show = useCallback((options: ToastOptions) => {
@@ -103,11 +126,13 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     () => ({
       show,
       success: (message, options) =>
-        show({ ...options, message, type: "success" }),
-      error: (message, options) => show({ ...options, message, type: "error" }),
+        show({ ...options, message, severity: "success" }),
+      error: (message, options) =>
+        show({ ...options, message, severity: "error" }),
       warning: (message, options) =>
-        show({ ...options, message, type: "warning" }),
-      info: (message, options) => show({ ...options, message, type: "info" }),
+        show({ ...options, message, severity: "warning" }),
+      info: (message, options) =>
+        show({ ...options, message, severity: "info" }),
       hide,
       queue: queue.map((toast) => toast.key),
     }),
@@ -128,11 +153,20 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
             key={current.key}
             visible
             message={current.message}
-            type={current.type}
+            severity={current.severity}
+            variant={current.variant}
+            position={current.position ?? position}
             icon={current.icon}
             duration={current.duration}
             action={current.action}
             onDismiss={() => hide(current.key)}
+            onClose={
+              current.onClose &&
+              (() => {
+                hide(current.key);
+                current.onClose?.();
+              })
+            }
           />
         </View>
       )}

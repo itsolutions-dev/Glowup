@@ -9,13 +9,28 @@ export type RadiusValue = keyof Theme["shape"] | number;
 /** An M3 color role name (`"primaryContainer"`) or any raw color string. */
 export type ColorValue = keyof Theme["colors"] | (string & {});
 
+/**
+ * A spacing token name (`"m"`), a number of px, or a string holding one
+ * (`"12"`, `"12px"`). What `Stack` and `Grid` take for `spacing`.
+ */
+export type SpacingInput = SpacingValue | (string & {});
+
+/**
+ * Resolves a spacing token, a number or a numeric string to px. A string that
+ * is neither a token nor a number resolves to `undefined` (no spacing).
+ */
 export const resolveSpacing = (
   theme: Theme,
-  value: SpacingValue | undefined,
+  value: SpacingInput | undefined,
 ): number | undefined => {
   if (value === undefined) return undefined;
   if (typeof value === "number") return value;
-  return theme.spacing[value];
+  // Own tokens only: `"constructor"` is not a spacing.
+  if (Object.prototype.hasOwnProperty.call(theme.spacing, value)) {
+    return theme.spacing[value as keyof Theme["spacing"]];
+  }
+  const px = /^\s*(-?\d+(?:\.\d+)?)(?:px)?\s*$/.exec(value);
+  return px ? Number(px[1]) : undefined;
 };
 
 export const resolveRadius = (

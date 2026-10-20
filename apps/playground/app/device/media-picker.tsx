@@ -194,37 +194,34 @@ export default function MediaPickerPage() {
         />
         <ListSection>
           <ListItem
-            secondary="multiple: true, in the order picked."
-            trailing={<Switch value={multiple} onChange={setMultiple} />}
-          >
-            Several at once
-          </ListItem>
+            secondaryText="multiple: true, in the order picked."
+            action={<Switch value={multiple} onChange={setMultiple} />}
+            primaryText="Several at once"
+          />
           {multiple ? (
             <ListItem
-              secondary="limit: 3 (the web keeps the first three files)."
-              trailing={<Switch value={limited} onChange={setLimited} />}
-            >
-              At most three
-            </ListItem>
+              secondaryText="limit: 3 (the web keeps the first three files)."
+              action={<Switch value={limited} onChange={setLimited} />}
+              primaryText="At most three"
+            />
           ) : null}
           <ListItem
-            secondary={
+            secondaryText={
               canEdit
                 ? "edit: true, the platform's crop screen."
                 : Platform.OS === "web"
                   ? "Native only."
                   : "One item only: not with multiple."
             }
-            trailing={
+            action={
               <Switch
                 value={canEdit && edit}
                 disabled={!canEdit}
                 onChange={setEdit}
               />
             }
-          >
-            Crop
-          </ListItem>
+            primaryText="Crop"
+          />
         </ListSection>
         <HStack spacing="m" align="center" wrap>
           <Button
@@ -249,7 +246,7 @@ export default function MediaPickerPage() {
 
       {result?.status === "picked" ? (
         <Section title={`Picked (${result.assets.length})`}>
-          <Grid minChildWidth={160} spacing="m">
+          <Grid container autoSize={{ xs: 6, sm: 4, md: 3, lg: 2 }} spacing="m">
             {result.assets.map((asset) => (
               <PickedCard key={asset.uri} asset={asset} />
             ))}

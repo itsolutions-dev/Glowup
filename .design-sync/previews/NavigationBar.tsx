@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationBar } from "@its/glowup-ui";
+import { NavBar } from "@its/glowup-ui";
 import type { NavigationBarItem } from "@its/glowup-ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
@@ -13,26 +13,26 @@ const items: NavigationBarItem[] = [
 
 export const Default = () => (
   <div style={bar}>
-    <NavigationBar items={items} activeId="home" onItemPress={() => {}} />
+    <NavBar items={items} activeId="home" onClick={() => {}} />
   </div>
 );
 
 export const LabelsOnSelected = () => (
   <div style={bar}>
-    <NavigationBar
+    <NavBar
       items={items}
       activeId="inbox"
       showLabels="selected"
-      onItemPress={() => {}}
+      onClick={() => {}}
     />
   </div>
 );
 
 export const WithDisabledItem = () => (
   <div style={bar}>
-    <NavigationBar
+    <NavBar
       activeId="library"
-      onItemPress={() => {}}
+      onClick={() => {}}
       items={[
         { id: "library", label: "Library", icon: "bookshelf" },
         {

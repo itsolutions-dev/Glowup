@@ -1,67 +1,67 @@
 import React from "react";
-import { DrawerItem, DrawerSection, NavigationDrawer } from "@its/glowup-ui";
+import { DrawerItem, DrawerSection, Drawer } from "@its/glowup-ui";
 
 // DrawerItem is a row of NavigationDrawer; it is shown inside one.
 const frame: React.CSSProperties = { height: 300, width: 340, display: "flex" };
 
 export const States = () => (
   <div style={frame}>
-    <NavigationDrawer width={320}>
+    <Drawer width={320}>
       <DrawerSection>
         <DrawerItem
           label="Inbox"
           icon="inbox-outline"
           selected
-          onPress={() => {}}
+          onClick={() => {}}
         />
-        <DrawerItem label="Starred" icon="star-outline" onPress={() => {}} />
+        <DrawerItem label="Starred" icon="star-outline" onClick={() => {}} />
         <DrawerItem
           label="Archive"
           icon="archive-outline"
           disabled
-          onPress={() => {}}
+          onClick={() => {}}
         />
       </DrawerSection>
-    </NavigationDrawer>
+    </Drawer>
   </div>
 );
 
 export const WithBadges = () => (
   <div style={frame}>
-    <NavigationDrawer width={320}>
+    <Drawer width={320}>
       <DrawerSection>
         <DrawerItem
           label="Inbox"
           icon="inbox-outline"
           badge={24}
           selected
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <DrawerItem
           label="Updates"
           icon="bell-outline"
           badge="New"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <DrawerItem
           label="Drafts"
           icon="file-outline"
           badge={3}
-          onPress={() => {}}
+          onClick={() => {}}
         />
       </DrawerSection>
-    </NavigationDrawer>
+    </Drawer>
   </div>
 );
 
 export const TextOnly = () => (
   <div style={frame}>
-    <NavigationDrawer width={320}>
+    <Drawer width={320}>
       <DrawerSection>
-        <DrawerItem label="Overview" selected onPress={() => {}} />
-        <DrawerItem label="Activity" onPress={() => {}} />
-        <DrawerItem label="Settings" onPress={() => {}} />
+        <DrawerItem label="Overview" selected onClick={() => {}} />
+        <DrawerItem label="Activity" onClick={() => {}} />
+        <DrawerItem label="Settings" onClick={() => {}} />
       </DrawerSection>
-    </NavigationDrawer>
+    </Drawer>
   </div>
 );

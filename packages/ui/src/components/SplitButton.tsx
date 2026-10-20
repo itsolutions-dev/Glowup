@@ -132,7 +132,7 @@ const SplitButton = ({
         anchor={trailing}
         items={items}
         visible={open}
-        onDismiss={() => setOpen(false)}
+        onClose={() => setOpen(false)}
       />
     </View>
   );

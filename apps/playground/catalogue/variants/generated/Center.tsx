@@ -3,35 +3,38 @@
 // Regenerate with `npm run variants -w @its/glowup-playground`.
 import React from "react";
 import type { Variant } from "../types";
-import {
-  Center,
-  CircularProgress,
-  EmptyState,
-  Typography,
-} from "@its/glowup-ui";
+import { Box, CircularProgress, EmptyState, Typography } from "@its/glowup-ui";
 
 export const Basic = () => (
-  <Center bg="surfaceContainerLow" radius="medium" height={160} width={360}>
+  <Box
+    variant="centered-column-flex"
+    background="surfaceContainerLow"
+    radius="medium"
+    height={160}
+    width={360}
+  >
     <Typography variant="titleMedium">Centred on both axes</Typography>
-  </Center>
+  </Box>
 );
 
 export const LoadingPane = () => (
-  <Center
-    bg="surfaceContainerLow"
+  <Box
+    variant="centered-column-flex"
+    background="surfaceContainerLow"
     radius="large"
     height={200}
     width={360}
-    gap="s"
+    gap={8}
   >
     <CircularProgress size={48} />
     <Typography variant="bodyMedium">Syncing your workspace</Typography>
-  </Center>
+  </Box>
 );
 
 export const AroundAnEmptyState = () => (
-  <Center
-    bg="surface"
+  <Box
+    variant="centered-column-flex"
+    background="surface"
     radius="large"
     height={260}
     width={360}
@@ -43,7 +46,7 @@ export const AroundAnEmptyState = () => (
       title="No projects yet"
       description="Create your first project to start collecting components."
     />
-  </Center>
+  </Box>
 );
 
 export const variants: Variant[] = [

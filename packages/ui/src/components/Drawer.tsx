@@ -11,14 +11,18 @@ import { getGlowStyles, useTheme, Theme } from "../providers/ThemeProvider";
 import Collapse from "./Collapse";
 import Divider from "./Divider";
 import Icon from "./Icon";
+import IconButton from "./IconButton";
 import Typography from "./Typography";
 import SideOverlay from "./internal/SideOverlay";
+import { elevationStyle } from "./internal/elevation";
 import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 
 // M3 navigation drawer: up to 360dp wide, 56dp items with a full-width pill
 // indicator inset 12dp from the container edges.
 const DRAWER_WIDTH = 360;
+// Top and bottom drawers: the tallest they grow before their content scrolls.
+const DRAWER_HEIGHT = 360;
 const ITEM_HEIGHT = 56;
 const ITEM_INSET = 12;
 // Icons only: the width of a navigation rail.
@@ -38,7 +42,7 @@ export interface DrawerItemProps {
   /** Trailing text, e.g. an unread count: `24`, `"100+"`. */
   badge?: string | number;
   /** Optional for an item with `children`, whose press opens and closes them. */
-  onPress?: () => void;
+  onClick?: () => void;
   /**
    * Sub-items (`DrawerItem`s): makes this a group. Pressing it toggles them,
    * and they are indented one level. Hidden while the drawer is `collapsed`.
@@ -52,13 +56,13 @@ export interface DrawerItemProps {
   testID?: string;
 }
 
-/** One destination in a `NavigationDrawer`. */
+/** One destination in a `Drawer`. */
 export const DrawerItem = ({
   label,
   icon,
   selected = false,
   badge,
-  onPress,
+  onClick,
   children,
   defaultExpanded = false,
   onToggle,
@@ -82,7 +86,7 @@ export const DrawerItem = ({
       setExpanded(next);
       onToggle?.(next);
     }
-    onPress?.();
+    onClick?.();
   };
 
   const row = (
@@ -237,17 +241,34 @@ export const DrawerSection = ({
   );
 };
 
-export interface NavigationDrawerProps {
+export interface DrawerProps {
   /**
-   * `"standard"` is an inline panel to place beside the content (expanded
-   * windows and up). `"modal"` slides over the content with a scrim.
-   * Defaults to `"standard"`.
+   * `"static"` is a permanent panel in the layout, beside the content, with no
+   * scrim. `"swipeable"` slides over the content on a scrim, and a drag toward
+   * its edge, the scrim, Android back and Escape (web) close it.
+   * Defaults to `"static"`.
    */
-  variant?: "standard" | "modal";
-  /** Modal only: whether the drawer is open. */
+  variant?: "static" | "swipeable";
+  /**
+   * The window edge it is attached to: `"left"` and `"right"` are columns of
+   * `width`, `"top"` and `"bottom"` span the full width and are as tall as
+   * their content, up to `height`. The edges are physical, not mirrored in
+   * right-to-left layouts. Defaults to `"left"`.
+   */
+  position?: "left" | "right" | "top" | "bottom";
+  /** Swipeable only: whether the drawer is open. */
   visible?: boolean;
-  /** Modal only: called on scrim press, Android back and Escape (web). */
-  onDismiss?: () => void;
+  /**
+   * Called by the close button, and by a swipeable drawer's scrim, closing
+   * drag, Android back and Escape (web).
+   */
+  onClose?: () => void;
+  /**
+   * The level of the surface, 0 to 5: the tone it is painted in and, on iOS
+   * and Android, its shadow. Defaults to `0` when static and `1` when
+   * swipeable.
+   */
+  elevation?: number;
   /** Pinned above the scrolling items: a logo, a site picker. */
   header?: React.ReactNode;
   /**
@@ -255,49 +276,110 @@ export interface NavigationDrawerProps {
    * item without an icon shows its first letter). Defaults to `false`.
    */
   collapsed?: boolean;
-  /** Headline at the top of the drawer. */
+  /**
+   * Headline at the top of the drawer. With a close button, a back button or
+   * `actions` it is the title of a header row instead, in a larger type.
+   */
   title?: string;
-  /** `DrawerSection`s and/or `DrawerItem`s. */
+  /**
+   * `DrawerSection`s and/or `DrawerItem`s, or any content when the drawer is a
+   * side sheet (a form, filters, details).
+   */
   children: React.ReactNode;
   /** Pinned below the scrolling items. */
   footer?: React.ReactNode;
-  /** Defaults to 360 (M3), capped at the window width when modal. */
+  /** A row of buttons at the bottom, below a divider. */
+  actions?: React.ReactNode;
+  /** Adds a close button to the header row, which calls `onClose`. Defaults to `false`. */
+  showCloseButton?: boolean;
+  /** Shows a back button before the title, for a drawer with sub-pages. */
+  onBack?: () => void;
+  /** Left and right: defaults to 360 (M3), capped at the window width when swipeable. */
   width?: number;
+  /** Top and bottom: the largest height, defaults to 360. */
+  height?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
 /**
- * The Material 3 navigation drawer. Presentational and navigator-agnostic: it
- * lays out destinations and reports presses; the app's router owns the rest.
+ * The Material 3 navigation drawer, which doubles as a side sheet: with
+ * `position`, any content as `children` and a close button, it holds filters,
+ * details or a form on any edge of the window. Presentational and
+ * navigator-agnostic: it lays out destinations and reports presses; the app's
+ * router owns the rest.
  */
-const NavigationDrawer = ({
-  variant = "standard",
+const Drawer = ({
+  variant = "static",
+  position = "left",
   visible = false,
-  onDismiss,
+  onClose,
+  elevation: elevationProp,
   header,
   collapsed = false,
   title,
   children,
   footer,
+  actions,
+  showCloseButton = false,
+  onBack,
   width: widthProp = DRAWER_WIDTH,
+  height = DRAWER_HEIGHT,
   style,
   testID,
-}: NavigationDrawerProps) => {
+}: DrawerProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const swipeable = variant === "swipeable";
+  const vertical = position === "top" || position === "bottom";
   const width = collapsed ? COLLAPSED_WIDTH : widthProp;
+  const surface = elevationStyle(theme, elevationProp ?? (swipeable ? 1 : 0));
+  // A header row or actions make it a sheet of arbitrary content, not a
+  // navigation landmark.
+  const sheet = showCloseButton || !!onBack || actions != null;
+  const headerRow = sheet && !collapsed;
 
   const body = (
-    <View style={styles.body} role="navigation">
+    <View
+      style={vertical ? styles.bodyFit : styles.body}
+      role={sheet ? undefined : "navigation"}
+    >
+      {headerRow && (
+        <View style={styles.sheetHeader}>
+          {onBack && (
+            <IconButton
+              icon="arrow-left"
+              accessibilityLabel="Back"
+              onClick={onBack}
+            />
+          )}
+          <Typography
+            variant="titleLarge"
+            accessibilityRole="header"
+            numberOfLines={1}
+            style={[styles.sheetTitle, !onBack && styles.sheetTitleStart]}
+          >
+            {title ?? ""}
+          </Typography>
+          {showCloseButton && (
+            <IconButton
+              icon="close"
+              accessibilityLabel="Close"
+              onClick={onClose}
+              testID={testID ? `${testID}-close` : undefined}
+            />
+          )}
+        </View>
+      )}
       {header != null && <View style={styles.header}>{header}</View>}
       <ScrollView
+        style={vertical ? styles.scrollFit : undefined}
         contentContainerStyle={[
-          styles.scroll,
+          sheet ? styles.scrollSheet : styles.scroll,
           collapsed && styles.scrollCollapsed,
         ]}
       >
-        {!!title && !collapsed && (
+        {!!title && !collapsed && !headerRow && (
           <Typography
             variant="titleSmall"
             accessibilityRole="header"
@@ -309,6 +391,12 @@ const NavigationDrawer = ({
         {children}
       </ScrollView>
       {footer != null && <View style={styles.footer}>{footer}</View>}
+      {actions != null && (
+        <>
+          <Divider />
+          <View style={styles.actions}>{actions}</View>
+        </>
+      )}
     </View>
   );
 
@@ -318,15 +406,16 @@ const NavigationDrawer = ({
     </CollapsedContext.Provider>
   );
 
-  if (variant === "modal") {
+  if (swipeable) {
     return withContext(
       <SideOverlay
         visible={visible}
-        onDismiss={onDismiss}
-        side="start"
+        onClose={onClose}
+        position={position}
         width={width}
-        scrimLabel="Close navigation drawer"
-        panelStyle={style}
+        height={height}
+        scrimLabel="Close drawer"
+        panelStyle={[surface, style]}
         testID={testID}
       >
         {body}
@@ -335,22 +424,67 @@ const NavigationDrawer = ({
   }
 
   return withContext(
-    <View style={[styles.standard, { width }, style]} testID={testID}>
+    <View
+      style={[
+        styles.static,
+        surface,
+        styles[`edge_${position}` as const],
+        vertical ? { maxHeight: height } : { width },
+        style,
+      ]}
+      testID={testID}
+    >
       {body}
     </View>,
   );
 };
 
-export default NavigationDrawer;
+export default Drawer;
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
-    standard: {
-      alignSelf: "stretch",
-      maxWidth: "100%",
-      backgroundColor: theme.colors.surface,
+    static: { alignSelf: "stretch", maxWidth: "100%" },
+    // A hairline on the edge that faces the content.
+    edge_left: {
+      borderRightWidth: 1,
+      borderRightColor: theme.colors.outlineVariant,
+    },
+    edge_right: {
+      borderLeftWidth: 1,
+      borderLeftColor: theme.colors.outlineVariant,
+    },
+    edge_top: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.outlineVariant,
+    },
+    edge_bottom: {
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outlineVariant,
     },
     body: { flex: 1 },
+    // Top and bottom: as tall as the content, up to the panel's largest height.
+    bodyFit: { flexShrink: 1 },
+    scrollFit: { flexGrow: 0, flexShrink: 1 },
+    sheetHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: 72,
+      paddingHorizontal: theme.spacing.s,
+      paddingTop: theme.spacing.s,
+    },
+    sheetTitle: { flex: 1 },
+    sheetTitleStart: { paddingStart: theme.spacing.s },
+    scrollSheet: {
+      paddingHorizontal: theme.spacing.l,
+      paddingBottom: theme.spacing.l,
+    },
+    actions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: theme.spacing.s,
+      paddingHorizontal: theme.spacing.l,
+      paddingVertical: theme.spacing.m,
+    },
     header: { paddingHorizontal: ITEM_INSET, paddingTop: ITEM_INSET },
     scrollCollapsed: { paddingHorizontal: theme.spacing.s },
     scroll: {

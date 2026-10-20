@@ -2,17 +2,27 @@ import React from "react";
 import { Box, Typography } from "@its/glowup-ui";
 
 export const Padding = () => (
-  <Box bg="surfaceContainerLow" p="m" radius="medium" gap="s" width={360}>
+  <Box
+    background="surfaceContainerLow"
+    padding={16}
+    radius="medium"
+    gap={8}
+    width={360}
+  >
     <Typography variant="labelSmall">
       p / px / py take spacing token names
     </Typography>
-    <Box bg="secondaryContainer" p="xs" radius="small">
+    <Box background="secondaryContainer" padding={4} radius="small">
       <Typography variant="bodySmall">p=&quot;xs&quot; — 4</Typography>
     </Box>
-    <Box bg="secondaryContainer" p="m" radius="small">
+    <Box background="secondaryContainer" padding={16} radius="small">
       <Typography variant="bodySmall">p=&quot;m&quot; — 16</Typography>
     </Box>
-    <Box bg="secondaryContainer" px="xl" py="xs" radius="small">
+    <Box
+      background="secondaryContainer"
+      radius="small"
+      style={{ paddingHorizontal: 32, paddingVertical: 4 }}
+    >
       <Typography variant="bodySmall">
         px=&quot;xl&quot; py=&quot;xs&quot;
       </Typography>
@@ -21,7 +31,7 @@ export const Padding = () => (
 );
 
 export const Surfaces = () => (
-  <Box gap="s" width={360}>
+  <Box gap={8} width={360}>
     {(
       [
         "surface",
@@ -32,8 +42,8 @@ export const Surfaces = () => (
     ).map((bg) => (
       <Box
         key={bg}
-        bg={bg}
-        p="m"
+        background={bg}
+        padding={16}
         radius="medium"
         borderWidth={1}
         borderColor="outlineVariant"
@@ -45,12 +55,12 @@ export const Surfaces = () => (
 );
 
 export const FlexControls = () => (
-  <Box gap="m" width={360}>
+  <Box gap={16} width={360}>
     <Box
-      bg="surfaceContainerLow"
-      p="s"
+      background="surfaceContainerLow"
+      padding={8}
       radius="medium"
-      gap="s"
+      gap={8}
       justify="space-between"
       align="center"
       height={72}
@@ -58,18 +68,18 @@ export const FlexControls = () => (
       <Typography variant="labelSmall">
         justify=&quot;space-between&quot; align=&quot;center&quot;
       </Typography>
-      <Box bg="primaryContainer" p="s" radius="small">
+      <Box background="primaryContainer" padding={8} radius="small">
         <Typography variant="labelMedium">A</Typography>
       </Box>
     </Box>
-    <Box bg="surfaceContainerLow" p="s" radius="large" gap="xs">
+    <Box background="surfaceContainerLow" padding={8} radius="large" gap={4}>
       <Typography variant="labelSmall">
         radius=&quot;large&quot; gap=&quot;xs&quot;
       </Typography>
-      <Box bg="primaryContainer" p="s" radius="small">
+      <Box background="primaryContainer" padding={8} radius="small">
         <Typography variant="labelMedium">B</Typography>
       </Box>
-      <Box bg="primaryContainer" p="s" radius="small">
+      <Box background="primaryContainer" padding={8} radius="small">
         <Typography variant="labelMedium">C</Typography>
       </Box>
     </Box>

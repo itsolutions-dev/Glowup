@@ -10,7 +10,7 @@ import {
   HStack,
   IconButton,
   LinearProgress,
-  NavigationBar,
+  NavBar,
   NavigationRail,
   Stat,
   StatusBadge,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeaderCell,
   TableRow,
-  TopAppBar,
+  AppBar,
   Typography,
   VStack,
   useTheme,
@@ -100,7 +100,7 @@ export default function Dashboard() {
   return (
     <Box
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
       style={{ overflow: "hidden" }}
@@ -117,7 +117,7 @@ export default function Dashboard() {
         )}
 
         <View style={{ flex: 1, minWidth: 0 }}>
-          <TopAppBar
+          <AppBar
             safeArea={false}
             title="Overview"
             subtitle="Acme Store"
@@ -143,7 +143,7 @@ export default function Dashboard() {
             }
           />
 
-          <VStack spacing="l" p="l">
+          <VStack spacing="l" padding={24}>
             {/* The one dominant element: a greeting and the period switch. */}
             <HStack justify="space-between" align="center" wrap spacing="m">
               <VStack spacing="xs">
@@ -288,10 +288,10 @@ export default function Dashboard() {
           {!isWide && (
             <>
               <Divider />
-              <NavigationBar
+              <NavBar
                 items={[...NAV]}
                 activeId={section}
-                onItemPress={setSection}
+                onClick={setSection}
               />
             </>
           )}

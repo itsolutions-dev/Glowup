@@ -19,47 +19,45 @@ const chevron = <Icon source="chevron-right" size={20} color="#79747E" />;
 export const SettingsList = () => (
   <div style={list}>
     <ListItem
-      onPress={() => {}}
-      leading={<Icon source="account-multiple-outline" size={24} />}
-      secondary="3 members, 1 pending invite"
-      trailing={chevron}
-    >
-      Workspace members
-    </ListItem>
+      onClick={() => {}}
+      icon={<Icon source="account-multiple-outline" size={24} />}
+      secondaryText="3 members, 1 pending invite"
+      action={chevron}
+      primaryText="Workspace members"
+    />
     <ListItem
-      onPress={() => {}}
-      leading={<Icon source="lock-outline" size={24} />}
-      secondary="Passkeys and two-factor"
-      trailing={chevron}
-    >
-      Privacy and security
-    </ListItem>
+      onClick={() => {}}
+      icon={<Icon source="lock-outline" size={24} />}
+      secondaryText="Passkeys and two-factor"
+      action={chevron}
+      primaryText="Privacy and security"
+    />
     <ListItem
-      leading={<Icon source="email-outline" size={24} />}
-      secondary="Weekly digest"
-      trailing={<Switch value onChange={() => {}} />}
-    >
-      Email notifications
-    </ListItem>
+      icon={<Icon source="email-outline" size={24} />}
+      secondaryText="Weekly digest"
+      action={<Switch value onChange={() => {}} />}
+      primaryText="Email notifications"
+    />
   </div>
 );
 
 export const Slots = () => (
   <div style={list}>
-    <ListItem leading={<Icon source="folder-multiple-outline" size={24} />}>
-      leading only
-    </ListItem>
-    <ListItem trailing={chevron}>trailing only</ListItem>
-    <ListItem secondary="the second line sits under the primary one">
-      secondary only
-    </ListItem>
     <ListItem
-      leading={<Icon source="chart-box" size={24} />}
-      secondary="all three slots filled"
-      trailing={chevron}
-    >
-      leading + secondary + trailing
-    </ListItem>
+      icon={<Icon source="folder-multiple-outline" size={24} />}
+      primaryText="leading only"
+    />
+    <ListItem action={chevron} primaryText="trailing only" />
+    <ListItem
+      secondaryText="the second line sits under the primary one"
+      primaryText="secondary only"
+    />
+    <ListItem
+      icon={<Icon source="chart-box" size={24} />}
+      secondaryText="all three slots filled"
+      action={chevron}
+      primaryText="leading + secondary + trailing"
+    />
   </div>
 );
 
@@ -72,13 +70,12 @@ export const WithAvatars = () => (
     ].map((m) => (
       <ListItem
         key={m.name}
-        onPress={() => {}}
-        leading={<Avatar name={m.name} size={40} />}
-        secondary={m.role}
-        trailing={<Typography variant="labelLarge">Owner</Typography>}
-      >
-        {m.name}
-      </ListItem>
+        onClick={() => {}}
+        icon={<Avatar name={m.name} size={40} />}
+        secondaryText={m.role}
+        action={<Typography variant="labelLarge">Owner</Typography>}
+        primaryText={m.name}
+      />
     ))}
   </div>
 );
@@ -92,14 +89,13 @@ export const CustomSurface = () => (
     ].map((hub) => (
       <ListItem
         key={hub.label}
-        onPress={() => {}}
-        leading={<Icon source="domain" size={24} color="#1D1B20" />}
-        secondary={hub.parcels}
+        onClick={() => {}}
+        icon={<Icon source="domain" size={24} color="#1D1B20" />}
+        secondaryText={hub.parcels}
         itemContainerStyle={{ backgroundColor: hub.tint }}
         itemTextStyle={{ color: "#1D1B20" }}
-      >
-        {hub.label}
-      </ListItem>
+        primaryText={hub.label}
+      />
     ))}
   </div>
 );
@@ -107,9 +103,9 @@ export const CustomSurface = () => (
 /** No slots at all: the original single-line centred tile is still what you get. */
 export const TextOnly = () => (
   <div style={list}>
-    <ListItem onPress={() => {}}>Q1 revenue report</ListItem>
-    <ListItem onPress={() => {}}>Warehouse capacity plan</ListItem>
-    <ListItem onPress={() => {}}>Supplier contract renewal</ListItem>
+    <ListItem onClick={() => {}} primaryText="Q1 revenue report" />
+    <ListItem onClick={() => {}} primaryText="Warehouse capacity plan" />
+    <ListItem onClick={() => {}} primaryText="Supplier contract renewal" />
   </div>
 );
 
@@ -117,27 +113,36 @@ export const StatusRows = () => (
   <div style={list}>
     <ListItem
       indicatorColor="#B00020"
-      secondary="Call back before Friday"
-      trailing={<StatusBadge label="Urgent" type="error" />}
+      secondaryText="Call back before Friday"
+      action={<StatusBadge label="Urgent" type="error" />}
       trailingWidth={112}
-    >
-      <Typography variant="titleMedium">Marta Bianchi</Typography>
-    </ListItem>
+      primaryText={
+        <>
+          <Typography variant="titleMedium">Marta Bianchi</Typography>
+        </>
+      }
+    />
     <ListItem
       indicatorColor="#61B340"
-      secondary="Quote accepted"
-      trailing={<StatusBadge label="Won" />}
+      secondaryText="Quote accepted"
+      action={<StatusBadge label="Won" />}
       trailingWidth={112}
-    >
-      <Typography variant="titleMedium">Luca Verdi</Typography>
-    </ListItem>
+      primaryText={
+        <>
+          <Typography variant="titleMedium">Luca Verdi</Typography>
+        </>
+      }
+    />
     <ListItem
       dimmed
-      secondary="Removed on 12 Oct"
-      trailing={<StatusBadge label="Removed" type="warning" />}
+      secondaryText="Removed on 12 Oct"
+      action={<StatusBadge label="Removed" type="warning" />}
       trailingWidth={112}
-    >
-      <Typography variant="titleMedium">Anna Neri</Typography>
-    </ListItem>
+      primaryText={
+        <>
+          <Typography variant="titleMedium">Anna Neri</Typography>
+        </>
+      }
+    />
   </div>
 );

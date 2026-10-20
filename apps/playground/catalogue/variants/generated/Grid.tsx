@@ -6,32 +6,40 @@ import type { Variant } from "../types";
 import { Box, Grid, Stat, Typography } from "@its/glowup-ui";
 
 const tile = (n: number) => (
-  <Box key={n} bg="secondaryContainer" p="m" radius="medium">
+  <Box key={n} background="secondaryContainer" padding={16} radius="medium">
     <Typography variant="labelLarge">{n}</Typography>
   </Box>
 );
 
 export const FixedColumns = () => (
-  <Grid columns={3} spacing="s" width={420}>
+  <Grid container autoSize={1} columns={3} spacing="s" style={{ width: 420 }}>
     {[1, 2, 3, 4, 5, 6].map(tile)}
   </Grid>
 );
 
 /** `minChildWidth` fits as many columns as the container allows. */
 export const Responsive = () => (
-  <Grid minChildWidth={160} spacing="s" width={420}>
+  <Grid
+    container
+    autoSize={{ xs: 6, sm: 4, md: 3, lg: 2 }} // TODO(layout-codemod): minChildWidth={160} had no exact equivalent: autoSize follows the window's breakpoints, not the container's width. Check the sizes
+    spacing="s"
+    style={{ width: 420 }}
+  >
     {[1, 2, 3, 4, 5].map(tile)}
   </Grid>
 );
 
 export const StatBoard = () => (
   <Grid
+    container
+    autoSize={1} // TODO(layout-codemod): Grid no longer takes bg: wrap it in a Box (background/radius) or use style with the theme value
+    // TODO(layout-codemod): Grid no longer takes radius: wrap it in a Box (background/radius) or use style with the theme value
+
     columns={2}
     spacing="m"
-    p="m"
     bg="surfaceContainerLow"
     radius="large"
-    width={420}
+    style={{ padding: 16, width: 420 }}
   >
     <Stat label="Revenue" value="€18,420" delta="12.5%" trend="up" />
     <Stat label="Orders" value="1,204" delta="9.2%" trend="up" />

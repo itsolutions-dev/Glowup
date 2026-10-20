@@ -85,8 +85,8 @@ export default function OrientationPage() {
       <Section title="Right now">
         <ListSection>
           <ListItem
-            secondary={isLoading ? "Checking…" : orientation}
-            trailing={
+            secondaryText={isLoading ? "Checking…" : orientation}
+            action={
               isLandscape === null ? null : (
                 <StatusBadge
                   label={isLandscape ? "Landscape" : "Portrait"}
@@ -94,9 +94,8 @@ export default function OrientationPage() {
                 />
               )
             }
-          >
-            Interface orientation
-          </ListItem>
+            primaryText="Interface orientation"
+          />
         </ListSection>
       </Section>
 
@@ -111,7 +110,7 @@ export default function OrientationPage() {
         />
         <ListSection>
           <ListItem
-            trailing={
+            action={
               <StatusBadge
                 label={
                   choice === "none"
@@ -127,14 +126,13 @@ export default function OrientationPage() {
                 }
               />
             }
-            secondary={
+            secondaryText={
               supportsLock
                 ? undefined
                 : "No lock API on this platform: every lock is refused."
             }
-          >
-            Lock
-          </ListItem>
+            primaryText="Lock"
+          />
         </ListSection>
         {lock.error ? (
           <Typography

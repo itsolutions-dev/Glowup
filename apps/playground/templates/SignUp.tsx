@@ -80,9 +80,9 @@ export default function SignUp() {
   if (done) {
     return (
       <Box
-        p="xl"
+        padding={32}
         radius="extraLarge"
-        bg="surface"
+        background="surface"
         borderWidth={1}
         borderColor="outlineVariant"
       >
@@ -105,10 +105,10 @@ export default function SignUp() {
 
   return (
     <Box
-      p="l"
-      gap="l"
+      padding={24}
+      gap={24}
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
     >
@@ -130,7 +130,7 @@ export default function SignUp() {
       <Stepper
         steps={STEPS}
         activeStep={step}
-        onStepPress={(index) => index < step && setStep(index)}
+        onClick={(index) => index < step && setStep(index)}
       />
 
       {step === 0 && (

@@ -58,7 +58,7 @@ export default function Templates() {
       title="Templates"
       description="Whole screens built only from Glowup components and theme tokens. Each one is a single file you can read, copy and paste: open a template to see it live beside the JSX that builds it."
     >
-      <Grid minChildWidth={300} spacing="l">
+      <Grid container autoSize={{ xs: 12, sm: 6, lg: 3 }} spacing="l">
         {TEMPLATES.map((template) => (
           <TemplateCard key={template.slug} template={template} />
         ))}

@@ -14,13 +14,28 @@ import {
   Platform,
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { placeAnchored, type AnchorPosition } from "./internal/anchorPlacement";
+
+export type { AnchorPosition } from "./internal/anchorPlacement";
 
 export interface PopoverProps {
+  /** The element the popover opens from. It stays in the layout; the popover floats over the window. */
   anchor: React.ReactElement;
   children: React.ReactNode;
+  /** Whether the popover is open. */
   visible: boolean;
+  /** Called on a press outside the popover and on Android back. */
   onDismiss: () => void;
+  /** Gives the popover the anchor's width instead of sizing it to its content. */
   matchAnchorWidth?: boolean;
+  /**
+   * Where the popover sits against its anchor: `vertical` is `"bottom"`
+   * (below it), `"top"` (above it) or `"center"` (centred on it);
+   * `horizontal` lines up the `"left"` edges, the `"right"` edges or the
+   * `"center"`s. Whatever it asks, the popover flips or slides to stay on
+   * screen. Defaults to `{ vertical: "bottom", horizontal: "left" }`.
+   */
+  anchorPosition?: AnchorPosition;
 }
 
 const Popover = ({
@@ -29,7 +44,9 @@ const Popover = ({
   visible,
   onDismiss,
   matchAnchorWidth,
+  anchorPosition = { vertical: "bottom", horizontal: "left" },
 }: PopoverProps) => {
+  const { vertical, horizontal } = anchorPosition;
   const [anchorCoords, setAnchorCoords] = useState({
     x: 0,
     y: 0,
@@ -83,8 +100,18 @@ const Popover = ({
       : contentSize.width || window.width;
     const height = contentSize.height || 100;
 
-    return getSafePosition(anchorCoords, { width, height }, window);
-  }, [anchorCoords, contentSize, window, matchAnchorWidth]);
+    return placeAnchored(anchorCoords, { width, height }, window, {
+      vertical,
+      horizontal,
+    });
+  }, [
+    anchorCoords,
+    contentSize,
+    window,
+    matchAnchorWidth,
+    vertical,
+    horizontal,
+  ]);
 
   // matchAnchorWidth pins the card to the anchor; otherwise the measured width
   // is only a ceiling and the card sizes to its content.
@@ -160,39 +187,3 @@ const makeStyles = (theme: Theme) =>
       }),
     },
   });
-
-type PositionResult = {
-  top?: number;
-  bottom?: number;
-  left: number;
-  width: number;
-};
-
-const getSafePosition = (
-  anchor: { x: number; y: number; width: number; height: number },
-  popoverSize: { width: number; height: number },
-  window: { width: number; height: number },
-  margin: number = 16,
-): PositionResult => {
-  const gap = 8;
-  let top: number | undefined = anchor.y + anchor.height + gap;
-  let bottom: number | undefined = undefined;
-
-  if (top + popoverSize.height > window.height - margin) {
-    top = undefined;
-    bottom = window.height - anchor.y + gap;
-  }
-
-  let left = anchor.x;
-
-  const maxWidth = window.width - margin * 2;
-  const actualWidth = Math.min(popoverSize.width, maxWidth);
-
-  if (left + actualWidth > window.width - margin) {
-    left = window.width - actualWidth - margin;
-  }
-
-  left = Math.max(margin, left);
-
-  return { top, bottom, left, width: actualWidth };
-};

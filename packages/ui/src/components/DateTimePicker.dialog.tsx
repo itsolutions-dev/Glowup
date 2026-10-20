@@ -12,9 +12,9 @@ export interface PickerDialogProps {
 
 /**
  * The picker's dialog shell: a card centred over a scrim, the way Material's
- * mobile pickers open. Glowup's `Modal` is a fixed-width card with its own
- * title bar and a single close action, and the M3 picker brings its own
- * headline and footer, so this is built on RN's `Modal`. The scrim, the back
+ * mobile pickers open. Glowup's `Dialog` is a card with its own title bar and
+ * action row, and the M3 picker brings its own headline and footer, so this is
+ * built on RN's `Modal`. The scrim, the back
  * gesture and the OS back button dismiss it.
  */
 const PickerDialog = ({

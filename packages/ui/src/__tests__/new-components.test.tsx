@@ -8,13 +8,12 @@ import {
   ChipGroup,
   CircularProgress,
   DataGrid,
+  Drawer,
   DrawerItem,
   DrawerSection,
   IconButton,
-  Modal,
-  NavigationDrawer,
+  Dialog,
   NavigationRail,
-  SideSheet,
   SplitButton,
   Table,
   TableCell,
@@ -23,7 +22,6 @@ import {
   TableRow,
   ThemeProvider,
   Toolbar,
-  TopAppBar,
   Typography,
 } from "../index";
 
@@ -102,22 +100,22 @@ describe("NavigationRail", () => {
   });
 });
 
-describe("NavigationDrawer", () => {
+describe("Drawer", () => {
   it("renders sections and items inline", async () => {
-    const onPress = jest.fn();
+    const onClick = jest.fn();
     const { getByText, getByRole } = await wrap(
-      <NavigationDrawer title="Mail">
+      <Drawer title="Mail">
         <DrawerSection title="Folders">
           <DrawerItem
             label="Inbox"
             icon="inbox-outline"
             selected
             badge={24}
-            onPress={() => {}}
+            onClick={() => {}}
           />
-          <DrawerItem label="Sent" icon="send-outline" onPress={onPress} />
+          <DrawerItem label="Sent" icon="send-outline" onClick={onClick} />
         </DrawerSection>
-      </NavigationDrawer>,
+      </Drawer>,
     );
     expect(getByText("Folders")).toBeTruthy();
     expect(getByText("24")).toBeTruthy();
@@ -127,11 +125,11 @@ describe("NavigationDrawer", () => {
       selected: true,
     });
     await fireEvent.press(getByRole("link", { name: "Sent" }));
-    expect(onPress).toHaveBeenCalled();
+    expect(onClick).toHaveBeenCalled();
   });
 
-  it("modal: renders nothing closed, dismisses from the scrim open", async () => {
-    const onDismiss = jest.fn();
+  it("swipeable: renders nothing closed, closes from the scrim open", async () => {
+    const onClose = jest.fn();
     const drawer = (visible: boolean) => (
       <SafeAreaProvider
         initialMetrics={{
@@ -140,14 +138,14 @@ describe("NavigationDrawer", () => {
         }}
       >
         <ThemeProvider>
-          <NavigationDrawer
-            variant="modal"
+          <Drawer
+            variant="swipeable"
             visible={visible}
-            onDismiss={onDismiss}
+            onClose={onClose}
             testID="nav"
           >
-            <DrawerItem label="Inbox" onPress={() => {}} />
-          </NavigationDrawer>
+            <DrawerItem label="Inbox" onClick={() => {}} />
+          </Drawer>
         </ThemeProvider>
       </SafeAreaProvider>
     );
@@ -160,16 +158,16 @@ describe("NavigationDrawer", () => {
     await fireEvent.press(
       getByTestId("nav-scrim", { includeHiddenElements: true }),
     );
-    expect(onDismiss).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
   });
 });
 
-describe("TopAppBar and AppBar", () => {
+describe("AppBar", () => {
   it.each(["small", "center", "medium", "large"] as const)(
     "renders the %s variant with a header title",
     async (variant) => {
       const { getByRole } = await wrap(
-        <TopAppBar
+        <AppBar
           title="Orders"
           variant={variant}
           leading={
@@ -260,7 +258,7 @@ describe("SplitButton", () => {
     const { getByRole, getByText } = await wrap(
       <SplitButton
         onPress={onPress}
-        items={[{ id: "dup", label: "Duplicate", onPress: onDuplicate }]}
+        items={[{ id: "dup", label: "Duplicate", onClick: onDuplicate }]}
       >
         Save
       </SplitButton>,
@@ -302,63 +300,19 @@ describe("Toolbar", () => {
   );
 });
 
-describe("SideSheet", () => {
-  it("modal: hidden when closed; close and back buttons work when open", async () => {
-    const onDismiss = jest.fn();
-    const onBack = jest.fn();
-    const sheet = (visible: boolean) => (
-      <SafeAreaProvider
-        initialMetrics={{
-          frame: { x: 0, y: 0, width: 1024, height: 768 },
-          insets: { top: 0, left: 0, right: 0, bottom: 0 },
-        }}
-      >
-        <ThemeProvider>
-          <SideSheet
-            visible={visible}
-            onDismiss={onDismiss}
-            onBack={onBack}
-            title="Filters"
-          >
-            <Text>Body</Text>
-          </SideSheet>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    );
-    const { queryByText, getByRole, rerender } = await render(sheet(false));
-    expect(queryByText("Filters")).toBeNull();
-
-    await rerender(sheet(true));
-    expect(getByRole("header", { name: "Filters" })).toBeTruthy();
-    await fireEvent.press(getByRole("button", { name: "Back" }));
-    expect(onBack).toHaveBeenCalled();
-    await fireEvent.press(getByRole("button", { name: "Close" }));
-    expect(onDismiss).toHaveBeenCalled();
-  });
-
-  it("standard: renders inline without visible", async () => {
-    const { getByText } = await wrap(
-      <SideSheet modal={false} onDismiss={() => {}} title="Details">
-        <Text>Body</Text>
-      </SideSheet>,
-    );
-    expect(getByText("Body")).toBeTruthy();
-  });
-});
-
-describe("Modal fullScreen", () => {
+describe("Dialog fullScreen", () => {
   it("puts close, title and actions in a header", async () => {
     const onDismiss = jest.fn();
     const { getByRole, getByText } = await wrap(
-      <Modal
+      <Dialog
         visible
         fullScreen
         title="New event"
-        onDismiss={onDismiss}
+        onClose={onDismiss}
         actions={<Text>Save</Text>}
       >
         <Text>Form</Text>
-      </Modal>,
+      </Dialog>,
     );
     expect(getByRole("header", { name: "New event" })).toBeTruthy();
     expect(getByText("Save")).toBeTruthy();

@@ -8,10 +8,10 @@ import { AspectRatio, HStack, Typography } from "@its/glowup-ui";
 const band = (ratio: number, label: string) => (
   <AspectRatio
     ratio={ratio}
-    bg="primaryContainer"
+    background="primaryContainer"
     radius="medium"
     width={180}
-    p="s"
+    padding={8}
   >
     <Typography variant="labelMedium">{label}</Typography>
   </AspectRatio>
@@ -28,10 +28,10 @@ export const Ratios = () => (
 export const AsAMediaSlot = () => (
   <AspectRatio
     ratio={16 / 9}
-    bg="tertiaryContainer"
+    background="tertiaryContainer"
     radius="large"
     width={360}
-    p="m"
+    padding={16}
   >
     <Typography variant="titleMedium">Release banner</Typography>
     <Typography variant="bodySmall">

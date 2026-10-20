@@ -12,7 +12,7 @@ import {
   DrawerSection,
   FAB,
   IconButton,
-  NavigationDrawer,
+  Drawer,
   NavigationRail,
   Rating,
   SideSheet,
@@ -23,7 +23,7 @@ import {
   TableHeaderCell,
   TableRow,
   Toolbar,
-  TopAppBar,
+  AppBar,
   Typography,
   useTheme,
 } from "@its/glowup-ui";
@@ -91,7 +91,7 @@ const DrawerContent = ({
           key={item.id}
           {...item}
           selected={selected === item.id}
-          onPress={() => onSelect(item.id)}
+          onClick={() => onSelect(item.id)}
         />
       ))}
     </DrawerSection>
@@ -100,13 +100,13 @@ const DrawerContent = ({
         label="Family"
         icon="label-outline"
         selected={selected === "family"}
-        onPress={() => onSelect("family")}
+        onClick={() => onSelect("family")}
       />
       <DrawerItem
         label="Work"
         icon="label-outline"
         selected={selected === "work"}
-        onPress={() => onSelect("work")}
+        onClick={() => onSelect("work")}
       />
     </DrawerSection>
   </>
@@ -120,16 +120,16 @@ const CrmDrawerContent = () => (
         label="Customers"
         icon="account-multiple-outline"
         selected
-        onPress={noop}
+        onClick={noop}
       />
       <DrawerItem label="Reports" icon="chart-box-outline" defaultExpanded>
-        <DrawerItem label="Sales" onPress={noop} />
-        <DrawerItem label="Agents" onPress={noop} />
+        <DrawerItem label="Sales" onClick={noop} />
+        <DrawerItem label="Agents" onClick={noop} />
       </DrawerItem>
     </DrawerSection>
     <DrawerSection title="Administration" showDivider collapsible>
-      <DrawerItem label="Users" icon="shield-account-outline" onPress={noop} />
-      <DrawerItem label="Routes" icon="sitemap-outline" onPress={noop} />
+      <DrawerItem label="Users" icon="shield-account-outline" onClick={noop} />
+      <DrawerItem label="Routes" icon="sitemap-outline" onClick={noop} />
     </DrawerSection>
   </>
 );
@@ -144,10 +144,10 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
         <Button variant="tonal" iconName="menu" onClick={() => setOpen(true)}>
           Open drawer
         </Button>
-        <NavigationDrawer
+        <Drawer
           variant="modal"
           visible={open}
-          onDismiss={() => setOpen(false)}
+          onClose={() => setOpen(false)}
           title={props.title}
         >
           <DrawerContent
@@ -157,13 +157,13 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
               setOpen(false);
             }}
           />
-        </NavigationDrawer>
+        </Drawer>
       </>
     );
   }
   return (
     <View style={{ height: 440, width: "100%", maxWidth: 360 }}>
-      <NavigationDrawer
+      <Drawer
         title={props.layout === "crm" ? undefined : props.title}
         width={320}
         collapsed={!!props.collapsed}
@@ -186,14 +186,14 @@ export const NavigationDrawerDemo = ({ props }: DemoProps) => {
         ) : (
           <DrawerContent selected={selected} onSelect={setSelected} />
         )}
-      </NavigationDrawer>
+      </Drawer>
     </View>
   );
 };
 
 export const TopAppBarDemo = ({ props }: DemoProps) => (
   <View style={{ width: "100%", maxWidth: 480 }}>
-    <TopAppBar
+    <AppBar
       title={props.title}
       subtitle={props.subtitle || undefined}
       variant={props.variant}
@@ -258,13 +258,13 @@ export const SplitButtonDemo = ({ props }: DemoProps) => (
         id: "copy",
         label: "Save a copy",
         icon: "content-copy",
-        onPress: noop,
+        onClick: noop,
       },
       {
         id: "draft",
         label: "Save as draft",
         icon: "file-outline",
-        onPress: noop,
+        onClick: noop,
       },
       {
         id: "discard",
@@ -272,7 +272,7 @@ export const SplitButtonDemo = ({ props }: DemoProps) => (
         icon: "delete-outline",
         destructive: true,
         dividerAbove: true,
-        onPress: noop,
+        onClick: noop,
       },
     ]}
   >

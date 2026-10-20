@@ -46,19 +46,19 @@ export default function SignIn() {
 
   return (
     <Box
-      row
+      variant="flex"
       wrap
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
       style={{ overflow: "hidden" }}
     >
       {/* Brand panel: grows beside the form, wraps above it when narrow. */}
       <Box
-        bg="primaryContainer"
-        p="xl"
-        gap="l"
+        background="primaryContainer"
+        padding={32}
+        gap={24}
         justify="space-between"
         style={{ flexGrow: 1, flexBasis: 280 }}
       >
@@ -105,7 +105,7 @@ export default function SignIn() {
       </Box>
 
       {/* Form panel */}
-      <Box p="xl" gap="l" style={{ flexGrow: 1, flexBasis: 320 }}>
+      <Box padding={32} gap={24} style={{ flexGrow: 1, flexBasis: 320 }}>
         <VStack spacing="xs">
           <Typography
             variant="headlineSmall"

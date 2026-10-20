@@ -23,7 +23,7 @@
     "../../.design-sync/guidelines/*.md"
   ],
   "libOverrides": {
-    "source-kit.mjs": "Glowup's List/ Modal/ Progress/ Tab/ ToggleButton/ src dirs are file organisation, not DS groups",
+    "source-kit.mjs": "Glowup's List/ Dialog/ Progress/ Tab/ ToggleButton/ src dirs are file organisation, not DS groups",
     "dts.mjs": "allowlist the all-caps component name FAB (ALL-CAPS-means-constant rule would drop it)"
   },
   "overrides": {
@@ -68,9 +68,6 @@
     "Carousel": {
       "cardMode": "column"
     },
-    "Center": {
-      "cardMode": "column"
-    },
     "Checkbox": {
       "cardMode": "column"
     },
@@ -99,6 +96,10 @@
     },
     "DateTimePicker": {
       "cardMode": "column"
+    },
+    "Dialog": {
+      "cardMode": "single",
+      "viewport": "560x440"
     },
     "Divider": {
       "cardMode": "column"
@@ -150,11 +151,7 @@
       "cardMode": "single",
       "viewport": "480x460"
     },
-    "Modal": {
-      "cardMode": "single",
-      "viewport": "560x440"
-    },
-    "NavigationBar": {
+    "NavBar": {
       "cardMode": "column"
     },
     "Pagination": {

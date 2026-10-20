@@ -31,7 +31,7 @@ export const SortStates = () => (
             width={180}
             sortable
             sortDirection="asc"
-            onPress={() => {}}
+            onClick={() => {}}
           >
             Ascending
           </TableHeaderCell>
@@ -39,11 +39,11 @@ export const SortStates = () => (
             width={140}
             sortable
             sortDirection="desc"
-            onPress={() => {}}
+            onClick={() => {}}
           >
             Descending
           </TableHeaderCell>
-          <TableHeaderCell width={120} sortable onPress={() => {}}>
+          <TableHeaderCell width={120} sortable onClick={() => {}}>
             Sortable
           </TableHeaderCell>
         </TableRow>

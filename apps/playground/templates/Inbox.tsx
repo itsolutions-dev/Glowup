@@ -123,7 +123,7 @@ export default function Inbox() {
 
   const list = (
     <VStack spacing="m" style={{ flex: 1 }}>
-      <VStack spacing="s" px="m" pt="m">
+      <VStack spacing="s" style={{ paddingHorizontal: 16, paddingTop: 16 }}>
         <SearchBar
           value={query}
           onChange={setQuery}
@@ -155,10 +155,10 @@ export default function Inbox() {
           {visible.map((message) => (
             <ListItem
               key={message.id}
-              onPress={() => open(message.id)}
-              leading={<Avatar name={message.from} size={40} />}
-              secondary={`${message.subject} — ${message.preview}`}
-              trailing={
+              onClick={() => open(message.id)}
+              icon={<Avatar name={message.from} size={40} />}
+              secondaryText={`${message.subject} — ${message.preview}`}
+              action={
                 <HStack spacing="s" align="center">
                   {message.unread && <Badge size="small" />}
                   <Typography
@@ -175,9 +175,8 @@ export default function Inbox() {
                   : undefined
               }
               itemTextStyle={message.unread ? { fontWeight: "700" } : undefined}
-            >
-              {message.from}
-            </ListItem>
+              primaryText={message.from}
+            />
           ))}
         </View>
       )}
@@ -185,7 +184,7 @@ export default function Inbox() {
   );
 
   const detail = selected ? (
-    <VStack spacing="l" p="l" style={{ flex: 1 }}>
+    <VStack spacing="l" padding={24} style={{ flex: 1 }}>
       <HStack justify="space-between" align="center">
         {!isWide ? (
           <IconButton
@@ -221,7 +220,7 @@ export default function Inbox() {
 
       <HStack spacing="m" align="center">
         <Avatar name={selected.from} size={40} />
-        <VStack flex={1}>
+        <VStack style={{ flex: 1 }}>
           <Typography
             variant="titleSmall"
             style={{ color: theme.colors.onSurface }}
@@ -262,7 +261,7 @@ export default function Inbox() {
   return (
     <Box
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
       style={{ overflow: "hidden", minHeight: 480 }}

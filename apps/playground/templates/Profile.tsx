@@ -68,24 +68,26 @@ export default function Profile() {
   return (
     <Box
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
       style={{ overflow: "hidden" }}
     >
       {/* Cover band; the avatar overlaps its lower edge. */}
-      <Box bg="tertiaryContainer" height={112} />
+      <Box background="tertiaryContainer" height={112} />
 
       <VStack
         spacing="m"
-        px="l"
-        style={{ marginTop: -(theme.spacing.xl + theme.spacing.m) }}
+        style={{
+          paddingHorizontal: 24,
+          marginTop: -(theme.spacing.xl + theme.spacing.m),
+        }}
       >
         <HStack justify="space-between" align="flex-end" wrap spacing="m">
           <Box
             radius={56}
-            p="xs"
-            bg="surface"
+            padding={4}
+            background="surface"
             style={{ alignSelf: "flex-start" }}
           >
             <Avatar name="Ada Lovelace" size={96} status="online" />
@@ -146,7 +148,7 @@ export default function Profile() {
         </HStack>
       </VStack>
 
-      <Box mt="m">
+      <Box style={{ marginTop: 16 }}>
         <Tabs
           tabs={["Activity", "Projects", "About"]}
           activeTab={tab}
@@ -159,19 +161,18 @@ export default function Profile() {
         activeTab={tab}
         style={{ backgroundColor: theme.colors.surface }}
       >
-        <Box py="s">
+        <Box style={{ paddingVertical: 8 }}>
           {ACTIVITY.map((item) => (
             <ListItem
               key={item.text}
-              leading={<Avatar icon={item.icon} size={36} variant="rounded" />}
-              secondary={item.time}
-            >
-              {item.text}
-            </ListItem>
+              icon={<Avatar icon={item.icon} size={36} variant="rounded" />}
+              secondaryText={item.time}
+              primaryText={item.text}
+            />
           ))}
         </Box>
 
-        <Box p="l">
+        <Box padding={24}>
           <HStack wrap spacing="m" align="stretch">
             {PROJECTS.map((project) => (
               <Card
@@ -210,27 +211,22 @@ export default function Profile() {
 
         <ListSection title="Contact">
           <ListItem
-            leading={
-              <Avatar icon="email-outline" size={36} variant="rounded" />
-            }
-            secondary="ada@example.com"
-          >
-            Email
-          </ListItem>
+            icon={<Avatar icon="email-outline" size={36} variant="rounded" />}
+            secondaryText="ada@example.com"
+            primaryText="Email"
+          />
           <ListItem
-            leading={<Avatar icon="web" size={36} variant="rounded" />}
-            secondary="ada.dev"
-          >
-            Website
-          </ListItem>
+            icon={<Avatar icon="web" size={36} variant="rounded" />}
+            secondaryText="ada.dev"
+            primaryText="Website"
+          />
           <ListItem
-            leading={
+            icon={
               <Avatar icon="calendar-outline" size={36} variant="rounded" />
             }
-            secondary="March 2019"
-          >
-            Member since
-          </ListItem>
+            secondaryText="March 2019"
+            primaryText="Member since"
+          />
         </ListSection>
       </TabContent>
     </Box>

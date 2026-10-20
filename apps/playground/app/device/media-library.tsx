@@ -169,16 +169,15 @@ export default function MediaLibraryPage() {
         {result ? (
           <ListSection>
             <ListItem
-              secondary={
+              secondaryText={
                 result.status === "saved"
                   ? result.assetId
                   : result.status === "failed"
                     ? (result.detail ?? "No detail")
                     : STATUS[result.status].label
               }
-            >
-              {result.status === "saved" ? "Library id" : "Outcome"}
-            </ListItem>
+              primaryText={result.status === "saved" ? "Library id" : "Outcome"}
+            />
           </ListSection>
         ) : null}
       </Section>

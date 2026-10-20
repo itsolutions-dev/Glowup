@@ -204,25 +204,24 @@ export default function DeviceOverview() {
           {CAPABILITIES.map((capability) => (
             <ListItem
               key={capability.href}
-              onPress={() => router.push(capability.href)}
-              leading={
+              onClick={() => router.push(capability.href)}
+              icon={
                 <Icon
                   source={capability.icon}
                   size={24}
                   color={theme.colors.primary}
                 />
               }
-              trailing={
+              action={
                 <Icon
                   source="chevron-right"
                   size={24}
                   color={theme.colors.onSurfaceVariant}
                 />
               }
-              secondary={capability.summary}
-            >
-              {capability.title}
-            </ListItem>
+              secondaryText={capability.summary}
+              primaryText={capability.title}
+            />
           ))}
         </ListSection>
       </Section>

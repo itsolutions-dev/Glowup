@@ -44,16 +44,25 @@
           "deprecated": false
         },
         {
-          "name": "onPress",
-          "type": "(expanded: boolean) => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "startExpanded",
+          "name": "expanded",
           "type": "boolean",
           "required": false,
           "default": "false",
+          "description": "Whether the panel is open. The accordion keeps its own open state: it\nstarts from this value, a press on the header toggles it, and it follows\nthe prop again whenever the prop changes. So it works as an initial state\n(`expanded` alone) and as a controlled value (a parent that sets `expanded`\nfrom `onClick`). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs | Exclude<React.ReactNode, string>",
+          "required": false,
+          "description": "The icon at the end of the header: a glyph name, or any node. It is drawn\nas given; the default, a chevron, turns upside down while the panel is open.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "(expanded: boolean) => void",
+          "required": false,
+          "description": "Called on every press of the header with the new state: `true` when it opens, `false` when it closes.",
           "deprecated": false
         },
         {
@@ -69,6 +78,18 @@
           "required": false,
           "default": "{}",
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"contained\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "`\"outlined\"` is a bordered panel on the surface, `\"contained\"` a filled\ntonal one without a border. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "contained"
+          ],
+          "deprecated": false
         }
       ]
     },
@@ -79,28 +100,32 @@
       "extends": [],
       "props": [
         {
-          "name": "navigation",
-          "type": "any",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "options",
-          "type": "any",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "route",
-          "type": "any",
-          "required": true,
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "After the title: up to three action `IconButton`s per M3. Under a\nnavigator it defaults to `options.headerRight()`.",
           "deprecated": false
         },
         {
           "name": "back",
           "type": "{ title?: string; href?: string } | boolean",
           "required": false,
-          "description": "Truthy when a back destination exists (native-stack passes { title, href })",
+          "description": "Truthy when a back destination exists (native-stack passes `{ title, href }`).",
+          "deprecated": false
+        },
+        {
+          "name": "divider",
+          "type": "boolean",
+          "required": false,
+          "description": "A hairline under the bar. Left out, it is drawn on the web when the bar\nsits under a navigator and not otherwise.",
+          "deprecated": false
+        },
+        {
+          "name": "elevated",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The on-scroll state: `surfaceContainer` instead of `surface`.",
           "deprecated": false
         },
         {
@@ -108,6 +133,90 @@
           "type": "boolean",
           "required": false,
           "default": "false",
+          "description": "A pinned (always visible) drawer needs no menu button.",
+          "deprecated": false
+        },
+        {
+          "name": "leading",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Before the title: typically a back or menu `IconButton`. Under a\nnavigator it defaults to a back button, or a menu button for a drawer.",
+          "deprecated": false
+        },
+        {
+          "name": "navigation",
+          "type": "any",
+          "required": false,
+          "description": "react-navigation's header contract, for a bar passed as a navigator's\n`header`: `navigation.goBack` and `navigation.openDrawer` feed the leading\nbutton. Structural, so any navigator's object fits; the library never\nimports react-navigation.",
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "any",
+          "required": false,
+          "description": "The screen's navigator options: `headerTitle` or `title` give the title,\n`headerRight` the actions, and `headerLeft: null` or `hideMenuIcon` hides\nthe drawer's menu button.",
+          "deprecated": false
+        },
+        {
+          "name": "paper",
+          "type": "Omit<PaperProps, \"children\">",
+          "required": false,
+          "description": "Props of the `Paper` the bar is drawn on (`elevation`, `outline`, `glow`,\n`style`), merged over the bar's own: `elevation` is `0`, or `2` when\n`elevated`. `<AppBar paper={{ elevation: 3 }} />` lifts the bar to level 3.",
+          "deprecated": false
+        },
+        {
+          "name": "route",
+          "type": "any",
+          "required": false,
+          "description": "The navigator's route: its `name` is the title when nothing else is.",
+          "deprecated": false
+        },
+        {
+          "name": "safeArea",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pads the top safe-area inset. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "subtitle",
+          "type": "string",
+          "required": false,
+          "description": "A second line under the title.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "The headline. A string is drawn in the variant's type style; any other\nnode is placed as is. Left out, it is read from `options` and `route`\n(see `navigation`).",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"small\" | \"center\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"small\"",
+          "description": "`\"small\"` and `\"center\"` keep the title in the 64dp row; `\"medium\"` and\n`\"large\"` move it to a second, larger line. Defaults to `\"small\"`.",
+          "values": [
+            "small",
+            "center",
+            "medium",
+            "large"
+          ],
           "deprecated": false
         }
       ]
@@ -550,6 +659,57 @@
         }
       ]
     },
+    "Blink": {
+      "name": "Blink",
+      "source": "packages/ui/src/components/Blink.tsx",
+      "propsTypeName": "BlinkProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "active",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Blinks while true; stays at full opacity while false. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "What blinks: a dot, a badge, a line of text.",
+          "deprecated": false
+        },
+        {
+          "name": "interval",
+          "type": "number",
+          "required": false,
+          "default": "600",
+          "description": "Milliseconds one half of a blink takes: the fade down to `minOpacity`, and again the fade back up. Defaults to 600.",
+          "deprecated": false
+        },
+        {
+          "name": "minOpacity",
+          "type": "number",
+          "required": false,
+          "default": "0.2",
+          "description": "The opacity at the dimmest point of a blink, from 0 to 1. Defaults to 0.2.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
     "BottomSheet": {
       "name": "BottomSheet",
       "source": "packages/ui/src/components/BottomSheet.tsx",
@@ -563,22 +723,24 @@
           "deprecated": false
         },
         {
-          "name": "onDismiss",
+          "name": "onClose",
           "type": "() => void",
           "required": true,
+          "description": "Called by the close button, a tap on the scrim, a drag down past the threshold and Android back.",
           "deprecated": false
         },
         {
           "name": "visible",
           "type": "boolean",
           "required": true,
+          "description": "Whether the sheet is open.",
           "deprecated": false
         },
         {
           "name": "actions",
           "type": "React.ReactNode",
           "required": false,
-          "description": "A row of buttons fixed at the bottom, below a divider, while the content\nabove it scrolls (named like `SideSheet`'s and `Modal`'s `actions`).",
+          "description": "A row of buttons fixed at the bottom, below a divider, while the content\nabove it scrolls (named like `Dialog`'s `actions`).",
           "deprecated": false
         },
         {
@@ -634,16 +796,17 @@
           "deprecated": false
         },
         {
-          "name": "bg",
+          "name": "background",
           "type": "ColorValue",
           "required": false,
-          "description": "Background — an M3 color role name or a raw color.",
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
           "deprecated": false
         },
         {
           "name": "borderColor",
           "type": "ColorValue",
           "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
           "deprecated": false
         },
         {
@@ -653,15 +816,16 @@
           "deprecated": false
         },
         {
-          "name": "flex",
-          "type": "number",
+          "name": "children",
+          "type": "React.ReactNode",
           "required": false,
           "deprecated": false
         },
         {
           "name": "gap",
-          "type": "SpacingValue",
+          "type": "number",
           "required": false,
+          "description": "Gap between children, in px.",
           "deprecated": false
         },
         {
@@ -677,91 +841,17 @@
           "deprecated": false
         },
         {
-          "name": "m",
-          "type": "SpacingValue",
+          "name": "margin",
+          "type": "number",
           "required": false,
-          "description": "Margin on every edge.",
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
-          "name": "mb",
-          "type": "SpacingValue",
+          "name": "padding",
+          "type": "number",
           "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "ml",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mx",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "my",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "p",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Padding on every edge.",
-          "deprecated": false
-        },
-        {
-          "name": "pb",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pl",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "px",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Horizontal padding.",
-          "deprecated": false
-        },
-        {
-          "name": "py",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Vertical padding.",
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
@@ -772,10 +862,31 @@
           "deprecated": false
         },
         {
-          "name": "row",
-          "type": "boolean",
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
           "required": false,
-          "description": "Lays children out horizontally instead of vertically.",
+          "description": "Merged last, over the variant and every other prop.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "| \"standard\" | \"flex\" | \"column-flex\" | \"centered-flex\" | \"centered-column-flex\" | \"full-page-flex\" | \"full-page-column-flex\" | \"full-size-flex\" | \"full-size-column\" | \"full-size-centered-flex\" | \"full-size-centered-column-flex\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "Layout preset: direction, centring and filling the parent. The other props\nand `style` are applied on top of it.\n- `standard`: a plain column (default).\n- `flex`: a row.\n- `column-flex`: a column.\n- `centered-flex`: a row, centred on both axes.\n- `centered-column-flex`: a column, centred on both axes.\n- `full-page-flex`: a row that fills the screen (`flex: 1`, minimum height 100%).\n- `full-page-column-flex`: the same, as a column.\n- `full-size-flex`: a row, 100% wide and 100% high.\n- `full-size-column`: a column, 100% wide and 100% high.\n- `full-size-centered-flex`: a row, 100% x 100%, centred on both axes.\n- `full-size-centered-column-flex`: a column, 100% x 100%, centred on both axes.",
+          "values": [
+            "standard",
+            "flex",
+            "column-flex",
+            "centered-flex",
+            "centered-column-flex",
+            "full-page-flex",
+            "full-page-column-flex",
+            "full-size-flex",
+            "full-size-column",
+            "full-size-centered-flex",
+            "full-size-centered-column-flex"
+          ],
           "deprecated": false
         },
         {
@@ -788,6 +899,7 @@
           "name": "wrap",
           "type": "boolean",
           "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -959,6 +1071,18 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"button\" | \"submit\"",
+          "required": false,
+          "default": "\"button\"",
+          "description": "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, on\nevery platform. A button outside a `Form` ignores it. Defaults to\n`\"button\"`.",
+          "values": [
+            "button",
+            "submit"
+          ],
           "deprecated": false
         },
         {
@@ -1301,167 +1425,6 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "deprecated": false
-        }
-      ]
-    },
-    "Center": {
-      "name": "Center",
-      "source": "packages/ui/src/components/Layout/Center.tsx",
-      "propsTypeName": "CenterProps",
-      "extends": [
-        "Omit<BoxProps, \"align\" | \"justify\">"
-      ],
-      "props": [
-        {
-          "name": "bg",
-          "type": "ColorValue",
-          "required": false,
-          "description": "Background — an M3 color role name or a raw color.",
-          "deprecated": false
-        },
-        {
-          "name": "borderColor",
-          "type": "ColorValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "borderWidth",
-          "type": "number",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "flex",
-          "type": "number",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "gap",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "height",
-          "type": "ViewStyle[\"height\"]",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "m",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Margin on every edge.",
-          "deprecated": false
-        },
-        {
-          "name": "mb",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "ml",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mx",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "my",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "p",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Padding on every edge.",
-          "deprecated": false
-        },
-        {
-          "name": "pb",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pl",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "px",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Horizontal padding.",
-          "deprecated": false
-        },
-        {
-          "name": "py",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Vertical padding.",
-          "deprecated": false
-        },
-        {
-          "name": "radius",
-          "type": "RadiusValue",
-          "required": false,
-          "description": "Corner radius — a shape token name or a raw radius.",
-          "deprecated": false
-        },
-        {
-          "name": "row",
-          "type": "boolean",
-          "required": false,
-          "description": "Lays children out horizontally instead of vertically.",
-          "deprecated": false
-        },
-        {
-          "name": "width",
-          "type": "ViewStyle[\"width\"]",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "wrap",
-          "type": "boolean",
-          "required": false,
           "deprecated": false
         }
       ]
@@ -2458,6 +2421,248 @@
         }
       ]
     },
+    "ConfirmDialog": {
+      "name": "ConfirmDialog",
+      "source": "packages/ui/src/components/Dialog/ConfirmDialog.tsx",
+      "propsTypeName": "ConfirmDialogProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onConfirm",
+          "type": "() => void",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "required": false,
+          "default": "\"Cancel\"",
+          "deprecated": false
+        },
+        {
+          "name": "confirmText",
+          "type": "string",
+          "required": false,
+          "default": "\"Confirm\"",
+          "deprecated": false
+        },
+        {
+          "name": "destructive",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Renders the confirm action in the error tone (delete, discard).",
+          "deprecated": false
+        },
+        {
+          "name": "dismissable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether the backdrop and ESC cancel the dialog. Turn it off for a decision\nthe user must answer explicitly. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "IconSource",
+          "required": false,
+          "description": "Hero glyph above the title.",
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "slotStyles",
+          "type": "DialogSlotStyles",
+          "required": false,
+          "description": "Style overrides for the parts of the dialog, merged after its own styles;\n`actions` covers the cancel and confirm buttons.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Dialog": {
+      "name": "Dialog",
+      "source": "packages/ui/src/components/Dialog/Dialog.tsx",
+      "propsTypeName": "DialogProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode | string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "description": "Whether the dialog is on screen.",
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Trailing action row. Replaces the single `closeText` button. In a\nfull-screen dialog it moves into the header, after the title.",
+          "deprecated": false
+        },
+        {
+          "name": "animationType",
+          "type": "\"none\" | \"slide\" | \"fade\"",
+          "required": false,
+          "default": "\"fade\"",
+          "values": [
+            "none",
+            "slide",
+            "fade"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "closeIcon",
+          "type": "MaterialCommunityIconsGlyphs | React.ReactElement | false",
+          "required": false,
+          "default": "\"close\"",
+          "description": "The close icon in the header, shown while `onClose` is set: a glyph name,\nyour own element, or `false` to hide it. Hidden, a dialog without\n`actions` falls back to a text button labelled `closeText`.\nDefaults to `\"close\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "default": "\"Close\"",
+          "description": "Accessible name of the close icon, and the label of the fallback close button.",
+          "deprecated": false
+        },
+        {
+          "name": "disableBackdropClick",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps a click on the backdrop from calling `onClose`. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "disableEscapeKeyDown",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps Escape (web) and Android back from calling `onClose`. Turn it on\nfor a decision the user must not be able to skip. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Wraps the body and the `actions` in a `Form`, so a `Button\ntype=\"submit\"` in `actions` (or Enter in a field, on the web) calls\n`onSubmit`. In a `fullScreen` dialog the header is inside it too.",
+          "deprecated": false
+        },
+        {
+          "name": "fullScreen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The M3 full-screen dialog, for a form on a compact window: it fills the\nwindow, with a close button, the title and `actions` in a header row and\na scrolling body. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number | `${number}%`",
+          "required": false,
+          "description": "A fixed height for the dialog card, in px or as a percentage of the\nwindow (`\"60%\"`). The body scrolls when the content is taller. The card\nnever grows past 90% of the window. Ignored by `fullScreen`.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "IconSource",
+          "required": false,
+          "description": "Hero glyph above the title (M3 dialog icon). Centres the header.",
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "description": "Asks the dialog to close: called by the close icon, a click on the\nbackdrop, Escape (web) and Android back. Without it the dialog has no\nway to close itself, so `visible` stays up to the app.",
+          "deprecated": false
+        },
+        {
+          "name": "onSubmit",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the `form` is submitted. Only used with `form`.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Scrolls the body when the content is taller than the dialog.",
+          "deprecated": false
+        },
+        {
+          "name": "slotStyles",
+          "type": "DialogSlotStyles",
+          "required": false,
+          "description": "Style overrides for the parts of the dialog, merged after its own styles.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "default": "\"dialog\"",
+          "description": "Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "transparent",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DialogWidth",
+          "required": false,
+          "default": "\"md\"",
+          "description": "How wide the dialog may grow on a wide window: `\"xs\"` 360, `\"sm\"` 480,\n`\"md\"` 560, `\"lg\"` 800. Defaults to `\"md\"`. Ignored by `fullScreen`.",
+          "deprecated": false
+        }
+      ]
+    },
     "Divider": {
       "name": "Divider",
       "source": "packages/ui/src/components/Divider.tsx",
@@ -2661,6 +2866,39 @@
         }
       ]
     },
+    "Form": {
+      "name": "Form",
+      "source": "packages/ui/src/components/Form.tsx",
+      "propsTypeName": "FormProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "onSubmit",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the form is submitted: a `Button type=\"submit\"` inside it is\npressed, or (on the web) Enter is pressed in one of its fields.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
     "FormControl": {
       "name": "FormControl",
       "source": "packages/ui/src/components/FormControl.tsx",
@@ -2726,30 +2964,66 @@
       "source": "packages/ui/src/components/Layout/Grid.tsx",
       "propsTypeName": "GridProps",
       "extends": [
-        "Omit<BoxProps, \"row\" | \"wrap\" | \"gap\">"
+        "Omit<ViewProps, \"style\" | \"children\">"
       ],
       "props": [
+        {
+          "name": "autoSize",
+          "type": "boolean | GridSize | GridAutoSizeFn",
+          "required": false,
+          "default": "false",
+          "description": "Sizes the children of a container that have no `size` of their own, so\nthey do not need one each. `true` is a card per row on a phone, two from\n`sm` and three from `md` (`{ xs: 12, sm: 6, md: 4 }`, for 12 columns); a\nsize gives every child that size; a function is called with the index and\nthe element of each child (its `key` is `child.key`) and returns its size:\n`(index, child) => child.key === \"notes\" ? { xs: 12 } : { xs: 12, md: 6 }`.\nA child that is not a `Grid` is put in an item of the size it gets.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "deprecated": false
+        },
         {
           "name": "columns",
           "type": "number",
           "required": false,
-          "default": "2",
-          "description": "Fixed column count. Ignored when `minChildWidth` is set.",
+          "default": "12",
+          "description": "Columns in a row of this container; an item's `size` counts in them.",
           "deprecated": false
         },
         {
-          "name": "minChildWidth",
-          "type": "number",
+          "name": "container",
+          "type": "boolean",
           "required": false,
-          "description": "Responsive alternative to `columns`: fits as many columns of at least this\nwidth as the container allows.",
+          "default": "false",
+          "description": "Makes this grid lay its children out in rows of `columns` columns. The\ngrid items go inside it, each with its own `size`. A container inside\nanother container is also an item of it, and takes a `size` too.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "GridSize",
+          "required": false,
+          "description": "An item's width in the container's row: a number of columns (1 to\n`columns`), `\"grow\"` to share the rest of the row, `\"auto\"` to size to its\ncontent, or an object with one of those for each breakpoint\n(`{ xs: 12, md: 6 }`). A breakpoint without a value takes the next smaller\none that has; with none, the item is `\"auto\"`. Without `size` an item is\n`\"auto\"`, unless the container has `autoSize`.",
           "deprecated": false
         },
         {
           "name": "spacing",
-          "type": "SpacingValue",
+          "type": "GridSpacing",
           "required": false,
           "default": "\"s\"",
-          "description": "Gap between cells — a spacing token name or a raw value.",
+          "description": "Gap between the items of a container: a number of px, a spacing token name\n(`\"m\"`), or `{ row, column }` of those for the two axes.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Whether a container moves items that do not fit onto the next row.",
           "deprecated": false
         }
       ]
@@ -2967,6 +3241,111 @@
           "required": false,
           "default": "\"standard\"",
           "description": "M3 icon-button container styles. Defaults to `\"standard\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "IFrame": {
+      "name": "IFrame",
+      "source": "packages/ui/src/components/IFrame.tsx",
+      "propsTypeName": "IFrameProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "src",
+          "type": "string",
+          "required": true,
+          "description": "The address of the page to embed.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "The frame's accessible name: what the embedded page is. Required, as a frame without one is announced as nothing.",
+          "deprecated": false
+        },
+        {
+          "name": "allow",
+          "type": "string",
+          "required": false,
+          "description": "The `allow` attribute: the features the page may use (`\"fullscreen; clipboard-write\"`).",
+          "deprecated": false
+        },
+        {
+          "name": "fallback",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Drawn on iOS and Android instead of the page. Defaults to an icon and a short notice.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "default": "300",
+          "description": "Defaults to 300.",
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "\"lazy\" | \"eager\"",
+          "required": false,
+          "default": "\"lazy\"",
+          "description": "`\"lazy\"` loads the page when the frame comes near the viewport. Defaults to `\"lazy\"`.",
+          "values": [
+            "lazy",
+            "eager"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "onError",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the frame reports an error loading. Browsers rarely do for a page that fails to load.",
+          "deprecated": false
+        },
+        {
+          "name": "onLoad",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the page has loaded.",
+          "deprecated": false
+        },
+        {
+          "name": "referrerPolicy",
+          "type": "React.IframeHTMLAttributes<HTMLIFrameElement>[\"referrerPolicy\"]",
+          "required": false,
+          "description": "The `referrerpolicy` attribute.",
+          "deprecated": false
+        },
+        {
+          "name": "sandbox",
+          "type": "string",
+          "required": false,
+          "description": "The `sandbox` attribute. `\"\"` applies every restriction; a list of tokens\n(`\"allow-scripts allow-same-origin\"`) lifts the ones named. Left out, the\npage is not sandboxed.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the box the frame fills: radius, border, margin, flex.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "default": "\"100%\"",
+          "description": "Defaults to the full width of the parent.",
           "deprecated": false
         }
       ]
@@ -3418,10 +3797,17 @@
       "extends": [],
       "props": [
         {
-          "name": "children",
+          "name": "primaryText",
           "type": "React.ReactNode",
           "required": true,
           "description": "The first line. Text is drawn in the theme's type; any other node is drawn as given.",
+          "deprecated": false
+        },
+        {
+          "name": "action",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Trailing slot: a value, a Switch, an `IconButton`, a chevron.",
           "deprecated": false
         },
         {
@@ -3430,6 +3816,21 @@
           "required": false,
           "default": "false",
           "description": "Faded, for a row that is removed or inactive. Still pressable.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Fades the row and stops it being pressed. The `action` is not disabled with it: it is a control of its own.",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs | Exclude<React.ReactNode, string>",
+          "required": false,
+          "description": "Leading slot: a glyph name, or any node (an Avatar, a Checkbox).",
           "deprecated": false
         },
         {
@@ -3458,49 +3859,44 @@
           "deprecated": false
         },
         {
-          "name": "itemSecondaryTextStyle",
-          "type": "object",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "itemTextStyle",
-          "type": "object",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "leading",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "Leading slot — an Avatar, an icon, a Checkbox.",
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
+          "description": "Called when the row is pressed. Giving it makes the row a button. With an\n`action` as well, only the icon and the texts are the button: the action is\na control of its own beside it, so a button never sits inside a button.",
           "deprecated": false
         },
         {
-          "name": "secondary",
-          "type": "React.ReactNode",
+          "name": "primaryTextStyle",
+          "type": "StyleProp<TextStyle>",
           "required": false,
-          "description": "Second line below `children`. Text or any node, like `children`.",
+          "description": "Merged after the type of `primaryText`; applies when it is text, a node styles itself.",
           "deprecated": false
         },
         {
-          "name": "trailing",
+          "name": "secondaryText",
           "type": "React.ReactNode",
           "required": false,
-          "description": "Trailing slot — a value, a Switch, a chevron.",
+          "description": "Second line below `primaryText`. Text or any node, like `primaryText`.",
+          "deprecated": false
+        },
+        {
+          "name": "secondaryTextStyle",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "description": "Merged after the type of `secondaryText`; applies when it is text, a node styles itself.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         },
         {
           "name": "trailingWidth",
           "type": "number",
           "required": false,
-          "description": "Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up.",
+          "description": "Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up.",
           "deprecated": false
         }
       ]
@@ -3570,6 +3966,7 @@
           "name": "anchor",
           "type": "React.ReactElement",
           "required": true,
+          "description": "The element the menu opens from.",
           "deprecated": false
         },
         {
@@ -3579,15 +3976,24 @@
           "deprecated": false
         },
         {
-          "name": "onDismiss",
+          "name": "onClose",
           "type": "() => void",
           "required": true,
+          "description": "Called on a press outside the menu, on Android back, and after an item is clicked when `closeOnSelect` is on.",
           "deprecated": false
         },
         {
           "name": "visible",
           "type": "boolean",
           "required": true,
+          "description": "Whether the menu is open.",
+          "deprecated": false
+        },
+        {
+          "name": "anchorPosition",
+          "type": "AnchorPosition",
+          "required": false,
+          "description": "Where the menu sits against its anchor: `vertical` is `\"bottom\"` (below\nit), `\"top\"` (above it) or `\"center\"` (centred on it); `horizontal` lines\nup the `\"left\"` edges, the `\"right\"` edges or the `\"center\"`s. It flips or\nslides to stay on screen. Defaults to `{ vertical: \"bottom\", horizontal: \"left\" }`.",
           "deprecated": false
         },
         {
@@ -3595,228 +4001,58 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Close the menu automatically after an item is pressed. Default true.",
+          "description": "Close the menu automatically after an item is clicked. Default true.",
+          "deprecated": false
+        },
+        {
+          "name": "dividers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws a divider between every pair of items, on top of any `dividerAbove`. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "(item: MenuItem) => void",
+          "required": false,
+          "description": "Called with the clicked item, after the item's own `onClick`.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string[]",
+          "required": false,
+          "description": "The `id`s of the items to draw as selected: a tinted row with a check\nmark, and `accessibilityState.selected` set on it. Items are not marked\nuntil you pass it, even as `[]`.",
           "deprecated": false
         }
       ]
     },
-    "ConfirmDialog": {
-      "name": "ConfirmDialog",
-      "source": "packages/ui/src/components/Modal/ConfirmDialog.tsx",
-      "propsTypeName": "ConfirmDialogProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "onCancel",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onConfirm",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "cancelText",
-          "type": "string",
-          "required": false,
-          "default": "\"Cancel\"",
-          "deprecated": false
-        },
-        {
-          "name": "confirmText",
-          "type": "string",
-          "required": false,
-          "default": "\"Confirm\"",
-          "deprecated": false
-        },
-        {
-          "name": "destructive",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Renders the confirm action in the error tone (delete, discard).",
-          "deprecated": false
-        },
-        {
-          "name": "dismissable",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Whether the scrim and ESC cancel the dialog. Leave it off for a decision\nthe user must answer explicitly. Defaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "icon",
-          "type": "IconSource",
-          "required": false,
-          "description": "Hero glyph above the title.",
-          "deprecated": false
-        },
-        {
-          "name": "message",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "title",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        }
-      ]
-    },
-    "Modal": {
-      "name": "Modal",
-      "source": "packages/ui/src/components/Modal/Modal.tsx",
-      "propsTypeName": "ModalProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "children",
-          "type": "React.ReactNode | string",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": true,
-          "description": "Whether the dialog is on screen.",
-          "deprecated": false
-        },
-        {
-          "name": "actions",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "Trailing action row. Replaces the single `closeText` button. In a\nfull-screen dialog it moves into the header, after the title.",
-          "deprecated": false
-        },
-        {
-          "name": "animationType",
-          "type": "\"none\" | \"slide\" | \"fade\"",
-          "required": false,
-          "default": "\"fade\"",
-          "values": [
-            "none",
-            "slide",
-            "fade"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "closeText",
-          "type": "string",
-          "required": false,
-          "default": "\"Close\"",
-          "deprecated": false
-        },
-        {
-          "name": "dismissable",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Whether tapping the scrim (and pressing ESC on web) dismisses the dialog.\nTurn it off for a decision the user must not be able to skip.\nDefaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "fullScreen",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "The M3 full-screen dialog, for a form on a compact window: it fills the\nwindow, with a close button, the title and `actions` in a header row and\na scrolling body. Defaults to `false`.",
-          "deprecated": false
-        },
-        {
-          "name": "icon",
-          "type": "IconSource",
-          "required": false,
-          "description": "Hero glyph above the title (M3 dialog icon). Centres the header.",
-          "deprecated": false
-        },
-        {
-          "name": "onClose",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "onDismiss",
-          "type": "() => void",
-          "required": false,
-          "description": "Called on Android back / ESC without rendering the close button. Falls back to onClose.",
-          "deprecated": false
-        },
-        {
-          "name": "scrollable",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Scrolls the body when the content is taller than the dialog.",
-          "deprecated": false
-        },
-        {
-          "name": "size",
-          "type": "keyof typeof MAX_WIDTHS",
-          "required": false,
-          "default": "\"md\"",
-          "description": "How wide the dialog may grow on a wide window: `\"xs\"` 360, `\"sm\"` 480,\n`\"md\"` 560, `\"lg\"` 800. Defaults to `\"md\"`, the width it always had.\nIgnored by `fullScreen`.",
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "default": "\"modal\"",
-          "description": "Root testID. The scrim gets `${testID}-scrim`.",
-          "deprecated": false
-        },
-        {
-          "name": "title",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "transparent",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "deprecated": false
-        }
-      ]
-    },
-    "NavigationBar": {
-      "name": "NavigationBar",
-      "source": "packages/ui/src/components/NavigationBar.tsx",
-      "propsTypeName": "NavigationBarProps",
+    "NavBar": {
+      "name": "NavBar",
+      "source": "packages/ui/src/components/NavBar.tsx",
+      "propsTypeName": "NavBarProps",
       "extends": [],
       "props": [
         {
           "name": "activeId",
           "type": "string",
           "required": true,
+          "description": "`id` of the current destination.",
           "deprecated": false
         },
         {
           "name": "items",
-          "type": "NavigationBarItem[]",
+          "type": "NavBarItem[]",
           "required": true,
+          "description": "Destinations, three to five per M3.",
           "deprecated": false
         },
         {
-          "name": "onItemPress",
+          "name": "onClick",
           "type": "(id: string) => void",
           "required": true,
+          "description": "Called with the `id` of the pressed destination.",
           "deprecated": false
         },
         {
@@ -3833,17 +4069,24 @@
         }
       ]
     },
-    "NavigationDrawer": {
-      "name": "NavigationDrawer",
-      "source": "packages/ui/src/components/NavigationDrawer.tsx",
-      "propsTypeName": "NavigationDrawerProps",
+    "Drawer": {
+      "name": "Drawer",
+      "source": "packages/ui/src/components/Drawer.tsx",
+      "propsTypeName": "DrawerProps",
       "extends": [],
       "props": [
         {
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
-          "description": "`DrawerSection`s and/or `DrawerItem`s.",
+          "description": "`DrawerSection`s and/or `DrawerItem`s, or any content when the drawer is a\nside sheet (a form, filters, details).",
+          "deprecated": false
+        },
+        {
+          "name": "actions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "A row of buttons at the bottom, below a divider.",
           "deprecated": false
         },
         {
@@ -3852,6 +4095,13 @@
           "required": false,
           "default": "false",
           "description": "Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an\nitem without an icon shows its first letter). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "elevation",
+          "type": "number",
+          "required": false,
+          "description": "The level of the surface, 0 to 5: the tone it is painted in and, on iOS\nand Android, its shadow. Defaults to `0` when static and `1` when\nswipeable.",
           "deprecated": false
         },
         {
@@ -3869,10 +4119,47 @@
           "deprecated": false
         },
         {
-          "name": "onDismiss",
+          "name": "height",
+          "type": "number",
+          "required": false,
+          "default": "DRAWER_HEIGHT",
+          "description": "Top and bottom: the largest height, defaults to 360.",
+          "deprecated": false
+        },
+        {
+          "name": "onBack",
           "type": "() => void",
           "required": false,
-          "description": "Modal only: called on scrim press, Android back and Escape (web).",
+          "description": "Shows a back button before the title, for a drawer with sub-pages.",
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "required": false,
+          "description": "Called by the close button, and by a swipeable drawer's scrim, closing\ndrag, Android back and Escape (web).",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "\"left\" | \"right\" | \"top\" | \"bottom\"",
+          "required": false,
+          "default": "\"left\"",
+          "description": "The window edge it is attached to: `\"left\"` and `\"right\"` are columns of\n`width`, `\"top\"` and `\"bottom\"` span the full width and are as tall as\ntheir content, up to `height`. The edges are physical, not mirrored in\nright-to-left layouts. Defaults to `\"left\"`.",
+          "values": [
+            "left",
+            "right",
+            "top",
+            "bottom"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "showCloseButton",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds a close button to the header row, which calls `onClose`. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -3891,18 +4178,18 @@
           "name": "title",
           "type": "string",
           "required": false,
-          "description": "Headline at the top of the drawer.",
+          "description": "Headline at the top of the drawer. With a close button, a back button or\n`actions` it is the title of a header row instead, in a larger type.",
           "deprecated": false
         },
         {
           "name": "variant",
-          "type": "\"standard\" | \"modal\"",
+          "type": "\"static\" | \"swipeable\"",
           "required": false,
-          "default": "\"standard\"",
-          "description": "`\"standard\"` is an inline panel to place beside the content (expanded\nwindows and up). `\"modal\"` slides over the content with a scrim.\nDefaults to `\"standard\"`.",
+          "default": "\"static\"",
+          "description": "`\"static\"` is a permanent panel in the layout, beside the content, with no\nscrim. `\"swipeable\"` slides over the content on a scrim, and a drag toward\nits edge, the scrim, Android back and Escape (web) close it.\nDefaults to `\"static\"`.",
           "values": [
-            "standard",
-            "modal"
+            "static",
+            "swipeable"
           ],
           "deprecated": false
         },
@@ -3911,7 +4198,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Modal only: whether the drawer is open.",
+          "description": "Swipeable only: whether the drawer is open.",
           "deprecated": false
         },
         {
@@ -3919,7 +4206,7 @@
           "type": "number",
           "required": false,
           "default": "DRAWER_WIDTH",
-          "description": "Defaults to 360 (M3), capped at the window width when modal.",
+          "description": "Left and right: defaults to 360 (M3), capped at the window width when swipeable.",
           "deprecated": false
         }
       ]
@@ -3939,9 +4226,9 @@
         },
         {
           "name": "items",
-          "type": "NavigationBarItem[]",
+          "type": "NavBarItem[]",
           "required": true,
-          "description": "Destinations, same shape as `NavigationBar`'s. Three to seven per M3.",
+          "description": "Destinations, same shape as `NavBar`'s. Three to seven per M3.",
           "deprecated": false
         },
         {
@@ -4010,16 +4297,17 @@
       "extends": [],
       "props": [
         {
-          "name": "onPageChange",
-          "type": "(page: number) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "page",
+          "name": "activePage",
           "type": "number",
           "required": true,
           "description": "Current page, 1-based.",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(page: number) => void",
+          "required": true,
+          "description": "Called with the page the user picked: a page button, an arrow or `pageSelect`.",
           "deprecated": false
         },
         {
@@ -4029,9 +4317,25 @@
           "deprecated": false
         },
         {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Colour role of the selected page. Defaults to `\"primary\"`.",
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "pageSelect",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Adds a small select after the pager that jumps to any page: it shows the\nactive page, and opens a list of pages under a search field. Typing digits\nnarrows the list to the pages that contain them, which keeps it usable with\nthousands of pages; Enter picks the first match.",
           "deprecated": false
         },
         {
@@ -4048,6 +4352,22 @@
           "required": false,
           "default": "1",
           "description": "Pages shown on each side of the current page.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "PaginationSize",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Size of the buttons and their type: 32, 40 or 48 px. Defaults to `\"md\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "PaginationVariant",
+          "required": false,
+          "default": "\"rounded\"",
+          "description": "`\"rounded\"` draws the buttons as rounded squares, `\"circular\"` as circles. Defaults to `\"rounded\"`.",
           "deprecated": false
         }
       ]
@@ -4228,6 +4548,7 @@
           "name": "anchor",
           "type": "React.ReactElement",
           "required": true,
+          "description": "The element the popover opens from. It stays in the layout; the popover floats over the window.",
           "deprecated": false
         },
         {
@@ -4240,18 +4561,29 @@
           "name": "onDismiss",
           "type": "() => void",
           "required": true,
+          "description": "Called on a press outside the popover and on Android back.",
           "deprecated": false
         },
         {
           "name": "visible",
           "type": "boolean",
           "required": true,
+          "description": "Whether the popover is open.",
+          "deprecated": false
+        },
+        {
+          "name": "anchorPosition",
+          "type": "AnchorPosition",
+          "required": false,
+          "default": "{ vertical: \"bottom\", horizontal: \"left\" }",
+          "description": "Where the popover sits against its anchor: `vertical` is `\"bottom\"`\n(below it), `\"top\"` (above it) or `\"center\"` (centred on it);\n`horizontal` lines up the `\"left\"` edges, the `\"right\"` edges or the\n`\"center\"`s. Whatever it asks, the popover flips or slides to stay on\nscreen. Defaults to `{ vertical: \"bottom\", horizontal: \"left\" }`.",
           "deprecated": false
         },
         {
           "name": "matchAnchorWidth",
           "type": "boolean",
           "required": false,
+          "description": "Gives the popover the anchor's width instead of sizing it to its content.",
           "deprecated": false
         }
       ]
@@ -4306,6 +4638,27 @@
           "deprecated": false
         },
         {
+          "name": "label",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Text, a number or any node drawn with the ring, at `labelPosition`. Text\nis drawn in the theme's type, scaled to the ring when it is inside; a node\nas given.",
+          "deprecated": false
+        },
+        {
+          "name": "labelPosition",
+          "type": "\"top\" | \"bottom\" | \"left\" | \"right\" | \"center\"",
+          "required": false,
+          "description": "Where `label` goes: `\"center\"` inside the ring, or `\"top\"`, `\"bottom\"`,\n`\"left\"` or `\"right\"` of it. Defaults to `\"center\"` for a ring with a\n`progress` and to `\"right\"` for a spinner, which is too small to hold a label.",
+          "values": [
+            "top",
+            "bottom",
+            "left",
+            "right",
+            "center"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "progress",
           "type": "number",
           "required": false,
@@ -4330,6 +4683,13 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "trackColor",
+          "type": "boolean | string",
+          "required": false,
+          "description": "The ring under the indicator. `true` draws it in the indicator's colour at\na low opacity, a string draws it in that colour, `false` draws none. Left\nout, a ring with a `progress` has its usual track (`secondaryContainer`)\nand a spinner has none.",
           "deprecated": false
         }
       ]
@@ -4365,8 +4725,7 @@
           "name": "height",
           "type": "DimensionValue",
           "required": false,
-          "default": "4",
-          "description": "Bar thickness. A percentage fills the parent — a progress surface.",
+          "description": "Bar thickness. A percentage fills the parent — a progress surface. Defaults\nto 4, and to 20 when the label is `\"inside\"`, which has to fit on the bar.",
           "deprecated": false
         },
         {
@@ -4384,6 +4743,21 @@
           "deprecated": false
         },
         {
+          "name": "label",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Text, a number or any node drawn with the bar, at `labelPosition`. Text is\ndrawn in the theme's type; a node as given.",
+          "deprecated": false
+        },
+        {
+          "name": "labelPosition",
+          "type": "LinearProgressLabelPosition",
+          "required": false,
+          "default": "\"right\"",
+          "description": "Where `label` goes: above (`\"top-left\"`, `\"top-center\"`, `\"top-right\"`) or\nbelow (`\"bottom-*\"`) the bar, aligned as named, beside it (`\"left\"`,\n`\"right\"`), or `\"inside\"`, centred on the bar. Inside, text is drawn in two\ncolours, over the filled part and over the track, so it reads on both; that\nsuits a bar with a `progress`, on an indeterminate one the text is only\nlegible over the track. Defaults to `\"right\"`.",
+          "deprecated": false
+        },
+        {
           "name": "progress",
           "type": "number",
           "required": false,
@@ -4394,6 +4768,14 @@
           "name": "trackColor",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "default": "\"100%\"",
+          "description": "Width of the whole component, label included. Defaults to the full width of the parent.",
           "deprecated": false
         }
       ]
@@ -4948,103 +5330,6 @@
         }
       ]
     },
-    "SideSheet": {
-      "name": "SideSheet",
-      "source": "packages/ui/src/components/SideSheet.tsx",
-      "propsTypeName": "SideSheetProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "children",
-          "type": "React.ReactNode",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onDismiss",
-          "type": "() => void",
-          "required": true,
-          "description": "Called by the close button, and in modal mode by the scrim, Android back and Escape.",
-          "deprecated": false
-        },
-        {
-          "name": "actions",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "A row of buttons at the bottom, below a divider.",
-          "deprecated": false
-        },
-        {
-          "name": "modal",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "`true` slides over the content with a scrim; `false` is a standard sheet\nyou place in a row beside the content. Defaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "onBack",
-          "type": "() => void",
-          "required": false,
-          "description": "Shows a back button before the title — for a sheet with sub-pages.",
-          "deprecated": false
-        },
-        {
-          "name": "showCloseButton",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Defaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "side",
-          "type": "\"start\" | \"end\"",
-          "required": false,
-          "default": "\"end\"",
-          "description": "The edge it attaches to, in reading direction. Defaults to `\"end\"`.",
-          "values": [
-            "start",
-            "end"
-          ],
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "title",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Modal only: whether the sheet is open.",
-          "deprecated": false
-        },
-        {
-          "name": "width",
-          "type": "number",
-          "required": false,
-          "default": "SHEET_WIDTH",
-          "description": "Defaults to 360, capped at the window width.",
-          "deprecated": false
-        }
-      ]
-    },
     "Skeleton": {
       "name": "Skeleton",
       "source": "packages/ui/src/components/Skeleton.tsx",
@@ -5200,21 +5485,17 @@
           "deprecated": false
         },
         {
-          "name": "onDismiss",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
           "name": "visible",
           "type": "boolean",
           "required": true,
+          "description": "Whether the snackbar is on screen.",
           "deprecated": false
         },
         {
           "name": "action",
-          "type": "{ label: string; onPress: () => void; }",
+          "type": "{ label: string; onClick: () => void; }",
           "required": false,
+          "description": "A text button after the message. Clicking it runs `onClick`, then dismisses the snackbar.",
           "deprecated": false
         },
         {
@@ -5222,19 +5503,51 @@
           "type": "number",
           "required": false,
           "default": "4000",
+          "description": "Auto-hide delay in ms; `0` keeps it up. Defaults to 4000. Not used when\n`onClose` is set.",
           "deprecated": false
         },
         {
           "name": "icon",
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
+          "description": "Overrides the icon implied by `severity`.",
           "deprecated": false
         },
         {
-          "name": "type",
-          "type": "SnackbarType",
+          "name": "onClose",
+          "type": "() => void",
           "required": false,
-          "default": "\"default\"",
+          "description": "Shows a close icon button and keeps the snackbar up until the user\ncloses it: `duration` is not used, and the timeout never calls\n`onDismiss`.",
+          "deprecated": false
+        },
+        {
+          "name": "onDismiss",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the snackbar times out (after `duration`) or its `action` is\nclicked. Not called when `onClose` is set: the snackbar then stays up\nuntil the user closes it.",
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "SnackbarPosition",
+          "required": false,
+          "default": "\"bottom-center\"",
+          "description": "Which edge and corner it sits in, clear of the safe-area insets. Defaults to `\"bottom-center\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "severity",
+          "type": "SnackbarSeverity",
+          "required": false,
+          "description": "What the message is about: `\"success\"` is green, `\"info\"` blue,\n`\"warning\"` amber and `\"error\"` red, with a matching icon. Left out, the\nsnackbar is the neutral inverse surface, with no icon.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "SnackbarVariant",
+          "required": false,
+          "default": "\"contained\"",
+          "description": "`\"contained\"` fills it with the severity's colours; `\"outlined\"` draws it on the surface with a severity-coloured outline, label and icon. Defaults to `\"contained\"`.",
           "deprecated": false
         }
       ]
@@ -5435,7 +5748,7 @@
       "source": "packages/ui/src/components/Layout/Stack.tsx",
       "propsTypeName": "StackProps",
       "extends": [
-        "Omit<BoxProps, \"row\" | \"gap\">"
+        "Omit<BoxProps, \"variant\" | \"gap\">"
       ],
       "props": [
         {
@@ -5451,6 +5764,13 @@
           "deprecated": false
         },
         {
+          "name": "dividers",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Puts a divider between the children. `true` draws a hairline, vertical in\na horizontal stack; a node is used as the divider instead. Empty children\n(`null`, `false`) get none, and the spacing applies on both sides of it.",
+          "deprecated": false
+        },
+        {
           "name": "reverse",
           "type": "boolean",
           "required": false,
@@ -5459,10 +5779,10 @@
         },
         {
           "name": "spacing",
-          "type": "SpacingValue",
+          "type": "SpacingInput",
           "required": false,
           "default": "\"s\"",
-          "description": "Gap between children — a spacing token name or a raw value.",
+          "description": "Space between children — a spacing token name (`\"m\"`), a number of px, or\na string holding one (`\"12\"`).",
           "deprecated": false
         }
       ]
@@ -5495,6 +5815,18 @@
           "deprecated": false
         },
         {
+          "name": "direction",
+          "type": "\"column\" | \"row\"",
+          "required": false,
+          "default": "\"column\"",
+          "description": "`\"column\"` stacks the label over the value. `\"row\"` puts them on one line,\nthe value after the label, with the delta right behind the value. Defaults\nto `\"column\"`.",
+          "values": [
+            "column",
+            "row"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "helpText",
           "type": "string",
           "required": false,
@@ -5505,13 +5837,6 @@
           "name": "icon",
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "invertTrendColors",
-          "type": "boolean",
-          "required": false,
-          "description": "Inverts the trend colors, for metrics where down is good.",
           "deprecated": false
         },
         {
@@ -5530,12 +5855,19 @@
           "name": "trend",
           "type": "\"up\" | \"down\" | \"flat\"",
           "required": false,
-          "description": "Direction of `delta`. Drives both the arrow and its color.",
+          "description": "Direction of `delta`. Drives the arrow, and the colour unless `trendColor` is set.",
           "values": [
             "up",
             "down",
             "flat"
           ],
+          "deprecated": false
+        },
+        {
+          "name": "trendColor",
+          "type": "ThemeColor",
+          "required": false,
+          "description": "The colour of the arrow and `delta`: a theme colour token (a role such as\n`\"success\"` or `\"error\"`, or `\"onSurfaceVariant\"`, ...) or any colour string.\nLeft out, `\"up\"` is `success`, `\"down\"` is `error` and `\"flat\"` neutral. For a\nmetric where down is good, pass the colour yourself.",
           "deprecated": false
         }
       ]
@@ -5555,9 +5887,9 @@
         },
         {
           "name": "captionColor",
-          "type": "string",
+          "type": "ThemeColor",
           "required": false,
-          "description": "Any colour; defaults to the variant-on-surface role.",
+          "description": "A theme colour token (`\"primary\"`, `\"onSurfaceVariant\"`, ...) or any colour\nstring. Defaults to `onSurfaceVariant`.",
           "deprecated": false
         },
         {
@@ -5579,11 +5911,26 @@
           "deprecated": false
         },
         {
+          "name": "enableCopy",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shows a small copy button after the value, for a text or number value (a\nnode has nothing to copy). On web it writes the value to the clipboard\n(`navigator.clipboard`); the library has no clipboard dependency, so on\nnative the button is shown only with an `onCopy` that does the copying.\nThe button's icon changes to a check for a moment, and \"Copied\" is\nannounced, once the value is copied.",
+          "deprecated": false
+        },
+        {
           "name": "fallback",
           "type": "React.ReactNode",
           "required": false,
-          "default": "\"—\"",
-          "description": "Drawn when `value` is empty (`null`, `undefined`, `\"\"` or `false`; `0` is a\nvalue). Defaults to an em dash.",
+          "default": "\"N/A\"",
+          "description": "Drawn when `value` is empty (`null`, `undefined`, `\"\"` or `false`; `0` is a\nvalue). Defaults to `\"N/A\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "flex",
+          "type": "number",
+          "required": false,
+          "description": "Flex of the pair in its parent.",
           "deprecated": false
         },
         {
@@ -5591,7 +5938,14 @@
           "type": "number",
           "required": false,
           "default": "4",
-          "description": "Space between the caption and the value. Defaults to 4.",
+          "description": "Space between the caption and the value, in px. Defaults to 4.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Height of the pair.",
           "deprecated": false
         },
         {
@@ -5611,6 +5965,20 @@
           "deprecated": false
         },
         {
+          "name": "onCopy",
+          "type": "(value: string) => void",
+          "required": false,
+          "description": "Called with the value as text when the copy button is pressed. On native\nit is where the app copies it (`Clipboard.setStringAsync` from\n`expo-clipboard`); on web it is called after the clipboard write succeeded.",
+          "deprecated": false
+        },
+        {
+          "name": "padding",
+          "type": "number",
+          "required": false,
+          "description": "Padding around the pair, in px.",
+          "deprecated": false
+        },
+        {
           "name": "reverse",
           "type": "boolean",
           "required": false,
@@ -5619,10 +5987,18 @@
           "deprecated": false
         },
         {
+          "name": "showTooltip",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Wraps a text or number value in a `Tooltip` with the value as its content:\nthe value in full, for when `numberOfLines` cuts it.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
-          "description": "For width, flex, padding and the like.",
+          "description": "For anything the props above do not cover.",
           "deprecated": false
         },
         {
@@ -5646,15 +6022,22 @@
         },
         {
           "name": "valueColor",
-          "type": "string",
+          "type": "ThemeColor",
           "required": false,
-          "description": "Any colour; defaults to the on-surface role.",
+          "description": "A theme colour token (`\"primary\"`, `\"error\"`, ...) or any colour string.\nDefaults to `onSurface`.",
           "deprecated": false
         },
         {
           "name": "valueStyle",
           "type": "StyleProp<TextStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Width of the pair.",
           "deprecated": false
         }
       ]
@@ -5708,18 +6091,33 @@
           "name": "activeStep",
           "type": "number",
           "required": true,
+          "description": "Position of the current step. Those before it are completed.",
           "deprecated": false
         },
         {
           "name": "steps",
           "type": "Step[] | string[]",
           "required": true,
+          "description": "The steps, in order; a string is a step with just a label.",
           "deprecated": false
         },
         {
-          "name": "onStepPress",
+          "name": "direction",
+          "type": "\"row\" | \"column\"",
+          "required": false,
+          "default": "\"row\"",
+          "description": "`\"row\"` lays the steps out side by side, the label under each circle;\n`\"column\"` stacks them, the label beside each circle. Defaults to `\"row\"`.",
+          "values": [
+            "row",
+            "column"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
           "type": "(stepIndex: number) => void",
           "required": false,
+          "description": "Called with the pressed step's position. Makes the steps pressable.",
           "deprecated": false
         },
         {
@@ -5790,6 +6188,75 @@
           "default": "0",
           "description": "The active tab by position. Ignored when `activeKey` is given. Defaults to 0.",
           "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "The colour role of the indicator and of the selected tab. Defaults to `\"primary\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "`true` stretches the bar over the width it has and shares it equally\nbetween the tabs. `false` sizes each tab to its label, and the bar scrolls\nhorizontally when they do not fit. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "number | string",
+          "required": false,
+          "description": "Overrides the height of the bar: a number of dp, or a percentage.",
+          "deprecated": false
+        },
+        {
+          "name": "showBorders",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws dividers between the tabs and, in the `\"rounded\"` variant, an outline\naround the track. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "The height and the type of the tabs. Defaults to `\"md\"`.",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"standard\" | \"rounded\"",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "`\"standard\"` is a bar with an underline under the active tab. `\"rounded\"`\nis a pill-shaped active tab on a rounded track. Defaults to `\"standard\"`.",
+          "values": [
+            "standard",
+            "rounded"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number | string",
+          "required": false,
+          "description": "Overrides the width of the bar: a number of dp, or a percentage.",
+          "deprecated": false
         }
       ]
     },
@@ -5802,13 +6269,90 @@
         {
           "name": "children",
           "type": "ReactNode",
-          "required": true,
+          "required": false,
+          "description": "The primitives (`TableHead`, `TableRow`, `TableCell`, ...), when you lay the\nrows out yourself. Ignored when `columns` is given.",
+          "deprecated": false
+        },
+        {
+          "name": "columns",
+          "type": "TableColumn[]",
+          "required": false,
+          "description": "The columns. Giving them makes the table data driven: it draws `data`\nitself. When they add up to more than `width` the table scrolls sideways.",
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "TableRowData[]",
+          "required": false,
+          "description": "The rows, as `{ [column id]: cell }`. Data driven only.",
+          "deprecated": false
+        },
+        {
+          "name": "emptyMessage",
+          "type": "ReactNode",
+          "required": false,
+          "description": "Shown under the header when `data` is empty. Defaults to `\"No data\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Height of the table. With it the rows scroll vertically under a header that\nstays in place; without it the table is as tall as its rows.",
+          "deprecated": false
+        },
+        {
+          "name": "hover",
+          "type": "boolean",
+          "required": false,
+          "description": "Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "(row: TableRowData, index: number) => void",
+          "required": false,
+          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable, with the button role.",
+          "deprecated": false
+        },
+        {
+          "name": "rowsPerPage",
+          "type": "number",
+          "required": false,
+          "description": "Rows per page. A number slices `data` into pages and shows a `Pagination`\nunder the table (hidden while there is no data); the page goes back to the\nfirst when `rowsPerPage` or the number of rows changes. Left out, every row\nis drawn in one page.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "number | number[]",
+          "required": false,
+          "description": "The row index, or indexes, to draw as selected. An index is a position in\n`data`, not in the page shown. The row is marked selected for assistive\ntechnology too.",
           "deprecated": false
         },
         {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "tableTitle",
+          "type": "string",
+          "required": false,
+          "description": "A heading drawn above the header row; also the table's accessible name.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Width of the table. Without it the table fills its container.",
           "deprecated": false
         }
       ]
@@ -6472,91 +7016,6 @@
         }
       ]
     },
-    "TopAppBar": {
-      "name": "TopAppBar",
-      "source": "packages/ui/src/components/TopAppBar.tsx",
-      "propsTypeName": "TopAppBarProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "title",
-          "type": "React.ReactNode",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "actions",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "After the title: up to three action `IconButton`s per M3.",
-          "deprecated": false
-        },
-        {
-          "name": "divider",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "A hairline under the bar.",
-          "deprecated": false
-        },
-        {
-          "name": "elevated",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "The on-scroll state: `surfaceContainer` instead of `surface`.",
-          "deprecated": false
-        },
-        {
-          "name": "leading",
-          "type": "React.ReactNode",
-          "required": false,
-          "description": "Before the title: typically a back or menu `IconButton`.",
-          "deprecated": false
-        },
-        {
-          "name": "safeArea",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Pads the top safe-area inset. Defaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "style",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "subtitle",
-          "type": "string",
-          "required": false,
-          "description": "A second line under the title.",
-          "deprecated": false
-        },
-        {
-          "name": "testID",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "variant",
-          "type": "\"small\" | \"center\" | \"medium\" | \"large\"",
-          "required": false,
-          "default": "\"small\"",
-          "description": "`\"small\"` and `\"center\"` keep the title in the 64dp row; `\"medium\"` and\n`\"large\"` move it to a second, larger line. Defaults to `\"small\"`.",
-          "values": [
-            "small",
-            "center",
-            "medium",
-            "large"
-          ],
-          "deprecated": false
-        }
-      ]
-    },
     "TouchableRipple": {
       "name": "TouchableRipple",
       "source": "packages/ui/src/components/TouchableRipple.tsx",
@@ -6745,6 +7204,7 @@
     "ToastProvider": {
       "name": "ToastProvider",
       "source": "packages/ui/src/providers/ToastProvider.tsx",
+      "propsTypeName": "ToastProviderProps",
       "extends": [],
       "props": [
         {
@@ -6752,12 +7212,20 @@
           "type": "React.ReactNode",
           "required": true,
           "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "SnackbarPosition",
+          "required": false,
+          "default": "\"bottom-center\"",
+          "description": "Where toasts appear unless one asks for another. Defaults to `\"bottom-center\"`.",
+          "deprecated": false
         }
       ]
     },
     "DrawerItem": {
       "name": "DrawerItem",
-      "source": "packages/ui/src/components/NavigationDrawer.tsx",
+      "source": "packages/ui/src/components/Drawer.tsx",
       "propsTypeName": "DrawerItemProps",
       "extends": [],
       "props": [
@@ -6804,7 +7272,7 @@
           "deprecated": false
         },
         {
-          "name": "onPress",
+          "name": "onClick",
           "type": "() => void",
           "required": false,
           "description": "Optional for an item with `children`, whose press opens and closes them.",
@@ -6835,7 +7303,7 @@
     },
     "DrawerSection": {
       "name": "DrawerSection",
-      "source": "packages/ui/src/components/NavigationDrawer.tsx",
+      "source": "packages/ui/src/components/Drawer.tsx",
       "propsTypeName": "DrawerSectionProps",
       "extends": [],
       "props": [
@@ -6977,16 +7445,17 @@
           "deprecated": false
         },
         {
-          "name": "bg",
+          "name": "background",
           "type": "ColorValue",
           "required": false,
-          "description": "Background — an M3 color role name or a raw color.",
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
           "deprecated": false
         },
         {
           "name": "borderColor",
           "type": "ColorValue",
           "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
           "deprecated": false
         },
         {
@@ -6996,9 +7465,16 @@
           "deprecated": false
         },
         {
-          "name": "flex",
-          "type": "number",
+          "name": "children",
+          "type": "React.ReactNode",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "dividers",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Puts a divider between the children. `true` draws a hairline, vertical in\na horizontal stack; a node is used as the divider instead. Empty children\n(`null`, `false`) get none, and the spacing applies on both sides of it.",
           "deprecated": false
         },
         {
@@ -7014,91 +7490,17 @@
           "deprecated": false
         },
         {
-          "name": "m",
-          "type": "SpacingValue",
+          "name": "margin",
+          "type": "number",
           "required": false,
-          "description": "Margin on every edge.",
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
-          "name": "mb",
-          "type": "SpacingValue",
+          "name": "padding",
+          "type": "number",
           "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "ml",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mx",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "my",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "p",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Padding on every edge.",
-          "deprecated": false
-        },
-        {
-          "name": "pb",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pl",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "px",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Horizontal padding.",
-          "deprecated": false
-        },
-        {
-          "name": "py",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Vertical padding.",
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
@@ -7117,9 +7519,16 @@
         },
         {
           "name": "spacing",
-          "type": "SpacingValue",
+          "type": "SpacingInput",
           "required": false,
-          "description": "Gap between children — a spacing token name or a raw value.",
+          "description": "Space between children — a spacing token name (`\"m\"`), a number of px, or\na string holding one (`\"12\"`).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Merged last, over the variant and every other prop.",
           "deprecated": false
         },
         {
@@ -7132,6 +7541,7 @@
           "name": "wrap",
           "type": "boolean",
           "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -7151,16 +7561,17 @@
           "deprecated": false
         },
         {
-          "name": "bg",
+          "name": "background",
           "type": "ColorValue",
           "required": false,
-          "description": "Background — an M3 color role name or a raw color.",
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
           "deprecated": false
         },
         {
           "name": "borderColor",
           "type": "ColorValue",
           "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
           "deprecated": false
         },
         {
@@ -7170,9 +7581,16 @@
           "deprecated": false
         },
         {
-          "name": "flex",
-          "type": "number",
+          "name": "children",
+          "type": "React.ReactNode",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "dividers",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Puts a divider between the children. `true` draws a hairline, vertical in\na horizontal stack; a node is used as the divider instead. Empty children\n(`null`, `false`) get none, and the spacing applies on both sides of it.",
           "deprecated": false
         },
         {
@@ -7188,91 +7606,17 @@
           "deprecated": false
         },
         {
-          "name": "m",
-          "type": "SpacingValue",
+          "name": "margin",
+          "type": "number",
           "required": false,
-          "description": "Margin on every edge.",
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
-          "name": "mb",
-          "type": "SpacingValue",
+          "name": "padding",
+          "type": "number",
           "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "ml",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "mx",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "my",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "p",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Padding on every edge.",
-          "deprecated": false
-        },
-        {
-          "name": "pb",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pl",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pr",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "pt",
-          "type": "SpacingValue",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "px",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Horizontal padding.",
-          "deprecated": false
-        },
-        {
-          "name": "py",
-          "type": "SpacingValue",
-          "required": false,
-          "description": "Vertical padding.",
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
           "deprecated": false
         },
         {
@@ -7291,9 +7635,16 @@
         },
         {
           "name": "spacing",
-          "type": "SpacingValue",
+          "type": "SpacingInput",
           "required": false,
-          "description": "Gap between children — a spacing token name or a raw value.",
+          "description": "Space between children — a spacing token name (`\"m\"`), a number of px, or\na string holding one (`\"12\"`).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Merged last, over the variant and every other prop.",
           "deprecated": false
         },
         {
@@ -7306,6 +7657,7 @@
           "name": "wrap",
           "type": "boolean",
           "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -7343,8 +7695,37 @@
           "deprecated": false
         },
         {
+          "name": "hover",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Highlights the row under the pointer, on web. A row with `onClick` also\nhighlights while it is pressed, `hover` or not.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "required": false,
+          "description": "Makes the row pressable. It then takes the button role, so give it a cell that says what it does.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws the row highlighted and marks it selected for assistive technology.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
           "required": false,
           "deprecated": false
         }
@@ -7370,6 +7751,20 @@
           "deprecated": false
         },
         {
+          "name": "flex",
+          "type": "boolean",
+          "required": false,
+          "description": "Shares the row's free width with the other `flex` cells instead of having a fixed `width`.",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when a `sortable` header is pressed.",
+          "deprecated": false
+        },
+        {
           "name": "onMoveLeft",
           "type": "() => void",
           "required": false,
@@ -7377,12 +7772,6 @@
         },
         {
           "name": "onMoveRight",
-          "type": "() => void",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "onPress",
           "type": "() => void",
           "required": false,
           "deprecated": false
@@ -7409,6 +7798,7 @@
           "name": "width",
           "type": "number",
           "required": false,
+          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
           "deprecated": false
         }
       ]
@@ -7433,6 +7823,13 @@
           "deprecated": false
         },
         {
+          "name": "flex",
+          "type": "boolean",
+          "required": false,
+          "description": "Shares the row's free width with the other `flex` cells instead of having a fixed `width`.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
@@ -7448,6 +7845,7 @@
           "name": "width",
           "type": "number",
           "required": false,
+          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
           "deprecated": false
         }
       ]

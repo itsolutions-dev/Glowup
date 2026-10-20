@@ -14,7 +14,7 @@ import {
   IconButton,
   CardTitle,
   Portal,
-  Center,
+  Box,
   EMPTY_RANGE,
 } from "@its/glowup-ui";
 import type { DateRange } from "@its/glowup-ui";
@@ -888,11 +888,11 @@ const ComponentPreview = ({
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props} radius="medium" bg="surfaceContainerHigh">
-          <Center style={{ flex: 1 }}>
+          <Box variant="centered-column-flex" style={{ flex: 1 }}>
             <Typography variant="labelLarge">
               {`ratio ${props.ratio.toFixed(2)}`}
             </Typography>
-          </Center>
+          </Box>
         </Component>
       </View>
     );
@@ -945,15 +945,13 @@ const ComponentPreview = ({
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props}>
           <ListItem
-            trailing={<Typography variant="bodySmall">Weekly</Typography>}
-          >
-            Email digest
-          </ListItem>
+            action={<Typography variant="bodySmall">Weekly</Typography>}
+            primaryText="Email digest"
+          />
           <ListItem
-            trailing={<Typography variant="bodySmall">Instant</Typography>}
-          >
-            Mentions
-          </ListItem>
+            action={<Typography variant="bodySmall">Instant</Typography>}
+            primaryText="Mentions"
+          />
         </Component>
       </View>
     );

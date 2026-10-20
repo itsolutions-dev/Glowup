@@ -70,26 +70,24 @@ export default function HapticsPage() {
       >
         <ListSection>
           <ListItem
-            secondary="press · toggle · selection, from Button, Switch, Checkbox, Radio, Chip, segmented buttons and stepped sliders."
-            trailing={
+            secondaryText="press · toggle · selection, from Button, Switch, Checkbox, Radio, Chip, segmented buttons and stepped sliders."
+            action={
               <Switch
                 value={preference.enabled}
                 onChange={preference.setEnabled}
               />
             }
-          >
-            Interaction feedback
-          </ListItem>
+            primaryText="Interaction feedback"
+          />
           <ListItem
-            trailing={
+            action={
               <StatusBadge
                 label={haptics.isSupported ? "Supported" : "Unsupported"}
                 type={haptics.isSupported ? "success" : "warning"}
               />
             }
-          >
-            Haptics on this platform
-          </ListItem>
+            primaryText="Haptics on this platform"
+          />
         </ListSection>
         <Slider
           label="A stepped slider: one tick per step"

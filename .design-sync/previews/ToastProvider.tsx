@@ -31,8 +31,8 @@ const Raise = ({
 const stage = (run: (t: Toast) => void, caption: string) => (
   <VStack
     spacing="s"
-    p="m"
-    bg="surfaceContainerLow"
+    padding={16}
+    background="surfaceContainerLow"
     radius="large"
     width={420}
     height={200}
@@ -76,13 +76,19 @@ export const Failure = () =>
   );
 
 export const TheApi = () => (
-  <VStack spacing="s" p="m" bg="surfaceContainerLow" radius="large" width={420}>
+  <VStack
+    spacing="s"
+    padding={16}
+    background="surfaceContainerLow"
+    radius="large"
+    width={420}
+  >
     <Typography variant="titleMedium">Raising a toast</Typography>
     <Typography variant="bodyMedium">
       Mount ToastProvider once near the root, then call useToast() from anywhere
       below it. There is no visible state to thread through a screen.
     </Typography>
-    <VStack spacing="xs" p="s" bg="surface" radius="medium">
+    <VStack spacing="xs" padding={8} background="surface" radius="medium">
       <Typography variant="bodySmall">const toast = useToast();</Typography>
       <Typography variant="bodySmall">
         toast.show({"{ message, type?, duration?, icon?, action?, id? }"})

@@ -370,10 +370,9 @@ const LogSection = () => {
             {log.map((entry) => (
               <ListItem
                 key={entry.id}
-                secondary={`${entry.task === "trip" ? "Trip" : "Geofence"} · ${new Date(entry.at).toLocaleTimeString()}`}
-              >
-                {entry.text}
-              </ListItem>
+                secondaryText={`${entry.task === "trip" ? "Trip" : "Geofence"} · ${new Date(entry.at).toLocaleTimeString()}`}
+                primaryText={entry.text}
+              />
             ))}
           </ListSection>
           <HStack>

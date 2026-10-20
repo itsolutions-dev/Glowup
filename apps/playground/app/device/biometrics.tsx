@@ -130,34 +130,34 @@ export default function BiometricsPage() {
       >
         <ListSection>
           <ListItem
-            trailing={
+            action={
               <StatusBadge
                 label={supported ? "Supported" : "Unsupported"}
                 type={supported ? "success" : "warning"}
               />
             }
-          >
-            Local authentication
-          </ListItem>
-          <ListItem secondary={biometrics.isLoading ? "Checking…" : types}>
-            Sensors
-          </ListItem>
+            primaryText="Local authentication"
+          />
           <ListItem
-            secondary={
+            secondaryText={biometrics.isLoading ? "Checking…" : types}
+            primaryText="Sensors"
+          />
+          <ListItem
+            secondaryText={
               biometrics.isLoading
                 ? "Checking…"
                 : biometrics.isEnrolled
                   ? "Enrolled"
                   : "Not enrolled"
             }
-          >
-            Biometrics
-          </ListItem>
+            primaryText="Biometrics"
+          />
           <ListItem
-            secondary={biometrics.isLoading ? "Checking…" : biometrics.level}
-          >
-            Strongest method
-          </ListItem>
+            secondaryText={
+              biometrics.isLoading ? "Checking…" : biometrics.level
+            }
+            primaryText="Strongest method"
+          />
         </ListSection>
       </Section>
 
@@ -184,10 +184,10 @@ export default function BiometricsPage() {
         </Button>
         <ListSection>
           <ListItem
-            secondary={
+            secondaryText={
               result && !result.success ? result.detail : "No prompt yet."
             }
-            trailing={
+            action={
               result ? (
                 <StatusBadge
                   label={describeResult(result)}
@@ -195,9 +195,8 @@ export default function BiometricsPage() {
                 />
               ) : null
             }
-          >
-            Last result
-          </ListItem>
+            primaryText="Last result"
+          />
         </ListSection>
       </Section>
 
@@ -207,23 +206,22 @@ export default function BiometricsPage() {
       >
         <ListSection>
           <ListItem
-            secondary={
+            secondaryText={
               !supported
                 ? "Nothing to unlock with on this platform."
                 : lock.isLockable
                   ? "Locks as soon as the app leaves (relockAfter: 0)."
                   : 'No lock screen on this device: the lock stays open (whenUnavailable: "unlock").'
             }
-            trailing={
+            action={
               <Switch
                 value={lockWanted && supported}
                 disabled={!supported}
                 onChange={setLockWanted}
               />
             }
-          >
-            Lock the card
-          </ListItem>
+            primaryText="Lock the card"
+          />
         </ListSection>
         <Card variant="outlined">
           <CardTitle

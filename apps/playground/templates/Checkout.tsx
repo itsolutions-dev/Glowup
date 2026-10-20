@@ -73,10 +73,10 @@ export default function Checkout() {
 
   return (
     <Box
-      p="l"
-      gap="l"
+      padding={24}
+      gap={24}
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
     >
@@ -100,7 +100,7 @@ export default function Checkout() {
         <VStack spacing="l" style={{ flexGrow: 3, flexBasis: 340 }}>
           <VStack spacing="m">
             {sectionTitle("Shipping address")}
-            <Grid columns={2} spacing="m">
+            <Grid container autoSize={1} columns={2} spacing="m">
               <Input label="First name" value="Ada" onChange={() => {}} />
               <Input label="Last name" value="Lovelace" onChange={() => {}} />
             </Grid>
@@ -110,7 +110,7 @@ export default function Checkout() {
               onChange={() => {}}
               leadingIcon="map-marker-outline"
             />
-            <Grid columns={2} spacing="m">
+            <Grid container autoSize={1} columns={2} spacing="m">
               <Input label="City" value="London" onChange={() => {}} />
               <Input label="Postcode" value="SW1Y 4LB" onChange={() => {}} />
             </Grid>
@@ -152,7 +152,7 @@ export default function Checkout() {
                   placeholder="1234 1234 1234 1234"
                   leadingIcon="credit-card-outline"
                 />
-                <Grid columns={2} spacing="m">
+                <Grid container autoSize={1} columns={2} spacing="m">
                   <Input
                     label="Expiry"
                     value=""
@@ -180,20 +180,19 @@ export default function Checkout() {
 
         {/* Summary */}
         <Box
-          p="l"
-          gap="m"
+          padding={24}
+          gap={16}
           radius="large"
-          bg="surfaceContainerLow"
+          background="surfaceContainerLow"
           style={{ flexGrow: 2, flexBasis: 280 }}
         >
           {sectionTitle("Order summary")}
 
           <ListItem
-            leading={<Avatar icon="headphones" variant="rounded" size={48} />}
-            secondary={`${euro(89)} · Midnight blue`}
-          >
-            Wireless headphones
-          </ListItem>
+            icon={<Avatar icon="headphones" variant="rounded" size={48} />}
+            secondaryText={`${euro(89)} · Midnight blue`}
+            primaryText="Wireless headphones"
+          />
           <HStack justify="space-between" align="center">
             <Typography
               variant="labelLarge"
@@ -209,11 +208,10 @@ export default function Checkout() {
             />
           </HStack>
           <ListItem
-            leading={<Avatar icon="cable-data" variant="rounded" size={48} />}
-            secondary={`${euro(24.5)} · 2 m`}
-          >
-            USB-C cable
-          </ListItem>
+            icon={<Avatar icon="cable-data" variant="rounded" size={48} />}
+            secondaryText={`${euro(24.5)} · 2 m`}
+            primaryText="USB-C cable"
+          />
 
           <HStack spacing="s" align="flex-start">
             <Input

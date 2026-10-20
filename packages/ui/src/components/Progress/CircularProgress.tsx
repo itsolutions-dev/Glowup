@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../providers/ThemeProvider";
 import { useReduceMotion } from "../internal/useReduceMotion";
@@ -16,6 +16,25 @@ export interface CircularProgressProps {
   strokeWidth?: number;
   /** Indicator colour. Defaults to `primary`. */
   color?: string;
+  /**
+   * The ring under the indicator. `true` draws it in the indicator's colour at
+   * a low opacity, a string draws it in that colour, `false` draws none. Left
+   * out, a ring with a `progress` has its usual track (`secondaryContainer`)
+   * and a spinner has none.
+   */
+  trackColor?: boolean | string;
+  /**
+   * Text, a number or any node drawn with the ring, at `labelPosition`. Text
+   * is drawn in the theme's type, scaled to the ring when it is inside; a node
+   * as given.
+   */
+  label?: React.ReactNode;
+  /**
+   * Where `label` goes: `"center"` inside the ring, or `"top"`, `"bottom"`,
+   * `"left"` or `"right"` of it. Defaults to `"center"` for a ring with a
+   * `progress` and to `"right"` for a spinner, which is too small to hold a label.
+   */
+  labelPosition?: "top" | "bottom" | "left" | "right" | "center";
   /** Indeterminate only: one revolution, in ms. */
   duration?: number;
   /** Hides it from assistive tech when something else announces the progress. */
@@ -24,11 +43,20 @@ export interface CircularProgressProps {
   testID?: string;
 }
 
+const isText = (node: React.ReactNode): node is string | number =>
+  typeof node === "string" || typeof node === "number";
+
+const isEmpty = (node: React.ReactNode) =>
+  node === undefined || node === null || node === false || node === "";
+
 const CircularProgress = ({
   progress,
   size = 48,
   strokeWidth = 4,
   color,
+  trackColor,
+  label,
+  labelPosition,
   duration = 1000,
   decorative = false,
   accessibilityLabel,
@@ -37,10 +65,22 @@ const CircularProgress = ({
   const { theme } = useTheme();
   const clamped =
     progress === undefined ? undefined : Math.min(1, Math.max(0, progress));
+  const indicator = color || theme.colors.primary;
+  const track: Track | null =
+    trackColor === false
+      ? null
+      : trackColor === true
+        ? { stroke: indicator, opacity: 0.24 }
+        : typeof trackColor === "string"
+          ? { stroke: trackColor, opacity: 1 }
+          : clamped === undefined
+            ? null
+            : { stroke: theme.colors.secondaryContainer, opacity: 1 };
   const ring = {
     size,
     strokeWidth,
-    color: color || theme.colors.primary,
+    color: indicator,
+    track,
     testID,
     a11y: decorative
       ? {
@@ -60,21 +100,88 @@ const CircularProgress = ({
         },
   };
 
-  return clamped === undefined ? (
-    <Spinner {...ring} duration={duration} />
+  const indicatorNode =
+    clamped === undefined ? (
+      <Spinner {...ring} duration={duration} />
+    ) : (
+      <Determinate {...ring} progress={clamped} />
+    );
+
+  if (isEmpty(label)) return indicatorNode;
+
+  const position =
+    labelPosition ?? (clamped === undefined ? "right" : "center");
+  const inside = position === "center";
+  // Inside, the type follows the ring, and the ring's own hole is what it must fit.
+  const insideSize = Math.max(10, Math.round(size * 0.28));
+  const labelNode = isText(label) ? (
+    <Text
+      numberOfLines={1}
+      style={
+        inside
+          ? [
+              theme.typography.labelMedium,
+              {
+                color: theme.colors.onSurface,
+                fontSize: insideSize,
+                lineHeight: Math.round(insideSize * 1.25),
+                maxWidth: Math.max(0, size - strokeWidth * 2 - 4),
+                textAlign: "center",
+              },
+            ]
+          : [
+              theme.typography.labelMedium,
+              { color: theme.colors.onSurfaceVariant },
+            ]
+      }
+    >
+      {label}
+    </Text>
   ) : (
-    <Determinate
-      {...ring}
-      progress={clamped}
-      track={theme.colors.secondaryContainer}
-    />
+    label
+  );
+
+  if (inside) {
+    return (
+      <View style={[styles.container, { width: size, height: size }]}>
+        {indicatorNode}
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.container]}
+        >
+          {labelNode}
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View
+      style={[
+        styles.outside,
+        {
+          flexDirection:
+            position === "left" || position === "right" ? "row" : "column",
+        },
+      ]}
+    >
+      {(position === "top" || position === "left") && labelNode}
+      {indicatorNode}
+      {(position === "bottom" || position === "right") && labelNode}
+    </View>
   );
 };
+
+/** The ring under the indicator: its colour, and how opaque it is drawn. */
+interface Track {
+  stroke: string;
+  opacity: number;
+}
 
 interface Ring {
   size: number;
   strokeWidth: number;
   color: string;
+  track: Track | null;
   a11y: object;
   testID?: string;
 }
@@ -89,6 +196,7 @@ const Spinner = ({
   size,
   strokeWidth,
   color,
+  track,
   duration,
   a11y,
   testID,
@@ -129,6 +237,17 @@ const Spinner = ({
       ]}
     >
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {!!track && (
+          <Circle
+            stroke={track.stroke}
+            strokeOpacity={track.opacity}
+            fill="none"
+            cx={centre}
+            cy={centre}
+            r={radius}
+            strokeWidth={strokeWidth}
+          />
+        )}
         <Circle
           stroke={color}
           fill="none"
@@ -153,7 +272,7 @@ const Determinate = ({
   color,
   a11y,
   testID,
-}: Ring & { progress: number; track: string }) => {
+}: Ring & { progress: number }) => {
   const reduceMotion = useReduceMotion();
   const [value] = useState(() => new Animated.Value(progress));
   const { radius, circumference, centre } = geometry(size, strokeWidth);
@@ -189,14 +308,17 @@ const Determinate = ({
       style={[styles.container, { width: size, height: size }]}
     >
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <Circle
-          stroke={track}
-          fill="none"
-          cx={centre}
-          cy={centre}
-          r={radius}
-          strokeWidth={strokeWidth}
-        />
+        {!!track && (
+          <Circle
+            stroke={track.stroke}
+            strokeOpacity={track.opacity}
+            fill="none"
+            cx={centre}
+            cy={centre}
+            r={radius}
+            strokeWidth={strokeWidth}
+          />
+        )}
         {/* Rotated a quarter turn back so the arc starts at twelve o'clock. */}
         <AnimatedCircle
           stroke={color}
@@ -219,6 +341,12 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
+  },
+  // The ring and a label beside it, which need a little room between them.
+  outside: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
 });
 

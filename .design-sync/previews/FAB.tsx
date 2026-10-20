@@ -182,7 +182,7 @@ export const AnimatedShrinkOnScroll = () => {
             }
           >
             {Array.from({ length: 12 }, (_, index) => (
-              <ListItem key={index}>{`Ticket ${index + 1}`}</ListItem>
+              <ListItem key={index} primaryText={`Ticket ${index + 1}`} />
             ))}
           </div>
         </Paper>

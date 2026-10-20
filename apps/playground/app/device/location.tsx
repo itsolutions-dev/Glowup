@@ -130,23 +130,30 @@ const PositionList = ({ position }: { position: GeoPosition }) => {
   const { coords } = position;
   return (
     <ListSection>
-      <ListItem secondary={coords.latitude.toFixed(6)}>Latitude</ListItem>
-      <ListItem secondary={coords.longitude.toFixed(6)}>Longitude</ListItem>
       <ListItem
-        secondary={
+        secondaryText={coords.latitude.toFixed(6)}
+        primaryText="Latitude"
+      />
+      <ListItem
+        secondaryText={coords.longitude.toFixed(6)}
+        primaryText="Longitude"
+      />
+      <ListItem
+        secondaryText={
           coords.accuracy === null ? "—" : `± ${Math.round(coords.accuracy)} m`
         }
-      >
-        Accuracy
-      </ListItem>
+        primaryText="Accuracy"
+      />
       <ListItem
-        secondary={
+        secondaryText={
           coords.altitude === null ? "—" : `${Math.round(coords.altitude)} m`
         }
-      >
-        Altitude
-      </ListItem>
-      <ListItem secondary={formatTime(position.timestamp)}>Taken at</ListItem>
+        primaryText="Altitude"
+      />
+      <ListItem
+        secondaryText={formatTime(position.timestamp)}
+        primaryText="Taken at"
+      />
     </ListSection>
   );
 };
@@ -279,11 +286,10 @@ const CurrentPositionSection = ({ granted }: { granted: boolean }) => {
       />
       <ListSection>
         <ListItem
-          secondary="maxAge: 60 000 — fast, but the user may have moved since."
-          trailing={<Switch value={useCache} onChange={setUseCache} />}
-        >
-          Accept a fix up to a minute old
-        </ListItem>
+          secondaryText="maxAge: 60 000 — fast, but the user may have moved since."
+          action={<Switch value={useCache} onChange={setUseCache} />}
+          primaryText="Accept a fix up to a minute old"
+        />
       </ListSection>
       <HStack>
         <Button
@@ -320,21 +326,20 @@ const WatchSection = ({ granted }: { granted: boolean }) => {
     >
       <ListSection>
         <ListItem
-          secondary={
+          secondaryText={
             granted
               ? "accuracy: high · distanceInterval: 5"
               : "Needs the permission."
           }
-          trailing={
+          action={
             <Switch
               value={following && granted}
               disabled={!granted}
               onChange={setFollowing}
             />
           }
-        >
-          Follow my position
-        </ListItem>
+          primaryText="Follow my position"
+        />
       </ListSection>
       {error ? <ErrorLine error={error} /> : null}
       {position ? (
@@ -401,30 +406,29 @@ const CompassSection = ({ granted }: { granted: boolean }) => {
             </Typography>
           </HStack>
           <ListSection>
-            <ListItem secondary={formatDegrees(heading.magneticHeading)}>
-              Magnetic north
-            </ListItem>
             <ListItem
-              secondary={
+              secondaryText={formatDegrees(heading.magneticHeading)}
+              primaryText="Magnetic north"
+            />
+            <ListItem
+              secondaryText={
                 heading.trueHeading === null
                   ? "Needs a location fix first"
                   : formatDegrees(heading.trueHeading)
               }
-            >
-              True north
-            </ListItem>
+              primaryText="True north"
+            />
             <ListItem
-              secondary={
+              secondaryText={
                 heading.accuracy === "unreliable"
                   ? "Move the device in a figure eight to calibrate."
                   : undefined
               }
-              trailing={
+              action={
                 <StatusBadge label={accuracy.label} type={accuracy.type} />
               }
-            >
-              Accuracy
-            </ListItem>
+              primaryText="Accuracy"
+            />
           </ListSection>
         </VStack>
       ) : following && granted && !error ? (
@@ -560,14 +564,13 @@ const GeocodingSection = ({ granted }: { granted: boolean }) => {
         render={(place, index) => (
           <ListItem
             key={index}
-            secondary={
+            secondaryText={
               place.accuracy === null
                 ? "Accuracy unknown"
                 : `± ${Math.round(place.accuracy)} m`
             }
-          >
-            {`${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
-          </ListItem>
+            primaryText={`${place.latitude.toFixed(6)}, ${place.longitude.toFixed(6)}`}
+          />
         )}
       />
       <HStack>
@@ -588,12 +591,11 @@ const GeocodingSection = ({ granted }: { granted: boolean }) => {
         render={(found, index) => (
           <ListItem
             key={index}
-            secondary={[found.region, found.isoCountryCode, found.timezone]
+            secondaryText={[found.region, found.isoCountryCode, found.timezone]
               .filter(Boolean)
               .join(" · ")}
-          >
-            {formatAddress(found)}
-          </ListItem>
+            primaryText={formatAddress(found)}
+          />
         )}
       />
     </Section>

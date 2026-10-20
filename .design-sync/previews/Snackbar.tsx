@@ -46,7 +46,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="success"
+        severity="success"
         message="Published @its/glowup-ui 0.1.0 to the registry."
         onDismiss={() => {}}
       />
@@ -55,7 +55,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="warning"
+        severity="warning"
         message="Storage is almost full: 92% of 5 GB used."
         onDismiss={() => {}}
       />
@@ -64,7 +64,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="info"
+        severity="info"
         message="A new version of the app is available."
         action={{ label: "Update", onPress: () => {} }}
         onDismiss={() => {}}
@@ -74,7 +74,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="error"
+        severity="error"
         message="Upload failed — the token file is larger than 2 MB."
         action={{ label: "Retry", onPress: () => {} }}
         onDismiss={() => {}}

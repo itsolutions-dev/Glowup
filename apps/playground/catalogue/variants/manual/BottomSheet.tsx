@@ -17,7 +17,7 @@ const FilterSheet = () => {
       <Button variant="tonal" iconName="filter-variant" onClick={show}>
         Filter components
       </Button>
-      <BottomSheet visible={open} title="Filter components" onDismiss={hide}>
+      <BottomSheet visible={open} title="Filter components" onClose={hide}>
         <View style={demo.stack}>
           <Typography variant="labelLarge">Group</Typography>
           <View style={demo.row}>
@@ -83,7 +83,7 @@ const ActionSheet = () => {
       <Button variant="outlined" iconName="dots-horizontal" onClick={show}>
         More actions
       </Button>
-      <BottomSheet visible={open} title="Chip" onDismiss={hide}>
+      <BottomSheet visible={open} title="Chip" onClose={hide}>
         <View style={demo.stack}>
           <Button
             variant="text"
@@ -136,7 +136,7 @@ const NoHandle = () => {
         visible={open}
         showHandle={false}
         title="Sort by"
-        onDismiss={hide}
+        onClose={hide}
       >
         <View style={demo.stack}>
           <Chip
@@ -168,7 +168,7 @@ const ReleaseNotes = () => {
         visible={open}
         title="Release notes 0.1.0"
         maxHeightRatio={0.5}
-        onDismiss={hide}
+        onClose={hide}
       >
         <View style={demo.stack}>
           <Typography variant="bodyMedium">

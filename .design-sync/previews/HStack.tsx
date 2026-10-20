@@ -17,8 +17,8 @@ export const Alignment = () => (
         key={align}
         align={align}
         spacing="s"
-        p="s"
-        bg="surfaceContainerLow"
+        padding={8}
+        background="surfaceContainerLow"
         radius="medium"
         height={96}
       >
@@ -34,8 +34,8 @@ export const ToolbarRow = () => (
   <HStack
     justify="space-between"
     align="center"
-    p="m"
-    bg="surfaceContainerLow"
+    padding={16}
+    background="surfaceContainerLow"
     radius="medium"
     width={480}
   >

@@ -16,7 +16,7 @@ export const ContextMenu = () => (
   <div style={host}>
     <Menu
       visible
-      onDismiss={() => {}}
+      onClose={() => {}}
       anchor={
         <Button variant="tonal" iconName="dots-vertical" onClick={() => {}}>
           Chip
@@ -58,7 +58,7 @@ export const WithDisabledItems = () => (
   <div style={host}>
     <Menu
       visible
-      onDismiss={() => {}}
+      onClose={() => {}}
       anchor={
         <Button variant="outlined" iconName="export-variant" onClick={() => {}}>
           Export
@@ -93,7 +93,7 @@ export const AccountMenu = () => (
     <Menu
       visible
       closeOnSelect={false}
-      onDismiss={() => {}}
+      onClose={() => {}}
       anchor={
         <Avatar
           name="Marta Rossi"

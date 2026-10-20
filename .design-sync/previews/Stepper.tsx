@@ -7,13 +7,13 @@ const checkout = ["Cart", "Shipping", "Payment", "Review"];
 
 export const Checkout = () => (
   <div style={wrap}>
-    <Stepper steps={checkout} activeStep={2} onStepPress={() => {}} />
+    <Stepper steps={checkout} activeStep={2} onClick={() => {}} />
   </div>
 );
 
 export const FirstStep = () => (
   <div style={wrap}>
-    <Stepper steps={checkout} activeStep={0} onStepPress={() => {}} />
+    <Stepper steps={checkout} activeStep={0} onClick={() => {}} />
   </div>
 );
 
@@ -27,7 +27,7 @@ export const WithIcons = () => (
   <div style={wrap}>
     <Stepper
       activeStep={1}
-      onStepPress={() => {}}
+      onClick={() => {}}
       steps={[
         { label: "Account", icon: "account-outline" },
         { label: "Company", icon: "domain" },

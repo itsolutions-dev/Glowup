@@ -80,21 +80,22 @@ export default function DeviceInfoPage() {
       <Section title="This device">
         <ListSection>
           <ListItem
-            trailing={
+            action={
               <StatusBadge
                 label={info.isEmulator ? "Emulator" : "Real device"}
                 type={info.isEmulator ? "warning" : "success"}
               />
             }
-          >
-            Hardware
-          </ListItem>
+            primaryText="Hardware"
+          />
           {GROUPS.map((group) => [
             <ListSubheader key={group.title}>{group.title}</ListSubheader>,
             ...group.rows.map((row) => (
-              <ListItem key={row.label} secondary={row.value(info)}>
-                {row.label}
-              </ListItem>
+              <ListItem
+                key={row.label}
+                secondaryText={row.value(info)}
+                primaryText={row.label}
+              />
             )),
           ])}
         </ListSection>

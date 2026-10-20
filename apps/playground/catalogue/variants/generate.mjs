@@ -70,7 +70,7 @@ const EXCLUDED = new Set([
  * overlay starts closed and opens from a trigger.
  */
 const PORTAL_OVERLAYS = new Set([
-  "Modal",
+  "Dialog",
   "ConfirmDialog",
   "BottomSheet",
   "Popover",
@@ -87,7 +87,6 @@ const NOT_CATALOGUED = new Set([
   "ThemeProvider",
   "ToastProvider",
   "SafeAreaProvider",
-  "AppBar",
   "HStack",
   "VStack",
   // Parts previewed inside their parent's catalogue entry.

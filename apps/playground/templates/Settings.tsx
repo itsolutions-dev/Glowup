@@ -55,12 +55,12 @@ export default function Settings() {
   return (
     <Box
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
       style={{ overflow: "hidden" }}
     >
-      <VStack spacing="xs" p="l">
+      <VStack spacing="xs" padding={24}>
         <Typography
           variant="headlineSmall"
           style={{ color: theme.colors.onSurface }}
@@ -88,33 +88,33 @@ export default function Settings() {
 
       <ListSection title="Account" divider>
         <ListItem
-          leading={<Avatar name="Ada Lovelace" size={40} status="online" />}
-          secondary="ada@example.com"
-          trailing={<Chip label="Admin" size="small" variant="tonal" />}
-          onPress={() => {}}
-        >
-          Ada Lovelace
-        </ListItem>
+          icon={<Avatar name="Ada Lovelace" size={40} status="online" />}
+          secondaryText="ada@example.com"
+          action={<Chip label="Admin" size="small" variant="tonal" />}
+          onClick={() => {}}
+          primaryText="Ada Lovelace"
+        />
         <ListItem
-          leading={<Icon source="lock-outline" />}
-          secondary="Last changed 3 months ago"
-          trailing={<Icon source="chevron-right" />}
-          onPress={() => {}}
-        >
-          Password
-        </ListItem>
+          icon={<Icon source="lock-outline" />}
+          secondaryText="Last changed 3 months ago"
+          action={<Icon source="chevron-right" />}
+          onClick={() => {}}
+          primaryText="Password"
+        />
         <ListItem
-          leading={<Icon source="shield-check-outline" />}
-          secondary="Authenticator app"
-          trailing={<Chip label="On" size="small" icon="check" />}
-          onPress={() => {}}
-        >
-          Two-step verification
-        </ListItem>
+          icon={<Icon source="shield-check-outline" />}
+          secondaryText="Authenticator app"
+          action={<Chip label="On" size="small" icon="check" />}
+          onClick={() => {}}
+          primaryText="Two-step verification"
+        />
       </ListSection>
 
       <ListSection title="Appearance" divider>
-        <VStack spacing="m" px="m" pb="m">
+        <VStack
+          spacing="m"
+          style={{ paddingHorizontal: 16, paddingBottom: 16 }}
+        >
           <ButtonGroup
             type="connected"
             accessibilityLabel="Theme"
@@ -148,41 +148,38 @@ export default function Settings() {
 
       <ListSection title="Notifications" divider>
         <ListItem
-          secondary="Mentions, replies and assignments"
-          trailing={
+          secondaryText="Mentions, replies and assignments"
+          action={
             <Switch
               value={draft.push}
               onChange={(value) => set("push", value)}
             />
           }
-        >
-          Push notifications
-        </ListItem>
+          primaryText="Push notifications"
+        />
         <ListItem
-          secondary="Everything that needs your attention"
-          trailing={
+          secondaryText="Everything that needs your attention"
+          action={
             <Switch
               value={draft.email}
               onChange={(value) => set("email", value)}
             />
           }
-        >
-          Email alerts
-        </ListItem>
+          primaryText="Email alerts"
+        />
         <ListItem
-          secondary="One summary every Monday"
-          trailing={
+          secondaryText="One summary every Monday"
+          action={
             <Switch
               value={draft.digest}
               onChange={(value) => set("digest", value)}
             />
           }
-        >
-          Weekly digest
-        </ListItem>
+          primaryText="Weekly digest"
+        />
       </ListSection>
 
-      <VStack spacing="s" p="l">
+      <VStack spacing="s" padding={24}>
         <Typography variant="titleSmall" style={{ color: theme.colors.error }}>
           Danger zone
         </Typography>

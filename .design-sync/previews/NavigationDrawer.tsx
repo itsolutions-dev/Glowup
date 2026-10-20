@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Button,
-  DrawerItem,
-  DrawerSection,
-  NavigationDrawer,
-} from "@its/glowup-ui";
+import { Button, DrawerItem, DrawerSection, Drawer } from "@its/glowup-ui";
 
 const frame: React.CSSProperties = { height: 440, width: 340, display: "flex" };
 
@@ -16,34 +11,34 @@ const Mail = () => (
         icon="inbox-outline"
         badge={24}
         selected
-        onPress={() => {}}
+        onClick={() => {}}
       />
-      <DrawerItem label="Sent" icon="send-outline" onPress={() => {}} />
+      <DrawerItem label="Sent" icon="send-outline" onClick={() => {}} />
       <DrawerItem
         label="Drafts"
         icon="file-outline"
         badge={3}
-        onPress={() => {}}
+        onClick={() => {}}
       />
     </DrawerSection>
     <DrawerSection title="Labels" showDivider>
-      <DrawerItem label="Family" icon="label-outline" onPress={() => {}} />
-      <DrawerItem label="Work" icon="label-outline" onPress={() => {}} />
+      <DrawerItem label="Family" icon="label-outline" onClick={() => {}} />
+      <DrawerItem label="Work" icon="label-outline" onClick={() => {}} />
     </DrawerSection>
   </>
 );
 
 export const Standard = () => (
   <div style={frame}>
-    <NavigationDrawer title="Mail" width={320}>
+    <Drawer title="Mail" width={320}>
       <Mail />
-    </NavigationDrawer>
+    </Drawer>
   </div>
 );
 
 export const WithFooter = () => (
   <div style={frame}>
-    <NavigationDrawer
+    <Drawer
       title="Acme workspace"
       width={320}
       footer={
@@ -57,21 +52,21 @@ export const WithFooter = () => (
           label="Dashboard"
           icon="view-dashboard-outline"
           selected
-          onPress={() => {}}
+          onClick={() => {}}
         />
-        <DrawerItem label="Projects" icon="folder-outline" onPress={() => {}} />
+        <DrawerItem label="Projects" icon="folder-outline" onClick={() => {}} />
         <DrawerItem
           label="Team"
           icon="account-group-outline"
-          onPress={() => {}}
+          onClick={() => {}}
         />
         <DrawerItem
           label="Billing"
           icon="credit-card-outline"
           disabled
-          onPress={() => {}}
+          onClick={() => {}}
         />
       </DrawerSection>
-    </NavigationDrawer>
+    </Drawer>
   </div>
 );

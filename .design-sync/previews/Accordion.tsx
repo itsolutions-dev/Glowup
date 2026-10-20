@@ -9,7 +9,7 @@ const panel: React.CSSProperties = {
 
 export const CollapsedAndExpanded = () => (
   <div style={panel}>
-    <Accordion title="Shipping address" startExpanded>
+    <Accordion title="Shipping address" expanded>
       Orders ship from the Milan warehouse within one business day. Tracking
       details arrive by email as soon as the courier scans the parcel.
     </Accordion>
@@ -20,7 +20,7 @@ export const CollapsedAndExpanded = () => (
 
 export const RichContent = () => (
   <div style={panel}>
-    <Accordion title="Deployment status" startExpanded>
+    <Accordion title="Deployment status" expanded>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div
           style={{
@@ -65,7 +65,7 @@ export const FaqGroup = () => (
       Open Settings, choose Security, then Reset password. A one-time link is
       sent to your work email and stays valid for 30 minutes.
     </Accordion>
-    <Accordion title="Can I invite external collaborators?" startExpanded>
+    <Accordion title="Can I invite external collaborators?" expanded>
       Workspace owners can invite guests from the Members tab. Guests see only
       the projects they are added to and never appear in billing seats.
     </Accordion>

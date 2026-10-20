@@ -1,5 +1,10 @@
 import { View } from "react-native";
-import { Button, Divider, Modal, Typography } from "@its/glowup-ui";
+import {
+  Button,
+  Divider,
+  Dialog as GlowupDialog,
+  Typography,
+} from "@its/glowup-ui";
 import type { Variant } from "../types";
 import { demo, useOverlayDemo } from "./shared";
 
@@ -19,7 +24,7 @@ const Dialog = () => {
       <Button variant="filled" iconName="publish" onClick={show}>
         Publish 0.1.0
       </Button>
-      <Modal
+      <GlowupDialog
         visible={open}
         title="Publish 0.1.0"
         closeText="Close"
@@ -27,7 +32,7 @@ const Dialog = () => {
       >
         Publishing makes every component in this library available to the Glowup
         playground and to any workspace that depends on it.
-      </Modal>
+      </GlowupDialog>
     </View>
   );
 };
@@ -44,7 +49,7 @@ const RichContent = () => {
       <Button variant="tonal" iconName="account-plus-outline" onClick={show}>
         Invite your team
       </Button>
-      <Modal visible={open} title="Invite your team" onDismiss={hide}>
+      <GlowupDialog visible={open} title="Invite your team" onClose={hide}>
         <View style={demo.stack}>
           <Typography variant="bodyMedium">
             Everyone you invite gets read access to the shared component
@@ -69,7 +74,7 @@ const RichContent = () => {
             </Button>
           </View>
         </View>
-      </Modal>
+      </GlowupDialog>
     </View>
   );
 };
@@ -84,9 +89,9 @@ const Untitled = () => {
       <Button variant="outlined" iconName="text-box-outline" onClick={show}>
         What changed
       </Button>
-      <Modal visible={open} closeText="Got it" onClose={hide}>
+      <GlowupDialog visible={open} closeText="Got it" onClose={hide}>
         Dark mode contrast was corrected across every tonal surface.
-      </Modal>
+      </GlowupDialog>
     </View>
   );
 };

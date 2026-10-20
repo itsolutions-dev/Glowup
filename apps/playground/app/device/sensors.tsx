@@ -148,17 +148,16 @@ function SensorRow<S extends SensorName>({
 
   return (
     <ListItem
-      secondary={
+      secondaryText={
         isAvailable === false
           ? hint
           : reading
             ? format(reading)
             : "No reading yet"
       }
-      trailing={<StatusBadge label={label} type={type} />}
-    >
-      {title}
-    </ListItem>
+      action={<StatusBadge label={label} type={type} />}
+      primaryText={title}
+    />
   );
 }
 
@@ -286,11 +285,10 @@ export default function SensorsPage() {
       >
         <ListSection>
           <ListItem
-            secondary="{ enabled } on every hook below."
-            trailing={<Switch value={listening} onChange={setListening} />}
-          >
-            Read the sensors
-          </ListItem>
+            secondaryText="{ enabled } on every hook below."
+            action={<Switch value={listening} onChange={setListening} />}
+            primaryText="Read the sensors"
+          />
         </ListSection>
         <ToggleButtonGroup
           options={INTERVALS}
@@ -390,38 +388,36 @@ export default function SensorsPage() {
       >
         <ListSection>
           {motion.isAvailable === false ? (
-            <ListItem secondary="It needs a gyroscope.">
-              No device motion here
-            </ListItem>
+            <ListItem
+              secondaryText="It needs a gyroscope."
+              primaryText="No device motion here"
+            />
           ) : (
             <>
               <ListItem
-                secondary={
+                secondaryText={
                   motion.reading
                     ? vector(motion.reading.acceleration, "m/s²")
                     : "No reading yet"
                 }
-              >
-                User acceleration
-              </ListItem>
+                primaryText="User acceleration"
+              />
               <ListItem
-                secondary={
+                secondaryText={
                   motion.reading
                     ? vector(motion.reading.gravity, "m/s²")
                     : "No reading yet"
                 }
-              >
-                Gravity
-              </ListItem>
+                primaryText="Gravity"
+              />
               <ListItem
-                secondary={
+                secondaryText={
                   motion.reading
                     ? vector(motion.reading.rotationRate, "rad/s")
                     : "No reading yet"
                 }
-              >
-                Rotation rate
-              </ListItem>
+                primaryText="Rotation rate"
+              />
             </>
           )}
         </ListSection>

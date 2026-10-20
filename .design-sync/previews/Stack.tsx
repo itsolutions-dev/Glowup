@@ -8,8 +8,8 @@ export const Direction = () => (
     <Stack
       direction="vertical"
       spacing="xs"
-      p="s"
-      bg="surfaceContainerLow"
+      padding={8}
+      background="surfaceContainerLow"
       radius="medium"
     >
       <Typography variant="labelSmall">
@@ -22,8 +22,8 @@ export const Direction = () => (
     <Stack
       direction="horizontal"
       spacing="s"
-      p="s"
-      bg="surfaceContainerLow"
+      padding={8}
+      background="surfaceContainerLow"
       radius="medium"
     >
       <Typography variant="labelSmall">horizontal</Typography>
@@ -55,8 +55,8 @@ export const Wrapped = () => (
     direction="horizontal"
     spacing="s"
     wrap
-    p="s"
-    bg="surfaceContainerLow"
+    padding={8}
+    background="surfaceContainerLow"
     radius="medium"
     width={280}
   >

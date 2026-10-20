@@ -6,7 +6,7 @@ import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 
-export interface NavigationBarItem {
+export interface NavBarItem {
   id: string;
   label: string;
   /** Outline variant; the active state strips the "-outline" suffix. */
@@ -15,20 +15,29 @@ export interface NavigationBarItem {
   disabled?: boolean;
 }
 
-export interface NavigationBarProps {
-  items: NavigationBarItem[];
+export interface NavBarProps {
+  /** Destinations, three to five per M3. */
+  items: NavBarItem[];
+  /** `id` of the current destination. */
   activeId: string;
-  onItemPress: (id: string) => void;
+  /** Called with the `id` of the pressed destination. */
+  onClick: (id: string) => void;
   /** "always" shows every label, "selected" only the active one. */
   showLabels?: "always" | "selected";
 }
 
-const NavigationBar = ({
+/**
+ * The Material 3 navigation bar: the bottom-mounted destinations of a compact
+ * window. Presentational only: it reports presses, and the app's router
+ * decides what they mean. `NavigationRail` is its medium and expanded
+ * counterpart.
+ */
+const NavBar = ({
   items,
   activeId,
-  onItemPress,
+  onClick,
   showLabels = "always",
-}: NavigationBarProps) => {
+}: NavBarProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -42,7 +51,7 @@ const NavigationBar = ({
         return (
           <Pressable
             key={item.id}
-            onPress={() => onItemPress(item.id)}
+            onPress={() => onClick(item.id)}
             disabled={item.disabled}
             accessibilityRole="tab"
             accessibilityLabel={item.label}
@@ -102,7 +111,7 @@ const NavigationBar = ({
   );
 };
 
-export default NavigationBar;
+export default NavBar;
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({

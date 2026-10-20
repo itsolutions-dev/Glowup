@@ -413,9 +413,10 @@ const ResultView = ({ result }: { result: Result | null }) => {
   if (result.kind === "code") {
     return (
       <ListSection>
-        <ListItem secondary={result.barcode.data}>
-          {`Scanned ${result.barcode.type} at ${new Date(result.at).toLocaleTimeString()}`}
-        </ListItem>
+        <ListItem
+          secondaryText={result.barcode.data}
+          primaryText={`Scanned ${result.barcode.type} at ${new Date(result.at).toLocaleTimeString()}`}
+        />
       </ListSection>
     );
   }
@@ -430,18 +431,20 @@ const ResultView = ({ result }: { result: Result | null }) => {
           radius="large"
         />
         <ListSection>
-          <ListItem secondary={`${picture.width} × ${picture.height}`}>
-            Photo
-          </ListItem>
+          <ListItem
+            secondaryText={`${picture.width} × ${picture.height}`}
+            primaryText="Photo"
+          />
         </ListSection>
       </View>
     );
   }
   return (
     <ListSection>
-      <ListItem secondary={result.video.uri}>
-        Video saved to the cache directory
-      </ListItem>
+      <ListItem
+        secondaryText={result.video.uri}
+        primaryText="Video saved to the cache directory"
+      />
     </ListSection>
   );
 };

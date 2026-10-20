@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Modal, Typography, useTheme, type Theme } from "@its/glowup-ui";
+import { Dialog, Typography, useTheme, type Theme } from "@its/glowup-ui";
 import type { Shortcut } from "./useKeyboardShortcuts";
 import { COMMAND_KEY_LABEL } from "./useKeyboardShortcuts";
 
@@ -24,7 +24,7 @@ export const ShortcutsDialog = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <Modal
+    <Dialog
       visible={visible}
       onDismiss={onDismiss}
       onClose={onDismiss}
@@ -50,7 +50,7 @@ export const ShortcutsDialog = ({
           </View>
         ))}
       </View>
-    </Modal>
+    </Dialog>
   );
 };
 

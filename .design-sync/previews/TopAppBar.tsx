@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, IconButton, TopAppBar } from "@its/glowup-ui";
+import { Avatar, IconButton, AppBar } from "@its/glowup-ui";
 
 const bar: React.CSSProperties = { width: 400, display: "flex" };
 
@@ -20,18 +20,13 @@ const actions = (
 
 export const Small = () => (
   <div style={bar}>
-    <TopAppBar
-      title="Inbox"
-      leading={back}
-      actions={actions}
-      safeArea={false}
-    />
+    <AppBar title="Inbox" leading={back} actions={actions} safeArea={false} />
   </div>
 );
 
 export const CenterAligned = () => (
   <div style={bar}>
-    <TopAppBar
+    <AppBar
       variant="center"
       title="Glowup"
       leading={
@@ -45,7 +40,7 @@ export const CenterAligned = () => (
 
 export const Medium = () => (
   <div style={bar}>
-    <TopAppBar
+    <AppBar
       variant="medium"
       title="Team settings"
       subtitle="12 members"
@@ -58,7 +53,7 @@ export const Medium = () => (
 
 export const Large = () => (
   <div style={bar}>
-    <TopAppBar
+    <AppBar
       variant="large"
       title="Quarterly report"
       leading={back}
@@ -70,7 +65,7 @@ export const Large = () => (
 
 export const Elevated = () => (
   <div style={bar}>
-    <TopAppBar
+    <AppBar
       elevated
       title="Invoice #10428"
       leading={back}

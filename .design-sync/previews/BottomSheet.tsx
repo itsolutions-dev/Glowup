@@ -22,7 +22,7 @@ export const FilterSheet = () => (
   <div style={behind}>
     <Typography variant="headlineSmall">Components</Typography>
     <Typography variant="bodyMedium">34 results</Typography>
-    <BottomSheet visible title="Filter components" onDismiss={() => {}}>
+    <BottomSheet visible title="Filter components" onClose={() => {}}>
       <div style={column}>
         <Typography variant="labelLarge">Group</Typography>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -84,7 +84,7 @@ export const ActionSheet = () => (
   <div style={behind}>
     <Typography variant="headlineSmall">Chip</Typography>
     <Typography variant="bodyMedium">Buttons &amp; actions</Typography>
-    <BottomSheet visible title="Chip" onDismiss={() => {}}>
+    <BottomSheet visible title="Chip" onClose={() => {}}>
       <div style={column}>
         <Button
           variant="text"
@@ -126,12 +126,7 @@ export const ActionSheet = () => (
 
 export const NoHandle = () => (
   <div style={behind}>
-    <BottomSheet
-      visible
-      showHandle={false}
-      title="Sort by"
-      onDismiss={() => {}}
-    >
+    <BottomSheet visible showHandle={false} title="Sort by" onClose={() => {}}>
       <div style={column}>
         <Chip
           label="Recently updated"
@@ -156,7 +151,7 @@ export const ReleaseNotes = () => (
       visible
       title="Release notes 0.1.0"
       maxHeightRatio={0.5}
-      onDismiss={() => {}}
+      onClose={() => {}}
     >
       <div style={column}>
         <Typography variant="bodyMedium">

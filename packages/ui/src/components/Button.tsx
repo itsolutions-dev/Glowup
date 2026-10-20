@@ -22,6 +22,7 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
+import { useFormSubmit } from "./Form";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -120,6 +121,12 @@ export interface ButtonProps {
   fullWidth?: boolean;
   /** Icon side relative to the label. */
   iconPosition?: "start" | "end";
+  /**
+   * `"submit"` submits the enclosing `Form` when pressed, after `onClick`, on
+   * every platform. A button outside a `Form` ignores it. Defaults to
+   * `"button"`.
+   */
+  type?: "button" | "submit";
   accessibilityLabel?: string;
   accessibilityHint?: string;
   testID?: string;
@@ -150,6 +157,7 @@ const Button = ({
   density,
   badge,
   iconPosition = "start",
+  type = "button",
   accessibilityLabel,
   accessibilityHint,
   testID,
@@ -157,6 +165,8 @@ const Button = ({
   children,
 }: ButtonProps) => {
   const { theme } = useTheme();
+  const formSubmit = useFormSubmit();
+  const submit = type === "submit" ? formSubmit : undefined;
   const dense = useDensity(density) === "dense";
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -191,10 +201,11 @@ const Button = ({
       // whatever is listening further up.
       onPress={
         isInteractive
-          ? onClick &&
+          ? (onClick || submit) &&
             (() => {
               emitFeedback("press");
-              onClick();
+              onClick?.();
+              submit?.();
             })
           : noop
       }

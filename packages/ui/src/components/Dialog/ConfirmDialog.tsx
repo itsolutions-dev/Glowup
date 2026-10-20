@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
-import Modal from "./Modal";
+import Dialog, { type DialogSlotStyles } from "./Dialog";
 import Button from "../Button";
 import { IconSource } from "../Icon";
 
@@ -18,10 +18,15 @@ export interface ConfirmDialogProps {
   /** Hero glyph above the title. */
   icon?: IconSource;
   /**
-   * Whether the scrim and ESC cancel the dialog. Leave it off for a decision
+   * Whether the backdrop and ESC cancel the dialog. Turn it off for a decision
    * the user must answer explicitly. Defaults to `true`.
    */
   dismissable?: boolean;
+  /**
+   * Style overrides for the parts of the dialog, merged after its own styles;
+   * `actions` covers the cancel and confirm buttons.
+   */
+  slotStyles?: DialogSlotStyles;
 }
 
 function ConfirmDialog({
@@ -35,17 +40,22 @@ function ConfirmDialog({
   destructive = false,
   icon,
   dismissable = true,
+  slotStyles,
 }: ConfirmDialogProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <Modal
+    <Dialog
       visible={visible}
       title={title}
       icon={icon}
-      onDismiss={onCancel}
-      dismissable={dismissable}
+      onClose={onCancel}
+      // Cancel is right there in the actions: a second way to close is noise.
+      closeIcon={false}
+      disableBackdropClick={!dismissable}
+      disableEscapeKeyDown={!dismissable}
+      slotStyles={slotStyles}
       actions={
         <>
           <Button onClick={onCancel} variant="text">
@@ -60,7 +70,7 @@ function ConfirmDialog({
       <View style={styles.container}>
         {!!message && <Text style={styles.message}>{message}</Text>}
       </View>
-    </Modal>
+    </Dialog>
   );
 }
 

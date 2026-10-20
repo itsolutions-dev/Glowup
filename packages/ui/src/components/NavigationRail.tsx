@@ -5,7 +5,7 @@ import { getGlowStyles, useTheme, Theme } from "../providers/ThemeProvider";
 import Badge from "./Badge";
 import Icon from "./Icon";
 import Typography from "./Typography";
-import type { NavigationBarItem } from "./NavigationBar";
+import type { NavBarItem } from "./NavBar";
 import type { PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 
@@ -15,8 +15,8 @@ const INDICATOR_WIDTH = 56;
 const INDICATOR_HEIGHT = 32;
 
 export interface NavigationRailProps {
-  /** Destinations, same shape as `NavigationBar`'s. Three to seven per M3. */
-  items: NavigationBarItem[];
+  /** Destinations, same shape as `NavBar`'s. Three to seven per M3. */
+  items: NavBarItem[];
   /** `id` of the current destination. */
   activeId: string;
   onItemPress: (id: string) => void;
@@ -37,7 +37,7 @@ export interface NavigationRailProps {
 
 /**
  * The Material 3 navigation rail: the side-mounted counterpart of
- * `NavigationBar` for medium and expanded windows. Presentational only — it
+ * `NavBar` for medium and expanded windows. Presentational only — it
  * reports presses, and the app's router decides what they mean.
  */
 const NavigationRail = ({

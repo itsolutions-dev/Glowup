@@ -63,11 +63,11 @@ export const SortedColumn = () => (
             width={180}
             sortable
             sortDirection="asc"
-            onPress={() => {}}
+            onClick={() => {}}
           >
             Name
           </TableHeaderCell>
-          <TableHeaderCell width={140} sortable onPress={() => {}}>
+          <TableHeaderCell width={140} sortable onClick={() => {}}>
             Role
           </TableHeaderCell>
           <TableHeaderCell width={120}>City</TableHeaderCell>

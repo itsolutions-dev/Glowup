@@ -402,16 +402,15 @@ const ForegroundSection = ({
         {PRESENTATION_ROWS.map((row) => (
           <ListItem
             key={row.key}
-            secondary={row.description}
-            trailing={
+            secondaryText={row.description}
+            action={
               <Switch
                 value={value[row.key]}
                 onChange={(next) => onChange({ ...value, [row.key]: next })}
               />
             }
-          >
-            {row.label}
-          </ListItem>
+            primaryText={row.label}
+          />
         ))}
       </ListSection>
     </Section>
@@ -584,17 +583,16 @@ const EventLogSection = ({
               return (
                 <ListItem
                   key={key}
-                  leading={
+                  icon={
                     <Icon
                       source={icon}
                       size={24}
                       color={theme.colors.onSurfaceVariant}
                     />
                   }
-                  secondary={`${at} · ${detail}`}
-                >
-                  {title}
-                </ListItem>
+                  secondaryText={`${at} · ${detail}`}
+                  primaryText={title}
+                />
               );
             })}
           </ListSection>

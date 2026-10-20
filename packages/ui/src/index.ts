@@ -39,6 +39,8 @@ export { default as Badge } from "./components/Badge";
 export type { BadgeProps } from "./components/Badge";
 export { default as Banner } from "./components/Banner";
 export * from "./components/Banner";
+export { default as Blink } from "./components/Blink";
+export type { BlinkProps } from "./components/Blink";
 export { default as BottomSheet } from "./components/BottomSheet";
 export type { BottomSheetProps } from "./components/BottomSheet";
 export { default as Box } from "./components/Layout/Box";
@@ -65,8 +67,6 @@ export { default as CardTitle } from "./components/CardParts/CardTitle";
 export * from "./components/CardParts/CardTitle";
 export { default as Carousel } from "./components/Carousel";
 export type { CarouselProps } from "./components/Carousel";
-export { default as Center } from "./components/Layout/Center";
-export * from "./components/Layout/Center";
 export { default as Checkbox } from "./components/Checkbox";
 export type { CheckboxProps } from "./components/Checkbox";
 export { default as CheckboxGroup } from "./components/CheckboxGroup";
@@ -82,12 +82,22 @@ export * from "./components/DataGrid";
 export { default as DatePicker } from "./components/DatePicker";
 export * from "./components/DatePicker";
 export { default as DateTimePicker } from "./components/DateTimePicker";
+export { default as ConfirmDialog } from "./components/Dialog/ConfirmDialog";
+export type { ConfirmDialogProps } from "./components/Dialog/ConfirmDialog";
+export { default as Dialog } from "./components/Dialog/Dialog";
+export type {
+  DialogProps,
+  DialogSlotStyles,
+  DialogWidth,
+} from "./components/Dialog/Dialog";
 export { default as Divider } from "./components/Divider";
 export type { DividerProps } from "./components/Divider";
 export { default as EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
 export { default as FAB } from "./components/FAB";
 export type { FABProps, FABSize, FABVariant } from "./components/FAB";
+export { default as Form } from "./components/Form";
+export type { FormProps } from "./components/Form";
 export { default as FormControl } from "./components/FormControl";
 export * from "./components/FormControl";
 export { default as Grid } from "./components/Layout/Grid";
@@ -98,6 +108,8 @@ export { default as Icon } from "./components/Icon";
 export * from "./components/Icon";
 export { default as IconButton } from "./components/IconButton";
 export * from "./components/IconButton";
+export { default as IFrame } from "./components/IFrame";
+export type { IFrameProps } from "./components/IFrame";
 export { default as Image } from "./components/Image";
 export * from "./components/Image";
 export { default as Input } from "./components/Input";
@@ -112,18 +124,18 @@ export { default as ListSubheader } from "./components/List/ListSubheader";
 export * from "./components/List/ListSubheader";
 export { default as Menu } from "./components/Menu";
 export * from "./components/Menu";
-export { default as ConfirmDialog } from "./components/Modal/ConfirmDialog";
-export type { ConfirmDialogProps } from "./components/Modal/ConfirmDialog";
-export { default as Modal } from "./components/Modal/Modal";
-export type { ModalProps } from "./components/Modal/Modal";
-export { default as NavigationBar } from "./components/NavigationBar";
-export * from "./components/NavigationBar";
-export { default as NavigationDrawer } from "./components/NavigationDrawer";
-export * from "./components/NavigationDrawer";
+export { default as NavBar } from "./components/NavBar";
+export * from "./components/NavBar";
+export { default as Drawer } from "./components/Drawer";
+export * from "./components/Drawer";
 export { default as NavigationRail } from "./components/NavigationRail";
 export * from "./components/NavigationRail";
 export { default as Pagination } from "./components/Pagination";
-export type { PaginationProps } from "./components/Pagination";
+export type {
+  PaginationProps,
+  PaginationSize,
+  PaginationVariant,
+} from "./components/Pagination";
 export { default as Paper } from "./components/Paper";
 export type { PaperProps } from "./components/Paper";
 export { default as PinInput } from "./components/PinInput";
@@ -135,7 +147,10 @@ export * from "./components/Portal";
 export { default as CircularProgress } from "./components/Progress/CircularProgress";
 export * from "./components/Progress/CircularProgress";
 export { default as LinearProgress } from "./components/Progress/LinearProgress";
-export type { LinearProgressProps } from "./components/Progress/LinearProgress";
+export type {
+  LinearProgressProps,
+  LinearProgressLabelPosition,
+} from "./components/Progress/LinearProgress";
 export { default as ProgressButton } from "./components/ProgressButton";
 export * from "./components/ProgressButton";
 export { default as RadioButton } from "./components/RadioButton";
@@ -146,8 +161,6 @@ export { default as SearchBar } from "./components/SearchBar";
 export type { SearchBarProps } from "./components/SearchBar";
 export { default as Select } from "./components/Select";
 export * from "./components/Select";
-export { default as SideSheet } from "./components/SideSheet";
-export * from "./components/SideSheet";
 export { default as Skeleton } from "./components/Skeleton";
 export type { SkeletonProps } from "./components/Skeleton";
 export { default as Slider } from "./components/Slider";
@@ -190,8 +203,6 @@ export { default as Toolbar } from "./components/Toolbar";
 export * from "./components/Toolbar";
 export { default as Tooltip } from "./components/Tooltip";
 export * from "./components/Tooltip";
-export { default as TopAppBar } from "./components/TopAppBar";
-export * from "./components/TopAppBar";
 export { default as TouchableRipple } from "./components/TouchableRipple";
 export * from "./components/TouchableRipple";
 export { default as Typography } from "./components/Typography";

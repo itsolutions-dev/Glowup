@@ -191,12 +191,12 @@ export default function SecureStorePage() {
         </HStack>
         <ListSection>
           <ListItem
-            secondary={
+            secondaryText={
               outcome && "detail" in outcome && outcome.detail
                 ? outcome.detail
                 : "Add or remove a finger or a face in the settings, then read again: the item reads invalidated, not missing."
             }
-            trailing={
+            action={
               outcome ? (
                 <StatusBadge
                   label={describe(outcome)}
@@ -204,9 +204,8 @@ export default function SecureStorePage() {
                 />
               ) : null
             }
-          >
-            Last outcome
-          </ListItem>
+            primaryText="Last outcome"
+          />
         </ListSection>
       </Section>
 

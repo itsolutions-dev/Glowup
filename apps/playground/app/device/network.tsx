@@ -88,19 +88,23 @@ export default function NetworkPage() {
           </Button>
         </HStack>
         <ListSection>
-          <ListItem secondary={yesNo(network.isConnected)}>
-            Network interface up
-          </ListItem>
-          <ListItem secondary={yesNo(network.isInternetReachable)}>
-            Internet reachable
-          </ListItem>
-          <ListItem secondary={network.type}>Type</ListItem>
-          <ListItem secondary={yesNo(network.isExpensive)}>
-            Metered (expensive)
-          </ListItem>
-          <ListItem secondary={network.cellularGeneration ?? "—"}>
-            Cellular generation
-          </ListItem>
+          <ListItem
+            secondaryText={yesNo(network.isConnected)}
+            primaryText="Network interface up"
+          />
+          <ListItem
+            secondaryText={yesNo(network.isInternetReachable)}
+            primaryText="Internet reachable"
+          />
+          <ListItem secondaryText={network.type} primaryText="Type" />
+          <ListItem
+            secondaryText={yesNo(network.isExpensive)}
+            primaryText="Metered (expensive)"
+          />
+          <ListItem
+            secondaryText={network.cellularGeneration ?? "—"}
+            primaryText="Cellular generation"
+          />
         </ListSection>
       </Section>
 

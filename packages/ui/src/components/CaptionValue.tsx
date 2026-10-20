@@ -1,5 +1,14 @@
-import React, { useMemo } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
+  AccessibilityInfo,
+  DimensionValue,
+  Platform,
   StyleProp,
   StyleSheet,
   Text,
@@ -8,6 +17,9 @@ import {
   ViewStyle,
 } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
+import IconButton from "./IconButton";
+import Tooltip from "./Tooltip";
+import { resolveColor, type ThemeColor } from "./internal/themeColor";
 
 export interface CaptionValueProps {
   /** The label: "Phone", "Due date". Text, or any node. */
@@ -20,23 +32,57 @@ export interface CaptionValueProps {
   reverse?: boolean;
   /**
    * Drawn when `value` is empty (`null`, `undefined`, `""` or `false`; `0` is a
-   * value). Defaults to an em dash.
+   * value). Defaults to `"N/A"`.
    */
   fallback?: React.ReactNode;
   /** Draws no caption at all, instead of an empty line. */
   omitCaption?: boolean;
-  /** Any colour; defaults to the variant-on-surface role. */
-  captionColor?: string;
-  /** Any colour; defaults to the on-surface role. */
-  valueColor?: string;
+  /**
+   * A theme colour token (`"primary"`, `"onSurfaceVariant"`, ...) or any colour
+   * string. Defaults to `onSurfaceVariant`.
+   */
+  captionColor?: ThemeColor;
+  /**
+   * A theme colour token (`"primary"`, `"error"`, ...) or any colour string.
+   * Defaults to `onSurface`.
+   */
+  valueColor?: ThemeColor;
   textAlign?: TextStyle["textAlign"];
-  /** Space between the caption and the value. Defaults to 4. */
+  /** Space between the caption and the value, in px. Defaults to 4. */
   gap?: number;
   /** Lines the value may use before it is cut with an ellipsis; `0` is no limit. Defaults to 1. */
   numberOfLines?: number;
+  /** Width of the pair. */
+  width?: DimensionValue;
+  /** Height of the pair. */
+  height?: DimensionValue;
+  /** Flex of the pair in its parent. */
+  flex?: number;
+  /** Padding around the pair, in px. */
+  padding?: number;
+  /**
+   * Shows a small copy button after the value, for a text or number value (a
+   * node has nothing to copy). On web it writes the value to the clipboard
+   * (`navigator.clipboard`); the library has no clipboard dependency, so on
+   * native the button is shown only with an `onCopy` that does the copying.
+   * The button's icon changes to a check for a moment, and "Copied" is
+   * announced, once the value is copied.
+   */
+  enableCopy?: boolean;
+  /**
+   * Called with the value as text when the copy button is pressed. On native
+   * it is where the app copies it (`Clipboard.setStringAsync` from
+   * `expo-clipboard`); on web it is called after the clipboard write succeeded.
+   */
+  onCopy?: (value: string) => void;
+  /**
+   * Wraps a text or number value in a `Tooltip` with the value as its content:
+   * the value in full, for when `numberOfLines` cuts it.
+   */
+  showTooltip?: boolean;
   captionStyle?: StyleProp<TextStyle>;
   valueStyle?: StyleProp<TextStyle>;
-  /** For width, flex, padding and the like. */
+  /** For anything the props above do not cover. */
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -47,14 +93,17 @@ const isText = (node: React.ReactNode): node is string | number =>
 const isEmpty = (node: React.ReactNode) =>
   node === null || node === undefined || node === "" || node === false;
 
+// How long the copy button shows its check.
+const COPIED_MS = 1500;
+
 /**
  * A caption and its value, stacked or in a row: the read-only pair a detail
  * screen is made of ("Phone  +39 06 1234"). An empty value shows `fallback`
  * instead of leaving a hole.
  *
  * ```tsx
- * <CaptionValue caption="Phone" value={contact.phone} />
- * <CaptionValue caption="Due" value="12 Oct" direction="row" valueColor={theme.colors.error} />
+ * <CaptionValue caption="Phone" value={contact.phone} enableCopy onCopy={copy} />
+ * <CaptionValue caption="Due" value="12 Oct" direction="row" valueColor="error" />
  * ```
  */
 const CaptionValue = ({
@@ -62,13 +111,20 @@ const CaptionValue = ({
   value,
   direction = "column",
   reverse = false,
-  fallback = "—",
+  fallback = "N/A",
   omitCaption = false,
   captionColor,
   valueColor,
   textAlign,
   gap = 4,
   numberOfLines = 1,
+  width,
+  height,
+  flex,
+  padding,
+  enableCopy = false,
+  onCopy,
+  showTooltip = false,
   captionStyle,
   valueStyle,
   style,
@@ -76,16 +132,59 @@ const CaptionValue = ({
 }: CaptionValueProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const [copied, setCopied] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
-  const shown = isEmpty(value) ? fallback : value;
+  const empty = isEmpty(value);
+  const shown = empty ? fallback : value;
   const isRow = direction === "row";
+  const resolvedCaption = resolveColor(theme, captionColor);
+  const resolvedValue = resolveColor(theme, valueColor);
+
+  // Only a real text or number value can be copied, and on native only when
+  // the app says how.
+  const canCopy =
+    enableCopy &&
+    !empty &&
+    isText(value) &&
+    (Platform.OS === "web" || !!onCopy);
+
+  const copy = useCallback(async () => {
+    const text = String(value);
+    let done = !!onCopy;
+    if (Platform.OS === "web") {
+      const clipboard =
+        typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+      if (clipboard?.writeText) {
+        try {
+          await clipboard.writeText(text);
+          done = true;
+        } catch {
+          // Refused (no permission, an insecure page): nothing was copied.
+          return;
+        }
+      }
+    }
+    if (!done) return;
+    onCopy?.(text);
+    setCopied(true);
+    AccessibilityInfo.announceForAccessibility("Copied");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(false), COPIED_MS);
+  }, [value, onCopy]);
 
   const captionNode =
     omitCaption || isEmpty(caption) ? null : isText(caption) ? (
       <Text
         style={[
           styles.caption,
-          captionColor ? { color: captionColor } : null,
+          resolvedCaption ? { color: resolvedCaption } : null,
           { textAlign },
           captionStyle,
         ]}
@@ -97,12 +196,13 @@ const CaptionValue = ({
       caption
     );
 
-  const valueNode = isText(shown) ? (
+  let valueNode: React.ReactNode = isText(shown) ? (
     <Text
       style={[
         styles.value,
-        valueColor ? { color: valueColor } : null,
+        resolvedValue ? { color: resolvedValue } : null,
         { textAlign },
+        canCopy && styles.valueShrinks,
         valueStyle,
       ]}
       numberOfLines={numberOfLines}
@@ -113,9 +213,33 @@ const CaptionValue = ({
     shown
   );
 
-  // Read as one phrase when both parts are plain text.
+  if (showTooltip && !empty && isText(value)) {
+    valueNode = (
+      <Tooltip content={String(value)} position="top" anchorAccessible={false}>
+        {valueNode}
+      </Tooltip>
+    );
+  }
+
+  if (canCopy) {
+    valueNode = (
+      <View style={styles.valueRow}>
+        {valueNode}
+        <IconButton
+          icon={copied ? "check" : "content-copy"}
+          size="small"
+          color={copied ? "success" : undefined}
+          accessibilityLabel={copied ? "Copied" : "Copy"}
+          onClick={copy}
+        />
+      </View>
+    );
+  }
+
+  // Read as one phrase when both parts are plain text. Not with a copy button:
+  // grouped, the button would be out of reach on native.
   const label =
-    isText(caption) && isText(shown) && !omitCaption
+    isText(caption) && isText(shown) && !omitCaption && !canCopy
       ? `${caption}: ${shown}`
       : undefined;
 
@@ -127,6 +251,10 @@ const CaptionValue = ({
             "row" | "column" | "row-reverse" | "column-reverse",
           alignItems: isRow ? "center" : "stretch",
           gap,
+          width,
+          height,
+          flex,
+          padding,
         },
         style,
       ]}
@@ -152,4 +280,11 @@ const makeStyles = (theme: Theme) =>
       ...theme.typography.bodyLarge,
       color: theme.colors.onSurface,
     },
+    valueRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.s,
+    },
+    // In the row with the copy button the text gives way to it.
+    valueShrinks: { flexShrink: 1 },
   });

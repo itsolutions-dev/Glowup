@@ -81,21 +81,24 @@ export default function BatteryPage() {
           </VStack>
         )}
         <ListSection>
-          <ListItem secondary={battery.isAvailable ? "Yes" : "No"}>
-            Battery available
-          </ListItem>
-          <ListItem secondary={charging.label}>Charging state</ListItem>
           <ListItem
-            secondary={
+            secondaryText={battery.isAvailable ? "Yes" : "No"}
+            primaryText="Battery available"
+          />
+          <ListItem
+            secondaryText={charging.label}
+            primaryText="Charging state"
+          />
+          <ListItem
+            secondaryText={
               battery.lowPowerMode === null
                 ? "Unknown"
                 : battery.lowPowerMode
                   ? "On"
                   : "Off"
             }
-          >
-            Low Power Mode / Battery Saver
-          </ListItem>
+            primaryText="Low Power Mode / Battery Saver"
+          />
         </ListSection>
       </Section>
 

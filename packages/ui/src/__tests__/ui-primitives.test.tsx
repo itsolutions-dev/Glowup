@@ -1,14 +1,15 @@
 import React from "react";
-import { Text, View } from "react-native";
-import { fireEvent, render } from "@testing-library/react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { fireEvent, render, within } from "@testing-library/react-native";
 import {
   Card,
   ConfirmDialog,
   HelperText,
   Icon,
+  IconButton,
   ListItem,
   ListSection,
-  Modal,
+  Dialog,
   Portal,
   Switch,
   ThemeProvider,
@@ -205,14 +206,13 @@ function disabledNodes(node: HostNode | HostNode[] | null): HostNode[] {
 }
 
 describe("ListItem", () => {
-  it("does not mark a row without onPress, or its controls, as disabled", async () => {
+  it("does not mark a row without onClick, or its controls, as disabled", async () => {
     const { toJSON, getByRole } = await wrap(
       <ListItem
-        secondary="Keeps the screen on"
-        trailing={<Switch value onChange={() => {}} />}
-      >
-        Keep awake
-      </ListItem>,
+        primaryText="Keep awake"
+        secondaryText="Keeps the screen on"
+        action={<Switch value onChange={() => {}} />}
+      />,
     );
     expect(getByRole("switch")).toBeTruthy();
     expect(disabledNodes(toJSON() as HostNode)).toEqual([]);
@@ -220,27 +220,28 @@ describe("ListItem", () => {
     expect(() => getByRole("button", { name: /Keep awake/ })).toThrow();
   });
 
-  it("is a button that presses when it has onPress", async () => {
-    const onPress = jest.fn();
+  it("is a button that presses when it has onClick", async () => {
+    const onClick = jest.fn();
     const { getByRole } = await wrap(
-      <ListItem onPress={onPress} secondary="Settings">
-        Account
-      </ListItem>,
+      <ListItem
+        onClick={onClick}
+        primaryText="Account"
+        secondaryText="Settings"
+      />,
     );
     const row = getByRole("button");
     expect(row.props.accessibilityState?.disabled).not.toBe(true);
     await fireEvent.press(row);
-    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 
   it("draws a node as given and wraps only text in the theme's type", async () => {
     const { getByText, getByTestId, toJSON } = await wrap(
       <ListItem
-        secondary={<Text testID="second">second node</Text>}
-        trailing={<Text>t</Text>}
-      >
-        <Text testID="first">first node</Text>
-      </ListItem>,
+        primaryText={<Text testID="first">first node</Text>}
+        secondaryText={<Text testID="second">second node</Text>}
+        action={<Text>t</Text>}
+      />,
     );
     // A node is not nested inside another Text, which would force its lines
     // to one line and its styles to inherit.
@@ -250,14 +251,12 @@ describe("ListItem", () => {
     expect(JSON.stringify(toJSON())).not.toContain('"numberOfLines":1');
   });
 
-  it("shows an indicator bar, dims, and fixes the trailing width", async () => {
+  it("shows an indicator bar, dims, and fixes the action width", async () => {
     const out = async (props: object) =>
       JSON.stringify(
         (
           await wrap(
-            <ListItem trailing={<Text>x</Text>} {...props}>
-              Row
-            </ListItem>,
+            <ListItem primaryText="Row" action={<Text>x</Text>} {...props} />,
           )
         ).toJSON(),
       );
@@ -269,13 +268,88 @@ describe("ListItem", () => {
     expect(await out({})).not.toContain('"opacity":0.55');
     expect(await out({ trailingWidth: 112 })).toContain('"width":112');
   });
+
+  it("draws icon as a glyph name or as a node", async () => {
+    const glyph = await wrap(<ListItem primaryText="Mail" icon="email" />);
+    expect(glyph.toJSON()).toBeTruthy();
+    const node = await wrap(
+      <ListItem primaryText="Mail" icon={<Text testID="lead">L</Text>} />,
+    );
+    expect(node.getByTestId("lead")).toBeTruthy();
+    // A named glyph is drawn as an icon, not as the text of its name.
+    expect(glyph.queryByText("email")).toBeNull();
+  });
+
+  it("merges primaryTextStyle and secondaryTextStyle after the defaults, for text only", async () => {
+    const { getByText } = await wrap(
+      <ListItem
+        primaryText="Title"
+        secondaryText="Subtitle"
+        primaryTextStyle={{ color: "#112233" }}
+        secondaryTextStyle={{ fontSize: 9 }}
+      />,
+    );
+    expect(StyleSheet.flatten(getByText("Title").props.style).color).toBe(
+      "#112233",
+    );
+    expect(StyleSheet.flatten(getByText("Subtitle").props.style).fontSize).toBe(
+      9,
+    );
+    // A node styles itself: the style props do not reach it.
+    const node = await wrap(
+      <ListItem
+        primaryText={<Text testID="n">Node</Text>}
+        primaryTextStyle={{ color: "#112233" }}
+      />,
+    );
+    expect(
+      StyleSheet.flatten(node.getByTestId("n").props.style)?.color,
+    ).not.toBe("#112233");
+  });
+
+  it("keeps an action beside the button, never inside it", async () => {
+    const onClick = jest.fn();
+    const onAction = jest.fn();
+    const { getByRole } = await wrap(
+      <ListItem
+        primaryText="Invoice 12"
+        onClick={onClick}
+        action={
+          <IconButton
+            icon="delete"
+            accessibilityLabel="Remove"
+            onClick={onAction}
+          />
+        }
+      />,
+    );
+    const row = getByRole("button", { name: /Invoice 12/ });
+    // The row's own button holds the texts, not the action's button.
+    expect(within(row).queryByRole("button", { name: "Remove" })).toBeNull();
+    await fireEvent.press(getByRole("button", { name: "Remove" }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+    expect(onClick).not.toHaveBeenCalled();
+    await fireEvent.press(row);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not press when disabled", async () => {
+    const onClick = jest.fn();
+    const { getByRole } = await wrap(
+      <ListItem primaryText="Locked" onClick={onClick} disabled />,
+    );
+    const row = getByRole("button");
+    expect(row.props.accessibilityState).toMatchObject({ disabled: true });
+    await fireEvent.press(row);
+    expect(onClick).not.toHaveBeenCalled();
+  });
 });
 
 describe("ListSection", () => {
   it("renders its title as a heading above the rows", async () => {
     const { getByText } = await wrap(
       <ListSection title="Notifications">
-        <ListItem>Email</ListItem>
+        <ListItem primaryText="Email" />
       </ListSection>,
     );
 
@@ -362,42 +436,42 @@ describe("theme roles", () => {
   });
 });
 
-describe("Modal", () => {
-  it("dismisses on a scrim press", async () => {
-    const onDismiss = jest.fn();
+describe("Dialog", () => {
+  it("closes on a backdrop press", async () => {
+    const onClose = jest.fn();
     const { getByTestId } = await wrap(
-      <Modal visible title="Title" onDismiss={onDismiss}>
+      <Dialog visible title="Title" onClose={onClose}>
         Corpo
-      </Modal>,
+      </Dialog>,
     );
 
     await fireEvent.press(
-      getByTestId("modal-scrim", {
+      getByTestId("dialog-scrim", {
         includeHiddenElements: true,
       }),
     );
-    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("does not dismiss on a scrim press when dismissable is false", async () => {
-    const onDismiss = jest.fn();
+  it("does not close on a backdrop press when disableBackdropClick is set", async () => {
+    const onClose = jest.fn();
     const { getByTestId } = await wrap(
-      <Modal visible title="Title" onDismiss={onDismiss} dismissable={false}>
+      <Dialog visible title="Title" onClose={onClose} disableBackdropClick>
         Corpo
-      </Modal>,
+      </Dialog>,
     );
 
     await fireEvent.press(
-      getByTestId("modal-scrim", {
+      getByTestId("dialog-scrim", {
         includeHiddenElements: true,
       }),
     );
-    expect(onDismiss).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("renders the actions slot instead of the single close button", async () => {
     const { getByText, queryByText } = await wrap(
-      <Modal
+      <Dialog
         visible
         title="Title"
         onClose={() => {}}
@@ -405,7 +479,7 @@ describe("Modal", () => {
         actions={<Text>Save</Text>}
       >
         Corpo
-      </Modal>,
+      </Dialog>,
     );
 
     expect(getByText("Save")).toBeTruthy();

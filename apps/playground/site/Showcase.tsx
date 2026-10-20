@@ -150,7 +150,7 @@ export const Showcase = () => {
                 screen from components.
               </Typography>
             </View>
-            <Stepper steps={STEPS} activeStep={step} onStepPress={setStep} />
+            <Stepper steps={STEPS} activeStep={step} onClick={setStep} />
           </View>
         </Card>
 

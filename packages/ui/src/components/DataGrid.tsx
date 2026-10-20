@@ -118,7 +118,7 @@ const DataGrid = ({
             align={column.align}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
-            onPress={() => handleSort(column.id)}
+            onClick={() => handleSort(column.id)}
             onMoveLeft={
               onColumnReorder && index > 0
                 ? () => moveColumn(index, index - 1)

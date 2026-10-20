@@ -22,15 +22,17 @@ import IconButton from "./IconButton";
 import Divider from "./Divider";
 
 export interface BottomSheetProps {
+  /** Whether the sheet is open. */
   visible: boolean;
-  onDismiss: () => void;
+  /** Called by the close button, a tap on the scrim, a drag down past the threshold and Android back. */
+  onClose: () => void;
   children: React.ReactNode;
   title?: string;
   /** Adds a close button at the end of the title row. Defaults to `false`. */
   showCloseButton?: boolean;
   /**
    * A row of buttons fixed at the bottom, below a divider, while the content
-   * above it scrolls (named like `SideSheet`'s and `Modal`'s `actions`).
+   * above it scrolls (named like `Dialog`'s `actions`).
    */
   actions?: React.ReactNode;
   showHandle?: boolean;
@@ -43,7 +45,7 @@ const DISMISS_THRESHOLD = 120;
 
 const BottomSheet = ({
   visible,
-  onDismiss,
+  onClose,
   children,
   title,
   showCloseButton = false,
@@ -124,7 +126,7 @@ const BottomSheet = ({
     (event: GestureResponderEvent) => {
       const dy = event.nativeEvent.pageY - dragStartY.current;
       if (dy > DISMISS_THRESHOLD) {
-        onDismiss();
+        onClose();
       } else {
         Animated.spring(translateY, {
           toValue: 0,
@@ -134,7 +136,7 @@ const BottomSheet = ({
         }).start();
       }
     },
-    [translateY, onDismiss],
+    [translateY, onClose],
   );
 
   if (!shouldRender) return null;
@@ -144,13 +146,13 @@ const BottomSheet = ({
       visible={shouldRender}
       transparent
       animationType="none"
-      onRequestClose={onDismiss}
+      onRequestClose={onClose}
     >
       <View style={styles.root}>
         <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
           <Pressable
             style={StyleSheet.absoluteFill}
-            onPress={dismissOnScrimTap ? onDismiss : undefined}
+            onPress={dismissOnScrimTap ? onClose : undefined}
             accessibilityLabel="Close bottom sheet"
           />
         </Animated.View>
@@ -193,7 +195,7 @@ const BottomSheet = ({
                 <IconButton
                   icon="close"
                   accessibilityLabel="Close"
-                  onClick={onDismiss}
+                  onClick={onClose}
                 />
               )}
             </View>

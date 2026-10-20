@@ -74,10 +74,10 @@ export default function Pricing() {
 
   return (
     <Box
-      p="l"
-      gap="xl"
+      padding={24}
+      gap={32}
       radius="extraLarge"
-      bg="surface"
+      background="surface"
       borderWidth={1}
       borderColor="outlineVariant"
     >
@@ -113,7 +113,7 @@ export default function Pricing() {
             variant={plan.featured ? "glow" : "outlined"}
             style={{ flexGrow: 1, flexBasis: 240 }}
           >
-            <VStack spacing="m" p="m">
+            <VStack spacing="m" padding={16}>
               <HStack justify="space-between" align="center">
                 <Typography
                   variant="titleLarge"

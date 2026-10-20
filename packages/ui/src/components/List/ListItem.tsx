@@ -1,101 +1,136 @@
-import React, { useMemo } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  StyleProp,
+  TextStyle,
+} from "react-native";
+import Icons from "../Glyph";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
-import { PressableState } from "../types";
+import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
 export interface ListItemProps {
   /** The first line. Text is drawn in the theme's type; any other node is drawn as given. */
-  children: React.ReactNode;
-  onPress?: () => void;
-  /** Leading slot — an Avatar, an icon, a Checkbox. */
-  leading?: React.ReactNode;
-  /** Trailing slot — a value, a Switch, a chevron. */
-  trailing?: React.ReactNode;
-  /** Second line below `children`. Text or any node, like `children`. */
-  secondary?: React.ReactNode;
+  primaryText: React.ReactNode;
+  /** Second line below `primaryText`. Text or any node, like `primaryText`. */
+  secondaryText?: React.ReactNode;
+  /**
+   * Called when the row is pressed. Giving it makes the row a button. With an
+   * `action` as well, only the icon and the texts are the button: the action is
+   * a control of its own beside it, so a button never sits inside a button.
+   */
+  onClick?: () => void;
+  /** Leading slot: a glyph name, or any node (an Avatar, a Checkbox). */
+  icon?: MaterialCommunityIconsGlyphs | Exclude<React.ReactNode, string>;
+  /** Trailing slot: a value, a Switch, an `IconButton`, a chevron. */
+  action?: React.ReactNode;
+  /** Merged after the type of `primaryText`; applies when it is text, a node styles itself. */
+  primaryTextStyle?: StyleProp<TextStyle>;
+  /** Merged after the type of `secondaryText`; applies when it is text, a node styles itself. */
+  secondaryTextStyle?: StyleProp<TextStyle>;
   /** A coloured bar on the left edge, for a status or a priority. */
   indicatorColor?: string;
   /** Faded, for a row that is removed or inactive. Still pressable. */
   dimmed?: boolean;
-  /** Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up. */
+  /** Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up. */
   trailingWidth?: number;
+  /** Fades the row and stops it being pressed. The `action` is not disabled with it: it is a control of its own. */
+  disabled?: boolean;
   itemContainerStyle?: object;
-  itemTextStyle?: object;
-  itemSecondaryTextStyle?: object;
   itemPressedStyle?: object;
   itemHoveredStyle?: object;
+  testID?: string;
 }
 
 const isText = (node: React.ReactNode) =>
   typeof node === "string" || typeof node === "number";
 
 function ListItem({
-  children,
-  onPress,
-  leading,
-  trailing,
-  secondary,
+  primaryText,
+  secondaryText,
+  onClick,
+  icon,
+  action,
+  primaryTextStyle,
+  secondaryTextStyle,
   indicatorColor,
   dimmed = false,
   trailingWidth,
+  disabled = false,
   itemContainerStyle,
-  itemTextStyle,
-  itemSecondaryTextStyle,
   itemPressedStyle,
   itemHoveredStyle,
+  testID,
 }: ListItemProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // The split layout's own hover and press state: its container, which draws
+  // the feedback, is not the Pressable.
+  const [state, setState] = useState({ hovered: false, pressed: false });
 
   // With no slots filled this stays the original single-line centred tile.
-  const isRow = !!leading || !!trailing || !!secondary;
+  const isRow = !!icon || !!action || !!secondaryText;
+  // A pressable row holding an action: the two are siblings, not nested.
+  const split = !!onClick && !!action;
 
-  const content = (
-    <View style={[styles.content, isRow && styles.row]}>
-      {!!leading && <View style={styles.leading}>{leading}</View>}
+  const iconNode =
+    typeof icon === "string" ? (
+      <Icons
+        name={icon as MaterialCommunityIconsGlyphs}
+        size={24}
+        color={theme.colors.onSurfaceVariant}
+      />
+    ) : (
+      icon
+    );
 
-      <View style={isRow ? styles.textBlock : undefined}>
-        {isText(children) ? (
+  const leading = !!icon && <View style={styles.leading}>{iconNode}</View>;
+
+  const texts = (
+    <View style={isRow ? styles.textBlock : undefined}>
+      {isText(primaryText) ? (
+        <Text
+          style={[
+            styles.itemText,
+            isRow && styles.itemTextRow,
+            primaryTextStyle,
+          ]}
+          numberOfLines={1}
+        >
+          {primaryText}
+        </Text>
+      ) : (
+        primaryText
+      )}
+      {!!secondaryText &&
+        (isText(secondaryText) ? (
           <Text
-            style={[
-              styles.itemText,
-              isRow && styles.itemTextRow,
-              itemTextStyle,
-            ]}
-            numberOfLines={1}
+            style={[styles.secondaryText, secondaryTextStyle]}
+            numberOfLines={2}
           >
-            {children}
+            {secondaryText}
           </Text>
         ) : (
-          children
-        )}
-        {!!secondary &&
-          (isText(secondary) ? (
-            <Text
-              style={[styles.secondaryText, itemSecondaryTextStyle]}
-              numberOfLines={2}
-            >
-              {secondary}
-            </Text>
-          ) : (
-            secondary
-          ))}
-      </View>
+          secondaryText
+        ))}
+    </View>
+  );
 
-      {!!trailing && (
-        <View
-          style={[
-            styles.trailing,
-            trailingWidth !== undefined && {
-              width: trailingWidth,
-              alignItems: "flex-end",
-            },
-          ]}
-        >
-          {/* Its own box, so the right edge holds even for a child with an alignSelf of its own (StatusBadge). */}
-          {trailingWidth !== undefined ? <View>{trailing}</View> : trailing}
-        </View>
-      )}
+  const trailing = !!action && (
+    <View
+      style={[
+        styles.trailing,
+        split && styles.trailingSplit,
+        trailingWidth !== undefined && {
+          width: trailingWidth,
+          alignItems: "flex-end",
+        },
+      ]}
+    >
+      {/* Its own box, so the right edge holds even for a child with an alignSelf of its own (StatusBadge). */}
+      {trailingWidth !== undefined ? <View>{action}</View> : action}
     </View>
   );
 
@@ -103,31 +138,85 @@ function ListItem({
     ? { borderLeftWidth: 4, borderLeftColor: indicatorColor }
     : null;
 
-  return (
-    <View style={[styles.outerContainer, dimmed && styles.dimmed]}>
-      {onPress ? (
+  const feedback = (hovered?: boolean, pressed?: boolean) => [
+    (hovered || pressed) && getGlowStyles(theme, true),
+    hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
+    pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
+  ];
+
+  const press = {
+    onPress: onClick,
+    disabled,
+    accessibilityRole: "button" as const,
+    accessibilityState: { disabled },
+  };
+
+  let row: React.ReactNode;
+  if (split) {
+    row = (
+      <View
+        style={[
+          styles.itemContainer,
+          styles.splitRow,
+          accent,
+          itemContainerStyle,
+          feedback(state.hovered, state.pressed),
+        ]}
+      >
         <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          style={({ hovered, pressed }: PressableState) => [
-            styles.itemContainer,
-            accent,
-            itemContainerStyle,
-            (hovered || pressed) && getGlowStyles(theme, true),
-            hovered && { ...styles.itemHovered, ...itemHoveredStyle }, // Web-only hover
-            pressed && { ...styles.itemPressed, ...itemPressedStyle }, // Mobile-friendly press state
-          ]}
+          {...press}
+          onHoverIn={() => setState((s) => ({ ...s, hovered: true }))}
+          onHoverOut={() => setState((s) => ({ ...s, hovered: false }))}
+          onPressIn={() => setState((s) => ({ ...s, pressed: true }))}
+          onPressOut={() => setState((s) => ({ ...s, pressed: false }))}
+          style={styles.splitPress}
         >
-          {content}
+          {leading}
+          {texts}
         </Pressable>
-      ) : (
-        // Not a disabled Pressable: that marks the row disabled for screen
-        // readers (aria-disabled on the web), and with it the controls in
-        // its slots, such as a Switch in `trailing`.
-        <View style={[styles.itemContainer, accent, itemContainerStyle]}>
-          {content}
-        </View>
-      )}
+        {trailing}
+      </View>
+    );
+  } else {
+    const content = (
+      <View style={[styles.content, isRow && styles.row]}>
+        {leading}
+        {texts}
+        {trailing}
+      </View>
+    );
+    row = onClick ? (
+      <Pressable
+        {...press}
+        style={({ hovered, pressed }: PressableState) => [
+          styles.itemContainer,
+          accent,
+          itemContainerStyle,
+          feedback(hovered, pressed),
+        ]}
+      >
+        {content}
+      </Pressable>
+    ) : (
+      // Not a disabled Pressable: that marks the row disabled for screen
+      // readers (aria-disabled on the web), and with it the controls in
+      // its slots, such as a Switch in `action`.
+      <View style={[styles.itemContainer, accent, itemContainerStyle]}>
+        {content}
+      </View>
+    );
+  }
+
+  return (
+    <View
+      testID={testID}
+      style={[
+        styles.outerContainer,
+        dimmed && styles.dimmed,
+        disabled && styles.disabled,
+      ]}
+    >
+      {row}
     </View>
   );
 }
@@ -147,6 +236,9 @@ const makeStyles = (theme: Theme) =>
     dimmed: {
       opacity: 0.55,
     },
+    disabled: {
+      opacity: 0.38,
+    },
     content: {
       flex: 1,
       justifyContent: "center",
@@ -158,6 +250,22 @@ const makeStyles = (theme: Theme) =>
       paddingVertical: theme.spacing.s,
       gap: theme.spacing.m,
     },
+    // The padding of `row`, split between the button and the action so the
+    // button reaches the row's left edge.
+    splitRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingRight: theme.spacing.m,
+    },
+    splitPress: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingLeft: theme.spacing.m,
+      paddingRight: theme.spacing.m,
+      paddingVertical: theme.spacing.s,
+      gap: theme.spacing.m,
+    },
     textBlock: {
       flex: 1,
     },
@@ -166,6 +274,9 @@ const makeStyles = (theme: Theme) =>
     },
     trailing: {
       justifyContent: "center",
+    },
+    trailingSplit: {
+      paddingVertical: theme.spacing.xs,
     },
     itemText: {
       ...theme.typography.titleMedium,

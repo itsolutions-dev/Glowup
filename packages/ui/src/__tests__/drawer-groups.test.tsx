@@ -1,19 +1,19 @@
 import React from "react";
 import { Text } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
-import { DrawerItem, DrawerSection, NavigationDrawer, ThemeProvider } from "..";
+import { Drawer, DrawerItem, DrawerSection, ThemeProvider } from "..";
 
 const draw = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
 
 describe("DrawerItem groups", () => {
   const group = (props = {}) => (
-    <NavigationDrawer>
+    <Drawer>
       <DrawerItem label="Settings" icon="cog-outline" {...props}>
-        <DrawerItem label="Profile" onPress={() => {}} />
-        <DrawerItem label="Billing" onPress={() => {}} />
+        <DrawerItem label="Profile" onClick={() => {}} />
+        <DrawerItem label="Billing" onClick={() => {}} />
       </DrawerItem>
-    </NavigationDrawer>
+    </Drawer>
   );
 
   it("starts closed, opens on press and reports the new state", async () => {
@@ -33,15 +33,15 @@ describe("DrawerItem groups", () => {
     );
   });
 
-  it("can start open, is a button rather than a link, and still calls onPress", async () => {
-    const onPress = jest.fn();
+  it("can start open, is a button rather than a link, and still calls onClick", async () => {
+    const onClick = jest.fn();
     const { getByLabelText, queryByText } = await draw(
-      group({ defaultExpanded: true, onPress }),
+      group({ defaultExpanded: true, onClick }),
     );
     expect(queryByText("Profile")).toBeTruthy();
     expect(getByLabelText("Settings").props.accessibilityRole).toBe("button");
     await fireEvent.press(getByLabelText("Settings"));
-    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 
   it("indents sub-items one level deeper than their group", async () => {
@@ -56,9 +56,9 @@ describe("DrawerItem groups", () => {
 
   it("stays a plain link without children", async () => {
     const { getByLabelText } = await draw(
-      <NavigationDrawer>
-        <DrawerItem label="Inbox" onPress={() => {}} />
-      </NavigationDrawer>,
+      <Drawer>
+        <DrawerItem label="Inbox" onClick={() => {}} />
+      </Drawer>,
     );
     expect(getByLabelText("Inbox").props.accessibilityRole).toBe("link");
   });
@@ -66,11 +66,11 @@ describe("DrawerItem groups", () => {
 
 describe("DrawerSection collapsible", () => {
   const section = (props = {}) => (
-    <NavigationDrawer>
+    <Drawer>
       <DrawerSection title="Admin" collapsible {...props}>
-        <DrawerItem label="Users" onPress={() => {}} />
+        <DrawerItem label="Users" onClick={() => {}} />
       </DrawerSection>
-    </NavigationDrawer>
+    </Drawer>
   );
 
   it("is open by default, closes on a title press and reports it", async () => {
@@ -91,42 +91,42 @@ describe("DrawerSection collapsible", () => {
 
   it("is a plain heading when not collapsible", async () => {
     const { queryByLabelText, getByText } = await draw(
-      <NavigationDrawer>
+      <Drawer>
         <DrawerSection title="Admin">
-          <DrawerItem label="Users" onPress={() => {}} />
+          <DrawerItem label="Users" onClick={() => {}} />
         </DrawerSection>
-      </NavigationDrawer>,
+      </Drawer>,
     );
     expect(getByText("Admin")).toBeTruthy();
     expect(queryByLabelText("Admin")).toBeNull();
   });
 });
 
-describe("NavigationDrawer header and collapsed", () => {
+describe("Drawer header and collapsed", () => {
   it("pins a header above the items", async () => {
     const { getByText } = await draw(
-      <NavigationDrawer header={<Text>Acme CRM</Text>}>
-        <DrawerItem label="Inbox" onPress={() => {}} />
-      </NavigationDrawer>,
+      <Drawer header={<Text>Acme CRM</Text>}>
+        <DrawerItem label="Inbox" onClick={() => {}} />
+      </Drawer>,
     );
     expect(getByText("Acme CRM")).toBeTruthy();
   });
 
   it("shows icons only when collapsed: no labels, titles or sub-items, 72 wide", async () => {
     const { toJSON, queryByText, getByLabelText } = await draw(
-      <NavigationDrawer collapsed title="Mail">
+      <Drawer collapsed title="Mail">
         <DrawerSection title="Admin">
           <DrawerItem
             label="Inbox"
             icon="inbox-outline"
             badge={3}
-            onPress={() => {}}
+            onClick={() => {}}
           />
-          <DrawerItem label="Settings" defaultExpanded onPress={() => {}}>
-            <DrawerItem label="Profile" onPress={() => {}} />
+          <DrawerItem label="Settings" defaultExpanded onClick={() => {}}>
+            <DrawerItem label="Profile" onClick={() => {}} />
           </DrawerItem>
         </DrawerSection>
-      </NavigationDrawer>,
+      </Drawer>,
     );
     expect(queryByText("Inbox")).toBeNull();
     expect(queryByText("Mail")).toBeNull();

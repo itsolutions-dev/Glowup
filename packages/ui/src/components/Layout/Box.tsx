@@ -1,82 +1,105 @@
 import React, { useMemo } from "react";
-import { View, ViewProps, ViewStyle } from "react-native";
+import { StyleProp, View, ViewProps, ViewStyle } from "react-native";
 import { useTheme } from "../../providers/ThemeProvider";
-import {
-  ColorValue,
-  RadiusValue,
-  SpacingValue,
-  resolveColor,
-  resolveRadius,
-  resolveSpacing,
-} from "./tokens";
+import { ColorValue, RadiusValue, resolveColor, resolveRadius } from "./tokens";
+
+/** One of the layout presets of `BoxProps["variant"]`. */
+export type BoxVariant = NonNullable<BoxProps["variant"]>;
+
+const ROW: ViewStyle = { flexDirection: "row" };
+const COLUMN: ViewStyle = { flexDirection: "column" };
+const CENTERED: ViewStyle = { alignItems: "center", justifyContent: "center" };
+const FULL_PAGE: ViewStyle = { flex: 1, minHeight: "100%" };
+const FULL_SIZE: ViewStyle = { width: "100%", height: "100%" };
+
+/** The style of each `BoxVariant`, in one place. */
+const BOX_VARIANTS: Record<BoxVariant, ViewStyle> = {
+  standard: {},
+  flex: ROW,
+  "column-flex": COLUMN,
+  "centered-flex": { ...ROW, ...CENTERED },
+  "centered-column-flex": { ...COLUMN, ...CENTERED },
+  "full-page-flex": { ...ROW, ...FULL_PAGE },
+  "full-page-column-flex": { ...COLUMN, ...FULL_PAGE },
+  "full-size-flex": { ...ROW, ...FULL_SIZE },
+  "full-size-column": { ...COLUMN, ...FULL_SIZE },
+  "full-size-centered-flex": { ...ROW, ...CENTERED, ...FULL_SIZE },
+  "full-size-centered-column-flex": { ...COLUMN, ...CENTERED, ...FULL_SIZE },
+};
 
 export interface BoxProps extends ViewProps {
-  /** Padding on every edge. */
-  p?: SpacingValue;
-  /** Horizontal padding. */
-  px?: SpacingValue;
-  /** Vertical padding. */
-  py?: SpacingValue;
-  pt?: SpacingValue;
-  pr?: SpacingValue;
-  pb?: SpacingValue;
-  pl?: SpacingValue;
-  /** Margin on every edge. */
-  m?: SpacingValue;
-  mx?: SpacingValue;
-  my?: SpacingValue;
-  mt?: SpacingValue;
-  mr?: SpacingValue;
-  mb?: SpacingValue;
-  ml?: SpacingValue;
-  /** Background — an M3 color role name or a raw color. */
-  bg?: ColorValue;
+  /**
+   * Layout preset: direction, centring and filling the parent. The other props
+   * and `style` are applied on top of it.
+   * - `standard`: a plain column (default).
+   * - `flex`: a row.
+   * - `column-flex`: a column.
+   * - `centered-flex`: a row, centred on both axes.
+   * - `centered-column-flex`: a column, centred on both axes.
+   * - `full-page-flex`: a row that fills the screen (`flex: 1`, minimum height 100%).
+   * - `full-page-column-flex`: the same, as a column.
+   * - `full-size-flex`: a row, 100% wide and 100% high.
+   * - `full-size-column`: a column, 100% wide and 100% high.
+   * - `full-size-centered-flex`: a row, 100% x 100%, centred on both axes.
+   * - `full-size-centered-column-flex`: a column, 100% x 100%, centred on both axes.
+   */
+  variant?:
+    | "standard"
+    | "flex"
+    | "column-flex"
+    | "centered-flex"
+    | "centered-column-flex"
+    | "full-page-flex"
+    | "full-page-column-flex"
+    | "full-size-flex"
+    | "full-size-column"
+    | "full-size-centered-flex"
+    | "full-size-centered-column-flex";
+  /** Padding on every edge, in px. One edge or one axis goes through `style`. */
+  padding?: number;
+  /** Margin on every edge, in px. One edge or one axis goes through `style`. */
+  margin?: number;
+  /**
+   * Background — a theme colour token (`"surfaceContainer"`) or any colour
+   * string.
+   */
+  background?: ColorValue;
   /** Corner radius — a shape token name or a raw radius. */
   radius?: RadiusValue;
   borderWidth?: number;
+  /** Border colour — a theme colour token or any colour string. */
   borderColor?: ColorValue;
-  flex?: number;
-  gap?: SpacingValue;
+  /** Gap between children, in px. */
+  gap?: number;
   align?: ViewStyle["alignItems"];
   justify?: ViewStyle["justifyContent"];
   width?: ViewStyle["width"];
   height?: ViewStyle["height"];
-  /** Lays children out horizontally instead of vertically. */
-  row?: boolean;
+  /** Lets children flow onto the next line (or column) instead of overflowing. */
   wrap?: boolean;
+  /** Merged last, over the variant and every other prop. */
+  style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
 }
 
 /**
- * The layout primitive the rest of the kit composes from: a `View` that reads
- * spacing, shape and color straight off the theme, so screens stop hardcoding
- * magic numbers. Anything not covered by a prop still goes through `style`.
+ * The layout primitive the rest of the kit composes from: a `View` with a few
+ * theme-aware props and a `variant` for the usual layouts, so screens stop
+ * hardcoding magic numbers. Anything not covered by a prop goes through `style`.
  */
 const Box = ({
-  p,
-  px,
-  py,
-  pt,
-  pr,
-  pb,
-  pl,
-  m,
-  mx,
-  my,
-  mt,
-  mr,
-  mb,
-  ml,
-  bg,
+  variant = "standard",
+  padding,
+  margin,
+  background,
   radius,
   borderWidth,
   borderColor,
-  flex,
   gap,
   align,
   justify,
   width,
   height,
-  row,
   wrap,
   style,
   children,
@@ -85,65 +108,40 @@ const Box = ({
   const { theme } = useTheme();
 
   const boxStyle = useMemo<ViewStyle>(() => {
-    const space = (value: SpacingValue | undefined) =>
-      resolveSpacing(theme, value);
-    // Specific edges are applied after the axis shorthands, which are applied
-    // after the all-edges shorthand — narrowest wins, as in CSS.
-    return {
-      padding: space(p),
-      paddingHorizontal: space(px),
-      paddingVertical: space(py),
-      paddingTop: space(pt),
-      paddingRight: space(pr),
-      paddingBottom: space(pb),
-      paddingLeft: space(pl),
-      margin: space(m),
-      marginHorizontal: space(mx),
-      marginVertical: space(my),
-      marginTop: space(mt),
-      marginRight: space(mr),
-      marginBottom: space(mb),
-      marginLeft: space(ml),
-      backgroundColor: resolveColor(theme, bg),
+    const own: ViewStyle = {
+      padding,
+      margin,
+      backgroundColor: resolveColor(theme, background),
       borderRadius: resolveRadius(theme, radius),
       borderWidth,
       borderColor: resolveColor(theme, borderColor),
-      flex,
-      gap: space(gap),
+      gap,
       alignItems: align,
       justifyContent: justify,
       width,
       height,
-      flexDirection: row ? "row" : undefined,
       flexWrap: wrap ? "wrap" : undefined,
     };
+    // An unset prop must not blank what the variant says: in a style array a
+    // later `undefined` overrides an earlier value.
+    const set = Object.fromEntries(
+      Object.entries(own).filter(([, value]) => value !== undefined),
+    ) as ViewStyle;
+    return { ...BOX_VARIANTS[variant], ...set };
   }, [
     theme,
-    p,
-    px,
-    py,
-    pt,
-    pr,
-    pb,
-    pl,
-    m,
-    mx,
-    my,
-    mt,
-    mr,
-    mb,
-    ml,
-    bg,
+    variant,
+    padding,
+    margin,
+    background,
     radius,
     borderWidth,
     borderColor,
-    flex,
     gap,
     align,
     justify,
     width,
     height,
-    row,
     wrap,
   ]);
 

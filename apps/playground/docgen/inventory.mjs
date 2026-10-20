@@ -62,7 +62,7 @@ const OTHER = [
   ],
   [
     "Tipo",
-    "`TableAlign` (`left`, `center`, `right`), `TabItem` (`label`, `icon?`, `key?`, `disabled?`), `SnackbarType` (aggiunti `warning`, `info`)",
+    "`TableAlign` (`left`, `center`, `right`), `TabItem` (`label`, `icon?`, `key?`, `disabled?`), `SnackbarSeverity` (`success`, `info`, `warning`, `error`)",
     "Fase 3",
   ],
   [
@@ -87,9 +87,9 @@ const OTHER = [
 const BEHAVIOUR = {
   Banner:
     "i tipi `warning` e `info` usano i ruoli di stato del tema (prima il contenitore terziario/secondario: verde nelle palette di marca)",
-  Button: '`tone="success"` legge i ruoli `success` del tema',
+  Button: '`color="success"` legge i ruoli `success` del tema',
   ListItem:
-    "`children` e `secondary` accettano un nodo; solo il testo viene avvolto in `Text`",
+    "`primaryText` e `secondaryText` accettano un nodo; solo il testo viene avvolto in `Text`",
   BottomSheet:
     "il contenuto scorre da solo; l'intestazione ha un ruolo `header`",
   Snackbar: "`success` usa i ruoli del tema; icone per `warning` e `info`",

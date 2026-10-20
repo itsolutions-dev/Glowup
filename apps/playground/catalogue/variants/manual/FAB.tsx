@@ -153,7 +153,7 @@ const ShrinkOnScroll = () => {
           scrollEventThrottle={16}
         >
           {Array.from({ length: 12 }, (_, index) => (
-            <ListItem key={index}>{`Work order ${index + 1}`}</ListItem>
+            <ListItem key={index} primaryText={`Work order ${index + 1}`} />
           ))}
         </ScrollView>
       </Paper>

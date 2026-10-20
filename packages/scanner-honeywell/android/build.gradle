@@ -1,0 +1,24 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.scannerhoneywell'
+version = '0.0.0'
+
+android {
+  namespace "expo.modules.scannerhoneywell"
+  defaultConfig {
+    versionCode 1
+    versionName '0.0.0'
+  }
+}
+
+dependencies {
+  // Honeywell's Data Collection SDK is not on a public repository and its
+  // licence lets it travel only inside an app's build: the config plugin
+  // copies the app's own copy (dataCollectionAarPath) into a Maven repository
+  // inside android/ and declares it. @its/rfid-honeywell depends on the same
+  // coordinate, so an app with both resolves it once (plan C5).
+  implementation 'com.honeywell.aidc:datacollection:1.97.00.0060'
+}

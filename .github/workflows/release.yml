@@ -50,15 +50,6 @@ jobs:
       # (each only when its version is not there yet).
       # The version script also regenerates the prop tables, which record the
       # library version, so the PR does not fail CI's docgen diff check.
-      #
-      # TEMPORARY, until every package has its first version on npm: trusted
-      # publishing cannot create a package (npm answers E404 on PUT), so a
-      # granular token in the NPM_TOKEN secret publishes those first versions.
-      # npm tries OIDC first and keeps the token only where the exchange fails,
-      # so @its/glowup-ui still publishes through its trusted publisher, and
-      # every package's publishConfig keeps the provenance attestation. Once the
-      # trusted publishers exist, delete the secret and this line (without the
-      # secret the variable is empty and publishing rests on OIDC alone, as before).
       - name: Create Release PR or publish
         uses: changesets/action@v2
         with:
@@ -66,4 +57,3 @@ jobs:
           publish-script: npm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

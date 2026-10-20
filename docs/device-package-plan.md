@@ -1624,17 +1624,8 @@ questions are answered.
   October: `@its/glowup-device@0.11.0` and `@its/glowup-notifications@0.3.1` with `E404` on
   `PUT`, and nothing was published (npm knows only `@its/glowup-ui`). Trusted publishing cannot
   create a package, and the workflow has no token: the first version of each needs a publish
-  by hand or a temporary token, then a trusted publisher. The versions on `master` stay, and
-  `changeset publish` publishes whatever the registry lacks.
-- **Decided: a temporary token.** `release.yml` passes the `NPM_TOKEN` secret as
-  `NODE_AUTH_TOKEN` to the publish step. npm 11 tries the OIDC exchange first and, where it
-  fails (a package npm does not know yet), keeps the configured token (`lib/utils/oidc.js`
-  never throws and sets a token only on success), so `@its/glowup-ui` still publishes through
-  its trusted publisher. Provenance comes from `publishConfig.provenance`, which
-  `@its/rfid-honeywell` lacked (it would have shipped without an attestation) and now has.
-  Without the secret the variable is empty and publishing rests on OIDC alone, as before.
-  After the first versions: a trusted publisher on each package, then the secret and the line
-  go.
+  by hand or a temporary token, then a trusted publisher. A maintainer's choice; the versions on
+  `master` stay, and `changeset publish` publishes whatever the registry lacks.
 - **The check on the IH40 no longer waits for it.** `npm run packed -w @its/rfid-diagnostics --
   <dir>` builds the two packages, packs the tarballs npm would publish and makes a copy of the
   diagnostics app outside the repository that installs them (inside it, Node would fall back to

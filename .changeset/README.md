@@ -27,10 +27,3 @@ Publishing uses npm trusted publishing: the job's OIDC token is traded for a sho
 credential, so there is no `NPM_TOKEN` secret. Each package needs its trusted publisher set up
 once on npmjs.com (package → Settings → Trusted publishing → GitHub Actions, repository
 `itsolutions-dev/Glowup`, workflow `release.yml`).
-
-Trusted publishing cannot create a package: for one npm does not know yet it answers `E404`
-on `PUT`. A package's **first** version therefore goes out through a
-temporary granular token in the `NPM_TOKEN` secret, still from the workflow and still with
-provenance (`publishConfig.provenance`): npm tries OIDC first and falls back to the token only
-where the exchange fails. Once every package has its trusted publisher, delete the secret and
-the `NODE_AUTH_TOKEN` line in `release.yml`.

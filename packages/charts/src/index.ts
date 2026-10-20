@@ -1,2 +1,3 @@
-// The charts are added from step 1 of docs/charts-package-plan.md.
-export {};
+export { default as BarChart } from "./BarChart";
+export type { BarChartProps } from "./BarChart";
+export type { ChartDatum, ChartSeries } from "./core/types";

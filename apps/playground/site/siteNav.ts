@@ -58,6 +58,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     summary: "A PDF viewer inside the app, with no third-party library.",
   },
   {
+    href: "/charts",
+    label: "Charts",
+    icon: "chart-bar",
+    summary: "Charts drawn with SVG and a copy of d3, with no dependency.",
+  },
+  {
     href: "/device",
     label: "Device",
     icon: "cellphone-cog",

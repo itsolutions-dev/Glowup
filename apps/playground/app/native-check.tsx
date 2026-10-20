@@ -14,6 +14,7 @@ import {
   Platform,
   ScrollView,
   Text,
+  TextInput,
   View,
   type LayoutChangeEvent,
 } from "react-native";
@@ -195,6 +196,7 @@ export default function NativeCheck() {
   }, []);
 
   const [amount, setAmount] = useState("");
+  const [plain, setPlain] = useState("");
   const [filters, setFilters] = useState(0);
   const [tab, setTab] = useState("overview");
   const [sheet, setSheet] = useState(false);
@@ -283,6 +285,23 @@ export default function NativeCheck() {
       <Text
         style={{ color: theme.colors.onSurface }}
       >{`reported=${amount}`}</Text>
+
+      {/* A control for the Amount field: the library's Input is not involved, so if this one takes
+          keys and Amount does not, the fault is in the Input and not in the emulator. */}
+      <TextInput
+        accessibilityLabel="Plain field"
+        keyboardType="decimal-pad"
+        value={plain}
+        onChangeText={setPlain}
+        style={{
+          borderWidth: 1,
+          borderColor: theme.colors.outline,
+          borderRadius: 4,
+          padding: 8,
+          color: theme.colors.onSurface,
+        }}
+      />
+      <Text style={{ color: theme.colors.onSurface }}>{`plain=${plain}`}</Text>
 
       <View style={{ flexDirection: "row" }}>
         <Button

@@ -109,6 +109,9 @@ const tapNode = async (predicate, what) => {
   if (!node) {
     throw new Error(`${what} not on screen; on screen: ${describe(screen())}`);
   }
+  console.log(
+    `  tap ${what} at ${node.x},${node.y} (screen ${screenW}x${screenH})`,
+  );
   adb("shell", "input", "tap", node.x, node.y);
   await sleep(700);
 };
@@ -143,6 +146,28 @@ const keyCode = (char) =>
   char === "," ? 55 : char === "." ? 56 : 7 + Number(char);
 
 const steps = [
+  [
+    "a plain text field takes keys (the control for the next step)",
+    async () => {
+      await scrollToTop();
+      const plainField = (nodes) =>
+        nodes.filter((n) => n.cls.endsWith("EditText"))[1];
+      await tapNode(plainField, "the plain field");
+      await sleep(1500);
+      for (const char of "12") {
+        adb("shell", "input", "keyevent", keyCode(char));
+        await sleep(150);
+      }
+      await sleep(700);
+      photo("android-plain.png");
+      try {
+        await expectText(/^plain=12$/, "plain value");
+      } finally {
+        if (keyboardShown()) adb("shell", "input", "keyevent", "4");
+        await sleep(500);
+      }
+    },
+  ],
   [
     "a decimal comma is typed and reported as a plain number",
     async () => {

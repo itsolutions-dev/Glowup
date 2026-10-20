@@ -43,8 +43,9 @@ lib/
 # generated native folders
 **/ios/
 **/android/
-# …but an RFID vendor package's Android module is source.
+# …but a vendor package's Android module (RFID, barcode scanner) is source.
 !packages/rfid-*/android/
+!packages/scanner-*/android/
 
 # The workspaces' lockfile is committed; the smoke app's is not (it must resolve
 # the published package and its peers fresh, the way a new app would).

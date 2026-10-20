@@ -125,7 +125,13 @@ telefono vero, hover, grafici con migliaia di punti sul nativo.
 
 ## 8. Domande aperte
 
-- Il nome dei dati (`data`/`series` come recharts) è deciso; la **forma delle serie temporali** (`x` come `Date`, numero o
-  stringa ISO) si fissa al passo 1 guardando i grafici di linea del CRM.
+- **Chiusa il 2026-10-20 (letto `DBE-CRM-qa`, in `Documents\Dev`):** i grafici di linea del CRM **non usano un asse del
+  tempo**. Il desktop (`Charts/LineChart.jsx`, usato in `RollingGraphsWidget`) prende `x` = indice del punto, già ordinato
+  per data, e formatta le etichette con una funzione (`xTickFormat`); il mobile (`MiniLineChart`) prende
+  `points: [{ label, value }]` con `x` = posizione. L'unica scala del tempo è nel `TimelineChart`, rinviato. Quindi
+  `LineChart` e `AreaChart` hanno **l'asse x a categorie in ordine** (un `label` per punto, punti equidistanti, come le
+  barre): niente `Date` e niente `scaleTime` nella prima ondata (la copia di `d3` la contiene, se un domani servisse). Il CRM
+  usa **visx** (`@visx/scale`, `shape`, `axis`, `grid`, `legend`, `tooltip`) sul web, che sta sopra gli stessi `d3-scale` e
+  `d3-shape`: i numeri restano quelli.
 - B0 (contratto dei token) è del collega: serve il **tipo** e i nomi, anche con valori provvisori, prima del passo 3 per non
   cambiare l'API dei colori due volte.

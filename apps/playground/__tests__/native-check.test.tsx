@@ -1,4 +1,5 @@
 import React from "react";
+import { Image } from "react-native";
 import { render } from "@testing-library/react-native";
 import { ThemeProvider } from "@its/glowup-ui";
 import { PdfProvider } from "@its/glowup-pdf";
@@ -20,6 +21,13 @@ describe("native check screen", () => {
         ],
       },
     });
+    // jest-expo's image loader mock has no promise to give back: answer with the size asked for.
+    jest
+      .spyOn(Image, "getSize")
+      .mockImplementation(((
+        _uri: string,
+        ok?: (w: number, h: number) => void,
+      ) => ok?.(600, 849)) as typeof Image.getSize);
     const { getByText, getByLabelText, findByText } = await render(
       <ThemeProvider>
         <PdfProvider adapters={memory.adapters}>
@@ -42,11 +50,12 @@ describe("native check screen", () => {
     expect(
       await findByText(/^PASS pdf search finds a known word/),
     ).toBeTruthy();
-    // The page is drawn at the width the check asks for; the image's own load event is not fired here.
     expect(memory.calls.rendered[0]?.width).toBe(600);
-    expect(getByLabelText("Sample PDF page")).toBeTruthy();
     expect(
-      getByText(/^PENDING pdf page is drawn at the width asked/),
+      await findByText(
+        /^PASS pdf page is drawn at the width asked \(600 x 849/,
+      ),
     ).toBeTruthy();
+    expect(getByLabelText("Sample PDF page")).toBeTruthy();
   });
 });

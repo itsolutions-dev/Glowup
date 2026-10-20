@@ -76,6 +76,14 @@ const usePdfChecks = () => {
         );
         const drawn = await pdf.native.renderPage(uri, 0, PDF_WIDTH);
         if (alive) setImage(drawn);
+        // The file's own size, read from its header: the image view's load event reports what the
+        // platform decoded for a 90-point box, not the 600 pixels written.
+        Image.getSize(
+          drawn,
+          (width, height) =>
+            set(PDF_DRAW, width === PDF_WIDTH, `${width} x ${height} pixels`),
+          (error) => set(PDF_DRAW, false, failure(error)),
+        );
       } catch (error) {
         set(PDF_OPEN, false, failure(error));
         return;
@@ -134,13 +142,6 @@ const usePdfChecks = () => {
     };
   }, [pdf]);
 
-  const onImageLoad = useCallback((width: number, height: number) => {
-    setRows((prev) => ({
-      ...prev,
-      [PDF_DRAW]: [width === PDF_WIDTH, `${width} x ${height} pixels`],
-    }));
-  }, []);
-
   const checks = useMemo<Row[]>(
     () =>
       [PDF_OPEN, PDF_DRAW, PDF_SEARCH, PDF_REFUSE].map((name) => [
@@ -149,7 +150,7 @@ const usePdfChecks = () => {
       ]),
     [rows],
   );
-  return { checks, image, onImageLoad };
+  return { checks, image };
 };
 
 /** Reports the height and width of what it wraps, once laid out. */
@@ -253,12 +254,6 @@ export default function NativeCheck() {
         <Image
           source={{ uri: pdf.image }}
           accessibilityLabel="Sample PDF page"
-          onLoad={(e) =>
-            pdf.onImageLoad(
-              e.nativeEvent.source.width,
-              e.nativeEvent.source.height,
-            )
-          }
           style={{ width: 90, height: 127, backgroundColor: "#fff" }}
         />
       ) : null}

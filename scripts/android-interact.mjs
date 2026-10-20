@@ -45,6 +45,7 @@ const screen = () => {
       desc: attr("content-desc"),
       cls: attr("class"),
       focused: attr("focused") === "true",
+      pkg: attr("package"),
       x: Math.round((l + r) / 2),
       y: Math.round((t + b) / 2),
     };
@@ -126,16 +127,10 @@ const expectText = async (pattern, what) => {
   );
 };
 
-const keyboardShown = () =>
-  adb("shell", "dumpsys", "input_method").includes("mInputShown=true");
-
-const keyboardUp = async () => {
-  for (let i = 0; i < 6; i += 1) {
-    if (keyboardShown()) return true;
-    await sleep(500);
-  }
-  return false;
-};
+// Whether the soft keyboard is up, from what the window dump lists: `dumpsys input_method`
+// no longer says on Android 15 (its `mInputShown` is gone, so the old check was always false).
+// A dump can itself take the focus off the field: use this after typing, never before.
+const keyboardShown = () => screen().some((n) => n.pkg.includes("inputmethod"));
 
 const expectGone = async (label, what) => {
   await sleep(700);
@@ -156,22 +151,15 @@ const steps = [
       // would not focus it.
       const field = (nodes) => nodes.find((n) => n.cls.endsWith("EditText"));
       await tapNode(field, "the Amount field");
-      // Typing before the keyboard is up goes nowhere (the first run typed 12,50 and the
-      // field stayed empty): wait for it, and tap again once if it does not come.
-      for (let tries = 0; tries < 2 && !(await keyboardUp()); tries += 1) {
-        await tapNode(field, "the Amount field");
-      }
-      // Key events rather than `input text`: the first runs left the field empty with the
-      // keyboard up, so the text path is the suspect. Say what the field looked like.
-      const before = field(screen());
-      console.log(
-        `  field focused=${before?.focused} keyboard=${keyboardShown()} text="${before?.text}"`,
-      );
+      // No dump and no `dumpsys` between the tap and the keys: the last run showed the keyboard
+      // starting for this field, then the keys going nowhere after a dump had been taken.
+      await sleep(1500);
       for (const char of "12,50") {
         adb("shell", "input", "keyevent", keyCode(char));
         await sleep(150);
       }
       await sleep(700);
+      photo("android-typed.png");
       try {
         await expectText(/^reported=12\.50$/, "reported value");
         await expectText(/^12,50$/, "text shown in the field");

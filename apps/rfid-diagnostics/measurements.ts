@@ -1,8 +1,16 @@
-import type { HoneywellDiagnostic } from "@its/rfid-honeywell";
+/** A raw SDK event, as both vendors' modules send them. */
+export interface RfidDiagnostic {
+  type: string;
+  /** ms since the epoch. */
+  at: number;
+  /** The thread the SDK called back on. */
+  thread: string;
+  [detail: string]: unknown;
+}
 
 /**
  * What the spike measures, gathered from the module's raw events: the
- * answers the plan's "not verified" list waits for.
+ * answers the plan's "not verified" list waits for, for either vendor.
  */
 export interface Measurements {
   since: number;
@@ -24,8 +32,21 @@ export interface Measurements {
     lastAt: number | null;
     sample: Record<string, unknown> | null;
   };
-  /** The SDK's own locate value (`onReceivedFindingTag`), beside the module's RSSI. */
+  /** Honeywell: the SDK's own locate value (`onReceivedFindingTag`), beside the module's RSSI. */
   findingTag: { count: number; min: number | null; max: number | null };
+  /**
+   * Zebra: the searched tag's reads during a native locate, their RSSI (what
+   * the module sends) and the SDK's relative distance (0–100) beside it.
+   */
+  locate: {
+    count: number;
+    rssiMin: number | null;
+    rssiMax: number | null;
+    distanceMin: number | null;
+    distanceMax: number | null;
+    /** Reads that carried no location info. */
+    withoutLocation: number;
+  };
   battery: string[];
   /**
    * Single reads: `syncRead` without a TID, a short `read` with one; `path`
@@ -37,7 +58,7 @@ export interface Measurements {
     size: number;
     tids: number;
   }[];
-  /** Every device a discovery heard, filtered or not. */
+  /** Every device a discovery heard (Zebra: every paired reader listed), filtered or not. */
   adverts: Record<
     string,
     {
@@ -50,20 +71,32 @@ export interface Measurements {
   >;
   /** Connection and trigger events, in order. */
   timeline: { type: string; at: number; detail: string }[];
-  log: HoneywellDiagnostic[];
+  log: RfidDiagnostic[];
 }
 
 const TIMELINE = new Set([
-  "managerCreated",
+  // Both vendors.
   "connectStarted",
-  "connectThrew",
-  "deviceConnected",
-  "readerCreated",
-  "deviceDisconnected",
   "reconnectAttempt",
   "trigger",
   "triggerMode",
   "triggerModeFailed",
+  // Honeywell.
+  "managerCreated",
+  "connectThrew",
+  "deviceConnected",
+  "readerCreated",
+  "deviceDisconnected",
+  // Zebra.
+  "connected",
+  "connectFailed",
+  "linkLost",
+  "reconnectFailed",
+  "readerAppeared",
+  "readerDisappeared",
+  "powerLevels",
+  "versions",
+  "status",
 ]);
 const LOG_SIZE = 200;
 const TIMELINE_SIZE = 100;
@@ -87,6 +120,14 @@ export function emptyMeasurements(now = Date.now()): Measurements {
       sample: null,
     },
     findingTag: { count: 0, min: null, max: null },
+    locate: {
+      count: 0,
+      rssiMin: null,
+      rssiMax: null,
+      distanceMin: null,
+      distanceMax: null,
+      withoutLocation: 0,
+    },
     battery: [],
     syncReads: [],
     adverts: {},
@@ -99,7 +140,7 @@ const num = (value: unknown) => (typeof value === "number" ? value : null);
 const min = (a: number | null, b: number) => (a === null ? b : Math.min(a, b));
 const max = (a: number | null, b: number) => (a === null ? b : Math.max(a, b));
 
-function detailOf(event: HoneywellDiagnostic): string {
+function detailOf(event: RfidDiagnostic): string {
   const { type: _type, at: _at, thread: _thread, ...rest } = event;
   return JSON.stringify(rest);
 }
@@ -107,7 +148,7 @@ function detailOf(event: HoneywellDiagnostic): string {
 /** `measurements` with `event` counted in; the input is left as it was. */
 export function record(
   measurements: Measurements,
-  event: HoneywellDiagnostic,
+  event: RfidDiagnostic,
 ): Measurements {
   const next: Measurements = {
     ...measurements,
@@ -130,7 +171,11 @@ export function record(
           : [...reads.threads, event.thread],
         rssiMin: rssi === null ? reads.rssiMin : min(reads.rssiMin, rssi),
         rssiMax: rssi === null ? reads.rssiMax : max(reads.rssiMax, rssi),
-        readCountMax: Math.max(reads.readCountMax, num(sample?.readCount) ?? 0),
+        // Zebra calls it the seen count.
+        readCountMax: Math.max(
+          reads.readCountMax,
+          num(sample?.readCount ?? sample?.seenCount) ?? 0,
+        ),
         lowercaseEpc: reads.lowercaseEpc || /[a-f]/.test(epc),
         zeroTime: reads.zeroTime || sample?.time === 0,
         firstAt: reads.firstAt ?? event.at,
@@ -151,8 +196,30 @@ export function record(
       }
       break;
     }
+    case "locate": {
+      const rssi = num(event.rssi);
+      const distance = num(event.relativeDistance);
+      const locate = measurements.locate;
+      next.locate = {
+        count: locate.count + 1,
+        rssiMin: rssi === null ? locate.rssiMin : min(locate.rssiMin, rssi),
+        rssiMax: rssi === null ? locate.rssiMax : max(locate.rssiMax, rssi),
+        distanceMin:
+          distance === null
+            ? locate.distanceMin
+            : min(locate.distanceMin, distance),
+        distanceMax:
+          distance === null
+            ? locate.distanceMax
+            : max(locate.distanceMax, distance),
+        withoutLocation:
+          locate.withoutLocation + (event.hasLocation === true ? 0 : 1),
+      };
+      break;
+    }
     case "battery": {
-      const raw = String(event.raw ?? "");
+      // Honeywell: the SDK's string; Zebra: the BATTERY_EVENT's level.
+      const raw = String(event.raw ?? event.level ?? "");
       if (!measurements.battery.includes(raw)) {
         next.battery = [...measurements.battery, raw];
       }
@@ -169,6 +236,7 @@ export function record(
         },
       ];
       break;
+    case "pairedReader":
     case "advert": {
       const id = String(event.id ?? "");
       next.adverts = {

@@ -10,11 +10,6 @@ import {
   type RfidSettings,
   type RfidTag,
 } from "@its/glowup-device/rfid";
-import {
-  getHoneywellRfidAdapter,
-  HONEYWELL_NATIVE_REVISION,
-  type HoneywellRfidAdapter,
-} from "@its/rfid-honeywell";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Platform,
@@ -35,20 +30,30 @@ import {
   toReport,
   type Measurements,
 } from "./measurements";
+import {
+  linkedVendor,
+  type DiagnosticsAdapter,
+  type DiagnosticsVendor,
+} from "./vendors";
 
-const adapter = getHoneywellRfidAdapter();
+const defaultVendor = linkedVendor();
 
 /**
  * The spike's diagnostics: every mode of `@its/glowup-device/rfid` on the
- * Honeywell adapter, plus what the SDK does underneath (raw values, threads,
- * batches, advertisements), to share as one report.
+ * vendor this build links (`RFID_VENDOR`: Honeywell or Zebra), plus what the
+ * SDK does underneath (raw values, threads, batches, readers), to share as
+ * one report.
  */
-export default function App() {
+export default function App({
+  vendor = defaultVendor,
+}: {
+  vendor?: DiagnosticsVendor;
+}) {
   return (
-    <DeviceAdaptersProvider adapters={{ rfid: adapter }}>
+    <DeviceAdaptersProvider adapters={{ rfid: vendor.adapter }}>
       <ScrollView contentContainerStyle={styles.page}>
         <Text style={styles.title}>RFID diagnostics</Text>
-        <Diagnostics adapter={adapter} />
+        <Diagnostics vendor={vendor} />
       </ScrollView>
     </DeviceAdaptersProvider>
   );
@@ -71,7 +76,7 @@ function useAction() {
   return { error, run };
 }
 
-function useMeasurements(target: HoneywellRfidAdapter, enabled: boolean) {
+function useMeasurements(target: DiagnosticsAdapter, enabled: boolean) {
   const [measurements, setMeasurements] = useState(() => emptyMeasurements());
   const latest = useRef(measurements);
   useEffect(() => {
@@ -94,7 +99,8 @@ function useMeasurements(target: HoneywellRfidAdapter, enabled: boolean) {
   return { measurements, reset };
 }
 
-function Diagnostics({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
+function Diagnostics({ vendor }: { vendor: DiagnosticsVendor }) {
+  const target = vendor.adapter;
   const [diagnostics, setDiagnostics] = useState(true);
   const { measurements, reset } = useMeasurements(target, diagnostics);
   const [locateEpc, setLocateEpc] = useState("");
@@ -103,36 +109,33 @@ function Diagnostics({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
     manufacturer: constants.Manufacturer ?? null,
     model: constants.Model ?? null,
     androidVersion: Platform.Version,
-    honeywellHost: target.isHoneywellHost(),
+    vendor: vendor.name,
     supported: target.isSupported(),
     nativeRevision: target.nativeRevision(),
-    expectedNativeRevision: HONEYWELL_NATIVE_REVISION,
+    expectedNativeRevision: vendor.expectedRevision,
   };
   const staleNative =
     host.nativeRevision !== null &&
-    host.nativeRevision < HONEYWELL_NATIVE_REVISION;
+    host.nativeRevision < vendor.expectedRevision;
 
   return (
     <>
       <Section title="Host">
         <Line label="Device">{`${String(host.manufacturer)} ${String(host.model)}, API ${String(host.androidVersion)}`}</Line>
+        <Line label="Vendor">{vendor.name}</Line>
         <Line label="Adapter">
-          {host.supported
-            ? "supported"
-            : host.honeywellHost
-              ? "unsupported: the native module is missing (build with the plugin)"
-              : "unsupported: not a Honeywell host"}
+          {host.supported ? "supported" : vendor.unsupportedReason()}
         </Line>
         <Line label="Native module">
           {host.nativeRevision === null
             ? "—"
-            : `revision ${host.nativeRevision} (this JavaScript expects ${HONEYWELL_NATIVE_REVISION})`}
+            : `revision ${host.nativeRevision} (this JavaScript expects ${vendor.expectedRevision})`}
         </Line>
         {staleNative ? (
           <Text style={styles.error}>
             The app was built before the latest native change: rebuild it (npm
-            run android -w @its/rfid-diagnostics). Reloading Metro does not
-            update the module.
+            run android -w @its/rfid-diagnostics, with the same RFID_VENDOR).
+            Reloading Metro does not update the module.
           </Text>
         ) : null}
         <Toggle
@@ -142,10 +145,14 @@ function Diagnostics({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
         />
       </Section>
       <PermissionSection />
-      <ReaderSection adapter={target} />
+      <ReaderSection vendor={vendor} />
       <InventorySection onPick={setLocateEpc} />
       <SingleReadSection onPick={setLocateEpc} />
-      <LocateSection epc={locateEpc} onEpcChange={setLocateEpc} />
+      <LocateSection
+        epc={locateEpc}
+        onEpcChange={setLocateEpc}
+        setNativeLocate={vendor.setNativeLocate}
+      />
       <MeasurementsSection
         measurements={measurements}
         host={host}
@@ -172,7 +179,8 @@ function PermissionSection() {
   );
 }
 
-function ReaderSection({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
+function ReaderSection({ vendor }: { vendor: DiagnosticsVendor }) {
+  const target = vendor.adapter;
   const reader = useRfidReader();
   const discovery = useRfidReaderDiscovery();
   const { error, run } = useAction();
@@ -197,7 +205,7 @@ function ReaderSection({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
         <Text style={styles.error}>{errorText(reader.error)}</Text>
       ) : null}
       <Toggle
-        label="Only Honeywell-looking readers"
+        label={vendor.filterLabel}
         value={filter}
         onChange={(value) => {
           setFilter(value);
@@ -222,14 +230,14 @@ function ReaderSection({ adapter: target }: { adapter: HoneywellRfidAdapter }) {
         >
           <Text
             style={styles.mono}
-          >{`${found.id}  ${found.name ?? "(no name)"}  ${found.rssi ?? "?"} dBm`}</Text>
+          >{`${found.id}  ${found.name ?? "(no name)"}${found.rssi === null ? "" : `  ${found.rssi} dBm`}`}</Text>
         </Pressable>
       ))}
       <TextInput
         style={styles.input}
         value={address}
         onChangeText={setAddress}
-        placeholder="Bluetooth address, e.g. 0C:23:69:19:AA:12"
+        placeholder={vendor.idPlaceholder}
         autoCapitalize="characters"
         autoCorrect={false}
       />
@@ -425,14 +433,31 @@ function SingleReadSection({ onPick }: { onPick: (epc: string) => void }) {
 function LocateSection({
   epc,
   onEpcChange,
+  setNativeLocate,
 }: {
   epc: string;
   onEpcChange: (epc: string) => void;
+  setNativeLocate?: (enabled: boolean) => void;
 }) {
   const locate = useRfidLocate();
   const { error, run } = useAction();
+  const [native, setNative] = useState(true);
   return (
     <Section title="Single search">
+      {setNativeLocate ? (
+        <Toggle
+          label="The reader's own search (off: the engine's)"
+          value={native}
+          onChange={(value) =>
+            run(async () => {
+              // Switched between searches only: the next start uses it.
+              await locate.stop();
+              setNativeLocate(value);
+              setNative(value);
+            })
+          }
+        />
+      ) : null}
       <TextInput
         style={styles.input}
         value={epc}
@@ -470,7 +495,7 @@ function MeasurementsSection({
   host: Record<string, unknown>;
   onReset: () => void;
 }) {
-  const { reads, findingTag } = measurements;
+  const { reads, findingTag, locate } = measurements;
   const rate = batchRate(measurements);
   const share = () =>
     Share.share({
@@ -499,6 +524,11 @@ function MeasurementsSection({
         {findingTag.count === 0
           ? "—"
           : `${findingTag.min} … ${findingTag.max} (${findingTag.count})`}
+      </Line>
+      <Line label="Native locate reads">
+        {locate.count === 0
+          ? "—"
+          : `${locate.count}: RSSI ${locate.rssiMin} … ${locate.rssiMax}, relative distance ${locate.distanceMin ?? "?"} … ${locate.distanceMax ?? "?"}, ${locate.withoutLocation} without location`}
       </Line>
       <Line label="Single reads">
         {measurements.syncReads

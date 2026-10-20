@@ -43,6 +43,8 @@ lib/
 # generated native folders
 **/ios/
 **/android/
+# …but an RFID vendor package's Android module is source.
+!packages/rfid-*/android/
 
 # The workspaces' lockfile is committed; the smoke app's is not (it must resolve
 # the published package and its peers fresh, the way a new app would).
@@ -74,3 +76,8 @@ graphify-out/
 honeywell_rfid_sdk*.aar
 DataCollection*.aar
 honeywell-rfid-repository/
+# Zebra's RFID SDK for Android: from Zebra's support portal, not a public
+# repository; it travels only inside an app's build, like Honeywell's.
+rfidapi3*.aar
+API3_*.aar
+zebra-rfid-repository/

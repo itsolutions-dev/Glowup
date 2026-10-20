@@ -13,6 +13,7 @@
   "dependencies": {
     "@its/glowup-device": "*",
     "@its/rfid-honeywell": "*",
+    "@its/rfid-zebra": "*",
     "expo": "~57.0.25",
     "react": "19.2.3",
     "react-native": "0.86.3"

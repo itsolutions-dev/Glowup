@@ -1663,6 +1663,136 @@ questions are answered.
 - **Still open:** whether Honeywell's Maven repository serves the SDK (phase 35); the team's
   check on the IH40 with the packed tarballs.
 
+### Zebra (RFD40) — the second vendor
+
+The request: a vendor package for Zebra's RFD40 that implements the same contract, so an app
+switches vendor by the provider's line and the installed package (ADR-R1). The contract needed
+no change: `vendor: "zebra"` and `firstSupportedRfidAdapter([honeywell…, zebra…])` were written
+for it.
+
+**The hardware.** The RFD40 is a UHF sled in three models: _Standard_ (no Bluetooth: eConnex on
+a Zebra mobile computer, or USB-C), _Premium_ (Bluetooth 5.3, Wi-Fi, NFC tap-to-pair; also with
+other brands' devices) and _Premium Plus_ (the Premium with a barcode imager). Zebra also ships
+an RFID SDK for iOS (an XCFramework, Bluetooth MFi or LE) that supports the Premium models.
+
+**Zebra RFID SDK for Android 2.0.5.297** (the requester's download from Zebra's portal,
+`Zebra_RFIDAPI3_SDK_2.0.5.297.zip`; its public API read with `javap` without `-c`, its manifests,
+and its handheld sample `HHSampleApp/RFIDHandler.java`):
+
+- **Packaging:** one AAR for the handhelds, `rfidapi3lib-2.0.5.297.aar` (it bundles
+  `rfidserviceapi.jar`; 2.0.5.224 was fifteen AARs). `rfidapi3ziotcllrplib` holds the same
+  classes plus LLRP for fixed readers: one or the other. No native code (no ABI constraint). Not
+  on a public Maven repository. **The zip holds no licence text.**
+- **Manifest:** `minSdkVersion` 29; `BLUETOOTH`, `BLUETOOTH_ADMIN`, `BLUETOOTH_CONNECT`,
+  `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` and `READ_EXTERNAL_STORAGE`, all uncapped.
+- **Undeclared dependencies:** `androidx.localbroadcastmanager` (`RFIDManagerAPI`); Qualcomm's
+  `com.qti.qrs` (the `QC_SERIAL` transport of readers built into hosts), which Zebra's sample
+  declares as an optional `uses-library`; bouncycastle inside the scanner library only.
+- **API3:** `Readers(context, ENUM_TRANSPORT)` + `GetAvailableRFIDReaderList()` →
+  `ReaderDevice` (`getName`, `getAddress`) → `getRFIDReader().connect()`, blocking (the sample
+  runs both off the main thread). Transports `BLUETOOTH`, `SERVICE_SERIAL`, `SERVICE_USB`,
+  `RE_SERIAL`, `RE_USB`, `QC_SERIAL`, `ZIOTC`, `ALL`; the sample tries them in turn. Paired
+  names look like `RFD40+_211545201D0011` (Bluetooth) and `RFD4031-G10B700-US` (serial).
+  `Readers.attach()` reports `RFIDReaderAppeared` / `Disappeared`.
+- **Events:** one `RfidEventsListener`: `eventReadNotify` (then `Actions.getReadTags(n)`) and
+  `eventStatusNotify` with `HANDHELD_TRIGGER_EVENT` (pressed / released), `DISCONNECTION_EVENT`
+  (`CONNECTION_LOST`, `READER_INITIATED_DISCONNECTION`, `READER_EXCEPTION`) and `BATTERY_EVENT`
+  (`getLevel()`), each switched on through `Events.set…Event(true)`.
+- **Tags:** `TagData`: `getTagID()`, `getPeakRSSI()` (a `short`), `getAntennaID()`,
+  `getTagSeenCount()`, `getMemoryBankData()`, and `LocationInfo.getRelativeDistance()` (a
+  `short`) with `isContainsLocationInfo()`.
+- **How the three modes map:**
+  - **Multiple scan:** `Actions.Inventory.perform()` / `stop()` with immediate start and stop
+    triggers. With TIDs: `Actions.TagAccess.readEvent()` on `MEMORY_BANK_TID` (count 0, the
+    whole bank), which reads each tag's TID as it inventories, stopped by `stopAccess()`.
+  - **Single read:** none in the SDK.
+  - **Single search:** `Actions.TagLocationing.Perform(epc, null, null)` / `Stop()`; the SDK's
+    value is a **relative distance from 0 to 100**, not a signal.
+- **Reader:** power as an index into `ReaderCapabilities.getTransmitPowerLevelValues()`
+  (`Antennas.AntennaRfConfig.setTransmitPowerIndex`); session through
+  `Antennas.SingulationControl`; beeper `HIGH`, `MEDIUM`, `LOW`, `QUIET`; region from
+  `getRegulatoryConfig()`; `setTriggerMode(RFID_MODE | BARCODE_MODE, boolean)`;
+  `getDeviceStatus(battery, …)` (answered by `BATTERY_EVENT`) and `getBatteryStats()`; model and
+  serial from `ReaderCapabilities`, firmware from `versionInfo()`, every component's version from
+  `getDeviceVersionInfo(map)`.
+- **No brand check** in the RFID classes (`isZebraDevice` exists only in the barcode scanner
+  library, which the module does not use).
+
+**Decisions (taken with the requester):**
+
+| #   | Question    | Decision                                                                                                                                                                                                                                                 |
+| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Z1  | Hardware    | The **RFD40 Premium over Bluetooth, on any Android device**. eConnex, USB, the Standard model and the Premium Plus's imager are out.                                                                                                                     |
+| Z2  | SDK         | 2.0.5.297, `rfidapi3lib` only, supplied by the app (`aarPath`) as for Honeywell (R11): never in the repository or a published package. The licence's terms are still to read (below).                                                                    |
+| Z3  | Search      | The reader's own `TagLocationing`, its value the searched tag's **peak RSSI** in dBm; the relative distance goes to the diagnostics only. If the spike finds no RSSI in those reads, the adapter drops `startLocate` and the engine emulates the search. |
+| Z4  | Single read | Emulated by the engine (no `readOnce`): the SDK has none.                                                                                                                                                                                                |
+| Z5  | TID         | A TID-bank access during the scan (`TagAccess.readEvent`).                                                                                                                                                                                               |
+| Z6  | Discovery   | The SDK's list of **paired** readers, polled every 3 s, with no RSSI; pairing is Android's (settings or NFC tap). No Bluetooth scan of the module's own.                                                                                                 |
+| Z7  | Host        | No host check: the Premium pairs with any Android device and the SDK checks no brand (unlike R13's Honeywell).                                                                                                                                           |
+| Z8  | Platforms   | Android only. iOS (Zebra's iOS SDK) is for later; the contract allows it (R9).                                                                                                                                                                           |
+| Z9  | Diagnostics | One app, `apps/rfid-diagnostics`, one build per vendor: `RFID_VENDOR` picks the plugin and excludes the other vendor from autolinking.                                                                                                                   |
+| Z10 | Power       | Through the reader's table: read as tenths of a dBm, a setting picks the nearest level, `powerRange` 0–30 dBm with the reported power kept inside it.                                                                                                    |
+| Z11 | Release     | `@its/rfid-zebra` stays private through the spike, as Honeywell did through phase 35.                                                                                                                                                                    |
+
+Rejected: turning the relative distance into a made-up dBm (the contract's units would lie), and
+a contract change for a native proximity (it would touch every vendor for one SDK's value);
+DataWedge's RFID input (intents, no search or settings: it cannot implement the contract).
+
+| Phase | Content                                                                                                                                                                                                     | Release | Status      |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
+| Z1    | `packages/rfid-zebra` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics app per vendor; the team runs it on an RFD40 Premium and the readings fill the list below | —       | in progress |
+| Z2    | `@its/rfid-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                                                                              | `0.1.0` | —           |
+| Z3    | The playground's install snippet per vendor, `examples/consumer` (a Zebra build of its own, R13 / Z9)                                                                                                       | —       | —           |
+
+### Phase Z1 — what landed
+
+- **`packages/rfid-zebra`** (`@its/rfid-zebra`, private), the Honeywell package's shape:
+  - **Kotlin** (`ZebraRfidModule.kt`): `Readers` over Bluetooth; `connect(id)` finds the paired
+    reader by address or name and connects on the module's `link` thread; configures the events
+    and immediate triggers; reconnects by itself after `DISCONNECTION_EVENT` (1, 3, 5, then
+    every 10 s; at once on `RFIDReaderAppeared`); a `generation` counter lets a late attempt
+    close what it opened. Inventory (with TIDs through the TID-bank access), native locate (the
+    peak RSSI; the relative distance as a diagnostic), trigger hand-over (`RFID_MODE`), settings,
+    battery (`BATTERY_EVENT`, `getBatteryStats()` as a fallback), reader info and versions, the
+    paired readers' list; reads batched every 100 ms; raw diagnostic events.
+  - **Adapter** (`createZebraRfidAdapter`, `getZebraRfidAdapter`): every optional part but
+    `readOnce`; `nativeLocate` (default on) and `setNativeLocate()` for the comparison; power
+    through the table; `off` ↔ `QUIET`; nearby devices permissions from Android 12, nothing
+    before.
+  - **Plugin** (`aarPath`): the SDK in a Maven repository in `android/` for `com.zebra.rfid`
+    only, `minSdkVersion` 29, `BLUETOOTH_SCAN` / `BLUETOOTH_CONNECT`, the SDK's location capped at
+    Android 11 (`tools:node="replace"`), `com.qti.qrs.qc_sdk` optional.
+- **Checked:** the Kotlin compiles against the 2.0.5.297 `classes.jar` (stubs for Android and
+  Expo's DSL), without a warning; the adapter passes the conformance kit twice (native and
+  emulated search) over `fakeNative.ts`; the package builds and passes `validate-package`; a real
+  `expo prebuild` of the diagnostics app with `RFID_VENDOR=zebra` and the AAR produced the
+  repository, `minSdkVersion=29`, the permissions, the optional library and
+  `expoAutolinking.exclude = ["@its/rfid-honeywell"]` (and the Honeywell build the reverse);
+  autolinking then resolves only `@its/rfid-zebra`.
+- **`apps/rfid-diagnostics`** runs either vendor: `vendors.ts` picks the linked one, the
+  measurements read both vendors' events (Zebra: the locate's RSSI beside its relative
+  distance, the paired readers, the battery level), the search can switch between the reader's
+  and the engine's, and `README.md` has the RFD40 checklist.
+
+**Not verified until the spike** (the RFD40 checklist measures each):
+
+- the power table's unit (tenths of a dBm?) and range, the region's name;
+- the peak RSSI's range and the proximity bounds (−30 / −70 dBm until measured), the EPC's case;
+- whether the TID-bank access gives every tag its TID, and how much it slows the scan;
+- whether the locate's reads carry a peak RSSI (Z3), and the beeper during it;
+- whether `QUIET` mutes the beeper; what `setTriggerMode`'s boolean does; whether the
+  trigger needs `RFID_MODE` at all on a Premium;
+- the battery through `BATTERY_EVENT` or `getBatteryStats()`;
+- what the paired readers' list holds, the connection time, and the reconnection after the
+  reader is switched off or walks out of range;
+- whether anything needs a permission the module does not ask (Android 10 and 11: location;
+  12 and later: `BLUETOOTH_SCAN`), and whether the missing Qualcomm library is ever loaded.
+
+**Still open:** the SDK's licence. The zip has no EULA: the text accepted at download (or
+Zebra's terms for the RFID SDK) decides whether Z2's "the app supplies the SDK" is a choice or
+an obligation, and whether it binds the SDK to Zebra hardware (here the reader is Zebra's, the
+host may not be).
+
 ## Open for later
 
 - **Library browsing:** assets and albums, with the `all` / `limited` access and Google Play's

@@ -1,12 +1,14 @@
 import { render, screen } from "@testing-library/react-native";
 
 import App from "../App";
+import config, { excludeFromAutolinking, vendorOf } from "../app.config";
 import {
   batchRate,
   emptyMeasurements,
   record,
   toReport,
 } from "../measurements";
+import { zebraVendor } from "../vendors";
 
 const at = (ms: number) => 1_700_000_000_000 + ms;
 
@@ -97,6 +99,56 @@ describe("measurements", () => {
     });
   });
 
+  it("keeps Zebra's native locate reads, battery levels and paired readers", () => {
+    let m = emptyMeasurements(at(0));
+    m = record(m, {
+      type: "locate",
+      at: at(1),
+      thread: "sdk",
+      rssi: -48,
+      hasLocation: true,
+      relativeDistance: 72,
+    });
+    m = record(m, {
+      type: "locate",
+      at: at(2),
+      thread: "sdk",
+      rssi: -63,
+      hasLocation: false,
+      relativeDistance: null,
+    });
+    m = record(m, { type: "battery", at: at(3), thread: "sdk", level: 64 });
+    m = record(m, {
+      type: "tags",
+      at: at(4),
+      thread: "sdk",
+      size: 2,
+      sample: { epc: "E2801170", rssi: -50, seenCount: 3 },
+    });
+    m = record(m, {
+      type: "pairedReader",
+      at: at(5),
+      thread: "ZebraRfid-link",
+      id: "84:C6:92:12:34:56",
+      name: "RFD40+_211545201D0011",
+      likelyReader: true,
+    });
+    expect(m.locate).toEqual({
+      count: 2,
+      rssiMin: -63,
+      rssiMax: -48,
+      distanceMin: 72,
+      distanceMax: 72,
+      withoutLocation: 1,
+    });
+    expect(m.battery).toEqual(["64"]);
+    expect(m.reads.readCountMax).toBe(3);
+    expect(m.adverts["84:C6:92:12:34:56"]).toMatchObject({
+      name: "RFD40+_211545201D0011",
+      likelyReader: true,
+    });
+  });
+
   it("keeps the last 200 events", () => {
     let m = emptyMeasurements();
     for (let i = 0; i < 250; i++) {
@@ -117,5 +169,47 @@ describe("the screen", () => {
       ),
     ).toBeTruthy();
     expect(screen.getByText("Multiple scan")).toBeTruthy();
+  });
+
+  it("runs the Zebra adapter too, with the switch between the reader's search and the engine's", async () => {
+    await render(<App vendor={zebraVendor()} />);
+    expect(screen.getByText(/Vendor: zebra/)).toBeTruthy();
+    expect(
+      screen.getByText(/the native module is missing .*RFID_VENDOR=zebra/),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("The reader's own search (off: the engine's)"),
+    ).toBeTruthy();
+  });
+});
+
+describe("one vendor per build", () => {
+  const SETTINGS = `extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+  ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
+}
+expoAutolinking.useExpoModules()
+
+rootProject.name = 'HelloWorld'
+`;
+
+  it("picks the vendor from RFID_VENDOR, Honeywell by default", () => {
+    expect(vendorOf(undefined)).toBe("honeywell");
+    expect(vendorOf("zebra")).toBe("zebra");
+    expect(() => vendorOf("acme")).toThrow(/honeywell or zebra/);
+    expect(config.plugins?.[0]).toEqual([
+      "@its/rfid-honeywell",
+      expect.objectContaining({ aarPath: expect.any(String) }),
+    ]);
+  });
+
+  it("leaves the other vendors' modules out of autolinking, once", () => {
+    const once = excludeFromAutolinking(SETTINGS, ["@its/rfid-zebra"]);
+    expect(once).toContain(`// @its/rfid-diagnostics: one vendor per build
+expoAutolinking.exclude = ["@its/rfid-zebra"]
+expoAutolinking.useExpoModules()`);
+    expect(excludeFromAutolinking(once, ["@its/rfid-zebra"])).toBe(once);
+    expect(() => excludeFromAutolinking("include ':app'", ["x"])).toThrow(
+      /useExpoModules/,
+    );
   });
 });

@@ -61,4 +61,25 @@ describe("the charts page", () => {
     });
     expect(screen.getByTestId("demo-bars-area-answered")).toBeTruthy();
   });
+
+  it("draws the donut, the gauge, the stacked bar and the sparklines", async () => {
+    await open();
+    const measure = (id: string, height: number) =>
+      fireEvent(screen.getByTestId(id), "layout", {
+        nativeEvent: { layout: { width: 300, height, x: 0, y: 0 } },
+      });
+    await measure("demo-donut", 220);
+    await measure("demo-gauge", 220);
+    await measure("demo-stack", 32);
+    await measure("demo-spark-Answered", 32);
+
+    expect(screen.getAllByTestId(/^demo-donut-slice-/)).toHaveLength(4);
+    expect(screen.getAllByTestId(/^demo-stack-segment-/)).toHaveLength(4);
+    expect(screen.getByTestId("demo-spark-Answered-line")).toBeTruthy();
+    expect(screen.getByTestId("demo-gauge-track")).toBeTruthy();
+    expect(JSON.stringify(screen.toJSON())).toContain(`"content":"72%"`);
+
+    await fireEvent.press(screen.getByText("More"));
+    expect(JSON.stringify(screen.toJSON())).toContain(`"content":"90%"`);
+  });
 });

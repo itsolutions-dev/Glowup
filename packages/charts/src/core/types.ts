@@ -14,3 +14,12 @@ export type ChartSeries = {
 export type CurveName = "linear" | "monotone" | "natural" | "step";
 
 export type Point = { x: number; y: number | null };
+
+/** A part of a whole: a slice of a donut, a segment of a stacked bar. */
+export type PartDatum = {
+  id: string;
+  value: number;
+  /** Shown in tooltips and summaries instead of the id. */
+  label?: string;
+  color?: string;
+};

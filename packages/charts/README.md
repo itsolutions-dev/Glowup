@@ -11,7 +11,9 @@ Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` 
   in unit tests and in Chrome; not yet on a phone or in the CI's native check.
 - **`LineChart` and `AreaChart`: one or more lines over categories in order, straight or smooth, a gap where a value is missing, a dot per
   point, a guide and a tooltip on tap or hover, a target line.** Same checks as the bars.
-- The rest of the first wave (`DonutChart`, `StackedBar`, `Sparkline`, `ChartLegend`, `Chart`) is not written: see the steps in the plan.
+- **`DonutChart`, `PieChart`, `StackedBar` and `Sparkline`**: parts of a whole, and a trend with no axes. A gauge is a `DonutChart` with a
+  `total`. Same checks as the bars.
+- The rest of the first wave (`ChartLegend`, `Chart`) is not written: see the steps in the plan.
 
 ## Use
 
@@ -82,3 +84,40 @@ Same `data`, `series`, `colors`, `locale`, `formatValue`, `loading`, `onSelect` 
 
 The x axis is the order of the points, evenly spaced, with one `label` per point: it is not a time scale (the CRM's own line charts
 work this way). A missing value leaves a gap in the line. Areas of several series overlap, they do not pile up.
+
+## Parts of a whole
+
+```tsx
+import { DonutChart, PieChart, Sparkline, StackedBar } from "@its/glowup-charts";
+
+const outcomes = [
+  { id: "answered", label: "Answered", value: 120 },
+  { id: "missed", label: "Missed", value: 30 },
+];
+
+<DonutChart data={outcomes} centerValue="150" centerLabel="calls" />
+<PieChart data={outcomes} showPercent />
+<StackedBar data={outcomes} />
+<DonutChart data={[{ id: "done", value: 72 }]} total={100} centerValue="72%" /> {/* a gauge */}
+<Sparkline values={[3, 5, 4, 8, 6]} area />
+```
+
+`DonutChart`, `PieChart` and `StackedBar` take `data: { id, value, label?, color? }[]` and the `colors`, number, `title`, `loading` and
+`emptyLabel` props of the other charts. `onSelect` gets the **id** of the part, or `null`.
+
+| Prop                         | Meaning                                                                                                                                                   |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `total`                      | The whole the parts are shares of. More than their sum leaves the rest empty: 30 of 100 fills 30% of the ring.                                            |
+| `centerValue`, `centerLabel` | The text in the hole of a donut. While a part is active it shows that part's value and label instead. A pie has no hole: its active slice gets a tooltip. |
+| `thickness`                  | Width of the ring in pixels (donut).                                                                                                                      |
+| `showPercent`                | Each share written on its slice, where the slice is wide enough.                                                                                          |
+| `height`                     | In pixels; the ring is as big as fits. A stacked bar is 32 by default.                                                                                    |
+
+A tap or a pointer over a slice makes it active; a tap on the hole does nothing. Zero and negative values are not drawn. A donut with a `total`
+and no part with a value is a gauge at zero: it keeps its ring and its centre.
+
+`Sparkline` takes `values`, `height` (32), `color`, `area`, `curve`, `lastDot` and `accessibilityLabel`. It has no axes and no tooltip: it shows
+the shape of a series.
+
+There is no separate gauge component: the library's `CircularProgress` has no centre text and no share, and a donut with a `total` does what a
+gauge needs. Colour it by threshold in the app (`colors`, or a part's `color`).

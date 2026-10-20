@@ -1,8 +1,15 @@
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
-import { areaPath, donutSlices, linePath, stackValues } from "../core/paths";
+import {
+  arcPath,
+  areaPath,
+  donutSlices,
+  linePath,
+  sliceAt,
+  stackValues,
+} from "../core/paths";
 import { bandScale, pointPositions, valueScale } from "../core/scales";
-import { chartTable, describeChart } from "../core/summary";
+import { chartTable, describeChart, describeParts } from "../core/summary";
 
 describe("valueScale", () => {
   it("rounds the domain to nice ticks and keeps 0 for bars", () => {
@@ -145,6 +152,86 @@ describe("paths", () => {
     expect(
       donutSlices([{ id: "a", value: 0 }], { innerRadius: 0, outerRadius: 10 }),
     ).toEqual([]);
+  });
+});
+
+describe("donut helpers", () => {
+  const opts = { innerRadius: 20, outerRadius: 40 };
+
+  it("a total bigger than the parts leaves the rest empty", () => {
+    const [a] = donutSlices([{ id: "a", value: 30 }], { ...opts, total: 100 });
+    expect(a.fraction).toBeCloseTo(0.3);
+    expect(a.endAngle).toBeCloseTo(0.3 * 2 * Math.PI);
+  });
+
+  it("a total smaller than the parts is ignored: the parts are the whole", () => {
+    const slices = donutSlices(
+      [
+        { id: "a", value: 3 },
+        { id: "b", value: 1 },
+      ],
+      { ...opts, total: 2 },
+    );
+    expect(slices[1].endAngle).toBeCloseTo(2 * Math.PI);
+    expect(slices[0].fraction).toBeCloseTo(0.75);
+  });
+
+  it("sliceAt finds the slice under a point and nothing in the hole or outside", () => {
+    const slices = donutSlices(
+      [
+        { id: "a", value: 1 },
+        { id: "b", value: 1 },
+      ],
+      opts,
+    );
+    // clockwise from 12 o clock: a is the right half, b the left half
+    expect(sliceAt(slices, 30, 0, 20, 40)).toBe(0);
+    expect(sliceAt(slices, -30, 0, 20, 40)).toBe(1);
+    expect(sliceAt(slices, 0, -30, 20, 40)).toBe(0);
+    // exactly on the boundary between the two halves: it belongs to the next slice
+    expect(sliceAt(slices, 0, 30, 20, 40)).toBe(1);
+    expect(sliceAt(slices, 5, 0, 20, 40)).toBeNull();
+    expect(sliceAt(slices, 50, 0, 20, 40)).toBeNull();
+    expect(sliceAt([], 30, 0, 20, 40)).toBeNull();
+  });
+
+  it("arcPath draws a bigger arc for the same angles", () => {
+    const s = { startAngle: 0, endAngle: 1 };
+    expect(arcPath(s, 20, 44)).not.toBe(arcPath(s, 20, 40));
+    expect(arcPath(s, 20, 44)).toMatch(/^M/);
+  });
+});
+
+describe("describeParts", () => {
+  const format = makeValueFormatter({ locale: "en-US" });
+  const percent = makeValueFormatter({
+    locale: "en-US",
+    options: { style: "percent", maximumFractionDigits: 0 },
+  });
+
+  it("lists the parts with their share of the whole", () => {
+    expect(
+      describeParts({
+        title: "Calls",
+        parts: [
+          { name: "A", value: 30 },
+          { name: "B", value: 10 },
+        ],
+        total: 100,
+        format,
+        percent,
+      }),
+    ).toBe("Calls. 2 parts, total 100. A 30 (30%), B 10 (10%).");
+  });
+
+  it("skips parts without a value and says so when none is left", () => {
+    expect(
+      describeParts({
+        parts: [{ name: "A", value: 0 }],
+        format,
+        percent,
+      }),
+    ).toBe("No data.");
   });
 });
 

@@ -56,3 +56,31 @@ export const chartTable = ({
   ["", ...series.map((s) => s.name)],
   ...labels.map((l, i) => [l, ...series.map((s) => format(s.values[i]))]),
 ];
+
+type DescribeParts = {
+  title?: string;
+  parts: { name: string; value: number }[];
+  /** The whole the parts are shares of; default their sum. */
+  total?: number;
+  format: (value: number | null | undefined) => string;
+  percent: (value: number | null | undefined) => string;
+};
+
+/** A text for a screen reader: each part with its value and share of the whole. */
+export const describeParts = ({
+  title,
+  parts,
+  total,
+  format,
+  percent,
+}: DescribeParts): string => {
+  const shown = parts.filter((p) => isNum(p.value) && p.value > 0);
+  const sum = shown.reduce((s, p) => s + p.value, 0);
+  if (!shown.length) return title ? `${title}. No data.` : "No data.";
+  const whole = Math.max(total ?? sum, sum);
+  const head = `${title ? `${title}. ` : ""}${shown.length} ${shown.length === 1 ? "part" : "parts"}, total ${format(whole)}.`;
+  const list = shown
+    .map((p) => `${p.name} ${format(p.value)} (${percent(p.value / whole)})`)
+    .join(", ");
+  return `${head} ${list}.`;
+};

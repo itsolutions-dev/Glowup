@@ -81,7 +81,16 @@ type DonutOptions = {
   outerRadius: number;
   /** Gap between slices, in radians. */
   padAngle?: number;
+  /** Rounded slice corners, in pixels. */
+  cornerRadius?: number;
+  /**
+   * The whole the slices are shares of. When it is more than their sum, the
+   * rest is left empty (a gauge: 30 of 100). Default: their sum.
+   */
+  total?: number;
 };
+
+const REST = "\u0000rest";
 
 /**
  * Slices of a donut or a pie, in the order given, clockwise from the top.
@@ -89,26 +98,73 @@ type DonutOptions = {
  */
 export const donutSlices = (
   items: { id: string; value: number }[],
-  { innerRadius, outerRadius, padAngle = 0 }: DonutOptions,
+  {
+    innerRadius,
+    outerRadius,
+    padAngle = 0,
+    cornerRadius = 0,
+    total,
+  }: DonutOptions,
 ): DonutSlice[] => {
   const positive = items.filter((i) => Number.isFinite(i.value) && i.value > 0);
-  const total = positive.reduce((sum, i) => sum + i.value, 0);
-  if (total <= 0) return [];
+  const sum = positive.reduce((s, i) => s + i.value, 0);
+  if (sum <= 0) return [];
+  const whole = Math.max(total ?? sum, sum);
+  const rest = whole - sum;
+  const input = rest > 0 ? [...positive, { id: REST, value: rest }] : positive;
   const slices = pie<{ id: string; value: number }>()
     .sort(null)
-    .padAngle(positive.length > 1 ? padAngle : 0)
-    .value((i) => i.value)(positive);
-  const shape = arc();
-  return slices.map((s) => {
-    const geometry = { innerRadius, outerRadius, ...s };
-    return {
-      id: s.data.id,
-      value: s.value,
-      fraction: s.value / total,
-      startAngle: s.startAngle,
-      endAngle: s.endAngle,
-      path: shape(geometry) ?? "",
-      centroid: shape.centroid(geometry),
-    };
-  });
+    .padAngle(input.length > 1 ? padAngle : 0)
+    .value((i) => i.value)(input);
+  const shape = arc().cornerRadius(cornerRadius);
+  return slices
+    .filter((s) => s.data.id !== REST)
+    .map((s) => {
+      const geometry = { innerRadius, outerRadius, ...s };
+      return {
+        id: s.data.id,
+        value: s.value,
+        fraction: s.value / whole,
+        startAngle: s.startAngle,
+        endAngle: s.endAngle,
+        path: shape(geometry) ?? "",
+        centroid: shape.centroid(geometry),
+      };
+    });
+};
+
+/** The path of one arc, for a slice drawn larger than the others (the active one). */
+export const arcPath = (
+  slice: Pick<DonutSlice, "startAngle" | "endAngle">,
+  innerRadius: number,
+  outerRadius: number,
+  cornerRadius = 0,
+) =>
+  arc().cornerRadius(cornerRadius)({
+    innerRadius,
+    outerRadius,
+    startAngle: slice.startAngle,
+    endAngle: slice.endAngle,
+  }) ?? "";
+
+/**
+ * The slice under a point, given relative to the centre of the donut (x right,
+ * y down), or null when the point is in the hole or outside the ring.
+ */
+export const sliceAt = (
+  slices: Pick<DonutSlice, "startAngle" | "endAngle">[],
+  dx: number,
+  dy: number,
+  innerRadius: number,
+  outerRadius: number,
+): number | null => {
+  const r = Math.hypot(dx, dy);
+  if (r < innerRadius || r > outerRadius) return null;
+  // d3's angles run clockwise from 12 o'clock.
+  let angle = Math.atan2(dx, -dy);
+  if (angle < 0) angle += 2 * Math.PI;
+  const index = slices.findIndex(
+    (s) => angle >= s.startAngle && angle < s.endAngle,
+  );
+  return index === -1 ? null : index;
 };

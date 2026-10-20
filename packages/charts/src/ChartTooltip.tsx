@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@its/glowup-ui";
 
-export type TooltipRow = { color: string; name: string; value: string };
+export type TooltipRow = { color: string; name?: string; value: string };
 
 type ChartTooltipProps = {
   /** Where it points to, in the chart's own coordinates. */
@@ -12,6 +12,8 @@ type ChartTooltipProps = {
   containerWidth: number;
   title: string;
   rows: TooltipRow[];
+  /** Keep it inside the top edge of the chart (default). Off, it may rise above the chart, for a chart too short to hold it. */
+  clampTop?: boolean;
   testID?: string;
 };
 
@@ -22,6 +24,7 @@ export const ChartTooltip = ({
   containerWidth,
   title,
   rows,
+  clampTop = true,
   testID,
 }: ChartTooltipProps) => {
   const { theme } = useTheme();
@@ -36,7 +39,11 @@ export const ChartTooltip = ({
         Math.max(0, containerWidth - size.width),
       )
     : 0;
-  const top = measured ? Math.max(0, y - size.height - 8) : 0;
+  const top = measured
+    ? clampTop
+      ? Math.max(0, y - size.height - 8)
+      : y - size.height - 8
+    : 0;
   return (
     <View
       testID={testID}
@@ -75,7 +82,7 @@ export const ChartTooltip = ({
               { color: theme.colors.inverseOnSurface },
             ]}
           >
-            {r.name}: {r.value}
+            {r.name ? `${r.name}: ${r.value}` : r.value}
           </Text>
         </View>
       ))}

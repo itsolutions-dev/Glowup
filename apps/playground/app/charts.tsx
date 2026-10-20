@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { View } from "react-native";
 import {
   Banner,
@@ -12,7 +12,11 @@ import {
 import {
   AreaChart,
   BarChart,
+  DonutChart,
   LineChart,
+  PieChart,
+  Sparkline,
+  StackedBar,
   type ChartDatum,
 } from "@its/glowup-charts";
 
@@ -174,12 +178,117 @@ const Demo = () => {
   );
 };
 
+const OUTCOMES = [
+  { id: "answered", label: "Answered", value: 120 },
+  { id: "missed", label: "Missed", value: 30 },
+  { id: "busy", label: "Busy", value: 14 },
+  { id: "voicemail", label: "Voicemail", value: 9 },
+];
+
+const TRENDS = [
+  { name: "Answered", values: ANSWERED },
+  { name: "Missed", values: MISSED },
+];
+
+const Tile = ({
+  title,
+  wide = false,
+  children,
+}: {
+  title: string;
+  /** Alone on its row: no width to share, so no basis (it would be a height in a column). */
+  wide?: boolean;
+  children: ReactNode;
+}) => {
+  const { theme } = useTheme();
+  return (
+    <Paper
+      style={{
+        ...(wide ? {} : { flexGrow: 1, flexBasis: 240 }),
+        padding: 16,
+        borderRadius: 12,
+        gap: 8,
+        backgroundColor: theme.colors.surfaceContainerLow,
+      }}
+    >
+      <Typography variant="labelLarge">{title}</Typography>
+      {children}
+    </Paper>
+  );
+};
+
+const PartsDemo = () => {
+  const [pie, setPie] = useState(false);
+  const [percent, setPercent] = useState(false);
+  const [done, setDone] = useState(72);
+  const Ring = pie ? PieChart : DonutChart;
+
+  return (
+    <VStack spacing={16}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+        <Option label="Pie (no hole)" value={pie} onChange={setPie} />
+        <Option
+          label="Percent on slices"
+          value={percent}
+          onChange={setPercent}
+        />
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+        <Tile title="Calls by outcome">
+          <Ring
+            testID="demo-donut"
+            data={OUTCOMES}
+            height={220}
+            centerValue="173"
+            centerLabel="calls"
+            showPercent={percent}
+          />
+        </Tile>
+        <Tile title="A gauge: 72 of 100">
+          <DonutChart
+            testID="demo-gauge"
+            data={[{ id: "done", label: "Done", value: done }]}
+            total={100}
+            height={220}
+            centerValue={`${done}%`}
+            centerLabel="target reached"
+          />
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Button
+              mode="outlined"
+              onPress={() => setDone((d) => Math.max(0, d - 18))}
+            >
+              Less
+            </Button>
+            <Button
+              mode="outlined"
+              onPress={() => setDone((d) => Math.min(100, d + 18))}
+            >
+              More
+            </Button>
+          </View>
+        </Tile>
+      </View>
+      <Tile wide title="Outcome share, in one bar">
+        <StackedBar testID="demo-stack" data={OUTCOMES} />
+      </Tile>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+        {TRENDS.map((t) => (
+          <Tile key={t.name} title={t.name}>
+            <Sparkline testID={`demo-spark-${t.name}`} values={t.values} area />
+          </Tile>
+        ))}
+      </View>
+    </VStack>
+  );
+};
+
 export default function ChartsPage() {
   return (
     <Page
       eyebrow="Companion package"
       title="Charts"
-      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Bars, lines and areas exist so far. This page is not published yet."
+      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Bars, lines, areas, donuts, a stacked bar and sparklines exist so far. This page is not published yet."
       banner={
         <Banner
           visible
@@ -194,6 +303,12 @@ export default function ChartsPage() {
         description="Bars (grouped or stacked, vertical or horizontal), lines and areas (straight or smooth), a target line, a tooltip on tap or hover, and the loading and empty states."
       >
         <Demo />
+      </Section>
+      <Section
+        title="Parts of a whole"
+        description="A donut or a pie, a gauge (a donut with a total bigger than its part), a single stacked bar and sparklines. Tap or point at a slice to read it."
+      >
+        <PartsDemo />
       </Section>
       <Section
         title="Use it"

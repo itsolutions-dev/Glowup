@@ -3,9 +3,10 @@
 Riguarda la Fase 4 di `docs/solaris-native.md` e il lavoro A4 di `docs/work-split.md`. **Cambia la decisione D7** di quel
 piano (che prevedeva `d3-scale` e `d3-shape` come dipendenze): vedi §2. Esito dello spike su cui poggiava D7: `docs/spike-0.4-bar-chart.md`.
 
-Stato al 2026-10-20: **passi 0, 1, 2, 3 e 4 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con
-curva e buchi; bersaglio, tooltip, `onSelect`; pagina `/charts`; provato in Chrome). Dal passo 5 in poi niente. Il pacchetto non è
-mai girato su un telefono né nella CI nativa (passo 8). Per la forma di un pacchetto di alto livello si prende `packages/pdf` (stesse regole di confine, `ADDON_PACKAGES` in
+Stato al 2026-10-20: **passi 0–5 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
+buchi; `DonutChart`, `PieChart`, `StackedBar`, `Sparkline`; bersaglio, tooltip, `onSelect`; pagina `/charts`; provato in Chrome).
+Dal passo 6 in poi niente. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
+Android). Per la forma di un pacchetto di alto livello si prende `packages/pdf` (stesse regole di confine, `ADDON_PACKAGES` in
 `eslint.config.js`, già pronte per `charts`).
 
 ---
@@ -29,15 +30,15 @@ Vincolo: **nessuna dipendenza di terzi nel `package.json`.** Si disegna con `rea
 | Dipendenze | `d3-scale`, `d3-shape` (solo ESM)         | nessuna nel `package.json` (peer: `ui`, `react`, `react-native`, `react-native-svg`)                         |
 | Jest       | serve `transformIgnorePatterns` per l'ESM | niente da configurare: il codice è nostro, nella cartella del pacchetto                                      |
 
-Licenza: tutti i pacchetti `d3` coinvolti sono **ISC** (permissiva). Si copiano con l'intestazione di licenza e il nome
-dell'autore in ogni file, e si registrano in `docs/charts-upstream.md` versione, origine e differenze volute (come
+Licenza: tutti i pacchetti `d3` coinvolti sono **ISC** (permissiva). Si copiano con il file `LICENSE` di ciascun pacchetto accanto
+al suo codice, e si registrano in `docs/charts-upstream.md` versione, origine e differenze volute (come
 `docs/pivot-upstream.md` per il pivot).
 
 **Cosa si copia** (sorgente `src/` di ciascun pacchetto, scaricato con `npm pack` in una cartella a parte):
 
-- `d3-scale`: `linear`, `band`, `time`, `continuous`, `ordinal`, `nice`, `init`, `number`, `constant`. **Esclusa** `tickFormat`: i numeri
-  e le date si formattano con `Intl` (§4), quindi non servono `d3-format` né `d3-time-format`.
-- `d3-array`: solo `ticks`, `bisect`, `bisector`, `ascending`, `descending`, `range`, `extent`, `max`, `min`, `sum`, `permute`, `InternMap`.
+- `d3-scale`: `linear`, `band`, `time`, `utcTime`, `continuous`, `ordinal`, `nice`, `init`, `number`, `constant`. **Esclusa** `tickFormat`: i
+  numeri e le date si formattano con `Intl` (§4), quindi non servono `d3-format` né `d3-time-format`.
+- `d3-array`: solo `ticks`, `bisect`, `bisector`, `ascending`, `descending`, `range`, e `internmap` (un pacchetto a parte, 62 righe).
 - `d3-interpolate`: solo `number` e `round`. **Niente colori**: `d3-color` non serve, i colori vengono dai token.
 - `d3-time`: gli intervalli e i ticks del tempo (`timeTicks`, `timeTickInterval`).
 - `d3-shape`: `line`, `area`, `arc`, `pie`, `stack`, le curve elencate, gli `offset` e `order` di `stack`; **esclusi** i
@@ -57,8 +58,9 @@ Prima ondata, dalla Fase 4: `BarChart` (raggruppato, impilato, orizzontale, line
 (più serie, curva, marcatori toccabili), `DonutChart`/`PieChart`, `StackedBar`, `Sparkline`, `ChartLegend` (toccabile per
 nascondere una serie) e la facciata `Chart` con `type`.
 
-- **`Gauge`/indicatore a soglie:** prima di scriverlo si verifica se bastano nuove prop su `CircularProgress` di `ui`
-  (regola "estendere prima di creare"); la prova va dichiarata nel commit. Se serve una modifica a `ui`, è del collega.
+- **`Gauge`/indicatore:** nessun componente nuovo. **Verificato il 2026-10-20**: `CircularProgress` di `ui` ha solo `progress`, `size`,
+  `strokeWidth` e `color`, senza testo al centro né quota; un `DonutChart` con `total` (30 su 100) fa già un indicatore, con testo al
+  centro e traccia. Le soglie di colore le sceglie l'app (`colors`). Nessuna modifica a `ui`.
 - **Seconda ondata** (`ScatterChart`, `AreaRange`): solo se il CRM li chiede. **`TimelineChart`:** rinviato (un solo uso).
 - **Non si fa:** zoom e pan, brush, 3D, mappe.
 

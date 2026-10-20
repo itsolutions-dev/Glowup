@@ -10,7 +10,8 @@
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ],
-      "@its/rfid-honeywell": ["../../packages/rfid-honeywell/src/index.ts"]
+      "@its/rfid-honeywell": ["../../packages/rfid-honeywell/src/index.ts"],
+      "@its/rfid-zebra": ["../../packages/rfid-zebra/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

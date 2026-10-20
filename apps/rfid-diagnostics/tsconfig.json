@@ -7,11 +7,17 @@
     "paths": {
       "@its/glowup-device": ["../../packages/device/src/index.ts"],
       "@its/glowup-device/rfid": ["../../packages/device/src/rfid/index.ts"],
+      "@its/glowup-device/scanner": [
+        "../../packages/device/src/scanner/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ],
       "@its/rfid-honeywell": ["../../packages/rfid-honeywell/src/index.ts"],
-      "@its/rfid-zebra": ["../../packages/rfid-zebra/src/index.ts"]
+      "@its/rfid-zebra": ["../../packages/rfid-zebra/src/index.ts"],
+      "@its/scanner-honeywell": [
+        "../../packages/scanner-honeywell/src/index.ts"
+      ]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

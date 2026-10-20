@@ -4,6 +4,11 @@ import {
   HONEYWELL_NATIVE_REVISION,
 } from "@its/rfid-honeywell";
 import { getZebraRfidAdapter, ZEBRA_NATIVE_REVISION } from "@its/rfid-zebra";
+import {
+  getHoneywellBarcodeScannerAdapter,
+  HONEYWELL_SCANNER_NATIVE_REVISION,
+  type HoneywellBarcodeScannerAdapter,
+} from "@its/scanner-honeywell";
 
 import type { RfidDiagnostic } from "./measurements";
 
@@ -28,6 +33,32 @@ export interface DiagnosticsVendor {
   idPlaceholder: string;
   /** Adds or removes the reader's own search, where the vendor can (Zebra). */
   setNativeLocate?(enabled: boolean): void;
+  /** The host's barcode scanner: the CT40's imager. */
+  scanner: ScannerVendor;
+}
+
+/**
+ * The barcode scanner the diagnostics drive. Honeywell's in every build: in
+ * a Zebra build its module is left out, and it reads unsupported.
+ */
+export interface ScannerVendor {
+  name: "honeywell";
+  adapter: HoneywellBarcodeScannerAdapter;
+  expectedRevision: number;
+  unsupportedReason(): string;
+}
+
+export function honeywellScanner(): ScannerVendor {
+  const adapter = getHoneywellBarcodeScannerAdapter();
+  return {
+    name: "honeywell",
+    adapter,
+    expectedRevision: HONEYWELL_SCANNER_NATIVE_REVISION,
+    unsupportedReason: () =>
+      !adapter.isHoneywellHost()
+        ? "unsupported: not a Honeywell host"
+        : `${MISSING} (RFID_VENDOR=honeywell links it)`,
+  };
 }
 
 const MISSING =
@@ -43,6 +74,7 @@ export function honeywellVendor(): DiagnosticsVendor {
       adapter.isHoneywellHost() ? MISSING : "unsupported: not a Honeywell host",
     filterLabel: "Only Honeywell-looking readers",
     idPlaceholder: "Bluetooth address, e.g. 0C:23:69:19:AA:12",
+    scanner: honeywellScanner(),
   };
 }
 
@@ -56,6 +88,7 @@ export function zebraVendor(): DiagnosticsVendor {
     filterLabel: "Only Zebra-looking readers (RFD…)",
     idPlaceholder: "Paired reader's address or name, e.g. RFD40+_2115…",
     setNativeLocate: (enabled) => adapter.setNativeLocate(enabled),
+    scanner: honeywellScanner(),
   };
 }
 

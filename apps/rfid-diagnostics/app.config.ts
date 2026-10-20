@@ -9,30 +9,44 @@ import type { ExpoConfig } from "expo/config";
  *
  * - `honeywell`: HONEYWELL_RFID_AAR, HONEYWELL_DATACOLLECTION_AAR
  * - `zebra`: ZEBRA_RFID_AAR
+ *
+ * A vendor's plugins are its RFID package's and, where the host has one, its
+ * barcode scanner package's.
  */
+const HONEYWELL_DATACOLLECTION_AAR =
+  process.env.HONEYWELL_DATACOLLECTION_AAR ?? "./honeywell/DataCollection.aar";
+
 export const VENDORS = {
   honeywell: {
     label: "Honeywell",
-    plugin: [
-      "@its/rfid-honeywell",
-      {
-        aarPath:
-          process.env.HONEYWELL_RFID_AAR ??
-          "./honeywell/honeywell_rfid_sdk_v1.1.0.aar",
-        dataCollectionAarPath:
-          process.env.HONEYWELL_DATACOLLECTION_AAR ??
-          "./honeywell/DataCollection.aar",
-      },
+    // One copy of the Data Collection SDK for both: the RFID SDK loads it,
+    // and it is the CT40's scanner (plan C5).
+    plugins: [
+      [
+        "@its/rfid-honeywell",
+        {
+          aarPath:
+            process.env.HONEYWELL_RFID_AAR ??
+            "./honeywell/honeywell_rfid_sdk_v1.1.0.aar",
+          dataCollectionAarPath: HONEYWELL_DATACOLLECTION_AAR,
+        },
+      ],
+      [
+        "@its/scanner-honeywell",
+        { dataCollectionAarPath: HONEYWELL_DATACOLLECTION_AAR },
+      ],
     ],
   },
   zebra: {
     label: "Zebra",
-    plugin: [
-      "@its/rfid-zebra",
-      {
-        aarPath:
-          process.env.ZEBRA_RFID_AAR ?? "./zebra/rfidapi3lib-2.0.5.297.aar",
-      },
+    plugins: [
+      [
+        "@its/rfid-zebra",
+        {
+          aarPath:
+            process.env.ZEBRA_RFID_AAR ?? "./zebra/rfidapi3lib-2.0.5.297.aar",
+        },
+      ],
     ],
   },
 } as const;
@@ -78,7 +92,7 @@ const withOnlyVendor: ConfigPlugin<Vendor> = (config, vendor) =>
   withSettingsGradle(config, (mod) => {
     const others = (Object.keys(VENDORS) as Vendor[])
       .filter((other) => other !== vendor)
-      .map((other) => VENDORS[other].plugin[0]);
+      .flatMap((other) => VENDORS[other].plugins.map(([name]) => name));
     mod.modResults.contents = excludeFromAutolinking(
       mod.modResults.contents,
       others,
@@ -98,7 +112,9 @@ const config: ExpoConfig = {
   android: {
     package: "it.itsolutions.rfiddiagnostics",
   },
-  plugins: [VENDORS[vendor].plugin as [string, object]],
+  plugins: VENDORS[vendor].plugins.map(
+    ([name, options]) => [name, options] as [string, object],
+  ),
 };
 
 export default withOnlyVendor(config, vendor);

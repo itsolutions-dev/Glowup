@@ -43,8 +43,9 @@ lib/
 # generated native folders
 **/ios/
 **/android/
-# …but an RFID vendor package's Android module is source.
+# …but a vendor package's Android module (RFID, barcode scanner) is source.
 !packages/rfid-*/android/
+!packages/scanner-*/android/
 
 # The workspaces' lockfile is committed; the smoke app's is not (it must resolve
 # the published package and its peers fresh, the way a new app would).
@@ -70,12 +71,13 @@ packages/ui/.design-sync-entry.mjs
 .serena/
 graphify-out/
 
-# The Honeywell SDKs (RFID, and the Data Collection SDK it loads): their
-# licence lets them travel only inside an app's build
+# The Honeywell SDKs (RFID, and the Data Collection SDK it and the barcode
+# scanner load): their licence lets them travel only inside an app's build
 # (docs/device-package-plan.md, "The licence"). Never commit a copy.
 honeywell_rfid_sdk*.aar
 DataCollection*.aar
 honeywell-rfid-repository/
+honeywell-scanner-repository/
 # Zebra's RFID SDK for Android: from Zebra's support portal, not a public
 # repository; it travels only inside an app's build, like Honeywell's.
 rfidapi3*.aar

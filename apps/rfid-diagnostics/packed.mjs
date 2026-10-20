@@ -1,10 +1,10 @@
 // Builds a copy of this app that runs on the packed packages instead of their
 // source: `npm pack` makes the tarballs npm would publish for
-// @its/glowup-device and the vendor packages, and the copy, outside the
-// repository, installs them as a consumer would. The same screen then checks
-// on a real reader what the source checks here could not: the `exports`, the
-// built `lib/`, the config plugin and the Android module as the tarball ships
-// them.
+// @its/glowup-device and the vendor packages (RFID and barcode scanner), and
+// the copy, outside the repository, installs them as a consumer would. The
+// same screens then check on a real device what the source checks here could
+// not: the `exports`, the built `lib/`, the config plugins and the Android
+// modules as the tarballs ship them.
 //
 //   npm run packed -w @its/rfid-diagnostics -- <directory outside the repo>
 //
@@ -31,7 +31,10 @@ const REPO = resolve(APP, "../..");
 // that preset itself.
 const SOURCES = [
   "App.tsx",
+  "ScannerScreen.tsx",
+  "ui.tsx",
   "measurements.ts",
+  "scannerMeasurements.ts",
   "vendors.ts",
   "index.ts",
   "app.config.ts",
@@ -40,7 +43,11 @@ const SDKS = {
   honeywell: ["honeywell_rfid_sdk_v1.1.0.aar", "DataCollection.aar"],
   zebra: ["rfidapi3lib-2.0.5.297.aar"],
 };
-const VENDOR_PACKAGES = ["@its/rfid-honeywell", "@its/rfid-zebra"];
+const VENDOR_PACKAGES = [
+  "@its/rfid-honeywell",
+  "@its/rfid-zebra",
+  "@its/scanner-honeywell",
+];
 
 const target = process.argv[2] && resolve(process.argv[2]);
 if (!target) {

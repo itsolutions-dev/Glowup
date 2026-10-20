@@ -10,17 +10,14 @@ import {
   type RfidSettings,
   type RfidTag,
 } from "@its/glowup-device/rfid";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Platform,
   Pressable,
   ScrollView,
   Share,
-  StyleSheet,
-  Switch,
   Text,
   TextInput,
-  View,
 } from "react-native";
 
 import {
@@ -30,6 +27,18 @@ import {
   toReport,
   type Measurements,
 } from "./measurements";
+import { ScannerScreen } from "./ScannerScreen";
+import {
+  Bar,
+  Button,
+  errorText,
+  Line,
+  Row,
+  Section,
+  styles,
+  Toggle,
+  useAction,
+} from "./ui";
 import {
   linkedVendor,
   type DiagnosticsAdapter,
@@ -38,42 +47,59 @@ import {
 
 const defaultVendor = linkedVendor();
 
+type Screen = "rfid" | "scanner";
+
 /**
- * The spike's diagnostics: every mode of `@its/glowup-device/rfid` on the
- * vendor this build links (`RFID_VENDOR`: Honeywell or Zebra), plus what the
- * SDK does underneath (raw values, threads, batches, readers), to share as
- * one report.
+ * The spikes' diagnostics, one screen at a time (no screen reads RFID and
+ * barcodes together, plan C6):
+ * - RFID: every mode of `@its/glowup-device/rfid` on the vendor this build
+ *   links (`RFID_VENDOR`: Honeywell or Zebra);
+ * - Barcode scanner: `@its/glowup-device/scanner` on the host's imager.
+ *
+ * Each with what the SDK does underneath (raw values, threads, batches,
+ * readers), to share as one report.
  */
 export default function App({
   vendor = defaultVendor,
+  initialScreen = "rfid",
 }: {
   vendor?: DiagnosticsVendor;
+  initialScreen?: Screen;
 }) {
+  const [screen, setScreen] = useState<Screen>(initialScreen);
   return (
-    <DeviceAdaptersProvider adapters={{ rfid: vendor.adapter }}>
+    <DeviceAdaptersProvider
+      adapters={{
+        rfid: vendor.adapter,
+        barcodeScanner: vendor.scanner.adapter,
+      }}
+    >
       <ScrollView contentContainerStyle={styles.page}>
-        <Text style={styles.title}>RFID diagnostics</Text>
-        <Diagnostics vendor={vendor} />
+        <Text style={styles.title}>
+          {screen === "rfid"
+            ? "RFID diagnostics"
+            : "Barcode scanner diagnostics"}
+        </Text>
+        <Row>
+          <Button
+            label={screen === "rfid" ? "• RFID" : "RFID"}
+            onPress={() => setScreen("rfid")}
+          />
+          <Button
+            label={
+              screen === "scanner" ? "• Barcode scanner" : "Barcode scanner"
+            }
+            onPress={() => setScreen("scanner")}
+          />
+        </Row>
+        {screen === "rfid" ? (
+          <Diagnostics vendor={vendor} />
+        ) : (
+          <ScannerScreen scanner={vendor.scanner} />
+        )}
       </ScrollView>
     </DeviceAdaptersProvider>
   );
-}
-
-function errorText(error: unknown): string {
-  if (!error) return "";
-  const { code, message } = error as { code?: string; message?: string };
-  return code ? `${code}: ${message ?? ""}` : String(message ?? error);
-}
-
-function useAction() {
-  const [error, setError] = useState("");
-  const run = (action: () => Promise<unknown> | unknown) => {
-    setError("");
-    Promise.resolve()
-      .then(action)
-      .catch((failure: unknown) => setError(errorText(failure)));
-  };
-  return { error, run };
 }
 
 function useMeasurements(target: DiagnosticsAdapter, enabled: boolean) {
@@ -565,109 +591,3 @@ function MeasurementsSection({
     </Section>
   );
 }
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.heading}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
-function Line({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Text style={styles.line}>
-      <Text style={styles.label}>{`${label}: `}</Text>
-      {children}
-    </Text>
-  );
-}
-
-function Row({ children }: { children: ReactNode }) {
-  return <View style={styles.row}>{children}</View>;
-}
-
-function Button({ label, onPress }: { label: string; onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-    >
-      <Text style={styles.buttonText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Toggle({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: boolean;
-  onChange: (value: boolean) => void;
-}) {
-  return (
-    <View style={styles.toggle}>
-      <Text style={styles.line}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} />
-    </View>
-  );
-}
-
-function Bar({ value, large = false }: { value: number; large?: boolean }) {
-  return (
-    <View style={[styles.track, large && styles.trackLarge]}>
-      <View style={[styles.fill, { width: `${Math.round(value * 100)}%` }]} />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  page: { padding: 16, paddingTop: 48, gap: 16, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "600" },
-  section: {
-    gap: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    paddingTop: 12,
-  },
-  heading: { fontSize: 17, fontWeight: "600" },
-  line: { fontSize: 14 },
-  label: { fontWeight: "600" },
-  small: { fontSize: 12, color: "#555" },
-  mono: { fontFamily: "monospace", fontSize: 12 },
-  error: { color: "#b3261e", fontSize: 13 },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  toggle: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  button: {
-    backgroundColor: "#1f5fbf",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  pressed: { opacity: 0.7 },
-  buttonText: { color: "#fff", fontWeight: "600" },
-  input: {
-    borderWidth: 1,
-    borderColor: "#bbb",
-    borderRadius: 6,
-    padding: 8,
-    fontFamily: "monospace",
-  },
-  item: { paddingVertical: 6, gap: 2 },
-  track: {
-    height: 6,
-    backgroundColor: "#e5e5e5",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  trackLarge: { height: 24, borderRadius: 6 },
-  fill: { height: "100%", backgroundColor: "#2e7d32" },
-});

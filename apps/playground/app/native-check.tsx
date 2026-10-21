@@ -8,7 +8,7 @@
 //  - "Interaction" is driven on Android with `adb` (scripts/android-interact.mjs):
 //    it types, taps and reads the `STATE` lines below. iOS has no equivalent from
 //    CI, so there the screen is only measured and photographed.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   Platform,
@@ -226,6 +226,20 @@ export default function NativeCheck() {
   const [sheet, setSheet] = useState(false);
   // The widths the chart box reports: 200 (300 - 100), then a sibling grows and the box must follow to 100.
   const [chartWidths, setChartWidths] = useState<number[]>([]);
+  const [pick, setPick] = useState<number | null>(null);
+  const [part, setPart] = useState<string | null>(null);
+  // iOS has nothing to scroll the page from CI: it moves itself to the charts once the first
+  // screenshot has been taken (native.yml takes the second a little later).
+  const scroll = useRef<ScrollView>(null);
+  const chartsAt = useRef(0);
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    const timer = setTimeout(
+      () => scroll.current?.scrollTo({ y: chartsAt.current, animated: false }),
+      35_000,
+    );
+    return () => clearTimeout(timer);
+  }, []);
 
   // Each check compares a difference, not an absolute size: line heights differ
   // between platforms, the padding the props add does not.
@@ -272,6 +286,7 @@ export default function NativeCheck() {
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
       <ScrollView
+        ref={scroll}
         // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
         // as it opens: the Android run showed the hide request 45 ms after the show.
         keyboardShouldPersistTaps="handled"
@@ -314,30 +329,56 @@ export default function NativeCheck() {
           />
         ) : null}
 
-        {/* A chart box that a sibling squeezes: the drawing is absolute inside, so its width must follow the box. */}
-        <View style={{ flexDirection: "row", width: 300 }}>
-          <View style={{ width: chartWidths.length > 0 ? 200 : 100 }} />
-          <View
-            style={{ flex: 1 }}
-            onLayout={(e: LayoutChangeEvent) => {
-              const { width, height } = e.nativeEvent.layout;
-              setH((prev) => ({ ...prev, chartBox: Math.round(height) }));
-              setChartWidths((prev) =>
-                prev.at(-1) === Math.round(width)
-                  ? prev
-                  : [...prev, Math.round(width)],
-              );
-            }}
-          >
-            <BarChart
-              data={CHART_DATA}
-              series={CHART_SERIES}
-              height={CHART_HEIGHT}
-            />
+        <View
+          style={{ gap: 12 }}
+          onLayout={(e: LayoutChangeEvent) => {
+            chartsAt.current = e.nativeEvent.layout.y;
+          }}
+        >
+          {/* A chart box that a sibling squeezes: the drawing is absolute inside, so its width must follow the box. */}
+          <View style={{ flexDirection: "row", width: 300 }}>
+            <View style={{ width: chartWidths.length > 0 ? 200 : 100 }} />
+            <View
+              style={{ flex: 1 }}
+              onLayout={(e: LayoutChangeEvent) => {
+                const { width, height } = e.nativeEvent.layout;
+                setH((prev) => ({ ...prev, chartBox: Math.round(height) }));
+                setChartWidths((prev) =>
+                  prev.at(-1) === Math.round(width)
+                    ? prev
+                    : [...prev, Math.round(width)],
+                );
+              }}
+            >
+              <BarChart
+                data={CHART_DATA}
+                series={CHART_SERIES}
+                height={CHART_HEIGHT}
+              />
+            </View>
           </View>
+          {/* The tap steps of scripts/android-interact.mjs: the chart is found by the start of its summary, and a tap reads back through the state lines. */}
+          <BarChart
+            title="Native dense"
+            data={CHART_DENSE}
+            series={CHART_SERIES}
+            height={120}
+            onSelect={setPick}
+          />
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`chart=${pick ?? "none"}`}</Text>
+          <DonutChart
+            title="Native parts"
+            data={CHART_PARTS}
+            height={160}
+            showPercent
+            onSelect={setPart}
+          />
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`part=${part ?? "none"}`}</Text>
         </View>
-        <BarChart data={CHART_DENSE} series={CHART_SERIES} height={120} />
-        <DonutChart data={CHART_PARTS} height={160} showPercent />
 
         <Text style={{ color: theme.colors.onSurfaceVariant }}>
           Interaction

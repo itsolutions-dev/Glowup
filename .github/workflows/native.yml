@@ -113,9 +113,12 @@ jobs:
           # The app opens the route 60 s after launch; the smoke check above took 40 s.
           sleep 45
           xcrun simctl io "$UDID" screenshot ios-check.png
+          # The screen scrolls itself to the charts 35 s after it opens (about 10 s from here).
+          sleep 25
+          xcrun simctl io "$UDID" screenshot ios-charts.png
           {
             echo "### iOS native check"
-            echo "Measured on the simulator: read the lines in ios-check.png (the artifact)."
+            echo "Measured on the simulator: read the lines in ios-check.png and the charts in ios-charts.png (the artifact)."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Collect crash reports
@@ -132,6 +135,7 @@ jobs:
           path: |
             ios-shot.png
             ios-check.png
+            ios-charts.png
             ios-app.log
             ios-crashes
             xcodebuild.log
@@ -233,6 +237,7 @@ jobs:
             android-check.png
             android-check-after.png
             android-step-*.png
+            android-chart-*.png
             android-typed.png
             android-plain.png
             android-name.png

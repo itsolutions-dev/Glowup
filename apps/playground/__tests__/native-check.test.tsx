@@ -41,6 +41,8 @@ describe("native check screen", () => {
     expect(getByText("badge=0")).toBeTruthy();
     expect(getByText("tab=overview")).toBeTruthy();
     expect(getByText("sheet=closed")).toBeTruthy();
+    expect(getByText("chart=none")).toBeTruthy();
+    expect(getByText("part=none")).toBeTruthy();
     // jest lays nothing out, so no measurement has arrived yet.
     expect(getByText(/^PENDING input dense is 24 shorter/)).toBeTruthy();
     expect(

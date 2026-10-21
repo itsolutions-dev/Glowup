@@ -46,6 +46,10 @@ const screen = () => {
       Number,
     );
     return {
+      l,
+      t,
+      r,
+      b,
       text: attr("text"),
       desc: attr("content-desc"),
       cls: attr("class"),
@@ -107,6 +111,23 @@ const find = async (predicate, tries = 6) => {
     }
   }
   return null;
+};
+
+/** Finds a node and scrolls until all of it is in the middle of the screen, so a tap inside it lands. */
+const bring = async (predicate, what) => {
+  for (let i = 0; i < 4; i += 1) {
+    const node = await find(predicate);
+    if (!node) {
+      throw new Error(
+        `${what} not on screen; on screen: ${describe(screen())}`,
+      );
+    }
+    if (node.t < screenH * 0.12) swipe("up");
+    else if (node.b > screenH * 0.88) swipe("down");
+    else return node;
+    await sleep(600);
+  }
+  throw new Error(`${what} would not come into view`);
 };
 
 const tapNode = async (predicate, what) => {
@@ -241,6 +262,50 @@ const steps = [
     },
   ],
 ];
+
+/** Taps a chart where `at(box)` says and checks the state line its onSelect writes. */
+const tapChart = async (summary, at, photoName, pattern, what) => {
+  const chart = await bring(
+    (nodes) => nodes.find((n) => n.desc.startsWith(summary)),
+    `the "${summary}" chart`,
+  );
+  const [x, y] = at(chart).map(Math.round);
+  console.log(
+    `  tap the chart at ${x},${y} (box ${chart.l},${chart.t} - ${chart.r},${chart.b})`,
+  );
+  adb("shell", "input", "tap", x, y);
+  await sleep(700);
+  photo(photoName);
+  await expectText(pattern, what);
+};
+
+steps.push(
+  [
+    "a tap on a dense bar chart picks a category",
+    // Inside the plot, a little right of the middle: any category will do, none is not one.
+    () =>
+      tapChart(
+        "Native dense",
+        (c) => [c.l + (c.r - c.l) * 0.55, c.t + (c.b - c.t) * 0.4],
+        "android-chart-bars.png",
+        /^chart=\d+$/,
+        "chart state",
+      ),
+  ],
+  [
+    "a tap on a donut slice picks that part",
+    // Nine o'clock on the ring, which is the "open" part (108 to 288 degrees clockwise from the top).
+    () =>
+      tapChart(
+        "Native parts",
+        // The ring is centred in the box and its middle is about 0.28 of the box's height from the centre.
+        (c) => [(c.l + c.r) / 2 - (c.b - c.t) * 0.28, (c.t + c.b) / 2],
+        "android-chart-donut.png",
+        /^part=open$/,
+        "part state",
+      ),
+  ],
+);
 
 // The screen can take a moment to open after the trigger.
 let ready = false;

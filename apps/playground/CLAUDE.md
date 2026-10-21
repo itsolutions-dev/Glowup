@@ -83,6 +83,11 @@ It gets its page, its props table and its URL for free.
   follow the box down to 100 px (the drawing is absolute inside, so a width taken from it would stop the box shrinking: the
   spike's pitfall). A dense `BarChart` (250 categories) and a `DonutChart` are mounted below for the screenshot; a crash there
   fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
+  Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
+  "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
+  the state lines `onSelect` writes. On iOS the screen scrolls itself to the charts 35 s after it opens (`Platform.OS === "ios"` only:
+  on Android it would fight the script) and `native.yml` takes `ios-charts.png` 25 s after `ios-check.png`. Android leaves
+  `android-chart-bars.png` and `android-chart-donut.png`.
 
 ## The notifications page
 

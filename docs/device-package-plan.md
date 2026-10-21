@@ -2016,12 +2016,20 @@ The team's CT40 (Android 11, API 30), two reports (21 October), native module re
   (no mode event). The module put back the mode it found, never `BARCODE`, against C6. Fixed in
   `@its/rfid-honeywell`'s native revision 3: `BARCODE` at connection, after the hand-over and at
   disconnection, `RFID` only while handed over; a `triggerModeApplied` diagnostic says what it
-  found and set. Still to see: whether the service's barcode trigger reaches an imager this app
-  holds through the Data Collection SDK.
-- **Still to run:** the non-ASCII QR, a symbology outside the request, the keyboard wedge, the
-  repeat window and the busy guard, the software trigger, the background, the IH40's trigger
-  (in `BARCODE` mode it fires the CT40's imager: the IH40 has none), Info / Devices / Properties,
-  the device's settings intact afterwards.
+  found and set. With it, **the IH40's trigger fires the imager this app holds** (auto
+  control: reads and failed decodes, no trigger event, as the side buttons).
+- **No keyboard wedge in this app,** held or released: neither the side buttons nor the IH40's
+  trigger typed into the diagnostics' text field with "Hold the scanner" off, while Notes got
+  the text. So a release does give the scanner back to other apps; the likeliest reason for this
+  app is that the service sends no wedge text to an app with an open Data Collection connection
+  (the module keeps its `AidcManager` and reader between claims, and `@its/rfid-honeywell`'s SDK
+  opens one of its own), not confirmed. Not fixed, by decision: an app on these packages reads
+  through `useBarcodeScanner` only (C2), on every screen that scans, a text field included.
+  Closing the reader and the service on each release would cost every claim its setup and might
+  not be enough with the RFID SDK's connection open.
+- **Still to run:** the non-ASCII QR, a symbology outside the request, the repeat window and the
+  busy guard, the software trigger, the background, Info / Devices / Properties, the device's
+  settings intact afterwards.
 
 ## Open for later
 

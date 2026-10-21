@@ -301,7 +301,7 @@ function WedgeSection() {
     <Section title="Keyboard wedge">
       <Text style={styles.small}>
         {
-          "Tap the field, then scan with the scanner held, and again with “Hold the scanner” off. Text that appears here came from the device’s keyboard wedge, not from onScan."
+          "Measured on the CT40: the wedge types nothing into this app, held or released (other apps get it back). Tap the field and scan: text that appears here came from the wedge, not from onScan, and means that changed."
         }
       </Text>
       <TextInput

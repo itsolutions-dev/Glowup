@@ -49,6 +49,24 @@ describe("sourceKey", () => {
       sourceKey({ bytes: new Uint8Array([1, 2, 4]) }),
     );
   });
+
+  it("tells apart two documents of one size that differ only in the middle", () => {
+    // A regenerated quote: same length, same header and trailer, one figure changed.
+    const make = (figure: number) => {
+      const bytes = new Uint8Array(200).fill(7);
+      bytes[100] = figure;
+      return bytes;
+    };
+    expect(sourceKey({ bytes: make(1) })).not.toBe(
+      sourceKey({ bytes: make(2) }),
+    );
+    expect(sourceKey({ bytes: make(1) })).toBe(sourceKey({ bytes: make(1) }));
+    const text = (middle: string) =>
+      `${"A".repeat(60)}${middle}${"B".repeat(60)}`;
+    expect(sourceKey({ base64: text("QQ") })).not.toBe(
+      sourceKey({ base64: text("QR") }),
+    );
+  });
 });
 
 describe("resolveSource", () => {

@@ -21,6 +21,7 @@ export const defaultPdfLabels: PdfLabels = {
   save: "Save",
   openInTab: "Open in a new tab",
   retry: "Try again",
+  pageFailed: "This page could not be drawn. Tap to try again.",
   errorTitle: "The document could not be shown",
   actionFailed: "The action could not be completed",
   errors: {

@@ -21,6 +21,7 @@ import { usePdfAdapters } from "./PdfProvider";
 import PdfPage, { type PdfHighlight } from "./PdfPage";
 import { PdfSearchPanel, PdfToolbar } from "./PdfToolbar";
 import { toPdfError } from "./errors";
+import { usableSize } from "./pageGeometry";
 import { fillLabel, withDefaultLabels } from "./labels";
 import { resolveSource, sourceKey, type ResolvedFile } from "./source";
 import type { PdfError, PdfMatch, PdfPageSize, PdfViewerProps } from "./types";
@@ -113,7 +114,7 @@ const PdfDocument = ({
         if (cancelled) return release();
         const document = await native.open(file.uri);
         if (cancelled) return release();
-        setLoaded({ uri: file.uri, pages: document.pages });
+        setLoaded({ uri: file.uri, pages: document.pages.map(usableSize) });
         callbacks.current.onLoad?.({ pages: document.pages.length });
       } catch (caught) {
         release();
@@ -331,6 +332,7 @@ const PdfDocument = ({
               native={native}
               highlights={highlights.get(i) ?? []}
               highlightColor={colors.primary}
+              failedLabel={labels.pageFailed}
               accessibilityLabel={`${labels.page} ${fillLabel(labels.pageOf, {
                 page: i + 1,
                 pages: pageCount,

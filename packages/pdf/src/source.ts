@@ -35,6 +35,17 @@ export const decodeBase64 = (input: string): Uint8Array => {
   return bytes;
 };
 
+/** FNV-1a over every element: two documents of one size that differ only in the middle must not share a key. */
+const hashOf = (length: number, at: (i: number) => number) => {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < length; i++) hash = Math.imul(hash ^ at(i), 0x01000193);
+  return `${length}:${(hash >>> 0).toString(36)}`;
+};
+// The key is asked for on every render: each array is read once (an array edited in place is not
+// noticed), and the last text is compared by value, which is fast when it is the same one.
+const bytesKeys = new WeakMap<Uint8Array, string>();
+let lastText: { text: string; key: string } | null = null;
+
 /**
  * What identifies a source, so a viewer re-opens when the document changes and not
  * when a parent passes the same content as a new object on every render.
@@ -46,11 +57,23 @@ export const sourceKey = (source: PdfSource): string => {
       : "";
     return `uri:${source.uri}|${headers}`;
   }
-  const sample = (text: string) =>
-    `${text.length}:${text.slice(0, 24)}:${text.slice(-24)}`;
-  if ("base64" in source) return `b64:${sample(source.base64)}`;
+  if ("base64" in source) {
+    const { base64 } = source;
+    if (lastText?.text !== base64) {
+      lastText = {
+        text: base64,
+        key: hashOf(base64.length, (i) => base64.charCodeAt(i)),
+      };
+    }
+    return `b64:${lastText.key}`;
+  }
   const { bytes } = source;
-  return `bytes:${bytes.length}:${bytes.slice(0, 16).join(",")}:${bytes.slice(-16).join(",")}`;
+  let key = bytesKeys.get(bytes);
+  if (key === undefined) {
+    key = hashOf(bytes.length, (i) => bytes[i]);
+    bytesKeys.set(bytes, key);
+  }
+  return `bytes:${key}`;
 };
 
 export type ResolvedFile = {

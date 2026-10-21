@@ -7,6 +7,11 @@ A chi lavora a questo pacchetto: leggere anche `packages/pdf/CLAUDE.md`.
 Stato al 2026-10-20: **passi 0–6 e 8 fatti**; web provato in Chrome, iOS e Android solo nella CI nativa (mai su un telefono);
 passo 7 non iniziato. Dettaglio per passo in §8, limiti in §2, stato corrente in `packages/pdf/README.md`.
 
+**Decisione del 2026-10-21 (Alice): il visualizzatore resta semplice.** Si guarda il PDF dentro l'app; ricerca, stampa e
+salvataggio avanzati si fanno fuori (sul web il browser già li ha; sul nativo ciò che c'è resta, ma non si estende). Quindi **il
+passo 7 (ricerca di riserva con PdfBox) è abbandonato** e il lavoro che resta è l'affidabilità della visualizzazione (§8, passo 9).
+La visualizzazione dentro la pagina sui **browser da telefono** è rinviata a una fase successiva (§12).
+
 ---
 
 ## 1. Obiettivo, requisiti e vincolo
@@ -229,6 +234,7 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 6   | **Android, ricerca di sistema (**fatto e provato su emulatore Android 15 il 2026-10-20**: pagine 1 e 2, primo risultato a y=0,13 dall'alto; su Android 14 senza estensione 13 la ricerca è spenta come previsto; il percorso `PdfRendererPreV` non è ancora stato provato) (§5, via 1):** `PdfRenderer.Page.searchText` (API 35) e `PdfRendererPreV.Page.searchText` (API 30–34 con estensione SDK 13), `capabilities()`; verificato sulla documentazione ufficiale il 2026-10-20 | CI: la riga della ricerca; **verificare prima sulla documentazione** che `PdfRendererPreV` abbia `searchText`                                     |
 | 7   | **Solo se serve — Android, ricerca di riserva (§5, via 2):** copiare da PdfBox-Android la sola lettura del testo in `packages/pdf/android`, con licenza e `NOTICE`, adattarla, trasformare le posizioni in rettangoli normalizzati; `docs/pdf-upstream.md`; opzione per forzarla                                                                                                                                                                                                  | CI su più versioni di Android (almeno 14 e una vecchia); misure su PDF reali del CRM: tempo e memoria                                             |
 | 8   | **Documentazione (fatto 2026-10-20, tranne il changeset):** README con limiti (§2), `docs/solaris-native.md` (D9 e Fase 6), `docs/work-split.md`, `packages/pdf/CLAUDE.md`, changeset quando il pacchetto esce da `private`                                                                                                                                                                                                                                                       |                                                                                                                                                   |
+| 9   | **Affidabilità della visualizzazione (deciso 2026-10-21):** rivedere gli errori del PDF: file grandi, ruotati o con riquadri diversi, 401 nel download, tetto alla larghezza e memoria, JPEG o PNG per il testo piccolo, "Salva" su Android; correggere ciò che emerge                                                                                                                                                                                                            | test jest per ogni caso; CI nativa per ciò che tocca il modulo                                                                                    |
 
 **Cosa non si può verificare dal portatile di lavoro:** iOS e Android a runtime (niente amministratore, rete aziendale). Ogni
 tentativo dei passi 3–6 costa un push e circa 15 minuti di CI. Quindi il modulo nativo va scritto **piccolo e con errori
@@ -267,3 +273,38 @@ non lo mostra. **Non verificati in ogni caso:** telefono vero, PDF molto grandi,
 5. **Zoom con due dita e selezione del testo:** dopo la prima versione, solo se una schermata li chiede.
 6. **Interfaccia di salvataggio su Android** (`expo-file-system` nella 57): da verificare.
 7. **Dove sta il PDF d'esempio** per il playground e per `/native-check` (una copia sola, nel playground).
+
+## 12. Fase successiva: PDF dentro la pagina sui browser da telefono
+
+**Rinviata (decisione del 2026-10-21).** Si fa solo se gli utenti del CRM aprono il PDF da un browser su telefono invece che
+dall'app. Fino ad allora, sul web da telefono resta il pulsante "Apri" (§2): il browser fa ricerca, stampa e salvataggio.
+
+**Perché serve un motore nostro:** su iPhone (Safari) l'`iframe` mostra solo la prima pagina, su Android (Chrome) niente; il browser
+non offre un'API per disegnare un PDF, quindi la pagina va disegnata da noi, in un `canvas`.
+
+**Cosa comporta** (solo visualizzazione: niente ricerca, selezione né link):
+
+1. leggere il file (tabelle di riferimento, flussi compressi, riparazione di file rovinati, rotazione e riquadri); il browser decomprime Flate
+   (`DecompressionStream`) e decodifica JPEG (`createImageBitmap`);
+2. eseguire i comandi di disegno della pagina (tracciati, ritagli, spazi colore, immagini, trasparenze, sfumature, moduli annidati);
+3. **i caratteri**, la parte più grande e rischiosa: TrueType e OpenType con `FontFace`; Type1, CFF e CID richiedono conversione;
+   senza caratteri incorporati serve un sostituto;
+4. i decodificatori che il browser non ha (JPEG 2000, JBIG2, CCITT), comuni nelle scansioni: senza, quelle pagine restano vuote;
+5. i limiti di memoria di Safari: pagine disegnate a una larghezza massima, solo quelle visibili in memoria.
+
+**Come si inserisce:** un adattatore web di `PdfNative` (`open`, `renderPage`, `close`) che disegna la pagina su un `canvas` e restituisce
+un'immagine: i telefoni avrebbero lo stesso elenco di pagine e lo stesso zoom del nativo, e la parte di interfaccia è piccola.
+
+**Due strade per il motore:**
+
+- **Copiare pdf.js** (Apache-2.0, licenza e `NOTICE` conservati, `docs/pdf-upstream.md`): copre quasi tutto, ma pesa oltre 1 MB (da caricare
+  solo quando serve), richiede un Worker sotto Metro e le correzioni di sicurezza diventano nostre (ha avuto vulnerabilità vere, es.
+  CVE-2024-4367 sui caratteri). Stima, da confermare con lo spike: da giorni a un paio di settimane di integrazione.
+- **Scriverlo noi:** copre i PDF "puliti" (Chromium, Word, i preventivi del CRM, D66 del CRM) in poche migliaia di righe, ma gli
+  allegati di posta (scansioni, caratteri strani) restano vuoti o sbagliati, la coda dei casi non finisce e il parser dei file dei clienti
+  è nostro.
+
+Una terza via, fuori dal vincolo, sarebbe disegnare le pagine sul server (una libreria PDF nel backend).
+
+**Prima di decidere: uno spike** su PDF reali del CRM (allegati veri, non il PDF d'esempio), con questi limiti: Safari su telefono non si prova da
+questo portatile, solo Chrome con finestra stretta. Prima domanda a cui risponde: **da dove aprono il PDF gli utenti del CRM?**

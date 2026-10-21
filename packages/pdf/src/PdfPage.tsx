@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
-import { CircularProgress } from "@its/glowup-ui";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { CircularProgress, useTheme } from "@its/glowup-ui";
+import { drawWidth } from "./pageGeometry";
 import type { PdfNative, PdfPageSize, PdfRect } from "./types";
 
 export type PdfHighlight = { rect: PdfRect; current: boolean };
@@ -16,6 +17,7 @@ type Props = {
   native: PdfNative;
   highlights: PdfHighlight[];
   highlightColor: string;
+  failedLabel: string;
   accessibilityLabel: string;
 };
 
@@ -29,26 +31,34 @@ const PdfPage = ({
   native,
   highlights,
   highlightColor,
+  failedLabel,
   accessibilityLabel,
 }: Props) => {
+  const { theme } = useTheme();
   const [image, setImage] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const height = (width * size.height) / size.width;
+  const pixels = drawWidth(renderWidth, size);
 
   useEffect(() => {
     let cancelled = false;
     // The previous image stays up (stretched) until the sharper one arrives.
     native
-      .renderPage(uri, index, renderWidth)
+      .renderPage(uri, index, pixels)
       .then((next) => {
-        if (!cancelled) setImage(next);
+        if (cancelled) return;
+        setImage(next);
+        setFailed(false);
       })
       .catch(() => {
-        // A page that fails to draw stays blank: the document as a whole opened.
+        // The document as a whole opened: this page says so and can be tried again.
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
     };
-  }, [native, uri, index, renderWidth]);
+  }, [native, uri, index, pixels, attempt]);
 
   return (
     <View
@@ -64,6 +74,25 @@ const PdfPage = ({
           resizeMode="stretch"
           accessibilityIgnoresInvertColors
         />
+      ) : failed ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={failedLabel}
+          onPress={() => {
+            setFailed(false);
+            setAttempt((a) => a + 1);
+          }}
+          style={styles.loading}
+        >
+          <Text
+            style={[
+              theme.typography.bodyMedium,
+              { color: theme.colors.onSurfaceVariant, textAlign: "center" },
+            ]}
+          >
+            {failedLabel}
+          </Text>
+        </Pressable>
       ) : (
         <View style={styles.loading}>
           <CircularProgress size={24} decorative />

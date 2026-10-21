@@ -76,6 +76,8 @@ export type PdfLabels = {
   /** The web viewer's button that opens the PDF in a tab: the way to read it on a phone's browser. */
   openInTab: string;
   retry: string;
+  /** Shown on a page that could not be drawn; a tap draws it again. */
+  pageFailed: string;
   errorTitle: string;
   actionFailed: string;
   errors: Record<PdfErrorCode, string>;

@@ -181,6 +181,62 @@ describe("PdfViewer", () => {
     expect(screen.getByText("100%")).toBeTruthy();
   });
 
+  describe("pages that are not what they should be", () => {
+    it("opens a document whose page reports no size, instead of laying out NaN", async () => {
+      await open(
+        {},
+        {
+          pages: [
+            { width: 0, height: 0 },
+            { width: 595, height: 842 },
+          ],
+        },
+      );
+      await ready();
+      expect(screen.getByText("/ 2")).toBeTruthy();
+    });
+
+    it("never asks for more pixels than a page of that shape can take", async () => {
+      const { calls } = await open(
+        {},
+        { pages: [{ width: 595, height: 8420 }] },
+      );
+      await ready();
+      await waitFor(() => expect(calls.rendered.length).toBeGreaterThan(0));
+      calls.rendered.forEach(({ width }) => {
+        expect(width * ((width * 8420) / 595)).toBeLessThanOrEqual(10_000_000);
+      });
+    });
+
+    it("says a page could not be drawn, and draws it again on a tap", async () => {
+      const memory = createMemoryPdf({ pages: [{ width: 595, height: 842 }] });
+      const draw = memory.adapters.native.renderPage;
+      let failures = 1;
+      memory.adapters.native.renderPage = async (uri, index, width) => {
+        if (failures-- > 0) throw new Error("out of memory");
+        return draw(uri, index, width);
+      };
+      await render(
+        <ThemeProvider>
+          <PdfProvider adapters={memory.adapters}>
+            <PdfViewer source={{ uri: "file:///a.pdf" }} />
+          </PdfProvider>
+        </ThemeProvider>,
+      );
+      const failed = await screen.findByLabelText(
+        "This page could not be drawn. Tap to try again.",
+      );
+      await fireEvent.press(failed);
+      await waitFor(() =>
+        expect(
+          screen.queryByLabelText(
+            "This page could not be drawn. Tap to try again.",
+          ),
+        ).toBeNull(),
+      );
+    });
+  });
+
   describe("search", () => {
     const hit = {
       page: 1,

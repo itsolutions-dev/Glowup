@@ -1533,8 +1533,8 @@ questions are answered.
   - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects (and reconnects by
     itself) and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
     request), single read (`syncRead`, or a `read` window for a TID), locate (`setLocateEPC` +
-    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, the
-    previous mode restored), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
+    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, then
+    `BARCODE` again: revision 3, below), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
     `ReaderScanner.kt` is the search: a low-latency BLE scan that refuses to start with location
     off up to Android 11 and reports each device at most every 500 ms.
   - **Adapter** (`createHoneywellRfidAdapter`, `getHoneywellRfidAdapter`): every optional part of
@@ -2009,6 +2009,15 @@ The team's CT40 (Android 11, API 30), two reports (21 October), native module re
 - **Charset:** every read says `ISO-8859-1`, on ASCII text so far; the QR with non-ASCII text
   is still to read.
 - **Callbacks** on the service's Binder threads; the claim's life on the module's thread.
+- **The IH40's trigger did not scan** with the imager held, in either trigger control: no read,
+  no failed decode, so the service never fired. The RFID report showed why: with the trigger not
+  handed over, `onRfidTriggered` came on every press, so the IH40 was in `TriggerMode.RFID` at
+  connection (left so by an earlier session), and the hand-over neither changed nor restored it
+  (no mode event). The module put back the mode it found, never `BARCODE`, against C6. Fixed in
+  `@its/rfid-honeywell`'s native revision 3: `BARCODE` at connection, after the hand-over and at
+  disconnection, `RFID` only while handed over; a `triggerModeApplied` diagnostic says what it
+  found and set. Still to see: whether the service's barcode trigger reaches an imager this app
+  holds through the Data Collection SDK.
 - **Still to run:** the non-ASCII QR, a symbology outside the request, the keyboard wedge, the
   repeat window and the busy guard, the software trigger, the background, the IH40's trigger
   (in `BARCODE` mode it fires the CT40's imager: the IH40 has none), Info / Devices / Properties,

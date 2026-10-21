@@ -255,6 +255,22 @@ describe("the trigger", () => {
     await Promise.resolve();
     expect(native.triggerHandover).toBe(false);
   });
+
+  it("leaves the reader in barcode mode unless someone listens (C6)", async () => {
+    const { adapter, native } = setup();
+    await adapter.connect(READER);
+    expect(native.triggerMode).toBe("BARCODE");
+    const stop = adapter.subscribeTrigger(() => {});
+    await Promise.resolve();
+    expect(native.triggerMode).toBe("RFID");
+    stop();
+    await Promise.resolve();
+    expect(native.triggerMode).toBe("BARCODE");
+    adapter.subscribeTrigger(() => {});
+    await Promise.resolve();
+    await adapter.disconnect();
+    expect(native.triggerMode).toBe("BARCODE");
+  });
 });
 
 describe("discovery", () => {

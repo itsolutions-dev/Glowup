@@ -2028,10 +2028,15 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
   handed over, `onRfidTriggered` came on every press, so the IH40 was in `TriggerMode.RFID` at
   connection (left so by an earlier session), and the hand-over neither changed nor restored it
   (no mode event). The module put back the mode it found, never `BARCODE`, against C6. Fixed in
-  `@its/rfid-honeywell`'s native revision 3: `BARCODE` at connection, after the hand-over and at
+  `@its/rfid-honeywell`'s native revision 3 (4, below): `BARCODE` at connection, after the hand-over and at
   disconnection, `RFID` only while handed over; a `triggerModeApplied` diagnostic says what it
   found and set. With it, **the IH40's trigger fires the imager this app holds** (auto
   control: reads and failed decodes, no trigger event, as the side buttons).
+- **`getTriggerMode()` cannot be trusted:** the next RFID report had it answer `RFID` at a
+  disconnection, at the connection after it and when the hand-over began, while
+  `onTriggerModeSwitched(BARCODE)` had come after each switch to `BARCODE`. Revision 3 compared
+  with it and so skipped the switch to `RFID`: the hand-over gave no trigger events. Revision 4
+  sets the mode without asking (`triggerModeApplied` keeps the answer as `reported`).
 - **No keyboard wedge in this app,** held or released: neither the side buttons nor the IH40's
   trigger typed into the diagnostics' text field with "Hold the scanner" off, while Notes got
   the text. So a release does give the scanner back to other apps; the likeliest reason for this
@@ -2044,8 +2049,9 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
 - **The UTF-8 charset works:** both QRs, with and without ECI, read `Città perché € ñ ß 日本語`,
   the service reporting `UTF-8` (55 keys set).
 - **Not read on purpose:** a symbology outside the request (EAN-8, PDF417 and UPC are off in the
-  properties). The RFID report's `triggerModeApplied` would confirm the mode the IH40 is found
-  in; its trigger already scans, so the mode is `BARCODE`.
+  properties).
+- **Still to run:** the hand-over on revision 4 (`BARCODE → RFID → BARCODE`, trigger events
+  only while handed over, the IH40's trigger scanning barcodes again after it).
 
 ## Open for later
 

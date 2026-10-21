@@ -190,7 +190,7 @@ function ScannerSession({
   // Only the keys this package sets, to see what the service kept.
   const shown = properties
     ? Object.entries(properties).filter(([key]) =>
-        /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE0|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/.test(
+        /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/.test(
           key,
         ),
       )

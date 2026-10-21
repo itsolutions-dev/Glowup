@@ -57,12 +57,16 @@ holds the imager while the screen is mounted and the app in the foreground, and 
 - **The trigger.** By default the scanner service decodes on the trigger (its `autoControl`), the
   IH40's included when it is in barcode mode. `triggerControl: "client"` makes the module aim,
   light and decode on each trigger event instead, for a trigger the service reports but does not
-  decode on. `softwareTrigger` is the on-screen scan button.
+  decode on. Under `autoControl` the service does not report the trigger (measured on the CT40),
+  so `isTriggerPressed` stays `false`; client control reports every press and release.
+  `softwareTrigger` is the on-screen scan button.
 - **Symbologies.** Every `BarcodeType`: `symbologies: ["qr", "code128", "ean13", "datamatrix"]`
   turns those on and every other the SDK has off, for this app's claim only; `null` keeps the
   device's settings. Code 128 includes GS1-128, read as Code 128 and not parsed.
 - **The text as decoded.** On every claim the adapter clears the wedge's prefix, suffix and
-  symbology id, and turns off a scan's intents, browser launch and EZConfig, for this app only.
+  symbology id, transmits every digit of an EAN or UPC (check digit, UPC's number system: a
+  CT40 drops EAN-13's check digit by default), and turns off a scan's intents, browser launch
+  and EZConfig, for this app only.
   The type comes from the AIM id (`]Q1`); UPC-A and UPC-E, which share EAN-13's `]E0`, from
   Honeywell's code id.
 

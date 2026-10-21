@@ -1876,7 +1876,7 @@ background; the charset of a QR holding non-ASCII text. And, from phase C2's cod
 properties a claim sets apply to this app only (the wedge keeps the device's after a release);
 that `softwareTrigger` decodes under `autoControl`; whether the service applies `DPR_PREFIX` /
 `DPR_SUFFIX` to the listener's data or only to the wedge's (the adapter clears them either way);
-the format of `getTimestamp()`; that UPC-A and UPC-E come as `]E0` with code ids `c` and `E`;
+the format of `getTimestamp()` (measured: unpadded offset, below); that UPC-A and UPC-E come as `]E0` with code ids `c` and `E`;
 which `DEC_*` keys the CT40 lacks (the module skips and reports them); and that the RFID SDK's
 own `AidcManager` (its USB transport) and the scanner's live in one process with an RFID screen
 and a scanner screen used in turn.
@@ -1896,12 +1896,12 @@ and a scanner screen used in turn.
 | C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided |
 | C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | decided |
 
-| Phase | Content                                                                                                                                                                                                                     | Release      | Status    |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------- |
-| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done      |
-| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | in review |
-| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —         |
-| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —         |
+| Phase | Content                                                                                                                                                                                                                     | Release      | Status      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
+| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done        |
+| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | on the CT40 |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —           |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —           |
 
 ### Phase C1 — what landed
 
@@ -1971,7 +1971,8 @@ and a scanner screen used in turn.
     postal `none`, OCR `off`; and on every claim no prefix, suffix or symbology id, no data or
     scan intents, browser or EZConfig. The type is the AIM id's, except UPC-A / UPC-E (code id
     `c` / `E` under `]E0`); `rawType` is the code id; the timestamp is the SDK's when it parses
-    to a real time, the arrival's otherwise. Host check as R13.
+    to a real time, the arrival's otherwise. Host check as R13. (Since the CT40 run, every claim
+    also transmits EAN's and UPC's check digit and number system: "measured on the CT40" below.)
   - **Config plugin** (`dataCollectionAarPath`): the AAR into `honeywell-scanner-repository/`
     as `com.honeywell.aidc:datacollection:1.97.00.0060`, the coordinate `@its/rfid-honeywell`
     uses (C5); no manifest or `minSdkVersion` change (the SDK's manifest carries its
@@ -1985,6 +1986,33 @@ and a scanner screen used in turn.
   shared report (`scannerMeasurements.ts`). The Honeywell build applies both Honeywell plugins
   on one `DataCollection.aar`, the Zebra build leaves both modules out; `packed.mjs` packs the
   scanner package too; a test fails if the two plugins' coordinates differ.
+
+### Phase C2 — measured on the CT40
+
+The team's CT40 (Android 11, API 30), two reports (21 October), native module revision 1:
+
+- **The four symbologies** (`code id` / AIM id): QR `s` / `]Q1`, Code 128 `j` / `]C0`,
+  EAN-13 `d` / `]E0`, Data Matrix `w` / `]d1`, as Honeywell's chart says; each read typed right.
+- **Every key the adapter sets exists** (48 set, none skipped), and the restore works: the first
+  scope turned off put back 40 keys, on again set them.
+- **EAN-13 lost its check digit:** `978274340080` for `9782743400804`, `806802075320` for
+  `8068020753209`. The CT40's `DEC_EAN13_CHECK_DIGIT_TRANSMIT` is off and the adapter did not
+  set it, so a read differed from the camera's (13 digits) and from another CT40 configured
+  otherwise. Fixed: every claim transmits the check digit of EAN-13, EAN-8, UPC-A and UPC-E,
+  and UPC-A's and UPC-E's number system (`DATA_PROPERTIES`, the device's values back on a
+  release as the other keys).
+- **The timestamp** is local time with an unpadded offset, `2026-10-21T09:27:47.246+2:00`:
+  Hermes parsed it right, V8 does not. Fixed: the offset is padded before the parse.
+- **The trigger:** under `autoControl` the side buttons decode, and `onTriggerEvent` never
+  comes (5 reads and 5 failed decodes, no trigger event), so `isTriggerPressed` stays `false`;
+  under `clientControl` every press and release came, the read 50–500 ms after the press.
+- **Charset:** every read says `ISO-8859-1`, on ASCII text so far; the QR with non-ASCII text
+  is still to read.
+- **Callbacks** on the service's Binder threads; the claim's life on the module's thread.
+- **Still to run:** the non-ASCII QR, a symbology outside the request, the keyboard wedge, the
+  repeat window and the busy guard, the software trigger, the background, the IH40's trigger
+  (in `BARCODE` mode it fires the CT40's imager: the IH40 has none), Info / Devices / Properties,
+  the device's settings intact afterwards.
 
 ## Open for later
 

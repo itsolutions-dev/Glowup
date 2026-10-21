@@ -5,7 +5,7 @@ piano (che prevedeva `d3-scale` e `d3-shape` come dipendenze): vedi §2. Esito d
 
 Stato al 2026-10-20: **passi 0–7 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
 buchi; `DonutChart`, `PieChart`, `StackedBar`, `Sparkline`; `ChartLegend` e prop `legend`; facciata `Chart`; bersaglio, tooltip,
-`onSelect`; pagina `/charts`; provato in Chrome). Il passo 8 è **preparato** (righe `charts` in `/native-check`, 2026-10-21) ma non è girato in CI; il 9, la documentazione, si chiude con i simulatori. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
+`onSelect`; pagina `/charts`; provato in Chrome). Il passo 8 è **fatto per il layout** (righe `charts` in `/native-check`, girate in CI il 2026-10-21: iPhone, Android 14 e 15, tutte passano); restano da provare su nativo tocco, tooltip e i tempi della modalità densa. Il 9, la documentazione, resta da chiudere. Il pacchetto non è mai girato su un telefono né nella CI nativa (passo 8: l'ultimo, con i simulatori iOS e
 Android). Per la forma di un pacchetto di alto livello si prende `packages/pdf` (stesse regole di confine, `ADDON_PACKAGES` in
 `eslint.config.js`, già pronte per `charts`).
 

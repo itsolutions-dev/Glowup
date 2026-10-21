@@ -82,7 +82,7 @@ It gets its page, its props table and its URL for free.
 - **Chart rows**: a `BarChart` in a box that a sibling squeezes (200 → 100 px) must be laid out at its height (160) and
   follow the box down to 100 px (the drawing is absolute inside, so a width taken from it would stop the box shrinking: the
   spike's pitfall). A dense `BarChart` (250 categories) and a `DonutChart` are mounted below for the screenshot; a crash there
-  fails the run. Not yet run on a device or in CI.
+  fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
 
 ## The notifications page
 

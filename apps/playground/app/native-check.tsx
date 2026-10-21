@@ -29,6 +29,7 @@ import {
   Tabs,
   useTheme,
 } from "@its/glowup-ui";
+import { BarChart, DonutChart } from "@its/glowup-charts";
 import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
 
 import { SAMPLE_PDF_PAGES, samplePdf } from "../site/samplePdf";
@@ -38,6 +39,25 @@ type Row = [name: string, ok: boolean | null, detail: string];
 
 const noop = () => {};
 const OPTIONS = [{ id: "1", label: "Uno", value: 1 }];
+
+const CHART_HEIGHT = 160;
+const CHART_SERIES = [{ key: "a" }, { key: "b" }];
+const CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
+  label: `C${i + 1}`,
+  a: 10 + i * 3,
+  b: 20 - i * 2,
+}));
+// 250 categories x 2 series is past the dense threshold: one path per series and one touch layer.
+const CHART_DENSE = Array.from({ length: 250 }, (_, i) => ({
+  label: `${i + 1}`,
+  a: 50 + Math.round(40 * Math.sin(i / 9)),
+  b: 40 + Math.round(30 * Math.cos(i / 7)),
+}));
+const CHART_PARTS = [
+  { id: "won", label: "Won", value: 30 },
+  { id: "open", label: "Open", value: 50 },
+  { id: "lost", label: "Lost", value: 20 },
+];
 
 const PDF_WIDTH = 600;
 const PDF_OPEN = "pdf opens and reports its pages";
@@ -203,6 +223,8 @@ export default function NativeCheck() {
   const [filters, setFilters] = useState(0);
   const [tab, setTab] = useState("overview");
   const [sheet, setSheet] = useState(false);
+  // The widths the chart box reports: 200 (300 - 100), then a sibling grows and the box must follow to 100.
+  const [chartWidths, setChartWidths] = useState<number[]>([]);
 
   // Each check compares a difference, not an absolute size: line heights differ
   // between platforms, the padding the props add does not.
@@ -213,6 +235,16 @@ export default function NativeCheck() {
       check("button dense is 12 shorter", h.buttonNormal, h.buttonDense, 12),
       check("select dense is 20 shorter", h.selectNormal, h.selectDense, 20),
       [
+        "bar chart is laid out at its height",
+        h.chartBox == null ? null : h.chartBox === CHART_HEIGHT,
+        `${h.chartBox}, expected ${CHART_HEIGHT}`,
+      ],
+      [
+        "chart box shrinks with its container",
+        chartWidths.length < 2 ? null : chartWidths.at(-1) === 100,
+        chartWidths.join(" -> "),
+      ],
+      [
         "button badge adds width",
         w.badgeOn == null || w.badgeOff == null
           ? null
@@ -220,7 +252,7 @@ export default function NativeCheck() {
         `${w.badgeOff} -> ${w.badgeOn}`,
       ],
     ],
-    [h, w],
+    [h, w, chartWidths],
   );
   const checks = useMemo<Row[]>(
     () => [...measured, ...pdf.checks],
@@ -280,6 +312,31 @@ export default function NativeCheck() {
             style={{ width: 90, height: 127, backgroundColor: "#fff" }}
           />
         ) : null}
+
+        {/* A chart box that a sibling squeezes: the drawing is absolute inside, so its width must follow the box. */}
+        <View style={{ flexDirection: "row", width: 300 }}>
+          <View style={{ width: chartWidths.length > 0 ? 200 : 100 }} />
+          <View
+            style={{ flex: 1 }}
+            onLayout={(e: LayoutChangeEvent) => {
+              const { width, height } = e.nativeEvent.layout;
+              setH((prev) => ({ ...prev, chartBox: Math.round(height) }));
+              setChartWidths((prev) =>
+                prev.at(-1) === Math.round(width)
+                  ? prev
+                  : [...prev, Math.round(width)],
+              );
+            }}
+          >
+            <BarChart
+              data={CHART_DATA}
+              series={CHART_SERIES}
+              height={CHART_HEIGHT}
+            />
+          </View>
+        </View>
+        <BarChart data={CHART_DENSE} series={CHART_SERIES} height={120} />
+        <DonutChart data={CHART_PARTS} height={120} />
 
         <Text style={{ color: theme.colors.onSurfaceVariant }}>
           Interaction

@@ -64,7 +64,7 @@ It gets its page, its props table and its URL for free.
 `app/native-check.tsx` (/native-check) is a verification screen for the **native smoke job only**
 (`.github/workflows/native.yml`); nothing links to it. A build made with
 `EXPO_PUBLIC_NATIVE_CHECK_ROUTE=/native-check` opens it a minute after launch (`NativeCheckTrigger` in
-`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has three parts:
+`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has four parts:
 
 - **Measurements**: normal and dense controls and a button with and without a badge are laid out on the
   device and their sizes compared (Δ height 24 / 12 / 20, badge width +12), so it catches what jest cannot.
@@ -79,6 +79,10 @@ It gets its page, its props table and its URL for free.
   draws page 1 at 600 px (its real width is read when the image loads, and the page is shown small below the rows), searches
   "hello" (pages 1 and 2, rectangles inside the page; PENDING where search is off) and refuses a file that is not a PDF. They
   log as `NATIVECHECK pdf …` and are drawn on screen like the measurements.
+- **Chart rows**: a `BarChart` in a box that a sibling squeezes (200 → 100 px) must be laid out at its height (160) and
+  follow the box down to 100 px (the drawing is absolute inside, so a width taken from it would stop the box shrinking: the
+  spike's pitfall). A dense `BarChart` (250 categories) and a `DonutChart` are mounted below for the screenshot; a crash there
+  fails the run. Not yet run on a device or in CI.
 
 ## The notifications page
 

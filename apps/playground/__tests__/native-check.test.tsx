@@ -43,6 +43,12 @@ describe("native check screen", () => {
     expect(getByText("sheet=closed")).toBeTruthy();
     // jest lays nothing out, so no measurement has arrived yet.
     expect(getByText(/^PENDING input dense is 24 shorter/)).toBeTruthy();
+    expect(
+      getByText(/^PENDING bar chart is laid out at its height/),
+    ).toBeTruthy();
+    expect(
+      getByText(/^PENDING chart box shrinks with its container/),
+    ).toBeTruthy();
 
     expect(
       await findByText(/^PASS pdf opens and reports its pages \(3 pages/),

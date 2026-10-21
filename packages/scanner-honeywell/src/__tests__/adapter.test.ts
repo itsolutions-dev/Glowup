@@ -172,6 +172,13 @@ describe("createHoneywellBarcodeScannerAdapter", () => {
       ]);
     });
 
+    it("reads a QR's UTF-8 text as such, whatever the device's charset", async () => {
+      const { native, adapter, handlers, reads } = setup();
+      await adapter.open({ symbologies: null }, handlers);
+      native.decode("qr", "Città perché € 日本語");
+      expect(reads[0]?.data).toBe("Città perché € 日本語");
+    });
+
     it("leaves the trigger to the service by default; client control on request", async () => {
       const { native, adapter, handlers } = setup();
       await adapter.open({ symbologies: null }, handlers);
@@ -296,7 +303,7 @@ describe("createHoneywellBarcodeScannerAdapter", () => {
       await adapter.open({ symbologies: null }, handlers);
       await expect(adapter.getScannerInfo()).resolves.toEqual({
         name: "Internal Scanner",
-        model: null,
+        model: "N6703",
         serialNumber: "21234B0123",
         firmwareVersion: "4.4.13",
       });

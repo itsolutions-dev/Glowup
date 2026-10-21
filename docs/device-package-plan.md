@@ -1964,8 +1964,8 @@ and a scanner screen used in turn.
     life, `listDevices()`, `getAllProperties()`. Compiled with `kotlinc` against the AAR's
     `classes.jar` and stubs (no Android SDK in the session).
   - **Adapter** (`createHoneywellBarcodeScannerAdapter`): every `BarcodeType` (`symbologies`),
-    `softwareTrigger`, `getScannerInfo` (the friendly name, serial, firmware; no engine model in
-    `BarcodeReaderInfo`); one set of subscriptions per claim, removed before `close()`
+    `softwareTrigger`, `getScannerInfo` (the friendly name, serial, firmware, and the engine's
+    model from `scannerId`, since the CT40 run); one set of subscriptions per claim, removed before `close()`
     resolves. `toOpenProperties()` maps the request to the SDK's keys: one switch per type
     (Code 128 with GS1-128, ITF-14 as Interleaved 2 of 5), the SDK's 24 other symbologies off,
     postal `none`, OCR `off`; and on every claim no prefix, suffix or symbology id, no data or
@@ -1989,7 +1989,7 @@ and a scanner screen used in turn.
 
 ### Phase C2 — measured on the CT40
 
-The team's CT40 (Android 11, API 30), two reports (21 October), native module revision 1:
+The team's CT40 (Android 11, API 30), the reports of 21 October, native module revision 1:
 
 - **The four symbologies** (`code id` / AIM id): QR `s` / `]Q1`, Code 128 `j` / `]C0`,
   EAN-13 `d` / `]E0`, Data Matrix `w` / `]d1`, as Honeywell's chart says; each read typed right.
@@ -2006,8 +2006,22 @@ The team's CT40 (Android 11, API 30), two reports (21 October), native module re
 - **The trigger:** under `autoControl` the side buttons decode, and `onTriggerEvent` never
   comes (5 reads and 5 failed decodes, no trigger event), so `isTriggerPressed` stays `false`;
   under `clientControl` every press and release came, the read 50–500 ms after the press.
-- **Charset:** every read says `ISO-8859-1`, on ASCII text so far; the QR with non-ASCII text
-  is still to read.
+- **Charset:** a QR holding `Città perché € ñ ß 日本語` in UTF-8 arrived as
+  `CittÃ  perchÃ© â‚¬ Ã± ÃŸ æ—¥æœ¬èªž`, the same with and without an ECI declaring UTF-8: the
+  service decodes every symbol's bytes with `DPR_CHARSET` (`ISO-8859-1` on the CT40, in fact
+  Windows-1252: `0x97` became `—`) and ignores the ECI. Repairing it in JavaScript would lose the
+  five bytes Windows-1252 lacks (`Á` is `C3 81`), so every claim sets `DPR_CHARSET` to `UTF-8`
+  (`DATA_PROPERTIES`; the device's back on a release). A symbol holding Latin-1 text beyond
+  ASCII now reads with replacement characters: none in this scope.
+- **The guards:** six reads of one EAN-13 in 3 s reached `onScan` three times (the window counts
+  from the last delivered read: one 948 ms later was dropped); with the repeat window off, all
+  of them. With a 1.5 s confirmation, a different code within it was dropped each time (3 of 3).
+- **The background:** six releases and claims (the home screen, the screen off), the reads back
+  each time, and Notes got the scanner meanwhile. The software trigger read under both trigger
+  controls. Closed, the app left the device as it was: Notes read the EAN-13 in 12 digits.
+- **Info and properties:** `scannerId` `N6803FR` (the N6803 engine, now the info's `model`),
+  firmware `3.23`; 359 properties, the claim's as set. While claimed `DPR_WEDGE` is `false`,
+  which the adapter does not set: the service turns the wedge off for the claiming app.
 - **Callbacks** on the service's Binder threads; the claim's life on the module's thread.
 - **The IH40's trigger did not scan** with the imager held, in either trigger control: no read,
   no failed decode, so the service never fired. The RFID report showed why: with the trigger not
@@ -2027,9 +2041,9 @@ The team's CT40 (Android 11, API 30), two reports (21 October), native module re
   through `useBarcodeScanner` only (C2), on every screen that scans, a text field included.
   Closing the reader and the service on each release would cost every claim its setup and might
   not be enough with the RFID SDK's connection open.
-- **Still to run:** the non-ASCII QR, a symbology outside the request, the repeat window and the
-  busy guard, the software trigger, the background, Info / Devices / Properties, the device's
-  settings intact afterwards.
+- **Still to run:** the QRs again with the UTF-8 charset, and the RFID report's
+  `triggerModeApplied`. A symbology outside the request is off in the properties (EAN-8,
+  PDF417, UPC), not read on purpose.
 
 ## Open for later
 

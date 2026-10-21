@@ -79,11 +79,17 @@ export const OTHER_SYMBOLOGY_PROPERTIES: Readonly<
  * Set on every open: the decoded text reaches `onRead` as decoded (no
  * prefix, suffix or symbology id the device's wedge settings add, and every
  * digit of an EAN or UPC: the CT40 measured drops EAN-13's check digit by
- * default, and the camera reads all 13), and a scan does not also start an
- * intent, the browser or EZConfig. These are the app's claim's settings,
- * not the device's.
+ * default, and the camera reads all 13), in UTF-8, and a scan does not also
+ * start an intent, the browser or EZConfig. These are the app's claim's
+ * settings, not the device's.
+ *
+ * The charset: the CT40 measured decodes every symbol's bytes with
+ * `DPR_CHARSET` (`ISO-8859-1` by default, Windows-1252 in fact) and ignores a
+ * QR's ECI, so a UTF-8 QR arrived as "CittÃ ". UTF-8 is what QR codes carry
+ * in practice and what the camera reads.
  */
 export const DATA_PROPERTIES: Readonly<Record<string, NativeProperty>> = {
+  DPR_CHARSET: "UTF-8",
   DEC_EAN13_CHECK_DIGIT_TRANSMIT: true,
   DEC_EAN8_CHECK_DIGIT_TRANSMIT: true,
   DEC_UPCA_CHECK_DIGIT_TRANSMIT: true,
@@ -175,8 +181,8 @@ export function fromNativeRead(read: NativeRead): BarcodeScannerRead {
 export function fromNativeInfo(info: NativeScannerInfo): BarcodeScannerInfo {
   return {
     name: info.friendlyName || info.name || null,
-    // BarcodeReaderInfo names no engine model; its fields are in the diagnostics.
-    model: null,
+    // The engine's model (the CT40 measured "N6803FR", Honeywell's N6803).
+    model: info.scannerId || null,
     serialNumber: info.serialNumber || null,
     firmwareVersion: info.firmwareVersion || null,
   };

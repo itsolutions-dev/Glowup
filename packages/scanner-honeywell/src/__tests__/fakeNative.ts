@@ -94,6 +94,7 @@ const DEVICE_DEFAULTS: Record<string, NativeProperty> = {
   DEC_EAN13_CHECK_DIGIT_TRANSMIT: false,
   DPR_PREFIX: "",
   DPR_SUFFIX: "\n",
+  DPR_CHARSET: "ISO-8859-1",
   TRIG_CONTROL_MODE: "autoControl",
 };
 
@@ -235,10 +236,17 @@ export function createFakeHoneywellScanner(): FakeHoneywellScanner {
       if (digits?.numberSystem && properties[digits.numberSystem] === false) {
         text = text.slice(1);
       }
+      // The service decodes the symbol's bytes with DPR_CHARSET, whatever
+      // the QR's ECI says (measured): a UTF-8 text in Latin-1 otherwise.
+      const charset = String(properties.DPR_CHARSET);
+      if (charset !== "UTF-8") {
+        text = Buffer.from(text, "utf8").toString("latin1");
+      }
       emit(
         "onRead",
         read({
           data: text,
+          charset,
           codeId: symbology.codeId,
           aimId: symbology.aimId,
           ...extra,

@@ -69,8 +69,9 @@ holds the imager while the screen is mounted and the app in the foreground, and 
   device's settings. Code 128 includes GS1-128, read as Code 128 and not parsed.
 - **The text as decoded.** On every claim the adapter clears the wedge's prefix, suffix and
   symbology id, transmits every digit of an EAN or UPC (check digit, UPC's number system: a
-  CT40 drops EAN-13's check digit by default), and turns off a scan's intents, browser launch
-  and EZConfig, for this app only.
+  CT40 drops EAN-13's check digit by default), decodes in UTF-8 (the service ignores a QR's
+  ECI and decodes with the device's charset, Latin-1 by default), and turns off a scan's
+  intents, browser launch and EZConfig, for this app only.
   The type comes from the AIM id (`]Q1`); UPC-A and UPC-E, which share EAN-13's `]E0`, from
   Honeywell's code id.
 

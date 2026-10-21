@@ -28,7 +28,7 @@ class RfidException(code: String, message: String, cause: Throwable? = null) :
 
 // Raised with every native change: JavaScript compares it with its own
 // (HONEYWELL_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 3
+private const val NATIVE_REVISION = 4
 
 // Reads reach JavaScript at most this often (plan R10): the SDK delivers
 // batches many times a second.
@@ -719,10 +719,12 @@ class HoneywellRfidModule : Module() {
 
   // --- Trigger ------------------------------------------------------------
 
-  // The trigger mode outlives the app: the CT40 measured an IH40 found in
-  // RFID mode at connection, its trigger no longer driving the CT40's scanner.
-  // So the module sets it either way: RFID while JavaScript holds the trigger,
-  // BARCODE otherwise (plan C6), never "what it was before".
+  // The module sets the trigger mode either way: RFID while JavaScript holds
+  // the trigger, BARCODE otherwise (plan C6), never "what it was before". The
+  // CT40 measured an IH40 in RFID mode at connection, its trigger no longer
+  // driving the CT40's scanner; and getTriggerMode() answering RFID even right
+  // after onTriggerModeSwitched(BARCODE), so the mode is set without asking
+  // it first (revision 3 skipped the switch to RFID that way).
   private fun applyTriggerMode() {
     val (m, wanted, connected) = synchronized(lock) { Triple(manager, triggerHandover, state == "connected" || reader != null) }
     if (m == null || !connected) return
@@ -731,9 +733,10 @@ class HoneywellRfidModule : Module() {
 
   private fun setTriggerMode(m: RfidManager, wanted: TriggerMode) {
     try {
-      val current = m.triggerMode
-      if (current != wanted) m.setTriggerMode(wanted)
-      diagnostic("triggerModeApplied", mapOf("was" to current?.name, "now" to wanted.name))
+      // What the SDK reports, for the diagnostics only.
+      val reported = try { m.triggerMode?.name } catch (_: Throwable) { null }
+      m.setTriggerMode(wanted)
+      diagnostic("triggerModeApplied", mapOf("reported" to reported, "now" to wanted.name))
     } catch (error: Throwable) {
       diagnostic("triggerModeFailed", mapOf("message" to error.toString()))
     }

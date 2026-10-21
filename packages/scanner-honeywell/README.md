@@ -60,6 +60,10 @@ holds the imager while the screen is mounted and the app in the foreground, and 
   decode on. Under `autoControl` the service does not report the trigger (measured on the CT40),
   so `isTriggerPressed` stays `false`; client control reports every press and release.
   `softwareTrigger` is the on-screen scan button.
+- **No keyboard wedge in the app.** Once the app has used the scanner, the device's wedge types
+  nothing into it, even after a release (measured on the CT40; other apps get the wedge back).
+  Read through `useBarcodeScanner` on every screen that scans, a text field included: its
+  `onScan` can fill the field.
 - **Symbologies.** Every `BarcodeType`: `symbologies: ["qr", "code128", "ean13", "datamatrix"]`
   turns those on and every other the SDK has off, for this app's claim only; `null` keeps the
   device's settings. Code 128 includes GS1-128, read as Code 128 and not parsed.

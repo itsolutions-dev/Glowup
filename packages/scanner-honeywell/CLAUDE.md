@@ -5,10 +5,13 @@ Roadmap, the Data Collection SDK's facts and the decisions: `docs/device-package
 (`packages/rfid-honeywell/CLAUDE.md`): keep them alike unless the SDK forces a difference, and
 say which in the plan.
 
-- **Private until phase C3** (`"private": true`, version `0.0.0`): `changeset publish` would
-  publish it otherwise. It already builds and validates (`npm run build`, `validate-package`);
-  the root `build`, `ci.yml`, `release.yml` and `examples/consumer` name it when it goes public,
-  with its own trusted publisher on npmjs.com and a changeset to `0.1.0`.
+- **Published** from `release.yml` like `@its/rfid-honeywell` (phase C3): built by bob into
+  `lib/` (`npm run build`, `validate-package` in CI and the root `build`), a changeset for every
+  user-visible change, its own trusted publisher on npmjs.com. The tarball carries `lib/`, `src/`,
+  the Android module's `build.gradle` and sources, `expo-module.config.json` and `app.plugin.js`;
+  never an SDK. Its peer range on `@its/glowup-device` follows the device package's minor
+  (`>=0.x.0 <0.y.0`), as `@its/rfid-honeywell`'s does. `examples/consumer` installs it from the
+  registry from phase C4.
 - **It implements `@its/glowup-device/scanner` and nothing else**: `/scanner` and `/testing`
   only (ESLint), mapped to the device package's `src` in `tsconfig.json` and Jest, cleared in
   `tsconfig.build.json`.

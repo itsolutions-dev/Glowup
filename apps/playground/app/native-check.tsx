@@ -11,10 +11,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
+  PixelRatio,
   Platform,
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
   type LayoutChangeEvent,
 } from "react-native";
@@ -68,11 +70,12 @@ const PDF_REFUSE = "pdf refuses a file that is not a PDF";
 
 /**
  * The PDF module on the device, on the playground's sample: open it, draw the first page,
- * search "hello" (on pages 1 and 2), and open something that is not a PDF. The drawn page is
- * shown below the rows so a screenshot proves it, and its real pixel width is read from the
- * image once it has loaded.
+ * search "hello" (on pages 1 and 2), and open something that is not a PDF. The first page is
+ * drawn twice: at 600 pixels, whose real width is read from the file, and again at the width
+ * the viewer would ask on this screen (`pageWidth` points times the pixel ratio), which is
+ * shown last on the screen so a screenshot shows how small print comes out.
  */
-const usePdfChecks = () => {
+const usePdfChecks = (pageWidth: number) => {
   const pdf = usePdfAdapters();
   const [rows, setRows] = useState<Record<string, [boolean | null, string]>>(
     {},
@@ -99,15 +102,20 @@ const usePdfChecks = () => {
           `${pages.length} pages, first ${Math.round(first?.width ?? 0)} x ${Math.round(first?.height ?? 0)}`,
         );
         const drawn = await pdf.native.renderPage(uri, 0, PDF_WIDTH);
-        if (alive) setImage(drawn);
         // The file's own size, read from its header: the image view's load event reports what the
-        // platform decoded for a 90-point box, not the 600 pixels written.
+        // platform decoded for the box it is shown in, not the pixels written.
         Image.getSize(
           drawn,
           (width, height) =>
             set(PDF_DRAW, width === PDF_WIDTH, `${width} x ${height} pixels`),
           (error) => set(PDF_DRAW, false, failure(error)),
         );
+        pdf.native
+          .renderPage(uri, 0, Math.round(pageWidth * PixelRatio.get()))
+          .then((shown) => {
+            if (alive) setImage(shown);
+          })
+          .catch(() => {});
       } catch (error) {
         set(PDF_OPEN, false, failure(error));
         return;
@@ -172,7 +180,7 @@ const usePdfChecks = () => {
         void pdf.files.remove(uri);
       }
     };
-  }, [pdf]);
+  }, [pdf, pageWidth]);
 
   const checks = useMemo<Row[]>(
     () =>
@@ -210,6 +218,7 @@ const Measured = ({
 
 export default function NativeCheck() {
   const { theme } = useTheme();
+  const pageWidth = useWindowDimensions().width - 32;
   const [h, setH] = useState<Sizes>({});
   const [w, setW] = useState<Sizes>({});
   const onSize = useCallback((id: string, size: { h: number; w: number }) => {
@@ -229,21 +238,31 @@ export default function NativeCheck() {
   const [pick, setPick] = useState<number | null>(null);
   const [part, setPart] = useState<string | null>(null);
   // iOS has nothing to scroll the page from CI: it moves itself to the charts once the first
-  // screenshot has been taken (native.yml takes the second a little later).
+  // screenshot has been taken, and later to the PDF page (native.yml takes a screenshot after each).
   const scroll = useRef<ScrollView>(null);
   const chartsAt = useRef(0);
+  const pdfAt = useRef(0);
   useEffect(() => {
     if (Platform.OS !== "ios") return;
-    const timer = setTimeout(
-      () => scroll.current?.scrollTo({ y: chartsAt.current, animated: false }),
-      35_000,
+    const timers = [
+      [35_000, chartsAt],
+      [50_000, pdfAt],
+    ].map(([delay, at]) =>
+      setTimeout(
+        () =>
+          scroll.current?.scrollTo({
+            y: (at as typeof chartsAt).current,
+            animated: false,
+          }),
+        delay as number,
+      ),
     );
-    return () => clearTimeout(timer);
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   // Each check compares a difference, not an absolute size: line heights differ
   // between platforms, the padding the props add does not.
-  const pdf = usePdfChecks();
+  const pdf = usePdfChecks(pageWidth);
   const measured = useMemo<Row[]>(
     () => [
       check("input dense is 24 shorter", h.inputNormal, h.inputDense, 24),
@@ -320,14 +339,6 @@ export default function NativeCheck() {
             {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
           </Text>
         ))}
-
-        {pdf.image ? (
-          <Image
-            source={{ uri: pdf.image }}
-            accessibilityLabel="Sample PDF page"
-            style={{ width: 90, height: 127, backgroundColor: "#fff" }}
-          />
-        ) : null}
 
         <View
           style={{ gap: 12 }}
@@ -519,6 +530,23 @@ export default function NativeCheck() {
             <Button badge={3}>Filters</Button>
           </Measured>
         </View>
+
+        {/* Last, so nothing above it moves: the page as the viewer draws it, one image pixel to one screen pixel. */}
+        {pdf.image ? (
+          <Image
+            source={{ uri: pdf.image }}
+            accessibilityLabel="Sample PDF page"
+            resizeMode="stretch"
+            onLayout={(e: LayoutChangeEvent) => {
+              pdfAt.current = e.nativeEvent.layout.y;
+            }}
+            style={{
+              width: pageWidth,
+              height: Math.round((pageWidth * 842) / 595),
+              backgroundColor: "#fff",
+            }}
+          />
+        ) : null}
       </ScrollView>
     </View>
   );

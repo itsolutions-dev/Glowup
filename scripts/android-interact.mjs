@@ -307,6 +307,27 @@ steps.push(
   ],
 );
 
+steps.push([
+  "the sample PDF page is on screen, drawn at the viewer's size",
+  async () => {
+    // The page is the last thing on the screen: go to the end, wherever the step before left the page.
+    for (let i = 0; i < 8; i += 1) {
+      swipe("down");
+      await sleep(400);
+    }
+    photo("android-pdf.png");
+    const page = named(screen(), "Sample PDF page");
+    if (!page) {
+      throw new Error(
+        `the page is not on screen; on screen: ${describe(screen())}`,
+      );
+    }
+    console.log(
+      `  the page is ${page.r - page.l} x ${page.b - page.t} px on screen`,
+    );
+  },
+]);
+
 // The screen can take a moment to open after the trigger.
 let ready = false;
 for (let i = 0; i < 80 && !ready; i += 1) {

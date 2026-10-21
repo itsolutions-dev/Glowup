@@ -28,13 +28,14 @@ describe("native check screen", () => {
         _uri: string,
         ok?: (w: number, h: number) => void,
       ) => ok?.(600, 849)) as typeof Image.getSize);
-    const { getByText, getByLabelText, findByText } = await render(
-      <ThemeProvider>
-        <PdfProvider adapters={memory.adapters}>
-          <NativeCheck />
-        </PdfProvider>
-      </ThemeProvider>,
-    );
+    const { getByText, getByLabelText, findByLabelText, findByText } =
+      await render(
+        <ThemeProvider>
+          <PdfProvider adapters={memory.adapters}>
+            <NativeCheck />
+          </PdfProvider>
+        </ThemeProvider>,
+      );
     expect(getByText("Native check")).toBeTruthy();
     expect(getByLabelText("Amount")).toBeTruthy();
     expect(getByText("reported=")).toBeTruthy();
@@ -64,6 +65,8 @@ describe("native check screen", () => {
         /^PASS pdf page is drawn at the width asked \(600 x 849/,
       ),
     ).toBeTruthy();
-    expect(getByLabelText("Sample PDF page")).toBeTruthy();
+    expect(await findByLabelText("Sample PDF page")).toBeTruthy();
+    // The second drawing is at the width the viewer would ask on this screen, not the fixed 600.
+    expect(memory.calls.rendered[1]?.width).toBeGreaterThan(600);
   });
 });

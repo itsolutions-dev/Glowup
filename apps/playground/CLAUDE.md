@@ -76,7 +76,10 @@ It gets its page, its props table and its URL for free.
   `android-step-N.png`. iOS has no equivalent from CI. The screen and the script are kept in step by hand: add a control
   there when a component gains behaviour a phone must prove.
 - **PDF rows** (`usePdfChecks`): the package's native module on the sample PDF (`site/samplePdf.ts`): opens it (3 pages),
-  draws page 1 at 600 px (its real width is read when the image loads, and the page is shown small below the rows), searches
+  draws page 1 at 600 px (its real width is read from the file) and again at the width the viewer would ask on this screen
+  (screen width minus 32, times the pixel ratio): that second drawing is the last thing on the screen, one image pixel to one
+  screen pixel, so a screenshot shows how small print (8 and 6 points, black and red, on every page of the sample) comes out of
+  the JPEG (`ios-pdf.png`, `android-pdf.png`); it is last so that nothing above it moves. It searches
   "hello" (pages 1 and 2, rectangles inside the page; PENDING where search is off) and refuses a file that is not a PDF. They
   log as `NATIVECHECK pdf …` and are drawn on screen like the measurements.
 - **Chart rows**: a `BarChart` in a box that a sibling squeezes (200 → 100 px) must be laid out at its height (160) and
@@ -86,7 +89,7 @@ It gets its page, its props table and its URL for free.
   Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
   "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
   the state lines `onSelect` writes. On iOS the screen scrolls itself to the charts 35 s after it opens (`Platform.OS === "ios"` only:
-  on Android it would fight the script) and `native.yml` takes `ios-charts.png` 25 s after `ios-check.png`. Android leaves
+  on Android it would fight the script) and to the PDF page 15 s later, and `native.yml` takes `ios-charts.png` 15 s and `ios-pdf.png` 30 s after `ios-check.png`. Android leaves
   `android-chart-bars.png` and `android-chart-donut.png`.
 
 ## The notifications page

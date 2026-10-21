@@ -46,7 +46,8 @@ jobs:
 
       # Opens/updates a "Version Packages" PR from pending changesets; when that PR is
       # merged, `npm run release` (changeset publish) publishes @its/glowup-ui,
-      # @its/glowup-notifications, @its/glowup-device and @its/rfid-honeywell to npm
+      # @its/glowup-notifications, @its/glowup-device, @its/rfid-honeywell and
+      # @its/scanner-honeywell to npm
       # (each only when its version is not there yet).
       # The version script also regenerates the prop tables, which record the
       # library version, so the PR does not fail CI's docgen diff check.

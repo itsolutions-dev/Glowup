@@ -2,8 +2,8 @@
 
 This folder is managed by [Changesets](https://github.com/changesets/changesets) — it
 drives versioning and changelog generation for the publishable packages in this monorepo
-(`@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device` and `@its/rfid-honeywell`,
-versioned independently; the private `@its/glowup-playground` and `@its/rfid-diagnostics` apps are
+(`@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device`, `@its/rfid-honeywell` and
+`@its/scanner-honeywell`, versioned independently; the private `@its/glowup-playground` and `@its/rfid-diagnostics` apps are
 ignored).
 
 ## Adding a changeset

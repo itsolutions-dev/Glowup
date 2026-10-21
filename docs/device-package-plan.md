@@ -1900,7 +1900,7 @@ and a scanner screen used in turn.
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
 | C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done   |
 | C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | done   |
-| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —      |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | done   |
 | C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —      |
 
 ### Phase C1 — what landed
@@ -2054,6 +2054,24 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
   hand-over (trigger events, 40 tag reads), `BARCODE` after it, each confirmed by
   `onTriggerModeSwitched` while `getTriggerMode()` kept answering `RFID`; then the IH40's
   trigger read a QR on the scanner screen. The CT40 run is through.
+
+### Phase C3 — what landed
+
+- **`@its/scanner-honeywell` is publishable** (no longer `private`), as `@its/rfid-honeywell`
+  became in phase 36: bob into `lib/`, the `exports` map (`.`, `./app.plugin.js`,
+  `./package.json`), `validate-package` (publint, attw) in CI and the root `build`,
+  `release.yml` and the changesets' README naming it, `publishConfig` (`access: public`,
+  `provenance: true`). The tarball holds `lib/`, `src/`, the Android module (`build.gradle`,
+  sources), `expo-module.config.json` and `app.plugin.js`: no SDK. A changeset makes it `0.1.0`.
+- **`@its/rfid-honeywell` has its `publishConfig` back,** removed with the temporary token's
+  revert: every published package now asks for provenance, as `SECURITY.md` promises.
+- **`examples/consumer` waits for phase C4** (with the playground page, as the RFID page and the
+  consumer went together in phase 37): it installs from the registry, and the package is not
+  there yet.
+- **Not published yet:** as after phase 37, npm knows only `@its/glowup-ui` (checked 21
+  October). Trusted publishing cannot create a package, so the first version of each, this one
+  included, needs a publish by hand or a temporary token before its trusted publisher is set up:
+  a maintainer's choice. Until then the Release fails with `E404`, as it does for the others.
 
 ## Open for later
 

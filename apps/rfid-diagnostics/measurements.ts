@@ -80,6 +80,7 @@ const TIMELINE = new Set([
   "reconnectAttempt",
   "trigger",
   "triggerMode",
+  "triggerModeApplied",
   "triggerModeFailed",
   // Honeywell.
   "managerCreated",

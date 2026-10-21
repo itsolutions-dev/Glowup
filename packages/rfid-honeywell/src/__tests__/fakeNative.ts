@@ -23,6 +23,8 @@ export interface FakeHoneywellModule extends HoneywellRfidNativeModule {
   emitReaderFound(id: string, name: string | null, rssi?: number): void;
   readonly mode: "idle" | "inventory" | "locate";
   readonly triggerHandover: boolean;
+  /** The reader's trigger mode as the module sets it; null before a connection. */
+  readonly triggerMode: "RFID" | "BARCODE" | null;
   readonly diagnostics: boolean;
   readonly settings: { power: number; session: number; volume: string };
   readonly listenerCount: number;
@@ -51,6 +53,14 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
   let mode: "idle" | "inventory" | "locate" = "idle";
   let locateEpc = "";
   let triggerHandover = false;
+  // The reader keeps its mode between connections: the CT40 measured an IH40
+  // left in RFID, which the module now sets either way.
+  let triggerMode: "RFID" | "BARCODE" | null = null;
+  const applyTriggerMode = () => {
+    if (connection.state === "connected") {
+      triggerMode = triggerHandover ? "RFID" : "BARCODE";
+    }
+  };
   let diagnostics = false;
   let discovering = false;
   let queued: NativeTagRead[] = [];
@@ -110,9 +120,11 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
       }
       setConnection({ state: "connecting", readerId: id });
       setConnection({ state: "connected", readerId: id });
+      applyTriggerMode();
     },
     async disconnect() {
       mode = "idle";
+      if (connection.state === "connected") triggerMode = "BARCODE";
       if (connection.state !== "disconnected") {
         setConnection({ state: "disconnected", readerId: null });
       }
@@ -147,6 +159,7 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
     },
     async setTriggerHandover(enabled) {
       triggerHandover = enabled;
+      applyTriggerMode();
     },
     async startDiscovery() {
       takeFailure("startDiscovery");
@@ -230,6 +243,9 @@ export function createFakeHoneywellModule(): FakeHoneywellModule {
     },
     get triggerHandover() {
       return triggerHandover;
+    },
+    get triggerMode() {
+      return triggerMode;
     },
     get diagnostics() {
       return diagnostics;

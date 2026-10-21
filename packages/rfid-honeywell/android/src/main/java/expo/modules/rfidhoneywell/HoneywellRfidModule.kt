@@ -28,7 +28,7 @@ class RfidException(code: String, message: String, cause: Throwable? = null) :
 
 // Raised with every native change: JavaScript compares it with its own
 // (HONEYWELL_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 2
+private const val NATIVE_REVISION = 3
 
 // Reads reach JavaScript at most this often (plan R10): the SDK delivers
 // batches many times a second.
@@ -81,7 +81,6 @@ class HoneywellRfidModule : Module() {
   private var attemptInFlight = false
 
   private var triggerHandover = false
-  private var previousTriggerMode: TriggerMode? = null
 
   @Volatile private var diagnostics = false
 
@@ -401,7 +400,8 @@ class HoneywellRfidModule : Module() {
     connecting?.reject(RfidException("ERR_CANCELLED", "disconnect() ended the connection attempt."))
     cancelReconnect()
     if (running == Mode.INVENTORY || running == Mode.LOCATE) stopReading(running)
-    restoreTriggerMode()
+    // Left for the next connection, ours or another app's, as C6 wants it.
+    m?.let { setTriggerMode(it, TriggerMode.BARCODE) }
     try {
       m?.setAutoReconnect(false)
       m?.disconnect()
@@ -719,34 +719,23 @@ class HoneywellRfidModule : Module() {
 
   // --- Trigger ------------------------------------------------------------
 
+  // The trigger mode outlives the app: the CT40 measured an IH40 found in
+  // RFID mode at connection, its trigger no longer driving the CT40's scanner.
+  // So the module sets it either way: RFID while JavaScript holds the trigger,
+  // BARCODE otherwise (plan C6), never "what it was before".
   private fun applyTriggerMode() {
     val (m, wanted, connected) = synchronized(lock) { Triple(manager, triggerHandover, state == "connected" || reader != null) }
     if (m == null || !connected) return
-    try {
-      if (wanted) {
-        val current = m.triggerMode
-        if (current != TriggerMode.RFID) {
-          synchronized(lock) { previousTriggerMode = current }
-          m.setTriggerMode(TriggerMode.RFID)
-        }
-      } else {
-        restoreTriggerMode()
-      }
-    } catch (error: Throwable) {
-      diagnostic("triggerModeFailed", mapOf("message" to error.toString()))
-    }
+    setTriggerMode(m, if (wanted) TriggerMode.RFID else TriggerMode.BARCODE)
   }
 
-  private fun restoreTriggerMode() {
-    val (m, previous) = synchronized(lock) {
-      val p = previousTriggerMode
-      previousTriggerMode = null
-      manager to p
-    }
-    if (m == null || previous == null) return
+  private fun setTriggerMode(m: RfidManager, wanted: TriggerMode) {
     try {
-      m.setTriggerMode(previous)
-    } catch (_: Throwable) {
+      val current = m.triggerMode
+      if (current != wanted) m.setTriggerMode(wanted)
+      diagnostic("triggerModeApplied", mapOf("was" to current?.name, "now" to wanted.name))
+    } catch (error: Throwable) {
+      diagnostic("triggerModeFailed", mapOf("message" to error.toString()))
     }
   }
 

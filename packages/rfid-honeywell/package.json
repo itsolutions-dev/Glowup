@@ -1,6 +1,6 @@
 {
   "name": "@its/rfid-honeywell",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Honeywell RFID readers (IH40 and others, RFID SDK v1.1.0) behind @its/glowup-device/rfid: an Android Expo module, its adapter and its config plugin",
   "license": "MIT",
   "repository": {

@@ -12,6 +12,7 @@ import {
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip, type TooltipRow } from "./ChartTooltip";
 import { DENSE_BARS, DenseHit } from "./DenseHit";
+import { aggregate } from "./core/aggregate";
 import { stackValues } from "./core/paths";
 import { bandScale, valueScale } from "./core/scales";
 import { num, useChartBase, type ChartCommonProps } from "./hooks/useChartBase";
@@ -25,7 +26,9 @@ export type BarChartProps = ChartCommonProps & {
   target?: number;
   /**
    * One path per series and one touch layer instead of a node and a Pressable per bar, for thousands of bars. A bar can no longer be
-   * dimmed on its own: a band behind the active category marks it. Default: on from 400 bars.
+   * dimmed on its own: a band behind the active category marks it. Past about one bar per two pixels the bars are drawn as the mean of
+   * the categories that share a column, with a faint peak behind each up to their highest (grouped bars only); the tooltip still reads
+   * the exact category. Default: on from 400 bars.
    */
   dense?: boolean;
 };
@@ -161,21 +164,85 @@ const BarChart = (props: BarChartProps) => {
         // series is then a single path of rectangles, and the active category is
         // marked by a band behind the bars (no bar can be dimmed on its own).
         const isDense = dense ?? data.length * keys.length > DENSE_BARS;
+        const folded = isDense
+          ? aggregate(
+              data,
+              keys,
+              Math.floor(
+                (horizontal ? plot.height : plot.width) /
+                  (2 * (stacked ? 1 : keys.length)),
+              ),
+            )
+          : null;
+        const foldedStacks =
+          folded && stacked ? stackValues(folded.mean, keys) : null;
+        // The same bar as barRect, for a run of categories folded into one: the mean, or (peak) the highest.
+        const foldedRect = (c: number, s: number, peak: boolean) => {
+          if (!folded) return null;
+          let low: number;
+          let high: number;
+          if (foldedStacks) {
+            const p = foldedStacks[s][c];
+            low = Math.min(p.start, p.end);
+            high = Math.max(p.start, p.end);
+          } else {
+            const x = num((peak ? folded.max : folded.mean)[c][keys[s]]);
+            if (x === null) return null;
+            low = Math.min(x, 0);
+            high = Math.max(x, 0);
+          }
+          const a = v.at(low);
+          const b = v.at(high);
+          const start = Math.min(a, b);
+          const length = Math.abs(a - b);
+          if (length <= 0) return null;
+          const run = folded.runs[c];
+          const size =
+            ((run.to - run.from) * band.step) / (stacked ? 1 : keys.length);
+          const cross =
+            crossStart(run.from) -
+            (band.step - band.width) / 2 +
+            (stacked ? 0 : s * size);
+          return horizontal
+            ? { x: start, y: cross, width: length, height: size }
+            : { x: cross, y: start, width: size, height: length };
+        };
+        const pathOf = (
+          count: number,
+          rectOf: (i: number) => ReturnType<typeof barRect>,
+        ) => {
+          let d = "";
+          for (let i = 0; i < count; i++) {
+            const r = rectOf(i);
+            if (r) d += `M${r.x},${r.y}h${r.width}v${r.height}h${-r.width}Z`;
+          }
+          return d;
+        };
         const bars = isDense
           ? keys.map((k, s) => {
-              let d = "";
-              for (let i = 0; i < data.length; i++) {
-                const r = barRect(i, s);
-                if (r)
-                  d += `M${r.x},${r.y}h${r.width}v${r.height}h${-r.width}Z`;
-              }
-              return d === "" ? null : (
-                <Path
-                  key={k}
-                  testID={testID ? `${testID}-dense-${k}` : undefined}
-                  d={d}
-                  fill={seriesColors[s]}
-                />
+              const main = folded
+                ? pathOf(folded.runs.length, (c) => foldedRect(c, s, false))
+                : pathOf(data.length, (i) => barRect(i, s));
+              const peak =
+                folded && !stacked
+                  ? pathOf(folded.runs.length, (c) => foldedRect(c, s, true))
+                  : "";
+              return main === "" ? null : (
+                <G key={k}>
+                  {peak !== "" && (
+                    <Path
+                      testID={testID ? `${testID}-peak-${k}` : undefined}
+                      d={peak}
+                      fill={seriesColors[s]}
+                      fillOpacity={0.3}
+                    />
+                  )}
+                  <Path
+                    testID={testID ? `${testID}-dense-${k}` : undefined}
+                    d={main}
+                    fill={seriesColors[s]}
+                  />
+                </G>
               );
             })
           : data.flatMap((_, i) =>

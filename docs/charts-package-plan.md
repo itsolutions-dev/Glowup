@@ -116,6 +116,12 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 Non si dichiara "funziona su iOS/Android" finché un run non lo mostra. **Non verificati in ogni caso:** tocco e velocità su un
 telefono vero, hover, grafici con migliaia di punti sul nativo.
 
+### Dopo il passo 7: leggibilità (2026-10-21)
+
+Segnalato guardando la pagina: a 10.000 punti su ~1.200 px i tracciati si sovrappongono e non si legge niente (la linea è uno scarabocchio, le barre una macchia). In modalità densa, con più punti di una colonna ogni 2 px (barre: 2 px per serie), `core/aggregate.ts` li ripartisce in colonne: la linea passa per la **media** di ogni colonna, con una striscia tenue dal minimo al massimo (`bandPath`); le barre raggruppate disegnano la media e, dietro, un picco tenue fino al massimo; le impilate solo la media. Il tooltip legge sempre il punto esatto (la media disegnata e il valore letto possono differire: è scritto nelle prop). Anche i dati dimostrativi sono ora realistici (tendenza, onde, rumore): quelli di prima oscillavano a ogni 44 punti e restavano una macchia anche mediati.
+
+Grafico a torta/ciambella: con `showPercent` la quota di una fetta troppo stretta per contenerla (meno del 6% o anello sotto 18 px) si scrive **fuori dall'anello** con una breve linea, con le etichette vicine spostate in angolo (`spreadAngles`) perché non si tocchino e l'anello ridotto per fare posto. Una quota sotto lo 0,5% si legge «<1%», non «0%».
+
 ### Misure del passo 7 (2026-10-20)
 
 **Fatto.** Con la modalità densa un `BarChart` disegna **un `<Path>` per serie** e **un solo livello di tocco** (`DenseHit`) che ricava la

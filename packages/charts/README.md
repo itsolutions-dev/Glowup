@@ -16,7 +16,9 @@ Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` 
 - **`ChartLegend`, the `legend` prop and `Chart`**: a key under the chart whose items switch a series (or a part) off, and one entry
   point that picks the component by `type`.
 - **Dense mode** for thousands of points: from 400 bars (200 points for lines) a chart draws one path per series and one touch layer instead of
-  a node per bar; `dense` forces it on or off. Measured on the web, see the plan (step 7).
+  a node per bar; `dense` forces it on or off. Measured on the web, see the plan (step 7). Past about one point (or one bar) per two pixels
+  the points that share a column are folded into their mean, drawn over a faint strip from their lowest to their highest (grouped bars: a
+  faint peak); the tooltip still reads the exact point.
 - Still to do: the check on the iOS and Android simulators (step 8 of the plan).
 
 ## Use
@@ -39,21 +41,21 @@ import { BarChart } from "@its/glowup-charts";
 />;
 ```
 
-| Prop                      | Meaning                                                                                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data`                    | One object per category: `label` and a number per series key (a missing value draws no bar).                                                                            |
-| `series`                  | `{ key, label?, color? }` per series.                                                                                                                                   |
-| `height`                  | Height in pixels, default 240. The width is the box the chart sits in.                                                                                                  |
-| `stacked`                 | Pile the series up instead of side by side.                                                                                                                             |
-| `horizontal`              | One row per category, bars running left to right; long labels are cut with an ellipsis.                                                                                 |
-| `dense`                   | One path per series and one touch layer instead of a node per bar. Default: on from 400 bars. A band behind the active category replaces the dimming of the other bars. |
-| `target`                  | A dashed reference line, labelled with its value.                                                                                                                       |
-| `colors`                  | One colour per series; a series' own `color` wins. Default: roles of the theme.                                                                                         |
-| `title`                   | Starts the text a screen reader gets for the chart.                                                                                                                     |
-| `locale`, `numberFormat`  | BCP 47 tag (default `en-US`) and `Intl.NumberFormat` options for every number shown.                                                                                    |
-| `formatValue`             | Replaces the number formatting altogether.                                                                                                                              |
-| `loading`, `emptyLabel`   | A skeleton while loading; the text shown when there is no data.                                                                                                         |
-| `onSelect(index \| null)` | A category was tapped, or the same one again.                                                                                                                           |
+| Prop                      | Meaning                                                                                                                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data`                    | One object per category: `label` and a number per series key (a missing value draws no bar).                                                                                                                                                                                                                        |
+| `series`                  | `{ key, label?, color? }` per series.                                                                                                                                                                                                                                                                               |
+| `height`                  | Height in pixels, default 240. The width is the box the chart sits in.                                                                                                                                                                                                                                              |
+| `stacked`                 | Pile the series up instead of side by side.                                                                                                                                                                                                                                                                         |
+| `horizontal`              | One row per category, bars running left to right; long labels are cut with an ellipsis.                                                                                                                                                                                                                             |
+| `dense`                   | One path per series and one touch layer instead of a node per bar. Default: on from 400 bars. A band behind the active category replaces the dimming of the other bars. With more bars than about one per two pixels, they are folded into columns (mean, with a faint peak up to the highest; stacked: mean only). |
+| `target`                  | A dashed reference line, labelled with its value.                                                                                                                                                                                                                                                                   |
+| `colors`                  | One colour per series; a series' own `color` wins. Default: roles of the theme.                                                                                                                                                                                                                                     |
+| `title`                   | Starts the text a screen reader gets for the chart.                                                                                                                                                                                                                                                                 |
+| `locale`, `numberFormat`  | BCP 47 tag (default `en-US`) and `Intl.NumberFormat` options for every number shown.                                                                                                                                                                                                                                |
+| `formatValue`             | Replaces the number formatting altogether.                                                                                                                                                                                                                                                                          |
+| `loading`, `emptyLabel`   | A skeleton while loading; the text shown when there is no data.                                                                                                                                                                                                                                                     |
+| `onSelect(index \| null)` | A category was tapped, or the same one again.                                                                                                                                                                                                                                                                       |
 
 ## Peers
 
@@ -79,14 +81,14 @@ import { AreaChart, LineChart } from "@its/glowup-charts";
 
 Same `data`, `series`, `colors`, `locale`, `formatValue`, `loading`, `onSelect` and `title` as `BarChart`, plus:
 
-| Prop       | Meaning                                                                                                                     |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `curve`    | `"linear"` (default), `"monotone"`, `"natural"` or `"step"`.                                                                |
-| `area`     | Fill under each line (`AreaChart` is `LineChart` with it set).                                                              |
-| `zero`     | Keep 0 on the value axis, default true; a line in a narrow band reads better with `zero={false}`.                           |
-| `showDots` | A dot on every point; default up to 24 categories (beyond that only the active one has a dot).                              |
-| `dense`    | One touch layer instead of a Pressable per category. Default: on from 200 categories (the lines are one path each already). |
-| `target`   | A dashed reference line at this value.                                                                                      |
+| Prop       | Meaning                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `curve`    | `"linear"` (default), `"monotone"`, `"natural"` or `"step"`.                                                                                                                                                              |
+| `area`     | Fill under each line (`AreaChart` is `LineChart` with it set).                                                                                                                                                            |
+| `zero`     | Keep 0 on the value axis, default true; a line in a narrow band reads better with `zero={false}`.                                                                                                                         |
+| `showDots` | A dot on every point; default up to 24 categories (beyond that only the active one has a dot).                                                                                                                            |
+| `dense`    | One touch layer instead of a Pressable per category. Default: on from 200 categories. With more points than about one per two pixels, the line runs through the mean of each column over a faint lowest-to-highest strip. |
+| `target`   | A dashed reference line at this value.                                                                                                                                                                                    |
 
 The x axis is the order of the points, evenly spaced, with one `label` per point: it is not a time scale (the CRM's own line charts
 work this way). A missing value leaves a gap in the line. Areas of several series overlap, they do not pile up.

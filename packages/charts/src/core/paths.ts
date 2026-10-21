@@ -168,3 +168,59 @@ export const sliceAt = (
   );
   return index === -1 ? null : index;
 };
+
+/**
+ * SVG path of the strip between `hi` and `lo` at each `x` (straight edges). A column without
+ * either value ends the strip and a new one starts after it. "" when nothing can be drawn.
+ */
+export const bandPath = (
+  columns: { x: number; hi: number | null; lo: number | null }[],
+) => {
+  let d = "";
+  let run: { x: number; hi: number; lo: number }[] = [];
+  const flush = () => {
+    if (run.length > 0) {
+      const top = run.map((c) => `${c.x},${c.hi}`).join("L");
+      const bottom = run
+        .map((c) => `${c.x},${c.lo}`)
+        .reverse()
+        .join("L");
+      d += `M${top}L${bottom}Z`;
+    }
+    run = [];
+  };
+  for (const c of columns) {
+    if (c.hi === null || c.lo === null) flush();
+    else run.push({ x: c.x, hi: c.hi, lo: c.lo });
+  }
+  flush();
+  return d;
+};
+
+/**
+ * Moves angles (radians, ascending, clockwise from 12 o'clock) apart until neighbours,
+ * the last and the first included, are at least `gap` apart; each pair gives way by half.
+ * More angles than fit are spread evenly from the first.
+ */
+export const spreadAngles = (angles: number[], gap: number) => {
+  const n = angles.length;
+  const full = 2 * Math.PI;
+  if (n * gap >= full)
+    return angles.map((_, i) => (angles[0] ?? 0) + (i * full) / n);
+  const out = [...angles];
+  for (let pass = 0; pass < 100; pass++) {
+    let moved = false;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      const d = out[j] + (j === 0 ? full : 0) - out[i];
+      if (n > 1 && d < gap - 1e-9) {
+        const half = (gap - d) / 2;
+        out[i] -= half;
+        out[j] += half;
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return out;
+};

@@ -1,11 +1,14 @@
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
+import { aggregate } from "../core/aggregate";
 import {
   arcPath,
   areaPath,
+  bandPath,
   donutSlices,
   linePath,
   sliceAt,
+  spreadAngles,
   stackValues,
 } from "../core/paths";
 import { bandScale, pointPositions, valueScale } from "../core/scales";
@@ -327,5 +330,78 @@ describe("summary", () => {
       ["Feb", "2"],
       ["Mar", "3"],
     ]);
+  });
+});
+
+describe("aggregate", () => {
+  const data = Array.from({ length: 10 }, (_, i) => ({
+    label: `c${i}`,
+    a: i,
+    b: i < 5 ? null : i,
+  }));
+
+  it("folds the categories into the columns it is given, with mean and range", () => {
+    const f = aggregate(data, ["a", "b"], 5);
+    expect(f?.runs).toEqual(
+      [0, 1, 2, 3, 4].map((c) => ({ from: 2 * c, to: 2 * c + 2 })),
+    );
+    expect(f?.mean.map((d) => d.a)).toEqual([0.5, 2.5, 4.5, 6.5, 8.5]);
+    expect(f?.min[4].a).toBe(8);
+    expect(f?.max[4].a).toBe(9);
+    // A run with no value stays a gap, a run with one value is that value.
+    expect(f?.mean.map((d) => d.b)).toEqual([null, null, 5, 6.5, 8.5]);
+    expect(f?.mean[0].label).toBe("c0");
+  });
+
+  it("covers every category once when they do not divide evenly", () => {
+    const f = aggregate(data, ["a"], 3);
+    expect(f?.runs[0].from).toBe(0);
+    expect(f?.runs[2].to).toBe(10);
+    f?.runs.forEach((r, i) => i > 0 && expect(r.from).toBe(f.runs[i - 1].to));
+  });
+
+  it("returns null when there are no more categories than columns", () => {
+    expect(aggregate(data, ["a"], 10)).toBeNull();
+    expect(aggregate(data, ["a"], 20)).toBeNull();
+  });
+});
+
+describe("bandPath", () => {
+  it("goes along the top and back along the bottom, one strip per run", () => {
+    expect(
+      bandPath([
+        { x: 0, hi: 1, lo: 5 },
+        { x: 1, hi: 2, lo: 6 },
+        { x: 2, hi: null, lo: null },
+        { x: 3, hi: 3, lo: 4 },
+      ]),
+    ).toBe("M0,1L1,2L1,6L0,5ZM3,3L3,4Z");
+    expect(bandPath([])).toBe("");
+  });
+});
+
+describe("spreadAngles", () => {
+  it("keeps angles that already clear each other", () => {
+    expect(spreadAngles([0.5, 2, 4], 0.3)).toEqual([0.5, 2, 4]);
+  });
+
+  it("moves close neighbours apart, across the top as well", () => {
+    for (const angles of [
+      [1, 1.01, 1.02],
+      [0.01, 6.27],
+      [3, 3],
+    ]) {
+      const out = spreadAngles(angles, 0.2);
+      out.forEach((a, i) => {
+        const next =
+          out[(i + 1) % out.length] + (i + 1 === out.length ? 2 * Math.PI : 0);
+        expect(next - a).toBeGreaterThanOrEqual(0.2 - 1e-6);
+      });
+    }
+  });
+
+  it("spreads evenly when there is no room for the gap", () => {
+    const out = spreadAngles([0, 0.1, 0.2, 0.3], 2);
+    expect(out[1] - out[0]).toBeCloseTo(Math.PI / 2);
   });
 });

@@ -128,6 +128,23 @@ describe("DonutChart", () => {
     expect(json).toContain(`"content":"50%"`);
   });
 
+  it("writes the share of a slice too narrow to hold it outside the ring, however small", async () => {
+    await donut({
+      showPercent: true,
+      data: [
+        { id: "a", value: 990 },
+        { id: "b", value: 6 },
+        { id: "c", value: 4 },
+      ],
+    });
+    const json = JSON.stringify(screen.toJSON());
+    expect(json).toContain(`"content":"99%"`);
+    expect(json).toContain(`"content":"1%"`);
+    expect(json).toContain(`"content":"<1%"`);
+    // The ring made room: it is smaller than the 61..96 one of a chart with every share inside.
+    expect(screen.getByTestId("c-slice-a").parent?.parent?.props).toBeDefined();
+  });
+
   it("draws a single part as a full ring", async () => {
     await donut({ data: [{ id: "only", value: 7 }] });
     expect(screen.getAllByTestId(/^c-slice-/)).toHaveLength(1);

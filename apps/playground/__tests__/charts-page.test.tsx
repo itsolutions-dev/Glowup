@@ -73,8 +73,8 @@ describe("the charts page", () => {
     await measure("demo-stack", 32);
     await measure("demo-spark-Answered", 32);
 
-    expect(screen.getAllByTestId(/^demo-donut-slice-/)).toHaveLength(4);
-    expect(screen.getAllByTestId(/^demo-stack-segment-/)).toHaveLength(4);
+    expect(screen.getAllByTestId(/^demo-donut-slice-/)).toHaveLength(5);
+    expect(screen.getAllByTestId(/^demo-stack-segment-/)).toHaveLength(5);
     expect(screen.getByTestId("demo-spark-Answered-line")).toBeTruthy();
     expect(screen.getByTestId("demo-gauge-track")).toBeTruthy();
     expect(JSON.stringify(screen.toJSON())).toContain(`"content":"72%"`);

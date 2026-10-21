@@ -5,7 +5,8 @@ import { ChartAxes, labelStride, labelWidth, type Plot } from "./ChartAxes";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip, type TooltipRow } from "./ChartTooltip";
 import { DENSE_POINTS, DenseHit } from "./DenseHit";
-import { areaPath, linePath } from "./core/paths";
+import { aggregate } from "./core/aggregate";
+import { areaPath, bandPath, linePath } from "./core/paths";
 import { pointPositions, valueScale } from "./core/scales";
 import type { CurveName } from "./core/types";
 import { num, useChartBase, type ChartCommonProps } from "./hooks/useChartBase";
@@ -21,7 +22,12 @@ export type LineChartProps = ChartCommonProps & {
   zero?: boolean;
   /** A dot on every point. Default: up to 24 categories. */
   showDots?: boolean;
-  /** One touch layer instead of a Pressable per category, for thousands of points (the lines are one path each anyway). Default: on from 200 categories. */
+  /**
+   * One touch layer instead of a Pressable per category, for thousands of points. Past about one point
+   * per two pixels the line is drawn through the mean of the points that share a column, with a faint
+   * strip behind it from their lowest to their highest; the tooltip still reads the exact point.
+   * Default: on from 200 categories.
+   */
   dense?: boolean;
 };
 
@@ -104,19 +110,38 @@ const LineChart = (props: LineChartProps) => {
           .filter((_, i) => i % stride === 0);
         const baseline = v.at(v.domain[0] <= 0 ? 0 : v.domain[0]);
 
+        const isDense = dense ?? data.length > DENSE_POINTS;
+        const folded = isDense
+          ? aggregate(data, keys, Math.floor(plot.width / 2))
+          : null;
+        const at = (d: (typeof data)[number], k: string) => {
+          const x = num(d[k]);
+          return x === null ? null : v.at(x);
+        };
+
         const drawn = keys.map((k) => {
-          const points = data.map((d, i) => {
-            const x = num(d[k]);
-            return { x: xs[i], y: x === null ? null : v.at(x) };
-          });
+          const points = (folded?.mean ?? data).map((d, i) => ({
+            x: folded
+              ? (xs[folded.runs[i].from] + xs[folded.runs[i].to - 1]) / 2
+              : xs[i],
+            y: at(d, k),
+          }));
           return {
             points,
             line: linePath(points, curve),
             fill: area ? areaPath(points, baseline, curve) : "",
+            band: folded
+              ? bandPath(
+                  points.map((p, i) => ({
+                    x: p.x,
+                    hi: at(folded.max[i], k),
+                    lo: at(folded.min[i], k),
+                  })),
+                )
+              : "",
           };
         });
         const dots = showDots ?? data.length <= 24;
-        const isDense = dense ?? data.length > DENSE_POINTS;
 
         const tooltip = (() => {
           if (active === null || active >= data.length) return null;
@@ -126,8 +151,8 @@ const LineChart = (props: LineChartProps) => {
             name: names[s],
             value: format(num(d[k])),
           }));
-          const ys = drawn
-            .map((s) => s.points[active].y)
+          const ys = keys
+            .map((k) => at(d, k))
             .filter((y): y is number => y !== null);
           return (
             <ChartTooltip
@@ -194,6 +219,14 @@ const LineChart = (props: LineChartProps) => {
               )}
               {drawn.map((s, i) => (
                 <G key={keys[i]}>
+                  {s.band !== "" && (
+                    <Path
+                      testID={testID ? `${testID}-band-${keys[i]}` : undefined}
+                      d={s.band}
+                      fill={seriesColors[i]}
+                      fillOpacity={0.22}
+                    />
+                  )}
                   {s.fill !== "" && (
                     <Path
                       testID={testID ? `${testID}-area-${keys[i]}` : undefined}
@@ -213,8 +246,14 @@ const LineChart = (props: LineChartProps) => {
                       strokeLinecap="round"
                     />
                   )}
-                  {s.points.map((p, j) =>
-                    p.y !== null && (dots || active === j) ? (
+                  {(folded
+                    ? active !== null && active < data.length
+                      ? [{ x: xs[active], y: at(data[active], keys[i]) }]
+                      : []
+                    : s.points
+                  ).map((p, n) => {
+                    const j = folded ? (active as number) : n;
+                    return p.y !== null && (dots || active === j) ? (
                       <Circle
                         key={j}
                         testID={
@@ -227,8 +266,8 @@ const LineChart = (props: LineChartProps) => {
                         stroke={active === j ? theme.colors.surface : "none"}
                         strokeWidth={active === j ? 2 : 0}
                       />
-                    ) : null,
-                  )}
+                    ) : null;
+                  })}
                 </G>
               ))}
             </Svg>

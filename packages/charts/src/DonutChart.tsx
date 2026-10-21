@@ -1,9 +1,10 @@
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Svg, { G, Path, Text as SvgText } from "react-native-svg";
+import Svg, { G, Line, Path, Text as SvgText } from "react-native-svg";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip } from "./ChartTooltip";
-import { arcPath, donutSlices, sliceAt } from "./core/paths";
+import { arcPath, donutSlices, sliceAt, spreadAngles } from "./core/paths";
+import { labelWidth } from "./ChartAxes";
 import { usePartsBase, type PartsCommonProps } from "./hooks/usePartsBase";
 
 export type DonutChartProps = PartsCommonProps & {
@@ -17,12 +18,17 @@ export type DonutChartProps = PartsCommonProps & {
   centerValue?: string | ((shownTotal: number) => string);
   /** The small text under it; while a part is active it shows that part's label. */
   centerLabel?: string;
-  /** Each part's share, written on its slice (only where the slice is wide enough). */
+  /** Each part's share: on its slice where it is wide enough, else outside the ring on a short line, however small the part. */
   showPercent?: boolean;
 };
 
 /** A slice grows by this much when it is active, and the chart leaves room for it. */
 const GROW = 4;
+/** From the ring to a label written outside it. */
+const LEADER = 12;
+/** A share written inside a slice needs at least this fraction of the ring and this ring width. */
+const INSIDE_FRACTION = 0.06;
+const INSIDE_RING = 18;
 const PAD_ANGLE = 0.01;
 const CORNER = 4;
 
@@ -61,6 +67,7 @@ const DonutChart = (props: DonutChartProps) => {
   );
   // A gauge at zero has no slice but still shows its ring and its centre.
   const empty = positive.length === 0 && total === undefined;
+  const sum = positive.reduce((s, d) => s + d.value, 0);
 
   const frame = (
     <ChartFrame
@@ -72,7 +79,37 @@ const DonutChart = (props: DonutChartProps) => {
       testID={testID}
     >
       {({ width }) => {
-        const outer = Math.max(0, Math.min(width, height) / 2 - GROW);
+        const labelSize = Math.max(
+          10,
+          Math.min(14, (Math.min(width, height) / 2) * 0.2),
+        );
+        const whole = Math.max(total ?? 0, sum);
+        const room = Math.max(0, Math.min(width, height) / 2 - GROW);
+        const ring0 = Math.min(room, thickness ?? Math.max(8, room * 0.36));
+        // Slices too narrow to hold their share get it outside the ring, and the ring leaves room for those.
+        const outside = showPercent
+          ? positive.filter(
+              (d) => d.value / whole < INSIDE_FRACTION || ring0 < INSIDE_RING,
+            )
+          : [];
+        const textWidth = Math.max(
+          0,
+          ...outside.map((d) =>
+            labelWidth(percent(d.value / whole), labelSize),
+          ),
+        );
+        const outer =
+          outside.length === 0
+            ? room
+            : Math.max(
+                0,
+                Math.min(
+                  width / 2 - textWidth - 2,
+                  height / 2 - labelSize / 2 - 2,
+                ) -
+                  GROW -
+                  LEADER,
+              );
         const ring = Math.min(outer, thickness ?? Math.max(8, outer * 0.36));
         const inner = Math.max(0, outer - ring);
         const cx = width / 2;
@@ -87,7 +124,6 @@ const DonutChart = (props: DonutChartProps) => {
             total,
           },
         );
-        const sum = positive.reduce((s, d) => s + d.value, 0);
         const showTrack = total !== undefined && total > sum;
         const activePart = visible.find((d) => d.id === active);
         const color = colorOf;
@@ -96,8 +132,36 @@ const DonutChart = (props: DonutChartProps) => {
           const i = sliceAt(slices, x - cx, y - cy, inner, outer + GROW);
           return i === null ? null : slices[i].id;
         };
+        // Where each outside label goes: its slice's middle angle, nudged so neighbours do not touch.
+        const outsideIds = new Set(outside.map((d) => d.id));
+        const labelled = slices.filter((s) => outsideIds.has(s.id));
+        const at = (angle: number, radius: number): [number, number] => [
+          radius * Math.sin(angle),
+          -radius * Math.cos(angle),
+        ];
+        const edge = outer + GROW;
+        const angles = spreadAngles(
+          labelled.map((s) => (s.startAngle + s.endAngle) / 2),
+          (labelSize + 2) / (edge + LEADER),
+        );
+        const outsideLabels = labelled.map((s, i) => {
+          const mid = (s.startAngle + s.endAngle) / 2;
+          const side = Math.sin(angles[i]);
+          return {
+            id: s.id,
+            fraction: s.fraction,
+            from: at(mid, outer + 1),
+            to: at(angles[i], edge + LEADER - 3),
+            text: at(angles[i], edge + LEADER),
+            anchor:
+              side > 0.1
+                ? ("start" as const)
+                : side < -0.1
+                  ? ("end" as const)
+                  : ("middle" as const),
+          };
+        });
         const valueSize = Math.max(12, Math.min(28, inner * 0.42));
-        const labelSize = Math.max(10, Math.min(14, inner * 0.2));
         const fontFamily = theme.typography.labelSmall.fontFamily;
         // A pie has no hole to write in: its active slice gets a tooltip instead.
         const hasHole = inner > 0;
@@ -164,7 +228,7 @@ const DonutChart = (props: DonutChartProps) => {
                 })}
                 {showPercent &&
                   slices
-                    .filter((s) => s.fraction >= 0.06 && ring >= 18)
+                    .filter((s) => !outsideIds.has(s.id))
                     .map((s) => (
                       <SvgText
                         key={`p${s.id}`}
@@ -178,6 +242,28 @@ const DonutChart = (props: DonutChartProps) => {
                         {percent(s.fraction)}
                       </SvgText>
                     ))}
+                {outsideLabels.map((l) => (
+                  <G key={`o${l.id}`}>
+                    <Line
+                      x1={l.from[0]}
+                      y1={l.from[1]}
+                      x2={l.to[0]}
+                      y2={l.to[1]}
+                      stroke={theme.colors.outline}
+                      strokeWidth={1}
+                    />
+                    <SvgText
+                      x={l.text[0]}
+                      y={l.text[1] + labelSize / 3}
+                      fontSize={labelSize}
+                      fontFamily={fontFamily}
+                      fill={theme.colors.onSurface}
+                      textAnchor={l.anchor}
+                    >
+                      {percent(l.fraction)}
+                    </SvgText>
+                  </G>
+                ))}
                 {centerTop !== undefined && (
                   <SvgText
                     x={0}

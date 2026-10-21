@@ -62,6 +62,49 @@ const plotSize = () => {
   return { width: Number(style.width), height: Number(style.height) };
 };
 
+describe("a chart with more points than pixels", () => {
+  it("draws a line through the mean of each column, with a strip from lowest to highest", async () => {
+    await lines({ data: many(1000), series });
+    // 300 wide leaves a plot of about 250: one column per 2 px.
+    const line = screen.getByTestId("c-line-a").props.d as string;
+    expect(line.match(/L/g)?.length).toBeLessThan(150);
+    expect(screen.getByTestId("c-band-a")).toBeTruthy();
+    expect(screen.getByTestId("c-band-b")).toBeTruthy();
+  });
+
+  it("still shows the exact point under the pointer", async () => {
+    await lines({ data: many(1000), series });
+    const { width } = plotSize();
+    await fireEvent(screen.getByTestId("c-hit"), "pointerMove", {
+      nativeEvent: { offsetX: width / 2, offsetY: 10 },
+    });
+    // the 500th of 1000: (499 % 7) + 1 = 2 and (499 % 5) + 1 = 5, whatever the mean around it
+    expect(screen.getByText(/^North: [0-9]+$/)).toBeTruthy();
+    expect(screen.getAllByTestId(/^c-dot-/)).toHaveLength(2);
+  });
+
+  it("folds bars into columns with a faint peak behind each, but not when stacked", async () => {
+    await bars({ data: many(1000), series });
+    expect(screen.getByTestId("c-peak-a")).toBeTruthy();
+    // One column per 2 px of each series: the plot's width over 4.
+    expect(
+      (screen.getByTestId("c-dense-a").props.d as string).match(/M/g),
+    ).toHaveLength(Math.floor(plotSize().width / 4));
+    await screen.unmount();
+    await bars({ data: many(1000), series, stacked: true });
+    expect(screen.queryByTestId("c-peak-a")).toBeNull();
+    expect(screen.getByTestId("c-dense-a")).toBeTruthy();
+  });
+
+  it("leaves a chart with room for every point as it is", async () => {
+    await lines({ data: many(100), series, dense: true });
+    expect(screen.queryByTestId("c-band-a")).toBeNull();
+    await screen.unmount();
+    await bars({ data: many(50), series, dense: true });
+    expect(screen.queryByTestId("c-peak-a")).toBeNull();
+  });
+});
+
 describe("BarChart, dense", () => {
   it("is a path per series and one touch layer, not a node per bar", async () => {
     await bars({ dense: true });

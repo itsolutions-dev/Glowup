@@ -185,6 +185,7 @@ const OUTCOMES = [
   { id: "missed", label: "Missed", value: 30 },
   { id: "busy", label: "Busy", value: 14 },
   { id: "voicemail", label: "Voicemail", value: 9 },
+  { id: "dropped", label: "Dropped", value: 1 },
 ];
 
 const TRENDS = [
@@ -286,11 +287,24 @@ const PartsDemo = () => {
   );
 };
 
+// A trend, twelve swells over the range and noise: what a long series looks like, and what the dense mode folds.
 const manyPoints = (n: number): ChartDatum[] =>
   Array.from({ length: n }, (_, i) => ({
     label: `${i + 1}`,
-    value: Math.round(50 + 40 * Math.sin(i / 7) + ((i * 37) % 13)),
-    other: Math.round(30 + 20 * Math.cos(i / 11) + ((i * 17) % 7)),
+    value: Math.round(
+      40 +
+        (30 * i) / n +
+        18 * Math.sin((24 * Math.PI * i) / n) +
+        1.5 * ((i * 37) % 13) -
+        9,
+    ),
+    other: Math.round(
+      25 +
+        (10 * i) / n +
+        10 * Math.cos((16 * Math.PI * i) / n) +
+        1.2 * ((i * 17) % 7) -
+        4,
+    ),
   }));
 
 const MANY_SERIES = [
@@ -389,7 +403,7 @@ export default function ChartsPage() {
       </Section>
       <Section
         title="Thousands of points"
-        description="Past a few hundred bars a chart draws one path per series and one touch layer instead of a node per bar. Switch it off to see the difference."
+        description="Past a few hundred bars a chart draws one path per series and one touch layer instead of a node per bar, and past about one point per two pixels it folds the points that share a column into their mean with a faint strip from lowest to highest. The tooltip still reads the exact point. Switch it off to see the difference."
       >
         <ManyDemo />
       </Section>

@@ -67,14 +67,15 @@ export const usePartsBase = ({
       ? (v: number | null | undefined) => (v == null ? f(v) : formatValue(v))
       : f;
   }, [locale, numberFormat, formatValue]);
-  const percent = useMemo(
-    () =>
-      makeValueFormatter({
-        locale,
-        options: { style: "percent", maximumFractionDigits: 0 },
-      }),
-    [locale],
-  );
+  // A share too small to round to 1% reads "<1%", not "0%".
+  const percent = useMemo(() => {
+    const f = makeValueFormatter({
+      locale,
+      options: { style: "percent", maximumFractionDigits: 0 },
+    });
+    return (share: number | null | undefined) =>
+      share != null && share > 0 && share < 0.005 ? `<${f(0.01)}` : f(share);
+  }, [locale]);
   const nameOf = (d: PartDatum) => d.label ?? d.id;
   const summary = describeParts({
     title,

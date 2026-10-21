@@ -42,6 +42,25 @@ export const DEVICE_SYMBOLOGIES: Record<
   upc_e: { codeId: "E", aimId: "]E0", property: "DEC_UPCE0_ENABLED" },
 };
 
+/**
+ * The settings that shorten an EAN's or UPC's text: off, the service drops
+ * the check digit (the last) or the number system (the first).
+ */
+const DIGIT_SETTINGS: Partial<
+  Record<BarcodeType, { checkDigit: string; numberSystem?: string }>
+> = {
+  ean13: { checkDigit: "DEC_EAN13_CHECK_DIGIT_TRANSMIT" },
+  ean8: { checkDigit: "DEC_EAN8_CHECK_DIGIT_TRANSMIT" },
+  upc_a: {
+    checkDigit: "DEC_UPCA_CHECK_DIGIT_TRANSMIT",
+    numberSystem: "DEC_UPCA_NUMBER_SYSTEM_TRANSMIT",
+  },
+  upc_e: {
+    checkDigit: "DEC_UPCE_CHECK_DIGIT_TRANSMIT",
+    numberSystem: "DEC_UPCE_NUMBER_SYSTEM_TRANSMIT",
+  },
+};
+
 type Listeners = { [K in keyof NativeEvents]: Set<NativeEvents[K]> };
 
 export interface FakeHoneywellScanner extends HoneywellScannerNativeModule {
@@ -71,8 +90,11 @@ const DEVICE_DEFAULTS: Record<string, NativeProperty> = {
   ),
   DEC_GS1_128_ENABLED: true,
   DEC_MSI_ENABLED: false,
+  // As the CT40 measured: EAN-13 without its check digit.
+  DEC_EAN13_CHECK_DIGIT_TRANSMIT: false,
   DPR_PREFIX: "",
   DPR_SUFFIX: "\n",
+  DPR_CHARSET: "ISO-8859-1",
   TRIG_CONTROL_MODE: "autoControl",
 };
 
@@ -206,10 +228,25 @@ export function createFakeHoneywellScanner(): FakeHoneywellScanner {
     decode(type, data, extra = {}) {
       const symbology = DEVICE_SYMBOLOGIES[type];
       if (!claimed || properties[symbology.property] !== true) return false;
+      const digits = DIGIT_SETTINGS[type];
+      let text = data;
+      if (digits && properties[digits.checkDigit] === false) {
+        text = text.slice(0, -1);
+      }
+      if (digits?.numberSystem && properties[digits.numberSystem] === false) {
+        text = text.slice(1);
+      }
+      // The service decodes the symbol's bytes with DPR_CHARSET, whatever
+      // the QR's ECI says (measured): a UTF-8 text in Latin-1 otherwise.
+      const charset = String(properties.DPR_CHARSET);
+      if (charset !== "UTF-8") {
+        text = Buffer.from(text, "utf8").toString("latin1");
+      }
       emit(
         "onRead",
         read({
-          data,
+          data: text,
+          charset,
           codeId: symbology.codeId,
           aimId: symbology.aimId,
           ...extra,

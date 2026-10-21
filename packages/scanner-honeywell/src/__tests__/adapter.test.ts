@@ -161,6 +161,24 @@ describe("createHoneywellBarcodeScannerAdapter", () => {
       expect(native.properties).toMatchObject(DATA_PROPERTIES);
     });
 
+    it("reads every digit of an EAN or UPC whatever the device's settings", async () => {
+      const { native, adapter, handlers, reads } = setup();
+      await adapter.open({ symbologies: null }, handlers);
+      native.decode("ean13", "9782743400804");
+      native.decode("upc_a", "036000291452");
+      expect(reads.map((read) => read.data)).toEqual([
+        "9782743400804",
+        "036000291452",
+      ]);
+    });
+
+    it("reads a QR's UTF-8 text as such, whatever the device's charset", async () => {
+      const { native, adapter, handlers, reads } = setup();
+      await adapter.open({ symbologies: null }, handlers);
+      native.decode("qr", "Città perché € 日本語");
+      expect(reads[0]?.data).toBe("Città perché € 日本語");
+    });
+
     it("leaves the trigger to the service by default; client control on request", async () => {
       const { native, adapter, handlers } = setup();
       await adapter.open({ symbologies: null }, handlers);
@@ -285,7 +303,7 @@ describe("createHoneywellBarcodeScannerAdapter", () => {
       await adapter.open({ symbologies: null }, handlers);
       await expect(adapter.getScannerInfo()).resolves.toEqual({
         name: "Internal Scanner",
-        model: null,
+        model: "N6703",
         serialNumber: "21234B0123",
         firmwareVersion: "4.4.13",
       });
@@ -325,7 +343,9 @@ describe("toOpenProperties", () => {
     const properties = toOpenProperties([]);
     expect(properties).toMatchObject(OTHER_SYMBOLOGY_PROPERTIES);
     expect(
-      Object.entries(properties).filter(([, value]) => value === true),
+      Object.entries(properties).filter(
+        ([key, value]) => value === true && !(key in DATA_PROPERTIES),
+      ),
     ).toEqual([]);
   });
 });
@@ -354,6 +374,15 @@ describe("fromNativeRead", () => {
       fromNativeRead({ ...base, timestamp: "2026-10-20T09:15:30.250Z" })
         .timestamp,
     ).toBe(Date.parse("2026-10-20T09:15:30.250Z"));
+    // The CT40's own format: the offset unpadded, which V8 does not parse.
+    expect(
+      fromNativeRead({ ...base, timestamp: "2026-10-21T09:27:47.246+2:00" })
+        .timestamp,
+    ).toBe(Date.parse("2026-10-21T07:27:47.246Z"));
+    expect(
+      fromNativeRead({ ...base, timestamp: "2026-10-21T09:27:47.246-5:30" })
+        .timestamp,
+    ).toBe(Date.parse("2026-10-21T14:57:47.246Z"));
     expect(fromNativeRead({ ...base, timestamp: "12:34:56" }).timestamp).toBe(
       base.receivedAt,
     );

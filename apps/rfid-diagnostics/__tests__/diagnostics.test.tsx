@@ -356,7 +356,7 @@ describe("the scanner screen", () => {
     await fireEvent.press(screen.getByText("Barcode scanner"));
     await waitFor(() => expect(fake.claimed).toBe(true));
     const enabled = Object.entries(fake.opens.at(-1)!)
-      .filter(([, value]) => value === true)
+      .filter(([key, value]) => key.endsWith("_ENABLED") && value === true)
       .map(([key]) => key)
       .sort();
     expect(enabled).toEqual([

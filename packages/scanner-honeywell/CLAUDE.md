@@ -35,6 +35,10 @@ say which in the plan.
   `HandlerThread`, `Looper`, plus `Parcelable`, `Parcel`, `Point`, `Bitmap` and
   `ServiceConnection` for the SDK's signatures) and of Expo's DSL. A real build runs on a
   developer's machine.
+- **No wedge in the app** (measured): after a release the wedge types into other apps, never into
+  this one, likely because the `AidcManager` and the reader stay open. Documented, not fixed
+  (plan C2: reads go through `onScan` only); closing them on release is the way back if that
+  decision changes.
 - **Host check.** `isSupported()` needs Android, the linked module and a Honeywell manufacturer.
   `requireHoneywellHost: false` exists for a lab test only.
 - **Tests** run on `jest-expo/android` over `src/__tests__/fakeNative.ts`, a JavaScript copy of

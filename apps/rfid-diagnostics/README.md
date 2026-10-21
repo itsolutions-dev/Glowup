@@ -114,18 +114,18 @@ there is one), an EAN-13, a Data Matrix, and one code of another kind (an EAN-8 
    (onScan)" with its type, AIM id and code id; the other kind should **not** appear (the first
    scope turns it off). Then turn "Only QR, Code 128, EAN-13, Data Matrix" off and scan it again:
    it should appear now (the device's settings). Is the non-ASCII QR's text right?
-3. **Keyboard wedge:** tap the "Wedge output" field, then scan: with the scanner held, nothing
-   should be typed there. Turn "Hold the scanner" off and scan again: does the text appear in
-   the field (the wedge has the scanner back), and with a suffix (an Enter)?
+3. **Keyboard wedge:** measured on the CT40, the wedge types nothing into this app, held or
+   released (other apps get it back: steps 7 and 9). Tap the "Wedge output" field and scan, with
+   the scanner held and with "Hold the scanner" off: anything typed there means that changed.
 4. **Repeats and a slow confirmation:** scan the same code twice quickly: the second is dropped
    within 1 s; turn "Drop the same code within 1 s" off and both arrive. Turn "Slow
    confirmation" on and scan two codes within 1.5 s: the second is dropped ("busy").
 5. **Software trigger:** press and hold **Hold to scan** with a code in front of the scanner;
    release.
-6. **IH40:** with the IH40 connected to the CT40 in barcode mode (the RFID screen not in use),
-   pull its trigger with a code in front of the CT40: does it read here? Measurements → Trigger
-   counts the trigger events the SDK reported. If the trigger is counted but nothing is read,
-   turn on "The app drives the trigger" and try again.
+6. **IH40:** connect it on the RFID screen ("Trigger drives the scan" off: the module keeps it in
+   barcode mode, `triggerModeApplied` in that screen's timeline), come here and pull its trigger
+   with a code in front of the CT40: it should read here as the side buttons do. Measurements →
+   Trigger counts the trigger events the SDK reported (none under auto control).
 7. **Background:** with the scanner held, go to the home screen, scan (the wedge should have
    it: the code goes to whatever app is in front, or nowhere), then come back: State should be
    `open` again and the next scan should arrive here. Measurements' timeline lists each

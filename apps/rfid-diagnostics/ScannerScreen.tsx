@@ -190,7 +190,7 @@ function ScannerSession({
   // Only the keys this package sets, to see what the service kept.
   const shown = properties
     ? Object.entries(properties).filter(([key]) =>
-        /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE0|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/.test(
+        /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/.test(
           key,
         ),
       )
@@ -301,7 +301,7 @@ function WedgeSection() {
     <Section title="Keyboard wedge">
       <Text style={styles.small}>
         {
-          "Tap the field, then scan with the scanner held, and again with “Hold the scanner” off. Text that appears here came from the device’s keyboard wedge, not from onScan."
+          "Measured on the CT40: the wedge types nothing into this app, held or released (other apps get it back). Tap the field and scan: text that appears here came from the wedge, not from onScan, and means that changed."
         }
       </Text>
       <TextInput

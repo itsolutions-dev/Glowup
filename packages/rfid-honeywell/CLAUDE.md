@@ -43,7 +43,12 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   SDK passes only the searched tag to `onTagRead` (matched with `String.equals` on uppercase
   hex, so the module uppercases the EPC); the module sends its RSSI as the locate value and keeps
   the SDK's own (`onReceivedFindingTag`, RSSI ÷ read count) for the diagnostics only. Some of
-  the SDK's constructors give a tag time of 0 (the IH40's are real): the arrival time replaces it. `ReaderScanner.kt` is the reader
+  the SDK's constructors give a tag time of 0 (the IH40's are real): the arrival time replaces it. The module sets
+  the trigger mode every time rather than restoring what it found (an IH40 was in RFID mode at
+  connection): `RFID` while the trigger is handed over, `BARCODE` at connection, after the
+  hand-over and at disconnection (plan C6). It never asks first: `getTriggerMode()` answers
+  `RFID` even right after `onTriggerModeSwitched(BARCODE)` (measured), so it only goes into the
+  `triggerModeApplied` diagnostic as `reported`. `ReaderScanner.kt` is the reader
   search (the SDK has no public one). Every native change raises `NATIVE_REVISION` in the Kotlin
   and `HONEYWELL_NATIVE_REVISION` in `src/native.ts` together: the adapter's `nativeRevision()`
   tells a stale build apart (a Metro reload does not rebuild the module).

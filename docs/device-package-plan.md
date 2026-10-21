@@ -1533,8 +1533,8 @@ questions are answered.
   - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects (and reconnects by
     itself) and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
     request), single read (`syncRead`, or a `read` window for a TID), locate (`setLocateEPC` +
-    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, the
-    previous mode restored), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
+    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, then
+    `BARCODE` again: revision 3, below), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
     `ReaderScanner.kt` is the search: a low-latency BLE scan that refuses to start with location
     off up to Android 11 and reports each device at most every 500 ms.
   - **Adapter** (`createHoneywellRfidAdapter`, `getHoneywellRfidAdapter`): every optional part of
@@ -1876,7 +1876,7 @@ background; the charset of a QR holding non-ASCII text. And, from phase C2's cod
 properties a claim sets apply to this app only (the wedge keeps the device's after a release);
 that `softwareTrigger` decodes under `autoControl`; whether the service applies `DPR_PREFIX` /
 `DPR_SUFFIX` to the listener's data or only to the wedge's (the adapter clears them either way);
-the format of `getTimestamp()`; that UPC-A and UPC-E come as `]E0` with code ids `c` and `E`;
+the format of `getTimestamp()` (measured: unpadded offset, below); that UPC-A and UPC-E come as `]E0` with code ids `c` and `E`;
 which `DEC_*` keys the CT40 lacks (the module skips and reports them); and that the RFID SDK's
 own `AidcManager` (its USB transport) and the scanner's live in one process with an RFID screen
 and a scanner screen used in turn.
@@ -1896,12 +1896,12 @@ and a scanner screen used in turn.
 | C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided |
 | C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | decided |
 
-| Phase | Content                                                                                                                                                                                                                     | Release      | Status    |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------- |
-| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done      |
-| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | in review |
-| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —         |
-| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —         |
+| Phase | Content                                                                                                                                                                                                                     | Release      | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
+| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done   |
+| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | done   |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —      |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —      |
 
 ### Phase C1 — what landed
 
@@ -1964,14 +1964,15 @@ and a scanner screen used in turn.
     life, `listDevices()`, `getAllProperties()`. Compiled with `kotlinc` against the AAR's
     `classes.jar` and stubs (no Android SDK in the session).
   - **Adapter** (`createHoneywellBarcodeScannerAdapter`): every `BarcodeType` (`symbologies`),
-    `softwareTrigger`, `getScannerInfo` (the friendly name, serial, firmware; no engine model in
-    `BarcodeReaderInfo`); one set of subscriptions per claim, removed before `close()`
+    `softwareTrigger`, `getScannerInfo` (the friendly name, serial, firmware, and the engine's
+    model from `scannerId`, since the CT40 run); one set of subscriptions per claim, removed before `close()`
     resolves. `toOpenProperties()` maps the request to the SDK's keys: one switch per type
     (Code 128 with GS1-128, ITF-14 as Interleaved 2 of 5), the SDK's 24 other symbologies off,
     postal `none`, OCR `off`; and on every claim no prefix, suffix or symbology id, no data or
     scan intents, browser or EZConfig. The type is the AIM id's, except UPC-A / UPC-E (code id
     `c` / `E` under `]E0`); `rawType` is the code id; the timestamp is the SDK's when it parses
-    to a real time, the arrival's otherwise. Host check as R13.
+    to a real time, the arrival's otherwise. Host check as R13. (Since the CT40 run, every claim
+    also transmits EAN's and UPC's check digit and number system: "measured on the CT40" below.)
   - **Config plugin** (`dataCollectionAarPath`): the AAR into `honeywell-scanner-repository/`
     as `com.honeywell.aidc:datacollection:1.97.00.0060`, the coordinate `@its/rfid-honeywell`
     uses (C5); no manifest or `minSdkVersion` change (the SDK's manifest carries its
@@ -1985,6 +1986,74 @@ and a scanner screen used in turn.
   shared report (`scannerMeasurements.ts`). The Honeywell build applies both Honeywell plugins
   on one `DataCollection.aar`, the Zebra build leaves both modules out; `packed.mjs` packs the
   scanner package too; a test fails if the two plugins' coordinates differ.
+
+### Phase C2 — measured on the CT40
+
+The team's CT40 (Android 11, API 30), the reports of 21 October, native module revision 1:
+
+- **The four symbologies** (`code id` / AIM id): QR `s` / `]Q1`, Code 128 `j` / `]C0`,
+  EAN-13 `d` / `]E0`, Data Matrix `w` / `]d1`, as Honeywell's chart says; each read typed right.
+- **Every key the adapter sets exists** (48 set, none skipped), and the restore works: the first
+  scope turned off put back 40 keys, on again set them.
+- **EAN-13 lost its check digit:** `978274340080` for `9782743400804`, `806802075320` for
+  `8068020753209`. The CT40's `DEC_EAN13_CHECK_DIGIT_TRANSMIT` is off and the adapter did not
+  set it, so a read differed from the camera's (13 digits) and from another CT40 configured
+  otherwise. Fixed: every claim transmits the check digit of EAN-13, EAN-8, UPC-A and UPC-E,
+  and UPC-A's and UPC-E's number system (`DATA_PROPERTIES`, the device's values back on a
+  release as the other keys).
+- **The timestamp** is local time with an unpadded offset, `2026-10-21T09:27:47.246+2:00`:
+  Hermes parsed it right, V8 does not. Fixed: the offset is padded before the parse.
+- **The trigger:** under `autoControl` the side buttons decode, and `onTriggerEvent` never
+  comes (5 reads and 5 failed decodes, no trigger event), so `isTriggerPressed` stays `false`;
+  under `clientControl` every press and release came, the read 50–500 ms after the press.
+- **Charset:** a QR holding `Città perché € ñ ß 日本語` in UTF-8 arrived as
+  `CittÃ  perchÃ© â‚¬ Ã± ÃŸ æ—¥æœ¬èªž`, the same with and without an ECI declaring UTF-8: the
+  service decodes every symbol's bytes with `DPR_CHARSET` (`ISO-8859-1` on the CT40, in fact
+  Windows-1252: `0x97` became `—`) and ignores the ECI. Repairing it in JavaScript would lose the
+  five bytes Windows-1252 lacks (`Á` is `C3 81`), so every claim sets `DPR_CHARSET` to `UTF-8`
+  (`DATA_PROPERTIES`; the device's back on a release). A symbol holding Latin-1 text beyond
+  ASCII now reads with replacement characters: none in this scope.
+- **The guards:** six reads of one EAN-13 in 3 s reached `onScan` three times (the window counts
+  from the last delivered read: one 948 ms later was dropped); with the repeat window off, all
+  of them. With a 1.5 s confirmation, a different code within it was dropped each time (3 of 3).
+- **The background:** six releases and claims (the home screen, the screen off), the reads back
+  each time, and Notes got the scanner meanwhile. The software trigger read under both trigger
+  controls. Closed, the app left the device as it was: Notes read the EAN-13 in 12 digits.
+- **Info and properties:** `scannerId` `N6803FR` (the N6803 engine, now the info's `model`),
+  firmware `3.23`; 359 properties, the claim's as set. While claimed `DPR_WEDGE` is `false`,
+  which the adapter does not set: the service turns the wedge off for the claiming app.
+- **Callbacks** on the service's Binder threads; the claim's life on the module's thread.
+- **The IH40's trigger did not scan** with the imager held, in either trigger control: no read,
+  no failed decode, so the service never fired. The RFID report showed why: with the trigger not
+  handed over, `onRfidTriggered` came on every press, so the IH40 was in `TriggerMode.RFID` at
+  connection (left so by an earlier session), and the hand-over neither changed nor restored it
+  (no mode event). The module put back the mode it found, never `BARCODE`, against C6. Fixed in
+  `@its/rfid-honeywell`'s native revision 3 (4, below): `BARCODE` at connection, after the hand-over and at
+  disconnection, `RFID` only while handed over; a `triggerModeApplied` diagnostic says what it
+  found and set. With it, **the IH40's trigger fires the imager this app holds** (auto
+  control: reads and failed decodes, no trigger event, as the side buttons).
+- **`getTriggerMode()` cannot be trusted:** the next RFID report had it answer `RFID` at a
+  disconnection, at the connection after it and when the hand-over began, while
+  `onTriggerModeSwitched(BARCODE)` had come after each switch to `BARCODE`. Revision 3 compared
+  with it and so skipped the switch to `RFID`: the hand-over gave no trigger events. Revision 4
+  sets the mode without asking (`triggerModeApplied` keeps the answer as `reported`).
+- **No keyboard wedge in this app,** held or released: neither the side buttons nor the IH40's
+  trigger typed into the diagnostics' text field with "Hold the scanner" off, while Notes got
+  the text. So a release does give the scanner back to other apps; the likeliest reason for this
+  app is that the service sends no wedge text to an app with an open Data Collection connection
+  (the module keeps its `AidcManager` and reader between claims, and `@its/rfid-honeywell`'s SDK
+  opens one of its own), not confirmed. Not fixed, by decision: an app on these packages reads
+  through `useBarcodeScanner` only (C2), on every screen that scans, a text field included.
+  Closing the reader and the service on each release would cost every claim its setup and might
+  not be enough with the RFID SDK's connection open.
+- **The UTF-8 charset works:** both QRs, with and without ECI, read `Città perché € ñ ß 日本語`,
+  the service reporting `UTF-8` (55 keys set).
+- **Not read on purpose:** a symbology outside the request (EAN-8, PDF417 and UPC are off in the
+  properties).
+- **Revision 4 works:** `BARCODE` at the disconnection and at the connection, `RFID` for the
+  hand-over (trigger events, 40 tag reads), `BARCODE` after it, each confirmed by
+  `onTriggerModeSwitched` while `getTriggerMode()` kept answering `RFID`; then the IH40's
+  trigger read a QR on the scanner screen. The CT40 run is through.
 
 ## Open for later
 

@@ -6,8 +6,10 @@ reaches) behind
 The screens use `/scanner`'s `useBarcodeScanner`; this package is the one line that picks the
 vendor.
 
-**Private until phase C3.** It builds and its tests pass, but it has not run on a CT40 yet:
-`apps/rfid-diagnostics` (the "Barcode scanner" screen) is the app that measures it.
+**Private until phase C3.** It has run on a CT40 (Android 11) with an IH40: the code ids and AIM
+ids, the symbologies, the guards, the background and the trigger as the plan's "Phase C2 —
+measured on the CT40" lists. `apps/rfid-diagnostics` (the "Barcode scanner" screen) is the app
+that measures it.
 
 It needs `@its/glowup-device` (`/scanner`) and an Expo development build for Android.
 
@@ -57,12 +59,21 @@ holds the imager while the screen is mounted and the app in the foreground, and 
 - **The trigger.** By default the scanner service decodes on the trigger (its `autoControl`), the
   IH40's included when it is in barcode mode. `triggerControl: "client"` makes the module aim,
   light and decode on each trigger event instead, for a trigger the service reports but does not
-  decode on. `softwareTrigger` is the on-screen scan button.
+  decode on. Under `autoControl` the service does not report the trigger (measured on the CT40),
+  so `isTriggerPressed` stays `false`; client control reports every press and release.
+  `softwareTrigger` is the on-screen scan button.
+- **No keyboard wedge in the app.** Once the app has used the scanner, the device's wedge types
+  nothing into it, even after a release (measured on the CT40; other apps get the wedge back).
+  Read through `useBarcodeScanner` on every screen that scans, a text field included: its
+  `onScan` can fill the field.
 - **Symbologies.** Every `BarcodeType`: `symbologies: ["qr", "code128", "ean13", "datamatrix"]`
   turns those on and every other the SDK has off, for this app's claim only; `null` keeps the
   device's settings. Code 128 includes GS1-128, read as Code 128 and not parsed.
 - **The text as decoded.** On every claim the adapter clears the wedge's prefix, suffix and
-  symbology id, and turns off a scan's intents, browser launch and EZConfig, for this app only.
+  symbology id, transmits every digit of an EAN or UPC (check digit, UPC's number system: a
+  CT40 drops EAN-13's check digit by default), decodes in UTF-8 (the service ignores a QR's
+  ECI and decodes with the device's charset, Latin-1 by default), and turns off a scan's
+  intents, browser launch and EZConfig, for this app only.
   The type comes from the AIM id (`]Q1`); UPC-A and UPC-E, which share EAN-13's `]E0`, from
   Honeywell's code id.
 

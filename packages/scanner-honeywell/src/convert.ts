@@ -77,11 +77,25 @@ export const OTHER_SYMBOLOGY_PROPERTIES: Readonly<
 
 /**
  * Set on every open: the decoded text reaches `onRead` as decoded (no
- * prefix, suffix or symbology id the device's wedge settings add), and a
- * scan does not also start an intent, the browser or EZConfig. These are
- * the app's claim's settings, not the device's.
+ * prefix, suffix or symbology id the device's wedge settings add, and every
+ * digit of an EAN or UPC: the CT40 measured drops EAN-13's check digit by
+ * default, and the camera reads all 13), in UTF-8, and a scan does not also
+ * start an intent, the browser or EZConfig. These are the app's claim's
+ * settings, not the device's.
+ *
+ * The charset: the CT40 measured decodes every symbol's bytes with
+ * `DPR_CHARSET` (`ISO-8859-1` by default, Windows-1252 in fact) and ignores a
+ * QR's ECI, so a UTF-8 QR arrived as "CittÃ ". UTF-8 is what QR codes carry
+ * in practice and what the camera reads.
  */
 export const DATA_PROPERTIES: Readonly<Record<string, NativeProperty>> = {
+  DPR_CHARSET: "UTF-8",
+  DEC_EAN13_CHECK_DIGIT_TRANSMIT: true,
+  DEC_EAN8_CHECK_DIGIT_TRANSMIT: true,
+  DEC_UPCA_CHECK_DIGIT_TRANSMIT: true,
+  DEC_UPCE_CHECK_DIGIT_TRANSMIT: true,
+  DEC_UPCA_NUMBER_SYSTEM_TRANSMIT: true,
+  DEC_UPCE_NUMBER_SYSTEM_TRANSMIT: true,
   DPR_PREFIX: "",
   DPR_SUFFIX: "",
   DPR_SYMBOLOGY_PREFIX: "none",
@@ -115,7 +129,8 @@ export function toOpenProperties(
 
 /**
  * Honeywell's code ids where the AIM id cannot tell: UPC-A and UPC-E travel
- * as `]E0`, EAN-13's id. To confirm on the CT40 with the others.
+ * as `]E0`, EAN-13's id. To confirm on the CT40 (the other symbologies' ids
+ * are measured: plan, "Phase C2 — measured on the CT40").
  */
 const CODE_ID_TYPES: Readonly<Record<string, BarcodeType>> = {
   c: "upc_a",
@@ -125,9 +140,21 @@ const CODE_ID_TYPES: Readonly<Record<string, BarcodeType>> = {
 // BarcodeReadEvent's timestamp is a string; a parse before 2001 is no time.
 const EARLIEST_REAL_TIME = 1_000_000_000_000;
 
+// The CT40 writes the offset unpadded ("…09:27:47.246+2:00"): Hermes parses
+// it, V8 does not, so it is padded to ISO 8601's "+02:00" first.
+const UNPADDED_OFFSET = /([+-])(\d):(\d\d)$/;
+
 function parseTimestamp(read: NativeRead): number {
   const parsed =
-    typeof read.timestamp === "string" ? Date.parse(read.timestamp) : NaN;
+    typeof read.timestamp === "string"
+      ? Date.parse(
+          read.timestamp.replace(
+            UNPADDED_OFFSET,
+            (_, sign: string, hours: string, minutes: string) =>
+              `${sign}0${hours}:${minutes}`,
+          ),
+        )
+      : NaN;
   return Number.isFinite(parsed) && parsed >= EARLIEST_REAL_TIME
     ? parsed
     : read.receivedAt;
@@ -154,8 +181,8 @@ export function fromNativeRead(read: NativeRead): BarcodeScannerRead {
 export function fromNativeInfo(info: NativeScannerInfo): BarcodeScannerInfo {
   return {
     name: info.friendlyName || info.name || null,
-    // BarcodeReaderInfo names no engine model; its fields are in the diagnostics.
-    model: null,
+    // The engine's model (the CT40 measured "N6803FR", Honeywell's N6803).
+    model: info.scannerId || null,
     serialNumber: info.serialNumber || null,
     firmwareVersion: info.firmwareVersion || null,
   };

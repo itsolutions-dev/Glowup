@@ -83,7 +83,7 @@ export interface NativeSubscription {
  * `NATIVE_REVISION`, raised together. A Metro reload changes the JavaScript
  * only, so an app built before a native change reports a lower one.
  */
-export const HONEYWELL_NATIVE_REVISION = 2;
+export const HONEYWELL_NATIVE_REVISION = 4;
 
 export interface HoneywellRfidNativeModule {
   /** Missing before revision 2. */

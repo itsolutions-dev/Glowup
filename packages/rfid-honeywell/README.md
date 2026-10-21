@@ -75,6 +75,9 @@ Everything else is `@its/glowup-device/rfid`: `useRfidReader`, `useRfidInventory
   beeps faster as the tag nears), the trigger, the battery, the reader's identity, and a reader
   search (a Bluetooth scan in the module: the SDK has none). An IH40 is found only while no host
   is connected to it: connected, it stops advertising.
+- **The trigger** is the RFID reader's while a `useRfidTrigger` is mounted (`TriggerMode.RFID`);
+  otherwise the module keeps the reader in `BARCODE` mode, where its trigger fires the host's
+  own scanner (with `@its/scanner-honeywell`, the imager a `useBarcodeScanner` holds).
 - **Units:** RSSI in dBm as the reader reports it; power converted from the SDK's centi-dBm (5–30
   dBm); the beeper's `MUTE` / `LOW` / `MEDIUM` / `HIGH` as `off` / `low` / `medium` / `high`.
 

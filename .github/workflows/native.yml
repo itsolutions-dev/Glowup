@@ -15,6 +15,7 @@ on:
     branches: [dev]
     paths:
       - ".github/workflows/native.yml"
+      - "scripts/android-interact.mjs"
       - "apps/playground/**"
       - "packages/**"
       - "package-lock.json"

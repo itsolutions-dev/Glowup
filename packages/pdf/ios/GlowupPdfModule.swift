@@ -83,12 +83,16 @@ public final class GlowupPdfModule: Module {
       context.fill(CGRect(origin: .zero, size: target))
       let cg = context.cgContext
       cg.interpolationQuality = .high
-      // UIKit's origin is the top left and a PDF's the bottom left. The drawing transform then
-      // places the crop box in the target and applies the page's own rotation.
+      // UIKit's origin is the top left and a PDF's the bottom left, and the page is drawn in points:
+      // scale from points to pixels by hand. `getDrawingTransform` only ever scales a page down to fit
+      // its rectangle, never up: given the target it drew a 595-point page at 595 pixels, small and in
+      // the middle, on every phone wider than that (seen in the CI screenshot of 2026-10-21). Given the
+      // page's own size it scales by 1 and only places the crop box and applies the page's rotation.
+      let scale = target.width / natural.width
       cg.translateBy(x: 0, y: target.height)
-      cg.scaleBy(x: 1, y: -1)
+      cg.scaleBy(x: scale, y: -scale)
       cg.concatenate(
-        reference.getDrawingTransform(.cropBox, rect: CGRect(origin: .zero, size: target), rotate: 0, preserveAspectRatio: true)
+        reference.getDrawingTransform(.cropBox, rect: CGRect(origin: .zero, size: natural), rotate: 0, preserveAspectRatio: true)
       )
       cg.drawPDFPage(reference)
     }

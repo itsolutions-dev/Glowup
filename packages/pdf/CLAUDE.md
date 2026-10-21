@@ -26,7 +26,10 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   dependency. Both sides keep documents open by file URI until `close`, run every call on one queue or thread (PDFKit and
   `PdfRenderer` are not thread safe), draw on white, write a JPEG into the cache and return its `file://` URI. Errors carry
   the words "password" or "format" in the message because `fromNativeError` (`src/adapters.ts`) reads them. A change to the
-  module is verified only by `/native-check` in `native.yml`: read its `NATIVECHECK pdf` lines and screenshot.
+  module is verified only by `/native-check` in `native.yml`: read its `NATIVECHECK pdf` lines **and look at the screenshot**
+  (`ios-pdf.png`, `android-pdf.png`): the "drawn at the width asked" row reads only the size of the image file, and it passed
+  while PDFKit's `getDrawingTransform` was drawing the page at half size in the middle of it (it never scales a page up;
+  the iOS module scales by hand).
 - **Source identity is its content** (`sourceKey`): a new source, or a retry, remounts the viewer, so the document, the search
   and the zoom always belong to one source. A parent can pass the same content as a new object on every render.
 - **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the build, and

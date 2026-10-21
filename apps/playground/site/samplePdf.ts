@@ -28,6 +28,8 @@ export const samplePdf = (): Uint8Array => {
   ];
   PAGES.forEach(([title, line], i) => {
     const content = [
+      // A blue frame 12 points inside the page's edge: a page drawn at the wrong scale or place shows at once.
+      "0 0 1 RG 3 w 12 12 571 818 re S",
       `BT /F1 28 Tf 72 760 Td (${escapeText(title)}) Tj ET`,
       `BT /F1 14 Tf 72 720 Td (${escapeText(line)}) Tj ET`,
       `BT /F1 8 Tf 72 690 Td (${escapeText(SMALL_PRINT[0])}) Tj ET`,

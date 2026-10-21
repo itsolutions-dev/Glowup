@@ -2041,9 +2041,11 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
   through `useBarcodeScanner` only (C2), on every screen that scans, a text field included.
   Closing the reader and the service on each release would cost every claim its setup and might
   not be enough with the RFID SDK's connection open.
-- **Still to run:** the QRs again with the UTF-8 charset, and the RFID report's
-  `triggerModeApplied`. A symbology outside the request is off in the properties (EAN-8,
-  PDF417, UPC), not read on purpose.
+- **The UTF-8 charset works:** both QRs, with and without ECI, read `Città perché € ñ ß 日本語`,
+  the service reporting `UTF-8` (55 keys set).
+- **Not read on purpose:** a symbology outside the request (EAN-8, PDF417 and UPC are off in the
+  properties). The RFID report's `triggerModeApplied` would confirm the mode the IH40 is found
+  in; its trigger already scans, so the mode is `BARCODE`.
 
 ## Open for later
 

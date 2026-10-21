@@ -72,8 +72,12 @@ const describe = (nodes) =>
     .slice(0, 30)
     .join(" | ");
 
-const swipe = (direction) => {
-  const [from, to] = direction === "down" ? [0.7, 0.3] : [0.3, 0.7];
+/** A swipe of `span` of the screen's height (0.4 by default); a short one nudges. */
+const swipe = (direction, span = 0.4) => {
+  const [from, to] =
+    direction === "down"
+      ? [0.5 + span / 2, 0.5 - span / 2]
+      : [0.5 - span / 2, 0.5 + span / 2];
   adb(
     "shell",
     "input",
@@ -86,8 +90,11 @@ const swipe = (direction) => {
   );
 };
 
+// Until the title is on screen: the page is long, and a fixed number of swipes stops short of the
+// top once something is added at the end of it (the PDF page did, on Android 14).
 const scrollToTop = async () => {
-  for (let i = 0; i < 6; i += 1) {
+  for (let i = 0; i < 24; i += 1) {
+    if (named(screen(), "Native check")) return;
     swipe("up");
     await sleep(300);
   }
@@ -115,15 +122,17 @@ const find = async (predicate, tries = 6) => {
 
 /** Finds a node and scrolls until all of it is in the middle of the screen, so a tap inside it lands. */
 const bring = async (predicate, what) => {
-  for (let i = 0; i < 4; i += 1) {
+  for (let i = 0; i < 6; i += 1) {
     const node = await find(predicate);
     if (!node) {
       throw new Error(
         `${what} not on screen; on screen: ${describe(screen())}`,
       );
     }
-    if (node.t < screenH * 0.12) swipe("up");
-    else if (node.b > screenH * 0.88) swipe("down");
+    // The app bar covers the top 15% (a chart seen only through it was tapped on the bar, not the
+    // chart). A short nudge: a whole swipe overshoots and the node flips between the two edges.
+    if (node.t < screenH * 0.2) swipe("up", 0.15);
+    else if (node.b > screenH * 0.85) swipe("down", 0.15);
     else return node;
     await sleep(600);
   }
@@ -265,6 +274,8 @@ const steps = [
 
 /** Taps a chart where `at(box)` says and checks the state line its onSelect writes. */
 const tapChart = async (summary, at, photoName, pattern, what) => {
+  // The charts are near the top of the page: look for them from there, not from wherever the last step left it.
+  await scrollToTop();
   const chart = await bring(
     (nodes) => nodes.find((n) => n.desc.startsWith(summary)),
     `the "${summary}" chart`,

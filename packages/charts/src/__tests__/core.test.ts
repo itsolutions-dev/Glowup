@@ -1,7 +1,10 @@
 import { makeValueFormatter } from "../core/format";
-import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
 import { aggregate } from "../core/aggregate";
-import { readableOn } from "../core/palette";
+import {
+  readableOn,
+  resolveSeriesColors,
+  themeSeriesColors,
+} from "../core/palette";
 import {
   arcPath,
   areaPath,

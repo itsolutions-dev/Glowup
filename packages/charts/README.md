@@ -66,7 +66,7 @@ import { BarChart } from "@its/glowup-charts";
 - **Colours are provisional.** The library has no chart palette yet, so series take the theme's `primary`, `tertiary`, `secondary`
   and their containers in turn. Pass `colors` to choose.
 - **A screen reader gets one text for the whole chart** (`title`, then each series' values, or its lowest, highest and last when
-  there are more than 12 categories). Picking a category by screen reader is not possible yet; the plan has a table mode for it.
+  there are more than 12 categories). To read exact values and pick a category or part by screen reader (or by eye), pass `table`: the data as a table under the chart, each row one element labelled with the whole row ("Jan, North 10, South 20") and a button that selects that category.
 - **No animation** and no zoom or pan.
 - The category axis shows every nth label when they do not fit side by side; the width of a label is estimated, not measured.
 
@@ -143,6 +143,8 @@ import { Chart, ChartLegend } from "@its/glowup-charts";
 `legend` puts a key under any chart. Tapping an item switches that series (or part) off: its marks go, the value axis is redrawn for the
 rest and the other series **keep their colours**. With everything off the chart shows its `emptyLabel` and the legend stays, so a series can
 be brought back. To a screen reader each item is a checkbox, checked while the series is shown.
+
+`table` puts the data under any chart as a table (`ChartTable`, also exported on its own: `header`, `rows`, `activeRow`, `onRowPress`, `rowColors`, `limit`). A category chart has a column per series still shown, a donut or stacked bar has "Value" and "Share" and a dot in the part's colour. A row presses like a tap on the chart (`onSelect`) and the active category's row is highlighted. A table past 50 rows ends with how many it left out. Not shown while loading or with no data.
 
 `ChartLegend` on its own takes `items` (`{ key, label, color }`), `hidden` (keys switched off) and `onToggle`; without `onToggle` it is only a
 key.

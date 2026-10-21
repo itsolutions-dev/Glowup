@@ -1,6 +1,8 @@
 import { createElement, useMemo, useState, type ReactElement } from "react";
 import { useTheme } from "@its/glowup-ui";
 import { ChartLegend } from "../ChartLegend";
+import { ChartTable } from "../ChartTable";
+import { below } from "./below";
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
 import { describeChart } from "../core/summary";
@@ -16,6 +18,8 @@ export type ChartCommonProps = {
   colors?: string[];
   /** A key under the chart; a tap on a series switches it off and the axes follow. */
   legend?: boolean;
+  /** The data as a table under the chart: exact values by eye or by screen reader, and a row is a way to pick a category. */
+  table?: boolean;
   title?: string;
   /** BCP 47 tag for the numbers. Default "en-US". */
   locale?: string;
@@ -43,6 +47,8 @@ export const useChartBase = ({
   series,
   colors,
   legend,
+  table,
+  loading,
   title,
   locale,
   numberFormat,
@@ -101,6 +107,21 @@ export const useChartBase = ({
         testID: testID ? `${testID}-legend` : undefined,
       })
     : null;
+  const tableNode: ReactElement | null =
+    table && !loading && data.length > 0 && shown.length > 0
+      ? createElement(ChartTable, {
+          header: ["", ...shown.map(({ s }) => s.label ?? s.key)],
+          rows: data.map((d) => [
+            d.label,
+            ...shown.map(({ s }) => format(num(d[s.key]))),
+          ]),
+          activeRow: hovered ?? selected,
+          onRowPress: toggle,
+          rowColors: undefined,
+          testID: testID ? `${testID}-table` : undefined,
+        })
+      : null;
+  const belowNode = below(legendNode, tableNode);
   return {
     theme,
     seriesColors: shown.map(({ color }) => color),
@@ -114,6 +135,6 @@ export const useChartBase = ({
     active: hovered ?? selected,
     setHovered,
     toggle,
-    legendNode,
+    belowNode,
   };
 };

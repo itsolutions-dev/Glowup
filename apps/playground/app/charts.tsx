@@ -97,6 +97,7 @@ const Demo = () => {
   const [horizontal, setHorizontal] = useState(false);
   const [smooth, setSmooth] = useState(false);
   const [target, setTarget] = useState(true);
+  const [table, setTable] = useState(false);
   const [few, setFew] = useState(false);
   const [state, setState] = useState<"data" | "loading" | "empty">("data");
   const [picked, setPicked] = useState<number | null>(null);
@@ -106,6 +107,7 @@ const Demo = () => {
     series: SERIES,
     loading: state === "loading",
     legend: true,
+    table,
     target: target ? 150 : undefined,
     onSelect: setPicked,
     testID: "demo-bars",
@@ -138,6 +140,7 @@ const Demo = () => {
           <Option label="Smooth" value={smooth} onChange={setSmooth} />
         )}
         <Option label="Target line" value={target} onChange={setTarget} />
+        <Option label="Table" value={table} onChange={setTable} />
         <Option label="Three months only" value={few} onChange={setFew} />
       </View>
       <View style={{ flexDirection: "row", gap: 12 }}>
@@ -223,6 +226,7 @@ const Tile = ({
 const PartsDemo = () => {
   const [pie, setPie] = useState(false);
   const [percent, setPercent] = useState(false);
+  const [table, setTable] = useState(false);
   const [done, setDone] = useState(72);
   const Ring = pie ? PieChart : DonutChart;
 
@@ -235,6 +239,7 @@ const PartsDemo = () => {
           value={percent}
           onChange={setPercent}
         />
+        <Option label="Table" value={table} onChange={setTable} />
       </View>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
         <Tile title="Calls by outcome">
@@ -246,6 +251,7 @@ const PartsDemo = () => {
             centerValue={(sum) => String(sum)}
             centerLabel="calls"
             showPercent={percent}
+            table={table}
           />
         </Tile>
         <Tile title="A gauge: 72 of 100">

@@ -18,3 +18,5 @@ export type {
   CurveName,
   PartDatum,
 } from "./core/types";
+export { ChartTable } from "./ChartTable";
+export type { ChartTableProps } from "./ChartTable";

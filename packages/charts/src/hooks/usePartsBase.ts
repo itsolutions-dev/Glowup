@@ -1,6 +1,8 @@
 import { createElement, useMemo, useState, type ReactElement } from "react";
 import { useTheme } from "@its/glowup-ui";
 import { ChartLegend } from "../ChartLegend";
+import { ChartTable } from "../ChartTable";
+import { below } from "./below";
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
 import { describeParts } from "../core/summary";
@@ -19,6 +21,8 @@ export type PartsCommonProps = {
   colors?: string[];
   /** A key under the chart; a tap on a part switches it off. */
   legend?: boolean;
+  /** The parts as a table under the chart: exact values and shares by eye or by screen reader, and a row is a way to pick a part. */
+  table?: boolean;
   title?: string;
   /** BCP 47 tag for the numbers. Default "en-US". */
   locale?: string;
@@ -43,6 +47,8 @@ export const usePartsBase = ({
   total,
   colors,
   legend,
+  table,
+  loading,
   title,
   locale,
   numberFormat,
@@ -103,6 +109,26 @@ export const usePartsBase = ({
         testID: testID ? `${testID}-legend` : undefined,
       })
     : null;
+  const whole = Math.max(
+    total ?? 0,
+    visible.reduce((n, d) => (d.value > 0 ? n + d.value : n), 0),
+  );
+  const tableNode: ReactElement | null =
+    table && !loading && visible.length > 0
+      ? createElement(ChartTable, {
+          header: ["", "Value", "Share"],
+          rows: visible.map((d) => [
+            nameOf(d),
+            format(d.value),
+            percent(d.value / whole),
+          ]),
+          rowColors: visible.map((d) => colorOf(d.id)),
+          activeRow: visible.findIndex((d) => d.id === (hovered ?? selected)),
+          onRowPress: (i: number) => toggle(visible[i].id),
+          testID: testID ? `${testID}-table` : undefined,
+        })
+      : null;
+  const belowNode = below(legendNode, tableNode);
   return {
     theme,
     visible,
@@ -114,6 +140,6 @@ export const usePartsBase = ({
     active: hovered ?? selected,
     setHovered,
     toggle,
-    legendNode,
+    belowNode,
   };
 };

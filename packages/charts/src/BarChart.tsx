@@ -58,7 +58,7 @@ const BarChart = (props: BarChartProps) => {
     active,
     setHovered,
     toggle,
-    legendNode,
+    belowNode,
   } = useChartBase(props);
   const stacks = stacked ? stackValues(data, keys) : null;
 
@@ -420,10 +420,10 @@ const BarChart = (props: BarChartProps) => {
       }}
     </ChartFrame>
   );
-  return legendNode ? (
+  return belowNode ? (
     <View>
       {frame}
-      {legendNode}
+      {belowNode}
     </View>
   ) : (
     frame

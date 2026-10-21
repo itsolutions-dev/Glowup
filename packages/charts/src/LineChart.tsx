@@ -65,7 +65,7 @@ const LineChart = (props: LineChartProps) => {
     active,
     setHovered,
     toggle,
-    legendNode,
+    belowNode,
   } = useChartBase(props);
 
   const frame = (
@@ -308,10 +308,10 @@ const LineChart = (props: LineChartProps) => {
       }}
     </ChartFrame>
   );
-  return legendNode ? (
+  return belowNode ? (
     <View>
       {frame}
-      {legendNode}
+      {belowNode}
     </View>
   ) : (
     frame

@@ -17,7 +17,7 @@ const StackedBar = (props: StackedBarProps) => {
     theme,
     visible,
     colorOf,
-    legendNode,
+    belowNode,
     format,
     percent,
     nameOf,
@@ -134,10 +134,10 @@ const StackedBar = (props: StackedBarProps) => {
       }}
     </ChartFrame>
   );
-  return legendNode ? (
+  return belowNode ? (
     <View>
       {frame}
-      {legendNode}
+      {belowNode}
     </View>
   ) : (
     frame

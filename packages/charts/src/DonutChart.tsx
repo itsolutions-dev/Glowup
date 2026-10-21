@@ -57,7 +57,7 @@ const DonutChart = (props: DonutChartProps) => {
     theme,
     visible,
     colorOf,
-    legendNode,
+    belowNode,
     format,
     percent,
     nameOf,
@@ -372,10 +372,10 @@ const DonutChart = (props: DonutChartProps) => {
       }}
     </ChartFrame>
   );
-  return legendNode ? (
+  return belowNode ? (
     <View>
       {frame}
-      {legendNode}
+      {belowNode}
     </View>
   ) : (
     frame

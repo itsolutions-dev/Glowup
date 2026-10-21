@@ -77,7 +77,7 @@ nascondere una serie) e la facciata `Chart` con `type`.
   default. **Nessun colore scritto a mano nel pacchetto.**
 - **Numeri e date** con `Intl` (`formatValue`, `locale` espliciti, mai il locale del telefono per default nascosto).
 - **Stati** `loading` (`Skeleton` di `ui`) e `empty`; animazione d'ingresso spenta con `useReduceMotion` (già esportato da `ui`).
-- **Accessibilità:** `accessibilityLabel` con un riassunto testuale e una modalità "tabella" per lo screen reader.
+- **Accessibilità:** `accessibilityLabel` con un riassunto testuale e una modalità "tabella" per lo screen reader (fatta il 2026-10-21: prop `table`, componente `ChartTable`, una riga è un bottone che sceglie la categoria).
 - **Dati densi:** sopra una soglia di punti una serie diventa **un solo `<Path>`** invece di un nodo per barra (lo spike: web
   a 10.000 rettangoli circa 0,3–0,5 s, sul nativo atteso peggio). La soglia si misura, non si indovina.
 

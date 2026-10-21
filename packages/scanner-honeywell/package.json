@@ -1,6 +1,6 @@
 {
   "name": "@its/scanner-honeywell",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Honeywell barcode scanners (the CT40's imager and other mobile computers, Data Collection SDK 1.97) behind @its/glowup-device/scanner: an Android Expo module, its adapter and its config plugin",
   "license": "MIT",
   "repository": {

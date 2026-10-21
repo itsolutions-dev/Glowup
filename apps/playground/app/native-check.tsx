@@ -56,7 +56,8 @@ const CHART_DENSE = Array.from({ length: 250 }, (_, i) => ({
 const CHART_PARTS = [
   { id: "won", label: "Won", value: 30 },
   { id: "open", label: "Open", value: 50 },
-  { id: "lost", label: "Lost", value: 20 },
+  { id: "lost", label: "Lost", value: 19 },
+  { id: "void", label: "Void", value: 1 },
 ];
 
 const PDF_WIDTH = 600;
@@ -336,7 +337,7 @@ export default function NativeCheck() {
           </View>
         </View>
         <BarChart data={CHART_DENSE} series={CHART_SERIES} height={120} />
-        <DonutChart data={CHART_PARTS} height={120} />
+        <DonutChart data={CHART_PARTS} height={160} showPercent />
 
         <Text style={{ color: theme.colors.onSurfaceVariant }}>
           Interaction

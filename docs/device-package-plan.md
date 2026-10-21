@@ -1896,12 +1896,12 @@ and a scanner screen used in turn.
 | C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided |
 | C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | decided |
 
-| Phase | Content                                                                                                                                                                                                                     | Release      | Status      |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ----------- |
-| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done        |
-| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | on the CT40 |
-| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —           |
-| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —           |
+| Phase | Content                                                                                                                                                                                                                     | Release      | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
+| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done   |
+| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | done   |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | —      |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —      |
 
 ### Phase C1 — what landed
 
@@ -2050,8 +2050,10 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
   the service reporting `UTF-8` (55 keys set).
 - **Not read on purpose:** a symbology outside the request (EAN-8, PDF417 and UPC are off in the
   properties).
-- **Still to run:** the hand-over on revision 4 (`BARCODE → RFID → BARCODE`, trigger events
-  only while handed over, the IH40's trigger scanning barcodes again after it).
+- **Revision 4 works:** `BARCODE` at the disconnection and at the connection, `RFID` for the
+  hand-over (trigger events, 40 tag reads), `BARCODE` after it, each confirmed by
+  `onTriggerModeSwitched` while `getTriggerMode()` kept answering `RFID`; then the IH40's
+  trigger read a QR on the scanner screen. The CT40 run is through.
 
 ## Open for later
 

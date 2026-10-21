@@ -6,8 +6,10 @@ reaches) behind
 The screens use `/scanner`'s `useBarcodeScanner`; this package is the one line that picks the
 vendor.
 
-**Private until phase C3.** It builds and its tests pass, but it has not run on a CT40 yet:
-`apps/rfid-diagnostics` (the "Barcode scanner" screen) is the app that measures it.
+**Private until phase C3.** It has run on a CT40 (Android 11) with an IH40: the code ids and AIM
+ids, the symbologies, the guards, the background and the trigger as the plan's "Phase C2 —
+measured on the CT40" lists. `apps/rfid-diagnostics` (the "Barcode scanner" screen) is the app
+that measures it.
 
 It needs `@its/glowup-device` (`/scanner`) and an Expo development build for Android.
 

@@ -31,7 +31,9 @@ export interface ScaleBand<Domain extends string | number = string> {
   align(align: number): this;
   copy(): ScaleBand<Domain>;
 }
-export function scaleBand<Domain extends string | number = string>(): ScaleBand<Domain>;
+export function scaleBand<
+  Domain extends string | number = string,
+>(): ScaleBand<Domain>;
 
 export interface ScaleOrdinal<Domain, Range> {
   (value: Domain): Range;
@@ -41,7 +43,9 @@ export interface ScaleOrdinal<Domain, Range> {
   range(range: Iterable<Range>): this;
   copy(): ScaleOrdinal<Domain, Range>;
 }
-export function scaleOrdinal<Domain = string, Range = string>(range?: Iterable<Range>): ScaleOrdinal<Domain, Range>;
+export function scaleOrdinal<Domain = string, Range = string>(
+  range?: Iterable<Range>,
+): ScaleOrdinal<Domain, Range>;
 
 export interface ScaleTime {
   (value: Date | number): number;
@@ -74,7 +78,8 @@ export const curveStep: CurveFactory;
 export const curveStepAfter: CurveFactory;
 export const curveStepBefore: CurveFactory;
 
-type Accessor<Datum, Value> = Value | ((d: Datum, index: number, data: Datum[]) => Value);
+type Accessor<Datum, Value> =
+  Value | ((d: Datum, index: number, data: Datum[]) => Value);
 
 export interface Line<Datum> {
   (data: Iterable<Datum>): string | null;
@@ -137,11 +142,16 @@ export interface Pie<Datum> {
 export function pie<Datum = number>(): Pie<Datum>;
 
 export type SeriesPoint<Datum> = [number, number] & { data: Datum };
-export type Series<Datum> = SeriesPoint<Datum>[] & { key: string; index: number };
+export type Series<Datum> = SeriesPoint<Datum>[] & {
+  key: string;
+  index: number;
+};
 export interface Stack<Datum> {
   (data: Datum[]): Series<Datum>[];
   keys(keys: Iterable<string>): this;
-  value(value: (d: Datum, key: string, index: number, data: Datum[]) => number): this;
+  value(
+    value: (d: Datum, key: string, index: number, data: Datum[]) => number,
+  ): this;
   order(order: (series: Series<Datum>[]) => Iterable<number>): this;
   offset(offset: (series: Series<Datum>[], order: number[]) => void): this;
 }

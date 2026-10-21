@@ -1,6 +1,7 @@
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
 import { aggregate } from "../core/aggregate";
+import { readableOn } from "../core/palette";
 import {
   arcPath,
   areaPath,
@@ -10,6 +11,7 @@ import {
   sliceAt,
   spreadAngles,
   stackValues,
+  textFitsSlice,
 } from "../core/paths";
 import { bandScale, pointPositions, valueScale } from "../core/scales";
 import { chartTable, describeChart, describeParts } from "../core/summary";
@@ -403,5 +405,44 @@ describe("spreadAngles", () => {
   it("spreads evenly when there is no room for the gap", () => {
     const out = spreadAngles([0, 0.1, 0.2, 0.3], 2);
     expect(out[1] - out[0]).toBeCloseTo(Math.PI / 2);
+  });
+});
+
+describe("textFitsSlice", () => {
+  // A quarter of a ring from 12 to 3 o'clock, radii 40..60; its centroid sits at 45 degrees on radius 50.
+  const quarter = {
+    startAngle: 0,
+    endAngle: Math.PI / 2,
+    centroid: [50 * Math.SQRT1_2, -50 * Math.SQRT1_2] as [number, number],
+  };
+  it("fits a short text in a wide slice and refuses it in a narrow one", () => {
+    expect(textFitsSlice(quarter, 40, 60, 14, 8)).toBe(true);
+    // wider than the ring is thick, on a diagonal it still clears the edges: this one does not
+    expect(textFitsSlice(quarter, 40, 60, 60, 10)).toBe(false);
+    const sliver = { ...quarter, endAngle: 0.05 };
+    expect(textFitsSlice(sliver, 40, 60, 20, 10)).toBe(false);
+  });
+
+  it("refuses a text on the side of a thin ring, wide as it is long", () => {
+    const side = {
+      startAngle: Math.PI / 4,
+      endAngle: (3 * Math.PI) / 4,
+      centroid: [50, 0] as [number, number],
+    };
+    expect(textFitsSlice(side, 40, 60, 16, 10)).toBe(true);
+    expect(textFitsSlice(side, 45, 55, 26, 12)).toBe(false);
+  });
+});
+
+describe("readableOn", () => {
+  it("picks the colour with more contrast", () => {
+    expect(readableOn("#000000", "#ffffff", "#000000")).toBe("#ffffff");
+    expect(readableOn("#ffffff", "#ffffff", "#000000")).toBe("#000000");
+    expect(readableOn("rgb(30, 30, 90)", "#fff", "#111")).toBe("#fff");
+    expect(readableOn("#ccd", "#fff", "#111")).toBe("#111");
+  });
+  it("gives the first colour when one cannot be read", () => {
+    expect(readableOn("currentColor", "#fff", "#000")).toBe("#fff");
+    expect(readableOn("#000", "white", "#000")).toBe("white");
   });
 });

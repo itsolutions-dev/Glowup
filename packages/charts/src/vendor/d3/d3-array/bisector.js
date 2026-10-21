@@ -48,7 +48,7 @@ export default function bisector(f) {
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
 
-  return {left, center, right};
+  return { left, center, right };
 }
 
 function zero() {

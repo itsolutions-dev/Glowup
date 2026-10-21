@@ -224,3 +224,31 @@ export const spreadAngles = (angles: number[], gap: number) => {
   }
   return out;
 };
+
+/**
+ * Whether a text box of `width` x `height`, centred on the slice's centroid, lies inside the slice:
+ * every corner within the ring and between the slice's angles. A text is horizontal, so on the sides
+ * of a thin ring it is wider than the ring however long the slice.
+ */
+export const textFitsSlice = (
+  slice: Pick<DonutSlice, "startAngle" | "endAngle" | "centroid">,
+  innerRadius: number,
+  outerRadius: number,
+  width: number,
+  height: number,
+) => {
+  const margin = 1.5;
+  const [cx, cy] = slice.centroid;
+  for (const dx of [-width / 2, width / 2]) {
+    for (const dy of [-height / 2, height / 2]) {
+      const x = cx + dx;
+      const y = cy + dy;
+      const r = Math.hypot(x, y);
+      if (r < innerRadius + margin || r > outerRadius - margin) return false;
+      let angle = Math.atan2(x, -y);
+      if (angle < 0) angle += 2 * Math.PI;
+      if (angle < slice.startAngle || angle > slice.endAngle) return false;
+    }
+  }
+  return true;
+};

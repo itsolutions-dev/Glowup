@@ -1,9 +1,9 @@
-import {Path} from "../d3-path/index.js";
+import { Path } from "../d3-path/index.js";
 
 export function withPath(shape) {
   let digits = 3;
 
-  shape.digits = function(_) {
+  shape.digits = function (_) {
     if (!arguments.length) return digits;
     if (_ == null) {
       digits = null;

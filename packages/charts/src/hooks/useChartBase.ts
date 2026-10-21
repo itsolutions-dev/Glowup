@@ -109,7 +109,7 @@ export const useChartBase = ({
     names,
     labels,
     summary,
-    fontSize: theme.typography.labelSmall.fontSize ?? 11,
+    fontSize: theme.typography.labelMedium.fontSize ?? 12,
     empty: data.length === 0 || keys.length === 0,
     active: hovered ?? selected,
     setHovered,

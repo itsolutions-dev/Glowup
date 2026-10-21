@@ -309,7 +309,7 @@ steps.push(
 
 // The screen can take a moment to open after the trigger.
 let ready = false;
-for (let i = 0; i < 40 && !ready; i += 1) {
+for (let i = 0; i < 80 && !ready; i += 1) {
   ready = !!hasText(screen(), /^Native check$/);
   if (!ready) await sleep(1500);
 }
@@ -336,5 +336,5 @@ if (ready) {
 }
 photo("android-check-after.png");
 console.log(
-  `${steps.length - failed}/${steps.length} interaction steps passed`,
+  `${ready ? steps.length - failed : 0}/${steps.length} interaction steps passed`,
 );

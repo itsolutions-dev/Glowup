@@ -3,7 +3,14 @@ import { Pressable, StyleSheet, View } from "react-native";
 import Svg, { G, Line, Path, Text as SvgText } from "react-native-svg";
 import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip } from "./ChartTooltip";
-import { arcPath, donutSlices, sliceAt, spreadAngles } from "./core/paths";
+import { readableOn } from "./core/palette";
+import {
+  arcPath,
+  donutSlices,
+  sliceAt,
+  spreadAngles,
+  textFitsSlice,
+} from "./core/paths";
 import { labelWidth } from "./ChartAxes";
 import { usePartsBase, type PartsCommonProps } from "./hooks/usePartsBase";
 
@@ -18,7 +25,7 @@ export type DonutChartProps = PartsCommonProps & {
   centerValue?: string | ((shownTotal: number) => string);
   /** The small text under it; while a part is active it shows that part's label. */
   centerLabel?: string;
-  /** Each part's share: on its slice where it is wide enough, else outside the ring on a short line, however small the part. */
+  /** Each part's share: on its slice where the text fits, else outside the ring on a short line, however small the part. */
   showPercent?: boolean;
 };
 
@@ -26,9 +33,6 @@ export type DonutChartProps = PartsCommonProps & {
 const GROW = 4;
 /** From the ring to a label written outside it. */
 const LEADER = 12;
-/** A share written inside a slice needs at least this fraction of the ring and this ring width. */
-const INSIDE_FRACTION = 0.06;
-const INSIDE_RING = 18;
 const PAD_ANGLE = 0.01;
 const CORNER = 4;
 
@@ -83,47 +87,73 @@ const DonutChart = (props: DonutChartProps) => {
           10,
           Math.min(14, (Math.min(width, height) / 2) * 0.2),
         );
-        const whole = Math.max(total ?? 0, sum);
         const room = Math.max(0, Math.min(width, height) / 2 - GROW);
-        const ring0 = Math.min(room, thickness ?? Math.max(8, room * 0.36));
-        // Slices too narrow to hold their share get it outside the ring, and the ring leaves room for those.
-        const outside = showPercent
-          ? positive.filter(
-              (d) => d.value / whole < INSIDE_FRACTION || ring0 < INSIDE_RING,
-            )
-          : [];
-        const textWidth = Math.max(
-          0,
-          ...outside.map((d) =>
-            labelWidth(percent(d.value / whole), labelSize),
-          ),
-        );
-        const outer =
-          outside.length === 0
+        const cx = width / 2;
+        const cy = height / 2;
+        const geometry = (outerRadius: number) => {
+          const ringWidth = Math.min(
+            outerRadius,
+            thickness ?? Math.max(8, outerRadius * 0.36),
+          );
+          const innerRadius = Math.max(0, outerRadius - ringWidth);
+          return {
+            outer: outerRadius,
+            inner: innerRadius,
+            slices: donutSlices(
+              visible.map((d) => ({ id: d.id, value: d.value })),
+              {
+                innerRadius,
+                outerRadius,
+                padAngle: PAD_ANGLE,
+                cornerRadius: CORNER,
+                total,
+              },
+            ),
+          };
+        };
+        // A share goes on its slice when the text fits there, else outside the ring on a short line. The ring
+        // leaves room for the outside ones, which makes it thinner, so what fits is asked again until no
+        // more slices move out.
+        const reserve = (ids: Set<string>, g: ReturnType<typeof geometry>) =>
+          ids.size === 0
             ? room
             : Math.max(
                 0,
                 Math.min(
-                  width / 2 - textWidth - 2,
+                  width / 2 -
+                    Math.max(
+                      ...g.slices
+                        .filter((s) => ids.has(s.id))
+                        .map((s) => labelWidth(percent(s.fraction), labelSize)),
+                    ) -
+                    2,
                   height / 2 - labelSize / 2 - 2,
                 ) -
                   GROW -
                   LEADER,
               );
-        const ring = Math.min(outer, thickness ?? Math.max(8, outer * 0.36));
-        const inner = Math.max(0, outer - ring);
-        const cx = width / 2;
-        const cy = height / 2;
-        const slices = donutSlices(
-          visible.map((d) => ({ id: d.id, value: d.value })),
-          {
-            innerRadius: inner,
-            outerRadius: outer,
-            padAngle: PAD_ANGLE,
-            cornerRadius: CORNER,
-            total,
-          },
-        );
+        let outsideIds = new Set<string>();
+        let g = geometry(room);
+        for (let pass = 0; showPercent && pass < 4; pass++) {
+          const next = new Set(outsideIds);
+          for (const s of g.slices) {
+            const text = percent(s.fraction);
+            if (
+              !textFitsSlice(
+                s,
+                g.inner,
+                g.outer,
+                labelWidth(text, labelSize),
+                labelSize,
+              )
+            )
+              next.add(s.id);
+          }
+          if (next.size === outsideIds.size) break;
+          outsideIds = next;
+          g = geometry(reserve(outsideIds, g));
+        }
+        const { outer, inner, slices } = g;
         const showTrack = total !== undefined && total > sum;
         const activePart = visible.find((d) => d.id === active);
         const color = colorOf;
@@ -133,7 +163,6 @@ const DonutChart = (props: DonutChartProps) => {
           return i === null ? null : slices[i].id;
         };
         // Where each outside label goes: its slice's middle angle, nudged so neighbours do not touch.
-        const outsideIds = new Set(outside.map((d) => d.id));
         const labelled = slices.filter((s) => outsideIds.has(s.id));
         const at = (angle: number, radius: number): [number, number] => [
           radius * Math.sin(angle),
@@ -190,6 +219,18 @@ const DonutChart = (props: DonutChartProps) => {
           return idAt(n.locationX ?? n.offsetX, n.locationY ?? n.offsetY);
         };
 
+        // The centre text shrinks (not below 9) to stay inside a small hole.
+        const fitText = (text: string | undefined, size: number) =>
+          Math.max(
+            9,
+            Math.min(
+              size,
+              (inner * 1.7) / Math.max(1, (text?.length ?? 0) * 0.6),
+            ),
+          );
+        const topSize = fitText(centerTop, valueSize);
+        const bottomSize = fitText(centerBottom, labelSize);
+
         return (
           <>
             <Svg
@@ -236,7 +277,11 @@ const DonutChart = (props: DonutChartProps) => {
                         y={s.centroid[1] + labelSize / 3}
                         fontSize={labelSize}
                         fontFamily={fontFamily}
-                        fill={theme.colors.surface}
+                        fill={readableOn(
+                          color(s.id),
+                          theme.colors.surface,
+                          theme.colors.onSurface,
+                        )}
                         textAnchor="middle"
                       >
                         {percent(s.fraction)}
@@ -267,8 +312,8 @@ const DonutChart = (props: DonutChartProps) => {
                 {centerTop !== undefined && (
                   <SvgText
                     x={0}
-                    y={centerBottom ? -2 : valueSize / 3}
-                    fontSize={valueSize}
+                    y={centerBottom ? -2 : topSize / 3}
+                    fontSize={topSize}
                     fontFamily={fontFamily}
                     fontWeight="700"
                     fill={
@@ -283,9 +328,10 @@ const DonutChart = (props: DonutChartProps) => {
                   <SvgText
                     x={0}
                     y={
-                      labelSize + (centerTop !== undefined ? 2 : -labelSize / 2)
+                      bottomSize +
+                      (centerTop !== undefined ? 2 : -bottomSize / 2)
                     }
-                    fontSize={labelSize}
+                    fontSize={bottomSize}
                     fontFamily={fontFamily}
                     fill={theme.colors.onSurfaceVariant}
                     textAnchor="middle"

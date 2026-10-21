@@ -1,5 +1,5 @@
 export default function constants(x) {
-  return function() {
+  return function () {
     return x;
   };
 }

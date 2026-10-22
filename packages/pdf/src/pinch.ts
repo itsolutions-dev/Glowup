@@ -59,7 +59,11 @@ export class PinchController {
   constructor() {
     this.responder = PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      // Two fingers take the touch away from the lists; one finger goes on scrolling them.
+      // Two fingers take the touch away from the lists; one finger goes on scrolling them. It is decided when
+      // the second finger lands, not when the fingers move: by then the sideways list has begun to scroll under
+      // them (on Android it follows the second finger) and the gesture is no longer ours.
+      onStartShouldSetPanResponderCapture: (event) =>
+        event.nativeEvent.touches.length >= 2,
       onMoveShouldSetPanResponderCapture: (event) =>
         event.nativeEvent.touches.length >= 2,
       onPanResponderTerminationRequest: () => false,

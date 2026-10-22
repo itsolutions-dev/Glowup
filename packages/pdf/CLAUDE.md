@@ -40,7 +40,10 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   area with a transform while the fingers move and, once they lift, the viewer lays the pages out at the new zoom and scrolls to the same
   place (`plan` before the layout, `settle` after it). The buttons zoom about the middle of the area through the same two calls. The
   maths and the controller's `plan`/`settle` are tested in jest; the touch handling was tried on an Android 15 emulator
-  (2026-10-22: it zooms about the point between the fingers and the pages redraw sharp at 3x) and never on iOS.
+  (2026-10-22: it zooms in and out and the pages redraw sharp at each step) and never on iOS. The gesture is claimed when the
+  second finger lands (`onStartShouldSetPanResponderCapture`), not when the fingers move: once zoomed in there is a sideways list,
+  and on Android it starts scrolling under two moving fingers and takes the gesture from JavaScript (found on the emulator: a
+  pinch in did nothing but pan).
   `PdfViewer.web.tsx` has none of this: Chrome cannot show it. The controller is a class used through methods because the React
   Compiler lint rules (`react-hooks/refs`, `immutability`) refuse a gesture built from refs inside the component.
 - **Source identity is its content** (`sourceKey`): a new source, or a retry, remounts the viewer, so the document, the search

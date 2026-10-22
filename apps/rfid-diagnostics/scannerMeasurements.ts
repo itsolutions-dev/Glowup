@@ -8,6 +8,7 @@ export interface ScannerDiagnostic {
 
 /** What each symbology looked like as the SDK reported it. */
 export interface SymbologySeen {
+  /** Honeywell's code id, or DataWedge's label type. */
   codeId: string | null;
   aimId: string | null;
   charsets: string[];
@@ -24,12 +25,15 @@ export interface ScannerMeasurements {
   reads: number;
   /** Decodes the SDK reported as failed (a trigger without a code). */
   noReads: number;
-  /** By code id and AIM id. */
+  /** By code id (DataWedge: label type) and AIM id. */
   symbologies: Record<string, SymbologySeen>;
   threads: string[];
   /** Trigger events as the SDK reported them, whether claimed or not. */
   triggers: { pressed: number; released: number; whileReleased: number };
-  /** The claim's life: created, claimed, released, applied, devices. */
+  /**
+   * The claim's life: Honeywell's created, claimed, released, applied,
+   * devices; DataWedge's profile, commands with their results, notifications.
+   */
   timeline: { type: string; at: number; detail: string }[];
   log: ScannerDiagnostic[];
 }
@@ -45,6 +49,13 @@ const TIMELINE_TYPES = new Set([
   "applied",
   "device",
   "triggerFailed",
+  "profileSetUp",
+  "command",
+  "notification",
+  "result",
+  "opened",
+  "closed",
+  "lost",
 ]);
 
 export function emptyScannerMeasurements(
@@ -84,7 +95,7 @@ export function recordScanner(
     next.threads = [...m.threads, event.thread];
   }
   if (event.type === "read") {
-    const codeId = text(event.codeId);
+    const codeId = text(event.codeId) ?? text(event.labelType);
     const aimId = text(event.aimId);
     const key = `${codeId ?? "?"} ${aimId ?? "?"}`;
     const seen = m.symbologies[key];

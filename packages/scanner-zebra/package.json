@@ -1,0 +1,105 @@
+{
+  "name": "@its/scanner-zebra",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Zebra barcode scanners (the TC22 imager and other Zebra mobile computers, through DataWedge) behind @its/glowup-device/scanner: an Android Expo module and its adapter",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsolutions-dev/Glowup.git",
+    "directory": "packages/scanner-zebra"
+  },
+  "homepage": "https://github.com/itsolutions-dev/Glowup/tree/master/packages/scanner-zebra#readme",
+  "bugs": {
+    "url": "https://github.com/itsolutions-dev/Glowup/issues"
+  },
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/index.d.ts",
+  "source": "src/index.ts",
+  "react-native": "src/index.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./lib/typescript/index.d.ts",
+      "default": "./lib/commonjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib",
+    "android/build.gradle",
+    "android/src",
+    "expo-module.config.json",
+    "!**/*.map",
+    "!**/__tests__",
+    "!**/*.test.ts"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "bob build && node ../../scripts/strip-declaration-maps.mjs",
+    "validate-package": "publint && attw --pack .",
+    "prepack": "npm run build",
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "barcode",
+    "barcode-scanner",
+    "zebra",
+    "datawedge",
+    "tc22"
+  ],
+  "peerDependencies": {
+    "@its/glowup-device": ">=0.12.0 <0.13.0",
+    "expo": ">=57",
+    "react": ">=19",
+    "react-native": ">=0.86"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@its/glowup-device": "*",
+    "@types/jest": "^29.5.14",
+    "babel-preset-expo": "~57.0.1",
+    "expo": "~57.0.25",
+    "jest": "~29.7.0",
+    "jest-expo": "~57.0.5",
+    "publint": "^0.3.25",
+    "react": "19.2.3",
+    "react-native-builder-bob": "^0.43.2"
+  },
+  "jest": {
+    "preset": "jest-expo/android",
+    "testTimeout": 30000,
+    "moduleNameMapper": {
+      "^@its/glowup-device/(scanner|testing)$": "<rootDir>/../device/src/$1/index.ts"
+    }
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "sourceMaps": false
+        }
+      ],
+      [
+        "module",
+        {
+          "sourceMaps": false
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

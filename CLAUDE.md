@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-An **npm-workspaces monorepo** with eight workspaces:
+An **npm-workspaces monorepo** with nine workspaces:
 
 | Workspace                    | Package                     | Role                                                                                                                                    |
 | ---------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,6 +15,7 @@ An **npm-workspaces monorepo** with eight workspaces:
 | `packages/rfid-honeywell`    | `@its/rfid-honeywell`       | Publishable Honeywell RFID readers behind `@its/glowup-device/rfid`: Android Expo module, adapter, config plugin.                       |
 | `packages/rfid-zebra`        | `@its/rfid-zebra`           | Zebra RFID readers (RFD40 Premium) behind `@its/glowup-device/rfid`, same shape. Private until phase Z2.                                |
 | `packages/scanner-honeywell` | `@its/scanner-honeywell`    | Publishable Honeywell barcode scanners (the CT40's imager) behind `@its/glowup-device/scanner` (Data Collection SDK), same shape.       |
+| `packages/scanner-zebra`     | `@its/scanner-zebra`        | Zebra barcode scanners (the TC22's imager) behind `@its/glowup-device/scanner`, through DataWedge's intents: no SDK. Private until ZB3. |
 | `apps/rfid-diagnostics`      | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID and barcode scanner spikes on real hardware, one vendor per build (`RFID_VENDOR`). |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
@@ -50,6 +51,7 @@ npm test -w @its/glowup-device                # only the device package's tests
 npm test -w @its/rfid-honeywell               # only the Honeywell RFID package's tests
 npm test -w @its/rfid-zebra                   # only the Zebra RFID package's tests
 npm test -w @its/scanner-honeywell            # only the Honeywell barcode scanner package's tests
+npm test -w @its/scanner-zebra                # only the Zebra barcode scanner package's tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
@@ -108,15 +110,18 @@ package never imports them (all ESLint errors). Barcode scanner vendor packages
 subpaths to the device package's `src`, since CI type-checks and tests before it builds. The
 vendors' SDKs they wrap **never enter the repository**: Honeywell's licence lets it travel only
 inside an app's build, and Zebra's comes from its support portal, not a public repository
-(`.gitignore` blocks `honeywell_rfid_sdk*.aar`, `DataCollection*.aar` and `rfidapi3*.aar`). `apps/rfid-diagnostics/tsconfig.json` maps `@its/glowup-device`,
-its `/rfid`, `/scanner` and `/testing`, `@its/rfid-honeywell`, `@its/rfid-zebra` and `@its/scanner-honeywell` to their `src`, as the
+(`.gitignore` blocks `honeywell_rfid_sdk*.aar`, `DataCollection*.aar`, `rfidapi3*.aar` and
+Zebra's Scanner SDK, `barcode_scanner_library*.aar`, which no package uses). `@its/scanner-zebra`
+wraps no SDK: it drives DataWedge, Zebra's scanning service, through intents. `apps/rfid-diagnostics/tsconfig.json` maps `@its/glowup-device`,
+its `/rfid`, `/scanner` and `/testing`, `@its/rfid-honeywell`, `@its/rfid-zebra`, `@its/scanner-honeywell` and `@its/scanner-zebra` to their `src`, as the
 playground does. The diagnostics app depends on every vendor; its `app.config.ts` applies the
-`RFID_VENDOR` vendor's plugins (Honeywell's RFID and scanner packages, or Zebra's RFID one) and excludes the others from autolinking (a vendor's module does
-not build without its SDK).
+`RFID_VENDOR` vendor's plugins (Honeywell's RFID and scanner packages, or Zebra's RFID one: its
+scanner package has none) and excludes the other vendor's packages from autolinking (a vendor's
+module does not build without its SDK).
 
 Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 `packages/notifications/CLAUDE.md`, `packages/device/CLAUDE.md`, `packages/rfid-honeywell/CLAUDE.md`,
-`packages/rfid-zebra/CLAUDE.md`, `packages/scanner-honeywell/CLAUDE.md` and `apps/playground/CLAUDE.md`, which load when you work under those folders.
+`packages/rfid-zebra/CLAUDE.md`, `packages/scanner-honeywell/CLAUDE.md`, `packages/scanner-zebra/CLAUDE.md` and `apps/playground/CLAUDE.md`, which load when you work under those folders.
 
 ## Tests
 
@@ -136,8 +141,8 @@ Changesets. `@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device`,
 `@its/rfid-honeywell` and `@its/scanner-honeywell` are published (versioned independently), each
 with `publishConfig` (`access: public`, `provenance: true`); `@its/glowup-playground` and
 `@its/rfid-diagnostics` are private and ignored; `@its/rfid-zebra` stays private until its spike
-on a real RFD40 (phase Z1) is through, as `@its/rfid-honeywell` did and as `@its/scanner-honeywell`
-did on a CT40 (phase C2). A user-visible change to any of them needs a
+on a real RFD40 (phase Z1) is through, and `@its/scanner-zebra` until its run on a TC22 (phase
+ZB2), as `@its/rfid-honeywell` did and as `@its/scanner-honeywell` did on a CT40 (phase C2). A user-visible change to any of them needs a
 changeset (`npx changeset`). Each package needs its own trusted publisher on npmjs.com (see
 `release.yml`). On push to `master`, `release.yml` opens a "Version Packages" PR; merging it
 publishes to npm.

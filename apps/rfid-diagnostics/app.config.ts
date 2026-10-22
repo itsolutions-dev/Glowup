@@ -11,7 +11,9 @@ import type { ExpoConfig } from "expo/config";
  * - `zebra`: ZEBRA_RFID_AAR
  *
  * A vendor's plugins are its RFID package's and, where the host has one, its
- * barcode scanner package's.
+ * barcode scanner package's; `packages` are its native modules, which the
+ * other vendors' builds leave out. Zebra's scanner package has no plugin:
+ * DataWedge needs no SDK.
  */
 const HONEYWELL_DATACOLLECTION_AAR =
   process.env.HONEYWELL_DATACOLLECTION_AAR ?? "./honeywell/DataCollection.aar";
@@ -19,6 +21,7 @@ const HONEYWELL_DATACOLLECTION_AAR =
 export const VENDORS = {
   honeywell: {
     label: "Honeywell",
+    packages: ["@its/rfid-honeywell", "@its/scanner-honeywell"],
     // One copy of the Data Collection SDK for both: the RFID SDK loads it,
     // and it is the CT40's scanner (plan C5).
     plugins: [
@@ -39,6 +42,7 @@ export const VENDORS = {
   },
   zebra: {
     label: "Zebra",
+    packages: ["@its/rfid-zebra", "@its/scanner-zebra"],
     plugins: [
       [
         "@its/rfid-zebra",
@@ -92,7 +96,7 @@ const withOnlyVendor: ConfigPlugin<Vendor> = (config, vendor) =>
   withSettingsGradle(config, (mod) => {
     const others = (Object.keys(VENDORS) as Vendor[])
       .filter((other) => other !== vendor)
-      .flatMap((other) => VENDORS[other].plugins.map(([name]) => name));
+      .flatMap((other) => VENDORS[other].packages);
     mod.modResults.contents = excludeFromAutolinking(
       mod.modResults.contents,
       others,

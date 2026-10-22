@@ -28,8 +28,6 @@ import java.util.concurrent.Executors
  * `PdfRenderer` is not thread safe and shows one page at a time, so every call runs on one
  * thread and `documents` needs no lock.
  */
-private const val MAX_MATCHES = 500
-
 class GlowupPdfModule : Module() {
   private class Document(
     val renderer: PdfRenderer,
@@ -72,8 +70,10 @@ class GlowupPdfModule : Module() {
       withContext(worker) { renderImage(uri, index, width) }
     }
 
-    AsyncFunction("search") Coroutine { uri: String, query: String ->
-      withContext(worker) { findText(uri, query) }
+    // One page at a time: the one thread is never busy with a search for longer than a page, so a drawing
+    // waits for that and not for the whole document (the viewer asks page by page and can stop between two).
+    AsyncFunction("searchPage") Coroutine { uri: String, page: Int, query: String ->
+      withContext(worker) { findText(uri, page, query) }
     }
 
     AsyncFunction("close") Coroutine { uri: String ->
@@ -154,7 +154,7 @@ class GlowupPdfModule : Module() {
   }
 
   /**
-   * The system's own text search: `PdfRenderer.Page.searchText` from Android 15 (API 35), and
+   * The system's own text search, one page: `PdfRenderer.Page.searchText` from Android 15 (API 35), and
    * `PdfRendererPreV.Page.searchText` on Android 11 to 14 where the device has SDK extension 13.
    * Anything older finds nothing (`capabilities` says so, and the viewer hides the search).
    */
@@ -164,27 +164,22 @@ class GlowupPdfModule : Module() {
         SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 13)
 
   @SuppressLint("NewApi")
-  private fun findText(uri: String, query: String): List<Map<String, Any>> {
+  private fun findText(uri: String, index: Int, query: String): List<Map<String, Any>> {
     val document = documents[uri] ?: throw PdfNotOpenException()
+    if (index < 0 || index >= document.renderer.pageCount) throw PdfPageException(index)
     val text = query.trim()
     if (text.isEmpty() || !canSearch) return emptyList()
 
     val matches = mutableListOf<Map<String, Any>>()
     try {
-      if (Build.VERSION.SDK_INT >= 35) {
-        for (index in 0 until document.renderer.pageCount) {
-          document.renderer.openPage(index).use { page ->
-            addMatches(matches, page.searchText(text), index, page.width, page.height)
-          }
-          if (matches.size >= MAX_MATCHES) break
+      val renderer = if (Build.VERSION.SDK_INT >= 35) null else (document.preV ?: openPreV(document))
+      if (renderer == null) {
+        document.renderer.openPage(index).use { page ->
+          addMatches(matches, page.searchText(text), index, page.width, page.height)
         }
       } else {
-        val renderer = document.preV ?: openPreV(document)
-        for (index in 0 until renderer.pageCount) {
-          renderer.openPage(index).use { page ->
-            addMatches(matches, page.searchText(text), index, page.width, page.height)
-          }
-          if (matches.size >= MAX_MATCHES) break
+        renderer.openPage(index).use { page ->
+          addMatches(matches, page.searchText(text), index, page.width, page.height)
         }
       }
     } catch (error: IOException) {

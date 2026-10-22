@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -255,8 +256,11 @@ describe("PdfViewer", () => {
       await fireEvent.changeText(box, "hello");
       await fireEvent(box, "submitEditing", { nativeEvent: { text: "hello" } });
       expect(await screen.findByText("1 / 2")).toBeTruthy();
+      // One call per page, from the page being read.
       expect(calls.searched).toEqual([
-        { uri: "file:///memory/1.pdf", query: "hello" },
+        { uri: "file:///memory/1.pdf", page: 0, query: "hello" },
+        { uri: "file:///memory/1.pdf", page: 1, query: "hello" },
+        { uri: "file:///memory/1.pdf", page: 2, query: "hello" },
       ]);
       await waitFor(() => expect(onPageChange).toHaveBeenCalledWith(2, 3));
 
@@ -267,6 +271,52 @@ describe("PdfViewer", () => {
       expect(await screen.findByText("1 / 2")).toBeTruthy();
       await fireEvent.press(screen.getByLabelText("Previous result"));
       expect(await screen.findByText("2 / 2")).toBeTruthy();
+    });
+
+    it("starts at the page being read and goes round to the ones before it", async () => {
+      const { calls } = await open();
+      const field = await ready();
+      await fireEvent.changeText(field, "3");
+      await fireEvent(field, "submitEditing");
+      await waitFor(() =>
+        expect(screen.getByLabelText("Go to page").props.value).toBe("3"),
+      );
+      await fireEvent.press(screen.getByLabelText("Search in the document"));
+      const box = await screen.findByPlaceholderText("Search");
+      await fireEvent.changeText(box, "zzz");
+      await fireEvent(box, "submitEditing", { nativeEvent: { text: "zzz" } });
+      expect(await screen.findByText("No results")).toBeTruthy();
+      expect(calls.searched.map((c) => c.page)).toEqual([2, 0, 1]);
+    });
+
+    it("shows how far it got while it searches, and stops when the panel is closed", async () => {
+      const memory = createMemoryPdf();
+      const gates: (() => void)[] = [];
+      const asked: number[] = [];
+      memory.adapters.native.searchPage = (_uri, page) =>
+        new Promise((resolve) => {
+          asked.push(page);
+          gates.push(() => resolve([]));
+        });
+      await render(
+        <ThemeProvider>
+          <PdfProvider adapters={memory.adapters}>
+            <PdfViewer source={{ uri: "file:///a.pdf" }} />
+          </PdfProvider>
+        </ThemeProvider>,
+      );
+      await ready();
+      await fireEvent.press(screen.getByLabelText("Search in the document"));
+      const box = await screen.findByPlaceholderText("Search");
+      await fireEvent.changeText(box, "hello");
+      await fireEvent(box, "submitEditing", { nativeEvent: { text: "hello" } });
+      expect(await screen.findByText("Searching… 0 / 3")).toBeTruthy();
+      await act(async () => gates[0]());
+      expect(await screen.findByText("Searching… 1 / 3")).toBeTruthy();
+      // The panel is closed with page 2 being searched: page 3 is never asked.
+      await fireEvent.press(screen.getByLabelText("Search in the document"));
+      await act(async () => gates[1]());
+      expect(asked).toEqual([0, 1]);
     });
 
     it("says when nothing is found", async () => {

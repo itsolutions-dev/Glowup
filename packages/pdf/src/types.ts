@@ -32,7 +32,11 @@ export interface PdfNative {
   open(uri: string): Promise<{ pages: PdfPageSize[] }>;
   /** Draws the page `index` (0-based) `width` pixels wide, on a white background; returns an image URI. */
   renderPage(uri: string, index: number, width: number): Promise<string>;
-  search(uri: string, query: string): Promise<PdfMatch[]>;
+  /**
+   * Searches one page (0-based) and returns its hits, in reading order. One page at a time, so that the module is
+   * never busy for long and the viewer can stop between pages (`startSearch`, src/searchDocument.ts).
+   */
+  searchPage(uri: string, page: number, query: string): Promise<PdfMatch[]>;
   close(uri: string): Promise<void>;
 }
 
@@ -54,7 +58,7 @@ export type PdfAdapters = {
   actions: PdfActions;
 };
 
-/** Every text the viewer shows. `{page}`, `{pages}`, `{current}` and `{total}` are replaced. */
+/** Every text the viewer shows. `{page}`, `{pages}`, `{current}`, `{total}` and `{done}` are replaced. */
 export type PdfLabels = {
   loading: string;
   page: string;
@@ -68,6 +72,8 @@ export type PdfLabels = {
   search: string;
   searchPlaceholder: string;
   searchResult: string;
+  /** Shown while a search is going on and nothing is found yet. `{done}` pages searched of `{pages}`. */
+  searching: string;
   noResults: string;
   previousResult: string;
   nextResult: string;

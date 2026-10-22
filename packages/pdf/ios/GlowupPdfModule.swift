@@ -2,7 +2,7 @@ import ExpoModulesCore
 import PDFKit
 import UIKit
 
-/// PDFKit behind the five functions of `PdfNative` (src/types.ts). Documents stay open between
+/// PDFKit behind the functions of `PdfNative` (src/types.ts). Documents stay open between
 /// calls, keyed by their file URI, until `close`.
 public final class GlowupPdfModule: Module {
   // One queue for everything: PDFKit objects are not meant to be used from several threads at
@@ -28,8 +28,9 @@ public final class GlowupPdfModule: Module {
     }
     .runOnQueue(queue)
 
-    AsyncFunction("search") { (uri: String, query: String) -> [[String: Any]] in
-      try self.findText(uri, query: query)
+    // One page at a time (see the Android module): the queue is never busy with a search for longer than a page.
+    AsyncFunction("searchPage") { (uri: String, index: Int, query: String) -> [[String: Any]] in
+      try self.findText(uri, index: index, query: query)
     }
     .runOnQueue(queue)
 
@@ -106,27 +107,31 @@ public final class GlowupPdfModule: Module {
     return file.absoluteString
   }
 
-  private func findText(_ uri: String, query: String) throws -> [[String: Any]] {
-    guard let document = documents[uri] else { throw PdfNotOpenException() }
+  private func findText(_ uri: String, index: Int, query: String) throws -> [[String: Any]] {
+    let page = try page(uri, index)
     let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
     if text.isEmpty { return [] }
 
+    // PDFKit searches a whole document, not a page: the page's text is searched here, ignoring case and accents as
+    // `findString` did, and each hit is turned into a selection to get its rectangles.
+    let content = (page.string ?? "") as NSString
     var matches: [[String: Any]] = []
-    for selection in document.findString(text, withOptions: [.caseInsensitive, .diacriticInsensitive]) {
-      // A hit that wraps over lines is one rectangle per line; one that crosses a page is one match per page.
-      var rectsByPage: [(page: Int, rects: [[String: Double]])] = []
+    var from = 0
+    while from < content.length {
+      let found = content.range(
+        of: text,
+        options: [.caseInsensitive, .diacriticInsensitive],
+        range: NSRange(location: from, length: content.length - from)
+      )
+      if found.location == NSNotFound || found.length == 0 { break }
+      from = found.location + found.length
+      guard let selection = page.selection(for: found) else { continue }
+      // A hit that wraps over lines is one rectangle per line.
+      var rects: [[String: Double]] = []
       for line in selection.selectionsByLine() {
-        for page in line.pages {
-          let index = document.index(for: page)
-          guard index != NSNotFound, let rect = fraction(line.bounds(for: page), on: page) else { continue }
-          if let slot = rectsByPage.firstIndex(where: { $0.page == index }) {
-            rectsByPage[slot].rects.append(rect)
-          } else {
-            rectsByPage.append((page: index, rects: [rect]))
-          }
-        }
+        if let rect = fraction(line.bounds(for: page), on: page) { rects.append(rect) }
       }
-      for entry in rectsByPage { matches.append(["page": entry.page, "rects": entry.rects]) }
+      if !rects.isEmpty { matches.append(["page": index, "rects": rects]) }
     }
     return matches
   }

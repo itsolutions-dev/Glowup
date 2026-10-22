@@ -14,6 +14,7 @@ export const defaultPdfLabels: PdfLabels = {
   search: "Search in the document",
   searchPlaceholder: "Search",
   searchResult: "{current} / {total}",
+  searching: "Searching… {done} / {pages}",
   noResults: "No results",
   previousResult: "Previous result",
   nextResult: "Next result",

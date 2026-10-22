@@ -26,6 +26,7 @@ import { PdfSearchPanel, PdfToolbar } from "./PdfToolbar";
 import { toPdfError } from "./errors";
 import { usableSize } from "./pageGeometry";
 import { createRenderQueue } from "./renderQueue";
+import { mergeMatches, startSearch, type SearchRun } from "./searchDocument";
 import { fillLabel, withDefaultLabels } from "./labels";
 import { resolveSource, sourceKey, type ResolvedFile } from "./source";
 import { PinchController, type Point } from "./pinch";
@@ -47,6 +48,8 @@ type Search = {
   searched: boolean;
   matches: PdfMatch[];
   cursor: number;
+  /** Pages searched so far. */
+  done: number;
 };
 
 const idleSearch: Search = {
@@ -56,6 +59,7 @@ const idleSearch: Search = {
   searched: false,
   matches: [],
   cursor: 0,
+  done: 0,
 };
 
 /** A user closing the print or share sheet is not a failure to report. */
@@ -251,29 +255,66 @@ const PdfDocument = ({
   const [search, setSearch] = useState<Search>(idleSearch);
   const [actionError, setActionError] = useState<PdfError | null>(null);
 
-  const runSearch = async (query: string) => {
+  // The search in progress: it goes page by page and can be stopped between two (see searchDocument.ts).
+  const searchRun = useRef<SearchRun | null>(null);
+  const stopSearch = () => {
+    searchRun.current?.cancel();
+    searchRun.current = null;
+  };
+
+  const runSearch = (query: string) => {
+    stopSearch();
     const text = query.trim();
-    if (!uri || !text) {
-      setSearch((s) => ({ ...s, searched: false, matches: [], cursor: 0 }));
+    const none = {
+      searching: false,
+      searched: false,
+      matches: [],
+      cursor: 0,
+      done: 0,
+    };
+    if (!uri || !text || pageCount === 0) {
+      setSearch((s) => ({ ...s, ...none }));
       return;
     }
-    setSearch((s) => ({ ...s, searching: true }));
-    try {
-      const matches = await native.search(uri, text);
-      if (!alive.current) return;
-      setSearch((s) => ({
-        ...s,
-        searching: false,
-        searched: true,
-        matches,
-        cursor: 0,
-      }));
-      if (matches[0]) goToPage(matches[0].page + 1);
-    } catch (caught) {
-      if (!alive.current) return;
-      setSearch((s) => ({ ...s, searching: false }));
-      setActionError(toPdfError(caught, "unsupported"));
-    }
+    setSearch((s) => ({ ...s, ...none, searching: true }));
+    // The first hit found, which is the nearest one ahead of the page being read, is where the viewer goes.
+    let first = true;
+    const run = startSearch(native, uri, text, pageCount, page - 1, {
+      // A viewer that is gone stops its own search: a ref cannot be read in the effect that sees it go.
+      found: (added) => {
+        if (!alive.current) return run.cancel();
+        setSearch((s) => ({
+          ...s,
+          ...mergeMatches(
+            s.matches,
+            added,
+            s.matches.length > 0 ? s.cursor : -1,
+          ),
+        }));
+        if (first) {
+          first = false;
+          goToPage(added[0].page + 1);
+        }
+      },
+      progress: (done) => {
+        if (!alive.current) return run.cancel();
+        setSearch((s) => ({ ...s, done }));
+      },
+    });
+    searchRun.current = run;
+    run.finished.then(
+      () => {
+        if (!alive.current || searchRun.current !== run) return;
+        searchRun.current = null;
+        setSearch((s) => ({ ...s, searching: false, searched: true }));
+      },
+      (caught) => {
+        if (!alive.current || searchRun.current !== run) return;
+        searchRun.current = null;
+        setSearch((s) => ({ ...s, searching: false }));
+        setActionError(toPdfError(caught, "unsupported"));
+      },
+    );
   };
 
   const moveResult = (delta: number) => {
@@ -455,9 +496,14 @@ const PdfDocument = ({
           onZoomIn={() => applyZoom(stepZoom(zoom, 1), pinch.center())}
           onZoomOut={() => applyZoom(stepZoom(zoom, -1), pinch.center())}
           onFitWidth={() => applyZoom(MIN_ZOOM, pinch.center())}
-          onToggleSearch={() =>
-            setSearch((s) => ({ ...idleSearch, query: s.query, open: !s.open }))
-          }
+          onToggleSearch={() => {
+            stopSearch();
+            setSearch((s) => ({
+              ...idleSearch,
+              query: s.query,
+              open: !s.open,
+            }));
+          }}
           onPrint={() => uri && act(() => actions.print(uri, fileName))}
           onSave={() => uri && act(() => actions.save(uri, fileName))}
         />
@@ -470,15 +516,24 @@ const PdfDocument = ({
           current={search.cursor}
           searched={search.searched}
           searching={search.searching}
-          onChangeQuery={(query) =>
+          done={search.done}
+          pages={pageCount}
+          onChangeQuery={(query) => {
+            if (query === "") stopSearch();
             setSearch((s) => ({
               ...s,
               query,
               ...(query === ""
-                ? { searched: false, matches: [], cursor: 0 }
+                ? {
+                    searching: false,
+                    searched: false,
+                    matches: [],
+                    cursor: 0,
+                    done: 0,
+                  }
                 : {}),
-            }))
-          }
+            }));
+          }}
           onSubmit={runSearch}
           onPrevious={() => moveResult(-1)}
           onNext={() => moveResult(1)}

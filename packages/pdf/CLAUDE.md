@@ -19,7 +19,7 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   ships only a website installs none, and one that forgot the package in its dependencies gets a `native-missing` error
   with a readable text, not a crash at start-up.
 - **The page drawing is native, everything else is JavaScript.** The native module has five functions (`capabilities`,
-  `open`, `renderPage`, `search`, `close`); the toolbar, zoom, page list, search highlights and states are shared by iOS and
+  `open`, `renderPage`, `searchPage`, `close`); the toolbar, zoom, page list, search highlights and states are shared by iOS and
   Android. Search rectangles are fractions (0..1) of the page with the origin at the top left, whatever the platform.
 - **The native module lives in this package**: `ios/` (Swift, PDFKit; podspec `GlowupPdf`), `android/` (Kotlin, `PdfRenderer`;
   built from source, `canBePublished false`) and `expo-module.config.json`; Expo autolinking picks it up from the app's
@@ -30,6 +30,12 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   (`ios-seq-NN.png`, `android-pdf.png`): the "drawn at the width asked" row reads only the size of the image file, and it passed
   while PDFKit's `getDrawingTransform` was drawing the page at half size in the middle of it (it never scales a page up;
   the iOS module scales by hand).
+- **A search goes page by page** (`searchPage`, one page per call; `startSearch` in `src/searchDocument.ts` loops from the page
+  being read, round to the ones before it, reports each page's hits as it finds them and can be stopped between two pages). Never
+  ask the module for a whole document: its one thread would be busy with the search and every drawing would wait for it. iOS has no
+  per-page find in PDFKit, so the Swift side searches the page's text and asks PDFKit for the rectangles of each range
+  (`page.selection(for:)`); Android calls `Page.searchText` on that page. Hits are kept in document order and the shown one stays
+  put when an earlier page's hit arrives (`mergeMatches`).
 - **Drawings go through a queue** (`src/renderQueue.ts`), never straight to `native.renderPage`: the module cannot stop a drawing that
   has begun, so the queue holds what waits, drops what a page withdrew (`cancel`, called when the page leaves the list or changes
   width), picks the page nearest the one being read (`reading(page)`), lets two drawings into the module at a time and remembers

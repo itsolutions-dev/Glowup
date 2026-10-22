@@ -129,7 +129,15 @@ const usePdfChecks = (pageWidth: number) => {
             `search is off on this device (${Platform.OS} ${Platform.Version})`,
           );
         } else {
-          const hits = await pdf.native.search(uri, "hello");
+          // One call per page, as the viewer makes them.
+          const file = uri;
+          const hits = (
+            await Promise.all(
+              Array.from({ length: SAMPLE_PDF_PAGES }, (_, page) =>
+                pdf.native.searchPage(file, page, "hello"),
+              ),
+            )
+          ).flat();
           const found = hits.map((hit) => hit.page).join(",");
           const inside = hits.every((hit) =>
             hit.rects.every(

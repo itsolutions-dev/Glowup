@@ -78,7 +78,7 @@ type NativeModuleShape = {
   capabilities(): Promise<PdfCapabilities>;
   open(uri: string): Promise<{ pages: PdfPageSize[] }>;
   renderPage(uri: string, index: number, width: number): Promise<string>;
-  search(uri: string, query: string): Promise<PdfMatch[]>;
+  searchPage(uri: string, page: number, query: string): Promise<PdfMatch[]>;
   close(uri: string): Promise<void>;
 };
 
@@ -108,7 +108,8 @@ export const expoNative: PdfNative = {
   open: (uri) => withModule((m) => m.open(uri)),
   renderPage: (uri, index, width) =>
     withModule((m) => m.renderPage(uri, index, width)),
-  search: (uri, query) => withModule((m) => m.search(uri, query)),
+  searchPage: (uri, page, query) =>
+    withModule((m) => m.searchPage(uri, page, query)),
   close: (uri) => withModule((m) => m.close(uri)),
 };
 

@@ -142,6 +142,9 @@ type SearchPanelProps = {
   current: number;
   searched: boolean;
   searching: boolean;
+  /** Pages searched so far, of `pages`. */
+  done: number;
+  pages: number;
   onChangeQuery: (query: string) => void;
   onSubmit: (query: string) => void;
   onPrevious: () => void;
@@ -155,19 +158,23 @@ export const PdfSearchPanel = ({
   current,
   searched,
   searching,
+  done,
+  pages,
   onChangeQuery,
   onSubmit,
   onPrevious,
   onNext,
 }: SearchPanelProps) => {
   const { theme } = useTheme();
-  const status = searching
-    ? ""
-    : !searched
-      ? ""
-      : total === 0
-        ? labels.noResults
-        : fillLabel(labels.searchResult, { current: current + 1, total });
+  // Hits show as they are found (the count grows while the search goes on); before the first, the progress.
+  const status =
+    total > 0
+      ? fillLabel(labels.searchResult, { current: current + 1, total })
+      : searching
+        ? fillLabel(labels.searching, { done, pages })
+        : searched
+          ? labels.noResults
+          : "";
   return (
     <View
       style={[

@@ -7,7 +7,7 @@ const PIXEL =
 export type MemoryPdfOptions = {
   /** Default: three pages of A4 proportions. */
   pages?: PdfPageSize[];
-  /** `false`: the device cannot search. An object maps a query to its hits; any other query finds none. Default: can search, finds none. */
+  /** `false`: the device cannot search. An object maps a query to its hits (each on its `page`); any other query finds none. Default: can search, finds none. */
   search?: boolean | Record<string, PdfMatch[]>;
   /** What `open` rejects with. */
   openError?: PdfError;
@@ -29,7 +29,7 @@ export const createMemoryPdf = (options: MemoryPdfOptions = {}) => {
     opened: [] as string[],
     closed: [] as string[],
     rendered: [] as { uri: string; index: number; width: number }[],
-    searched: [] as { uri: string; query: string }[],
+    searched: [] as { uri: string; page: number; query: string }[],
     printed: [] as { uri: string; name?: string }[],
     saved: [] as { uri: string; name?: string }[],
   };
@@ -48,9 +48,9 @@ export const createMemoryPdf = (options: MemoryPdfOptions = {}) => {
         calls.rendered.push({ uri, index, width });
         return PIXEL;
       },
-      search: async (uri, query) => {
-        calls.searched.push({ uri, query });
-        return hits[query] ?? [];
+      searchPage: async (uri, page, query) => {
+        calls.searched.push({ uri, page, query });
+        return (hits[query] ?? []).filter((hit) => hit.page === page);
       },
       close: async (uri) => {
         calls.closed.push(uri);

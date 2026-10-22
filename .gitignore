@@ -43,6 +43,7 @@ lib/
 # generated native folders
 **/ios/
 **/android/
+**/build/
 # …but a vendor package's Android module (RFID, barcode scanner) is source.
 !packages/rfid-*/android/
 !packages/scanner-*/android/
@@ -83,3 +84,9 @@ honeywell-scanner-repository/
 rfidapi3*.aar
 API3_*.aar
 zebra-rfid-repository/
+# Zebra's Scanner SDK for Android (external Bluetooth / USB scanners on other
+# brands' hosts): no package uses it (@its/scanner-zebra drives DataWedge), and
+# it comes from Zebra's portal too.
+barcode_scanner_library*.aar
+# Git Bash on Windows (msys) writes these when it crashes.
+*.stackdump

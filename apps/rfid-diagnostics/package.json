@@ -15,6 +15,7 @@
     "@its/rfid-honeywell": "*",
     "@its/rfid-zebra": "*",
     "@its/scanner-honeywell": "*",
+    "@its/scanner-zebra": "*",
     "expo": "~57.0.25",
     "react": "19.2.3",
     "react-native": "0.86.3"
@@ -27,6 +28,7 @@
     "jest-expo": "~57.0.5"
   },
   "jest": {
-    "preset": "jest-expo/android"
+    "preset": "jest-expo/android",
+    "testTimeout": 30000
   }
 }

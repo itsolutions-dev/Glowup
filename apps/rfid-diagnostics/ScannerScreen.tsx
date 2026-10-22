@@ -3,11 +3,7 @@ import {
   type BarcodeScannerScan,
   type BarcodeType,
 } from "@its/glowup-device/scanner";
-import type {
-  HoneywellScannerInfo,
-  HoneywellScannerProperty,
-  HoneywellTriggerControl,
-} from "@its/scanner-honeywell";
+import type { HoneywellTriggerControl } from "@its/scanner-honeywell";
 import { useEffect, useRef, useState } from "react";
 import { Platform, Share, Text, TextInput } from "react-native";
 
@@ -34,11 +30,18 @@ export const FIRST_SCOPE: readonly BarcodeType[] = [
   "qr",
   "code128",
   "ean13",
+  "ean8",
   "datamatrix",
 ];
 
 // What a slow confirmation takes: reads meanwhile are dropped (busy).
 const SLOW_CONFIRMATION_MS = 1500;
+
+// The keys each vendor package sets, for the properties' summary.
+const HONEYWELL_KEYS =
+  /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/;
+const ZEBRA_KEYS =
+  /^(decoder_(qrcode|code128|ean13|ean8|datamatrix|upca|upce0|pdf417|msi)|charset_name|scanner_)/;
 
 interface ScanEntry extends BarcodeScannerScan {
   /** When onScan ran. */
@@ -72,14 +75,23 @@ function useScannerMeasurements(scanner: ScannerVendor, enabled: boolean) {
 
 /**
  * `@its/glowup-device/scanner` on the host's imager: what reaches `onScan`,
- * and what the SDK did underneath (code ids, AIM ids, charsets, the trigger,
- * the claim), against the plan's "To confirm on the CT40".
+ * and what the SDK did underneath (Honeywell: code ids, AIM ids, charsets,
+ * the trigger, the claim; Zebra: DataWedge's commands, results, label types
+ * and notifications), against the plan's lists of what to confirm.
  */
 export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
   const target = scanner.adapter;
   const [diagnostics, setDiagnostics] = useState(true);
   const { measurements, reset } = useScannerMeasurements(scanner, diagnostics);
   const [control, setControl] = useState<HoneywellTriggerControl>("auto");
+  // The trigger control applies on open(): the screen lets go of the scanner
+  // for a moment, so the engine closes it and opens it again (the same
+  // request, kept by a remounted screen, would not reopen it).
+  const [releasing, setReleasing] = useState(false);
+  const reclaim = () => {
+    setReleasing(true);
+    setTimeout(() => setReleasing(false), 0);
+  };
   const [scans, setScans] = useState<ScanEntry[]>([]);
   const constants = Platform.constants as Record<string, unknown>;
   const host = {
@@ -119,33 +131,42 @@ export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
           value={diagnostics}
           onChange={setDiagnostics}
         />
-        <Toggle
-          label="The app drives the trigger (client control; off: the service's auto control)"
-          value={control === "client"}
-          onChange={(client) => {
-            const next = client ? "client" : "auto";
-            target.setTriggerControl(next);
-            setControl(next);
-          }}
-        />
+        {scanner.name === "honeywell" ? (
+          <Toggle
+            label="The app drives the trigger (client control; off: the service's auto control)"
+            value={control === "client"}
+            onChange={(client) => {
+              const next = client ? "client" : "auto";
+              scanner.adapter.setTriggerControl(next);
+              setControl(next);
+              reclaim();
+            }}
+          />
+        ) : null}
       </Section>
-      {/* Remounted on a trigger control change: the scanner is released and
-          claimed again, which applies it. */}
       <ScannerSession
-        key={control}
         scanner={scanner}
+        releasing={releasing}
         onScan={(scan) =>
           setScans((list) =>
             [{ ...scan, receivedAt: Date.now() }, ...list].slice(0, 50),
           )
         }
       />
-      <ReadsSection scans={scans} onClear={() => setScans([])} />
-      <WedgeSection />
+      <ReadsSection
+        scans={scans}
+        rawLabel={scanner.name === "zebra" ? "label" : "code id"}
+        onClear={() => setScans([])}
+      />
+      <WedgeSection vendor={scanner.name} />
       <ScannerMeasurementsSection
         measurements={measurements}
         scans={scans}
-        host={{ ...host, triggerControl: control }}
+        host={
+          scanner.name === "honeywell"
+            ? { ...host, triggerControl: control }
+            : { ...host, dataWedge: scanner.adapter.hasDataWedge() }
+        }
         onReset={reset}
       />
     </>
@@ -154,9 +175,12 @@ export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
 
 function ScannerSession({
   scanner,
+  releasing,
   onScan,
 }: {
   scanner: ScannerVendor;
+  /** Lets go of the scanner, whatever "Hold the scanner" says. */
+  releasing: boolean;
   onScan: (scan: BarcodeScannerScan) => void;
 }) {
   const target = scanner.adapter;
@@ -165,15 +189,15 @@ function ScannerSession({
   const [slow, setSlow] = useState(false);
   const [repeat, setRepeat] = useState(true);
   const { error, run } = useAction();
-  const [info, setInfo] = useState<HoneywellScannerInfo | null>(null);
-  const [devices, setDevices] = useState<HoneywellScannerInfo[] | null>(null);
-  const [properties, setProperties] = useState<Record<
-    string,
-    HoneywellScannerProperty | null
-  > | null>(null);
+  const [info, setInfo] = useState<unknown>(null);
+  const [devices, setDevices] = useState<unknown[] | null>(null);
+  const [properties, setProperties] = useState<Record<string, unknown> | null>(
+    null,
+  );
+  const [activeProfile, setActiveProfile] = useState<string | null>(null);
 
   const state = useBarcodeScanner({
-    enabled,
+    enabled: enabled && !releasing,
     symbologies: firstScope ? FIRST_SCOPE : null,
     repeatInterval: repeat ? undefined : 0,
     onScan: (scan) => {
@@ -187,12 +211,10 @@ function ScannerSession({
     },
   });
 
-  // Only the keys this package sets, to see what the service kept.
+  // Only the keys the vendor package sets, to see what the service kept.
   const shown = properties
     ? Object.entries(properties).filter(([key]) =>
-        /^(DEC_(QR|CODE128|GS1_128|EAN13|EAN8|DATAMATRIX|UPCA|UPCE|PDF417|MSI|POSTAL)|DPR_|TRIG_|NTF_)/.test(
-          key,
-        ),
+        (scanner.name === "zebra" ? ZEBRA_KEYS : HONEYWELL_KEYS).test(key),
       )
     : [];
 
@@ -208,12 +230,12 @@ function ScannerSession({
         <Text style={styles.error}>{errorText(state.error)}</Text>
       ) : null}
       <Toggle
-        label="Hold the scanner (off: the device's keyboard wedge gets it back)"
+        label="Hold the scanner (off: released, for the device or another app)"
         value={enabled}
         onChange={setEnabled}
       />
       <Toggle
-        label="Only QR, Code 128, EAN-13, Data Matrix (off: the device's settings)"
+        label="Only QR, Code 128, EAN-13, EAN-8, Data Matrix (off: the device's settings)"
         value={firstScope}
         onChange={setFirstScope}
       />
@@ -249,15 +271,30 @@ function ScannerSession({
           }
         />
         <Button
-          label="Properties"
+          label={scanner.name === "zebra" ? "Profile" : "Properties"}
           onPress={() =>
             run(async () => setProperties(await target.getAllProperties()))
           }
         />
+        {scanner.name === "zebra" ? (
+          <Button
+            label="Active profile"
+            onPress={() =>
+              run(async () =>
+                setActiveProfile(
+                  String(await scanner.adapter.getActiveProfile()),
+                ),
+              )
+            }
+          />
+        ) : null}
       </Row>
       {info ? <Text style={styles.mono}>{JSON.stringify(info)}</Text> : null}
       {devices ? (
         <Text style={styles.mono}>{JSON.stringify(devices)}</Text>
+      ) : null}
+      {activeProfile !== null ? (
+        <Line label="Active profile">{activeProfile}</Line>
       ) : null}
       {properties ? (
         <Text style={styles.mono}>
@@ -273,9 +310,12 @@ function ScannerSession({
 
 function ReadsSection({
   scans,
+  rawLabel,
   onClear,
 }: {
   scans: ScanEntry[];
+  /** What the vendor's own symbology id is: Honeywell's code id, DataWedge's label type. */
+  rawLabel: string;
   onClear: () => void;
 }) {
   return (
@@ -286,7 +326,7 @@ function ReadsSection({
         <Text key={`${scan.receivedAt}-${index}`} style={styles.item}>
           <Text style={styles.mono}>{JSON.stringify(scan.data)}</Text>
           <Text style={styles.small}>
-            {`\n${scan.type} · AIM ${scan.aimId ?? "—"} · code id ${scan.rawType} · ${new Date(scan.timestamp).toISOString().slice(11, 23)} (onScan +${scan.receivedAt - scan.timestamp} ms)`}
+            {`\n${scan.type} · AIM ${scan.aimId ?? "—"} · ${rawLabel} ${scan.rawType} · ${new Date(scan.timestamp).toISOString().slice(11, 23)} (onScan +${scan.receivedAt - scan.timestamp} ms)`}
           </Text>
         </Text>
       ))}
@@ -294,16 +334,19 @@ function ReadsSection({
   );
 }
 
+const WEDGE: Record<ScannerVendor["name"], string> = {
+  honeywell:
+    "Measured on the CT40: the wedge types nothing into this app, held or released (other apps get it back). Tap the field and scan: text that appears here came from the wedge, not from onScan, and means that changed.",
+  zebra:
+    "The app's DataWedge profile turns the keystroke output off: expected, nothing is typed here, held or released, while other apps keep their own profiles. Tap the field and scan: text that appears here came from the wedge, not from onScan.",
+};
+
 /** Whether the claim stops the keyboard wedge: anything typed here came from it. */
-function WedgeSection() {
+function WedgeSection({ vendor }: { vendor: ScannerVendor["name"] }) {
   const [text, setText] = useState("");
   return (
     <Section title="Keyboard wedge">
-      <Text style={styles.small}>
-        {
-          "Measured on the CT40: the wedge types nothing into this app, held or released (other apps get it back). Tap the field and scan: text that appears here came from the wedge, not from onScan, and means that changed."
-        }
-      </Text>
+      <Text style={styles.small}>{WEDGE[vendor]}</Text>
       <TextInput
         style={styles.input}
         value={text}

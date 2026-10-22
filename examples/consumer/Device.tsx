@@ -287,7 +287,7 @@ const ScannerLine = () => {
   const { theme } = useTheme();
   const scanner = useBarcodeScanner({
     onScan: (scan) => console.log(scan.type, scan.data),
-    symbologies: ["qr", "code128", "ean13", "datamatrix"],
+    symbologies: ["qr", "code128", "ean13", "ean8", "datamatrix"],
   });
   return (
     <Typography

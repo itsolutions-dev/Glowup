@@ -3,6 +3,10 @@ import {
   HONEYWELL_SCANNER_NATIVE_REVISION,
 } from "@its/scanner-honeywell";
 import {
+  createZebraBarcodeScannerAdapter,
+  ZEBRA_SCANNER_NATIVE_REVISION,
+} from "@its/scanner-zebra";
+import {
   act,
   fireEvent,
   render,
@@ -216,6 +220,43 @@ describe("scanner measurements", () => {
     expect(m.threads).toEqual(["binder:1234_2", "t"]);
   });
 
+  it("groups DataWedge's reads by label type and keeps its commands and notifications", () => {
+    let m = emptyScannerMeasurements(at(0));
+    m = recordScanner(m, {
+      type: "read",
+      at: at(1),
+      thread: "ZebraScanner-events",
+      data: "LOC:A-03-12",
+      labelType: "LABEL-TYPE-QRCODE",
+      source: "scanner",
+      delivered: true,
+    });
+    m = recordScanner(m, {
+      type: "command",
+      at: at(2),
+      thread: "ZebraScanner",
+      command: "SWITCH_SCANNER_PARAMS",
+      answered: true,
+      result: "SUCCESS",
+    });
+    m = recordScanner(m, {
+      type: "notification",
+      at: at(3),
+      thread: "ZebraScanner-events",
+      notification: "SCANNER_STATUS",
+      status: "WAITING",
+    });
+    expect(m.symbologies["LABEL-TYPE-QRCODE ?"]).toMatchObject({
+      codeId: "LABEL-TYPE-QRCODE",
+      aimId: null,
+      count: 1,
+    });
+    expect(m.timeline.map((entry) => entry.type)).toEqual([
+      "command",
+      "notification",
+    ]);
+  });
+
   it("counts the trigger, also while not claimed, and keeps the claim's timeline", () => {
     let m = emptyScannerMeasurements(at(0));
     for (const [pressed, claimed] of [
@@ -258,8 +299,10 @@ function fakeScannerModule() {
   const listeners = new Map<string, Set<(event: never) => void>>();
   let claimed = false;
   const opens: Record<string, unknown>[] = [];
+  const controls: string[] = [];
   return {
     opens,
+    controls,
     get claimed() {
       return claimed;
     },
@@ -279,8 +322,9 @@ function fakeScannerModule() {
     module: {
       getRevision: () => HONEYWELL_SCANNER_NATIVE_REVISION,
       setDiagnostics() {},
-      async open(properties: Record<string, unknown>) {
+      async open(properties: Record<string, unknown>, control: string) {
         opens.push(properties);
+        controls.push(control);
         claimed = true;
       },
       async close() {
@@ -295,6 +339,64 @@ function fakeScannerModule() {
       },
       async getAllProperties() {
         return {};
+      },
+      addListener(event: string, listener: (event: never) => void) {
+        const set = listeners.get(event) ?? new Set();
+        set.add(listener);
+        listeners.set(event, set);
+        return { remove: () => set.delete(listener) };
+      },
+    },
+  };
+}
+
+/** The Zebra module's surface, enough for the screen: DataWedge's claim and reads. */
+function fakeZebraModule() {
+  const listeners = new Map<string, Set<(event: never) => void>>();
+  let open = false;
+  const opens: { scanner: Record<string, string> }[] = [];
+  return {
+    opens,
+    get open() {
+      return open;
+    },
+    decode(data: string) {
+      if (!open) return;
+      listeners.get("onRead")?.forEach((listener) =>
+        (listener as (event: unknown) => void)({
+          data,
+          labelType: "LABEL-TYPE-QRCODE",
+          source: "scanner",
+          receivedAt: Date.now(),
+        }),
+      );
+    },
+    module: {
+      getRevision: () => ZEBRA_SCANNER_NATIVE_REVISION,
+      isDataWedgeInstalled: () => true,
+      setDiagnostics() {},
+      async open(config: { scanner: Record<string, string> }) {
+        opens.push(config);
+        open = true;
+      },
+      async close() {
+        open = false;
+      },
+      async softwareTrigger() {},
+      async getScannerInfo() {
+        return {
+          datawedge: "15.0.96",
+          barcodeScanning: null,
+          decoderLibrary: null,
+          firmware: [],
+          scanners: [],
+        };
+      },
+      async getProfileParams() {
+        return { charset_name: "UTF-8", decoder_qrcode: "true" };
+      },
+      async getActiveProfile() {
+        return "it.itsolutions.rfiddiagnostics";
       },
       addListener(event: string, listener: (event: never) => void) {
         const set = listeners.get(event) ?? new Set();
@@ -346,11 +448,13 @@ describe("the scanner screen", () => {
     const fake = fakeScannerModule();
     const vendor = honeywellVendor();
     vendor.scanner = {
-      ...vendor.scanner,
+      name: "honeywell",
       adapter: createHoneywellBarcodeScannerAdapter({
         native: fake.module as never,
         manufacturer: () => "Honeywell",
       }),
+      expectedRevision: HONEYWELL_SCANNER_NATIVE_REVISION,
+      unsupportedReason: () => "supported",
     };
     await render(<App vendor={vendor} />);
     await fireEvent.press(screen.getByText("Barcode scanner"));
@@ -363,16 +467,77 @@ describe("the scanner screen", () => {
       "DEC_CODE128_ENABLED",
       "DEC_DATAMATRIX_ENABLED",
       "DEC_EAN13_ENABLED",
+      "DEC_EAN8_ENABLED",
       "DEC_GS1_128_ENABLED",
       "DEC_QR_ENABLED",
     ]);
-    expect(FIRST_SCOPE).toEqual(["qr", "code128", "ean13", "datamatrix"]);
+    expect(FIRST_SCOPE).toEqual([
+      "qr",
+      "code128",
+      "ean13",
+      "ean8",
+      "datamatrix",
+    ]);
     await act(async () => fake.decode("LOT-42"));
     expect(screen.getByText('"LOT-42"')).toBeTruthy();
     expect(screen.getByText(/qr · AIM \]Q1 · code id s/)).toBeTruthy();
+    // Client control applies on a new claim: the screen lets go and claims again.
+    await fireEvent(
+      screen.getByLabelText(/The app drives the trigger/),
+      "valueChange",
+      true,
+    );
+    await waitFor(() => expect(fake.controls.at(-1)).toBe("client"));
     // Back to RFID: the scanner screen unmounts and the imager is released.
     await fireEvent.press(screen.getByText("RFID"));
     await waitFor(() => expect(fake.claimed).toBe(false));
+  });
+
+  it("says why the Zebra scanner is off in a build without its module", async () => {
+    await render(<App vendor={zebraVendor()} initialScreen="scanner" />);
+    expect(
+      screen.getByText(/the native module is missing .*RFID_VENDOR=zebra/),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(/DataWedge profile turns the keystroke/),
+    ).toBeTruthy();
+    expect(screen.queryByText(/client control/)).toBeNull();
+  });
+
+  it("holds the TC22's imager through DataWedge with the first scope", async () => {
+    const fake = fakeZebraModule();
+    const vendor = zebraVendor();
+    vendor.scanner = {
+      name: "zebra",
+      adapter: createZebraBarcodeScannerAdapter({
+        native: fake.module as never,
+        manufacturer: () => "Zebra Technologies",
+      }),
+      expectedRevision: ZEBRA_SCANNER_NATIVE_REVISION,
+      unsupportedReason: () => "supported",
+    };
+    await render(<App vendor={vendor} initialScreen="scanner" />);
+    await waitFor(() => expect(fake.open).toBe(true));
+    const on = Object.entries(fake.opens.at(-1)!.scanner)
+      .filter(([, value]) => value === "true")
+      .map(([key]) => key)
+      .sort();
+    expect(on).toEqual([
+      "decoder_code128",
+      "decoder_datamatrix",
+      "decoder_ean13",
+      "decoder_ean8",
+      "decoder_qrcode",
+    ]);
+    await act(async () => fake.decode("LOC:A-03-12"));
+    expect(screen.getByText('"LOC:A-03-12"')).toBeTruthy();
+    expect(
+      screen.getByText(/qr · AIM — · label LABEL-TYPE-QRCODE/),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByText("Active profile"));
+    expect(
+      await screen.findByText(/Active profile: it.itsolutions.rfiddiagnostics/),
+    ).toBeTruthy();
   });
 });
 
@@ -413,6 +578,21 @@ rootProject.name = 'HelloWorld'
     for (const key of ["group", "artifact", "version"]) {
       expect(scannerSdk[key]).toBe(rfidSdk[key]);
     }
+  });
+
+  it("leaves the other vendor's RFID and scanner modules out of each build", () => {
+    expect(VENDORS.honeywell.packages).toEqual([
+      "@its/rfid-honeywell",
+      "@its/scanner-honeywell",
+    ]);
+    expect(VENDORS.zebra.packages).toEqual([
+      "@its/rfid-zebra",
+      "@its/scanner-zebra",
+    ]);
+    // Zebra's scanner has no plugin: DataWedge needs no SDK.
+    expect(VENDORS.zebra.plugins.map(([name]) => name)).toEqual([
+      "@its/rfid-zebra",
+    ]);
   });
 
   it("leaves the other vendors' modules out of autolinking, once", () => {

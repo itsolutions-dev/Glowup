@@ -47,6 +47,7 @@ const VENDOR_PACKAGES = [
   "@its/rfid-honeywell",
   "@its/rfid-zebra",
   "@its/scanner-honeywell",
+  "@its/scanner-zebra",
 ];
 
 const target = process.argv[2] && resolve(process.argv[2]);

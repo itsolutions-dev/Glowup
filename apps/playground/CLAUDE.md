@@ -122,7 +122,8 @@ the repository and binds to the vendor's hardware. `@its/rfid-honeywell` runs on
 is `"none"` (no adapter above it, the same answer in Node and the browser), so its test provides
 a mock and drives it.
 The barcode scanner page does the same for `/scanner` with `site/scannerDemo.ts` (the package's
-in-memory scanner: five warehouse labels to aim at, a hardware trigger, the software one, another
+in-memory scanner: six warehouse labels to aim at, a UPC-A among them outside the screen's
+symbologies, a hardware trigger, the software one, another
 app taking the scanner), asking `useBarcodeScanner({ enabled: false }).vendor` so the asking hook
 holds nothing; no `@its/scanner-*` package is a dependency, for the same reason. Its last switch
 gives the scanner back and reads through `CameraView` into the same `onScan`: the fallback a

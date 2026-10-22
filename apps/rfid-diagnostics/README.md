@@ -4,13 +4,15 @@ A development build that runs `@its/glowup-device/rfid` on one vendor package ag
 reader, and records what the vendor's SDK does underneath. It is how a spike confirms what the
 code assumes: phase 35 for Honeywell (`@its/rfid-honeywell`), phase Z1 for Zebra
 (`@its/rfid-zebra`). Its **Barcode scanner** screen does the same for
-`@its/glowup-device/scanner` on the CT40's own imager (`@its/scanner-honeywell`, phase C2): the
-buttons at the top switch between the two, one at a time (no screen reads RFID and barcodes
-together). Android only; not a product.
+`@its/glowup-device/scanner` on the host's own imager: the CT40's (`@its/scanner-honeywell`,
+phase C2) or the TC22's (`@its/scanner-zebra`, phase ZB2). The buttons at the top switch between
+the two screens, one at a time (no screen reads RFID and barcodes together). Android only; not a
+product.
 
 **One build per vendor.** `RFID_VENDOR` (`honeywell`, the default, or `zebra`) picks the
-vendor's config plugin and leaves the other vendor's native module out of autolinking: a vendor's
-module does not build without its SDK. The screen shows the vendor it runs ("Host → Vendor").
+vendor's config plugins and leaves the other vendor's native modules (RFID and scanner) out of
+autolinking: a vendor's module does not build without its SDK. The screen shows the vendor it
+runs ("Host → Vendor").
 
 ## Build it
 
@@ -24,7 +26,9 @@ On a machine with Android Studio (the SDK and a JDK 17):
      the Honeywell build links both packages.
    - **Zebra:** `rfidapi3lib-2.0.5.297.aar` (at the root of `Zebra_RFIDAPI3_SDK_2.0.5.297.zip`)
      in `apps/rfid-diagnostics/zebra/`, or set `ZEBRA_RFID_AAR` to its path. Any Android 10+
-     device, paired with an RFD40 Premium.
+     device, paired with an RFD40 Premium. The build needs it even to test the TC22's scanner
+     alone (the RFID module is in every Zebra build); the scanner needs nothing more: it drives
+     DataWedge, which every Zebra device has.
 2. From the repository root: `npm install`.
 3. Connect the phone by USB (developer options, USB debugging), then:
    `RFID_VENDOR=zebra npm run android -w @its/rfid-diagnostics` (or `honeywell`).
@@ -106,14 +110,15 @@ reader's NFC mark. The SDK reaches paired readers only. Keep "Diagnostics" on, t
 
 A Honeywell build (the default). Press **Barcode scanner** at the top; keep "Diagnostics" on.
 Have a QR code (one with accented or non-Latin text too), a Code 128 (and a GS1-128 label if
-there is one), an EAN-13, a Data Matrix, and one code of another kind (an EAN-8 or a PDF417).
+there is one), an EAN-13, an EAN-8, a Data Matrix, and one code of another kind (a UPC-A or a
+PDF417).
 
 1. **Host:** "Scanner adapter" should read `supported`, and "State" `open · held by this screen`.
    Note anything in red.
 2. **Reads:** scan each code with the side trigger. Each should appear once under "Reads
    (onScan)" with its type, AIM id and code id; the other kind should **not** appear (the first
-   scope turns it off). Then turn "Only QR, Code 128, EAN-13, Data Matrix" off and scan it again:
-   it should appear now (the device's settings). Is the non-ASCII QR's text right?
+   scope turns it off). Then turn "Only QR, Code 128, EAN-13, EAN-8, Data Matrix" off and scan it
+   again: it should appear now (the device's settings). Is the non-ASCII QR's text right?
 3. **Keyboard wedge:** measured on the CT40, the wedge types nothing into this app, held or
    released (other apps get it back: steps 7 and 9). Tap the "Wedge output" field and scan, with
    the scanner held and with "Hold the scanner" off: anything typed there means that changed.
@@ -135,6 +140,52 @@ there is one), an EAN-13, a Data Matrix, and one code of another kind (an EAN-8 
 9. After all this, open another app with a text field and scan: the device's own settings
    should be untouched (the wedge works as before, with its suffix).
 
+## Run the checks: barcode scanner (TC22)
+
+A Zebra build (`RFID_VENDOR=zebra`). Press **Barcode scanner** at the top; keep "Diagnostics"
+on. The same codes as for the CT40: a QR code (one with accented or non-Latin text, with and
+without the UTF-8 ECI), a Code 128 (and a GS1-128 label if there is one), an EAN-13, an EAN-8,
+a Data Matrix, and codes of other kinds (a UPC-A, a UPC-E). The page of test codes made for the
+TC22 has them all.
+
+1. **Host:** "Scanner adapter" should read `supported`, "Native module" revision 4, and "State"
+   `open · held by this screen`. Note how long "opening" lasts the first time and on later
+   openings (from revision 2 it should be under a second after the first). Note anything in
+   red: a message naming another DataWedge
+   profile means DataWedge did not switch to the app's (press Retry, or go to the home screen
+   and back, and note which worked).
+2. **The app's profile:** press **Active profile**: it should be `it.itsolutions.rfiddiagnostics`.
+   Open the DataWedge app: that profile should be listed, associated with the app, with Barcode
+   input on, Intent output on (action `it.itsolutions.rfiddiagnostics.GLOWUP_SCAN`, broadcast)
+   and Keystroke output off. Press **Profile**: the summary lists `charset_name` and the
+   decoders as DataWedge stores them.
+3. **Reads:** scan each code with the side trigger. Each should appear once under "Reads
+   (onScan)" with its type and `label LABEL-TYPE-…`; the UPC-A and UPC-E should **not** appear,
+   and the TC22 should not beep for them (the first scope switches them off). Turn "Only QR,
+   Code 128, EAN-13, EAN-8, Data Matrix" off and scan them again: they should appear now (the
+   profile's settings); turn it on again and they should not. Is the non-ASCII QR's text right,
+   with and without the ECI? Does the EAN-13 have 13 digits, the UPC-A 12, the UPC-E 8?
+   From revision 3 the scope is written in the app's profile: with it on, DataWedge → the app's
+   profile → Barcode input → Decoders shows UPC-A and UPC-E off; with it off, as they were
+   before the app first wrote them.
+4. **Keyboard wedge:** tap the "Wedge output" field and scan, held and with "Hold the scanner"
+   off: nothing should be typed (the app's profile has no keystroke output).
+5. **Repeats and a slow confirmation:** as on the CT40 (step 4 above).
+6. **Software trigger:** press and hold **Hold to scan** with a code in front of the scanner;
+   release.
+7. **Background:** with the scanner held, go to the home screen, open an app with a text field
+   (Notes) and scan: the wedge should type it there, as before. Come back: State should be
+   `open` again and the next scan should arrive here, with no red error on the way (revision 1
+   reported "unavailable" for the Home button; the timeline should show no `lost`). The timeline
+   lists the `notification`s (`PROFILE_SWITCH`), `closed` and `opened`.
+8. **Info, Devices:** press each. Info is DataWedge's version and its scanners; note the
+   imager's name, identifier and firmware.
+9. **Measurements → timeline:** each `command` with its `result` (from revision 2 every command
+   asks for one: `SUCCESS` or `FAILURE` with its `info`). Report any `FAILURE`, and any
+   `"answered":false`.
+10. After all this, in Notes: the wedge works as before, with its suffix; in DataWedge,
+    Profile0 is unchanged.
+
 ## Send back
 
 Tap **Share report** and send the JSON, with notes on what you saw or heard:
@@ -144,7 +195,9 @@ Tap **Share report** and send the JSON, with notes on what you saw or heard:
 - whether the trigger reached the app, and (Honeywell) whether it still drives the CT40's own
   scanner after the toggle is turned off;
 - whether the reader beeped during the search;
-- (scanner) for each step above what you saw, and whether the wedge typed into the field;
+- (scanner) for each step above what you saw, and whether the wedge typed into the field; on
+  the TC22, the DataWedge version (DataWedge → ⋮ → About) and anything the DataWedge app showed
+  for the app's profile;
 - the distances the tags were at in the multiple scan (the report has the raw RSSI range).
 
 The report answers the plan's "not verified" lists: RSSI range and unit, EPC case, batch sizes,

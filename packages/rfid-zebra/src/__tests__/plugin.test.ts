@@ -73,6 +73,7 @@ async function prebuild(options: unknown) {
       (l: { $: Record<string, string> }) => l.$,
     ),
     properties: results.gradleProperties as Properties,
+    application: application.$ as Record<string, string>,
   };
 }
 
@@ -114,6 +115,11 @@ describe("@its/rfid-zebra config plugin", () => {
     expect(libraries).toEqual([
       { "android:name": "com.qti.qrs.qc_sdk", "android:required": "false" },
     ]);
+  });
+
+  it("keeps the app's allowBackup over the SDK's", async () => {
+    const { application } = await prebuild(OPTIONS);
+    expect(application["tools:replace"]).toBe("android:allowBackup");
   });
 
   it("raises minSdkVersion to the SDK's 29, never lowers it", () => {

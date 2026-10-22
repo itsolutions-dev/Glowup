@@ -342,6 +342,8 @@ const PdfDocument = ({
         keyExtractor={(i) => String(i)}
         style={zoom > 1 ? { width: pageWidth + PAD * 2 } : undefined}
         scrollEnabled={!pinching}
+        // Android: a list inside a scrolling page (a detail screen) keeps its own touches only with this.
+        nestedScrollEnabled
         scrollEventThrottle={16}
         onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
           pinch.scroll("y", e.nativeEvent.contentOffset.y);
@@ -392,6 +394,7 @@ const PdfDocument = ({
           horizontal
           style={styles.fill}
           scrollEnabled={!pinching}
+          nestedScrollEnabled
           scrollEventThrottle={16}
           onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
             pinch.scroll("x", e.nativeEvent.contentOffset.x);

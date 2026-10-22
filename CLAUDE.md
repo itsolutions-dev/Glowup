@@ -14,11 +14,11 @@ An **npm-workspaces monorepo** with eight workspaces:
 | `apps/playground`            | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                                                     |
 | `packages/rfid-honeywell`    | `@its/rfid-honeywell`       | Publishable Honeywell RFID readers behind `@its/glowup-device/rfid`: Android Expo module, adapter, config plugin.                       |
 | `packages/rfid-zebra`        | `@its/rfid-zebra`           | Zebra RFID readers (RFD40 Premium) behind `@its/glowup-device/rfid`, same shape. Private until phase Z2.                                |
-| `packages/scanner-honeywell` | `@its/scanner-honeywell`    | The CT40's imager behind `@its/glowup-device/scanner` (Data Collection SDK), same shape. Private until phase C3.                        |
+| `packages/scanner-honeywell` | `@its/scanner-honeywell`    | Publishable Honeywell barcode scanners (the CT40's imager) behind `@its/glowup-device/scanner` (Data Collection SDK), same shape.       |
 | `apps/rfid-diagnostics`      | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID and barcode scanner spikes on real hardware, one vendor per build (`RFID_VENDOR`). |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
-`@its/glowup-ui`, `@its/glowup-device` and `@its/rfid-honeywell` **from the npm registry** and is
+`@its/glowup-ui`, `@its/glowup-device`, `@its/rfid-honeywell` and `@its/scanner-honeywell` **from the npm registry** and is
 the runtime check on the published artefacts (the playground, being a workspace, always runs the
 local source). Never add it to the `workspaces` array — npm would link the local packages and the
 check would silently test nothing; its CI job fails if any of them is a symlink in its
@@ -132,11 +132,12 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 
 ## Releasing
 
-Changesets. `@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device` and
-`@its/rfid-honeywell` are published (versioned independently); `@its/glowup-playground` and
+Changesets. `@its/glowup-ui`, `@its/glowup-notifications`, `@its/glowup-device`,
+`@its/rfid-honeywell` and `@its/scanner-honeywell` are published (versioned independently), each
+with `publishConfig` (`access: public`, `provenance: true`); `@its/glowup-playground` and
 `@its/rfid-diagnostics` are private and ignored; `@its/rfid-zebra` stays private until its spike
-on a real RFD40 (phase Z1) is through, as `@its/rfid-honeywell` did, and `@its/scanner-honeywell` until its
-CT40 run (phase C2) is through and phase C3 makes it public. A user-visible change to any of them needs a
+on a real RFD40 (phase Z1) is through, as `@its/rfid-honeywell` did and as `@its/scanner-honeywell`
+did on a CT40 (phase C2). A user-visible change to any of them needs a
 changeset (`npx changeset`). Each package needs its own trusted publisher on npmjs.com (see
 `release.yml`). On push to `master`, `release.yml` opens a "Version Packages" PR; merging it
 publishes to npm.

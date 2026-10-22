@@ -18,6 +18,12 @@
         }
       ],
       [
+        "@its/scanner-honeywell",
+        {
+          "dataCollectionAarPath": "./honeywell/DataCollection.aar"
+        }
+      ],
+      [
         "@its/glowup-device",
         {
           "location": {

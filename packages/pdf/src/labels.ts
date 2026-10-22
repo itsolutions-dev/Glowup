@@ -20,6 +20,7 @@ export const defaultPdfLabels: PdfLabels = {
   nextResult: "Next result",
   print: "Print",
   save: "Save",
+  savedToDownloads: "Saved to Downloads",
   openInTab: "Open in a new tab",
   retry: "Try again",
   pageFailed: "This page could not be drawn. Tap to try again.",

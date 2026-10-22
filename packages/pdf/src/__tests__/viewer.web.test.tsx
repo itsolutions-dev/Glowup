@@ -113,6 +113,65 @@ describe("PdfViewer on the web", () => {
     expect(link.click).toHaveBeenCalled();
   });
 
+  it("prints through a hidden frame of its own, and takes it away when it goes", async () => {
+    const frame: Record<string, unknown> & {
+      style: Record<string, unknown>;
+      setAttribute: jest.Mock;
+      contentWindow: { focus: jest.Mock; print: jest.Mock };
+    } = {
+      style: {},
+      setAttribute: jest.fn(),
+      contentWindow: { focus: jest.fn(), print: jest.fn() },
+    };
+    const appended = jest.fn();
+    const remove = jest.fn();
+    Object.assign(globalThis, {
+      document: {
+        createElement: jest.fn(() => frame),
+        body: { appendChild: appended },
+        getElementById: jest.fn(() => ({ remove })),
+      },
+    });
+    const view = await open();
+    await fireEvent.press(await screen.findByLabelText("Print"));
+    expect(frame.src).toBe("blob:mock/1");
+    expect(appended).toHaveBeenCalledWith(frame);
+    // Nothing prints until the frame has loaded the PDF.
+    expect(frame.contentWindow.print).not.toHaveBeenCalled();
+    (frame.onload as () => void)();
+    expect(frame.contentWindow.print).toHaveBeenCalled();
+
+    remove.mockClear();
+    await view.unmount();
+    expect(remove).toHaveBeenCalled();
+  });
+
+  it("falls back to a tab when the browser will not print the frame", async () => {
+    const open_ = jest.fn();
+    const frame = {
+      style: {},
+      setAttribute: jest.fn(),
+      contentWindow: {
+        focus: jest.fn(),
+        print: jest.fn(() => {
+          throw new Error("blocked");
+        }),
+      },
+    } as Record<string, unknown>;
+    Object.assign(globalThis, {
+      window: Object.assign(globalThis.window ?? {}, { open: open_ }),
+      document: {
+        createElement: jest.fn(() => frame),
+        body: { appendChild: jest.fn() },
+        getElementById: jest.fn(() => null),
+      },
+    });
+    await open();
+    await fireEvent.press(await screen.findByLabelText("Print"));
+    (frame.onload as () => void)();
+    expect(open_).toHaveBeenCalledWith("blob:mock/1", "_blank", "noopener");
+  });
+
   it("has no buttons when the toolbar is off", async () => {
     await open({ toolbar: false });
     await waitFor(() => expect(iframe()).not.toBeNull());

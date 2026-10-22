@@ -59,9 +59,12 @@ export interface PdfFiles {
   remove(uri: string): Promise<void>;
 }
 
+/** Where `save` put the file: in the device's Downloads folder, or handed to the share sheet. */
+export type PdfSaveResult = "downloads" | "shared";
+
 export interface PdfActions {
   print(uri: string, name?: string): Promise<void>;
-  save(uri: string, name?: string): Promise<void>;
+  save(uri: string, name?: string): Promise<PdfSaveResult>;
 }
 
 export type PdfAdapters = {
@@ -91,6 +94,7 @@ export type PdfLabels = {
   nextResult: string;
   print: string;
   save: string;
+  savedToDownloads: string;
   /** The web viewer's button that opens the PDF in a tab: the way to read it on a phone's browser. */
   openInTab: string;
   retry: string;

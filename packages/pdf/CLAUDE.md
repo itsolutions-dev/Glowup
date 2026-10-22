@@ -40,6 +40,10 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   `looksLikePdf` in `src/source.ts`); anything else is a `format` error, not `network`, and leaves no file. The viewer aborts the
   transfer when it unmounts (`signal`) and feeds the loading ring with `onProgress`. There is no download cache; if one is ever added,
   its key must include the headers (as `sourceKey` does).
+- **Save and print.** On Android `save` copies into Downloads through the module's `saveToDownloads` (`MediaStore.Downloads`) and falls
+  back to the share sheet if that fails or the device is older than Android 10; it answers `"downloads"` or `"shared"` and the viewer
+  shows `labels.savedToDownloads` only for the first. On the web, print makes a hidden iframe on the blob (the browser would print the
+  app's page otherwise) and falls back to a tab.
 - **Drawings go through a queue** (`src/renderQueue.ts`), never straight to `native.renderPage`: the module cannot stop a drawing that
   has begun, so the queue holds what waits, drops what a page withdrew (`cancel`, called when the page leaves the list or changes
   width), picks the page nearest the one being read (`reading(page)`), lets two drawings into the module at a time and remembers

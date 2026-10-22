@@ -373,6 +373,21 @@ describe("PdfViewer", () => {
     });
   });
 
+  it("says so when the file was saved to Downloads", async () => {
+    await open({ fileName: "contract.pdf" }, { saveResult: "downloads" });
+    await ready();
+    await fireEvent.press(screen.getByLabelText("Save"));
+    expect(await screen.findByText("Saved to Downloads")).toBeTruthy();
+  });
+
+  it("says nothing more when the file was only handed to the share sheet", async () => {
+    const { calls } = await open({ fileName: "contract.pdf" });
+    await ready();
+    await fireEvent.press(screen.getByLabelText("Save"));
+    await waitFor(() => expect(calls.saved).toHaveLength(1));
+    expect(screen.queryByText("Saved to Downloads")).toBeNull();
+  });
+
   it("hides the toolbar when asked", async () => {
     await open({ toolbar: false });
     await waitFor(() =>

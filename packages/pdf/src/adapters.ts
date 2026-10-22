@@ -3,6 +3,7 @@
 // them, and one that forgot to add the package to its dependencies gets a readable
 // `native-missing` error instead of a crash at start-up (spike 0.3).
 import { requireOptionalNativeModule } from "expo";
+import { Platform } from "react-native";
 import { createPdfError, isPdfError, toPdfError } from "./errors";
 import { looksLikePdf } from "./source";
 import type {
@@ -12,6 +13,7 @@ import type {
   PdfMatch,
   PdfNative,
   PdfPageSize,
+  PdfSaveResult,
 } from "./types";
 
 const load = async <T>(
@@ -115,6 +117,8 @@ type NativeModuleShape = {
   renderPage(uri: string, index: number, width: number): Promise<string>;
   searchPage(uri: string, page: number, query: string): Promise<PdfMatch[]>;
   close(uri: string): Promise<void>;
+  /** Android only. Resolves to false where there is no Downloads folder to write to (before Android 10). */
+  saveToDownloads(uri: string, name: string): Promise<boolean>;
 };
 
 const withModule = async <T>(
@@ -148,21 +152,33 @@ export const expoNative: PdfNative = {
   close: (uri) => withModule((m) => m.close(uri)),
 };
 
+const withPdfExtension = (name = "document.pdf") =>
+  /\.pdf$/i.test(name) ? name : `${name}.pdf`;
+
 export const expoActions: PdfActions = {
   async print(uri) {
     const Print = await load(() => import("expo-print"), "expo-print");
     await Print.printAsync({ uri });
   },
-  async save(uri, name) {
+  async save(uri, name): Promise<PdfSaveResult> {
+    const fileName = name ? name.replace(/[\\/:*?"<>|]/g, "_") : undefined;
+    // Android: straight into Downloads, the one place a person looks for a file they saved.
+    if (Platform.OS === "android") {
+      // A failed copy (no room, no module) is not worth an error while the share sheet can still hand the file over.
+      const saved = await withModule((m) =>
+        m.saveToDownloads(uri, withPdfExtension(fileName)),
+      ).catch(() => false);
+      if (saved) return "downloads";
+    }
     const Sharing = await load(() => import("expo-sharing"), "expo-sharing");
     if (!(await Sharing.isAvailableAsync())) {
       throw createPdfError("unsupported", "Sharing is not available here.");
     }
     let target = uri;
-    if (name) {
+    if (fileName) {
       // The cached copy has a made-up name; the share sheet shows the file's own.
       const { File, Paths } = await fileSystem();
-      const copy = new File(Paths.cache, name.replace(/[\\/:*?"<>|]/g, "_"));
+      const copy = new File(Paths.cache, fileName);
       await new File(uri).copy(copy, { overwrite: true });
       target = copy.uri;
     }
@@ -171,5 +187,6 @@ export const expoActions: PdfActions = {
       UTI: "com.adobe.pdf",
       dialogTitle: name,
     });
+    return "shared";
   },
 };

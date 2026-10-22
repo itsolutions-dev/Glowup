@@ -4,6 +4,7 @@
 import React, {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -24,6 +25,15 @@ import { loadPdfBlob } from "./webSource";
 type State = { url: string } | { error: PdfError } | null;
 
 type DocumentProps = PdfViewerProps & { onRetry: () => void };
+
+/** Takes the hidden print frame away, if there is one (and a document to look in: tests have none). */
+const removePrintFrame = (id: string) => {
+  try {
+    document.getElementById(id)?.remove();
+  } catch {
+    // Nothing to remove.
+  }
+};
 
 const PdfDocument = ({
   source,
@@ -47,6 +57,7 @@ const PdfDocument = ({
     callbacks.current = { onLoad, onError };
   });
   const [state, setState] = useState<State>(null);
+  const printFrameId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -67,8 +78,9 @@ const PdfDocument = ({
     return () => {
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
+      removePrintFrame(printFrameId);
     };
-  }, []);
+  }, [printFrameId]);
 
   const colors = theme.colors;
   const url = state && "url" in state ? state.url : null;
@@ -112,6 +124,28 @@ const PdfDocument = ({
   const openInTab = () => {
     if (url) window.open(url, "_blank", "noopener");
   };
+  // The browser prints the page it is in, not the PDF in a frame of it: the PDF gets a frame of its own, out of
+  // sight, and that frame is printed. Kept until the next print or the viewer's unmount (the dialog may still be open).
+  const print = () => {
+    if (!url) return;
+    removePrintFrame(printFrameId);
+    const frame = document.createElement("iframe");
+    frame.id = printFrameId;
+    frame.setAttribute("aria-hidden", "true");
+    frame.style.cssText =
+      "position:fixed;width:0;height:0;border:0;visibility:hidden";
+    frame.onload = () => {
+      try {
+        frame.contentWindow?.focus();
+        frame.contentWindow?.print();
+      } catch {
+        // A browser that will not print a frame's PDF: its own viewer, in a tab, has the print button.
+        openInTab();
+      }
+    };
+    frame.src = url;
+    document.body.appendChild(frame);
+  };
   const download = () => {
     if (!url) return;
     const link = document.createElement("a");
@@ -138,6 +172,11 @@ const PdfDocument = ({
             icon="open-in-new"
             accessibilityLabel={labels.openInTab}
             onPress={openInTab}
+          />
+          <IconButton
+            icon="printer-outline"
+            accessibilityLabel={labels.print}
+            onPress={print}
           />
           <IconButton
             icon="download-outline"

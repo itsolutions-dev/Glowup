@@ -19,3 +19,6 @@ internal class PdfPageException(index: Int) :
 
 internal class PdfRenderException(cause: Throwable? = null) :
   CodedException("The page could not be drawn", cause)
+
+internal class PdfSaveException(cause: Throwable? = null) :
+  CodedException("The file could not be saved to Downloads", cause)

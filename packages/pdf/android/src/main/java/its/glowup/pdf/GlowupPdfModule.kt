@@ -1,6 +1,7 @@
 package its.glowup.pdf
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
@@ -10,10 +11,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.ext.SdkExtensions
+import android.provider.MediaStore
 import expo.modules.kotlin.exception.Exceptions
 import expo.modules.kotlin.functions.Coroutine
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -76,6 +79,11 @@ class GlowupPdfModule : Module() {
       withContext(worker) { findText(uri, page, query) }
     }
 
+    // Not on the PDF thread: copying a file must not hold up the drawings.
+    AsyncFunction("saveToDownloads") Coroutine { uri: String, name: String ->
+      withContext(Dispatchers.IO) { saveToDownloads(uri, name) }
+    }
+
     AsyncFunction("close") Coroutine { uri: String ->
       withContext(worker) { closeDocument(uri) }
     }
@@ -117,6 +125,35 @@ class GlowupPdfModule : Module() {
       }
     }
     return mapOf("pages" to pages)
+  }
+
+  /**
+   * Copies the file into the Downloads folder through `MediaStore.Downloads` (no permission from Android 10, API 29).
+   * Returns false where that does not exist (the viewer then offers the share sheet). The system renames a name
+   * already taken ("name (1).pdf").
+   */
+  private fun saveToDownloads(uri: String, name: String): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+    val path = Uri.parse(uri).path ?: throw PdfFormatException()
+    val resolver = (appContext.reactContext ?: throw Exceptions.ReactContextLost()).contentResolver
+
+    val values = ContentValues().apply {
+      put(MediaStore.Downloads.DISPLAY_NAME, name)
+      put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+      put(MediaStore.Downloads.IS_PENDING, 1)
+    }
+    val target = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+      ?: throw PdfSaveException()
+    try {
+      val output = resolver.openOutputStream(target) ?: throw PdfSaveException()
+      output.use { out -> File(path).inputStream().use { it.copyTo(out) } }
+      // Until this, other apps do not see the file: a copy that fails half way never shows as a PDF.
+      resolver.update(target, ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) }, null, null)
+    } catch (error: IOException) {
+      resolver.delete(target, null, null)
+      throw PdfSaveException(error)
+    }
+    return true
   }
 
   private fun renderImage(uri: String, index: Int, width: Double): String {

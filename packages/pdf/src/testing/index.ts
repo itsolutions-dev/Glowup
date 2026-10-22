@@ -1,4 +1,10 @@
-import type { PdfAdapters, PdfError, PdfMatch, PdfPageSize } from "../types";
+import type {
+  PdfAdapters,
+  PdfError,
+  PdfMatch,
+  PdfPageSize,
+  PdfSaveResult,
+} from "../types";
 
 /** A 1 x 1 transparent PNG: a valid image for `renderPage` to hand back. */
 const PIXEL =
@@ -15,6 +21,8 @@ export type MemoryPdfOptions = {
   downloadError?: Error;
   /** What a download reports before it resolves (the share received, 0 to 1; `null`: size unknown). */
   downloadProgress?: (number | null)[];
+  /** What `save` reports. Default: handed to the share sheet. */
+  saveResult?: PdfSaveResult;
 };
 
 /** The viewer's adapters in memory, and a record of what they were asked. For tests. */
@@ -84,6 +92,7 @@ export const createMemoryPdf = (options: MemoryPdfOptions = {}) => {
       },
       save: async (uri, name) => {
         calls.saved.push({ uri, name });
+        return options.saveResult ?? "shared";
       },
     },
   };

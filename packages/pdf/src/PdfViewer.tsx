@@ -262,6 +262,7 @@ const PdfDocument = ({
 
   const [search, setSearch] = useState<Search>(idleSearch);
   const [actionError, setActionError] = useState<PdfError | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // The search in progress: it goes page by page and can be stopped between two (see searchDocument.ts).
   const searchRun = useRef<SearchRun | null>(null);
@@ -347,6 +348,7 @@ const PdfDocument = ({
 
   const act = async (task: () => Promise<void>) => {
     setActionError(null);
+    setNotice(null);
     try {
       await task();
     } catch (caught) {
@@ -516,7 +518,15 @@ const PdfDocument = ({
             }));
           }}
           onPrint={() => uri && act(() => actions.print(uri, fileName))}
-          onSave={() => uri && act(() => actions.save(uri, fileName))}
+          onSave={() =>
+            uri &&
+            act(async () => {
+              const where = await actions.save(uri, fileName);
+              if (alive.current && where === "downloads") {
+                setNotice(labels.savedToDownloads);
+              }
+            })
+          }
         />
       ) : null}
       {toolbar && pages && canSearch && search.open ? (
@@ -560,6 +570,13 @@ const PdfDocument = ({
         }
         dismissable
         onDismiss={() => setActionError(null)}
+      />
+      <Banner
+        visible={!!notice}
+        type="info"
+        message={notice ?? ""}
+        dismissable
+        onDismiss={() => setNotice(null)}
       />
       {body}
     </View>

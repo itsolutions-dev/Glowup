@@ -31,9 +31,11 @@ keep the two alike unless DataWedge forces a difference, and say which in the pl
   the first write of a key and kept in `SharedPreferences` (`expo.modules.scannerzebra.originals`,
   `<profile>/<key>`), so a restart or a crash finds them. A value already written in this process
   is not written again: each `SET_CONFIG` reloads the profile. **`PLUGIN_CONFIG` is always an
-  `ArrayList`**: DataWedge 15 ignored a single `Bundle` ("expected ArrayList" in its log). Not
-  `SWITCH_SCANNER_PARAMS`: on the TC22 it answered SUCCESS and changed no decoder (plan, "Phase
-  ZB2"). Each DataWedge answer takes about 0.5 s (measured), so `open()` asks as little as it
+  `ArrayList`** (DataWedge 15 ignored a single `Bundle`: "expected ArrayList" in its log), and
+  **every barcode `PARAM_LIST` names its scanner** (`scanner_selection` `auto`, the default
+  scanner's configuration): without one DataWedge answers SUCCESS and applies nothing, on a TC22
+  that lists ten scanners. `SWITCH_SCANNER_PARAMS` is not used: it changed no decoder on the TC22
+  (it would need `scanner_selection_by_identifier` too; plan, "Phase ZB2"). Each DataWedge answer takes about 0.5 s (measured), so `open()` asks as little as it
   can. `close()` sends `DISABLE_PLUGIN` only while the app is in front and DataWedge on its
   profile: those commands act on the active profile, which in the background is another app's.
   Whether the app is in front comes from Android (`ActivityManager.getMyMemoryState`), not from

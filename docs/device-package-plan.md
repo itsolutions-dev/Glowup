@@ -2295,6 +2295,16 @@ notes:
   values from before the first write kept in `SharedPreferences`, so `null` restores them after a
   restart or a crash too; a value already written not written again (each `SET_CONFIG` reloads
   the profile); the app's place in front read from Android (`ActivityManager.getMyMemoryState`).
+- **The third run (revision 3)** still read UPC-A and UPC-E with the first scope on, though the
+  decoders' `SET_CONFIG` (now a list) answered SUCCESS for the barcode module and DataWedge
+  reloaded the profile. Zebra's `SET_CONFIG` reference: "It is required to specify which scanner
+  the configurations apply to either by using `scanner_selection` set to auto,
+  `scanner_selection_by_identifier` or `configure_all_scanners`". The profile's set-up named
+  it (`scanner_selection: "auto"` among the data parameters, which applied); the decoders' write
+  did not, so nothing changed. The same holds for `SWITCH_SCANNER_PARAMS` on a device with more
+  than one scanner (`scanner_selection_by_identifier`), which explains the first two runs.
+- **Fixed in native revision 4:** every decoder write names `scanner_selection: "auto"` (the
+  default scanner's configuration, the one DataWedge's own decoder screen edits).
 - **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, and Zebra's
   symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
   not reopen and the setting waited for the next claim. The screen now lets go of the scanner for

@@ -77,7 +77,7 @@ export interface NativeSubscription {
  * `NATIVE_REVISION`, raised together. A Metro reload changes the JavaScript
  * only, so an app built before a native change reports a lower one.
  */
-export const ZEBRA_SCANNER_NATIVE_REVISION = 3;
+export const ZEBRA_SCANNER_NATIVE_REVISION = 4;
 
 export interface ZebraScannerNativeModule {
   getRevision(): number;

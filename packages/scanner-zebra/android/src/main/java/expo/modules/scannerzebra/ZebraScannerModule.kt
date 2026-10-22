@@ -24,7 +24,7 @@ class ScannerException(code: String, message: String, cause: Throwable? = null) 
 
 // Raised with every native change: JavaScript compares it with its own
 // (ZEBRA_SCANNER_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 3
+private const val NATIVE_REVISION = 4
 
 private const val DATAWEDGE = "com.symbol.datawedge"
 private const val API = "com.symbol.datawedge.api."
@@ -47,6 +47,9 @@ private const val LOSS_DELAY_MS = 1_000L
 // first wrote them: a request without symbologies puts them back, after a
 // crash or a restart too.
 private const val ORIGINALS = "expo.modules.scannerzebra.originals"
+// The parameter naming which scanner a barcode configuration is for.
+private const val SCANNER_SELECTION = "scanner_selection"
+
 // DataWedge did not list the key: nothing to put back.
 private const val UNKNOWN = "\u0000"
 
@@ -60,9 +63,8 @@ private const val UNKNOWN = "\u0000"
  * keystroke output and data formatting off): other apps keep their profiles,
  * so their keyboard wedge is untouched. `open()` checks that DataWedge is
  * using the profile, enables the barcode input, then writes the claim's
- * decoders in the stored profile (`SET_CONFIG`): on the TC22,
- * `SWITCH_SCANNER_PARAMS` answered SUCCESS and changed no decoder, while the
- * profile's own decoders hold. `close()` disables the input. The parameters
+ * decoders in the stored profile (`SET_CONFIG`, for the default scanner's
+ * configuration): the profile's own decoders hold on the TC22. `close()` disables the input. The parameters
  * come from JavaScript as DataWedge's own names (`decoder_qrcode`), so the
  * mapping is tested there.
  *
@@ -360,7 +362,14 @@ class ZebraScannerModule : Module() {
           putString("CONFIG_MODE", "UPDATE")
           // A list: DataWedge 15 reads PLUGIN_CONFIG as an ArrayList and
           // ignored a single Bundle (measured, "expected ArrayList").
-          putParcelableArrayList("PLUGIN_CONFIG", arrayListOf(plugin("BARCODE", false, changed)))
+          // And the scanner the parameters are for: without one DataWedge
+          // answers SUCCESS and applies nothing (the TC22 lists ten
+          // scanners; "auto" is the default one's configuration, as the
+          // profile's set-up and DataWedge's own decoder screen use).
+          putParcelableArrayList(
+            "PLUGIN_CONFIG",
+            arrayListOf(plugin("BARCODE", false, changed + (SCANNER_SELECTION to "auto")))
+          )
         }
       )
     }

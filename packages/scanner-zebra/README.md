@@ -52,7 +52,7 @@ to `onScan`, which confirms by itself.
   (`SOFT_SCAN_TRIGGER`).
 - **Symbologies.** Every `BarcodeType`: `symbologies: ["qr", "code128", "ean13", "datamatrix"]`
   turns those on and every other DataWedge decoder off, written in the app's profile
-  (`SET_CONFIG`; on the TC22 `SWITCH_SCANNER_PARAMS` answered SUCCESS and changed no decoder);
+  (`SET_CONFIG`, for the default scanner's configuration);
   `null` puts back the profile's own decoders, as they were before the package first wrote
   them (kept on the device, so a restart or a crash does not lose them). A decoder changed by
   hand in DataWedge after that is overwritten by the next `null`. Code 128 includes GS1-128,

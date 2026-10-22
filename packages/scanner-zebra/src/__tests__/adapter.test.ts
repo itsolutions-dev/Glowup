@@ -352,7 +352,7 @@ describe("createZebraBarcodeScannerAdapter", () => {
       expect(native.listenerCount).toBe(1);
       stop();
       expect(native.listenerCount).toBe(0);
-      expect(adapter.nativeRevision()).toBe(3);
+      expect(adapter.nativeRevision()).toBe(4);
     });
   });
 });

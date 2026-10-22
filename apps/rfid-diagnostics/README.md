@@ -148,7 +148,7 @@ without the UTF-8 ECI), a Code 128 (and a GS1-128 label if there is one), an EAN
 a Data Matrix, and codes of other kinds (a UPC-A, a UPC-E). The page of test codes made for the
 TC22 has them all.
 
-1. **Host:** "Scanner adapter" should read `supported`, "Native module" revision 3, and "State"
+1. **Host:** "Scanner adapter" should read `supported`, "Native module" revision 4, and "State"
    `open · held by this screen`. Note how long "opening" lasts the first time and on later
    openings (from revision 2 it should be under a second after the first). Note anything in
    red: a message naming another DataWedge

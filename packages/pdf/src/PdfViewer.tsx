@@ -6,6 +6,7 @@ import React, {
   useState,
 } from "react";
 import {
+  Animated,
   FlatList,
   PixelRatio,
   ScrollView,
@@ -14,6 +15,8 @@ import {
   useWindowDimensions,
   View,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   type ViewToken,
 } from "react-native";
 import { Banner, CircularProgress, EmptyState, useTheme } from "@its/glowup-ui";
@@ -25,12 +28,12 @@ import { usableSize } from "./pageGeometry";
 import { createRenderQueue } from "./renderQueue";
 import { fillLabel, withDefaultLabels } from "./labels";
 import { resolveSource, sourceKey, type ResolvedFile } from "./source";
+import { PinchController, type Point } from "./pinch";
+import { GAP, MAX_ZOOM, MIN_ZOOM, stepZoom } from "./zoom";
 import type { PdfError, PdfMatch, PdfPageSize, PdfViewerProps } from "./types";
 
-const ZOOMS = [1, 1.25, 1.5, 2, 3];
 /** A page drawn wider than this would fill the memory for no gain on a phone. */
 const MAX_RENDER_WIDTH = 2400;
-const GAP = 12;
 const PAD = 12;
 
 type Loaded =
@@ -153,8 +156,7 @@ const PdfDocument = ({
   const uri = loaded && !loaded.error ? loaded.uri : null;
   const pageCount = pages?.length ?? 0;
 
-  const [zoomIndex, setZoomIndex] = useState(0);
-  const zoom = ZOOMS[zoomIndex];
+  const [zoom, setZoom] = useState(MIN_ZOOM);
   const pageWidth = Math.max(1, (containerWidth - PAD * 2) * zoom);
   const renderWidth = Math.min(
     MAX_RENDER_WIDTH,
@@ -176,6 +178,36 @@ const PdfDocument = ({
   }, [pages, pageWidth]);
 
   const listRef = useRef<FlatList<number>>(null);
+  const horizontalRef = useRef<ScrollView>(null);
+
+  // Zoom. A pinch scales what is drawn while the fingers are down (`pinch.live`, about the point between them)
+  // and, once they lift, asks for the new zoom: the pages are laid out and drawn again at that width, and the scroll
+  // position is set so that what was under the fingers is still there (zoom.ts has the arithmetic, pinch.ts the gesture).
+  const [pinch] = useState(() => new PinchController());
+  const [pinching, setPinching] = useState(false);
+  const applyZoom = useCallback(
+    (next: number, focus: Point) => {
+      const to = pinch.plan(next, focus);
+      if (to === null) return false;
+      setZoom(to);
+      return true;
+    },
+    [pinch],
+  );
+  useEffect(() => {
+    pinch.sync(zoom, layout, setPinching, applyZoom);
+  }, [pinch, zoom, layout, applyZoom]);
+  useEffect(() => {
+    const to = pinch.settle(layout);
+    if (!to) return;
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({
+        offset: Math.max(0, to.y),
+        animated: false,
+      });
+      horizontalRef.current?.scrollTo({ x: to.x, animated: false });
+    });
+  }, [zoom, layout, pinch]);
   const [page, setPage] = useState(() =>
     Math.max(1, Math.floor(initialPage) || 1),
   );
@@ -309,6 +341,11 @@ const PdfDocument = ({
         data={pages.map((_, i) => i)}
         keyExtractor={(i) => String(i)}
         style={zoom > 1 ? { width: pageWidth + PAD * 2 } : undefined}
+        scrollEnabled={!pinching}
+        scrollEventThrottle={16}
+        onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+          pinch.scroll("y", e.nativeEvent.contentOffset.y);
+        }}
         contentContainerStyle={{ paddingTop: PAD, paddingHorizontal: PAD }}
         getItemLayout={(_, i) => ({
           index: i,
@@ -348,14 +385,48 @@ const PdfDocument = ({
         )}
       />
     );
-    body =
+    const content =
       zoom > 1 ? (
-        <ScrollView horizontal style={styles.fill}>
+        <ScrollView
+          ref={horizontalRef}
+          horizontal
+          style={styles.fill}
+          scrollEnabled={!pinching}
+          scrollEventThrottle={16}
+          onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+            pinch.scroll("x", e.nativeEvent.contentOffset.x);
+          }}
+        >
           {list}
         </ScrollView>
       ) : (
         list
       );
+    body = (
+      <View
+        ref={(node) => pinch.attach(node)}
+        onLayout={(e: LayoutChangeEvent) =>
+          pinch.resize(e.nativeEvent.layout.width, e.nativeEvent.layout.height)
+        }
+        style={styles.clip}
+        {...pinch.responder.panHandlers}
+      >
+        <Animated.View
+          style={[
+            styles.fill,
+            {
+              transform: [
+                { translateX: pinch.live.x },
+                { translateY: pinch.live.y },
+                { scale: pinch.live.scale },
+              ],
+            },
+          ]}
+        >
+          {content}
+        </Animated.View>
+      </View>
+    );
   }
 
   return (
@@ -373,16 +444,14 @@ const PdfDocument = ({
           page={Math.min(page, pageCount)}
           pages={pageCount}
           zoom={zoom}
-          canZoomIn={zoomIndex < ZOOMS.length - 1}
-          canZoomOut={zoomIndex > 0}
+          canZoomIn={zoom < MAX_ZOOM - 0.005}
+          canZoomOut={zoom > MIN_ZOOM + 0.005}
           canSearch={canSearch}
           searchOpen={search.open}
           onGoToPage={goToPage}
-          onZoomIn={() =>
-            setZoomIndex((i) => Math.min(i + 1, ZOOMS.length - 1))
-          }
-          onZoomOut={() => setZoomIndex((i) => Math.max(i - 1, 0))}
-          onFitWidth={() => setZoomIndex(0)}
+          onZoomIn={() => applyZoom(stepZoom(zoom, 1), pinch.center())}
+          onZoomOut={() => applyZoom(stepZoom(zoom, -1), pinch.center())}
+          onFitWidth={() => applyZoom(MIN_ZOOM, pinch.center())}
           onToggleSearch={() =>
             setSearch((s) => ({ ...idleSearch, query: s.query, open: !s.open }))
           }
@@ -448,6 +517,7 @@ export default PdfViewer;
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
+  clip: { flex: 1, overflow: "hidden" },
   center: {
     flex: 1,
     alignItems: "center",

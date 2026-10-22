@@ -35,6 +35,13 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   width), picks the page nearest the one being read (`reading(page)`), lets two drawings into the module at a time and remembers
   the finished ones. It is JavaScript on purpose: a change to it needs no CI run. One queue per opened file (`PdfViewer` makes it
   with the document).
+- **Zoom is a number, not a list of stops** (`src/zoom.ts`: limits, button stops, and the arithmetic that keeps what is under the fingers
+  where it was). A two-finger pinch (`src/pinch.ts`, a `PanResponder` that takes the touch only when two fingers are down) scales the page
+  area with a transform while the fingers move and, once they lift, the viewer lays the pages out at the new zoom and scrolls to the same
+  place (`plan` before the layout, `settle` after it). The buttons zoom about the middle of the area through the same two calls. The
+  gesture itself has never run on a device: the maths and the controller's `plan`/`settle` are tested, the touch handling is not.
+  `PdfViewer.web.tsx` has none of this: Chrome cannot show it. The controller is a class used through methods because the React
+  Compiler lint rules (`react-hooks/refs`, `immutability`) refuse a gesture built from refs inside the component.
 - **Source identity is its content** (`sourceKey`): a new source, or a retry, remounts the viewer, so the document, the search
   and the zoom always belong to one source. A parent can pass the same content as a new object on every render.
 - **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the build, and

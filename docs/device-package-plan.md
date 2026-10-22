@@ -2305,6 +2305,12 @@ notes:
   than one scanner (`scanner_selection_by_identifier`), which explains the first two runs.
 - **Fixed in native revision 4:** every decoder write names `scanner_selection: "auto"` (the
   default scanner's configuration, the one DataWedge's own decoder screen edits).
+- **The fourth run (revision 4) holds:** with the first scope on, the decoders' write (37 keys,
+  `scanner_selection: "auto"`) answered SUCCESS and two trigger pulls on a UPC-A and a UPC-E
+  went `SCANNING` → `WAITING` with no read and no beep; with the scope off the module wrote back
+  the 9 decoders whose own value differed (UPC-A, UPC-E, Aztec, Codabar, Code 39, PDF417,
+  MaxiCode, GS1 DataBar and its expanded form) and both codes read, 12 and 8 digits. Opening
+  took about 2.3 s the first time (the profile's set-up) and 0.5 s for a new request.
 - **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, and Zebra's
   symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
   not reopen and the setting waited for the next claim. The screen now lets go of the scanner for

@@ -2177,12 +2177,12 @@ confirm on the TC22):
 | ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                                                                                                                                                |
 | ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                                |
 
-| Phase | Content                                                                                                                                                         | Release | Status      |
-| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
-| ZB1   | `packages/scanner-zebra` (private): Kotlin module over DataWedge, adapter, the conformance kit over a fake; the Zebra build of the diagnostics gets the scanner | —       | done        |
-| ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | in progress |
-| ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | —           |
-| ZB4   | The playground's install line, `examples/consumer` and its smoke                                                                                                | —       | —           |
+| Phase | Content                                                                                                                                                         | Release | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| ZB1   | `packages/scanner-zebra` (private): Kotlin module over DataWedge, adapter, the conformance kit over a fake; the Zebra build of the diagnostics gets the scanner | —       | done   |
+| ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | done   |
+| ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | —      |
+| ZB4   | The playground's install line, `examples/consumer` and its smoke                                                                                                | —       | —      |
 
 ### Phase ZB1 — what landed
 
@@ -2311,6 +2311,10 @@ notes:
   the 9 decoders whose own value differed (UPC-A, UPC-E, Aztec, Codabar, Code 39, PDF417,
   MaxiCode, GS1 DataBar and its expanded form) and both codes read, 12 and 8 digits. Opening
   took about 2.3 s the first time (the profile's set-up) and 0.5 s for a new request.
+- **The last checks (revision 4), the requester's:** "Hold the scanner" off leaves the trigger
+  dead (no beam, no beep) and on reads again; Home, a read in Notes through its wedge and back
+  with no red error; the RFID screen and back reopens and reads. A new open with the same scope
+  writes nothing (`written: 0`), so the profile is not reloaded. Phase ZB2 is done.
 - **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, and Zebra's
   symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
   not reopen and the setting waited for the next claim. The screen now lets go of the scanner for

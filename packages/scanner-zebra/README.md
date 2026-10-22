@@ -53,13 +53,16 @@ to `onScan`, which confirms by itself.
 - **Symbologies.** Every `BarcodeType`: `symbologies: ["qr", "code128", "ean13", "datamatrix"]`
   turns those on and every other DataWedge decoder off, for this claim only
   (`SWITCH_SCANNER_PARAMS`: the profile keeps its own settings); `null` keeps the profile's
-  settings. Code 128 includes GS1-128, read as Code 128 and not parsed.
+  settings. `symbologyMethod: "config"` writes them in the stored profile instead (`SET_CONFIG`)
+  and puts them back on `null`; which of the two holds on the TC22 is being measured. Code 128
+  includes GS1-128, read as Code 128 and not parsed.
 - **The text as decoded.** The profile decodes in UTF-8 and sends every digit of a UPC (its
   check digit and its number system). DataWedge sends no AIM id and no decode time: the type
   comes from its label type (`LABEL-TYPE-QRCODE`, kept as `rawType`), the time is the read's
   arrival.
-- **Another app in front.** If DataWedge leaves the profile for another app's while this one is
-  in front, the scanner closes with `unavailable` (the screen's Retry opens it again).
+- **Another app in front.** If DataWedge leaves the profile for another app's while this one stays
+  in front, the scanner closes with `unavailable` (the screen's Retry opens it again); going to
+  the background is not that.
 
 `createZebraBarcodeScannerAdapter(options)` builds another one: `profileName`,
-`requireZebraHost: false` (a lab test only), `native` (a fake, in tests).
+`symbologyMethod`, `requireZebraHost: false` (a lab test only), `native` (a fake, in tests).

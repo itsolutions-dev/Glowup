@@ -299,8 +299,10 @@ function fakeScannerModule() {
   const listeners = new Map<string, Set<(event: never) => void>>();
   let claimed = false;
   const opens: Record<string, unknown>[] = [];
+  const controls: string[] = [];
   return {
     opens,
+    controls,
     get claimed() {
       return claimed;
     },
@@ -320,8 +322,9 @@ function fakeScannerModule() {
     module: {
       getRevision: () => HONEYWELL_SCANNER_NATIVE_REVISION,
       setDiagnostics() {},
-      async open(properties: Record<string, unknown>) {
+      async open(properties: Record<string, unknown>, control: string) {
         opens.push(properties);
+        controls.push(control);
         claimed = true;
       },
       async close() {
@@ -351,7 +354,7 @@ function fakeScannerModule() {
 function fakeZebraModule() {
   const listeners = new Map<string, Set<(event: never) => void>>();
   let open = false;
-  const opens: { scanner: Record<string, string> }[] = [];
+  const opens: { scanner: Record<string, string>; method: string }[] = [];
   return {
     opens,
     get open() {
@@ -372,7 +375,7 @@ function fakeZebraModule() {
       getRevision: () => ZEBRA_SCANNER_NATIVE_REVISION,
       isDataWedgeInstalled: () => true,
       setDiagnostics() {},
-      async open(config: { scanner: Record<string, string> }) {
+      async open(config: { scanner: Record<string, string>; method: string }) {
         opens.push(config);
         open = true;
       },
@@ -464,13 +467,27 @@ describe("the scanner screen", () => {
       "DEC_CODE128_ENABLED",
       "DEC_DATAMATRIX_ENABLED",
       "DEC_EAN13_ENABLED",
+      "DEC_EAN8_ENABLED",
       "DEC_GS1_128_ENABLED",
       "DEC_QR_ENABLED",
     ]);
-    expect(FIRST_SCOPE).toEqual(["qr", "code128", "ean13", "datamatrix"]);
+    expect(FIRST_SCOPE).toEqual([
+      "qr",
+      "code128",
+      "ean13",
+      "ean8",
+      "datamatrix",
+    ]);
     await act(async () => fake.decode("LOT-42"));
     expect(screen.getByText('"LOT-42"')).toBeTruthy();
     expect(screen.getByText(/qr · AIM \]Q1 · code id s/)).toBeTruthy();
+    // Client control applies on a new claim: the screen lets go and claims again.
+    await fireEvent(
+      screen.getByLabelText(/The app drives the trigger/),
+      "valueChange",
+      true,
+    );
+    await waitFor(() => expect(fake.controls.at(-1)).toBe("client"));
     // Back to RFID: the scanner screen unmounts and the imager is released.
     await fireEvent.press(screen.getByText("RFID"));
     await waitFor(() => expect(fake.claimed).toBe(false));
@@ -509,8 +526,10 @@ describe("the scanner screen", () => {
       "decoder_code128",
       "decoder_datamatrix",
       "decoder_ean13",
+      "decoder_ean8",
       "decoder_qrcode",
     ]);
+    expect(fake.opens.at(-1)!.method).toBe("switch");
     await act(async () => fake.decode("LOC:A-03-12"));
     expect(screen.getByText('"LOC:A-03-12"')).toBeTruthy();
     expect(
@@ -520,6 +539,15 @@ describe("the scanner screen", () => {
     expect(
       await screen.findByText(/Active profile: it.itsolutions.rfiddiagnostics/),
     ).toBeTruthy();
+    // The other way to set the decoders: the scanner is claimed again with it.
+    const opens = fake.opens.length;
+    await fireEvent(
+      screen.getByLabelText(/Decoders in the stored profile/),
+      "valueChange",
+      true,
+    );
+    await waitFor(() => expect(fake.opens.length).toBeGreaterThan(opens));
+    expect(fake.opens.at(-1)!.method).toBe("config");
   });
 });
 

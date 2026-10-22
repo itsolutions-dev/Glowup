@@ -91,7 +91,11 @@ export function Toggle({
   return (
     <View style={styles.toggle}>
       <Text style={[styles.line, styles.toggleLabel]}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} />
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        accessibilityLabel={label}
+      />
     </View>
   );
 }

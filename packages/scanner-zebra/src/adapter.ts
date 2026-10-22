@@ -19,6 +19,7 @@ import {
   type NativeSubscription,
   type ZebraScannerDiagnostic,
   type ZebraScannerNativeModule,
+  type ZebraSymbologyMethod,
 } from "./native";
 
 export interface ZebraBarcodeScannerAdapterOptions {
@@ -35,6 +36,14 @@ export interface ZebraBarcodeScannerAdapterOptions {
    * Default: the app's package name (`it.example.app`).
    */
   profileName?: string;
+  /**
+   * How a claim sets its symbologies. Default `"switch"`
+   * (`SWITCH_SCANNER_PARAMS`: the stored profile keeps its own); `"config"`
+   * writes them in the stored profile (`SET_CONFIG`) and puts them back on a
+   * request without symbologies. Which one holds on the TC22 is measured in
+   * phase ZB2.
+   */
+  symbologyMethod?: ZebraSymbologyMethod;
   /** The host's manufacturer; `Platform.constants.Manufacturer` by default. */
   manufacturer?: () => string | null;
 }
@@ -73,6 +82,8 @@ interface ZebraExtras {
   getAllProperties(): Promise<Record<string, string | null>>;
   /** The profile DataWedge is using now. */
   getActiveProfile(): Promise<string | null>;
+  /** Applies from the next `open()`. */
+  setSymbologyMethod(method: ZebraSymbologyMethod): void;
 }
 
 function hostManufacturer(): string | null {
@@ -92,6 +103,7 @@ export function createZebraBarcodeScannerAdapter(
   const requireHost = options.requireZebraHost ?? true;
   const manufacturer = options.manufacturer ?? hostManufacturer;
   const profileName = options.profileName?.trim() || null;
+  let symbologyMethod = options.symbologyMethod ?? "switch";
 
   const native = () =>
     options.native === undefined ? loadZebraScannerModule() : options.native;
@@ -160,7 +172,9 @@ export function createZebraBarcodeScannerAdapter(
         ];
       }
       try {
-        await module.open(toOpenConfig(request.symbologies, profileName));
+        await module.open(
+          toOpenConfig(request.symbologies, profileName, symbologyMethod),
+        );
       } catch (error) {
         clear();
         throw fromNativeError(error);
@@ -190,6 +204,10 @@ export function createZebraBarcodeScannerAdapter(
 
     nativeRevision() {
       return native()?.getRevision() ?? null;
+    },
+
+    setSymbologyMethod(method) {
+      symbologyMethod = method;
     },
 
     setDiagnostics(enabled) {

@@ -1,11 +1,13 @@
 import type { BarcodeType } from "@its/glowup-device/scanner";
 
+import { OTHER_SYMBOLOGY_PARAMS } from "../convert";
 import {
   ZEBRA_SCANNER_NATIVE_REVISION,
   type NativeEvents,
   type NativeParams,
   type NativeRead,
   type ZebraScannerNativeModule,
+  type ZebraSymbologyMethod,
 } from "../native";
 
 /** A rejection as the Expo module sends it: an Error with the module's code. */
@@ -43,6 +45,9 @@ export const DEVICE_SYMBOLOGIES: Record<
  * charset is left out, which DataWedge 14's guide gives as UTF-8.
  */
 const PROFILE_DEFAULTS: NativeParams = {
+  // The TC22's GET_CONFIG lists every other decoder the adapter names.
+  ...OTHER_SYMBOLOGY_PARAMS,
+  decoder_gs1_databar: "true",
   ...Object.fromEntries(
     Object.values(DEVICE_SYMBOLOGIES).map((s) => [s.decoder, "true"]),
   ),
@@ -99,6 +104,9 @@ export function createFakeDataWedge(): FakeDataWedge {
   let stored: NativeParams = {};
   let switched: NativeParams = {};
   const applied = new Set<string>();
+  // What each key held in the stored profile before a claim first set it.
+  const originals = new Map<string, string | undefined>();
+  let appliedWith: ZebraSymbologyMethod | null = null;
   let profileName: string | null = null;
   let profileParams: string | null = null;
   let forcedProfile: string | null = null;
@@ -127,6 +135,18 @@ export function createFakeDataWedge(): FakeDataWedge {
 
   const effective = (): NativeParams => ({ ...stored, ...switched });
 
+  /** A switch dropped, or a stored key back to its earlier value. */
+  function putBack(keys: string[], method: ZebraSymbologyMethod) {
+    for (const key of keys) {
+      if (method === "switch") {
+        delete switched[key];
+        continue;
+      }
+      const original = originals.get(key);
+      if (original !== undefined) stored[key] = original;
+    }
+  }
+
   const fake: FakeDataWedge = {
     getRevision: () => ZEBRA_SCANNER_NATIVE_REVISION,
     isDataWedgeInstalled: () => installed,
@@ -148,6 +168,8 @@ export function createFakeDataWedge(): FakeDataWedge {
           stored = { ...PROFILE_DEFAULTS };
           switched = {};
           applied.clear();
+          originals.clear();
+          appliedWith = null;
         }
         stored = { ...stored, ...config.profile };
         profileName = name;
@@ -160,13 +182,26 @@ export function createFakeDataWedge(): FakeDataWedge {
           `DataWedge is using the profile "${active}", not "${name}": bring the app to the front again.`,
         );
       }
-      // The switches replace the earlier claim's; a key left out goes back
-      // to the stored value.
+      // Keys set the other way go back that way first.
+      if (appliedWith !== null && appliedWith !== config.method) {
+        putBack([...applied], appliedWith);
+        applied.clear();
+      }
+      for (const key of Object.keys(config.scanner)) {
+        if (!originals.has(key)) originals.set(key, stored[key]);
+      }
+      // The request replaces the earlier claim's; a key left out goes back
+      // to the profile's value.
       const restored = [...applied].filter((key) => !(key in config.scanner));
-      switched = { ...switched, ...config.scanner };
-      for (const key of restored) delete switched[key];
+      if (config.method === "config") {
+        stored = { ...stored, ...config.scanner };
+      } else {
+        switched = { ...switched, ...config.scanner };
+      }
+      putBack(restored, config.method);
       applied.clear();
       Object.keys(config.scanner).forEach((key) => applied.add(key));
+      appliedWith = applied.size > 0 ? config.method : null;
       if (!isOpen) {
         takeFailure("enable");
         isOpen = true;

@@ -41,6 +41,12 @@ export const DEMO_LABELS: readonly DemoLabel[] = [
     data: "SN 22271B821E",
   },
   { id: "small", name: "Small pack (EAN-8)", type: "ean8", data: "96385074" },
+  {
+    id: "imported",
+    name: "Imported product (UPC-A)",
+    type: "upc_a",
+    data: "036000291452",
+  },
 ];
 
 /** How long the imager takes to decode after the trigger. */

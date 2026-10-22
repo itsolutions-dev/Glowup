@@ -339,7 +339,7 @@ describe("barcode scanner", () => {
     ).toBeTruthy();
     await waitFor(() => expect(scanner.isOpen).toBe(true));
     expect(scanner.request).toEqual({
-      symbologies: ["qr", "code128", "ean13", "datamatrix"],
+      symbologies: ["qr", "code128", "ean13", "ean8", "datamatrix"],
     });
     expect(screen.getByText("Held by this page")).toBeTruthy();
 
@@ -351,13 +351,13 @@ describe("barcode scanner", () => {
       screen.getByText(/^ean13 · AIM \]E0 · id ean13 · scanner/),
     ).toBeTruthy();
     // Outside the screen's symbologies: the scanner does not decode it.
-    expect(scanner.scan({ data: "96385074", type: "ean8" })).toBe(false);
+    expect(scanner.scan({ data: "036000291452", type: "upc_a" })).toBe(false);
     await fireEvent.press(switches()[FIRST_SCOPE]!);
     await waitFor(() => expect(scanner.request).toEqual({ symbologies: null }));
     await act(async () => {
-      scanner.scan({ data: "96385074", type: "ean8" });
+      scanner.scan({ data: "036000291452", type: "upc_a" });
     });
-    expect(screen.getByText("96385074")).toBeTruthy();
+    expect(screen.getByText("036000291452")).toBeTruthy();
 
     // The same code within a second once, then every time.
     await act(async () => {
@@ -423,6 +423,7 @@ describe("barcode scanner", () => {
       "qr",
       "code128",
       "ean13",
+      "ean8",
       "datamatrix",
     ]);
     await act(async () => camera.scan({ data: "TICKET-42" }));
@@ -441,10 +442,13 @@ describe("barcode scanner", () => {
     await waitFor(() => expect(screen.getByText("LOC:A-03-12")).toBeTruthy());
     await fireEvent.press(screen.getByText("Small pack (EAN-8)"));
     await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() => expect(screen.getByText("96385074")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Imported product (UPC-A)"));
+    await fireEvent.press(screen.getByText("Pull the trigger"));
     await waitFor(() =>
       expect(
         screen.getByText(
-          "The scanner did not decode Small pack (EAN-8): its symbology is off for this screen.",
+          "The scanner did not decode Imported product (UPC-A): its symbology is off for this screen.",
         ),
       ).toBeTruthy(),
     );

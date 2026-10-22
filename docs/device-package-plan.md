@@ -1891,7 +1891,7 @@ and a scanner screen used in turn.
 | C4  | Ring scanner  | The Gen7 BT SDK (8680i / 8690i) is out: the team uses no ring scanner.                                                                                                                                                              | decided |
 | C5  | One build     | The scanner and RFID packages share `DataCollection.aar`: the same Maven coordinate in each plugin's repository, so Gradle resolves it once; the versions must agree.                                                               | decided |
 | C6  | Trigger       | No screen reads RFID and barcodes together: an RFID screen owns the trigger (`useRfidTrigger`, `TriggerMode.RFID`); everywhere else it stays in `BARCODE` mode and drives the imager `/scanner` holds, the IH40's trigger included. | decided |
-| C7  | First scope   | Hardware and software trigger; QR, Code 128, EAN-13 and Data Matrix (the others off); no GS1 parsing.                                                                                                                               | decided |
+| C7  | First scope   | Hardware and software trigger; QR, Code 128, EAN-13, EAN-8 and Data Matrix (the others off; EAN-8 added in phase ZB2); no GS1 parsing.                                                                                              | decided |
 | C8  | Camera        | Phones without an imager read through the camera, with the same `onScan` (how: C10).                                                                                                                                                | decided |
 | C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided |
 | C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | decided |
@@ -2168,19 +2168,19 @@ confirm on the TC22):
 
 **Decisions (taken with the requester):**
 
-| #   | Question | Decision                                                                                                                                                                                                         |
-| --- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ZD1 | Way      | DataWedge's intents, not EMDK and not the Scanner SDK: no SDK in the package or the app's build, nothing to supply, and the wedge of other apps untouched.                                                       |
-| ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                 |
-| ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call. |
-| ZD4 | Claim    | Symbologies per claim with `SWITCH_SCANNER_PARAMS` (the stored profile keeps its own; `null` puts them back); the barcode input enabled on `open()`, disabled on `close()` while the profile is still active.    |
-| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                       |
-| ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                       |
+| #   | Question | Decision                                                                                                                                                                                                                                                                                                                               |
+| --- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ZD1 | Way      | DataWedge's intents, not EMDK and not the Scanner SDK: no SDK in the package or the app's build, nothing to supply, and the wedge of other apps untouched.                                                                                                                                                                             |
+| ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                                                                                                                                       |
+| ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call.                                                                                                                       |
+| ZD4 | Claim    | Symbologies per claim with `SWITCH_SCANNER_PARAMS` (the stored profile keeps its own; `null` puts them back), or in the stored profile with `SET_CONFIG` (`symbologyMethod: "config"`), whichever holds on the TC22 (ZB2); the barcode input enabled on `open()` before them, disabled on `close()` while the profile is still active. |
+| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                                                                                                                                             |
+| ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                             |
 
 | Phase | Content                                                                                                                                                         | Release | Status      |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
 | ZB1   | `packages/scanner-zebra` (private): Kotlin module over DataWedge, adapter, the conformance kit over a fake; the Zebra build of the diagnostics gets the scanner | —       | done        |
-| ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | —           |
+| ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | in progress |
 | ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | —           |
 | ZB4   | The playground's install line, `examples/consumer` and its smoke                                                                                                | —       | —           |
 
@@ -2233,6 +2233,56 @@ confirm on the TC22):
 - what `ENUMERATE_SCANNERS` and `GET_VERSION_INFO` return on the TC22 (names, identifiers,
   firmware order);
 - the scanner statuses and profile switches around the background and the software trigger.
+
+### Phase ZB2 — measured on the TC22
+
+The first run (TC22, Android 15, DataWedge 15.0.96, scanning framework 43.63.50.0, decoder library
+`IMGKIT_10.04T02.20`; native revision 1), from the report, the screenshots and the requester's
+notes:
+
+- **The profile:** created on the first `open()` and associated with the app (`*`), barcode
+  input on, intent output to `it.itsolutions.rfiddiagnostics.GLOWUP_SCAN` as a broadcast with the
+  `DEFAULT` category, keystroke output off. DataWedge was on it at once: "opening" for about 3 s,
+  then open, no error and no `SWITCH_TO_PROFILE`. Profile0 untouched; Notes kept its wedge.
+- **The parameters:** `GET_CONFIG` lists 229, among them every name the adapter sends but
+  `decoder_us_postnet` and `decoder_us_planet` (no longer sent); `charset_name="UTF-8"`, the UPC
+  check digits and preambles and `decoder_upce0_convert_to_upca="false"` as set;
+  `decoder_code128_enable_ean128="true"` exists (GS1-128 read as Code 128).
+- **Reads** (label type → type, all with `source` `scanner` and `decoded_mode`
+  `single_decode`): QR `LABEL-TYPE-QRCODE`, Code 128 `LABEL-TYPE-CODE128`, EAN-13
+  `LABEL-TYPE-EAN13` (13 digits), Data Matrix `LABEL-TYPE-DATAMATRIX`, EAN-8 `LABEL-TYPE-EAN8`,
+  UPC-A `LABEL-TYPE-UPCA` (12 digits), UPC-E `LABEL-TYPE-UPCE0` (8 digits), GS1-128
+  `LABEL-TYPE-EAN128` (`010800123456789710LOT42`, no FNC1 character). A QR with
+  `Città perché € ñ ß 日本語` read right with and without the UTF-8 ECI.
+- **The wedge:** nothing typed into the app, held or released. With the input disabled
+  (`DISABLE_PLUGIN`, "Hold the scanner" off) the trigger does nothing: no beam, no beep.
+- **Info:** ten scanners, the camera first (index 0), the imager `INTERNAL_IMAGER` (index 1,
+  `IS_DEFAULT_SCANNER`), then Bluetooth and USB ones, not connected; one `SCANNER_FIRMWARE`
+  entry, `"2D Barcode Imager: PAAFNS00-002-R06"`: not one per scanner. Fixed: the firmware is
+  the entry named after the scanner.
+- **Not right:**
+  - **An EAN-8 read with the first scope on** (it beeped and reached `onScan`):
+    `SWITCH_SCANNER_PARAMS` sent before `ENABLE_PLUGIN` did not hold, and one sent while the
+    input was disabled had no answer in 5 s. Its result carried no `RESULT`: with `SEND_RESULT`
+    `COMPLETE_RESULT`, the commands but `SET_CONFIG` answered with `COMMAND` and
+    `COMMAND_IDENTIFIER` only.
+  - **"Unavailable" on the Home button** (three times): DataWedge names the launcher's profile
+    before Expo reports the app in the background. The engine reopened by itself on return.
+  - **Each command takes about 0.5 s to answer,** so `open()` (four in a row) took about 2 s,
+    during which a trigger decoded and the read was dropped.
+- **Fixed in native revision 2:** the input enabled before the symbologies; `SEND_RESULT` `true`
+  but for `SET_CONFIG`; a switch away from the profile reported only if the app is still in front
+  a second later; DataWedge's status checked once per process and the active profile taken from
+  its notifications; the input's answer not awaited when a command follows. And a second way to
+  set the symbologies, `symbologyMethod: "config"` (`SET_CONFIG` in the stored profile, put back
+  on `null`), with a switch in the diagnostics, to keep whichever holds.
+- **The first scope** takes EAN-8 (C7, at the requester's ask): the diagnostics, the playground
+  page (its out-of-scope label is now a UPC-A) and the consumer. The TC22's checks use UPC-A and
+  UPC-E as the codes outside it.
+- **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, Zebra's
+  symbology method) remounted the scanner section, which kept the same request: the engine did
+  not reopen and the setting waited for the next claim. The screen now lets go of the scanner for
+  a moment, and its tests check the new `open()`.
 
 ## Open for later
 

@@ -41,6 +41,7 @@ const SYMBOLOGIES: readonly BarcodeType[] = [
   "qr",
   "code128",
   "ean13",
+  "ean8",
   "datamatrix",
 ];
 
@@ -83,7 +84,7 @@ import { getHoneywellBarcodeScannerAdapter } from "@its/scanner-honeywell";
 const USAGE = `import { CameraView } from "@its/glowup-device/camera";
 import { useBarcodeScanner, type BarcodeScan } from "@its/glowup-device/scanner";
 
-const SYMBOLOGIES = ["qr", "code128", "ean13", "datamatrix"] as const;
+const SYMBOLOGIES = ["qr", "code128", "ean13", "ean8", "datamatrix"] as const;
 
 function ScanScreen({ focused }: { focused: boolean }) {
   // A promise keeps the next reads out until it settles.
@@ -253,7 +254,7 @@ function ScannerContent({ demo }: { demo: ScannerDemo | null }) {
           </HStack>
           <VStack spacing="s">
             <Switch
-              label="Only QR, Code 128, EAN-13 and Data Matrix (off: the device's own settings)"
+              label="Only QR, Code 128, EAN-13, EAN-8 and Data Matrix (off: the device's own settings)"
               value={firstScope}
               onChange={setFirstScope}
             />
@@ -361,7 +362,7 @@ const TriggerSection = ({
       title="Trigger"
       description={
         demo
-          ? "Pick the label in front of the imager, then pull the trigger or press the on-screen scan button (softwareTrigger). The EAN-8 is not in this screen's symbologies: the scanner ignores it until the first switch above is off."
+          ? "Pick the label in front of the imager, then pull the trigger or press the on-screen scan button (softwareTrigger). The UPC-A is not in this screen's symbologies: the scanner ignores it until the first switch above is off."
           : "Pull the scanner's own trigger, or press the on-screen scan button (softwareTrigger)."
       }
     >

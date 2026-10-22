@@ -23,7 +23,7 @@ class ScannerException(code: String, message: String, cause: Throwable? = null) 
 
 // Raised with every native change: JavaScript compares it with its own
 // (ZEBRA_SCANNER_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 1
+private const val NATIVE_REVISION = 2
 
 private const val DATAWEDGE = "com.symbol.datawedge"
 private const val API = "com.symbol.datawedge.api."
@@ -37,6 +37,11 @@ private const val CATEGORY = "android.intent.category.DEFAULT"
 // on a configuration change, which takes a moment.
 private const val COMMAND_TIMEOUT_MS = 5_000L
 
+// DataWedge names the next app's profile a moment before Expo reports this
+// app in the background (measured on the TC22, Home pressed): a switch away
+// means another app took the scanner only if the app is still in front then.
+private const val LOSS_DELAY_MS = 1_000L
+
 /**
  * DataWedge (`com.symbol.datawedge`, on every Zebra mobile computer) behind
  * the `@its/glowup-device/scanner` primitives. No SDK: commands go out as
@@ -46,11 +51,12 @@ private const val COMMAND_TIMEOUT_MS = 5_000L
  * app, sends each decode to this module as a broadcast (intent output on,
  * keystroke output and data formatting off): other apps keep their profiles,
  * so their keyboard wedge is untouched. `open()` checks that DataWedge is
- * using the profile, switches the symbologies for the claim
- * (`SWITCH_SCANNER_PARAMS`, which DataWedge drops at the next profile switch)
- * and enables the barcode input; `close()` disables it. The parameters come
- * from JavaScript as DataWedge's own names (`decoder_qrcode`), so the mapping
- * is tested there.
+ * using the profile, enables the barcode input, then sets the claim's
+ * symbologies: `switch` with `SWITCH_SCANNER_PARAMS` (the active profile's,
+ * until the next profile switch), `config` with `SET_CONFIG` in the stored
+ * profile; `close()` disables the input. The parameters come from JavaScript
+ * as DataWedge's own names (`decoder_qrcode`), so the mapping is tested
+ * there.
  *
  * Threads: commands that wait for DataWedge's result run on `worker`; the
  * receiver runs on `events`, which completes them. State goes through
@@ -67,12 +73,18 @@ class ZebraScannerModule : Module() {
   // The data parameters the profile was last set up with (null: not yet).
   private var profileParams: Map<String, String>? = null
   private var notificationsOn = false
+  // DataWedge answered GET_DATAWEDGE_STATUS "ENABLED" once: not asked again.
+  private var dataWedgeChecked = false
+  // The profile DataWedge is on, from its PROFILE_SWITCH notifications (or a
+  // query): each command takes DataWedge about 0.5 s to answer (measured).
   private var activeProfile: String? = null
 
   // What each switched key holds in the profile (null: DataWedge did not say).
   private val originals = HashMap<String, String?>()
   private val applied = HashSet<String>()
   private var switched: Map<String, String> = emptyMap()
+  // How `applied` was set: "switch" or "config".
+  private var appliedWith: String? = null
 
   private class Waiter(val id: String, val resultKey: String?) {
     val latch = CountDownLatch(1)
@@ -194,11 +206,15 @@ class ZebraScannerModule : Module() {
     val name = (config["profileName"] as? String)?.takeIf { it.isNotBlank() } ?: context.packageName
     val profile = strings(config["profile"])
     val scanner = strings(config["scanner"])
+    val method = if (config["method"] == "config") "config" else "switch"
 
-    val status = query("GET_DATAWEDGE_STATUS", "RESULT_GET_DATAWEDGE_STATUS")
-      ?: throw ScannerException("ERR_UNAVAILABLE", "DataWedge did not answer.")
-    if (status.getString(API + "RESULT_GET_DATAWEDGE_STATUS").equals("disabled", ignoreCase = true)) {
-      throw ScannerException("ERR_UNAVAILABLE", "DataWedge is disabled on this device.")
+    if (!synchronized(lock) { dataWedgeChecked }) {
+      val status = query("GET_DATAWEDGE_STATUS", "RESULT_GET_DATAWEDGE_STATUS")
+        ?: throw ScannerException("ERR_UNAVAILABLE", "DataWedge did not answer.")
+      if (status.getString(API + "RESULT_GET_DATAWEDGE_STATUS").equals("disabled", ignoreCase = true)) {
+        throw ScannerException("ERR_UNAVAILABLE", "DataWedge is disabled on this device.")
+      }
+      synchronized(lock) { dataWedgeChecked = true }
     }
 
     val setUp = synchronized(lock) { profileName != name || profileParams != profile }
@@ -210,7 +226,8 @@ class ZebraScannerModule : Module() {
 
     // DataWedge picks the profile when the app's activity comes to the front;
     // the first time, the association may postdate that.
-    var active = queryActiveProfile()
+    var active = synchronized(lock) { activeProfile }
+    if (active != name) active = queryActiveProfile()
     if (active != name) {
       command("SWITCH_TO_PROFILE", name)
       active = queryActiveProfile()
@@ -222,10 +239,10 @@ class ZebraScannerModule : Module() {
       )
     }
 
-    switchParams(name, scanner)
-    command("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
+    val reopen = synchronized(lock) { opened }
+    applySymbologies(name, scanner, method, enable = !reopen)
     synchronized(lock) { opened = true }
-    diagnostic("opened", mapOf("profile" to name))
+    diagnostic("opened", mapOf("profile" to name, "method" to method))
   }
 
   private fun close() {
@@ -237,7 +254,11 @@ class ZebraScannerModule : Module() {
     if (!wasOpen) return
     // The barcode input plugin belongs to the active profile: in the
     // background that is another app's, which must keep its scanner.
-    val active = if (synchronized(lock) { foreground }) queryActiveProfile() else null
+    val active = if (synchronized(lock) { foreground }) {
+      synchronized(lock) { activeProfile } ?: queryActiveProfile()
+    } else {
+      null
+    }
     if (active != null && active == name) {
       command("SCANNER_INPUT_PLUGIN", "DISABLE_PLUGIN")
       diagnostic("closed", mapOf("disabled" to true))
@@ -308,11 +329,22 @@ class ZebraScannerModule : Module() {
   }
 
   /**
-   * Switches `wanted` for this claim, and puts back what an earlier claim
-   * switched and this one leaves out, from the profile's stored values (a
-   * request without symbologies keeps the profile's settings).
+   * Enables the barcode input (`enable`), then sets `wanted` for this claim
+   * and puts back what an earlier claim set and this one leaves out, from the
+   * profile's stored values (a request without symbologies keeps the
+   * profile's settings). The input goes first: on the TC22 a
+   * `SWITCH_SCANNER_PARAMS` sent before `ENABLE_PLUGIN` did not hold (an
+   * EAN-8 read with the first scope on), and one sent while the input was
+   * disabled had no answer in 5 s.
    */
-  private fun switchParams(name: String, wanted: Map<String, String>) {
+  private fun applySymbologies(name: String, wanted: Map<String, String>, method: String, enable: Boolean) {
+    // Keys set the other way are put back that way first.
+    val (previous, earlier) = synchronized(lock) { appliedWith to applied.toList() }
+    if (previous != null && previous != method && earlier.isNotEmpty()) {
+      val back = earlier.mapNotNull { key -> synchronized(lock) { originals[key] }?.let { key to it } }.toMap()
+      if (back.isNotEmpty()) setParams(name, back, previous)
+      synchronized(lock) { applied.clear() }
+    }
     val (unread, restore) = synchronized(lock) {
       wanted.keys.filter { it !in originals } to applied.filter { it !in wanted }
     }
@@ -326,16 +358,45 @@ class ZebraScannerModule : Module() {
       val original = synchronized(lock) { originals[key] }
       if (original != null) params[key] = original else unrestored.add(key)
     }
-    if (params.isNotEmpty()) command("SWITCH_SCANNER_PARAMS", bundleOf(params))
+    if (enable) {
+      // Its answer is not waited for when a command follows: DataWedge
+      // handles them in order, and each answer takes about 0.5 s.
+      if (params.isEmpty()) command("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
+      else fire("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
+    }
+    if (params.isNotEmpty()) setParams(name, params, method)
     synchronized(lock) {
       applied.clear()
       applied.addAll(wanted.keys)
-      switched = wanted
+      switched = if (method == "switch") wanted else emptyMap()
+      appliedWith = if (wanted.isEmpty()) null else method
     }
     diagnostic(
       "applied",
-      mapOf("switched" to wanted.size, "restored" to restore, "unrestored" to unrestored)
+      mapOf(
+        "method" to method,
+        "switched" to wanted.size,
+        "restored" to restore,
+        "unrestored" to unrestored
+      )
     )
+  }
+
+  /** Barcode input parameters for the claim (`switch`) or in the stored profile (`config`). */
+  private fun setParams(name: String, params: Map<String, String>, method: String) {
+    if (method == "config") {
+      command(
+        "SET_CONFIG",
+        Bundle().apply {
+          putString("PROFILE_NAME", name)
+          putString("PROFILE_ENABLED", "true")
+          putString("CONFIG_MODE", "UPDATE")
+          putBundle("PLUGIN_CONFIG", plugin("BARCODE", false, params))
+        }
+      )
+    } else {
+      command("SWITCH_SCANNER_PARAMS", bundleOf(params))
+    }
   }
 
   /** The profile's stored barcode input parameters (`GET_CONFIG`). */
@@ -394,6 +455,15 @@ class ZebraScannerModule : Module() {
   /** Sends a command and waits for its result; `null` when none came in time. */
   private fun command(name: String, value: Any): Bundle? = await(name, value, null, true)
 
+  /** Sends a command without waiting: its result reaches the diagnostics only. */
+  private fun fire(name: String, value: Any) {
+    val id = synchronized(lock) {
+      commands += 1
+      "glowup-$commands"
+    }
+    send(name, value, id, true)
+  }
+
   /** Sends a query and waits for the result extra it answers with. */
   private fun query(name: String, resultKey: String, value: Any = ""): Bundle? =
     await(name, value, API + resultKey, false)
@@ -428,7 +498,9 @@ class ZebraScannerModule : Module() {
       else -> intent.putExtra(API + name, value.toString())
     }
     if (id != null) intent.putExtra("COMMAND_IDENTIFIER", id)
-    if (sendResult) intent.putExtra("SEND_RESULT", "COMPLETE_RESULT")
+    // COMPLETE_RESULT is SET_CONFIG's (a result per plugin); with it, the
+    // other commands answered on the TC22 without a RESULT.
+    if (sendResult) intent.putExtra("SEND_RESULT", if (name == "SET_CONFIG") "COMPLETE_RESULT" else "true")
     context.sendBroadcast(intent)
   }
 
@@ -507,7 +579,10 @@ class ZebraScannerModule : Module() {
         handler?.post { command("SWITCH_SCANNER_PARAMS", bundleOf(claim.switched)) }
       }
     } else if (claim.foreground) {
-      lost("ERR_UNAVAILABLE", "DataWedge switched to the profile \"$profile\".")
+      handler?.postDelayed({
+        val taken = synchronized(lock) { opened && foreground && activeProfile == profile }
+        if (taken) lost("ERR_UNAVAILABLE", "DataWedge switched to the profile \"$profile\".")
+      }, LOSS_DELAY_MS)
     }
   }
 

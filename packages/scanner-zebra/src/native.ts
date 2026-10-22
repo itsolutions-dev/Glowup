@@ -39,17 +39,26 @@ export interface NativeScannerInfo {
 /** DataWedge parameters: every value is a string (`"true"`, `"1"`, `"UTF-8"`). */
 export type NativeParams = Record<string, string>;
 
+/**
+ * How a claim sets its symbologies: `switch` with `SWITCH_SCANNER_PARAMS`
+ * (the active profile's, until the next profile switch; the stored profile
+ * keeps its own), `config` with `SET_CONFIG` in the stored profile (put back
+ * to its earlier values by a request without symbologies).
+ */
+export type ZebraSymbologyMethod = "switch" | "config";
+
 export interface NativeOpenConfig {
   /** The DataWedge profile; `null`: the app's package name. */
   profileName: string | null;
   /** Barcode input parameters stored in the profile (the data's shape). */
   profile: NativeParams;
   /**
-   * Barcode input parameters for this claim only (`SWITCH_SCANNER_PARAMS`).
-   * A key an earlier call set and this one leaves out goes back to the
-   * profile's value.
+   * Barcode input parameters for this claim, set by `method`. A key an
+   * earlier call set and this one leaves out goes back to the profile's
+   * value.
    */
   scanner: NativeParams;
+  method: ZebraSymbologyMethod;
 }
 
 /** A diagnostic event: what DataWedge did, raw, while diagnostics are on. */
@@ -77,7 +86,7 @@ export interface NativeSubscription {
  * `NATIVE_REVISION`, raised together. A Metro reload changes the JavaScript
  * only, so an app built before a native change reports a lower one.
  */
-export const ZEBRA_SCANNER_NATIVE_REVISION = 1;
+export const ZEBRA_SCANNER_NATIVE_REVISION = 2;
 
 export interface ZebraScannerNativeModule {
   getRevision(): number;
@@ -86,7 +95,7 @@ export interface ZebraScannerNativeModule {
   setDiagnostics(enabled: boolean): void;
   /**
    * Sets the profile up (once per process and set of values), checks that
-   * DataWedge is using it, applies `scanner` and enables the barcode input.
+   * DataWedge is using it, enables the barcode input and applies `scanner`.
    * Again while open, it applies the new `scanner` parameters.
    */
   open(config: NativeOpenConfig): Promise<void>;

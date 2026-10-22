@@ -12,6 +12,7 @@ import type {
   NativeParams,
   NativeRead,
   NativeScannerInfo,
+  ZebraSymbologyMethod,
 } from "./native";
 
 /**
@@ -43,8 +44,9 @@ export const ZEBRA_SYMBOLOGIES = Object.keys(SYMBOLOGY_PARAMS) as BarcodeType[];
  * DataWedge's decoders outside `BarcodeType`: off whenever a request names
  * its own, since the contract turns "every other" off. The GS1 variants of
  * Data Matrix and QR are left alone: whether the plain decoder reads them is
- * to measure (ZB2). A name DataWedge does not know comes back in the
- * command's result (the diagnostics' `command` event).
+ * to measure (ZB2). DataWedge 15 stores every name below (the TC22's
+ * `GET_CONFIG` lists them); `decoder_us_postnet` and `decoder_us_planet`,
+ * absent there, are not sent.
  */
 export const OTHER_SYMBOLOGY_PARAMS: Readonly<NativeParams> = {
   decoder_australian_postal: "false",
@@ -71,8 +73,6 @@ export const OTHER_SYMBOLOGY_PARAMS: Readonly<NativeParams> = {
   decoder_upce1: "false",
   decoder_us4state: "false",
   decoder_us4state_fics: "false",
-  decoder_us_planet: "false",
-  decoder_us_postnet: "false",
 };
 
 /**
@@ -105,8 +105,9 @@ export const DATA_PARAMS: Readonly<NativeParams> = {
 export function toOpenConfig(
   symbologies: readonly BarcodeType[] | null,
   profileName: string | null,
+  method: ZebraSymbologyMethod = "switch",
 ): NativeOpenConfig {
-  const config = { profileName, profile: { ...DATA_PARAMS } };
+  const config = { profileName, profile: { ...DATA_PARAMS }, method };
   if (symbologies === null) return { ...config, scanner: {} };
   const wanted = new Set(symbologies);
   const scanner: NativeParams = { ...OTHER_SYMBOLOGY_PARAMS };

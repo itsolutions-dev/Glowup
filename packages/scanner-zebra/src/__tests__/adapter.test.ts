@@ -162,6 +162,39 @@ describe("createZebraBarcodeScannerAdapter", () => {
       expect(native.decode("ean13", "8001234567897")).toBe(true);
     });
 
+    it("writes the symbologies in the stored profile with the config method, and puts them back", async () => {
+      const { native, adapter, handlers } = setup({
+        symbologyMethod: "config",
+      });
+      await adapter.open({ symbologies: null }, handlers);
+      const before = native.stored;
+      await adapter.open({ symbologies: ["qr", "ean8"] }, handlers);
+      expect(native.stored).toMatchObject({
+        decoder_qrcode: "true",
+        decoder_ean8: "true",
+        decoder_ean13: "false",
+      });
+      expect(native.decode("ean13", "8001234567897")).toBe(false);
+      await adapter.open({ symbologies: null }, handlers);
+      expect(native.stored).toEqual(before);
+      expect(native.effective).toEqual(before);
+    });
+
+    it("puts back what one method set before applying the other", async () => {
+      const { native, adapter, handlers } = setup();
+      await adapter.open({ symbologies: null }, handlers);
+      const before = native.stored;
+      adapter.setSymbologyMethod("config");
+      await adapter.open({ symbologies: ["qr"] }, handlers);
+      expect(native.stored.decoder_ean13).toBe("false");
+      adapter.setSymbologyMethod("switch");
+      await adapter.open({ symbologies: ["qr"] }, handlers);
+      expect(native.stored).toEqual(before);
+      expect(native.effective.decoder_ean13).toBe("false");
+      await adapter.open({ symbologies: null }, handlers);
+      expect(native.effective).toEqual(before);
+    });
+
     it("reads every digit of a UPC whatever the profile's defaults", async () => {
       const { native, adapter, handlers, reads } = setup();
       await adapter.open({ symbologies: null }, handlers);
@@ -335,7 +368,7 @@ describe("createZebraBarcodeScannerAdapter", () => {
       expect(native.listenerCount).toBe(1);
       stop();
       expect(native.listenerCount).toBe(0);
-      expect(adapter.nativeRevision()).toBe(1);
+      expect(adapter.nativeRevision()).toBe(2);
     });
   });
 });
@@ -346,7 +379,9 @@ describe("toOpenConfig", () => {
       profileName: null,
       profile: DATA_PARAMS,
       scanner: {},
+      method: "switch",
     });
+    expect(toOpenConfig(null, "P", "config").method).toBe("config");
   });
 
   it("names every decoder with a list, the others off", () => {

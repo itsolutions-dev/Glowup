@@ -13,7 +13,8 @@
  *   locates), and caps at Android 11 the location the SDK's manifest declares
  *   for every version;
  * - declares Qualcomm's `com.qti.qrs.qc_sdk` library optional, as Zebra's
- *   sample does: the SDK refers to it for the readers built into some hosts.
+ *   sample does: the SDK refers to it for the readers built into some hosts;
+ * - keeps the app's `allowBackup` over the SDK's (`tools:replace`).
  *
  * Runs in Node at prebuild, not in the app: plain CommonJS, no build step.
  */
@@ -168,6 +169,25 @@ function addOptionalLibrary(manifest) {
   return manifest;
 }
 
+/**
+ * Keeps the app's `allowBackup`: the SDK's manifest sets it false, and the
+ * merge fails on the app's true otherwise.
+ */
+function keepAllowBackup(manifest) {
+  AndroidConfig.Manifest.ensureToolsAvailable(manifest);
+  const application =
+    AndroidConfig.Manifest.getMainApplicationOrThrow(manifest);
+  const attribute = "android:allowBackup";
+  const replaced = (application.$["tools:replace"] ?? "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean);
+  if (!replaced.includes(attribute)) {
+    application.$["tools:replace"] = [...replaced, attribute].join(",");
+  }
+  return manifest;
+}
+
 function withZebraRfid(config, options = {}) {
   const aarPath = options[SDK.option];
   if (typeof aarPath !== "string" || aarPath.trim() === "") {
@@ -201,7 +221,9 @@ function withZebraRfid(config, options = {}) {
     return mod;
   });
   config = withAndroidManifest(config, (mod) => {
-    mod.modResults = addOptionalLibrary(addPermissions(mod.modResults));
+    mod.modResults = keepAllowBackup(
+      addOptionalLibrary(addPermissions(mod.modResults)),
+    );
     return mod;
   });
   return config;

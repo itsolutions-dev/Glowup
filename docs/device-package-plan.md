@@ -2168,14 +2168,14 @@ confirm on the TC22):
 
 **Decisions (taken with the requester):**
 
-| #   | Question | Decision                                                                                                                                                                                                                                                                                                                               |
-| --- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ZD1 | Way      | DataWedge's intents, not EMDK and not the Scanner SDK: no SDK in the package or the app's build, nothing to supply, and the wedge of other apps untouched.                                                                                                                                                                             |
-| ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                                                                                                                                       |
-| ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call.                                                                                                                       |
-| ZD4 | Claim    | Symbologies per claim with `SWITCH_SCANNER_PARAMS` (the stored profile keeps its own; `null` puts them back), or in the stored profile with `SET_CONFIG` (`symbologyMethod: "config"`), whichever holds on the TC22 (ZB2); the barcode input enabled on `open()` before them, disabled on `close()` while the profile is still active. |
-| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                                                                                                                                             |
-| ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                             |
+| #   | Question | Decision                                                                                                                                                                                                                                                                                                                                  |
+| --- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ZD1 | Way      | DataWedge's intents, not EMDK and not the Scanner SDK: no SDK in the package or the app's build, nothing to supply, and the wedge of other apps untouched.                                                                                                                                                                                |
+| ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                                                                                                                                          |
+| ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call.                                                                                                                          |
+| ZD4 | Claim    | The claim's decoders written in the app's stored profile (`SET_CONFIG`); `null` puts back the profile's own, kept on the device from before the first write. Not `SWITCH_SCANNER_PARAMS`: on the TC22 it changed no decoder (ZB2). The barcode input enabled on `open()`, disabled on `close()` while the app is in front on its profile. |
+| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                                                                                                                                                |
+| ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                                |
 
 | Phase | Content                                                                                                                                                         | Release | Status      |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
@@ -2275,12 +2275,28 @@ notes:
   a second later; DataWedge's status checked once per process and the active profile taken from
   its notifications; the input's answer not awaited when a command follows. And a second way to
   set the symbologies, `symbologyMethod: "config"` (`SET_CONFIG` in the stored profile, put back
-  on `null`), with a switch in the diagnostics, to keep whichever holds.
+  on `null`), with a switch in the diagnostics, to keep whichever holds (revision 3 keeps the
+  second, below).
 - **The first scope** takes EAN-8 (C7, at the requester's ask): the diagnostics, the playground
   page (its out-of-scope label is now a UPC-A) and the consumer. The TC22's checks use UPC-A and
   UPC-E as the codes outside it.
-- **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, Zebra's
-  symbology method) remounted the scanner section, which kept the same request: the engine did
+- **The second run (revision 2)** still read UPC-A and UPC-E with the first scope on, with both
+  ways. DataWedge's log (`adb logcat -s DWAPI DataWedge`) told why for `SET_CONFIG`: "Key
+  PLUGIN_CONFIG expected ArrayList but value was a android.os.Bundle", so the single plugin
+  bundle the module sent was ignored (the profile's set-up, sent as a list, applied).
+  `SWITCH_SCANNER_PARAMS` answered SUCCESS and DataWedge's log shows it setting the scanner's
+  parameters, yet the decoders stayed on. UPC-A unchecked by hand in the app's profile
+  (DataWedge → Barcode input → Decoders) stopped the reads: the stored profile's decoders hold.
+  The run also showed the module believing the app in the background while it was in front
+  (every `close()` read no active profile, and `ENABLE_PLUGIN` answered
+  `SCANNER_ALREADY_ENABLED` each time): Expo's activity events are not reliable here.
+- **Fixed in native revision 3:** the decoders go in the stored profile only (`SET_CONFIG`, its
+  `PLUGIN_CONFIG` a list), `SWITCH_SCANNER_PARAMS` and `symbologyMethod` gone; the profile's own
+  values from before the first write kept in `SharedPreferences`, so `null` restores them after a
+  restart or a crash too; a value already written not written again (each `SET_CONFIG` reloads
+  the profile); the app's place in front read from Android (`ActivityManager.getMyMemoryState`).
+- **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, and Zebra's
+  symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
   not reopen and the setting waited for the next claim. The screen now lets go of the scanner for
   a moment, and its tests check the new `open()`.
 

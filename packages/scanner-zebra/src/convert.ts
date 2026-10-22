@@ -12,7 +12,6 @@ import type {
   NativeParams,
   NativeRead,
   NativeScannerInfo,
-  ZebraSymbologyMethod,
 } from "./native";
 
 /**
@@ -98,16 +97,15 @@ export const DATA_PARAMS: Readonly<NativeParams> = {
 };
 
 /**
- * What an `open()` sends: the profile's data parameters, and the symbology
- * switches for this claim. Without symbologies, none: the module puts back
- * any an earlier request switched, so the profile's own settings apply.
+ * What an `open()` sends: the profile's data parameters, and the decoders
+ * for this claim. Without symbologies, none: the module puts back every
+ * decoder it wrote, so the profile's own settings apply.
  */
 export function toOpenConfig(
   symbologies: readonly BarcodeType[] | null,
   profileName: string | null,
-  method: ZebraSymbologyMethod = "switch",
 ): NativeOpenConfig {
-  const config = { profileName, profile: { ...DATA_PARAMS }, method };
+  const config = { profileName, profile: { ...DATA_PARAMS } };
   if (symbologies === null) return { ...config, scanner: {} };
   const wanted = new Set(symbologies);
   const scanner: NativeParams = { ...OTHER_SYMBOLOGY_PARAMS };

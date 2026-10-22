@@ -354,7 +354,7 @@ function fakeScannerModule() {
 function fakeZebraModule() {
   const listeners = new Map<string, Set<(event: never) => void>>();
   let open = false;
-  const opens: { scanner: Record<string, string>; method: string }[] = [];
+  const opens: { scanner: Record<string, string> }[] = [];
   return {
     opens,
     get open() {
@@ -375,7 +375,7 @@ function fakeZebraModule() {
       getRevision: () => ZEBRA_SCANNER_NATIVE_REVISION,
       isDataWedgeInstalled: () => true,
       setDiagnostics() {},
-      async open(config: { scanner: Record<string, string>; method: string }) {
+      async open(config: { scanner: Record<string, string> }) {
         opens.push(config);
         open = true;
       },
@@ -529,7 +529,6 @@ describe("the scanner screen", () => {
       "decoder_ean8",
       "decoder_qrcode",
     ]);
-    expect(fake.opens.at(-1)!.method).toBe("switch");
     await act(async () => fake.decode("LOC:A-03-12"));
     expect(screen.getByText('"LOC:A-03-12"')).toBeTruthy();
     expect(
@@ -539,15 +538,6 @@ describe("the scanner screen", () => {
     expect(
       await screen.findByText(/Active profile: it.itsolutions.rfiddiagnostics/),
     ).toBeTruthy();
-    // The other way to set the decoders: the scanner is claimed again with it.
-    const opens = fake.opens.length;
-    await fireEvent(
-      screen.getByLabelText(/Decoders in the stored profile/),
-      "valueChange",
-      true,
-    );
-    await waitFor(() => expect(fake.opens.length).toBeGreaterThan(opens));
-    expect(fake.opens.at(-1)!.method).toBe("config");
   });
 });
 

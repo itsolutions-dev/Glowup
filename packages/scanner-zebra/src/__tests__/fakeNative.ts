@@ -7,7 +7,6 @@ import {
   type NativeParams,
   type NativeRead,
   type ZebraScannerNativeModule,
-  type ZebraSymbologyMethod,
 } from "../native";
 
 /** A rejection as the Expo module sends it: an Error with the module's code. */
@@ -69,6 +68,8 @@ export interface FakeDataWedge extends ZebraScannerNativeModule {
   emitRaw(read: Partial<NativeRead>): void;
   /** DataWedge switches to another app's profile while the app is in front. */
   takeAway(): void;
+  /** The app restarts: the module's state goes, DataWedge's and the kept originals stay. */
+  restart(): void;
   /** The profile DataWedge uses when `open()` asks (the first run: Profile0). */
   setActiveProfile(name: string | null): void;
   setDataWedgeEnabled(enabled: boolean): void;
@@ -79,8 +80,6 @@ export interface FakeDataWedge extends ZebraScannerNativeModule {
   readonly profileName: string | null;
   /** What the profile stores, as `GET_CONFIG` reads it. */
   readonly stored: NativeParams;
-  /** The parameters in effect: the stored ones and the claim's switches. */
-  readonly effective: NativeParams;
   readonly softwareTriggers: boolean[];
   readonly diagnostics: boolean;
   readonly listenerCount: number;
@@ -102,11 +101,9 @@ export function createFakeDataWedge(): FakeDataWedge {
   const failures = new Map<string, Error>();
   const softwareTriggers: boolean[] = [];
   let stored: NativeParams = {};
-  let switched: NativeParams = {};
-  const applied = new Set<string>();
-  // What each key held in the stored profile before a claim first set it.
+  // What each key held in the stored profile before the module first wrote
+  // it, by "profile/key": kept on the device, so a restart keeps it too.
   const originals = new Map<string, string | undefined>();
-  let appliedWith: ZebraSymbologyMethod | null = null;
   let profileName: string | null = null;
   let profileParams: string | null = null;
   let forcedProfile: string | null = null;
@@ -133,20 +130,6 @@ export function createFakeDataWedge(): FakeDataWedge {
     }
   }
 
-  const effective = (): NativeParams => ({ ...stored, ...switched });
-
-  /** A switch dropped, or a stored key back to its earlier value. */
-  function putBack(keys: string[], method: ZebraSymbologyMethod) {
-    for (const key of keys) {
-      if (method === "switch") {
-        delete switched[key];
-        continue;
-      }
-      const original = originals.get(key);
-      if (original !== undefined) stored[key] = original;
-    }
-  }
-
   const fake: FakeDataWedge = {
     getRevision: () => ZEBRA_SCANNER_NATIVE_REVISION,
     isDataWedgeInstalled: () => installed,
@@ -164,12 +147,8 @@ export function createFakeDataWedge(): FakeDataWedge {
       const name = config.profileName || PACKAGE;
       const params = JSON.stringify(config.profile);
       if (name !== profileName || params !== profileParams) {
-        if (name !== profileName) {
+        if (name !== profileName && profileName === null) {
           stored = { ...PROFILE_DEFAULTS };
-          switched = {};
-          applied.clear();
-          originals.clear();
-          appliedWith = null;
         }
         stored = { ...stored, ...config.profile };
         profileName = name;
@@ -182,26 +161,20 @@ export function createFakeDataWedge(): FakeDataWedge {
           `DataWedge is using the profile "${active}", not "${name}": bring the app to the front again.`,
         );
       }
-      // Keys set the other way go back that way first.
-      if (appliedWith !== null && appliedWith !== config.method) {
-        putBack([...applied], appliedWith);
-        applied.clear();
-      }
+      // The claim's decoders go in the stored profile; every other key the
+      // module wrote goes back to the profile's own value from before.
+      const written: NativeParams = { ...config.scanner };
       for (const key of Object.keys(config.scanner)) {
-        if (!originals.has(key)) originals.set(key, stored[key]);
+        if (!originals.has(`${name}/${key}`)) {
+          originals.set(`${name}/${key}`, stored[key]);
+        }
       }
-      // The request replaces the earlier claim's; a key left out goes back
-      // to the profile's value.
-      const restored = [...applied].filter((key) => !(key in config.scanner));
-      if (config.method === "config") {
-        stored = { ...stored, ...config.scanner };
-      } else {
-        switched = { ...switched, ...config.scanner };
+      for (const [kept, original] of originals) {
+        const key = kept.slice(name.length + 1);
+        if (!kept.startsWith(`${name}/`) || key in written) continue;
+        if (original !== undefined) written[key] = original;
       }
-      putBack(restored, config.method);
-      applied.clear();
-      Object.keys(config.scanner).forEach((key) => applied.add(key));
-      appliedWith = applied.size > 0 ? config.method : null;
+      stored = { ...stored, ...written };
       if (!isOpen) {
         takeFailure("enable");
         isOpen = true;
@@ -210,6 +183,10 @@ export function createFakeDataWedge(): FakeDataWedge {
     },
     async close() {
       isOpen = false;
+    },
+    restart() {
+      isOpen = false;
+      profileParams = null;
     },
     async softwareTrigger(pressed) {
       if (!isOpen)
@@ -265,7 +242,7 @@ export function createFakeDataWedge(): FakeDataWedge {
 
     decode(type, data) {
       const symbology = DEVICE_SYMBOLOGIES[type];
-      const params = effective();
+      const params = stored;
       if (!isOpen || params[symbology.decoder] !== "true") return false;
       let text = data;
       for (const upc of ["upca", "upce0"]) {
@@ -328,9 +305,6 @@ export function createFakeDataWedge(): FakeDataWedge {
     },
     get stored() {
       return { ...stored };
-    },
-    get effective() {
-      return effective();
     },
     get softwareTriggers() {
       return [...softwareTriggers];

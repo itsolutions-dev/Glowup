@@ -20,5 +20,4 @@ export {
   type NativeScanner as ZebraScanner,
   type NativeScannerInfo as ZebraScannerInfo,
   type ZebraScannerDiagnostic,
-  type ZebraSymbologyMethod,
 } from "./native";

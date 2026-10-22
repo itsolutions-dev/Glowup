@@ -1,5 +1,6 @@
 package expo.modules.scannerzebra
 
+import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -23,7 +24,7 @@ class ScannerException(code: String, message: String, cause: Throwable? = null) 
 
 // Raised with every native change: JavaScript compares it with its own
 // (ZEBRA_SCANNER_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 2
+private const val NATIVE_REVISION = 3
 
 private const val DATAWEDGE = "com.symbol.datawedge"
 private const val API = "com.symbol.datawedge.api."
@@ -37,10 +38,17 @@ private const val CATEGORY = "android.intent.category.DEFAULT"
 // on a configuration change, which takes a moment.
 private const val COMMAND_TIMEOUT_MS = 5_000L
 
-// DataWedge names the next app's profile a moment before Expo reports this
-// app in the background (measured on the TC22, Home pressed): a switch away
-// means another app took the scanner only if the app is still in front then.
+// DataWedge names the launcher's profile as Home is pressed, before the app
+// leaves the front (measured on the TC22): a switch away means another app
+// took the scanner only if this one is still in front a second later.
 private const val LOSS_DELAY_MS = 1_000L
+
+// Where the profile's own decoder values are kept, from before the module
+// first wrote them: a request without symbologies puts them back, after a
+// crash or a restart too.
+private const val ORIGINALS = "expo.modules.scannerzebra.originals"
+// DataWedge did not list the key: nothing to put back.
+private const val UNKNOWN = "\u0000"
 
 /**
  * DataWedge (`com.symbol.datawedge`, on every Zebra mobile computer) behind
@@ -51,12 +59,12 @@ private const val LOSS_DELAY_MS = 1_000L
  * app, sends each decode to this module as a broadcast (intent output on,
  * keystroke output and data formatting off): other apps keep their profiles,
  * so their keyboard wedge is untouched. `open()` checks that DataWedge is
- * using the profile, enables the barcode input, then sets the claim's
- * symbologies: `switch` with `SWITCH_SCANNER_PARAMS` (the active profile's,
- * until the next profile switch), `config` with `SET_CONFIG` in the stored
- * profile; `close()` disables the input. The parameters come from JavaScript
- * as DataWedge's own names (`decoder_qrcode`), so the mapping is tested
- * there.
+ * using the profile, enables the barcode input, then writes the claim's
+ * decoders in the stored profile (`SET_CONFIG`): on the TC22,
+ * `SWITCH_SCANNER_PARAMS` answered SUCCESS and changed no decoder, while the
+ * profile's own decoders hold. `close()` disables the input. The parameters
+ * come from JavaScript as DataWedge's own names (`decoder_qrcode`), so the
+ * mapping is tested there.
  *
  * Threads: commands that wait for DataWedge's result run on `worker`; the
  * receiver runs on `events`, which completes them. State goes through
@@ -66,9 +74,6 @@ class ZebraScannerModule : Module() {
   private val lock = Any()
 
   private var opened = false
-  // The activity's state as Expo reports it: a profile switch while the app
-  // is in front means DataWedge left the profile for another app.
-  private var foreground = true
   private var profileName: String? = null
   // The data parameters the profile was last set up with (null: not yet).
   private var profileParams: Map<String, String>? = null
@@ -79,12 +84,9 @@ class ZebraScannerModule : Module() {
   // query): each command takes DataWedge about 0.5 s to answer (measured).
   private var activeProfile: String? = null
 
-  // What each switched key holds in the profile (null: DataWedge did not say).
-  private val originals = HashMap<String, String?>()
-  private val applied = HashSet<String>()
-  private var switched: Map<String, String> = emptyMap()
-  // How `applied` was set: "switch" or "config".
-  private var appliedWith: String? = null
+  // What the module last wrote in the profile: written again only when it
+  // changes, since each SET_CONFIG reloads the profile.
+  private val written = HashMap<String, String>()
 
   private class Waiter(val id: String, val resultKey: String?) {
     val latch = CountDownLatch(1)
@@ -129,14 +131,6 @@ class ZebraScannerModule : Module() {
       }
       worker?.quitSafely()
       events?.quitSafely()
-    }
-
-    OnActivityEntersForeground {
-      synchronized(lock) { foreground = true }
-    }
-
-    OnActivityEntersBackground {
-      synchronized(lock) { foreground = false }
     }
 
     Function("getRevision") {
@@ -206,7 +200,6 @@ class ZebraScannerModule : Module() {
     val name = (config["profileName"] as? String)?.takeIf { it.isNotBlank() } ?: context.packageName
     val profile = strings(config["profile"])
     val scanner = strings(config["scanner"])
-    val method = if (config["method"] == "config") "config" else "switch"
 
     if (!synchronized(lock) { dataWedgeChecked }) {
       val status = query("GET_DATAWEDGE_STATUS", "RESULT_GET_DATAWEDGE_STATUS")
@@ -240,9 +233,9 @@ class ZebraScannerModule : Module() {
     }
 
     val reopen = synchronized(lock) { opened }
-    applySymbologies(name, scanner, method, enable = !reopen)
+    applySymbologies(name, scanner, enable = !reopen)
     synchronized(lock) { opened = true }
-    diagnostic("opened", mapOf("profile" to name, "method" to method))
+    diagnostic("opened", mapOf("profile" to name))
   }
 
   private fun close() {
@@ -254,7 +247,7 @@ class ZebraScannerModule : Module() {
     if (!wasOpen) return
     // The barcode input plugin belongs to the active profile: in the
     // background that is another app's, which must keep its scanner.
-    val active = if (synchronized(lock) { foreground }) {
+    val active = if (isForeground()) {
       synchronized(lock) { activeProfile } ?: queryActiveProfile()
     } else {
       null
@@ -311,11 +304,7 @@ class ZebraScannerModule : Module() {
     }
     command("SET_CONFIG", update)
     synchronized(lock) {
-      if (profileName != name) {
-        originals.clear()
-        applied.clear()
-        switched = emptyMap()
-      }
+      if (profileName != name) written.clear()
       profileName = name
       profileParams = params
     }
@@ -329,75 +318,71 @@ class ZebraScannerModule : Module() {
   }
 
   /**
-   * Enables the barcode input (`enable`), then sets `wanted` for this claim
-   * and puts back what an earlier claim set and this one leaves out, from the
-   * profile's stored values (a request without symbologies keeps the
-   * profile's settings). The input goes first: on the TC22 a
-   * `SWITCH_SCANNER_PARAMS` sent before `ENABLE_PLUGIN` did not hold (an
-   * EAN-8 read with the first scope on), and one sent while the input was
-   * disabled had no answer in 5 s.
+   * Enables the barcode input (`enable`), then writes `wanted` in the stored
+   * profile and puts every other key the module ever wrote back to the
+   * profile's own value from before (a request without symbologies keeps the
+   * profile's settings). The originals are kept on the device, so a restart
+   * or a crash with symbologies written still finds them. A value the
+   * profile already holds from the module is not written again.
    */
-  private fun applySymbologies(name: String, wanted: Map<String, String>, method: String, enable: Boolean) {
-    // Keys set the other way are put back that way first.
-    val (previous, earlier) = synchronized(lock) { appliedWith to applied.toList() }
-    if (previous != null && previous != method && earlier.isNotEmpty()) {
-      val back = earlier.mapNotNull { key -> synchronized(lock) { originals[key] }?.let { key to it } }.toMap()
-      if (back.isNotEmpty()) setParams(name, back, previous)
-      synchronized(lock) { applied.clear() }
-    }
-    val (unread, restore) = synchronized(lock) {
-      wanted.keys.filter { it !in originals } to applied.filter { it !in wanted }
-    }
+  private fun applySymbologies(name: String, wanted: Map<String, String>, enable: Boolean) {
+    val prefix = "$name/"
+    val restore = originals().all.keys
+      .filter { it.startsWith(prefix) }
+      .map { it.removePrefix(prefix) }
+      .filter { it !in wanted }
+    val unread = wanted.keys.filter { original(name, it) == null }
     if (unread.isNotEmpty()) {
       val stored = storedParams(name)
-      synchronized(lock) { unread.forEach { originals[it] = stored?.getString(it) } }
+      val edit = originals().edit()
+      unread.forEach { key -> edit.putString(originalKey(name, key), stored?.getString(key) ?: UNKNOWN) }
+      edit.apply()
     }
     val params = HashMap(wanted)
     val unrestored = ArrayList<String>()
     for (key in restore) {
-      val original = synchronized(lock) { originals[key] }
-      if (original != null) params[key] = original else unrestored.add(key)
+      val original = original(name, key)
+      if (original != null && original != UNKNOWN) params[key] = original else unrestored.add(key)
     }
+    val changed = synchronized(lock) { params.filter { (key, value) -> written[key] != value } }
     if (enable) {
       // Its answer is not waited for when a command follows: DataWedge
       // handles them in order, and each answer takes about 0.5 s.
-      if (params.isEmpty()) command("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
+      if (changed.isEmpty()) command("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
       else fire("SCANNER_INPUT_PLUGIN", "ENABLE_PLUGIN")
     }
-    if (params.isNotEmpty()) setParams(name, params, method)
-    synchronized(lock) {
-      applied.clear()
-      applied.addAll(wanted.keys)
-      switched = if (method == "switch") wanted else emptyMap()
-      appliedWith = if (wanted.isEmpty()) null else method
-    }
-    diagnostic(
-      "applied",
-      mapOf(
-        "method" to method,
-        "switched" to wanted.size,
-        "restored" to restore,
-        "unrestored" to unrestored
-      )
-    )
-  }
-
-  /** Barcode input parameters for the claim (`switch`) or in the stored profile (`config`). */
-  private fun setParams(name: String, params: Map<String, String>, method: String) {
-    if (method == "config") {
+    if (changed.isNotEmpty()) {
       command(
         "SET_CONFIG",
         Bundle().apply {
           putString("PROFILE_NAME", name)
           putString("PROFILE_ENABLED", "true")
           putString("CONFIG_MODE", "UPDATE")
-          putBundle("PLUGIN_CONFIG", plugin("BARCODE", false, params))
+          // A list: DataWedge 15 reads PLUGIN_CONFIG as an ArrayList and
+          // ignored a single Bundle (measured, "expected ArrayList").
+          putParcelableArrayList("PLUGIN_CONFIG", arrayListOf(plugin("BARCODE", false, changed)))
         }
       )
-    } else {
-      command("SWITCH_SCANNER_PARAMS", bundleOf(params))
     }
+    synchronized(lock) { written.putAll(changed) }
+    diagnostic(
+      "applied",
+      mapOf(
+        "requested" to wanted.size,
+        "written" to changed.size,
+        "restored" to restore,
+        "unrestored" to unrestored
+      )
+    )
   }
+
+  private fun originals() = context.getSharedPreferences(ORIGINALS, Context.MODE_PRIVATE)
+
+  private fun originalKey(profile: String, key: String) = "$profile/$key"
+
+  /** The profile's own value from before the module wrote it; `UNKNOWN`, or null when not kept yet. */
+  private fun original(profile: String, key: String): String? =
+    originals().getString(originalKey(profile, key), null)
 
   /** The profile's stored barcode input parameters (`GET_CONFIG`). */
   private fun storedParams(name: String): Bundle? {
@@ -568,22 +553,17 @@ class ZebraScannerModule : Module() {
     val profile = bundle.getString("PROFILE_NAME")
     diagnostic("notification", mapOf("notification" to type, "status" to bundle.getString("STATUS"), "profile" to profile))
     if (type != "PROFILE_SWITCH") return
-    val claim = synchronized(lock) {
+    val (open, ours) = synchronized(lock) {
       activeProfile = profile
-      Claim(opened, profileName, foreground, switched)
+      opened to profileName
     }
-    if (!claim.open) return
-    if (profile == claim.profile) {
-      // DataWedge dropped the switched parameters with the switch.
-      if (claim.switched.isNotEmpty()) {
-        handler?.post { command("SWITCH_SCANNER_PARAMS", bundleOf(claim.switched)) }
+    if (!open || profile == ours) return
+    handler?.postDelayed({
+      val taken = synchronized(lock) { opened && activeProfile == profile }
+      if (taken && isForeground()) {
+        lost("ERR_UNAVAILABLE", "DataWedge switched to the profile \"$profile\".")
       }
-    } else if (claim.foreground) {
-      handler?.postDelayed({
-        val taken = synchronized(lock) { opened && foreground && activeProfile == profile }
-        if (taken) lost("ERR_UNAVAILABLE", "DataWedge switched to the profile \"$profile\".")
-      }, LOSS_DELAY_MS)
-    }
+    }, LOSS_DELAY_MS)
   }
 
   private fun onScan(intent: Intent) {
@@ -623,13 +603,15 @@ class ZebraScannerModule : Module() {
 
   // --- Helpers ------------------------------------------------------------
 
-  /** The claim's state, read at once under `lock`. */
-  private class Claim(
-    val open: Boolean,
-    val profile: String?,
-    val foreground: Boolean,
-    val switched: Map<String, String>
-  )
+  /**
+   * Whether the app is in front, from Android: Expo's activity events left
+   * the module believing it was in the background on the TC22.
+   */
+  private fun isForeground(): Boolean {
+    val state = ActivityManager.RunningAppProcessInfo()
+    ActivityManager.getMyMemoryState(state)
+    return state.importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+  }
 
   /** Runs `block` on the worker, which may wait for DataWedge. */
   private fun post(promise: Promise, block: () -> Any?) {
@@ -653,9 +635,6 @@ class ZebraScannerModule : Module() {
       ?.mapNotNull { (key, item) -> if (key is String && item != null) key to item.toString() else null }
       ?.toMap()
       ?: emptyMap()
-
-  private fun bundleOf(params: Map<String, String>) =
-    Bundle().apply { params.forEach { (key, value) -> putString(key, value) } }
 
   private fun hex(bytes: ByteArray): String =
     bytes.take(64).joinToString("") { "%02x".format(it) } + if (bytes.size > 64) "…" else ""

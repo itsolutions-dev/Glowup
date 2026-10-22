@@ -4,7 +4,6 @@ import {
   type BarcodeType,
 } from "@its/glowup-device/scanner";
 import type { HoneywellTriggerControl } from "@its/scanner-honeywell";
-import type { ZebraSymbologyMethod } from "@its/scanner-zebra";
 import { useEffect, useRef, useState } from "react";
 import { Platform, Share, Text, TextInput } from "react-native";
 
@@ -85,10 +84,9 @@ export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
   const [diagnostics, setDiagnostics] = useState(true);
   const { measurements, reset } = useScannerMeasurements(scanner, diagnostics);
   const [control, setControl] = useState<HoneywellTriggerControl>("auto");
-  const [method, setMethod] = useState<ZebraSymbologyMethod>("switch");
-  // A setting the adapter applies on open(): the screen lets go of the
-  // scanner for a moment, so the engine closes it and opens it again (the
-  // same request, kept by a remounted screen, would not reopen it).
+  // The trigger control applies on open(): the screen lets go of the scanner
+  // for a moment, so the engine closes it and opens it again (the same
+  // request, kept by a remounted screen, would not reopen it).
   const [releasing, setReleasing] = useState(false);
   const reclaim = () => {
     setReleasing(true);
@@ -144,18 +142,7 @@ export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
               reclaim();
             }}
           />
-        ) : (
-          <Toggle
-            label="Decoders in the stored profile (SET_CONFIG; off: switched for the claim, SWITCH_SCANNER_PARAMS)"
-            value={method === "config"}
-            onChange={(stored) => {
-              const next = stored ? "config" : "switch";
-              scanner.adapter.setSymbologyMethod(next);
-              setMethod(next);
-              reclaim();
-            }}
-          />
-        )}
+        ) : null}
       </Section>
       <ScannerSession
         scanner={scanner}
@@ -178,11 +165,7 @@ export function ScannerScreen({ scanner }: { scanner: ScannerVendor }) {
         host={
           scanner.name === "honeywell"
             ? { ...host, triggerControl: control }
-            : {
-                ...host,
-                dataWedge: scanner.adapter.hasDataWedge(),
-                symbologyMethod: method,
-              }
+            : { ...host, dataWedge: scanner.adapter.hasDataWedge() }
         }
         onReset={reset}
       />

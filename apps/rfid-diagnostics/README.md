@@ -148,7 +148,7 @@ without the UTF-8 ECI), a Code 128 (and a GS1-128 label if there is one), an EAN
 a Data Matrix, and codes of other kinds (a UPC-A, a UPC-E). The page of test codes made for the
 TC22 has them all.
 
-1. **Host:** "Scanner adapter" should read `supported`, "Native module" revision 2, and "State"
+1. **Host:** "Scanner adapter" should read `supported`, "Native module" revision 3, and "State"
    `open · held by this screen`. Note how long "opening" lasts the first time and on later
    openings (from revision 2 it should be under a second after the first). Note anything in
    red: a message naming another DataWedge
@@ -165,9 +165,9 @@ TC22 has them all.
    Code 128, EAN-13, EAN-8, Data Matrix" off and scan them again: they should appear now (the
    profile's settings); turn it on again and they should not. Is the non-ASCII QR's text right,
    with and without the ECI? Does the EAN-13 have 13 digits, the UPC-A 12, the UPC-E 8?
-   **Then turn "Decoders in the stored profile" on** (the scanner closes and opens again) and
-   repeat the UPC-A with the first scope on, then off, then on: the two ways of switching the
-   decoders, to keep the one that holds. Turn it off again before step 4.
+   From revision 3 the scope is written in the app's profile: with it on, DataWedge → the app's
+   profile → Barcode input → Decoders shows UPC-A and UPC-E off; with it off, as they were
+   before the app first wrote them.
 4. **Keyboard wedge:** tap the "Wedge output" field and scan, held and with "Hold the scanner"
    off: nothing should be typed (the app's profile has no keystroke output).
 5. **Repeats and a slow confirmation:** as on the CT40 (step 4 above).

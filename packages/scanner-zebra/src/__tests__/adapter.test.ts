@@ -130,69 +130,53 @@ describe("createZebraBarcodeScannerAdapter", () => {
       expect(named.native.profileName).toBe("Warehouse");
     });
 
-    it("switches the requested symbologies on and every other off, for the claim only", async () => {
+    it("writes the requested decoders on and every other off in the app's profile", async () => {
       const { native, adapter, handlers } = setup();
       await adapter.open(
-        { symbologies: ["qr", "code128", "ean13", "datamatrix"] },
+        { symbologies: ["qr", "code128", "ean13", "ean8", "datamatrix"] },
         handlers,
       );
-      expect(native.effective).toMatchObject({
+      expect(native.stored).toMatchObject({
         decoder_qrcode: "true",
         decoder_code128: "true",
         decoder_ean13: "true",
+        decoder_ean8: "true",
         decoder_datamatrix: "true",
-        decoder_ean8: "false",
         decoder_upca: "false",
+        decoder_upce0: "false",
         decoder_pdf417: "false",
         decoder_msi: "false",
         decoder_maxicode: "false",
       });
-      // The profile keeps its own decoders: the switch is the claim's.
-      expect(native.stored.decoder_ean8).toBe("true");
-      expect(native.decode("ean8", "96385074")).toBe(false);
-      expect(native.decode("qr", "A1")).toBe(true);
+      expect(native.decode("upc_a", "036000291452")).toBe(false);
+      expect(native.decode("ean8", "96385074")).toBe(true);
     });
 
-    it("puts the profile's settings back for a request without symbologies", async () => {
-      const { native, adapter, handlers } = setup();
-      await adapter.open({ symbologies: ["qr"] }, handlers);
-      expect(native.effective.decoder_ean13).toBe("false");
-      await adapter.open({ symbologies: null }, handlers);
-      expect(native.effective).toEqual(native.stored);
-      expect(native.decode("ean13", "8001234567897")).toBe(true);
-    });
-
-    it("writes the symbologies in the stored profile with the config method, and puts them back", async () => {
-      const { native, adapter, handlers } = setup({
-        symbologyMethod: "config",
-      });
-      await adapter.open({ symbologies: null }, handlers);
-      const before = native.stored;
-      await adapter.open({ symbologies: ["qr", "ean8"] }, handlers);
-      expect(native.stored).toMatchObject({
-        decoder_qrcode: "true",
-        decoder_ean8: "true",
-        decoder_ean13: "false",
-      });
-      expect(native.decode("ean13", "8001234567897")).toBe(false);
-      await adapter.open({ symbologies: null }, handlers);
-      expect(native.stored).toEqual(before);
-      expect(native.effective).toEqual(before);
-    });
-
-    it("puts back what one method set before applying the other", async () => {
+    it("puts the profile's own decoders back for a request without symbologies", async () => {
       const { native, adapter, handlers } = setup();
       await adapter.open({ symbologies: null }, handlers);
       const before = native.stored;
-      adapter.setSymbologyMethod("config");
       await adapter.open({ symbologies: ["qr"] }, handlers);
       expect(native.stored.decoder_ean13).toBe("false");
-      adapter.setSymbologyMethod("switch");
-      await adapter.open({ symbologies: ["qr"] }, handlers);
-      expect(native.stored).toEqual(before);
-      expect(native.effective.decoder_ean13).toBe("false");
+      await adapter.open({ symbologies: ["qr", "ean13"] }, handlers);
+      expect(native.stored.decoder_upca).toBe("false");
       await adapter.open({ symbologies: null }, handlers);
-      expect(native.effective).toEqual(before);
+      expect(native.stored).toEqual(before);
+      expect(native.decode("upc_a", "036000291452")).toBe(true);
+    });
+
+    it("finds the profile's own decoders after a restart with symbologies written", async () => {
+      const { native, adapter, handlers } = setup();
+      await adapter.open({ symbologies: null }, handlers);
+      const before = native.stored;
+      await adapter.open({ symbologies: ["qr"] }, handlers);
+      native.restart();
+      const again = createZebraBarcodeScannerAdapter({
+        native,
+        manufacturer: () => "Zebra Technologies",
+      });
+      await again.open({ symbologies: null }, handlers);
+      expect(native.stored).toEqual(before);
     });
 
     it("reads every digit of a UPC whatever the profile's defaults", async () => {
@@ -368,7 +352,7 @@ describe("createZebraBarcodeScannerAdapter", () => {
       expect(native.listenerCount).toBe(1);
       stop();
       expect(native.listenerCount).toBe(0);
-      expect(adapter.nativeRevision()).toBe(2);
+      expect(adapter.nativeRevision()).toBe(3);
     });
   });
 });
@@ -379,9 +363,7 @@ describe("toOpenConfig", () => {
       profileName: null,
       profile: DATA_PARAMS,
       scanner: {},
-      method: "switch",
     });
-    expect(toOpenConfig(null, "P", "config").method).toBe("config");
   });
 
   it("names every decoder with a list, the others off", () => {

@@ -39,26 +39,17 @@ export interface NativeScannerInfo {
 /** DataWedge parameters: every value is a string (`"true"`, `"1"`, `"UTF-8"`). */
 export type NativeParams = Record<string, string>;
 
-/**
- * How a claim sets its symbologies: `switch` with `SWITCH_SCANNER_PARAMS`
- * (the active profile's, until the next profile switch; the stored profile
- * keeps its own), `config` with `SET_CONFIG` in the stored profile (put back
- * to its earlier values by a request without symbologies).
- */
-export type ZebraSymbologyMethod = "switch" | "config";
-
 export interface NativeOpenConfig {
   /** The DataWedge profile; `null`: the app's package name. */
   profileName: string | null;
   /** Barcode input parameters stored in the profile (the data's shape). */
   profile: NativeParams;
   /**
-   * Barcode input parameters for this claim, set by `method`. A key an
-   * earlier call set and this one leaves out goes back to the profile's
-   * value.
+   * The claim's decoders, written in the stored profile (`SET_CONFIG`). Every
+   * other key the module wrote goes back to the profile's own value from
+   * before, kept on the device.
    */
   scanner: NativeParams;
-  method: ZebraSymbologyMethod;
 }
 
 /** A diagnostic event: what DataWedge did, raw, while diagnostics are on. */
@@ -86,7 +77,7 @@ export interface NativeSubscription {
  * `NATIVE_REVISION`, raised together. A Metro reload changes the JavaScript
  * only, so an app built before a native change reports a lower one.
  */
-export const ZEBRA_SCANNER_NATIVE_REVISION = 2;
+export const ZEBRA_SCANNER_NATIVE_REVISION = 3;
 
 export interface ZebraScannerNativeModule {
   getRevision(): number;

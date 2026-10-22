@@ -22,6 +22,7 @@ import PdfPage, { type PdfHighlight } from "./PdfPage";
 import { PdfSearchPanel, PdfToolbar } from "./PdfToolbar";
 import { toPdfError } from "./errors";
 import { usableSize } from "./pageGeometry";
+import { createRenderQueue } from "./renderQueue";
 import { fillLabel, withDefaultLabels } from "./labels";
 import { resolveSource, sourceKey, type ResolvedFile } from "./source";
 import type { PdfError, PdfMatch, PdfPageSize, PdfViewerProps } from "./types";
@@ -179,6 +180,12 @@ const PdfDocument = ({
     Math.max(1, Math.floor(initialPage) || 1),
   );
   const lastReported = useRef(page);
+  // The drawings wait in a queue that serves the page being read first (see renderQueue.ts).
+  const queue = useMemo(
+    () => (uri ? createRenderQueue(native, uri) : null),
+    [native, uri],
+  );
+  useEffect(() => queue?.reading(page), [queue, page]);
   const pageHandler = useRef<(next: number) => void>(() => {});
   useEffect(() => {
     pageHandler.current = (next) => {
@@ -295,7 +302,7 @@ const PdfDocument = ({
         />
       </View>
     );
-  } else if (pages && uri) {
+  } else if (pages && uri && queue) {
     const list = (
       <FlatList
         ref={listRef}
@@ -324,12 +331,11 @@ const PdfDocument = ({
         renderItem={({ item: i }) => (
           <View style={{ marginBottom: GAP }}>
             <PdfPage
-              uri={uri}
               index={i}
               size={pages[i]}
               width={pageWidth}
               renderWidth={renderWidth}
-              native={native}
+              queue={queue}
               highlights={highlights.get(i) ?? []}
               highlightColor={colors.primary}
               failedLabel={labels.pageFailed}

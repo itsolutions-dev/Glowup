@@ -2,19 +2,19 @@ import React, { memo, useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { CircularProgress, useTheme } from "@its/glowup-ui";
 import { drawWidth } from "./pageGeometry";
-import type { PdfNative, PdfPageSize, PdfRect } from "./types";
+import type { RenderQueue } from "./renderQueue";
+import type { PdfPageSize, PdfRect } from "./types";
 
 export type PdfHighlight = { rect: PdfRect; current: boolean };
 
 type Props = {
-  uri: string;
   index: number;
   size: PdfPageSize;
   /** The page's width on screen, in layout units. */
   width: number;
   /** The width to draw it at, in pixels. */
   renderWidth: number;
-  native: PdfNative;
+  queue: RenderQueue;
   highlights: PdfHighlight[];
   highlightColor: string;
   failedLabel: string;
@@ -23,12 +23,11 @@ type Props = {
 
 /** One page: its image, drawn by the native side, with the search hits over it. */
 const PdfPage = ({
-  uri,
   index,
   size,
   width,
   renderWidth,
-  native,
+  queue,
   highlights,
   highlightColor,
   failedLabel,
@@ -44,8 +43,8 @@ const PdfPage = ({
   useEffect(() => {
     let cancelled = false;
     // The previous image stays up (stretched) until the sharper one arrives.
-    native
-      .renderPage(uri, index, pixels)
+    const request = queue.render(index, pixels);
+    request.promise
       .then((next) => {
         if (cancelled) return;
         setImage(next);
@@ -57,8 +56,10 @@ const PdfPage = ({
       });
     return () => {
       cancelled = true;
+      // A page that left the list or changed width no longer waits for its drawing.
+      request.cancel();
     };
-  }, [native, uri, index, pixels, attempt]);
+  }, [queue, index, pixels, attempt]);
 
   return (
     <View

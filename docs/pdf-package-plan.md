@@ -12,6 +12,11 @@ salvataggio avanzati si fanno fuori (sul web il browser già li ha; sul nativo c
 passo 7 (ricerca di riserva con PdfBox) è abbandonato** e il lavoro che resta è l'affidabilità della visualizzazione (§8, passo 9).
 La visualizzazione dentro la pagina sui **browser da telefono** è rinviata a una fase successiva (§12).
 
+**Richiesta del 2026-10-22 (Alice): migliorare il visualizzatore su sei funzioni** (download, stampa, pagine, scorrimento, zoom,
+ricerca), dopo un confronto con le altre librerie PDF di React Native, del web e di Android. Questo **amplia** la decisione del
+21/10 su ricerca, stampa e salvataggio: l'esito del confronto e l'ordine dei lavori sono in §13 (passi 10–14 di §8). Il passo 7
+resta abbandonato e la fase 12 rinviata.
+
 ---
 
 ## 1. Obiettivo, requisiti e vincolo
@@ -66,7 +71,7 @@ ha provato rimane vero: i file si scaricano con le intestazioni e poi si aprono)
   dove il sistema lo offre (§5).
 - **Niente PDF con password** nella prima versione (errore chiaro).
 - **Zoom con i pulsanti** nella prima versione. Lo zoom con due dita richiede di leggere i tocchi multipli a mano
-  (`PanResponder`, senza `react-native-gesture-handler`): si fa dopo.
+  (`PanResponder`, senza `react-native-gesture-handler`): si fa dopo (passo 11, §13).
 
 ## 3. Architettura
 
@@ -235,6 +240,11 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 7   | **Solo se serve — Android, ricerca di riserva (§5, via 2):** copiare da PdfBox-Android la sola lettura del testo in `packages/pdf/android`, con licenza e `NOTICE`, adattarla, trasformare le posizioni in rettangoli normalizzati; `docs/pdf-upstream.md`; opzione per forzarla                                                                                                                                                                                                  | CI su più versioni di Android (almeno 14 e una vecchia); misure su PDF reali del CRM: tempo e memoria                                             |
 | 8   | **Documentazione (fatto 2026-10-20, tranne il changeset):** README con limiti (§2), `docs/solaris-native.md` (D9 e Fase 6), `docs/work-split.md`, `packages/pdf/CLAUDE.md`, changeset quando il pacchetto esce da `private`                                                                                                                                                                                                                                                       |                                                                                                                                                   |
 | 9   | **Affidabilità della visualizzazione (deciso 2026-10-21):** rivedere gli errori del PDF: file grandi, ruotati o con riquadri diversi, 401 nel download, tetto alla larghezza e memoria, JPEG o PNG per il testo piccolo, "Salva" su Android; correggere ciò che emerge                                                                                                                                                                                                            | test jest per ogni caso; CI nativa per ciò che tocca il modulo                                                                                    |
+| 10  | **Coda dei disegni (fatto 2026-10-22, `src/renderQueue.ts`, §13):** priorità per distanza dalla pagina corrente, annullamento di ciò che non è ancora partito, due richieste al massimo nel modulo, cache degli indirizzi già disegnati                                                                                                                                                                                                                                           | test jest sulla coda; nessuna modifica nativa                                                                                                     |
+| 11  | **Zoom con due dita (§13):** durante il gesto si scala l'immagine già disegnata, a gesto concluso si chiede quella nitida; poi, solo se serve, disegno della sola regione visibile                                                                                                                                                                                                                                                                                                | test jest; CI nativa per la regione visibile                                                                                                      |
+| 12  | **Ricerca a flusso (§13):** dalla pagina corrente, a pagine, con annullamento e avanzamento; su iOS un'unica evidenziazione per pagina                                                                                                                                                                                                                                                                                                                                            | test jest; CI nativa (modulo)                                                                                                                     |
+| 13  | **Download più solido (§13):** file parziale e rinomina, controllo di `%PDF-`, chiave di cache con le intestazioni, avanzamento e annullamento                                                                                                                                                                                                                                                                                                                                    | test jest                                                                                                                                         |
+| 14  | **Stampa e salvataggio (§13):** stampa web con iframe su blob, salvataggio in Download su Android (`MediaStore.Downloads`), errore "protetto da password" sotto Android 15                                                                                                                                                                                                                                                                                                        | prova in Chrome per il web; CI per il modulo; stampa e salvataggio a schermo non verificabili dal portatile                                       |
 
 **Cosa non si può verificare dal portatile di lavoro:** iOS e Android a runtime (niente amministratore, rete aziendale). Ogni
 tentativo dei passi 3–6 costa un push e circa 15 minuti di CI. Quindi il modulo nativo va scritto **piccolo e con errori
@@ -263,6 +273,10 @@ non lo mostra. **Non verificati in ogni caso:** telefono vero, PDF molto grandi,
   licenza, un file `NOTICE`, le intestazioni dei file, e registrare in `docs/pdf-upstream.md` versione e commit di origine e le
   differenze volute (come fa `docs/pivot-upstream.md` per il pivot).
 - Niente codice copiato da progetti con licenza AGPL o LGPL.
+- **Riferimenti letti per il confronto del 2026-10-22 (§13)**, nessun codice copiato finora: `react-native-better-pdf` (gmi-software, MIT),
+  `react-native-pdf-jsi` (MIT), `@meedwire/react-native-pdf-api` (MIT), `react-native-pdf-light` (MIT), pdf.js (Apache-2.0),
+  `androidx.pdf` (Apache-2.0). Se si copia una parte: rileggere il file originale per intero (il confronto è stato fatto con pagine riassunte),
+  tenere licenza e autore nel file e una riga in `docs/pdf-upstream.md`.
 
 ## 11. Domande aperte
 
@@ -270,7 +284,7 @@ non lo mostra. **Non verificati in ogni caso:** telefono vero, PDF molto grandi,
 2. **`PdfRendererPreV` ha `searchText`?** **Sì** (documentazione ufficiale, 2026-10-20: "Added in API level 35, also in S Extensions 13", restituisce `List<PageMatchBounds>`). Provata su Android 15: **non distingue maiuscole e minuscole** (trova "Hello" cercando "hello") e i rettangoli partono dall'alto a sinistra. Resta da provare su un emulatore con l'estensione 13 (il `PdfRendererPreV`).
 3. **Formato delle immagini:** per ora JPEG al 90% su iOS e Android (più leggero e veloce da scrivere); se sul testo piccolo si vede la perdita, passare a PNG (una riga per piattaforma). Da giudicare sugli screenshot.
 4. **Tetto alla larghezza e numero di pagine in memoria:** valori da misurare, non fissati.
-5. **Zoom con due dita e selezione del testo:** dopo la prima versione, solo se una schermata li chiede.
+5. **Zoom con due dita:** richiesto il 2026-10-22, passo 11 (§13). **Selezione del testo:** solo se una schermata la chiede.
 6. **Interfaccia di salvataggio su Android** (`expo-file-system` nella 57): da verificare.
 7. **Dove sta il PDF d'esempio** per il playground e per `/native-check` (una copia sola, nel playground).
 
@@ -308,3 +322,54 @@ Una terza via, fuori dal vincolo, sarebbe disegnare le pagine sul server (una li
 
 **Prima di decidere: uno spike** su PDF reali del CRM (allegati veri, non il PDF d'esempio), con questi limiti: Safari su telefono non si prova da
 questo portatile, solo Chrome con finestra stretta. Prima domanda a cui risponde: **da dove aprono il PDF gli utenti del CRM?**
+
+## 13. Miglioramenti dal confronto con le altre librerie (2026-10-22)
+
+**Cosa è stato fatto.** Tre ricerche in parallelo, richieste da Alice, sulle sei funzioni del visualizzatore: **download, stampa, pagine,
+scorrimento, zoom, ricerca**. (a) Librerie con motore nativo: `react-native-better-pdf` (gmi-software), `react-native-pdf-jsi`,
+`@meedwire/react-native-pdf-api`, `react-native-pdf` (wonday), `react-native-pdf-renderer`, `@kishannareshpal/expo-pdf`,
+`react-native-pdf-thumbnail`, `react-native-view-pdf`, più `thatkid02/react-native-pdf-viewer`, letto a parte. (b) Approcci in JavaScript,
+WebView e web: pdf.js (visualizzatore e `PDFViewer`), react-pdf, `rn-pdf-reader-js`, `react-native-pdf-light`, PDFSlick, EmbedPDF, il
+visualizzatore del browser. (c) Stampa, download e salvataggio con `expo-print`, `expo-sharing`, `expo-file-system` (sorgente della 57), più
+`androidx.pdf` e gli SDK commerciali (Nutrient, Apryse, Foxit, Syncfusion) per le idee.
+
+**Limiti del confronto.** I sorgenti delle librerie native sono stati letti con pagine riassunte da un modello piccolo: i numeri di riga sono
+approssimati e **prima di copiare un file va riletto per intero**. Nessun risultato è stato provato su un dispositivo. Nessuna libreria dà una
+tecnica di stampa per iOS: resta `printAsync`.
+
+**Cosa non serve.** Nessuna libreria esaminata aggiunge funzioni che non abbiamo già, a parte lo zoom con due dita. Nessuna è una dipendenza
+possibile: `better-pdf` e `pdf-jsi` richiedono la nuova architettura (Nitro) e React Native 0.83 o più, `rn-pdf-reader-js` è abbandonato dal 2021
+e disegna tutte le pagine insieme. `androidx.pdf` (Apache-2.0, minSdk 28) non ha un wrapper per RN o Expo e la sua ricerca poggia sulla stessa
+estensione di sistema: non risolve Android 14. **Il controller di ricerca di pdf.js non è utilizzabile oggi**: vuole il testo di ogni pagina con le
+posizioni, che `PdfRenderer` dà solo da Android 15; servirebbe solo con la fase 12.
+
+### Sei funzioni: stato, tecnica migliore trovata, decisione
+
+| Funzione        | Oggi                                                                                                                              | Tecnica migliore trovata                                                                                                                                                                                                                                                                                                  | Decisione                                                                                                                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pagine**      | Altezze note in anticipo, `getItemLayout` per pagina (pagine di misure diverse ok)                                                | `better-pdf`: tutte le misure in anticipo, ricerca binaria per la pagina visibile                                                                                                                                                                                                                                         | Già a posto. Aggiungere l'errore "protetto da password" sotto Android 15 (`SecurityException`, già mappato dal modulo). Miniature: solo se una schermata le chiede                       |
+| **Scorrimento** | `FlatList` con `windowSize=5`; un disegno già partito prosegue nel modulo anche se la pagina è uscita; ogni rimontaggio ridisegna | Una coda con priorità per distanza dalla pagina corrente; ciò che non è partito si scarta quando la pagina esce; pochi disegni in volo per volta (`PdfRenderer` ne fa uno alla volta); prefetch di 2 pagine avanti e 2 indietro; cache degli esiti (`better-pdf`, `pdf-jsi`, pdf.js)                                      | **Passo 10**, in JavaScript (la coda sta davanti a `renderPage`): niente modifiche nel modulo, quindi niente giri di CI                                                                  |
+| **Zoom**        | Pulsanti; ogni cambio rifà il layout e ridisegna fino a 2400 px di larghezza                                                      | Due fasi, usate da tutti: durante il gesto si stira l'immagine già disegnata, a gesto concluso si chiede quella nitida (pdf.js dopo circa 400 ms). Per zoom alti si disegna solo la regione visibile (`better-pdf`, `androidx.pdf`, Syncfusion), con un tetto di pixel per immagine (pdf.js: circa 5 milioni su telefono) | **Passo 11**: prima il pizzico con ridisegno dopo il gesto; la regione visibile solo se lo zoom alto serve (oggi, al massimo zoom su un iPhone a 3x, il tetto di 2400 px sfoca il testo) |
+| **Ricerca**     | Il modulo cerca in tutto il documento e consegna alla fine; spenta su Android 14 senza estensione 13                              | Si parte dalla pagina corrente, a pagine, con annullamento e avanzamento (`better-pdf`; l'API di Syncfusion: totale, indice, avanti, indietro, cancella). iOS: `beginFindString` con un osservatore e un'unica evidenziazione per pagina                                                                                  | **Passo 12**, tenendo i motori di sistema. Sotto Android 15 senza estensione non c'è soluzione senza un motore di testo nostro (passo 7, abbandonato)                                    |
+| **Download**    | `File.downloadFileAsync` con le intestazioni; un 401 diventa errore `network`                                                     | `pdf-jsi`: scrittura in un `.part`, controllo di `%PDF-` nel primo KB, rinomina; chiave di cache che comprende le intestazioni (due utenti con lo stesso URL non condividono il file); avanzamento e annullamento (`signal`, `onProgress` esistono nella 57)                                                              | **Passo 13**, in JavaScript. Da rileggere `source.ts` prima per vedere cosa c'è già                                                                                                      |
+| **Stampa**      | `printAsync({ uri })`; sul web c'è solo il browser                                                                                | iOS e Android: `printAsync` va bene (su Android la promessa si risolve all'apertura del dialogo, senza esito). Web: `expo-print` ignora il file e stampa la pagina dell'app; ci vuole un iframe nascosto su `blob:` o le pagine disegnate come immagini (pdf.js)                                                          | **Passo 14**. Mai provata su un telefono vero, e la CI non può stampare                                                                                                                  |
+| **Salva**       | Foglio di condivisione (`expo-sharing`)                                                                                           | Android: una piccola funzione Kotlin con `MediaStore.Downloads` (senza permessi da API 29); iOS: foglio di condivisione con "Salva su File"; web: link con `download`. Nessuna libreria esaminata lo fa                                                                                                                   | **Passo 14**                                                                                                                                                                             |
+
+### Ordine dei lavori
+
+1. **Passo 10, coda dei disegni** (solo JavaScript).
+2. **Passo 11, zoom con due dita** con ridisegno dopo il gesto.
+3. **Passo 12, ricerca a flusso** (tocca il modulo: un giro di CI).
+4. **Passo 13, download**; **passo 14**, stampa web e salvataggio in Download.
+5. **Regione visibile** (coda del passo 11), solo se lo zoom alto serve davvero agli utenti.
+
+Tutti i passi che toccano il modulo nativo si chiudono con un run di `native.yml` letto per intero (righe `NATIVECHECK` e screenshot).
+
+### Trappole viste negli altri progetti (da evitare)
+
+- `PdfRenderer` con più di una pagina aperta, o chiuso mentre disegna; non applicare la rotazione `/Rotate` due volte; riempire il fondo di
+  bianco.
+- Scala zero prima del layout su iOS (una soluzione con `sleep` è la sbagliata: aspettare il layout).
+- Memoria esaurita dopo molti zoom avanti e indietro: tetto di pixel per immagine e svuotare la cache.
+- Disegnare tutte le pagine insieme (`rn-pdf-reader-js`), o sul filo dell'interfaccia (`react-native-pdf-renderer`).
+- Una cache di download con chiave solo l'URL: due utenti con lo stesso URL e intestazioni diverse condividerebbero il file.

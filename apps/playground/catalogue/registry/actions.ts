@@ -20,7 +20,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "Button",
     Component: Button,
     props: {
-      children: { type: "text", default: "Click Me", label: "Label" },
+      children: { type: "text", default: "", label: "Label" },
       variant: {
         type: "select",
         default: "filled",
@@ -47,7 +47,7 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Neutral", value: "neutral" },
         ],
       },
-      iconName: { type: "text", default: "plus", label: "Icon Name" },
+      iconName: { type: "icon", default: "", label: "Icon Name" },
       iconPosition: {
         type: "select",
         default: "start",
@@ -128,7 +128,7 @@ export const actions: Record<string, ComponentMetadata> = {
         ],
       },
       iconName: {
-        type: "text",
+        type: "icon",
         default: "",
         label: "Icon Name",
       },
@@ -140,7 +140,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "IconButton",
     Component: IconButton,
     props: {
-      icon: { type: "text", default: "heart-outline", label: "Icon" },
+      icon: { type: "icon", default: "heart-outline", label: "Icon" },
       title: { type: "text", default: "", label: "Title (tooltip)" },
       variant: {
         type: "select",
@@ -243,7 +243,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "FAB",
     Component: FAB,
     props: {
-      icon: { type: "text", default: "plus", label: "Icon" },
+      icon: { type: "icon", default: "plus", label: "Icon" },
       label: {
         type: "text",
         default: "Create",
@@ -313,7 +313,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "SpeedDial",
     Component: SpeedDial,
     props: {
-      mainIcon: { type: "text", default: "plus", label: "Main Icon" },
+      mainIcon: { type: "icon", default: "plus", label: "Main Icon" },
       position: {
         type: "select",
         default: "bottom-right",
@@ -333,7 +333,7 @@ export const actions: Record<string, ComponentMetadata> = {
     props: {
       active: { type: "boolean", default: true, label: "Active" },
       label: { type: "text", default: "Grid", label: "Label" },
-      icon: { type: "text", default: "view-grid-outline", label: "Icon" },
+      icon: { type: "icon", default: "view-grid-outline", label: "Icon" },
       showSelectedCheck: {
         type: "boolean",
         default: false,

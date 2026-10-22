@@ -1,10 +1,32 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import {
+  Animated,
+  Easing,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../providers/ThemeProvider";
 import { useReduceMotion } from "../internal/useReduceMotion";
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+// `Animated` marks what it wraps `collapsable={false}`, for Android view
+// flattening. On the web react-native-svg hands every prop to the DOM
+// `<circle>`, which warns about a non-boolean attribute, so it is dropped there.
+const SvgCircle = React.forwardRef<
+  Circle,
+  React.ComponentProps<typeof Circle> & { collapsable?: boolean }
+>(({ collapsable, ...props }, ref) => (
+  <Circle
+    ref={ref}
+    {...props}
+    {...(Platform.OS === "web" ? null : { collapsable })}
+  />
+));
+SvgCircle.displayName = "SvgCircle";
+
+const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
 
 export interface CircularProgressProps {
   /**

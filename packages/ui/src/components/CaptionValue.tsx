@@ -1,14 +1,6 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useMemo } from "react";
 import {
-  AccessibilityInfo,
   DimensionValue,
-  Platform,
   StyleProp,
   StyleSheet,
   Text,
@@ -17,7 +9,10 @@ import {
   ViewStyle,
 } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
-import IconButton from "./IconButton";
+import Clipboard, {
+  isClipboardAvailable,
+  type ClipboardWriter,
+} from "./Clipboard";
 import Tooltip from "./Tooltip";
 import { resolveColor, type ThemeColor } from "./internal/themeColor";
 
@@ -61,20 +56,25 @@ export interface CaptionValueProps {
   /** Padding around the pair, in px. */
   padding?: number;
   /**
-   * Shows a small copy button after the value, for a text or number value (a
-   * node has nothing to copy). On web it writes the value to the clipboard
-   * (`navigator.clipboard`); the library has no clipboard dependency, so on
-   * native the button is shown only with an `onCopy` that does the copying.
-   * The button's icon changes to a check for a moment, and "Copied" is
-   * announced, once the value is copied.
+   * Shows a small copy button (a `Clipboard`) after the value, for a text or
+   * number value (a node has nothing to copy). On web it writes the value to
+   * the clipboard (`navigator.clipboard`); the library has no clipboard
+   * dependency, so on native the button is shown only with a `copy` writer or
+   * an `onCopy` that does the copying. The button's icon changes to a check
+   * for a moment, and "Copied" is announced, once the value is copied.
    */
   enableCopy?: boolean;
   /**
-   * Called with the value as text when the copy button is pressed. On native
-   * it is where the app copies it (`Clipboard.setStringAsync` from
-   * `expo-clipboard`); on web it is called after the clipboard write succeeded.
+   * Called with the value as text after it was copied. Without a `copy`
+   * writer it is, on native, where the app copies it; on web it is called
+   * after the clipboard write succeeded.
    */
   onCopy?: (value: string) => void;
+  /**
+   * Writes the copied text: `expo-clipboard`'s `setStringAsync` on native, or
+   * your own on web. On web it defaults to `navigator.clipboard.writeText`.
+   */
+  copy?: ClipboardWriter;
   /**
    * Wraps a text or number value in a `Tooltip` with the value as its content:
    * the value in full, for when `numberOfLines` cuts it.
@@ -92,9 +92,6 @@ const isText = (node: React.ReactNode): node is string | number =>
 
 const isEmpty = (node: React.ReactNode) =>
   node === null || node === undefined || node === "" || node === false;
-
-// How long the copy button shows its check.
-const COPIED_MS = 1500;
 
 /**
  * A caption and its value, stacked or in a row: the read-only pair a detail
@@ -124,6 +121,7 @@ const CaptionValue = ({
   padding,
   enableCopy = false,
   onCopy,
+  copy,
   showTooltip = false,
   captionStyle,
   valueStyle,
@@ -132,15 +130,6 @@ const CaptionValue = ({
 }: CaptionValueProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [copied, setCopied] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-
   const empty = isEmpty(value);
   const shown = empty ? fallback : value;
   const isRow = direction === "row";
@@ -150,34 +139,7 @@ const CaptionValue = ({
   // Only a real text or number value can be copied, and on native only when
   // the app says how.
   const canCopy =
-    enableCopy &&
-    !empty &&
-    isText(value) &&
-    (Platform.OS === "web" || !!onCopy);
-
-  const copy = useCallback(async () => {
-    const text = String(value);
-    let done = !!onCopy;
-    if (Platform.OS === "web") {
-      const clipboard =
-        typeof navigator !== "undefined" ? navigator.clipboard : undefined;
-      if (clipboard?.writeText) {
-        try {
-          await clipboard.writeText(text);
-          done = true;
-        } catch {
-          // Refused (no permission, an insecure page): nothing was copied.
-          return;
-        }
-      }
-    }
-    if (!done) return;
-    onCopy?.(text);
-    setCopied(true);
-    AccessibilityInfo.announceForAccessibility("Copied");
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setCopied(false), COPIED_MS);
-  }, [value, onCopy]);
+    enableCopy && !empty && isText(value) && isClipboardAvailable(copy, onCopy);
 
   const captionNode =
     omitCaption || isEmpty(caption) ? null : isText(caption) ? (
@@ -225,12 +187,11 @@ const CaptionValue = ({
     valueNode = (
       <View style={styles.valueRow}>
         {valueNode}
-        <IconButton
-          icon={copied ? "check" : "content-copy"}
+        <Clipboard
+          value={String(value)}
           size="small"
-          color={copied ? "success" : undefined}
-          accessibilityLabel={copied ? "Copied" : "Copy"}
-          onClick={copy}
+          onCopy={onCopy}
+          copy={copy}
         />
       </View>
     );

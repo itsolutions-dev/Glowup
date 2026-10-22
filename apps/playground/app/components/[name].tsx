@@ -20,10 +20,13 @@ import {
   FLAT_ORDER,
   TOTAL_COUNT,
 } from "../../catalogue/categories";
+import { descriptionOf } from "../../catalogue/descriptions";
+import { exampleFor } from "../../catalogue/examples";
 import { buildSnippet } from "../../catalogue/snippet";
 import { VARIANTS_BY_COMPONENT } from "../../catalogue/variants";
 import { CodeBlock } from "../../site/CodeBlock";
 import { DemoErrorBoundary } from "../../site/ErrorBoundary";
+import { LiveExample } from "../../site/LiveExample";
 import { PageHead, Section } from "../../site/Page";
 import { PropControls } from "../../site/PropControls";
 import { PropsTable } from "../../site/PropsTable";
@@ -31,15 +34,11 @@ import { docFor, requiredPropsOf } from "../../site/propsData";
 import { useLayout } from "../../site/breakpoints";
 import { useHydrated } from "../../site/useHydrated";
 import { GITHUB_URL } from "../../site/siteNav";
-
-/** Widths the stage can be pinned to, so a reader can see the mobile case. */
-const STAGE_WIDTHS = {
-  phone: 360,
-  tablet: 720,
-  full: undefined,
-} as const;
-
-type StageWidth = keyof typeof STAGE_WIDTHS;
+import {
+  STAGE_WIDTHS,
+  STAGE_WIDTH_OPTIONS,
+  type StageWidth,
+} from "../../site/stage";
 
 // The name comes from the URL, so only the registry's own keys count:
 // /components/constructor must be a 404, not Object.prototype.constructor.
@@ -132,10 +131,9 @@ export default function ComponentPage() {
   const next =
     index < FLAT_ORDER.length - 1 ? FLAT_ORDER[index + 1] : undefined;
   const variants = VARIANTS_BY_COMPONENT[name] ?? [];
+  const example = exampleFor(name);
   const snippet = buildSnippet(name, meta, props, requiredPropsOf(name));
-  const description =
-    doc?.description ??
-    `${name} — a Material You ${category?.toLowerCase() ?? "UI"} component for React Native and web.`;
+  const description = descriptionOf(name, category);
 
   return (
     <ScrollView
@@ -192,87 +190,95 @@ export default function ComponentPage() {
           ) : null}
         </View>
 
-        <View style={styles.stageBlock}>
-          <View style={styles.stageToolbar}>
-            <Typography
-              variant="labelSmall"
-              style={[styles.eyebrow, { color: theme.colors.onSurfaceVariant }]}
-            >
-              Live demo
-            </Typography>
-            <ToggleButtonGroup
-              accessibilityLabel="Stage width"
-              value={stageWidth}
-              onValueChange={(value) => setStageWidth(value as StageWidth)}
-              options={[
-                { value: "phone", icon: "cellphone", label: "360" },
-                { value: "tablet", icon: "tablet", label: "720" },
-                { value: "full", icon: "monitor", label: "Full" },
-              ]}
-            />
-          </View>
+        {example ? (
+          <LiveExample name={name} example={example} meta={meta} />
+        ) : (
+          <>
+            <View style={styles.stageBlock}>
+              <View style={styles.stageToolbar}>
+                <Typography
+                  variant="labelSmall"
+                  style={[
+                    styles.eyebrow,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Live demo
+                </Typography>
+                <ToggleButtonGroup
+                  accessibilityLabel="Stage width"
+                  value={stageWidth}
+                  onValueChange={(value) => setStageWidth(value as StageWidth)}
+                  options={[...STAGE_WIDTH_OPTIONS]}
+                />
+              </View>
 
-          {/* The cap goes on the stage, not on a wrapper inside it. Capping an
+              {/* The cap goes on the stage, not on a wrapper inside it. Capping an
               inner box that is already wider than its content changes nothing
               anyone can see: the frame stayed 912px and the demo never
               reflowed. Narrowing the frame itself is both the feedback that
               the viewport changed and the constraint the demo lays out in. */}
-          <View
-            style={[
-              styles.stage,
-              STAGE_WIDTHS[stageWidth] !== undefined && {
-                // A fixed width, not a cap: `alignSelf` takes the stage out of
-                // the column's stretch, so a maxWidth alone let it shrink-wrap
-                // its content and 360 and 720 rendered identically. maxWidth
-                // "100%" keeps it inside the column on a narrow screen.
-                width: STAGE_WIDTHS[stageWidth],
-                maxWidth: "100%",
-                alignSelf: "center",
-              },
-            ]}
-          >
-            <View style={styles.stageInner}>
-              {/* The frame cannot change the window, so the components are told
+              <View
+                style={[
+                  styles.stage,
+                  STAGE_WIDTHS[stageWidth] !== undefined && {
+                    // A fixed width, not a cap: `alignSelf` takes the stage out of
+                    // the column's stretch, so a maxWidth alone let it shrink-wrap
+                    // its content and 360 and 720 rendered identically. maxWidth
+                    // "100%" keeps it inside the column on a narrow screen.
+                    width: STAGE_WIDTHS[stageWidth],
+                    maxWidth: "100%",
+                    alignSelf: "center",
+                  },
+                ]}
+              >
+                <View style={styles.stageInner}>
+                  {/* The frame cannot change the window, so the components are told
                   how wide their device is: a date picker in the 360 frame opens
                   as the dialog it is on a phone, a Grid reflows to its columns. */}
-              <ViewportProvider width={STAGE_WIDTHS[stageWidth]}>
-                <DemoErrorBoundary label={name}>
-                  <ComponentPreview
-                    selectedComponentName={name}
-                    activeMeta={meta}
-                    componentProps={props}
-                    updateProp={updateProp}
-                  />
-                </DemoErrorBoundary>
-              </ViewportProvider>
+                  <ViewportProvider width={STAGE_WIDTHS[stageWidth]}>
+                    <DemoErrorBoundary label={name}>
+                      <ComponentPreview
+                        selectedComponentName={name}
+                        activeMeta={meta}
+                        componentProps={props}
+                        updateProp={updateProp}
+                      />
+                    </DemoErrorBoundary>
+                  </ViewportProvider>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
 
-        <View
-          style={[
-            styles.controlsAndCode,
-            layout.hasSidebar && styles.controlsAndCodeWide,
-          ]}
-        >
-          <View style={styles.controlsColumn}>
-            <PropControls
-              meta={meta}
-              values={props}
-              onChange={updateProp}
-              onReset={reset}
-            />
-          </View>
-          <View style={styles.codeColumn}>
-            <Typography
-              variant="labelSmall"
-              style={[styles.eyebrow, { color: theme.colors.onSurfaceVariant }]}
+            <View
+              style={[
+                styles.controlsAndCode,
+                layout.hasSidebar && styles.controlsAndCodeWide,
+              ]}
             >
-              Usage
-            </Typography>
-            <CodeBlock code={snippet} title={`${name}.tsx`} />
-          </View>
-        </View>
+              <View style={styles.controlsColumn}>
+                <PropControls
+                  meta={meta}
+                  values={props}
+                  onChange={updateProp}
+                  onReset={reset}
+                />
+              </View>
+              <View style={styles.codeColumn}>
+                <Typography
+                  variant="labelSmall"
+                  style={[
+                    styles.eyebrow,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                >
+                  Usage
+                </Typography>
+                <CodeBlock code={snippet} title={`${name}.tsx`} />
+              </View>
+            </View>
+          </>
+        )}
 
         {variants.length > 0 && (
           <Section

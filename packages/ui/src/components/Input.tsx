@@ -7,6 +7,7 @@ import {
   Platform,
   StyleProp,
   ViewStyle,
+  type TextInputProps,
 } from "react-native";
 import Icons from "./Glyph";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
@@ -15,6 +16,25 @@ import HelperText from "./HelperText";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
+
+/** The `TextInput` props an `Input` hands through; its controlled ones (`value`, `onChangeText`, `editable`, `secureTextEntry`) stay with its own props. */
+export type InputTextInputProps = Pick<
+  TextInputProps,
+  | "autoComplete"
+  | "textContentType"
+  | "autoCorrect"
+  | "autoCapitalize"
+  | "spellCheck"
+  | "autoFocus"
+  | "selectTextOnFocus"
+  | "returnKeyType"
+  | "enterKeyHint"
+  | "onSubmitEditing"
+  | "onKeyPress"
+  | "accessibilityLabel"
+  | "accessibilityValue"
+  | "testID"
+>;
 
 export interface InputProps {
   label?: string;
@@ -73,7 +93,26 @@ export interface InputProps {
   onBlur?: () => void;
   leadingIcon?: MaterialCommunityIconsGlyphs;
   trailingIcon?: MaterialCommunityIconsGlyphs;
+  /** Pressing `trailingIcon`. It is a bare, unlabelled icon: for a real control use `endAdornment`. */
   onTrailingIconPress?: () => void;
+  /**
+   * Any element drawn at the end of the field, after `suffix` or
+   * `trailingIcon` (which keep working): an `IconButton` with its own accessible
+   * name, a spinner, a unit picker. It is not clipped by the field and takes
+   * its own touches.
+   */
+  endAdornment?: React.ReactNode;
+  /**
+   * Autofill and keyboard hints, focus and key handling for the underlying
+   * `TextInput`: `autoComplete`, `textContentType`, `autoCorrect`,
+   * `autoCapitalize`, `spellCheck`, `autoFocus`, `selectTextOnFocus`,
+   * `returnKeyType`, `enterKeyHint`, `onSubmitEditing`, `onKeyPress`,
+   * `accessibilityLabel` / `accessibilityValue` (replace the ones drawn from
+   * `label` and `value`) and `testID`.
+   */
+  inputProps?: InputTextInputProps;
+  /** A ref to the underlying `TextInput`, to focus it or select its text. */
+  inputRef?: React.Ref<TextInput>;
   /** Lets the text wrap over several lines; see `rows`. */
   multiline?: boolean;
   /** Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4. */
@@ -114,6 +153,9 @@ const Input = ({
   leadingIcon,
   trailingIcon,
   onTrailingIconPress,
+  endAdornment,
+  inputProps,
+  inputRef,
   multiline = false,
   rows = 4,
   density,
@@ -221,7 +263,8 @@ const Input = ({
           <TextInput
             accessibilityLabel={label}
             accessibilityState={{ disabled }}
-            accessibilityValue={{ text: value }}
+            // A secret never goes to the accessibility tree as the field's value.
+            accessibilityValue={secureTextEntry ? undefined : { text: value }}
             accessibilityHint={placeholder}
             multiline={multiline}
             numberOfLines={multiline ? rows : undefined}
@@ -256,6 +299,8 @@ const Input = ({
             editable={!disabled}
             secureTextEntry={secureTextEntry}
             keyboardType={type === "number" ? "decimal-pad" : "default"}
+            ref={inputRef}
+            {...inputProps}
           />
         </View>
 
@@ -278,6 +323,10 @@ const Input = ({
               />
             </View>
           )
+        )}
+
+        {!!endAdornment && (
+          <View style={styles.endAdornment}>{endAdornment}</View>
         )}
       </View>
 
@@ -344,6 +393,13 @@ const makeStyles = (theme: Theme, dense: boolean) =>
       justifyContent: "center",
       alignItems: "center",
       paddingLeft: 12,
+    },
+    // Hugs the edge: the field's own padding is more than a control needs.
+    endAdornment: {
+      marginLeft: theme.spacing.xs,
+      marginRight: -theme.spacing.s,
+      alignItems: "center",
+      justifyContent: "center",
     },
     affix: {
       paddingHorizontal: 4,

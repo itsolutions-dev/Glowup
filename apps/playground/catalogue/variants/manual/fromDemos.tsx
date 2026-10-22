@@ -4,13 +4,10 @@ import type { Variant } from "../types";
 import {
   ButtonGroupDemo,
   ChipGroupDemo,
-  NavigationDrawerDemo,
+  DrawerDemo,
   NavigationRailDemo,
-  SideSheetDemo,
   SplitButtonDemo,
-  TableDemo,
   ToolbarDemo,
-  TopAppBarDemo,
 } from "../../demos";
 
 // Galleries for the components whose stage demo already exercises them: each
@@ -79,13 +76,6 @@ export const chipGroupVariants = galleryOf(ChipGroupDemo, [
   ["Scrolling row", { wrap: false, mode: "outlined", multiSelect: true }],
 ]);
 
-export const topAppBarVariants = galleryOf(TopAppBarDemo, [
-  ["Small", { variant: "small", title: "Orders" }],
-  ["Center-aligned", { variant: "center", title: "Orders" }],
-  ["Medium", { variant: "medium", title: "Orders", subtitle: "12 open" }],
-  ["Large, scrolled", { variant: "large", title: "Orders", elevated: true }],
-]);
-
 export const navigationRailVariants = galleryOf(NavigationRailDemo, [
   [
     "With menu and FAB",
@@ -102,33 +92,54 @@ export const navigationRailVariants = galleryOf(NavigationRailDemo, [
   ],
 ]);
 
-export const navigationDrawerVariants = galleryOf(NavigationDrawerDemo, [
+export const drawerVariants = galleryOf(DrawerDemo, [
   [
-    "Standard",
-    { variant: "standard", title: "Mail" },
-    "Inline, beside the content on expanded windows.",
+    "Static",
+    { variant: "static", title: "Mail" },
+    "A permanent panel beside the content, with no scrim.",
   ],
   [
-    "Modal",
-    { variant: "modal", title: "Mail" },
-    "Over the content with a scrim; Escape and Android back close it.",
+    "Swipeable",
+    { variant: "swipeable", title: "Mail" },
+    "Over the content on a scrim; a drag toward the edge, the scrim, Escape and Android back close it.",
+  ],
+  [
+    "Side sheet",
+    {
+      variant: "static",
+      position: "right",
+      layout: "sheet",
+      title: "Filters",
+      showCloseButton: true,
+      width: 320,
+    },
+    "Any content, a close button and actions, on the right: a drawer as a side sheet.",
+  ],
+  [
+    "Top",
+    { variant: "static", position: "top", title: "Mail", height: 240 },
+    "Top and bottom drawers span the width and are as tall as their content, up to height.",
+  ],
+  [
+    "Bottom",
+    { variant: "static", position: "bottom", title: "Mail", height: 240 },
+  ],
+  [
+    "Elevation",
+    { variant: "static", title: "Mail", elevation: 3, width: 320 },
+    "Level 0 to 5 sets the tone of the surface and, on a phone, its shadow.",
+  ],
+  [
+    "Nested items and a collapsible section",
+    { variant: "static", layout: "crm", width: 320 },
+    "A group opens to its sub-items; the section title opens and closes its items; a header sits above.",
+  ],
+  [
+    "Collapsed",
+    { variant: "static", layout: "crm", collapsed: true },
+    "Icons only, 72 wide.",
   ],
 ]);
-
-navigationDrawerVariants.push(
-  ...galleryOf(NavigationDrawerDemo, [
-    [
-      "Nested items and a collapsible section",
-      { variant: "standard", layout: "crm" },
-      "A group opens to its sub-items; the section title opens and closes its items; a header sits above.",
-    ],
-    [
-      "Collapsed",
-      { variant: "standard", layout: "crm", collapsed: true },
-      "Icons only, 72 wide.",
-    ],
-  ]),
-);
 
 export const toolbarVariants = galleryOf(ToolbarDemo, [
   ["Docked", { variant: "docked" }],
@@ -139,10 +150,3 @@ export const toolbarVariants = galleryOf(ToolbarDemo, [
   ],
   ["Floating, vertical", { variant: "floating", orientation: "vertical" }],
 ]);
-
-export const sideSheetVariants = galleryOf(SideSheetDemo, [
-  ["Modal", { modal: true, side: "end", title: "Filters" }],
-  ["Standard", { modal: false, side: "end", title: "Details" }],
-]);
-
-export const tableVariants = galleryOf(TableDemo, [["Basic", {}]]);

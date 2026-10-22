@@ -160,6 +160,9 @@ const makeStyles = (theme: Theme) =>
     },
     input: {
       flex: 1,
+      // A text input is as wide as its `size` by default and will not shrink below
+      // that in a flex row: in a narrow bar it pushed the clear button out of it.
+      minWidth: 0,
       color: theme.colors.onSurface,
       paddingVertical: 0,
       ...Platform.select({

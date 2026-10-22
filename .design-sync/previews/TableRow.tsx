@@ -68,3 +68,42 @@ export const DenseStriped = () => {
     </div>
   );
 };
+
+/** `selected` fills the row with the secondary container, and `onClick` makes it a button. */
+export const SelectedAndPressable = () => {
+  const [chosen, setChosen] = React.useState(1);
+  return (
+    <div style={fit}>
+      <Table>
+        <Header />
+        {PEOPLE.map(([name, role], index) => (
+          <TableRow
+            key={name}
+            hover
+            selected={index === chosen}
+            onClick={() => setChosen(index)}
+            style={{ height: 48 }}
+          >
+            <TableCell width={200}>{name}</TableCell>
+            <TableCell width={200}>{role}</TableCell>
+          </TableRow>
+        ))}
+      </Table>
+    </div>
+  );
+};
+
+/** `hover` alone only highlights: the row stays a plain row, not a control. */
+export const HoverOnly = () => (
+  <div style={fit}>
+    <Table>
+      <Header />
+      {PEOPLE.map(([name, role]) => (
+        <TableRow key={name} hover style={{ height: 48 }}>
+          <TableCell width={200}>{name}</TableCell>
+          <TableCell width={200}>{role}</TableCell>
+        </TableRow>
+      ))}
+    </Table>
+  </div>
+);

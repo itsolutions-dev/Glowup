@@ -79,6 +79,8 @@ export const CATEGORIES: Category[] = [
       "CaptionValue",
       "Image",
       "Link",
+      "IFrame",
+      "Blink",
     ],
   },
   {
@@ -87,11 +89,11 @@ export const CATEGORIES: Category[] = [
     items: [
       "Snackbar",
       "Banner",
-      "Modal",
+      "Dialog",
       "ConfirmDialog",
+      "Form",
       "Popover",
       "BottomSheet",
-      "SideSheet",
       "Menu",
       "Skeleton",
       "CircularProgress",
@@ -106,10 +108,10 @@ export const CATEGORIES: Category[] = [
     label: "Navigation",
     icon: "compass-outline",
     items: [
-      "TopAppBar",
-      "NavigationBar",
+      "AppBar",
+      "NavBar",
       "NavigationRail",
-      "NavigationDrawer",
+      "Drawer",
       "Toolbar",
       "Tabs",
       "TabContent",
@@ -121,15 +123,14 @@ export const CATEGORIES: Category[] = [
   {
     label: "Layout",
     icon: "view-dashboard-outline",
-    items: ["Box", "Stack", "Grid", "AspectRatio", "Center", "Spacer"],
+    items: ["Box", "Stack", "Grid", "AspectRatio", "Spacer"],
   },
 ];
 
-// Not catalogued, and deliberately so: `AppBar` takes a navigator's
-// `navigation`/`route`/`options`, `DrawerNavigation` and `StackNavigation` need a
-// NavigationContainer plus a route array, and `StatusBar` wraps expo-status-bar
-// and paints nothing of its own. Faking a navigator to fill the grid would
-// preview a stub, not the component.
+// `AppBar` is catalogued with its own props (`title`, `leading`, `actions`); its
+// react-navigation contract (`navigation`/`route`/`options`/`back`) needs a
+// navigator, so it is shown in the AppBar preview and the /templates snippet,
+// not faked on the stage.
 
 // Flat ordered list + reverse lookup, derived once.
 export const FLAT_ORDER: string[] = CATEGORIES.flatMap((c) => c.items);

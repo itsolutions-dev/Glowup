@@ -1,9 +1,9 @@
 import { View } from "react-native";
-import { Button, ConfirmDialog, Typography } from "@its/glowup-ui";
+import { Button, ConfirmDialog, Typography, useTheme } from "@its/glowup-ui";
 import type { Variant } from "../types";
 import { demo, useOverlayDemo } from "./shared";
 
-// Hand-written for the same reason as Modal, which ConfirmDialog wraps: the
+// Hand-written for the same reason as Dialog, which ConfirmDialog wraps: the
 // authored preview mounts it open, and an open dialog is a portal over the
 // whole page. See `useOverlayDemo`.
 
@@ -78,6 +78,65 @@ const DefaultLabels = () => {
   );
 };
 
+const MustAnswer = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Button variant="outlined" iconName="logout" onClick={show}>
+        Sign out everywhere
+      </Button>
+      <ConfirmDialog
+        visible={open}
+        icon="logout"
+        title="Sign out everywhere?"
+        message="A click outside and Escape are ignored: the answer has to be one of the buttons."
+        confirmText="Sign out"
+        cancelText="Stay signed in"
+        dismissable={false}
+        onConfirm={hide}
+        onCancel={hide}
+      />
+    </View>
+  );
+};
+
+const CustomSlots = () => {
+  const { theme } = useTheme();
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Button variant="tonal" iconName="palette-outline" onClick={show}>
+        Restyle the parts
+      </Button>
+      <ConfirmDialog
+        visible={open}
+        icon="palette-outline"
+        title="Apply this theme?"
+        message="slotStyles overrides the backdrop, the card, the title and the row of actions."
+        confirmText="Apply"
+        cancelText="Later"
+        slotStyles={{
+          backdrop: {
+            backgroundColor: theme.colors.primaryContainer,
+            opacity: 0.7,
+          },
+          container: {
+            borderRadius: theme.shape.small,
+            borderWidth: 2,
+            borderColor: theme.colors.primary,
+          },
+          title: { color: theme.colors.primary },
+          actions: { justifyContent: "space-between" },
+        }}
+        onConfirm={hide}
+        onCancel={hide}
+      />
+    </View>
+  );
+};
+
 export const variants: Variant[] = [
   {
     name: "Destructive",
@@ -91,5 +150,17 @@ export const variants: Variant[] = [
     title: "Default labels",
     description: "Without confirmText and cancelText: Confirm and Cancel.",
     render: DefaultLabels,
+  },
+  {
+    name: "MustAnswer",
+    title: "Must answer",
+    description: "dismissable={false}: only the two buttons close it.",
+    render: MustAnswer,
+  },
+  {
+    name: "CustomSlots",
+    title: "Custom slots",
+    description: "slotStyles restyles the parts; actions covers both buttons.",
+    render: CustomSlots,
   },
 ];

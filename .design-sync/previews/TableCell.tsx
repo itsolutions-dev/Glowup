@@ -76,3 +76,59 @@ export const CustomContent = () => {
     </div>
   );
 };
+
+/** `align` sets where the content sits; right suits a number. */
+export const Aligned = () => (
+  <div style={fit}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell width={200}>Item</TableHeaderCell>
+          <TableHeaderCell width={100} align="center">
+            Qty
+          </TableHeaderCell>
+          <TableHeaderCell width={100} align="right">
+            Price
+          </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableRow style={row}>
+        <TableCell width={200}>Desk lamp</TableCell>
+        <TableCell width={100} align="center">
+          2
+        </TableCell>
+        <TableCell width={100} align="right">
+          € 78.00
+        </TableCell>
+      </TableRow>
+    </Table>
+  </div>
+);
+
+/** With `flex` a cell shares the row's free width instead of keeping a fixed one; `width` is then its minimum. */
+export const FlexCells = () => (
+  <div style={fit}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell width={80}>Id</TableHeaderCell>
+          <TableHeaderCell width={120} flex>
+            Project
+          </TableHeaderCell>
+          <TableHeaderCell width={120} flex>
+            Owner
+          </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableRow style={row}>
+        <TableCell width={80}>#12</TableCell>
+        <TableCell width={120} flex>
+          Website redesign
+        </TableCell>
+        <TableCell width={120} flex>
+          Marta Rossi
+        </TableCell>
+      </TableRow>
+    </Table>
+  </div>
+);

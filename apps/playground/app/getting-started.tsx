@@ -34,7 +34,7 @@ export default function App() {
 const FIRST_SCREEN = `import { Button, Typography, VStack } from "@its/glowup-ui";
 
 export const Screens = () => (
-  <VStack p="m" spacing="s">
+  <VStack padding={16} spacing="s">
     <Typography variant="headlineMedium">Hello</Typography>
     <Button iconName="check" onClick={() => {}}>
       Tap me

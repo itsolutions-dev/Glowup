@@ -462,6 +462,18 @@ describe("SearchBar", () => {
     </ThemeProvider>
   );
 
+  it("lets the input shrink, so a narrow bar keeps its clear button inside", async () => {
+    // A text input will not go below its own width in a flex row unless it is
+    // told it may: in a 230px sidebar the clear button was pushed out of the bar.
+    const { getByLabelText } = await render(ui({ value: "abc" }));
+    expect(
+      StyleSheet.flatten(getByLabelText("Search").props.style),
+    ).toMatchObject({
+      flex: 1,
+      minWidth: 0,
+    });
+  });
+
   it("reports every keystroke at once by default", async () => {
     const onChange = jest.fn();
     const { getByLabelText } = await render(ui({ onChange }));

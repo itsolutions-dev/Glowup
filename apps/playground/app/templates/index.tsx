@@ -21,7 +21,7 @@ const THUMBNAIL_HEIGHT = 240;
 const NAVIGATION = `import { createDrawerNavigator } from "@react-navigation/drawer";
 import { AppBar, useTheme } from "@its/glowup-ui";
 
-const Drawer = createDrawerNavigator();
+const Nav = createDrawerNavigator();
 
 export const AppNavigator = ({ routes }) => {
   const { theme } = useTheme();
@@ -29,7 +29,7 @@ export const AppNavigator = ({ routes }) => {
   const isPinned = width >= 840;
 
   return (
-    <Drawer.Navigator
+    <Nav.Navigator
       screenOptions={{
         // AppBar renders the navigator's header: it reads navigation, route
         // and options straight from the header contract.
@@ -40,9 +40,9 @@ export const AppNavigator = ({ routes }) => {
       }}
     >
       {routes.map((route) => (
-        <Drawer.Screen key={route.name} {...route} />
+        <Nav.Screen key={route.name} {...route} />
       ))}
-    </Drawer.Navigator>
+    </Nav.Navigator>
   );
 };`;
 

@@ -131,3 +131,53 @@ export const UploadCard = () => (
     </Paper>
   </div>
 );
+
+export const LabelPositions = () => (
+  <div style={stack}>
+    {(
+      [
+        "right",
+        "left",
+        "top-left",
+        "top-center",
+        "top-right",
+        "bottom-left",
+        "bottom-center",
+        "bottom-right",
+      ] as const
+    ).map((position) => (
+      <LinearProgress
+        key={position}
+        progress={0.6}
+        height={6}
+        label={position}
+        labelPosition={position}
+      />
+    ))}
+  </div>
+);
+
+export const InsideLabel = () => (
+  <div style={stack}>
+    <LinearProgress progress={0.4} label="40%" labelPosition="inside" />
+    <LinearProgress
+      progress={0.85}
+      label="Uploading 85%"
+      labelPosition="inside"
+    />
+    <LinearProgress
+      progress={0.6}
+      height={28}
+      label="60%"
+      labelPosition="inside"
+    />
+  </div>
+);
+
+export const Widths = () => (
+  <div style={stack}>
+    <LinearProgress progress={0.5} width={160} label="160 px" />
+    <LinearProgress progress={0.5} width="50%" label="50%" />
+    <LinearProgress progress={0.5} label="the whole width" />
+  </div>
+);

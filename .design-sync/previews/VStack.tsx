@@ -61,3 +61,19 @@ export const FormColumn = () => (
     </VStack>
   </VStack>
 );
+
+/** `dividers` draws a hairline between the children. */
+export const Dividers = () => (
+  <VStack
+    spacing="s"
+    dividers
+    padding={8}
+    background="surfaceContainerLow"
+    radius="medium"
+    width={360}
+  >
+    <Typography variant="bodyMedium">Profile</Typography>
+    <Typography variant="bodyMedium">Notifications</Typography>
+    <Typography variant="bodyMedium">Security</Typography>
+  </VStack>
+);

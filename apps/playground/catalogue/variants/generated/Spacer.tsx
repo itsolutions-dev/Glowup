@@ -58,6 +58,21 @@ export const HorizontalAxis = () => (
   </HStack>
 );
 
+/** `size` is a spacing token or a number of px. */
+export const PixelSize = () => (
+  <HStack
+    align="center"
+    padding={16}
+    background="surfaceContainerLow"
+    radius="medium"
+    width={420}
+  >
+    <Typography variant="bodyMedium">Left</Typography>
+    <Spacer size={60} axis="horizontal" />
+    <Typography variant="bodyMedium">60px later</Typography>
+  </HStack>
+);
+
 export const variants: Variant[] = [
   {
     name: "PushesApart",
@@ -75,5 +90,11 @@ export const variants: Variant[] = [
     name: "HorizontalAxis",
     title: "Horizontal axis",
     render: HorizontalAxis,
+  },
+  {
+    name: "PixelSize",
+    title: "Pixel size",
+    description: "`size` is a spacing token or a number of px.",
+    render: PixelSize,
   },
 ];

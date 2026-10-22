@@ -22,7 +22,7 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
-import { useFormSubmit } from "./Form";
+import { useFormDisabled, useFormSubmit, useFormSubmitting } from "./Form";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -123,8 +123,9 @@ export interface ButtonProps {
   iconPosition?: "start" | "end";
   /**
    * `"submit"` submits the enclosing `Form` when pressed, after `onClick`, on
-   * every platform. A button outside a `Form` ignores it. Defaults to
-   * `"button"`.
+   * every platform. While the form submits (an async `onSubmit` or validator
+   * is running) it shows `loading`, and it is `disabled` with the form. A
+   * button outside a `Form` ignores it. Defaults to `"button"`.
    */
   type?: "button" | "submit";
   accessibilityLabel?: string;
@@ -167,6 +168,12 @@ const Button = ({
   const { theme } = useTheme();
   const formSubmit = useFormSubmit();
   const submit = type === "submit" ? formSubmit : undefined;
+  // A submit button follows its Form: spinning and unresponsive while a
+  // submission runs, disabled with the form.
+  const submitting = useFormSubmitting();
+  const formDisabled = useFormDisabled();
+  const isLoading = loading || (type === "submit" && submitting);
+  const isDisabled = disabled || (type === "submit" && formDisabled);
   const dense = useDensity(density) === "dense";
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -181,7 +188,7 @@ const Button = ({
     [theme, variant, color],
   );
 
-  const isInteractive = !disabled && !loading && !busy;
+  const isInteractive = !isDisabled && !isLoading && !busy;
 
   return (
     <Pressable
@@ -191,10 +198,10 @@ const Button = ({
       }
       accessibilityHint={accessibilityHint}
       accessibilityRole="button"
-      accessibilityState={{ disabled, busy: loading || busy }}
+      accessibilityState={{ disabled: isDisabled, busy: isLoading || busy }}
       accessibilityValue={badge ? { text: String(badge) } : undefined}
       // react-native-web does not map accessibilityState.busy to the DOM.
-      aria-busy={loading || busy}
+      aria-busy={isLoading || busy}
       testID={testID}
       // A no-op rather than undefined while busy: the Pressable stays enabled,
       // and an undefined handler leaves the press free to be answered by
@@ -212,7 +219,7 @@ const Button = ({
       // A busy button stays focusable — `disabled` would drop it from the tab
       // order and announce it as unavailable, when it is working — so it only
       // stops answering presses.
-      disabled={disabled || loading}
+      disabled={isDisabled || isLoading}
       style={({ hovered, pressed }: PressableState) => {
         let currentBg = bg;
 
@@ -235,7 +242,7 @@ const Button = ({
           {
             backgroundColor: currentBg,
             ...glow,
-            opacity: disabled ? 0.38 : 1,
+            opacity: isDisabled ? 0.38 : 1,
           },
           dense && styles.dense,
           fullWidth && styles.fullWidth,
@@ -253,7 +260,7 @@ const Button = ({
         </View>
       )}
       <View style={styles.itemsContainer}>
-        {loading ? (
+        {isLoading ? (
           // We use a smaller size to fit inside the button height
           <CircularProgress size={20} strokeWidth={2.5} color={on} />
         ) : (

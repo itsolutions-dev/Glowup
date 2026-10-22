@@ -307,7 +307,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     props: {
       value: { type: "text", default: "", label: "Value" },
       placeholder: { type: "text", default: "Search", label: "Placeholder" },
-      icon: { type: "text", default: "magnify", label: "Icon" },
+      icon: { type: "icon", default: "magnify", label: "Icon" },
       debounceTime: { type: "number", default: 0, label: "Debounce (ms)" },
       showLoading: { type: "boolean", default: false, label: "Show loading" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -587,15 +587,11 @@ export const inputs: Record<string, ComponentMetadata> = {
         ],
       },
       icon: {
-        type: "select",
+        type: "icon",
         default: "star",
         label: "Icon",
-        options: [
-          { label: "Star", value: "star" },
-          { label: "Heart", value: "heart" },
-          { label: "Thumb up", value: "thumb-up" },
-          { label: "Circle", value: "circle" },
-        ],
+        // The empty icons are the `-outline` glyph of the same name.
+        withOutline: true,
       },
       required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },

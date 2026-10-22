@@ -2,10 +2,12 @@
 // Built from .design-sync/previews by `npm run variants -w @its/glowup-playground`.
 import type { Variant } from "../types";
 import { variants as Accordion } from "./Accordion";
+import { variants as AppBar } from "./AppBar";
 import { variants as AspectRatio } from "./AspectRatio";
 import { variants as Avatar } from "./Avatar";
 import { variants as Badge } from "./Badge";
 import { variants as Banner } from "./Banner";
+import { variants as Blink } from "./Blink";
 import { variants as Box } from "./Box";
 import { variants as Breadcrumbs } from "./Breadcrumbs";
 import { variants as Button } from "./Button";
@@ -13,7 +15,6 @@ import { variants as ButtonGroup } from "./ButtonGroup";
 import { variants as CaptionValue } from "./CaptionValue";
 import { variants as Card } from "./Card";
 import { variants as Carousel } from "./Carousel";
-import { variants as Center } from "./Center";
 import { variants as Checkbox } from "./Checkbox";
 import { variants as CheckboxGroup } from "./CheckboxGroup";
 import { variants as Chip } from "./Chip";
@@ -24,10 +25,13 @@ import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
 import { variants as Divider } from "./Divider";
+import { variants as Drawer } from "./Drawer";
 import { variants as EmptyState } from "./EmptyState";
+import { variants as Form } from "./Form";
 import { variants as FormControl } from "./FormControl";
 import { variants as Grid } from "./Grid";
 import { variants as HelperText } from "./HelperText";
+import { variants as IFrame } from "./IFrame";
 import { variants as IconButton } from "./IconButton";
 import { variants as Image } from "./Image";
 import { variants as Input } from "./Input";
@@ -36,8 +40,7 @@ import { variants as Link } from "./Link";
 import { variants as ListItem } from "./ListItem";
 import { variants as ListSection } from "./ListSection";
 import { variants as ListSubheader } from "./ListSubheader";
-import { variants as NavigationBar } from "./NavigationBar";
-import { variants as NavigationDrawer } from "./NavigationDrawer";
+import { variants as NavBar } from "./NavBar";
 import { variants as NavigationRail } from "./NavigationRail";
 import { variants as NumberField } from "./NumberField";
 import { variants as Pagination } from "./Pagination";
@@ -50,7 +53,6 @@ import { variants as RadioGroup } from "./RadioGroup";
 import { variants as Rating } from "./Rating";
 import { variants as SearchBar } from "./SearchBar";
 import { variants as Select } from "./Select";
-import { variants as SideSheet } from "./SideSheet";
 import { variants as Skeleton } from "./Skeleton";
 import { variants as Slider } from "./Slider";
 import { variants as Snackbar } from "./Snackbar";
@@ -69,16 +71,17 @@ import { variants as TimePicker } from "./TimePicker";
 import { variants as ToggleButton } from "./ToggleButton";
 import { variants as ToggleButtonGroup } from "./ToggleButtonGroup";
 import { variants as Toolbar } from "./Toolbar";
-import { variants as TopAppBar } from "./TopAppBar";
 import { variants as TouchableRipple } from "./TouchableRipple";
 import { variants as Typography } from "./Typography";
 
 export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Accordion,
+  AppBar,
   AspectRatio,
   Avatar,
   Badge,
   Banner,
+  Blink,
   Box,
   Breadcrumbs,
   Button,
@@ -86,7 +89,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   CaptionValue,
   Card,
   Carousel,
-  Center,
   Checkbox,
   CheckboxGroup,
   Chip,
@@ -97,10 +99,13 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   DatePicker,
   DateTimePicker,
   Divider,
+  Drawer,
   EmptyState,
+  Form,
   FormControl,
   Grid,
   HelperText,
+  IFrame,
   IconButton,
   Image,
   Input,
@@ -109,8 +114,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   ListItem,
   ListSection,
   ListSubheader,
-  NavigationBar,
-  NavigationDrawer,
+  NavBar,
   NavigationRail,
   NumberField,
   Pagination,
@@ -123,7 +127,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Rating,
   SearchBar,
   Select,
-  SideSheet,
   Skeleton,
   Slider,
   Snackbar,
@@ -142,7 +145,6 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   ToggleButton,
   ToggleButtonGroup,
   Toolbar,
-  TopAppBar,
   TouchableRipple,
   Typography,
 };

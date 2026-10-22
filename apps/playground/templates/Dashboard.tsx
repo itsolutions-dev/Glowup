@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import {
   Avatar,
   Badge,
@@ -15,10 +15,6 @@ import {
   Stat,
   StatusBadge,
   Table,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
   AppBar,
   Typography,
   VStack,
@@ -76,6 +72,13 @@ const ORDERS = [
     total: "€18.50",
     status: "Refunded",
   },
+];
+
+const ORDER_COLUMNS = [
+  { id: "id", label: "Order", width: 80 },
+  { id: "customer", label: "Customer", width: 160 },
+  { id: "total", label: "Total", width: 100 },
+  { id: "status", label: "Status", width: 130 },
 ];
 
 const STATUS_TYPE = {
@@ -203,7 +206,7 @@ export default function Dashboard() {
                 icon="cash-refund"
                 trend="down"
                 delta="8%"
-                invertTrendColors
+                trendColor="success"
               />
             </HStack>
 
@@ -252,35 +255,21 @@ export default function Dashboard() {
                     View all
                   </Button>
                 </HStack>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeaderCell width={80}>Order</TableHeaderCell>
-                        <TableHeaderCell width={160}>Customer</TableHeaderCell>
-                        <TableHeaderCell width={100}>Total</TableHeaderCell>
-                        <TableHeaderCell width={130}>Status</TableHeaderCell>
-                      </TableRow>
-                    </TableHead>
-                    {ORDERS.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell width={80}>{order.id}</TableCell>
-                        <TableCell width={160}>{order.customer}</TableCell>
-                        <TableCell width={100}>{order.total}</TableCell>
-                        <TableCell width={130}>
-                          <StatusBadge
-                            label={order.status}
-                            type={
-                              STATUS_TYPE[
-                                order.status as keyof typeof STATUS_TYPE
-                              ]
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </Table>
-                </ScrollView>
+                <Table
+                  hover
+                  columns={ORDER_COLUMNS}
+                  data={ORDERS.map((order) => ({
+                    ...order,
+                    status: (
+                      <StatusBadge
+                        label={order.status}
+                        type={
+                          STATUS_TYPE[order.status as keyof typeof STATUS_TYPE]
+                        }
+                      />
+                    ),
+                  }))}
+                />
               </VStack>
             </HStack>
           </VStack>

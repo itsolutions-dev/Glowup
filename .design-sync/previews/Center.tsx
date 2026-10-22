@@ -1,21 +1,21 @@
 import React from "react";
-import { Box, CircularProgress, EmptyState, Typography } from "@its/glowup-ui";
+import { Box, Center, CircularProgress, Typography } from "@its/glowup-ui";
 
 export const Basic = () => (
-  <Box
-    variant="centered-column-flex"
+  <Center
     background="surfaceContainerLow"
     radius="medium"
     height={160}
     width={360}
   >
     <Typography variant="titleMedium">Centred on both axes</Typography>
-  </Box>
+  </Center>
 );
 
-export const LoadingPane = () => (
-  <Box
-    variant="centered-column-flex"
+/** `direction="column"` stacks the children, each centred. */
+export const Column = () => (
+  <Center
+    direction="column"
     background="surfaceContainerLow"
     radius="large"
     height={200}
@@ -24,23 +24,38 @@ export const LoadingPane = () => (
   >
     <CircularProgress size={48} />
     <Typography variant="bodyMedium">Syncing your workspace</Typography>
-  </Box>
+  </Center>
 );
 
-export const AroundAnEmptyState = () => (
-  <Box
-    variant="centered-column-flex"
+/** In a row, the children sit side by side in the middle. */
+export const Row = () => (
+  <Center
+    background="surfaceContainerLow"
+    radius="large"
+    height={120}
+    width={360}
+    gap={12}
+  >
+    <Box background="primaryContainer" padding={12} radius="small">
+      <Typography variant="labelLarge">One</Typography>
+    </Box>
+    <Box background="secondaryContainer" padding={12} radius="small">
+      <Typography variant="labelLarge">Two</Typography>
+    </Box>
+  </Center>
+);
+
+/** Every other Box prop applies. */
+export const WithBoxProps = () => (
+  <Center
     background="surface"
     radius="large"
-    height={260}
+    padding={24}
+    height={140}
     width={360}
     borderWidth={1}
     borderColor="outlineVariant"
   >
-    <EmptyState
-      icon="folder-multiple-outline"
-      title="No projects yet"
-      description="Create your first project to start collecting components."
-    />
-  </Box>
+    <Typography variant="bodyMedium">Bordered, padded, centred</Typography>
+  </Center>
 );

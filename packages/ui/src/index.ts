@@ -25,6 +25,8 @@ export * from "./hooks/useBreakpoint";
 export { useReduceMotion } from "./components/internal/useReduceMotion";
 
 // --- Components ---
+export { default as AbsoluteCenter } from "./components/Layout/AbsoluteCenter";
+export * from "./components/Layout/AbsoluteCenter";
 export { default as Accordion } from "./components/Accordion";
 export type { AccordionProps } from "./components/Accordion";
 export { default as AppBar } from "./components/AppBar";
@@ -47,6 +49,8 @@ export { default as Box } from "./components/Layout/Box";
 export * from "./components/Layout/Box";
 export { default as Breadcrumbs } from "./components/Breadcrumbs";
 export * from "./components/Breadcrumbs";
+export { default as Break } from "./components/Layout/Break";
+export * from "./components/Layout/Break";
 export { default as Button } from "./components/Button";
 export type {
   ButtonVariant,
@@ -67,6 +71,8 @@ export { default as CardTitle } from "./components/CardParts/CardTitle";
 export * from "./components/CardParts/CardTitle";
 export { default as Carousel } from "./components/Carousel";
 export type { CarouselProps } from "./components/Carousel";
+export { default as Center } from "./components/Layout/Center";
+export * from "./components/Layout/Center";
 export { default as Checkbox } from "./components/Checkbox";
 export type { CheckboxProps } from "./components/Checkbox";
 export { default as CheckboxGroup } from "./components/CheckboxGroup";
@@ -75,6 +81,23 @@ export { default as Chip } from "./components/Chip";
 export type { ChipProps } from "./components/Chip";
 export { default as ChipGroup } from "./components/ChipGroup";
 export * from "./components/ChipGroup";
+export {
+  default as Clipboard,
+  useClipboard,
+  type ClipboardProps,
+  type ClipboardWriter,
+  type UseClipboardOptions,
+  type UseClipboardResult,
+} from "./components/Clipboard";
+export { default as CodeBlock } from "./components/CodeBlock";
+// Carries HighlightedCode (a component with a props table) and CODE_FONT_FAMILY.
+export * from "./components/CodeBlock";
+export {
+  highlight,
+  type CodeLanguage,
+  type Token as CodeToken,
+  type TokenKind as CodeTokenKind,
+} from "./components/internal/highlight";
 export { default as Collapse } from "./components/Collapse";
 export * from "./components/Collapse";
 export { default as DataGrid } from "./components/DataGrid";
@@ -82,6 +105,11 @@ export * from "./components/DataGrid";
 export { default as DatePicker } from "./components/DatePicker";
 export * from "./components/DatePicker";
 export { default as DateTimePicker } from "./components/DateTimePicker";
+export { default as AlertDialog } from "./components/Dialog/AlertDialog";
+export type {
+  AlertDialogProps,
+  AlertDialogSeverity,
+} from "./components/Dialog/AlertDialog";
 export { default as ConfirmDialog } from "./components/Dialog/ConfirmDialog";
 export type { ConfirmDialogProps } from "./components/Dialog/ConfirmDialog";
 export { default as Dialog } from "./components/Dialog/Dialog";
@@ -92,18 +120,56 @@ export type {
 } from "./components/Dialog/Dialog";
 export { default as Divider } from "./components/Divider";
 export type { DividerProps } from "./components/Divider";
+export {
+  default as Download,
+  useDownload,
+  type DownloadFile,
+  type DownloadProps,
+  type DownloadSaver,
+  type DownloadSource,
+  type UseDownloadOptions,
+  type UseDownloadResult,
+} from "./components/Download";
+export { default as Editable } from "./components/Editable";
+export type { EditableProps, EditableType } from "./components/Editable";
 export { default as EmptyState } from "./components/EmptyState";
 export type { EmptyStateProps } from "./components/EmptyState";
 export { default as FAB } from "./components/FAB";
 export type { FABProps, FABSize, FABVariant } from "./components/FAB";
 export { default as Form } from "./components/Form";
-export type { FormProps } from "./components/Form";
+export {
+  useForm,
+  useFormField,
+  useFormState,
+  useWatch,
+} from "./components/Form";
+export type {
+  DeepPartial,
+  FormErrors,
+  FormFieldApi,
+  FormFieldState,
+  FormInstance,
+  FormProps,
+  FormRule,
+  FormState,
+  FormValidateOn,
+  FormValidatorContext,
+  FormValues,
+  UseFormFieldOptions,
+} from "./components/Form";
+export { default as FormField } from "./components/FormField";
+export type {
+  FormFieldChildProps,
+  FormFieldProps,
+} from "./components/FormField";
 export { default as FormControl } from "./components/FormControl";
 export * from "./components/FormControl";
 export { default as Grid } from "./components/Layout/Grid";
 export * from "./components/Layout/Grid";
 export { default as HelperText } from "./components/HelperText";
 export * from "./components/HelperText";
+export { default as HoverCard } from "./components/HoverCard";
+export type { HoverCardProps } from "./components/HoverCard";
 export { default as Icon } from "./components/Icon";
 export * from "./components/Icon";
 export { default as IconButton } from "./components/IconButton";
@@ -113,7 +179,7 @@ export type { IFrameProps } from "./components/IFrame";
 export { default as Image } from "./components/Image";
 export * from "./components/Image";
 export { default as Input } from "./components/Input";
-export type { InputProps } from "./components/Input";
+export type { InputProps, InputTextInputProps } from "./components/Input";
 export { default as Link } from "./components/Link";
 export * from "./components/Link";
 export { default as ListItem } from "./components/List/ListItem";
@@ -138,6 +204,8 @@ export type {
 } from "./components/Pagination";
 export { default as Paper } from "./components/Paper";
 export type { PaperProps } from "./components/Paper";
+export { default as PasswordField } from "./components/PasswordField";
+export * from "./components/PasswordField";
 export { default as PinInput } from "./components/PinInput";
 export * from "./components/PinInput";
 export { default as Popover } from "./components/Popover";
@@ -153,10 +221,14 @@ export type {
 } from "./components/Progress/LinearProgress";
 export { default as ProgressButton } from "./components/ProgressButton";
 export * from "./components/ProgressButton";
+export { default as QrCode } from "./components/QrCode";
+export type { QrCodeProps, QrLevel } from "./components/QrCode";
 export { default as RadioButton } from "./components/RadioButton";
 export * from "./components/RadioButton";
 export { default as Rating } from "./components/Rating";
 export type { RatingProps } from "./components/Rating";
+export { default as ScrollArea } from "./components/ScrollArea";
+export * from "./components/ScrollArea";
 export { default as SearchBar } from "./components/SearchBar";
 export type { SearchBarProps } from "./components/SearchBar";
 export { default as Select } from "./components/Select";
@@ -205,8 +277,32 @@ export { default as Tooltip } from "./components/Tooltip";
 export * from "./components/Tooltip";
 export { default as TouchableRipple } from "./components/TouchableRipple";
 export * from "./components/TouchableRipple";
+export { default as Tree } from "./components/Tree";
+export type {
+  TreeProps,
+  TreeNode,
+  TreeRowState,
+} from "./components/Tree";
 export { default as Typography } from "./components/Typography";
 export * from "./components/Typography";
+export {
+  default as Upload,
+  type UploadHandlers,
+  type UploadProps,
+} from "./components/Upload";
+export {
+  acceptMatches,
+  formatBytes,
+  validateFiles,
+  type PickedFile,
+  type UploadFile,
+  type UploadRejection,
+  type UploadRejectionReason,
+  type UploadRules,
+  type UploadStatus,
+} from "./components/internal/upload";
+export { default as Visible } from "./components/Visible";
+export * from "./components/Visible";
 
 // --- Date/time picker types + locale helpers ---
 export type {

@@ -1,0 +1,225 @@
+- generic [ref=f4e5]:
+  - generic [ref=f4e6]:
+    - link "Glowup home" [ref=f4e7] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f4e14]:
+        - generic [ref=f4e15]: Glowup
+        - generic [ref=f4e16]: Material You for React Native
+    - button "Search components and pages" [ref=f4e17] [cursor=pointer]:
+      - generic [ref=f4e18]: 󰍉
+      - generic [ref=f4e19]: Search
+      - generic [ref=f4e20]: Ctrl K
+    - button "Switch to dark theme" [ref=f4e21] [cursor=pointer]:
+      - generic [ref=f4e22]: 󰖔
+    - button "Open the repository on GitHub" [ref=f4e23] [cursor=pointer]:
+      - generic [ref=f4e24]: 󰊤
+  - generic [ref=f4e25]:
+    - navigation [ref=f4e26]:
+      - generic [ref=f4e28]:
+        - link "Overview" [ref=f4e29] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f4e30]:
+            - generic [ref=f4e31]: 󰚡
+            - generic [ref=f4e33]: Overview
+        - link "Getting started" [ref=f4e34] [cursor=pointer]:
+          - /url: /getting-started
+          - generic [ref=f4e35]:
+            - generic [ref=f4e36]: 󱓟
+            - generic [ref=f4e38]: Getting started
+        - link "Components" [ref=f4e39] [cursor=pointer]:
+          - /url: /components
+          - generic [ref=f4e40]:
+            - generic [ref=f4e41]: 󱇙
+            - generic [ref=f4e43]: Components
+        - link "Icons" [ref=f4e44] [cursor=pointer]:
+          - /url: /icons
+          - generic [ref=f4e45]:
+            - generic [ref=f4e46]: 󰠱
+            - generic [ref=f4e48]: Icons
+        - link "Theming" [ref=f4e49] [cursor=pointer]:
+          - /url: /theming
+          - generic [ref=f4e50]:
+            - generic [ref=f4e51]: 󰸌
+            - generic [ref=f4e53]: Theming
+        - link "Templates" [ref=f4e54] [cursor=pointer]:
+          - /url: /templates
+          - generic [ref=f4e55]:
+            - generic [ref=f4e56]: 󰛺
+            - generic [ref=f4e58]: Templates
+        - link "Notifications" [ref=f4e59] [cursor=pointer]:
+          - /url: /notifications
+          - generic [ref=f4e60]:
+            - generic [ref=f4e61]: 󰂜
+            - generic [ref=f4e63]: Notifications
+        - link "Device" [ref=f4e64] [cursor=pointer]:
+          - /url: /device
+          - generic [ref=f4e65]:
+            - generic [ref=f4e66]: 󰥑
+            - generic [ref=f4e68]: Device
+      - generic [ref=f4e70]:
+        - button "Open the package on npm" [ref=f4e71] [cursor=pointer]:
+          - generic [ref=f4e72]: 󰛷
+        - button "Open the repository on GitHub" [ref=f4e73] [cursor=pointer]:
+          - generic [ref=f4e74]: 󰊤
+    - generic [ref=f4e82]:
+      - generic [ref=f4e83]:
+        - generic [ref=f4e84]: Reference
+        - generic [ref=f4e85]: Icons
+        - generic [ref=f4e86]: "All 7,448 icons of the Material Design Icons font: the set every icon prop in the library takes, by name. Search, filter by look, press an icon for its details, and export the list."
+      - generic [ref=f4e87]:
+        - generic [ref=f4e89]:
+          - generic [ref=f4e90]: 󰍉
+          - search "Search 7,448 icons, e.g. “account”, “arrow left”" [ref=f4e91]
+        - generic [ref=f4e92]:
+          - button "Copy 7,448 names" [ref=f4e93] [cursor=pointer]:
+            - generic [ref=f4e94]:
+              - generic [ref=f4e95]: 󰘦
+              - generic [ref=f4e96]: Copy 7,448 names
+          - button "Download JSON" [ref=f4e97] [cursor=pointer]:
+            - generic [ref=f4e98]:
+              - generic [ref=f4e99]: 󰇚
+              - generic [ref=f4e100]: Download JSON
+      - generic [ref=f4e101]:
+        - radiogroup "Icon style" [ref=f4e102]:
+          - radio "All" [ref=f4e104] [cursor=pointer]:
+            - generic [ref=f4e106]: 󰄬
+          - radio "Contained" [ref=f4e108] [cursor=pointer]
+          - radio "Outlined" [ref=f4e111] [cursor=pointer]
+        - generic [ref=f4e113]: 7,448 icons
+      - generic [ref=f4e118]:
+        - generic [ref=f4e120]:
+          - button "ab-testing" [ref=f4e121] [cursor=pointer]:
+            - generic [ref=f4e122]: 󰇉
+          - button "abacus" [ref=f4e124] [cursor=pointer]:
+            - generic [ref=f4e125]: 󱛠
+          - button "abjad-arabic" [ref=f4e127] [cursor=pointer]:
+            - generic [ref=f4e128]: 󱌨
+          - button "abjad-hebrew" [ref=f4e130] [cursor=pointer]:
+            - generic [ref=f4e131]: 󱌩
+          - button "abugida-devanagari" [ref=f4e133] [cursor=pointer]:
+            - generic [ref=f4e134]: 󱌪
+          - button "abugida-thai" [ref=f4e136] [cursor=pointer]:
+            - generic [ref=f4e137]: 󱌫
+          - button "access-point" [ref=f4e139] [cursor=pointer]:
+            - generic [ref=f4e140]: 󰀃
+          - button "access-point-check" [ref=f4e142] [cursor=pointer]:
+            - generic [ref=f4e143]: 󱔸
+        - generic [ref=f4e146]:
+          - button "access-point-minus" [ref=f4e147] [cursor=pointer]:
+            - generic [ref=f4e148]: 󱔹
+          - button "access-point-network" [ref=f4e150] [cursor=pointer]:
+            - generic [ref=f4e151]: 󰀂
+          - button "access-point-network-off" [ref=f4e153] [cursor=pointer]:
+            - generic [ref=f4e154]: 󰯡
+          - button "access-point-off" [ref=f4e156] [cursor=pointer]:
+            - generic [ref=f4e157]: 󱔑
+          - button "access-point-plus" [ref=f4e159] [cursor=pointer]:
+            - generic [ref=f4e160]: 󱔺
+          - button "access-point-remove" [ref=f4e162] [cursor=pointer]:
+            - generic [ref=f4e163]: 󱔻
+          - button "account" [ref=f4e165] [cursor=pointer]:
+            - generic [ref=f4e166]: 󰀄
+          - button "account-alert" [ref=f4e168] [cursor=pointer]:
+            - generic [ref=f4e169]: 󰀅
+        - generic [ref=f4e172]:
+          - button "account-alert-outline" [ref=f4e173] [cursor=pointer]:
+            - generic [ref=f4e174]: 󰭐
+          - button "account-arrow-down" [ref=f4e176] [cursor=pointer]:
+            - generic [ref=f4e177]: 󱡨
+          - button "account-arrow-down-outline" [ref=f4e179] [cursor=pointer]:
+            - generic [ref=f4e180]: 󱡩
+          - button "account-arrow-left" [ref=f4e182] [cursor=pointer]:
+            - generic [ref=f4e183]: 󰭑
+          - button "account-arrow-left-outline" [ref=f4e185] [cursor=pointer]:
+            - generic [ref=f4e186]: 󰭒
+          - button "account-arrow-right" [ref=f4e188] [cursor=pointer]:
+            - generic [ref=f4e189]: 󰭓
+          - button "account-arrow-right-outline" [ref=f4e191] [cursor=pointer]:
+            - generic [ref=f4e192]: 󰭔
+          - button "account-arrow-up" [ref=f4e194] [cursor=pointer]:
+            - generic [ref=f4e195]: 󱡧
+        - generic [ref=f4e198]:
+          - button "account-arrow-up-outline" [ref=f4e199] [cursor=pointer]:
+            - generic [ref=f4e200]: 󱡪
+          - button "account-badge" [ref=f4e202] [cursor=pointer]:
+            - generic [ref=f4e203]: 󱬊
+          - button "account-badge-outline" [ref=f4e205] [cursor=pointer]:
+            - generic [ref=f4e206]: 󱬋
+          - button "account-box" [ref=f4e208] [cursor=pointer]:
+            - generic [ref=f4e209]: 󰀆
+          - button "account-box-edit-outline" [ref=f4e211] [cursor=pointer]:
+            - generic [ref=f4e212]: 󱳈
+          - button "account-box-minus-outline" [ref=f4e214] [cursor=pointer]:
+            - generic [ref=f4e215]: 󱳉
+          - button "account-box-multiple" [ref=f4e217] [cursor=pointer]:
+            - generic [ref=f4e218]: 󰤴
+          - button "account-box-multiple-outline" [ref=f4e220] [cursor=pointer]:
+            - generic [ref=f4e221]: 󱀊
+        - generic [ref=f4e224]:
+          - button "account-box-outline" [ref=f4e225] [cursor=pointer]:
+            - generic [ref=f4e226]: 󰀇
+          - button "account-box-plus-outline" [ref=f4e228] [cursor=pointer]:
+            - generic [ref=f4e229]: 󱳊
+          - button "account-cancel" [ref=f4e231] [cursor=pointer]:
+            - generic [ref=f4e232]: 󱋟
+          - button "account-cancel-outline" [ref=f4e234] [cursor=pointer]:
+            - generic [ref=f4e235]: 󱋠
+          - button "account-card" [ref=f4e237] [cursor=pointer]:
+            - generic [ref=f4e238]: 󱮤
+          - button "account-card-outline" [ref=f4e240] [cursor=pointer]:
+            - generic [ref=f4e241]: 󱮥
+          - button "account-cash" [ref=f4e243] [cursor=pointer]:
+            - generic [ref=f4e244]: 󱂗
+          - button "account-cash-outline" [ref=f4e246] [cursor=pointer]:
+            - generic [ref=f4e247]: 󱂘
+        - generic [ref=f4e250]:
+          - button "account-check" [ref=f4e251] [cursor=pointer]:
+            - generic [ref=f4e252]: 󰀈
+          - button "account-check-outline" [ref=f4e254] [cursor=pointer]:
+            - generic [ref=f4e255]: 󰯢
+          - button "account-child" [ref=f4e257] [cursor=pointer]:
+            - generic [ref=f4e258]: 󰪉
+          - button "account-child-circle" [ref=f4e260] [cursor=pointer]:
+            - generic [ref=f4e261]: 󰪊
+          - button "account-child-outline" [ref=f4e263] [cursor=pointer]:
+            - generic [ref=f4e264]: 󱃈
+          - button "account-circle" [ref=f4e266] [cursor=pointer]:
+            - generic [ref=f4e267]: 󰀉
+          - button "account-circle-outline" [ref=f4e269] [cursor=pointer]:
+            - generic [ref=f4e270]: 󰭕
+          - button "account-clock" [ref=f4e272] [cursor=pointer]:
+            - generic [ref=f4e273]: 󰭖
+        - generic [ref=f4e276]:
+          - button "account-clock-outline" [ref=f4e277] [cursor=pointer]:
+            - generic [ref=f4e278]: 󰭗
+          - button "account-cog" [ref=f4e280] [cursor=pointer]:
+            - generic [ref=f4e281]: 󱍰
+          - button "account-cog-outline" [ref=f4e283] [cursor=pointer]:
+            - generic [ref=f4e284]: 󱍱
+          - button "account-convert" [ref=f4e286] [cursor=pointer]:
+            - generic [ref=f4e287]: 󰀊
+          - button "account-convert-outline" [ref=f4e289] [cursor=pointer]:
+            - generic [ref=f4e290]: 󱌁
+          - button "account-cowboy-hat" [ref=f4e292] [cursor=pointer]:
+            - generic [ref=f4e293]: 󰺛
+          - button "account-cowboy-hat-outline" [ref=f4e295] [cursor=pointer]:
+            - generic [ref=f4e296]: 󱟳
+          - button "account-credit-card" [ref=f4e298] [cursor=pointer]:
+            - generic [ref=f4e299]: 󱮦
+        - generic [ref=f4e302]:
+          - button "account-credit-card-outline" [ref=f4e303] [cursor=pointer]:
+            - generic [ref=f4e304]: 󱮧
+          - button "account-details" [ref=f4e306] [cursor=pointer]:
+            - generic [ref=f4e307]: 󰘱
+          - button "account-details-outline" [ref=f4e309] [cursor=pointer]:
+            - generic [ref=f4e310]: 󱍲
+          - button "account-edit" [ref=f4e312] [cursor=pointer]:
+            - generic [ref=f4e313]: 󰚼
+          - button "account-edit-outline" [ref=f4e315] [cursor=pointer]:
+            - generic [ref=f4e316]: 󰿻
+          - button "account-eye" [ref=f4e318] [cursor=pointer]:
+            - generic [ref=f4e319]: 󰐠
+          - button "account-eye-outline" [ref=f4e321] [cursor=pointer]:
+            - generic [ref=f4e322]: 󱉻
+          - button "account-file" [ref=f4e324] [cursor=pointer]:
+            - generic [ref=f4e325]: 󱲧

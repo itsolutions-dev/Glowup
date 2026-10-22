@@ -8,17 +8,17 @@ radius comes from the theme object at runtime. Class names you invent will not r
 ### Wrap the app, or nothing is styled
 
 Three providers, in this order. `ThemeProvider` supplies every token — without it
-components mount but render unthemed. `SafeAreaProvider` is required by `TopAppBar`
-(and `AppBar`, which wraps it), `Toolbar`, `FAB`, `SpeedDial`, and the
-modal `NavigationDrawer` / `SideSheet` (they read insets and throw without it). `AlertProviderWrapper` is what binds
-the imperative `Alert()` singleton; omit it and every `Alert()` call is a no-op warning.
+components mount but render unthemed. `SafeAreaProvider` is required by `AppBar`,
+`Toolbar`, `FAB`, `SpeedDial` and a swipeable `Drawer` (they read insets and throw
+without it); `Dialog` and `Snackbar` use the insets when a provider is there and work
+without one. `AlertProvider` is what binds the imperative `Alert()` singleton; omit it and
+every `Alert()` call is a no-op warning (`AlertProviderWrapper` is a deprecated
+pass-through).
 
 ```tsx
 <SafeAreaProvider>
   <ThemeProvider>
-    <AlertProvider>
-      <AlertProviderWrapper>{/* app */}</AlertProviderWrapper>
-    </AlertProvider>
+    <AlertProvider>{/* app */}</AlertProvider>
   </ThemeProvider>
 </SafeAreaProvider>
 ```
@@ -67,20 +67,25 @@ const brand = createPalette("#00639B", { id: "brand", name: "Brand" });
 For an action that runs a task the user waits on (route, upload, payment), use
 `ProgressButton`, not a `Button` next to a `LinearProgress`: `status` is controlled
 (`"idle" | "loading" | "success" | "error"`), `progress` is 0–1 (omit it for an
-indeterminate sweep), `indicator="fill" | "bar"`. It takes every `Button` mode.
+indeterminate sweep), `indicator="fill" | "bar"`. It takes every `Button` variant.
 
 **Text goes in `<Typography variant="...">`**, never a bare string — that is the only way
 type picks up the scale. **Icons** are MaterialCommunityIcons kebab-case name strings
 (`iconName="plus"`, `leadingIcon="email-outline"`); outline variants take `-outline`.
 
-**Layout comes from the library, not from `<div>`.** `Stack` (`direction`, `reverse`,
-`wrap`), `HStack` / `VStack` (`spacing`, `align`, `justify`), `Box` (`p` / `px` / `py`,
-`bg`, `radius`, `gap`, `justify`, `align`), `Grid` (`columns`, `spacing`), `Center`,
-`Spacer` (`size`, or flexible to push siblings apart) and `AspectRatio` (`ratio`) all take
-the same `xs`/`s`/`m`/`l`/`xl` spacing and `bg` colour-role names as the theme. There is
-no `View` and no `Text` export: reach for these first, and drop to a plain `<div>` with
-inline styles only for glue they cannot express (react-native-web renders real DOM, so
-divs compose fine) — taking values from `theme.spacing` when you do.
+**Layout comes from the library, not from `<div>`.** `Stack` (`direction`, `spacing`,
+`dividers`, `reverse`, `wrap`), `HStack` / `VStack` (the same, with the axis fixed), `Box`
+(`variant`, `padding`, `margin`, `background`, `radius`, `gap`, `align`, `justify`, `width`,
+`height`, `wrap`), `Grid` (`container`, `columns`, `size`, `spacing`, `autoSize`), `Spacer`
+(`size`, or flexible to push siblings apart) and `AspectRatio` (`ratio`). `spacing` and
+`Spacer`'s `size` take the theme's `xs`/`s`/`m`/`l`/`xl` names, `background` a colour-role
+name; `Box`'s `padding`, `margin` and `gap` are px. `Box variant` is the layout preset
+(`"flex"` a row, `"column-flex"`, `"centered-flex"` to centre on both axes, `"full-size-*"`
+to fill the parent), and `Grid` is a 12-column grid: a `container` of items with
+`size={{ xs: 12, md: 6 }}`. There is no `View` and no `Text` export: reach for these first,
+and drop to a plain `<div>` with inline styles only for glue they cannot express
+(react-native-web renders real DOM, so divs compose fine) — taking values from
+`theme.spacing` when you do.
 
 ### Where the truth lives
 
@@ -103,14 +108,10 @@ const { theme } = useTheme();
   }}
 >
   <Typography variant="headlineSmall">Invoices</Typography>
-  <SearchBar
-    value={query}
-    onChangeText={setQuery}
-    placeholder="Search invoices"
-  />
+  <SearchBar value={query} onChange={setQuery} placeholder="Search invoices" />
   <div style={{ display: "flex", gap: theme.spacing.s, flexWrap: "wrap" }}>
-    <Chip label="Paid" mode="tonal" selected onPress={() => {}} />
-    <Chip label="Overdue" mode="outlined" onPress={() => {}} />
+    <Chip label="Paid" variant="tonal" selected onClick={() => {}} />
+    <Chip label="Overdue" variant="outlined" onClick={() => {}} />
   </div>
   <Paper elevation={0} outline style={{ borderRadius: theme.shape.large }}>
     <DataGrid
@@ -121,7 +122,7 @@ const { theme } = useTheme();
       onSort={onSort}
     />
   </Paper>
-  <Button mode="filled" iconName="plus" fullWidth onPress={() => {}}>
+  <Button variant="filled" iconName="plus" fullWidth onClick={() => {}}>
     New invoice
   </Button>
 </div>;
@@ -129,6 +130,7 @@ const { theme } = useTheme();
 
 ### Two things worth knowing
 
-`ListItem` is a real M3 row: pass `leading`, `secondary` and `trailing` rather than
-composing a row by hand; with none of them it falls back to a centred single-line tile.
+`ListItem` is a real M3 row: pass `primaryText` with `icon`, `secondaryText` and `action`
+rather than composing a row by hand; with none of the last three it falls back to a centred
+single-line tile.
 `Tooltip` caps its text at two lines, so keep tips to a short phrase.

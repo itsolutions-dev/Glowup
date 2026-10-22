@@ -2,12 +2,19 @@
 // the entries are grouped in the navigator.
 import type { ComponentType } from "react";
 
-export type PropType = "text" | "number" | "boolean" | "select" | "node";
+/**
+ * `icon` is a text control for a glyph name that opens a search of the whole
+ * icon font; its value is the name, like `text`.
+ */
+export type PropType =
+  "text" | "number" | "boolean" | "select" | "node" | "icon";
 
 export interface PropDefinition {
   type: PropType;
   default: any;
   options?: { label: string; value: any }[];
+  /** For an `icon` control: only the icons that also have an `-outline` glyph. */
+  withOutline?: boolean;
   label: string;
   /**
    * Whether this prop applies at all given the rest of the panel's state.

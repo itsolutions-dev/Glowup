@@ -121,6 +121,37 @@ const HelpBubble = () => {
   );
 };
 
+const AboveAnchor = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Popover
+        visible={open}
+        onDismiss={hide}
+        anchorPosition={{ vertical: "top", horizontal: "center" }}
+        anchor={
+          <Button
+            variant="outlined"
+            iconName="lightbulb-outline"
+            onClick={show}
+          >
+            Tip
+          </Button>
+        }
+      >
+        <View style={{ flexDirection: "column", padding: 12, gap: 6 }}>
+          <Typography variant="titleSmall">Above, centred</Typography>
+          <Typography variant="bodySmall">
+            anchorPosition puts the card over its anchor; near an edge it flips
+            or slides to stay on screen.
+          </Typography>
+        </View>
+      </Popover>
+    </View>
+  );
+};
+
 export const variants: Variant[] = [
   { name: "AccountCard", title: "Account card", render: AccountCard },
   {
@@ -130,4 +161,10 @@ export const variants: Variant[] = [
     render: MatchAnchorWidth,
   },
   { name: "HelpBubble", title: "Help bubble", render: HelpBubble },
+  {
+    name: "AboveAnchor",
+    title: "Above the anchor",
+    description: "anchorPosition: vertical top, horizontal center.",
+    render: AboveAnchor,
+  },
 ];

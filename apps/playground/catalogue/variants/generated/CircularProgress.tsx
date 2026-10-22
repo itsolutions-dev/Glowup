@@ -137,6 +137,71 @@ export const InlineWithLabel = () => (
   </View>
 );
 
+export const Determinate = () => (
+  <View style={row}>
+    {[0.25, 0.5, 0.75, 1].map((value) => (
+      <View key={value} style={cell}>
+        <CircularProgress
+          progress={value}
+          size={64}
+          strokeWidth={5}
+          label={`${Math.round(value * 100)}%`}
+        />
+        <Typography variant="labelSmall">progress {value}</Typography>
+      </View>
+    ))}
+  </View>
+);
+
+export const LabelPositions = () => (
+  <View style={row}>
+    {(["center", "top", "bottom", "left", "right"] as const).map((position) => (
+      <View key={position} style={cell}>
+        <CircularProgress
+          progress={0.65}
+          size={56}
+          label="65%"
+          labelPosition={position}
+        />
+        <Typography variant="labelSmall">{position}</Typography>
+      </View>
+    ))}
+    <View style={cell}>
+      <CircularProgress size={24} strokeWidth={3} label="Loading" />
+      <Typography variant="labelSmall">spinner: right</Typography>
+    </View>
+  </View>
+);
+
+export const Tracks = () => {
+  const { theme } = useTheme();
+  return (
+    <View style={row}>
+      <View style={cell}>
+        <CircularProgress progress={0.65} size={56} />
+        <Typography variant="labelSmall">ring: default</Typography>
+      </View>
+      <View style={cell}>
+        <CircularProgress progress={0.65} size={56} trackColor={false} />
+        <Typography variant="labelSmall">ring: none</Typography>
+      </View>
+      <View style={cell}>
+        <CircularProgress
+          progress={0.65}
+          size={56}
+          color={theme.colors.error}
+          trackColor={theme.colors.errorContainer}
+        />
+        <Typography variant="labelSmall">ring: a colour</Typography>
+      </View>
+      <View style={cell}>
+        <CircularProgress size={56} trackColor />
+        <Typography variant="labelSmall">spinner: tinted</Typography>
+      </View>
+    </View>
+  );
+};
+
 export const variants: Variant[] = [
   {
     name: "Sizes",
@@ -162,5 +227,20 @@ export const variants: Variant[] = [
     name: "InlineWithLabel",
     title: "Inline with label",
     render: InlineWithLabel,
+  },
+  {
+    name: "Determinate",
+    title: "Determinate",
+    render: Determinate,
+  },
+  {
+    name: "LabelPositions",
+    title: "Label positions",
+    render: LabelPositions,
+  },
+  {
+    name: "Tracks",
+    title: "Tracks",
+    render: Tracks,
   },
 ];

@@ -1,7 +1,7 @@
 import React from "react";
 import { DrawerItem, DrawerSection, Drawer } from "@its/glowup-ui";
 
-// DrawerSection groups the rows of a NavigationDrawer; it is shown inside one.
+// DrawerSection groups the rows of a Drawer; it is shown inside one.
 const frame: React.CSSProperties = { height: 420, width: 340, display: "flex" };
 
 export const TitledSections = () => (
@@ -60,6 +60,36 @@ export const Untitled = () => (
           icon="help-circle-outline"
           onClick={() => {}}
         />
+      </DrawerSection>
+    </Drawer>
+  </div>
+);
+
+/** `collapsible` makes the title a button that opens and closes the items. */
+export const Collapsible = () => (
+  <div style={frame}>
+    <Drawer width={320}>
+      <DrawerSection title="Workspace" collapsible>
+        <DrawerItem
+          label="Dashboard"
+          icon="view-dashboard-outline"
+          selected
+          onClick={() => {}}
+        />
+        <DrawerItem label="Projects" icon="folder-outline" onClick={() => {}} />
+      </DrawerSection>
+      <DrawerSection
+        title="Administration"
+        showDivider
+        collapsible
+        defaultExpanded={false}
+      >
+        <DrawerItem
+          label="Users"
+          icon="shield-account-outline"
+          onClick={() => {}}
+        />
+        <DrawerItem label="Routes" icon="sitemap-outline" onClick={() => {}} />
       </DrawerSection>
     </Drawer>
   </div>

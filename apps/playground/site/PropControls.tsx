@@ -2,20 +2,31 @@ import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import {
   Button,
+  IconButton,
   Input,
   Select,
   Switch,
   Typography,
   useTheme,
+  type MaterialCommunityIconsGlyphs,
   type Theme,
 } from "@its/glowup-ui";
 import type { ComponentMetadata, PropDefinition } from "../catalogue/types";
+import { IconPicker } from "./IconPicker";
+import { sameValue } from "./exampleProps";
+import { OUTLINED_PAIRS, isIconName } from "./iconCatalog";
 
 interface PropControlsProps {
   meta: ComponentMetadata;
   values: Record<string, any>;
   onChange: (key: string, value: any) => void;
   onReset: () => void;
+  /**
+   * Whether there is anything to reset. By default: whether a value differs from
+   * the registry's default. A page whose example starts from values of its own
+   * says so itself.
+   */
+  dirty?: boolean;
 }
 
 /**
@@ -32,6 +43,7 @@ export const PropControls = ({
   values,
   onChange,
   onReset,
+  dirty: dirtyProp,
 }: PropControlsProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -43,7 +55,8 @@ export const PropControls = ({
   // Over every key, not just the visible ones: a value left behind by a prop
   // that has since become inapplicable is still a value the reset clears, and
   // hiding the button would leave no way back to it.
-  const dirty = allKeys.some((key) => values[key] !== meta.props[key].default);
+  const dirty =
+    dirtyProp ?? allKeys.some((key) => values[key] !== meta.props[key].default);
 
   return (
     <View style={styles.wrap}>
@@ -109,6 +122,7 @@ const PropControl = ({
   // passes through while typing and neither survives a round trip through
   // Number().
   const [draft, setDraft] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   switch (definition.type) {
     case "text":
@@ -119,6 +133,41 @@ const PropControl = ({
           onChange={onChange}
         />
       );
+
+    case "icon": {
+      const glyph = isIconName(value) ? value : undefined;
+      return (
+        <View style={styles.iconField}>
+          <View style={styles.iconInput}>
+            <Input
+              label={definition.label}
+              value={value?.toString() ?? ""}
+              onChange={onChange}
+              leadingIcon={glyph as MaterialCommunityIconsGlyphs | undefined}
+              placeholder="Type a name or search"
+            />
+          </View>
+          <IconButton
+            icon="magnify"
+            variant="tonal"
+            accessibilityLabel={`Search icons for ${definition.label}`}
+            onClick={() => setPickerOpen(true)}
+            style={styles.iconSearch}
+          />
+          <IconPicker
+            visible={pickerOpen}
+            value={glyph}
+            allowClear={definition.default === ""}
+            names={definition.withOutline ? OUTLINED_PAIRS : undefined}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(next) => {
+              onChange(next);
+              setPickerOpen(false);
+            }}
+          />
+        </View>
+      );
+    }
 
     case "number":
       return (
@@ -150,7 +199,12 @@ const PropControl = ({
         </View>
       );
 
-    case "select":
+    case "select": {
+      // An option whose value is an object matches by structure: the value
+      // comes back from the example's code, a new object each time.
+      const match = (definition.options ?? []).find((option) =>
+        sameValue(option.value, value),
+      );
       return (
         <Select
           label={definition.label}
@@ -158,10 +212,11 @@ const PropControl = ({
             id: String(index),
             ...option,
           }))}
-          value={value}
+          value={match ? match.value : value}
           onChange={onChange}
         />
       );
+    }
 
     case "node":
       // Declared by the catalogue but never renderable from a control: say so
@@ -209,6 +264,17 @@ const makeStyles = (theme: Theme) =>
       letterSpacing: 1.6,
       fontWeight: "700",
     },
+    // The search button sits beside the field, level with the box rather than
+    // with its label above it.
+    iconField: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      gap: theme.spacing.s,
+    },
+    iconInput: { flex: 1, minWidth: 0 },
+    // `Input` keeps room under its box for a helper line; lifting the button by
+    // that much centres it on the box.
+    iconSearch: { marginBottom: theme.spacing.xl - theme.spacing.xs },
     row: {
       flexDirection: "row",
       alignItems: "center",

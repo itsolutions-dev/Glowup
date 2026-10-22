@@ -67,3 +67,31 @@ export const useBreakpoint = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, key]);
 };
+
+/**
+ * A value that depends on the window's size class: the one set for the
+ * current class, or else for the largest class below it (mobile first, like
+ * `Grid`). `fallback` is what a window smaller than every class set gets.
+ *
+ * ```ts
+ * const columns = useBreakpointValue({ compact: 1, medium: 2, large: 4 }, 1);
+ * ```
+ */
+export function useBreakpointValue<T>(
+  values: Partial<Record<SizeClass, T>>,
+  fallback: T,
+): T;
+export function useBreakpointValue<T>(
+  values: Partial<Record<SizeClass, T>>,
+): T | undefined;
+export function useBreakpointValue<T>(
+  values: Partial<Record<SizeClass, T>>,
+  fallback?: T,
+): T | undefined {
+  const { sizeClass } = useBreakpoint();
+  for (let i = ORDER.indexOf(sizeClass); i >= 0; i--) {
+    const value = values[ORDER[i]];
+    if (value !== undefined) return value;
+  }
+  return fallback;
+}

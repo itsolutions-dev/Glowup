@@ -35,8 +35,13 @@ Added:
 - `Popover` and `Menu`: `anchorPosition` (`{ vertical, horizontal }`). `Menu`: `dividers`, `selected` (the `id`s drawn as selected) and `onClick(item)`.
 - `Snackbar`: `severity` `"success"` (green) and `"info"` (blue), `variant` (`"contained"`, `"outlined"`), `position`, `action`, and `onClose` for a snackbar that stays until it is closed (`onDismiss` is the timeout).
 - `Drawer`: `variant` (`"static"`, `"swipeable"`), `position` (`"left"`, `"right"`, `"top"`, `"bottom"`) and `elevation`. `AppBar`: `paper`.
-- `Tabs`: `variant` (`"standard"`, `"rounded"`), `showBorders`, `size`, `fullWidth`, `height`, `width`, `color`. `Stepper`: `direction` (`"horizontal"`, `"vertical"`). `Pagination`: `pageSelect` (a searchable page list), `color`, `variant`, `size`, `disabled`.
+- `Tabs`: `variant` (`"standard"`, `"rounded"`), `showBorders`, `size`, `fullWidth`, `height`, `width`, `color`. `Stepper`: `direction` (`"row"`, `"column"`). `Pagination`: `pageSelect` (a searchable page list), `color`, `variant`, `size`, `disabled`.
 - `ListItem`: `disabled` and `testID`. `Stat`: `direction` (`"column"`, `"row"`) and `trendColor`. `CaptionValue`: `width`, `height`, `flex`, `padding`, `enableCopy`, `onCopy`, `showTooltip`, and `captionColor`/`valueColor` take a colour string as well as a theme token.
 - `CircularProgress`: `label`, `labelPosition`, `trackColor`. `LinearProgress`: `label`, `labelPosition` (also inside the bar), `width`.
-- `Box`: `padding`, `margin`, `background` and `variant` (`"standard"`, `"flex"`, `"column-flex"`, `"centered-flex"`, `"list"`, ...), `style`. `Stack`: `dividers`, `spacing`, `style`. `Grid`: `columns`, `autoSize`, `spacing`, `size`, `wrap`.
+- `Box`: `padding`, `margin`, `background` and `variant` (`"standard"`, `"flex"`, `"column-flex"`, `"centered-flex"`, `"full-page-flex"`, ...), `style`. `Stack`: `dividers`, `spacing`, `style`. `Grid`: `columns`, `autoSize`, `spacing`, `size`, `wrap`.
 - New `IFrame` (an `iframe` on the web, a notice on iOS and Android) and `Blink` (pulses its children; honours reduced motion).
+
+Fixed:
+
+- On the web a standard `IconButton` (no background) turned into a solid disc, glyph hidden, while hovered or pressed: `getStateColor` mixed the state layer into the `transparent` keyword and got it back opaque. The state layer now keeps its own 8% / 12% opacity.
+- `CircularProgress` no longer makes React warn on the web about a non-boolean `collapsable` attribute on its ring (`Animated` marks the SVG circle `collapsable={false}` and react-native-svg wrote it on the DOM `<circle>`).

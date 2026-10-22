@@ -234,26 +234,27 @@ whole section.)
 
 ### Button
 
-| Prop               | Type                                          | Default              | Req | Description                     |
-| ------------------ | --------------------------------------------- | -------------------- | --- | ------------------------------- |
-| children           | ReactNode                                     |                      |     | Label                           |
-| onClick            | () => void                                    |                      |     |                                 |
-| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |     |                                 |
-| color              | `ButtonColor`                                 | `primary`            |     | Colour role, see below          |
-| iconName           | icon                                          |                      |     | Leading/trailing icon           |
-| iconPosition       | `"start" \| "end"`                            | `start`              |     | Icon side relative to the label |
-| iconStyle          | object                                        |                      |     |                                 |
-| size               | number                                        | `theme.shape.medium` |     | Icon size                       |
-| fullWidth          | boolean                                       | `false`              |     | Stretch to parent width         |
-| disabled           | boolean                                       | `false`              |     |                                 |
-| loading            | boolean                                       | `false`              |     | Shows inline spinner            |
-| busy               | boolean                                       | `false`              |     | Blocks presses, aria-busy       |
-| underlay           | ReactNode                                     |                      |     | Drawn behind the label          |
-| labelStyle         | TextStyle                                     |                      |     | After the type style            |
-| accessibilityLabel | string                                        |                      |     | Falls back to string child      |
-| accessibilityHint  | string                                        |                      |     |                                 |
-| testID             | string                                        |                      |     |                                 |
-| style              | object                                        |                      |     |                                 |
+| Prop               | Type                                          | Default              | Req | Description                                                                       |
+| ------------------ | --------------------------------------------- | -------------------- | --- | --------------------------------------------------------------------------------- |
+| children           | ReactNode                                     |                      |     | Label                                                                             |
+| onClick            | () => void                                    |                      |     |                                                                                   |
+| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |     |                                                                                   |
+| color              | `ButtonColor`                                 | `primary`            |     | Colour role, see below                                                            |
+| iconName           | icon                                          |                      |     | Leading/trailing icon                                                             |
+| iconPosition       | `"start" \| "end"`                            | `start`              |     | Icon side relative to the label                                                   |
+| iconStyle          | object                                        |                      |     |                                                                                   |
+| size               | number                                        | `theme.shape.medium` |     | Icon size                                                                         |
+| fullWidth          | boolean                                       | `false`              |     | Stretch to parent width                                                           |
+| disabled           | boolean                                       | `false`              |     |                                                                                   |
+| loading            | boolean                                       | `false`              |     | Shows inline spinner                                                              |
+| busy               | boolean                                       | `false`              |     | Blocks presses, aria-busy                                                         |
+| underlay           | ReactNode                                     |                      |     | Drawn behind the label                                                            |
+| labelStyle         | TextStyle                                     |                      |     | After the type style                                                              |
+| accessibilityLabel | string                                        |                      |     | Falls back to string child                                                        |
+| type               | `"button" \| "submit"`                        | `button`             |     | `"submit"` submits the enclosing `Form` after `onClick`; ignored outside a `Form` |
+| accessibilityHint  | string                                        |                      |     |                                                                                   |
+| testID             | string                                        |                      |     |                                                                                   |
+| style              | object                                        |                      |     |                                                                                   |
 
 `color` takes a colour role (`ColorRole`, also the `color` of `IconButton`, `Chip` and `Badge`):
 `primary`, `secondary`, `tertiary`, `error` (the destructive treatment), `success`, `warning`,
@@ -424,7 +425,7 @@ ToggleButtonGroup; selection changes shape as well as colour. Props: see the API
 ### SplitButton
 
 A primary action (`children`, `iconName`, `onPress`) joined to a trailing button that opens a
-`Menu` of `items`. Modes `filled`/`tonal`/`outlined`. Props: see the API reference on its page of the docs site (generated from the source).
+`Menu` of `items`. The items are `MenuItem`s, so each takes `onClick`. Modes `filled`/`tonal`/`outlined`. Props: see the API reference on its page of the docs site (generated from the source).
 
 ### Chip
 
@@ -755,6 +756,28 @@ not clip overflow while it is open.
 
 **Keyboard (web).** ArrowUp/ArrowDown move the highlight, Enter selects, Escape closes.
 
+### Form
+
+Groups fields and a submit button so that one action submits them. On the web it is a real
+`<form>`: Enter in a field submits, and a `Button type="submit"` inside it submits too. On iOS and
+Android it is a plain `View` and the submit button calls `onSubmit` directly. Either way `onSubmit`
+runs once per submission, and the page is never navigated. A `Dialog` with `form` wraps its body
+and `actions` in one.
+
+| Prop     | Type       | Default | Req | Description                                                                        |
+| -------- | ---------- | ------- | --- | ---------------------------------------------------------------------------------- |
+| onSubmit | () => void |         |     | A `Button type="submit"` inside it is pressed, or (web) Enter in one of its fields |
+| children | ReactNode  |         |     |                                                                                    |
+| style    | ViewStyle  |         |     |                                                                                    |
+| testID   | string     |         |     |                                                                                    |
+
+```tsx
+<Form onSubmit={save}>
+  <Input label="Name" value={name} onChange={setName} />
+  <Button type="submit">Save</Button>
+</Form>
+```
+
 ### FormControl
 
 Groups a label, a control and its supporting text, and shares invalid/disabled/required state with
@@ -845,40 +868,125 @@ Small labeled status pill (own semantic colors, light/dark aware).
 | type  | `"success" \| "error" \| "warning"` | `success` |     |                                |
 | icon  | icon                                |           |     | Override default per-type icon |
 
+### Blink
+
+Fades its children between full opacity and `minOpacity`, over and over: a live indicator, a
+pending status, a field that wants attention. A plain wrapper, so it takes no space of its own
+beyond its children. When the OS asks for reduced motion nothing blinks.
+
+| Prop       | Type        | Default | Req | Description                                                    |
+| ---------- | ----------- | ------- | --- | -------------------------------------------------------------- |
+| children   | ReactNode   |         |     | What blinks: a dot, a badge, a line of text                    |
+| interval   | number (ms) | `600`   |     | One half of a blink: the fade down to `minOpacity`, or back up |
+| active     | boolean     | `true`  |     | Blinks while true; stays at full opacity while false           |
+| minOpacity | number 0–1  | `0.2`   |     | Opacity at the dimmest point of a blink                        |
+| style      | ViewStyle   |         |     |                                                                |
+| testID     | string      |         |     |                                                                |
+
+```tsx
+<Blink>
+  <StatusBadge label="Offline" type="error" />
+</Blink>
+```
+
 ### DataGrid
 
 Virtualized table: sortable columns, reorder, density, loading, empty state. Built on the public `Table` primitives below.
 
-| Prop                           | Type                          | Default  | Req | Description                        |
-| ------------------------------ | ----------------------------- | -------- | --- | ---------------------------------- |
-| data                           | any[]                         | —        | ✓   | Row objects                        |
-| columns                        | `ColumnDefinition[]`          | —        | ✓   | `{ id, label, width?, sortable? }` |
-| loading                        | boolean                       | `false`  |     |                                    |
-| density                        | `"normal" \| "dense"`         | `normal` |     |                                    |
-| sortColumn                     | string                        |          |     |                                    |
-| sortDirection                  | `"asc" \| "desc"`             |          |     |                                    |
-| onSort                         | (columnId, direction) => void |          |     |                                    |
-| onColumnReorder                | (newColumns) => void          |          |     |                                    |
-| onEndReached                   | () => void                    |          |     | Infinite scroll                    |
-| onEndReachedThreshold          | number                        |          |     |                                    |
-| emptyMessage                   | string                        |          |     | Shown when empty & not loading     |
-| style / rowStyle / headerStyle | ViewStyle                     |          |     |                                    |
+| Prop                           | Type                          | Default  | Req | Description                                             |
+| ------------------------------ | ----------------------------- | -------- | --- | ------------------------------------------------------- |
+| data                           | any[]                         | —        | ✓   | Row objects                                             |
+| columns                        | `ColumnDefinition[]`          | —        | ✓   | `{ id, label, width?, sortable?, align?, renderCell? }` |
+| loading                        | boolean                       | `false`  |     |                                                         |
+| density                        | `"normal" \| "dense"`         | `normal` |     |                                                         |
+| sortColumn                     | string                        |          |     |                                                         |
+| sortDirection                  | `"asc" \| "desc"`             |          |     |                                                         |
+| onSort                         | (columnId, direction) => void |          |     |                                                         |
+| onColumnReorder                | (newColumns) => void          |          |     |                                                         |
+| onEndReached                   | () => void                    |          |     | Infinite scroll                                         |
+| onEndReachedThreshold          | number                        |          |     |                                                         |
+| emptyMessage                   | string                        |          |     | Shown when empty & not loading                          |
+| style / rowStyle / headerStyle | ViewStyle                     |          |     |                                                         |
 
 ### Table / TableHead / TableRow / TableHeaderCell / TableCell
 
-The primitives DataGrid is assembled from, for a table whose rows the caller lays out. They carry
-the table/row/columnheader/cell roles. `TableHeaderCell` takes `sortable`/`sortDirection`/`onPress`;
-cells take a fixed `width` (default 150). Props: see the API reference on its page of the docs site (generated from the source).
+`Table` draws a whole table from `columns` and `data`: an optional title, a header row, the rows,
+an empty state and paging. Without `columns` it is only the container of the primitives, for a
+table whose rows the caller lays out. Either way it carries the table/row/columnheader/cell
+roles, so a screen reader on web can navigate it; `DataGrid` is assembled from the same primitives.
+
+| Prop         | Type                 | Default             | Req | Description                                                                                                                                                          |
+| ------------ | -------------------- | ------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| columns      | `TableColumn[]`      |                     |     | `{ id, label, alignment?, fallback?, width? }`; giving them makes the table data driven                                                                              |
+| data         | `TableRowData[]`     |                     |     | Rows as `{ [column id]: cell }`. Text and numbers are drawn in the theme's type, any other node as given                                                             |
+| tableTitle   | string               |                     |     | Heading above the header row; also the table's accessible name                                                                                                       |
+| width        | DimensionValue       | fills the container |     | When the columns add up to more, the table scrolls sideways                                                                                                          |
+| height       | DimensionValue       | as tall as its rows |     | With it the rows scroll under a header that stays in place                                                                                                           |
+| rowsPerPage  | number               |                     |     | Slices `data` into pages and shows a `Pagination` under the table; the page goes back to the first when `rowsPerPage` or the number of rows changes. Unset: one page |
+| hover        | boolean              | `false`             |     | Highlights the row under the pointer (web); a row with `onClick` also highlights while pressed                                                                       |
+| selected     | number \| number[]   |                     |     | Indexes in `data` of the rows drawn as selected (a position in `data`, not in the page shown)                                                                        |
+| emptyMessage | ReactNode            | `No data`           |     | Shown under the header when `data` is empty                                                                                                                          |
+| onClick      | (row, index) => void |                     |     | Called with the row and its index in `data`; makes the rows pressable (button role)                                                                                  |
+| children     | ReactNode            |                     |     | The primitives, when there are no `columns`                                                                                                                          |
+| style        | ViewStyle            |                     |     |                                                                                                                                                                      |
+| testID       | string               |                     |     |                                                                                                                                                                      |
+
+A column: `id` is the field of each row it shows; `label` the header (text or any node);
+`alignment` `"left"` (default), `"center"` or `"right"`; `fallback` is drawn in a cell whose value is
+`null`, `undefined`, `""` or `false` (`0` is a value); `width` is in px, and without it the column
+shares the free width of the table with the others, never narrower than 120 px.
+
+```tsx
+<Table
+  tableTitle="Invoices"
+  columns={[
+    { id: "number", label: "Invoice", width: 120 },
+    { id: "customer", label: "Customer" },
+    { id: "total", label: "Total", alignment: "right" },
+  ]}
+  data={[
+    { number: "INV-001", customer: "Acme", total: "€ 1,200.00" },
+    { number: "INV-002", customer: "Globex", total: "€ 480.00" },
+  ]}
+  rowsPerPage={10}
+  hover
+  onClick={(row, index) => open(index)}
+/>
+```
+
+The primitives: `TableRow` takes `onClick`, `hover`, `selected` and `testID`; `TableHeaderCell` takes
+`sortable` / `sortDirection` / `onClick`; both kinds of cell take `align`, `width` (default 150) and
+`flex` (share the row's free width, `width` then being the narrowest the cell gets). Props: see the
+API reference on its page of the docs site (generated from the source).
 
 ### ListItem
 
-Single pressable list row (centered title text).
+A list row: text, with an optional leading icon, a second line and a trailing slot. With none of
+them it is a centred single-line tile. Giving `onClick` makes the row a button.
 
-| Prop                                                                     | Type       | Default | Req | Description             |
-| ------------------------------------------------------------------------ | ---------- | ------- | --- | ----------------------- |
-| children                                                                 | ReactNode  | —       | ✓   | Label                   |
-| onPress                                                                  | () => void |         |     | Adds hover/press states |
-| itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object     |         |     | Style overrides         |
+| Prop                                                     | Type              | Default | Req | Description                                                                                                             |
+| -------------------------------------------------------- | ----------------- | ------- | --- | ----------------------------------------------------------------------------------------------------------------------- |
+| primaryText                                              | ReactNode         | —       | ✓   | The first line. Text is drawn in the theme's type; any other node as given                                              |
+| secondaryText                                            | ReactNode         |         |     | Second line below `primaryText`, text or any node                                                                       |
+| onClick                                                  | () => void        |         |     | Makes the row a button, with hover/press states. With an `action` as well, only the icon and the texts are the button   |
+| icon                                                     | icon \| ReactNode |         |     | Leading slot: a glyph name, or any node (an `Avatar`, a `Checkbox`)                                                     |
+| action                                                   | ReactNode         |         |     | Trailing slot: a value, a `Switch`, an `IconButton`, a chevron. A control of its own, so `disabled` does not disable it |
+| primaryTextStyle / secondaryTextStyle                    | TextStyle         |         |     | Merged after the type of the text, when it is text                                                                      |
+| indicatorColor                                           | string            |         |     | A coloured bar on the left edge, for a status or a priority                                                             |
+| dimmed                                                   | boolean           | `false` |     | Faded, for a row that is removed or inactive; still pressable                                                           |
+| trailingWidth                                            | number            |         |     | Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up                      |
+| disabled                                                 | boolean           | `false` |     | Fades the row and stops it being pressed                                                                                |
+| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object            |         |     | Style overrides                                                                                                         |
+| testID                                                   | string            |         |     |                                                                                                                         |
+
+```tsx
+<ListItem
+  icon="bell-outline"
+  primaryText="Notifications"
+  secondaryText="Push and email"
+  action={<Switch value={enabled} onChange={setEnabled} />}
+/>
+```
 
 ### ListSection / ListSubheader
 
@@ -908,13 +1016,15 @@ Wraps a child; shows a bubble on hover (web) / long-press (native).
 
 Expandable section with animated height.
 
-| Prop               | Type               | Default | Req | Description |
-| ------------------ | ------------------ | ------- | --- | ----------- |
-| title              | string             | —       | ✓   |             |
-| children           | ReactNode          | —       | ✓   | Content     |
-| startExpanded      | boolean            | `false` |     |             |
-| onPress            | (expanded) => void |         |     |             |
-| style / titleStyle | style              |         |     |             |
+| Prop               | Type                        | Default    | Req | Description                                                                                                                                |
+| ------------------ | --------------------------- | ---------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| title              | string                      | —          | ✓   |                                                                                                                                            |
+| children           | ReactNode                   | —          | ✓   | Content                                                                                                                                    |
+| expanded           | boolean                     | `false`    |     | Starts the panel open. The accordion keeps its own state, toggled by a press on the header, and follows the prop again whenever it changes |
+| onClick            | (expanded) => void          |            |     | Called on every press of the header with the new state                                                                                     |
+| icon               | icon \| ReactNode           | chevron    |     | The icon at the end of the header, drawn as given; the default chevron turns upside down while open, a custom icon does not                |
+| variant            | `"outlined" \| "contained"` | `outlined` |     | A bordered panel on the surface, or a filled tonal one without a border                                                                    |
+| style / titleStyle | style                       |            |     |                                                                                                                                            |
 
 ### Carousel
 
@@ -933,15 +1043,41 @@ Paged horizontal slider.
 
 A single labelled metric with an optional trend delta.
 
-| Prop              | Type                       | Default | Req | Description                    |
-| ----------------- | -------------------------- | ------- | --- | ------------------------------ |
-| label             | string                     | —       | ✓   | What the number measures       |
-| value             | string                     | —       | ✓   | Pre-formatted by the caller    |
-| delta             | string                     |         |     | e.g. `"12.5%"`                 |
-| trend             | `"up" \| "down" \| "flat"` |         |     | Arrow + color for `delta`      |
-| invertTrendColors | boolean                    | `false` |     | For metrics where down is good |
-| helpText          | string                     |         |     |                                |
-| icon              | icon                       |         |     |                                |
+| Prop       | Type                                | Default                                             | Req | Description                                                                                |
+| ---------- | ----------------------------------- | --------------------------------------------------- | --- | ------------------------------------------------------------------------------------------ |
+| label      | string                              | —                                                   | ✓   | What the number measures                                                                   |
+| value      | string                              | —                                                   | ✓   | Pre-formatted by the caller                                                                |
+| delta      | string                              |                                                     |     | e.g. `"12.5%"`                                                                             |
+| trend      | `"up" \| "down" \| "flat"`          |                                                     |     | Direction of `delta`: the arrow, and the colour unless `trendColor` is set                 |
+| trendColor | theme colour token \| colour string | up `success`, down `error`, flat `onSurfaceVariant` |     | Colour of the arrow and `delta`. For a metric where down is good, pass the colour yourself |
+| direction  | `"column" \| "row"`                 | `column`                                            |     | `row` puts the label and the value on one line, the delta right behind the value           |
+| helpText   | string                              |                                                     |     |                                                                                            |
+| icon       | icon                                |                                                     |     |                                                                                            |
+
+### CaptionValue
+
+A caption and its value, stacked or in a row: the read-only pair a detail screen is made of
+("Phone +39 06 1234"). An empty value shows `fallback` instead of leaving a hole.
+
+| Prop                            | Type                                              | Default                          | Req | Description                                                                                                                |
+| ------------------------------- | ------------------------------------------------- | -------------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------- |
+| caption                         | ReactNode                                         |                                  |     | The label: text, or any node                                                                                               |
+| value                           | ReactNode                                         |                                  |     | Text and numbers are drawn in the theme's type; any other node as given                                                    |
+| direction                       | `"column" \| "row"`                               | `column`                         |     | Caption over the value, or side by side                                                                                    |
+| reverse                         | boolean                                           | `false`                          |     | Puts the value before the caption                                                                                          |
+| fallback                        | ReactNode                                         | `N/A`                            |     | Drawn when `value` is empty (`null`, `undefined`, `""` or `false`; `0` is a value)                                         |
+| omitCaption                     | boolean                                           | `false`                          |     | Draws no caption at all                                                                                                    |
+| captionColor / valueColor       | theme colour token \| colour string               | `onSurfaceVariant` / `onSurface` |     |                                                                                                                            |
+| textAlign                       | TextStyle["textAlign"]                            |                                  |     |                                                                                                                            |
+| gap                             | number                                            | `4`                              |     | Space between the caption and the value, in px                                                                             |
+| numberOfLines                   | number                                            | `1`                              |     | Lines the value may use before it is cut with an ellipsis; `0` is no limit                                                 |
+| width / height / flex / padding | DimensionValue / DimensionValue / number / number |                                  |     | Size of the pair, its flex in the parent and the padding around it                                                         |
+| enableCopy                      | boolean                                           | `false`                          |     | A small copy button after a text or number value. On web it writes to the clipboard; on native only shown with an `onCopy` |
+| onCopy                          | (value: string) => void                           |                                  |     | Called with the value as text when copied; on native it is where the app does the copying                                  |
+| showTooltip                     | boolean                                           | `false`                          |     | Wraps a text or number value in a `Tooltip` with the value in full, for when `numberOfLines` cuts it                       |
+| captionStyle / valueStyle       | TextStyle                                         |                                  |     |                                                                                                                            |
+| style                           | ViewStyle                                         |                                  |     | For anything the props above do not cover                                                                                  |
+| testID                          | string                                            |                                  |     |                                                                                                                            |
 
 ### Image
 
@@ -961,23 +1097,56 @@ token-driven corner radius.
 | showLoader       | boolean             | `true`                 |     | Skeleton until resolved                                    |
 | onLoad / onError | () => void          |                        |     |                                                            |
 
+### IFrame
+
+A page embedded in the screen. On the web it is a real `<iframe>`. iOS and Android have no
+equivalent in React Native itself (that is `react-native-webview`, which this library does not
+depend on), so there it draws `fallback`: a notice that embedded pages are not available.
+
+| Prop           | Type                    | Default           | Req | Description                                                                                                  |
+| -------------- | ----------------------- | ----------------- | --- | ------------------------------------------------------------------------------------------------------------ |
+| src            | string                  | —                 | ✓   | The address of the page to embed                                                                             |
+| title          | string                  | —                 | ✓   | The frame's accessible name: what the embedded page is                                                       |
+| width          | DimensionValue          | `100%`            |     |                                                                                                              |
+| height         | DimensionValue          | `300`             |     |                                                                                                              |
+| style          | ViewStyle               |                   |     | The box the frame fills: radius, border, margin, flex                                                        |
+| allow          | string                  |                   |     | The `allow` attribute: features the page may use (`"fullscreen; clipboard-write"`)                           |
+| sandbox        | string                  |                   |     | The `sandbox` attribute. `""` applies every restriction; tokens lift the ones named. Left out: not sandboxed |
+| referrerPolicy | `referrerpolicy` values |                   |     | The `referrerpolicy` attribute                                                                               |
+| loading        | `"lazy" \| "eager"`     | `lazy`            |     | `lazy` loads the page when the frame comes near the viewport                                                 |
+| onLoad         | () => void              |                   |     | The page has loaded                                                                                          |
+| onError        | () => void              |                   |     | The frame reports an error loading; browsers rarely do for a page that fails to load                         |
+| fallback       | ReactNode               | icon and a notice |     | Drawn on iOS and Android instead of the page                                                                 |
+| testID         | string                  |                   |     |                                                                                                              |
+
+```tsx
+<IFrame
+  src="https://example.com/report"
+  title="Quarterly report"
+  height={480}
+/>
+```
+
 ---
 
 ## 6. Feedback & Overlays
 
 ### Snackbar
 
-Bottom transient message; animated in/out.
+A transient message, animated in and out; bottom centre by default.
 
-| Prop      | Type                                | Default   | Req | Description            |
-| --------- | ----------------------------------- | --------- | --- | ---------------------- |
-| visible   | boolean                             | —         | ✓   |                        |
-| message   | string                              | —         | ✓   |                        |
-| onDismiss | () => void                          | —         | ✓   |                        |
-| duration  | number (ms)                         | `4000`    |     | 0 = no auto-hide       |
-| action    | `{ label, onPress }`                |           |     | Trailing action button |
-| type      | `"default" \| "success" \| "error"` | `default` |     |                        |
-| icon      | icon                                |           |     | Override leading icon  |
+| Prop      | Type                                                                                              | Default         | Req | Description                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------- | --------------- | --- | ------------------------------------------------------------------------------------------------------------ |
+| visible   | boolean                                                                                           | —               | ✓   |                                                                                                              |
+| message   | string                                                                                            | —               | ✓   |                                                                                                              |
+| onDismiss | () => void                                                                                        |                 |     | The snackbar timed out (after `duration`) or its `action` was clicked. Not called when `onClose` is set      |
+| duration  | number (ms)                                                                                       | `4000`          |     | 0 = no auto-hide. Not used when `onClose` is set                                                             |
+| action    | `{ label, onClick }`                                                                              |                 |     | Trailing text button; clicking it runs `onClick`, then dismisses the snackbar                                |
+| onClose   | () => void                                                                                        |                 |     | Shows a close icon button and keeps the snackbar up until the user closes it                                 |
+| severity  | `"success" \| "info" \| "warning" \| "error"`                                                     |                 |     | Colours and default icon. Left out, the snackbar is the neutral inverse surface, with no icon                |
+| variant   | `"contained" \| "outlined"`                                                                       | `contained`     |     | Filled with the severity's colours, or drawn on the surface with a severity-coloured outline, label and icon |
+| position  | `"top-left" \| "top-center" \| "top-right" \| "bottom-left" \| "bottom-center" \| "bottom-right"` | `bottom-center` |     | Which edge and corner it sits in, clear of the safe-area insets                                              |
+| icon      | icon                                                                                              |                 |     | Overrides the icon implied by `severity`                                                                     |
 
 ### Banner
 
@@ -1011,84 +1180,123 @@ is safe in a tree that has not been wrapped.
 `usePortalHost()` reports whether a host is mounted above the caller.
 
 `Tooltip` and `Autocomplete`'s suggestion list are the overlays that use this. Every other
-overlay in the kit — `Modal`, `ConfirmDialog`, `Popover`, `Menu`, `Select`, `BottomSheet` —
-goes through a native `Modal`, which is a separate window on native and a `createPortal`
-into `document.body` on web: already stronger isolation. Portal exists for the two cases a
-`Modal` cannot serve — a tooltip must never take touches, and the Autocomplete list must
-not steal focus from the field being typed into.
+overlay in the kit — `Dialog`, `ConfirmDialog`, `Popover`, `Menu`, `Select`, `BottomSheet`,
+a swipeable `Drawer` — goes through a native `Modal`, which is a separate window on native and
+a `createPortal` into `document.body` on web: already stronger isolation. Portal exists for the
+two cases a `Modal` cannot serve — a tooltip must never take touches, and the Autocomplete list
+must not steal focus from the field being typed into.
 
-### Modal
+### Dialog
 
-Centered dialog surface.
+Centred dialog surface. The close control is an icon in the header (`closeIcon`), which `onClose`
+turns on; a dialog with `actions` has its own way out and can hide it.
 
-| Prop          | Type                          | Default | Req | Description                                                   |
-| ------------- | ----------------------------- | ------- | --- | ------------------------------------------------------------- |
-| visible       | boolean                       | —       | ✓   |                                                               |
-| children      | ReactNode \| string           | —       | ✓   | Body (string → styled text)                                   |
-| title         | string                        |         |     |                                                               |
-| animationType | `"none" \| "slide" \| "fade"` | `fade`  |     |                                                               |
-| transparent   | boolean                       | `true`  |     |                                                               |
-| onClose       | () => void                    |         |     | Renders a close button                                        |
-| onDismiss     | () => void                    |         |     | Android back / ESC                                            |
-| closeText     | string                        | `Close` |     |                                                               |
-| fullScreen    | boolean                       | `false` |     | M3 full-screen dialog: close, title and `actions` in a header |
+| Prop                 | Type                                  | Default  | Req | Description                                                                                                                                         |
+| -------------------- | ------------------------------------- | -------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| visible              | boolean                               | —        | ✓   | Whether the dialog is on screen                                                                                                                     |
+| children             | ReactNode \| string                   | —        | ✓   | Body (string → styled text)                                                                                                                         |
+| title                | string                                |          |     |                                                                                                                                                     |
+| icon                 | `IconSource`                          |          |     | Hero glyph above the title; centres the header                                                                                                      |
+| onClose              | () => void                            |          |     | Asks the dialog to close: the close icon, a click on the backdrop, Escape (web) and Android back. Without it `visible` stays up to the app          |
+| closeIcon            | glyph name \| ReactElement \| `false` | `close`  |     | The close icon in the header, shown while `onClose` is set; `false` hides it. Hidden, a dialog without `actions` falls back to a `closeText` button |
+| closeText            | string                                | `Close`  |     | Accessible name of the close icon, and the label of the fallback close button                                                                       |
+| disableEscapeKeyDown | boolean                               | `false`  |     | Keeps Escape (web) and Android back from calling `onClose`; for a decision the user must not skip                                                   |
+| disableBackdropClick | boolean                               | `false`  |     | Keeps a click on the backdrop from calling `onClose`                                                                                                |
+| width                | `"xs" \| "sm" \| "md" \| "lg"`        | `md`     |     | How wide the dialog may grow on a wide window: 360 / 480 / 560 / 800 px (it is 85% of the window up to that). Ignored by `fullScreen`               |
+| height               | number \| `"60%"`                     |          |     | A fixed height for the card, in px or as a percentage of the window; the body scrolls. Never past 90% of the window. Ignored by `fullScreen`        |
+| scrollable           | boolean                               | `false`  |     | Scrolls the body when the content is taller than the dialog                                                                                         |
+| form                 | boolean                               | `false`  |     | Wraps the body and `actions` in a `Form`, so a `Button type="submit"` in `actions` (or Enter in a field, on web) calls `onSubmit`                   |
+| onSubmit             | () => void                            |          |     | Called when the `form` is submitted; only used with `form`                                                                                          |
+| actions              | ReactNode                             |          |     | Trailing action row; replaces the fallback close button. In a full-screen dialog it moves into the header                                           |
+| fullScreen           | boolean                               | `false`  |     | M3 full-screen dialog: close, title and `actions` in a header row, scrolling body                                                                   |
+| animationType        | `"none" \| "slide" \| "fade"`         | `fade`   |     |                                                                                                                                                     |
+| transparent          | boolean                               | `true`   |     |                                                                                                                                                     |
+| slotStyles           | `DialogSlotStyles`                    |          |     | Style overrides, merged after the dialog's own: `backdrop`, `container`, `header`, `title`, `content`, `actions`                                    |
+| testID               | string                                | `dialog` |     | Root; the scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`                                                 |
+
+```tsx
+<Dialog
+  visible={open}
+  title="New contact"
+  width="sm"
+  onClose={close}
+  form
+  onSubmit={save}
+  actions={
+    <>
+      <Button variant="text" onClick={close}>
+        Cancel
+      </Button>
+      <Button type="submit">Save</Button>
+    </>
+  }
+>
+  <Input label="Name" value={name} onChange={setName} />
+</Dialog>
+```
 
 ### ConfirmDialog
 
-Modal preset with confirm/cancel actions.
+`Dialog` preset with confirm/cancel actions.
 
-| Prop        | Type       | Default   | Req | Description |
-| ----------- | ---------- | --------- | --- | ----------- |
-| visible     | boolean    | —         | ✓   |             |
-| onConfirm   | () => void | —         | ✓   |             |
-| onCancel    | () => void | —         | ✓   |             |
-| title       | string     |           |     |             |
-| message     | string     |           |     |             |
-| confirmText | string     | `Confirm` |     |             |
-| cancelText  | string     | `Cancel`  |     |             |
+| Prop        | Type               | Default   | Req | Description                                                                             |
+| ----------- | ------------------ | --------- | --- | --------------------------------------------------------------------------------------- |
+| visible     | boolean            | —         | ✓   |                                                                                         |
+| onConfirm   | () => void         | —         | ✓   |                                                                                         |
+| onCancel    | () => void         | —         | ✓   |                                                                                         |
+| title       | string             |           |     |                                                                                         |
+| message     | string             |           |     |                                                                                         |
+| confirmText | string             | `Confirm` |     |                                                                                         |
+| cancelText  | string             | `Cancel`  |     |                                                                                         |
+| destructive | boolean            | `false`   |     | Renders the confirm action in the error tone (delete, discard)                          |
+| icon        | `IconSource`       |           |     | Hero glyph above the title                                                              |
+| dismissable | boolean            | `true`    |     | Whether the backdrop and Escape cancel; turn it off for a decision to answer explicitly |
+| slotStyles  | `DialogSlotStyles` |           |     | As `Dialog`; `actions` covers the cancel and confirm buttons                            |
 
 ### Popover
 
 Anchored floating panel; auto-positions within the viewport.
 
-| Prop             | Type         | Default | Req | Description               |
-| ---------------- | ------------ | ------- | --- | ------------------------- |
-| anchor           | ReactElement | —       | ✓   | Trigger element           |
-| children         | ReactNode    | —       | ✓   | Panel content             |
-| visible          | boolean      | —       | ✓   |                           |
-| onDismiss        | () => void   | —       | ✓   |                           |
-| matchAnchorWidth | boolean      | `false` |     | Constrain to anchor width |
+| Prop             | Type             | Default                                      | Req | Description                                                                                                                                                                                            |
+| ---------------- | ---------------- | -------------------------------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| anchor           | ReactElement     | —                                            | ✓   | Trigger element                                                                                                                                                                                        |
+| children         | ReactNode        | —                                            | ✓   | Panel content                                                                                                                                                                                          |
+| visible          | boolean          | —                                            | ✓   |                                                                                                                                                                                                        |
+| onDismiss        | () => void       | —                                            | ✓   | A press outside the popover, Android back                                                                                                                                                              |
+| matchAnchorWidth | boolean          | `false`                                      |     | Constrain to anchor width                                                                                                                                                                              |
+| anchorPosition   | `AnchorPosition` | `{ vertical: "bottom", horizontal: "left" }` |     | Where it sits against its anchor: `vertical` `"bottom"`, `"top"` or `"center"`; `horizontal` lines up the `"left"` edges, the `"right"` edges or the `"center"`s. It flips or slides to stay on screen |
 
 ### BottomSheet
 
 Draggable bottom sheet with scrim.
 
-| Prop              | Type       | Default | Req | Description                      |
-| ----------------- | ---------- | ------- | --- | -------------------------------- |
-| visible           | boolean    | —       | ✓   |                                  |
-| onDismiss         | () => void | —       | ✓   |                                  |
-| children          | ReactNode  | —       | ✓   |                                  |
-| title             | string     |         |     |                                  |
-| showHandle        | boolean    | `true`  |     | Drag handle                      |
-| dismissOnScrimTap | boolean    | `true`  |     |                                  |
-| maxHeightRatio    | number     |         |     | Max height as fraction of window |
-
-### SideSheet
-
-M3 side sheet: modal (over a scrim, from the `end` or `start` edge) or standard (inline, beside the
-content). Header with optional back and close buttons, scrolling body, `actions` row. Props: see the API reference on its page of the docs site (generated from the source).
+| Prop              | Type       | Default | Req | Description                                                                               |
+| ----------------- | ---------- | ------- | --- | ----------------------------------------------------------------------------------------- |
+| visible           | boolean    | —       | ✓   |                                                                                           |
+| onClose           | () => void | —       | ✓   | The close button, a tap on the scrim, a drag down past the threshold and Android back     |
+| children          | ReactNode  | —       | ✓   |                                                                                           |
+| title             | string     |         |     |                                                                                           |
+| showCloseButton   | boolean    | `false` |     | Adds a close button at the end of the title row                                           |
+| actions           | ReactNode  |         |     | A row of buttons fixed at the bottom, below a divider, while the content above it scrolls |
+| showHandle        | boolean    | `true`  |     | Drag handle                                                                               |
+| dismissOnScrimTap | boolean    | `true`  |     |                                                                                           |
+| maxHeightRatio    | number     | `0.85`  |     | Max height as fraction of window                                                          |
 
 ### Menu
 
 Anchored action menu.
 
-| Prop          | Type         | Default | Req | Description                                                                        |
-| ------------- | ------------ | ------- | --- | ---------------------------------------------------------------------------------- |
-| anchor        | ReactElement | —       | ✓   |                                                                                    |
-| items         | `MenuItem[]` | —       | ✓   | `{ id, label, icon?, trailing?, disabled?, destructive?, dividerAbove?, onPress }` |
-| visible       | boolean      | —       | ✓   |                                                                                    |
-| onDismiss     | () => void   | —       | ✓   |                                                                                    |
-| closeOnSelect | boolean      | `true`  |     |                                                                                    |
+| Prop           | Type                     | Default                                      | Req | Description                                                                                                                          |
+| -------------- | ------------------------ | -------------------------------------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| anchor         | ReactElement             | —                                            | ✓   |                                                                                                                                      |
+| items          | `MenuItem[]`             | —                                            | ✓   | `{ id, label, icon?, trailing?, disabled?, destructive?, dividerAbove?, onClick? }`; the item's `onClick` runs before the menu's own |
+| visible        | boolean                  | —                                            | ✓   |                                                                                                                                      |
+| onClose        | () => void               | —                                            | ✓   | A press outside the menu, Android back, and after an item is clicked when `closeOnSelect` is on                                      |
+| closeOnSelect  | boolean                  | `true`                                       |     |                                                                                                                                      |
+| anchorPosition | `AnchorPosition`         | `{ vertical: "bottom", horizontal: "left" }` |     | As `Popover`                                                                                                                         |
+| dividers       | boolean                  | `false`                                      |     | A divider between every pair of items, on top of any `dividerAbove`                                                                  |
+| selected       | string[]                 |                                              |     | The `id`s of the items drawn as selected: a tinted row with a check mark. Items are not marked until you pass it, even as `[]`       |
+| onClick        | (item: MenuItem) => void |                                              |     | Called with the clicked item, after the item's own `onClick`                                                                         |
 
 ### Skeleton
 
@@ -1108,28 +1316,37 @@ Loading placeholder with pulse.
 
 Indeterminate spinner (SVG), or a determinate ring when `progress` is set.
 
-| Prop        | Type        | Default   | Description                   |
-| ----------- | ----------- | --------- | ----------------------------- |
-| size        | number      | `48`      |                               |
-| strokeWidth | number      | `4`       |                               |
-| color       | string      | `primary` |                               |
-| duration    | number (ms) | `1000`    | Rotation period               |
-| progress    | number 0–1  |           | Determinate ring over a track |
+| Prop               | Type                                                 | Default                                           | Description                                                                                                                                                                        |
+| ------------------ | ---------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| progress           | number 0–1                                           |                                                   | Determinate ring over a track; unset, the indicator spins                                                                                                                          |
+| size               | number                                               | `48`                                              |                                                                                                                                                                                    |
+| strokeWidth        | number                                               | `4`                                               |                                                                                                                                                                                    |
+| color              | string                                               | `primary`                                         | Indicator colour                                                                                                                                                                   |
+| trackColor         | boolean \| string                                    |                                                   | The ring under the indicator: `true` draws it in the indicator's colour at a low opacity, a string in that colour, `false` none. Unset: a ring has its usual track, a spinner none |
+| label              | ReactNode                                            |                                                   | Text, a number or any node drawn with the ring at `labelPosition`; text is scaled to the ring when inside                                                                          |
+| labelPosition      | `"top" \| "bottom" \| "left" \| "right" \| "center"` | `center` with a `progress`, `right` for a spinner | Where `label` goes                                                                                                                                                                 |
+| duration           | number (ms)                                          | `1000`                                            | Rotation period (indeterminate)                                                                                                                                                    |
+| decorative         | boolean                                              | `false`                                           | Hidden from assistive tech                                                                                                                                                         |
+| accessibilityLabel | string                                               |                                                   |                                                                                                                                                                                    |
+| testID             | string                                               |                                                   |                                                                                                                                                                                    |
 
 ### LinearProgress
 
 Determinate or indeterminate bar.
 
-| Prop                  | Type        | Default                   | Description            |
-| --------------------- | ----------- | ------------------------- | ---------------------- |
-| progress              | number 0–1  | `0`                       | Determinate value      |
-| indeterminate         | boolean     | `false`                   |                        |
-| height                | number \| % | `4`                       | `"100%"` fills parent  |
-| color                 | string      | `primary`                 |                        |
-| trackColor            | string      | `surfaceContainerHighest` |                        |
-| duration              | number (ms) | `500`                     | Determinate transition |
-| indeterminateDuration | number (ms) | `1500`                    |                        |
-| decorative            | boolean     | `false`                   | Hidden from a11y tree  |
+| Prop                  | Type                                                                                                                               | Default                   | Description                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| progress              | number 0–1                                                                                                                         | `0`                       | Determinate value                                                                                   |
+| indeterminate         | boolean                                                                                                                            | `false`                   |                                                                                                     |
+| height                | number \| %                                                                                                                        | `4`                       | `"100%"` fills parent; `20` when the label is `inside`, which has to fit on the bar                 |
+| width                 | DimensionValue                                                                                                                     | full width of the parent  | Width of the whole component, label included                                                        |
+| color                 | string                                                                                                                             | `primary`                 |                                                                                                     |
+| trackColor            | string                                                                                                                             | `surfaceContainerHighest` |                                                                                                     |
+| label                 | ReactNode                                                                                                                          |                           | Text, a number or any node drawn with the bar at `labelPosition`                                    |
+| labelPosition         | `"top-left" \| "top-center" \| "top-right" \| "left" \| "right" \| "bottom-left" \| "bottom-center" \| "bottom-right" \| "inside"` | `right`                   | `inside` centres the label on the bar, drawn in two colours so it reads over the fill and the track |
+| duration              | number (ms)                                                                                                                        | `500`                     | Determinate transition                                                                              |
+| indeterminateDuration | number (ms)                                                                                                                        | `1500`                    |                                                                                                     |
+| decorative            | boolean                                                                                                                            | `false`                   | Hidden from a11y tree                                                                               |
 
 The determinate bar grows with `transform: scaleX` from its leading edge (native driver).
 
@@ -1162,23 +1379,28 @@ survives text reflow without a hardcoded height.
 
 Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
 Mount `ToastProvider` once above the app; the queue is FIFO and renders one `Snackbar` at a time.
+`ToastProvider` takes `position` (default `"bottom-center"`), where toasts appear unless one asks
+for another. `toast.success`, `.error`, `.warning` and `.info` are `show` with the `severity` set.
 
 ```tsx
 const toast = useToast();
 toast.success("Saved");
-toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
+toast.error("Upload failed", { action: { label: "Retry", onClick: retry } });
 toast.show({ id: "sync", message: "Syncing…", duration: 8000 }); // same id replaces
 toast.hide(); // clears the queue
 ```
 
-| `ToastOptions` | Type                                | Default     | Description                                                  |
-| -------------- | ----------------------------------- | ----------- | ------------------------------------------------------------ |
-| message        | string                              | —           |                                                              |
-| type           | `"default" \| "success" \| "error"` | `default`   | Container colors + default icon                              |
-| duration       | number (ms)                         | `4000`      |                                                              |
-| icon           | icon                                | from `type` |                                                              |
-| action         | `{ label, onPress }`                |             |                                                              |
-| id             | string                              |             | Replaces a queued toast with the same id instead of stacking |
+| `ToastOptions` | Type                                          | Default         | Description                                                                              |
+| -------------- | --------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------- |
+| message        | string                                        | —               |                                                                                          |
+| severity       | `"success" \| "info" \| "warning" \| "error"` |                 | Colours and default icon. Left out, the neutral inverse surface                          |
+| variant        | `"contained" \| "outlined"`                   | `contained`     |                                                                                          |
+| position       | `Snackbar`'s `position` values                | the provider's  | Where it appears                                                                         |
+| duration       | number (ms)                                   | `4000`          | Not used when `onClose` is set                                                           |
+| icon           | icon                                          | from `severity` |                                                                                          |
+| action         | `{ label, onClick }`                          |                 | Clicking it runs `onClick` and dismisses the toast                                       |
+| onClose        | () => void                                    |                 | Keeps the toast up until the user closes it, with a close button; called once it is gone |
+| id             | string                                        |                 | Replaces a queued toast with the same id instead of stacking                             |
 
 ---
 
@@ -1186,36 +1408,102 @@ toast.hide(); // clears the queue
 
 ### AppBar
 
-`TopAppBar` behind react-navigation's header contract: reads the title from `options`/`route`,
-shows back or a drawer menu button, renders `options.headerRight`. Props are navigator-shaped
-(`navigation`, `route`, `options`, `back`, `isPinned`). Without a navigator, use `TopAppBar`.
+The M3 top app bar, drawn on a `Paper`: a 64dp row, with `medium` and `large` adding a line below
+it for a bigger title. On its own the screen passes `title`, `leading` and `actions`; as a
+navigator's `header` it adapts to react-navigation's contract (`navigation`, `route`, `options`,
+`back`, `isPinned`): it reads the title from `options`/`route`, shows a back button when there is
+somewhere to go back to and a menu button for a drawer navigator, and renders `options.headerRight`.
+The library itself never imports react-navigation. Pads the top safe-area inset.
 
-### TopAppBar
+| Prop                                           | Type                                         | Default | Req | Description                                                                                                                            |
+| ---------------------------------------------- | -------------------------------------------- | ------- | --- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| title                                          | ReactNode                                    |         |     | The headline: a string is drawn in the variant's type style, any other node as is. Left out, read from `options` and `route`           |
+| subtitle                                       | string                                       |         |     | A second line under the title                                                                                                          |
+| variant                                        | `"small" \| "center" \| "medium" \| "large"` | `small` |     | `small` and `center` keep the title in the row; `medium` and `large` move it to a second, larger line                                  |
+| leading                                        | ReactNode                                    |         |     | Before the title: typically a back or menu `IconButton`. Under a navigator it defaults to a back button, or a menu button for a drawer |
+| actions                                        | ReactNode                                    |         |     | After the title: up to three action `IconButton`s per M3. Under a navigator it defaults to `options.headerRight()`                     |
+| elevated                                       | boolean                                      | `false` |     | The on-scroll state: `surfaceContainer` instead of `surface`                                                                           |
+| safeArea                                       | boolean                                      | `true`  |     | Pads the top safe-area inset                                                                                                           |
+| divider                                        | boolean                                      |         |     | A hairline under the bar. Left out, drawn on the web when the bar sits under a navigator                                               |
+| paper                                          | `Omit<PaperProps, "children">`               |         |     | Props of the `Paper` the bar is drawn on, merged over its own: `<AppBar paper={{ elevation: 3 }} />` lifts the bar to level 3          |
+| navigation / route / options / back / isPinned |                                              |         |     | The navigator's header contract, structural so any navigator's object fits                                                             |
+| style / testID                                 |                                              |         |     |                                                                                                                                        |
 
-Navigator-agnostic M3 top app bar: `small`, `center`, `medium`, `large`; `leading` and `actions`
-slots; `elevated` for the on-scroll state; pads the top safe-area inset. Props: see the API reference on its page of the docs site (generated from the source).
+```tsx
+<AppBar
+  variant="center"
+  title="Invoices"
+  leading={
+    <IconButton icon="menu" accessibilityLabel="Open menu" onClick={openMenu} />
+  }
+  actions={
+    <IconButton icon="magnify" accessibilityLabel="Search" onClick={search} />
+  }
+/>
+```
 
-### NavigationBar
+### NavBar
 
-Bottom navigation bar.
+Bottom navigation bar: the destinations of a compact window, three to five per M3. It reports
+presses; the app's router decides what they mean.
 
-| Prop        | Type                     | Default  | Req | Description                                   |
-| ----------- | ------------------------ | -------- | --- | --------------------------------------------- |
-| items       | `NavigationBarItem[]`    | —        | ✓   | `{ id, label, icon, badgeCount?, disabled? }` |
-| activeId    | string                   | —        | ✓   |                                               |
-| onItemPress | (id) => void             | —        | ✓   |                                               |
-| showLabels  | `"always" \| "selected"` | `always` |     |                                               |
+| Prop       | Type                     | Default  | Req | Description                                     |
+| ---------- | ------------------------ | -------- | --- | ----------------------------------------------- |
+| items      | `NavBarItem[]`           | —        | ✓   | `{ id, label, icon, badgeCount?, disabled? }`   |
+| activeId   | string                   | —        | ✓   | `id` of the current destination                 |
+| onClick    | (id) => void             | —        | ✓   | Called with the `id` of the pressed destination |
+| showLabels | `"always" \| "selected"` | `always` |     |                                                 |
 
 ### NavigationRail
 
-The side-mounted counterpart of NavigationBar for medium and expanded windows: same item shape,
-labels `always`/`selected`/`none`, `header` (menu, FAB) and `footer` slots. Props: see the API reference on its page of the docs site (generated from the source).
+The side-mounted counterpart of NavBar for medium and expanded windows: same item shape (its press
+callback is still `onItemPress`), labels `always`/`selected`/`none`, `header` (menu, FAB) and
+`footer` slots. Props: see the API reference on its page of the docs site (generated from the source).
 
-### NavigationDrawer / DrawerItem / DrawerSection
+### Drawer / DrawerItem / DrawerSection
 
-M3 navigation drawer: `variant="standard"` (inline panel) or `"modal"` (slides in over a scrim;
-Escape and Android back close it). `DrawerItem` has `icon`, `selected`, trailing `badge`;
-`DrawerSection` a `title` and an optional divider. Props: see the API reference on its page of the docs site (generated from the source).
+The M3 navigation drawer, which doubles as a side sheet: with `position`, any content as `children`
+and a close button, it holds filters, details or a form on any edge of the window. `variant="static"`
+is a permanent panel beside the content; `"swipeable"` slides over it on a scrim, and a drag toward
+its edge, the scrim, Android back and Escape close it. A right-hand side sheet is
+`<Drawer variant="swipeable" position="right">`. Presentational and navigator-agnostic.
+
+| Prop            | Type                                     | Default                   | Req | Description                                                                                                                                                                                        |
+| --------------- | ---------------------------------------- | ------------------------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| variant         | `"static" \| "swipeable"`                | `static`                  |     | A permanent panel in the layout, or one that slides over the content on a scrim                                                                                                                    |
+| position        | `"left" \| "right" \| "top" \| "bottom"` | `left`                    |     | The window edge. `left` and `right` are columns of `width`; `top` and `bottom` span the full width, as tall as their content up to `height`. Physical edges, not mirrored in right-to-left layouts |
+| visible         | boolean                                  | `false`                   |     | Swipeable only: whether the drawer is open                                                                                                                                                         |
+| onClose         | () => void                               |                           |     | The close button; for a swipeable drawer also the scrim, a closing drag, Android back and Escape (web)                                                                                             |
+| elevation       | number 0–5                               | `0` static, `1` swipeable |     | The tone of the surface and, on iOS and Android, its shadow                                                                                                                                        |
+| title           | string                                   |                           |     | Headline; with a close button, a back button or `actions` it is the title of a header row                                                                                                          |
+| children        | ReactNode                                | —                         | ✓   | `DrawerSection`s and/or `DrawerItem`s, or any content (a form, filters, details)                                                                                                                   |
+| header / footer | ReactNode                                |                           |     | Pinned above / below the scrolling items                                                                                                                                                           |
+| actions         | ReactNode                                |                           |     | A row of buttons at the bottom, below a divider                                                                                                                                                    |
+| showCloseButton | boolean                                  | `false`                   |     | Adds a close button to the header row, which calls `onClose`                                                                                                                                       |
+| onBack          | () => void                               |                           |     | A back button before the title, for a drawer with sub-pages                                                                                                                                        |
+| collapsed       | boolean                                  | `false`                   |     | Icons only, 72 wide: labels, badges, titles and sub-items are hidden                                                                                                                               |
+| width           | number                                   | `360`                     |     | Left and right; capped at the window width when swipeable                                                                                                                                          |
+| height          | number                                   | `360`                     |     | Top and bottom: the largest height                                                                                                                                                                 |
+| style / testID  |                                          |                           |     |                                                                                                                                                                                                    |
+
+`DrawerItem`: `label` (required), `icon`, `selected`, trailing `badge`, `onClick`, `disabled`, and
+`children` (sub-items, which make it a group that the press opens and closes; `defaultExpanded`,
+`onToggle`). `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
+`defaultExpanded` (`true`) and `onToggle`.
+
+```tsx
+<Drawer
+  variant="swipeable"
+  position="right"
+  visible={open}
+  onClose={close}
+  title="Filters"
+  showCloseButton
+  actions={<Button onClick={apply}>Apply</Button>}
+>
+  <Input label="Customer" value={customer} onChange={setCustomer} />
+</Drawer>
+```
 
 ### Toolbar
 
@@ -1225,13 +1513,22 @@ itself. Props: see the API reference on its page of the docs site (generated fro
 
 ### Tabs
 
-Top tab bar with animated indicator; text-only or icon tabs.
+Top tab bar with an animated indicator; text-only or icon tabs.
 
-| Prop      | Type                              | Default | Req | Description |
-| --------- | --------------------------------- | ------- | --- | ----------- |
-| tabs      | `string[]` \| `{ label, icon }[]` | —       | ✓   |             |
-| activeTab | number (index)                    | —       | ✓   |             |
-| onChange  | (index) => void                   | —       | ✓   |             |
+| Prop        | Type                      | Default    | Req | Description                                                                                                            |
+| ----------- | ------------------------- | ---------- | --- | ---------------------------------------------------------------------------------------------------------------------- |
+| tabs        | `string[]` \| `TabItem[]` | —          | ✓   | `{ label, icon?, key?, disabled? }`; give an icon to every tab or to none                                              |
+| activeTab   | number (index)            | `0`        |     | The active tab by position; ignored when `activeKey` is given                                                          |
+| activeKey   | string                    |            |     | The active tab by its `key`, for tabs that come and go                                                                 |
+| onChange    | (index, key?) => void     | —          | ✓   | Called with the pressed tab's position and, when it has one, its `key`                                                 |
+| variant     | `"standard" \| "rounded"` | `standard` |     | An underline under the active tab, or a pill-shaped active tab on a rounded track                                      |
+| showBorders | boolean                   | `false`    |     | Dividers between the tabs and, in `rounded`, an outline around the track                                               |
+| size        | `"sm" \| "md" \| "lg"`    | `md`       |     | The height and the type of the tabs                                                                                    |
+| fullWidth   | boolean                   | `true`     |     | `true` shares the width equally between the tabs; `false` sizes each tab to its label, and the bar scrolls when needed |
+| height      | number \| string          |            |     | Overrides the height of the bar (dp or a percentage)                                                                   |
+| width       | number \| string          |            |     | Overrides the width of the bar (dp or a percentage)                                                                    |
+| color       | `ColorRole`               | `primary`  |     | Colour role of the indicator and of the selected tab                                                                   |
+| testID      | string                    |            |     |                                                                                                                        |
 
 ### Breadcrumbs
 
@@ -1243,53 +1540,67 @@ Top tab bar with animated indicator; text-only or icon tabs.
 
 ### Pagination
 
-| Prop          | Type             | Default | Req | Description                |
-| ------------- | ---------------- | ------- | --- | -------------------------- |
-| page          | number (1-based) | —       | ✓   |                            |
-| totalPages    | number           | —       | ✓   |                            |
-| onPageChange  | (page) => void   | —       | ✓   |                            |
-| siblingCount  | number           | `1`     |     | Pages each side of current |
-| showFirstLast | boolean          | `false` |     | First/last arrows          |
-| disabled      | boolean          |         |     |                            |
+| Prop          | Type                      | Default   | Req | Description                                                                                                                                                                           |
+| ------------- | ------------------------- | --------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| activePage    | number (1-based)          | —         | ✓   | The current page                                                                                                                                                                      |
+| totalPages    | number                    | —         | ✓   |                                                                                                                                                                                       |
+| onChange      | (page) => void            | —         | ✓   | Called with the page the user picked: a page button, an arrow or `pageSelect`                                                                                                         |
+| siblingCount  | number                    | `1`       |     | Pages each side of current                                                                                                                                                            |
+| showFirstLast | boolean                   | `false`   |     | First/last arrows                                                                                                                                                                     |
+| pageSelect    | boolean                   | `false`   |     | A small select after the pager that jumps to any page: it shows the active page and opens a list of pages under a search field; typing digits narrows it, Enter picks the first match |
+| color         | `ColorRole`               | `primary` |     | Colour role of the selected page                                                                                                                                                      |
+| variant       | `"rounded" \| "circular"` | `rounded` |     | Buttons as rounded squares, or as circles                                                                                                                                             |
+| size          | `"sm" \| "md" \| "lg"`    | `md`      |     | 32 / 40 / 48 px                                                                                                                                                                       |
+| disabled      | boolean                   |           |     |                                                                                                                                                                                       |
 
 ### Stepper
 
-Horizontal progress steps.
+Progress steps, in a row or a column.
 
-| Prop        | Type                               | Default | Req | Description          |
-| ----------- | ---------------------------------- | ------- | --- | -------------------- |
-| steps       | `string[]` \| `{ label, icon? }[]` | —       | ✓   |                      |
-| activeStep  | number (index)                     | —       | ✓   |                      |
-| onStepPress | (stepIndex) => void                |         |     | Makes steps tappable |
-| style       | object                             |         |     |                      |
+| Prop       | Type                               | Default | Req | Description                                                                                                        |
+| ---------- | ---------------------------------- | ------- | --- | ------------------------------------------------------------------------------------------------------------------ |
+| steps      | `string[]` \| `{ label, icon? }[]` | —       | ✓   |                                                                                                                    |
+| activeStep | number (index)                     | —       | ✓   | Steps before it are completed                                                                                      |
+| direction  | `"row" \| "column"`                | `row`   |     | `row` lays the steps side by side, the label under each circle; `column` stacks them, the label beside each circle |
+| onClick    | (stepIndex) => void                |         |     | Called with the pressed step's position; makes the steps tappable                                                  |
+| style      | object                             |         |     |                                                                                                                    |
 
 ---
 
 ## 8. Layout Primitives
 
 Token-driven layout, so screens stop hardcoding spacing. `SpacingValue` is a `theme.spacing` key
-(`"xs" | "s" | "m" | "l" | "xl"`) or a raw number; `RadiusValue` is a `theme.shape` key or a raw
-number; `ColorValue` is an M3 color role name or any raw color string.
+(`"xs" | "s" | "m" | "l" | "xl"`) or a raw number, and `SpacingInput` also takes a numeric string
+(`"12"`, `"12px"`); `RadiusValue` is a `theme.shape` key or a raw number; `ColorValue` is a theme
+colour token or any raw colour string. `padding`, `margin` and `gap` on `Box` are numbers of px.
 
 ### Box
 
-A `View` that reads spacing, shape and color off the theme. Anything not covered by a prop still
-goes through `style`.
+A `View` that reads shape and colour off the theme, with a `variant` for the usual layouts.
+Anything not covered by a prop still goes through `style`. To centre children on both axes:
+`<Box variant="centered-flex">`.
 
-| Prop                      | Type             | Description                         |
-| ------------------------- | ---------------- | ----------------------------------- |
-| p, px, py, pt, pr, pb, pl | SpacingValue     | Padding — narrowest wins, as in CSS |
-| m, mx, my, mt, mr, mb, ml | SpacingValue     | Margin                              |
-| bg                        | ColorValue       | Background                          |
-| radius                    | RadiusValue      | Corner radius                       |
-| borderWidth               | number           |                                     |
-| borderColor               | ColorValue       |                                     |
-| flex                      | number           |                                     |
-| gap                       | SpacingValue     |                                     |
-| align / justify           | ViewStyle values | `alignItems` / `justifyContent`     |
-| width / height            | ViewStyle values |                                     |
-| row                       | boolean          | Horizontal instead of vertical      |
-| wrap                      | boolean          |                                     |
+| Prop        | Type             | Default    | Description                                                                                         |
+| ----------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| variant     | see below        | `standard` | Layout preset: direction, centring and filling the parent; the other props and `style` apply on top |
+| padding     | number           |            | Padding on every edge, in px; one edge or axis goes through `style`                                 |
+| margin      | number           |            | Margin on every edge, in px                                                                         |
+| background  | ColorValue       |            | A theme colour token or any colour string                                                           |
+| radius      | RadiusValue      |            | Corner radius                                                                                       |
+| borderWidth | number           |            |                                                                                                     |
+| borderColor | ColorValue       |            |                                                                                                     |
+| gap         | number           |            | Space between children, in px                                                                       |
+| align       | ViewStyle values |            | `alignItems`                                                                                        |
+| justify     | ViewStyle values |            | `justifyContent`                                                                                    |
+| width       | ViewStyle values |            |                                                                                                     |
+| height      | ViewStyle values |            |                                                                                                     |
+| wrap        | boolean          |            | Lets children flow onto the next line instead of overflowing                                        |
+| style       | ViewStyle        |            | Merged last, over the variant and every other prop                                                  |
+
+`variant`: `standard` (a plain column), `flex` (a row), `column-flex`, `centered-flex` (a row,
+centred on both axes), `centered-column-flex`, `full-page-flex` and `full-page-column-flex` (fill
+the screen: `flex: 1`, minimum height 100%), `full-size-flex` and `full-size-column` (100% wide and
+high), `full-size-centered-flex` and `full-size-centered-column-flex` (the same, centred).
 
 Extends `ViewProps`.
 
@@ -1298,17 +1609,14 @@ Extends `ViewProps`.
 Evenly spaced children via `gap`, so spacing stays correct when children are conditionally
 rendered. `HStack` and `VStack` lock the axis.
 
-| Prop      | Type                         | Default    | Description           |
-| --------- | ---------------------------- | ---------- | --------------------- |
-| direction | `"vertical" \| "horizontal"` | `vertical` |                       |
-| spacing   | SpacingValue                 | `"s"`      | Gap between children  |
-| reverse   | boolean                      |            | Reverses visual order |
+| Prop      | Type                         | Default    | Description                                                                                                                          |
+| --------- | ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| direction | `"vertical" \| "horizontal"` | `vertical` |                                                                                                                                      |
+| spacing   | SpacingInput                 | `"s"`      | Space between children: a token, a number of px or a numeric string                                                                  |
+| dividers  | ReactNode                    |            | `true` puts a hairline between the children (vertical in a horizontal stack); a node is used as the divider. Empty children get none |
+| reverse   | boolean                      |            | Reverses visual order                                                                                                                |
 
-Plus every `Box` prop except `row` and `gap`.
-
-### Center
-
-Centres its children on both axes. Every `Box` prop except `align` and `justify`.
+Plus every `Box` prop except `variant` and `gap`, `style` included.
 
 ### Spacer
 
@@ -1319,32 +1627,50 @@ Centres its children on both axes. Every `Box` prop except `align` and `justify`
 
 ### Grid
 
-Equal-width grid. Children are chunked into explicit rows rather than left to wrap, so the gap
-never pushes a cell onto the next line and a short last row keeps its cells at column width.
+A 12-column responsive grid, for the container and for its items. A container lays its items out in
+a wrapping row; an item's `size` is how many of the container's columns it spans, per breakpoint,
+or `"grow"` / `"auto"`. The breakpoints are the M3 window size classes, mobile-first: `xs` from
+0 dp, `sm` from 600, `md` from 840, `lg` from 1200, `xl` from 1600. The widths come from the
+container's measured width, so it needs one from its parent. A `Grid` that is neither a container
+nor inside one is a plain `View`.
 
-| Prop          | Type         | Default | Description                                        |
-| ------------- | ------------ | ------- | -------------------------------------------------- |
-| columns       | number       | `2`     | Ignored when `minChildWidth` is set                |
-| minChildWidth | number       |         | Fits as many columns of at least this width as fit |
-| spacing       | SpacingValue | `"s"`   |                                                    |
+| Prop      | Type                                                  | Default | Description                                                                                                                                                                                                      |
+| --------- | ----------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| container | boolean                                               | `false` | Lays its children out in rows of `columns` columns; the items go inside it                                                                                                                                       |
+| columns   | number                                                | `12`    | Columns in a row of a container                                                                                                                                                                                  |
+| size      | `GridSize`                                            |         | An item's width: a number of columns, `"grow"` (share the rest of the row), `"auto"` (size to content) or one of those per breakpoint (`{ xs: 12, md: 6 }`); a missing breakpoint takes the next smaller one set |
+| spacing   | `SpacingInput` \| `{ row?, column? }`                 | `"s"`   | Gap between the items of a container                                                                                                                                                                             |
+| wrap      | boolean                                               | `true`  | Whether a container moves items that do not fit onto the next row                                                                                                                                                |
+| autoSize  | boolean \| `GridSize` \| `(index, child) => GridSize` | `false` | Sizes the children of a container that have no `size`: `true` is `{ xs: 12, sm: 6, md: 4 }`, a size gives every child that size, a function sizes each child                                                     |
+| style     | ViewStyle                                             |         |                                                                                                                                                                                                                  |
+
+```tsx
+<Grid container spacing="m">
+  <Grid size={{ xs: 12, md: 6 }}>…</Grid>
+  <Grid size={{ xs: 12, md: 6 }}>…</Grid>
+</Grid>
+```
 
 ### AspectRatio
 
-| Prop  | Type   | Default | Description                        |
-| ----- | ------ | ------- | ---------------------------------- |
-| ratio | number | `1`     | Width ÷ height — `16 / 9`, `4 / 3` |
+| Prop  | Type             | Default | Description                        |
+| ----- | ---------------- | ------- | ---------------------------------- |
+| ratio | number           | `1`     | Width ÷ height — `16 / 9`, `4 / 3` |
+| width | ViewStyle values | `100%`  |                                    |
+
+Plus every `Box` prop except `height`.
 
 ---
 
 ## 9. Component Index
 
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
-**Layout**: Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
+**Layout**: Box, Stack/HStack/VStack, Spacer, Grid, AspectRatio
 **Actions**: Button, ProgressButton, IconButton, Link, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
-**Inputs**: Input, Select, Autocomplete, PinInput, FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
-**Data display**: Avatar, Badge, StatusBadge, DataGrid, Table, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, Image
-**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Modal, ConfirmDialog, Popover, BottomSheet, SideSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
-**Navigation**: TopAppBar, AppBar, NavigationBar, NavigationRail, NavigationDrawer, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
+**Inputs**: Input, Select, Autocomplete, PinInput, Form, FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
+**Data display**: Avatar, Badge, StatusBadge, Blink, DataGrid, Table, ListItem, ListSection/ListSubheader, Tooltip, Accordion, Carousel, Stat, CaptionValue, Image, IFrame
+**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Dialog, ConfirmDialog, Popover, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
+**Navigation**: AppBar, NavBar, NavigationRail, Drawer/DrawerItem/DrawerSection, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
 
 ---
 
@@ -1355,7 +1681,7 @@ Requirements this kit implies for a target framework:
 - **Theming**: runtime light/dark token switch, component-level theme access (context/hook or CSS vars).
 - **Cross-platform** (if keeping native + web): React Native / Expo, or split web (React/Vue/Svelte) + native.
 - **Animation**: springs/timing for Switch, Tabs indicator, SpeedDial, Snackbar, BottomSheet, Carousel.
-- **Overlays/portals**: Modal, Popover, Menu, BottomSheet, Tooltip need portal/z-index layering + outside-viewport positioning.
+- **Overlays/portals**: Dialog, Popover, Menu, BottomSheet, Drawer, Tooltip need portal/z-index layering + outside-viewport positioning.
 - **Icons**: a Material Community icon set (kebab-case names, outline variants).
 - **SVG**: CircularProgress uses SVG stroke animation.
 - **Accessibility**: roles + states across all interactive components.

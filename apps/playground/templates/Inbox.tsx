@@ -174,7 +174,9 @@ export default function Inbox() {
                   ? { backgroundColor: theme.colors.primaryContainer }
                   : undefined
               }
-              itemTextStyle={message.unread ? { fontWeight: "700" } : undefined}
+              primaryTextStyle={
+                message.unread ? { fontWeight: "700" } : undefined
+              }
               primaryText={message.from}
             />
           ))}

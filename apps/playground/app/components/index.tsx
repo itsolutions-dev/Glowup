@@ -12,6 +12,8 @@ import {
 } from "@its/glowup-ui";
 
 import ComponentPreview from "../../catalogue/ComponentPreview";
+import { descriptionOf } from "../../catalogue/descriptions";
+import { exampleFor } from "../../catalogue/examples";
 import { ComponentRegistry } from "../../catalogue/registry";
 import {
   CATEGORIES,
@@ -77,7 +79,11 @@ export default function ComponentsIndex() {
         .map((c) => ({
           ...c,
           items: needle
-            ? c.items.filter((item) => item.toLowerCase().includes(needle))
+            ? c.items.filter(
+                (item) =>
+                  item.toLowerCase().includes(needle) ||
+                  descriptionOf(item, c.label).toLowerCase().includes(needle),
+              )
             : c.items,
         }))
         .filter((c) => c.items.length > 0),
@@ -95,7 +101,7 @@ export default function ComponentsIndex() {
     <Page
       eyebrow="Reference"
       title="Components"
-      description={`${TOTAL_COUNT} Material You components. Every card is the real component at its default props — open one for the live demo, the variants and the generated API reference.`}
+      description={`${TOTAL_COUNT} Material You components, each with a one-line description and its example running. Open one to change its props and code, see the variants and read the generated API reference.`}
     >
       <View style={styles.toolbar}>
         <View style={styles.searchRow}>
@@ -279,6 +285,8 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
   const doc = docFor(name);
   const variants = VARIANTS_BY_COMPONENT[name]?.length ?? 0;
   const props = useMemo(() => defaultsOf(name), [name]);
+  const example = exampleFor(name);
+  const description = descriptionOf(name, CATEGORY_OF[name]);
 
   return (
     // The width lives on a wrapper, and the card's looks live on a View one
@@ -307,28 +315,41 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
               <View style={styles.well} pointerEvents="none">
                 <View style={styles.wellInner}>
                   <DemoErrorBoundary label={name}>
-                    <ComponentPreview
-                      selectedComponentName={name}
-                      activeMeta={meta}
-                      componentProps={props}
-                      updateProp={() => {}}
-                    />
+                    {example ? (
+                      <example.Component />
+                    ) : (
+                      <ComponentPreview
+                        selectedComponentName={name}
+                        activeMeta={meta}
+                        componentProps={props}
+                        updateProp={() => {}}
+                      />
+                    )}
                   </DemoErrorBoundary>
                 </View>
               </View>
 
               <View style={styles.cardFooter}>
+                <View style={styles.cardTitleRow}>
+                  <Typography
+                    variant="titleSmall"
+                    style={{ color: theme.colors.onSurface, flex: 1 }}
+                  >
+                    {name}
+                  </Typography>
+                  <Typography
+                    variant="labelSmall"
+                    style={{ color: theme.colors.onSurfaceVariant }}
+                  >
+                    {doc ? `${doc.props.length} props` : `${variants} demos`}
+                  </Typography>
+                </View>
                 <Typography
-                  variant="titleSmall"
-                  style={{ color: theme.colors.onSurface, flex: 1 }}
-                >
-                  {name}
-                </Typography>
-                <Typography
-                  variant="labelSmall"
+                  variant="bodySmall"
+                  numberOfLines={3}
                   style={{ color: theme.colors.onSurfaceVariant }}
                 >
-                  {doc ? `${doc.props.length} props` : `${variants} demos`}
+                  {description}
                 </Typography>
               </View>
             </View>
@@ -357,12 +378,21 @@ const ListRow = ({ name }: { name: string }) => {
               },
             ]}
           >
-            <Typography
-              variant="bodyLarge"
-              style={{ color: theme.colors.onSurface, flex: 1 }}
-            >
-              {name}
-            </Typography>
+            <View style={styles.rowText}>
+              <Typography
+                variant="bodyLarge"
+                style={{ color: theme.colors.onSurface }}
+              >
+                {name}
+              </Typography>
+              <Typography
+                variant="bodySmall"
+                numberOfLines={2}
+                style={{ color: theme.colors.onSurfaceVariant }}
+              >
+                {descriptionOf(name, CATEGORY_OF[name])}
+              </Typography>
+            </View>
             <Typography
               variant="labelSmall"
               style={{ color: theme.colors.onSurfaceVariant }}
@@ -449,11 +479,14 @@ const makeStyles = (theme: Theme) =>
       transform: [{ scale: PREVIEW_SCALE }],
     },
     cardFooter: {
+      gap: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.m,
+      paddingVertical: theme.spacing.s,
+    },
+    cardTitleRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: theme.spacing.s,
-      paddingHorizontal: theme.spacing.m,
-      paddingVertical: theme.spacing.s,
     },
 
     list: {
@@ -469,5 +502,6 @@ const makeStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.m,
       paddingVertical: theme.spacing.s,
     },
+    rowText: { flex: 1, minWidth: 0, gap: 2 },
     rowMeta: { minWidth: 120, textAlign: "right" },
   });

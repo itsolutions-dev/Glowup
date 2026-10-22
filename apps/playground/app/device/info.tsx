@@ -16,9 +16,10 @@ const USAGE = `import { useDeviceInfo } from "@its/glowup-device/info";
 function About() {
   const { model, os, deviceType, isEmulator, app } = useDeviceInfo();
   return (
-    <ListItem secondary={\`\${os.name} \${os.version} · \${deviceType}\`}>
-      {\`\${model ?? "Unknown device"} — v\${app.version} (\${app.build})\`}
-    </ListItem>
+    <ListItem
+      primaryText={\`\${model ?? "Unknown device"} — v\${app.version} (\${app.build})\`}
+      secondaryText={\`\${os.name} \${os.version} · \${deviceType}\`}
+    />
   );
 }`;
 

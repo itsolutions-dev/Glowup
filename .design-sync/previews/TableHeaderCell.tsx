@@ -51,3 +51,22 @@ export const SortStates = () => (
     </Table>
   </div>
 );
+
+/** `flex` headers share the free width of the row; `width` is the narrowest they get. */
+export const FlexHeaders = () => (
+  <div style={fit}>
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell width={80}>Id</TableHeaderCell>
+          <TableHeaderCell width={120} flex>
+            Project
+          </TableHeaderCell>
+          <TableHeaderCell width={120} flex align="right">
+            Budget
+          </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+    </Table>
+  </div>
+);

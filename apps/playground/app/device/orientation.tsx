@@ -43,7 +43,7 @@ const USAGE = `import {
 
 function Gallery() {
   const { isLandscape } = useOrientation();
-  return <Grid columns={isLandscape ? 4 : 2} />;
+  return <Grid container autoSize={1} columns={isLandscape ? 4 : 2} />;
 }
 
 function VideoPlayer() {

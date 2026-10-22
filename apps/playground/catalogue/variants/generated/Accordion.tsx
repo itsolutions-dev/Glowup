@@ -13,7 +13,7 @@ const panel: ViewStyle = {
 
 export const CollapsedAndExpanded = () => (
   <View style={panel}>
-    <Accordion title="Shipping address" startExpanded>
+    <Accordion title="Shipping address" expanded>
       Orders ship from the Milan warehouse within one business day. Tracking
       details arrive by email as soon as the courier scans the parcel.
     </Accordion>
@@ -24,7 +24,7 @@ export const CollapsedAndExpanded = () => (
 
 export const RichContent = () => (
   <View style={panel}>
-    <Accordion title="Deployment status" startExpanded>
+    <Accordion title="Deployment status" expanded>
       <View style={{ flexDirection: "column", gap: 10 }}>
         <View
           style={{
@@ -69,7 +69,7 @@ export const FaqGroup = () => (
       Open Settings, choose Security, then Reset password. A one-time link is
       sent to your work email and stays valid for 30 minutes.
     </Accordion>
-    <Accordion title="Can I invite external collaborators?" startExpanded>
+    <Accordion title="Can I invite external collaborators?" expanded>
       Workspace owners can invite guests from the Members tab. Guests see only
       the projects they are added to and never appear in billing seats.
     </Accordion>
@@ -78,6 +78,60 @@ export const FaqGroup = () => (
     </Accordion>
   </View>
 );
+
+/** `variant="contained"` is a filled tonal panel with no border. */
+export const Contained = () => (
+  <View style={panel}>
+    <Accordion title="Shipping address" variant="contained" expanded>
+      Orders ship from the Milan warehouse within one business day.
+    </Accordion>
+    <Accordion title="Payment methods" variant="contained">
+      Hidden until expanded.
+    </Accordion>
+    <Accordion title="Returns and refunds" variant="contained">
+      Hidden until expanded.
+    </Accordion>
+  </View>
+);
+
+/** `icon` replaces the chevron, with a glyph name or any node. The chevron turns with the panel; a custom icon does not. */
+export const CustomIcon = () => (
+  <View style={panel}>
+    <Accordion title="Advanced options" icon="cog-outline">
+      Hidden until expanded.
+    </Accordion>
+    <Accordion
+      title="Billing"
+      icon={<StatusBadge label="New" type="success" />}
+      expanded
+    >
+      The icon slot takes any node, a badge here.
+    </Accordion>
+  </View>
+);
+
+/** `expanded` follows the parent when it changes, and `onClick` reports each toggle: one accordion open at a time. */
+export const OneAtATime = () => {
+  const [open, setOpen] = React.useState("shipping");
+  return (
+    <View style={panel}>
+      {[
+        ["shipping", "Shipping address", "Ships from the Milan warehouse."],
+        ["payment", "Payment methods", "Cards and bank transfer."],
+        ["returns", "Returns and refunds", "Within 30 days of delivery."],
+      ].map(([id, title, text]) => (
+        <Accordion
+          key={id}
+          title={title}
+          expanded={open === id}
+          onClick={(expanded) => setOpen(expanded ? id : "")}
+        >
+          {text}
+        </Accordion>
+      ))}
+    </View>
+  );
+};
 
 export const variants: Variant[] = [
   {
@@ -94,5 +148,26 @@ export const variants: Variant[] = [
     name: "FaqGroup",
     title: "Faq group",
     render: FaqGroup,
+  },
+  {
+    name: "Contained",
+    title: "Contained",
+    description:
+      '`variant="contained"` is a filled tonal panel with no border.',
+    render: Contained,
+  },
+  {
+    name: "CustomIcon",
+    title: "Custom icon",
+    description:
+      "`icon` replaces the chevron, with a glyph name or any node. The chevron turns with the panel; a custom icon does not.",
+    render: CustomIcon,
+  },
+  {
+    name: "OneAtATime",
+    title: "One at a time",
+    description:
+      "`expanded` follows the parent when it changes, and `onClick` reports each toggle: one accordion open at a time.",
+    render: OneAtATime,
   },
 ];

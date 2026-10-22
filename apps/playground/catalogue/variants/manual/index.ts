@@ -2,10 +2,10 @@ import type { Variant } from "../types";
 import { variants as Autocomplete } from "./Autocomplete";
 import { variants as BottomSheet } from "./BottomSheet";
 import { variants as ConfirmDialog } from "./ConfirmDialog";
+import { variants as Dialog } from "./Dialog";
 import { variants as FAB } from "./FAB";
 import { variants as Icon } from "./Icon";
 import { variants as Menu } from "./Menu";
-import { variants as Modal } from "./Modal";
 import { variants as Popover } from "./Popover";
 import { variants as Toast } from "./Toast";
 import { variants as Tooltip } from "./Tooltip";
@@ -18,13 +18,10 @@ import {
 import {
   buttonGroupVariants,
   chipGroupVariants,
-  navigationDrawerVariants,
+  drawerVariants,
   navigationRailVariants,
-  sideSheetVariants,
   splitButtonVariants,
-  tableVariants,
   toolbarVariants,
-  topAppBarVariants,
 } from "./fromDemos";
 
 /**
@@ -37,7 +34,7 @@ import {
  * screenshot (Tooltip, Autocomplete) — or it has no authored preview at all
  * (Toast, which is an imperative API rather than a component, and the four Card
  * parts, which the Card preview only ever shows assembled) — or it is an
- * overlay whose preview mounts it already open (Modal, ConfirmDialog,
+ * overlay whose preview mounts it already open (Dialog, ConfirmDialog,
  * BottomSheet, Popover, Menu). The rewrite handles that last group fine; the
  * result is what a page cannot have, because the overlay portals over the whole
  * document and nothing in a preview closes it. `useOverlayDemo` in ./shared
@@ -51,10 +48,10 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   Autocomplete,
   BottomSheet,
   ConfirmDialog,
+  Dialog,
   FAB,
   Icon,
   Menu,
-  Modal,
   Popover,
   Toast,
   Tooltip,
@@ -66,11 +63,8 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   // their galleries are their stage demos with fixed values (./fromDemos).
   ButtonGroup: buttonGroupVariants,
   ChipGroup: chipGroupVariants,
-  NavigationDrawer: navigationDrawerVariants,
+  Drawer: drawerVariants,
   NavigationRail: navigationRailVariants,
-  SideSheet: sideSheetVariants,
   SplitButton: splitButtonVariants,
-  Table: tableVariants,
   Toolbar: toolbarVariants,
-  TopAppBar: topAppBarVariants,
 };

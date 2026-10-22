@@ -118,3 +118,31 @@ export const HelpBubble = () => (
     </Popover>
   </div>
 );
+
+// The anchor sits low in the card so the popover has room above it.
+export const AboveAnchor = () => (
+  <div style={{ ...host, justifyContent: "flex-end", height: 320 }}>
+    <Popover
+      visible
+      onDismiss={() => {}}
+      anchorPosition={{ vertical: "top", horizontal: "center" }}
+      anchor={
+        <Button
+          variant="outlined"
+          iconName="lightbulb-outline"
+          onClick={() => {}}
+        >
+          Tip
+        </Button>
+      }
+    >
+      <div style={pad}>
+        <Typography variant="titleSmall">Above, centred</Typography>
+        <Typography variant="bodySmall">
+          anchorPosition puts the card over its anchor; near an edge it flips or
+          slides to stay on screen.
+        </Typography>
+      </div>
+    </Popover>
+  </div>
+);

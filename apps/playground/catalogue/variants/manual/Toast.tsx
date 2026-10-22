@@ -15,6 +15,15 @@ const Kinds = () => {
       <Button variant="tonal" onClick={() => toast.success("Changes saved")}>
         Success
       </Button>
+      <Button variant="tonal" onClick={() => toast.info("Update available")}>
+        Info
+      </Button>
+      <Button
+        variant="tonal"
+        onClick={() => toast.warning("Storage is almost full")}
+      >
+        Warning
+      </Button>
       <Button
         variant="tonal"
         color="error"
@@ -43,7 +52,7 @@ const WithAction = () => {
           toast.error("Upload failed", {
             action: {
               label: "Retry",
-              onPress: () => toast.success("Uploaded"),
+              onClick: () => toast.success("Uploaded"),
             },
           })
         }
@@ -52,6 +61,40 @@ const WithAction = () => {
       </Button>
       <Typography variant="bodySmall">
         The action stays on the toast until it is dismissed or times out.
+      </Typography>
+    </View>
+  );
+};
+
+const Placement = () => {
+  const toast = useToast();
+
+  return (
+    <View style={demo.row}>
+      <Button
+        variant="tonal"
+        onClick={() =>
+          toast.info("Sync paused", {
+            variant: "outlined",
+            position: "top-right",
+          })
+        }
+      >
+        Outlined, top right
+      </Button>
+      <Button
+        variant="tonal"
+        onClick={() =>
+          toast.warning("Connection lost", {
+            onClose: () => {},
+          })
+        }
+      >
+        Stays until closed
+      </Button>
+      <Typography variant="bodySmall">
+        variant and position are per toast; with onClose it shows a close button
+        and waits for it instead of timing out.
       </Typography>
     </View>
   );
@@ -94,6 +137,11 @@ const Queued = () => {
 export const variants: Variant[] = [
   { name: "Kinds", title: "Kinds", render: Kinds },
   { name: "WithAction", title: "With an action", render: WithAction },
+  {
+    name: "Placement",
+    title: "Variant and position",
+    render: Placement,
+  },
   {
     name: "Queued",
     title: "Queueing",

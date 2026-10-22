@@ -11,59 +11,82 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 5 | 46 |
-| Aggiornati | 35 | 472 |
-| Tenuti (invariati) | 59 | 426 |
+| Aggiunti | 11 | 117 |
+| Aggiornati | 52 | 648 |
+| Tenuti (invariati) | 36 | 212 |
 
 ## Aggiunti
 
+- [Blink](#blink)
 - [CaptionValue](#captionvalue)
 - [CheckboxGroup](#checkboxgroup)
+- [Dialog](#dialog)
+- [Drawer](#drawer)
+- [Form](#form)
+- [IFrame](#iframe)
+- [NavBar](#navbar)
 - [NumberField](#numberfield)
 - [Switch](#switch)
 - [ViewportProvider](#viewportprovider)
 
 ## Aggiornati
 
+- [Accordion](#accordion): + expanded, icon, onClick, variant · − onPress, startExpanded
+- [AppBar](#appbar): + actions, divider, elevated, leading, paper, safeArea, style, subtitle, testID, title, variant · ~ navigation, options, route
 - [Autocomplete](#autocomplete): comportamento · + onChange, allowCustomValue, debounce, defaultOptions, fullWidth, labelPlacement, multiple, onSearch, onSelectedChange, selected, variant · ~ filter · − onChangeText, onSelect
 - [Avatar](#avatar): + onClick · ~ size · − onPress
 - [Badge](#badge): + color, position
 - [Banner](#banner): comportamento
-- [BottomSheet](#bottomsheet): comportamento · + actions, showCloseButton
-- [Button](#button): comportamento · + badge, color, density, onClick, variant · ~ iconPosition · − mode, onPress, tone
+- [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton · − onDismiss
+- [Box](#box): + background, children, margin, padding, style, variant · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
+- [Button](#button): comportamento · + badge, color, density, onClick, type, variant · ~ iconPosition · − mode, onPress, tone
 - [Card](#card): + onClick · − onPress
 - [CardTitle](#cardtitle): + endIcon, startIcon · − left, right
 - [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
 - [ChipGroup](#chipgroup): + onChange, multiple, variant · − onValueChange, mode, multiSelect
+- [CircularProgress](#circularprogress): + label, labelPosition, trackColor
+- [ConfirmDialog](#confirmdialog): + slotStyles
 - [DataGrid](#datagrid): comportamento · + emptyState · ~ density, rowStyle
 - [DatePicker](#datepicker): + fieldVariant, presentation, showToday, variant
 - [DateTimePicker](#datetimepicker): + fieldVariant, presentation, showToday, variant
-- [DrawerItem](#draweritem): + children, defaultExpanded, onToggle · ~ onPress
+- [DrawerItem](#draweritem): + children, defaultExpanded, onClick, onToggle · − onPress
 - [DrawerSection](#drawersection): + collapsible, defaultExpanded, onToggle
 - [FAB](#fab): + onClick, animateFrom, duration, extended, iconMode, testID, variant · ~ feedback, placement, position, size · − onPress
+- [Grid](#grid): + autoSize, children, container, size, style, wrap · ~ columns, spacing · − minChildWidth
+- [HStack](#hstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 - [IconButton](#iconbutton): + badge, color, onClick, title, variant · − mode, onPress
 - [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, fullWidth, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
-- [ListItem](#listitem): comportamento · + dimmed, indicatorColor, trailingWidth
-- [Modal](#modal): + size
-- [NavigationDrawer](#navigationdrawer): + collapsed, header
+- [LinearProgress](#linearprogress): + label, labelPosition, width · ~ height
+- [ListItem](#listitem): comportamento · + primaryText, action, dimmed, disabled, icon, indicatorColor, onClick, primaryTextStyle, secondaryText, secondaryTextStyle, testID, trailingWidth · − children, itemSecondaryTextStyle, itemTextStyle, leading, onPress, secondary, trailing
+- [Menu](#menu): + onClose, anchorPosition, dividers, onClick, selected · − onDismiss
+- [NavigationRail](#navigationrail): ~ items
+- [Pagination](#pagination): + activePage, onChange, color, pageSelect, size, variant · − onPageChange, page
 - [PinInput](#pininput): + onChange, variant · − onChangeText
+- [Popover](#popover): + anchorPosition
 - [ProgressButton](#progressbutton): + onClick, variant · − mode, onPress
 - [Rating](#rating): + icon, interval, required
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
 - [Select](#select): comportamento · + onChange, density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable · − onSelect, multiSelect
-- [Snackbar](#snackbar): comportamento · ~ type
+- [Snackbar](#snackbar): comportamento · + onClose, position, severity, variant · ~ action, onDismiss · − type
+- [Stack](#stack): + dividers · ~ spacing
+- [Stat](#stat): + direction, trendColor · − invertTrendColors
 - [StatusBadge](#statusbadge): + toneFrom
-- [TableCell](#tablecell): + align
-- [TableHeaderCell](#tableheadercell): comportamento · + align
-- [Tabs](#tabs): comportamento · + activeKey · ~ onChange, tabs, activeTab
+- [Stepper](#stepper): + direction, onClick · − onStepPress
+- [Table](#table): + columns, data, emptyMessage, height, hover, onClick, rowsPerPage, selected, tableTitle, testID, width · ~ children
+- [TableCell](#tablecell): + align, flex
+- [TableHeaderCell](#tableheadercell): comportamento · + align, flex, onClick · − onPress
+- [TableRow](#tablerow): + hover, onClick, selected, testID
+- [Tabs](#tabs): comportamento · + activeKey, color, fullWidth, height, showBorders, size, testID, variant, width · ~ onChange, tabs, activeTab
 - [ThemeProvider](#themeprovider): + density
 - [TimePicker](#timepicker): + fieldVariant, presentation, showToday, variant
+- [ToastProvider](#toastprovider): + position
 - [Tooltip](#tooltip): + anchorAccessible
 - [Typography](#typography): + align, color, fontSize, nowrap, onClick · ~ variant
+- [VStack](#vstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 
 ## Tenuti
 
-[Accordion](#accordion) · [AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AppBar](#appbar) · [AspectRatio](#aspectratio) · [Box](#box) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Center](#center) · [Checkbox](#checkbox) · [CircularProgress](#circularprogress) · [Collapse](#collapse) · [ConfirmDialog](#confirmdialog) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [Grid](#grid) · [HelperText](#helpertext) · [HStack](#hstack) · [Icon](#icon) · [Image](#image) · [LinearProgress](#linearprogress) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Menu](#menu) · [NavigationBar](#navigationbar) · [NavigationRail](#navigationrail) · [Pagination](#pagination) · [Paper](#paper) · [Popover](#popover) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [SideSheet](#sidesheet) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [Stack](#stack) · [Stat](#stat) · [Stepper](#stepper) · [TabContent](#tabcontent) · [Table](#table) · [TableHead](#tablehead) · [TableRow](#tablerow) · [ToastProvider](#toastprovider) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TopAppBar](#topappbar) · [TouchableRipple](#touchableripple) · [VStack](#vstack)
+[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AspectRatio](#aspectratio) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
 
 ## Altre aggiunte (non componenti)
 
@@ -76,7 +99,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Utility | `toneFromColor(hex, mode)`, `toneFromString(text, mode)`, `toneFrom(source, mode)`, tipo `ToneColors` | Fase 2, lotto 2B |
 | Token del tema | `success`, `warning`, `info`, `neutral`, ciascuno con `on…`, `…Container`, `on…Container` (16 token, chiaro e scuro), tipo `ThemeStatusTokens` | Fase 2, lotto 2B |
 | Provider | `ThemeProvider density` (default di `Input`, `Select`, `Button`, `DataGrid`) | Fase 3, lotto 3A |
-| Tipo | `TableAlign` (`left`, `center`, `right`), `TabItem` (`label`, `icon?`, `key?`, `disabled?`), `SnackbarType` (aggiunti `warning`, `info`) | Fase 3 |
+| Tipo | `TableAlign` (`left`, `center`, `right`), `TabItem` (`label`, `icon?`, `key?`, `disabled?`), `SnackbarSeverity` (`success`, `info`, `warning`, `error`) | Fase 3 |
 | Sotto-tipo | `DataGrid` `columns[]` (`ColumnDefinition`): nuove `align`, `renderCell(value, row, index)` | Fase 3, lotto 3A |
 | Sotto-tipo | `Tabs` `tabs[]`: oggetti con `key` e `disabled` (oltre a `label` e `icon`) | Fase 3, lotto 3B |
 | Sotto-tipo | `useToast()`: nuovi `warning(message, options?)` e `info(message, options?)` | Fase 3, lotto 3B |
@@ -85,6 +108,19 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 # Componenti aggiunti
 
+### Blink
+
+`packages/ui/src/components/Blink.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| active | `boolean` | true |  | Blinks while true; stays at full opacity while false. Defaults to `true`. |
+| children | `React.ReactNode` |  |  | What blinks: a dot, a badge, a line of text. |
+| interval | `number` | 600 |  | Milliseconds one half of a blink takes: the fade down to `minOpacity`, and again the fade back up. Defaults to 600. |
+| minOpacity | `number` | 0.2 |  | The opacity at the dimmest point of a blink, from 0 to 1. Defaults to 0.2. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
 ### CaptionValue
 
 `packages/ui/src/components/CaptionValue.tsx`
@@ -92,20 +128,27 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | caption | `React.ReactNode` |  |  | The label: "Phone", "Due date". Text, or any node. |
-| captionColor | `string` |  |  | Any colour; defaults to the variant-on-surface role. |
+| captionColor | `ThemeColor` |  |  | A theme colour token (`"primary"`, `"onSurfaceVariant"`, ...) or any colour string. Defaults to `onSurfaceVariant`. |
 | captionStyle | `StyleProp<TextStyle>` |  |  |  |
 | direction | `"column" \| "row"` | "column" |  | `"column"` stacks the caption over the value, `"row"` puts them side by side. |
-| fallback | `React.ReactNode` | "—" |  | Drawn when `value` is empty (`null`, `undefined`, `""` or `false`; `0` is a value). Defaults to an em dash. |
-| gap | `number` | 4 |  | Space between the caption and the value. Defaults to 4. |
+| enableCopy | `boolean` | false |  | Shows a small copy button after the value, for a text or number value (a node has nothing to copy). On web it writes the value to the clipboard (`navigator.clipboard`); the library has no clipboard dependency, so on native the button is shown only with an `onCopy` that does the copying. The button's icon changes to a check for a moment, and "Copied" is announced, once the value is copied. |
+| fallback | `React.ReactNode` | "N/A" |  | Drawn when `value` is empty (`null`, `undefined`, `""` or `false`; `0` is a value). Defaults to `"N/A"`. |
+| flex | `number` |  |  | Flex of the pair in its parent. |
+| gap | `number` | 4 |  | Space between the caption and the value, in px. Defaults to 4. |
+| height | `DimensionValue` |  |  | Height of the pair. |
 | numberOfLines | `number` | 1 |  | Lines the value may use before it is cut with an ellipsis; `0` is no limit. Defaults to 1. |
 | omitCaption | `boolean` | false |  | Draws no caption at all, instead of an empty line. |
+| onCopy | `(value: string) => void` |  |  | Called with the value as text when the copy button is pressed. On native it is where the app copies it (`Clipboard.setStringAsync` from `expo-clipboard`); on web it is called after the clipboard write succeeded. |
+| padding | `number` |  |  | Padding around the pair, in px. |
 | reverse | `boolean` | false |  | Puts the value before the caption. |
-| style | `StyleProp<ViewStyle>` |  |  | For width, flex, padding and the like. |
+| showTooltip | `boolean` | false |  | Wraps a text or number value in a `Tooltip` with the value as its content: the value in full, for when `numberOfLines` cuts it. |
+| style | `StyleProp<ViewStyle>` |  |  | For anything the props above do not cover. |
 | testID | `string` |  |  |  |
 | textAlign | `TextStyle["textAlign"]` |  |  |  |
 | value | `React.ReactNode` |  |  | The value. Text and numbers are drawn in the theme's type; any other node as given. |
-| valueColor | `string` |  |  | Any colour; defaults to the on-surface role. |
+| valueColor | `ThemeColor` |  |  | A theme colour token (`"primary"`, `"error"`, ...) or any colour string. Defaults to `onSurface`. |
 | valueStyle | `StyleProp<TextStyle>` |  |  |  |
+| width | `DimensionValue` |  |  | Width of the pair. |
 
 ### CheckboxGroup
 
@@ -125,6 +168,99 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | required | `boolean` |  |  | Marks the label with an asterisk. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
+
+### Dialog
+
+`packages/ui/src/components/Dialog/Dialog.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode \| string` |  |  |  |
+| visible * | `boolean` |  |  | Whether the dialog is on screen. |
+| actions | `React.ReactNode` |  |  | Trailing action row. Replaces the single `closeText` button. In a full-screen dialog it moves into the header, after the title. |
+| animationType | `"none" \| "slide" \| "fade"` | "fade" |  |  |
+| closeIcon | `MaterialCommunityIconsGlyphs \| React.ReactElement \| false` | "close" |  | The close icon in the header, shown while `onClose` is set: a glyph name, your own element, or `false` to hide it. Hidden, a dialog without `actions` falls back to a text button labelled `closeText`. Defaults to `"close"`. |
+| closeText | `string` | "Close" |  | Accessible name of the close icon, and the label of the fallback close button. |
+| disableBackdropClick | `boolean` | false |  | Keeps a click on the backdrop from calling `onClose`. Defaults to `false`. |
+| disableEscapeKeyDown | `boolean` | false |  | Keeps Escape (web) and Android back from calling `onClose`. Turn it on for a decision the user must not be able to skip. Defaults to `false`. |
+| form | `boolean` | false |  | Wraps the body and the `actions` in a `Form`, so a `Button type="submit"` in `actions` (or Enter in a field, on the web) calls `onSubmit`. In a `fullScreen` dialog the header is inside it too. |
+| fullScreen | `boolean` | false |  | The M3 full-screen dialog, for a form on a compact window: it fills the window, with a close button, the title and `actions` in a header row and a scrolling body. Defaults to `false`. |
+| height | `number \| `${number}%`` |  |  | A fixed height for the dialog card, in px or as a percentage of the window (`"60%"`). The body scrolls when the content is taller. The card never grows past 90% of the window. Ignored by `fullScreen`. |
+| icon | `IconSource` |  |  | Hero glyph above the title (M3 dialog icon). Centres the header. |
+| onClose | `() => void` |  |  | Asks the dialog to close: called by the close icon, a click on the backdrop, Escape (web) and Android back. Without it the dialog has no way to close itself, so `visible` stays up to the app. |
+| onSubmit | `() => void` |  |  | Called when the `form` is submitted. Only used with `form`. |
+| scrollable | `boolean` | false |  | Scrolls the body when the content is taller than the dialog. |
+| slotStyles | `DialogSlotStyles` |  |  | Style overrides for the parts of the dialog, merged after its own styles. |
+| testID | `string` | "dialog" |  | Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`. |
+| title | `string` |  |  |  |
+| transparent | `boolean` | true |  |  |
+| width | `DialogWidth` | "md" |  | How wide the dialog may grow on a wide window: `"xs"` 360, `"sm"` 480, `"md"` 560, `"lg"` 800. Defaults to `"md"`. Ignored by `fullScreen`. |
+
+### Drawer
+
+`packages/ui/src/components/Drawer.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  | `DrawerSection`s and/or `DrawerItem`s, or any content when the drawer is a side sheet (a form, filters, details). |
+| actions | `React.ReactNode` |  |  | A row of buttons at the bottom, below a divider. |
+| collapsed | `boolean` | false |  | Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an item without an icon shows its first letter). Defaults to `false`. |
+| elevation | `number` |  |  | The level of the surface, 0 to 5: the tone it is painted in and, on iOS and Android, its shadow. Defaults to `0` when static and `1` when swipeable. |
+| footer | `React.ReactNode` |  |  | Pinned below the scrolling items. |
+| header | `React.ReactNode` |  |  | Pinned above the scrolling items: a logo, a site picker. |
+| height | `number` | DRAWER_HEIGHT |  | Top and bottom: the largest height, defaults to 360. |
+| onBack | `() => void` |  |  | Shows a back button before the title, for a drawer with sub-pages. |
+| onClose | `() => void` |  |  | Called by the close button, and by a swipeable drawer's scrim, closing drag, Android back and Escape (web). |
+| position | `"left" \| "right" \| "top" \| "bottom"` | "left" |  | The window edge it is attached to: `"left"` and `"right"` are columns of `width`, `"top"` and `"bottom"` span the full width and are as tall as their content, up to `height`. The edges are physical, not mirrored in right-to-left layouts. Defaults to `"left"`. |
+| showCloseButton | `boolean` | false |  | Adds a close button to the header row, which calls `onClose`. Defaults to `false`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| title | `string` |  |  | Headline at the top of the drawer. With a close button, a back button or `actions` it is the title of a header row instead, in a larger type. |
+| variant | `"static" \| "swipeable"` | "static" |  | `"static"` is a permanent panel in the layout, beside the content, with no scrim. `"swipeable"` slides over the content on a scrim, and a drag toward its edge, the scrim, Android back and Escape (web) close it. Defaults to `"static"`. |
+| visible | `boolean` | false |  | Swipeable only: whether the drawer is open. |
+| width | `number` | DRAWER_WIDTH |  | Left and right: defaults to 360 (M3), capped at the window width when swipeable. |
+
+### Form
+
+`packages/ui/src/components/Form.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children | `React.ReactNode` |  |  |  |
+| onSubmit | `() => void` |  |  | Called when the form is submitted: a `Button type="submit"` inside it is pressed, or (on the web) Enter is pressed in one of its fields. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
+### IFrame
+
+`packages/ui/src/components/IFrame.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| src * | `string` |  |  | The address of the page to embed. |
+| title * | `string` |  |  | The frame's accessible name: what the embedded page is. Required, as a frame without one is announced as nothing. |
+| allow | `string` |  |  | The `allow` attribute: the features the page may use (`"fullscreen; clipboard-write"`). |
+| fallback | `React.ReactNode` |  |  | Drawn on iOS and Android instead of the page. Defaults to an icon and a short notice. |
+| height | `DimensionValue` | 300 |  | Defaults to 300. |
+| loading | `"lazy" \| "eager"` | "lazy" |  | `"lazy"` loads the page when the frame comes near the viewport. Defaults to `"lazy"`. |
+| onError | `() => void` |  |  | Called when the frame reports an error loading. Browsers rarely do for a page that fails to load. |
+| onLoad | `() => void` |  |  | Called when the page has loaded. |
+| referrerPolicy | `React.IframeHTMLAttributes<HTMLIFrameElement>["referrerPolicy"]` |  |  | The `referrerpolicy` attribute. |
+| sandbox | `string` |  |  | The `sandbox` attribute. `""` applies every restriction; a list of tokens (`"allow-scripts allow-same-origin"`) lifts the ones named. Left out, the page is not sandboxed. |
+| style | `StyleProp<ViewStyle>` |  |  | Style of the box the frame fills: radius, border, margin, flex. |
+| testID | `string` |  |  |  |
+| width | `DimensionValue` | "100%" |  | Defaults to the full width of the parent. |
+
+### NavBar
+
+`packages/ui/src/components/NavBar.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| activeId * | `string` |  |  | `id` of the current destination. |
+| items * | `NavBarItem[]` |  |  | Destinations, three to five per M3. |
+| onClick * | `(id: string) => void` |  |  | Called with the `id` of the pressed destination. |
+| showLabels | `"always" \| "selected"` | "always" |  | "always" shows every label, "selected" only the active one. |
 
 ### NumberField
 
@@ -167,6 +303,44 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | width | `number` |  |  | The width, in dp, to report instead of the window's. Leave it out (or `undefined`) and the real window width is reported, so the provider can sit in place permanently and be switched on by a value. |
 
 # Componenti aggiornati
+
+### Accordion
+
+`packages/ui/src/components/Accordion.tsx` — prop nuove: `expanded`, `icon`, `onClick`, `variant`; prop tolte: `onPress`, `startExpanded`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| title * | `string` |  |  |  |
+| expanded | `boolean` | false | nuova | Whether the panel is open. The accordion keeps its own open state: it starts from this value, a press on the header toggles it, and it follows the prop again whenever the prop changes. So it works as an initial state (`expanded` alone) and as a controlled value (a parent that sets `expanded` from `onClick`). Defaults to `false`. |
+| icon | `MaterialCommunityIconsGlyphs \| Exclude<React.ReactNode, string>` |  | nuova | The icon at the end of the header: a glyph name, or any node. It is drawn as given; the default, a chevron, turns upside down while the panel is open. |
+| onClick | `(expanded: boolean) => void` |  | nuova | Called on every press of the header with the new state: `true` when it opens, `false` when it closes. |
+| style | `StyleProp<ViewStyle>` | {} |  |  |
+| titleStyle | `StyleProp<TextStyle>` | {} |  |  |
+| variant | `"outlined" \| "contained"` | "outlined" | nuova | `"outlined"` is a bordered panel on the surface, `"contained"` a filled tonal one without a border. Defaults to `"outlined"`. |
+
+### AppBar
+
+`packages/ui/src/components/AppBar.tsx` — prop nuove: `actions`, `divider`, `elevated`, `leading`, `paper`, `safeArea`, `style`, `subtitle`, `testID`, `title`, `variant`; prop cambiate: `navigation`, `options`, `route`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| actions | `React.ReactNode` |  | nuova | After the title: up to three action `IconButton`s per M3. Under a navigator it defaults to `options.headerRight()`. |
+| back | `{ title?: string; href?: string } \| boolean` |  |  | Truthy when a back destination exists (native-stack passes `{ title, href }`). |
+| divider | `boolean` |  | nuova | A hairline under the bar. Left out, it is drawn on the web when the bar sits under a navigator and not otherwise. |
+| elevated | `boolean` | false | nuova | The on-scroll state: `surfaceContainer` instead of `surface`. |
+| isPinned | `boolean` | false |  | A pinned (always visible) drawer needs no menu button. |
+| leading | `React.ReactNode` |  | nuova | Before the title: typically a back or menu `IconButton`. Under a navigator it defaults to a back button, or a menu button for a drawer. |
+| navigation | `any` |  | cambiata | react-navigation's header contract, for a bar passed as a navigator's `header`: `navigation.goBack` and `navigation.openDrawer` feed the leading button. Structural, so any navigator's object fits; the library never imports react-navigation. |
+| options | `any` |  | cambiata | The screen's navigator options: `headerTitle` or `title` give the title, `headerRight` the actions, and `headerLeft: null` or `hideMenuIcon` hides the drawer's menu button. |
+| paper | `Omit<PaperProps, "children">` |  | nuova | Props of the `Paper` the bar is drawn on (`elevation`, `outline`, `glow`, `style`), merged over the bar's own: `elevation` is `0`, or `2` when `elevated`. `<AppBar paper={{ elevation: 3 }} />` lifts the bar to level 3. |
+| route | `any` |  | cambiata | The navigator's route: its `name` is the title when nothing else is. |
+| safeArea | `boolean` | true | nuova | Pads the top safe-area inset. Defaults to `true`. |
+| style | `StyleProp<ViewStyle>` |  | nuova |  |
+| subtitle | `string` |  | nuova | A second line under the title. |
+| testID | `string` |  | nuova |  |
+| title | `React.ReactNode` |  | nuova | The headline. A string is drawn in the variant's type style; any other node is placed as is. Left out, it is read from `options` and `route` (see `navigation`). |
+| variant | `"small" \| "center" \| "medium" \| "large"` | "small" | nuova | `"small"` and `"center"` keep the title in the 64dp row; `"medium"` and `"large"` move it to a second, larger line. Defaults to `"small"`. |
 
 ### Autocomplete
 
@@ -251,23 +425,45 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### BottomSheet
 
-`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `actions`, `showCloseButton`
+`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `onClose`, `actions`, `showCloseButton`; prop tolte: `onDismiss`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
-| onDismiss * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| actions | `React.ReactNode` |  | nuova | A row of buttons fixed at the bottom, below a divider, while the content above it scrolls (named like `SideSheet`'s and `Modal`'s `actions`). |
+| onClose * | `() => void` |  | nuova | Called by the close button, a tap on the scrim, a drag down past the threshold and Android back. |
+| visible * | `boolean` |  |  | Whether the sheet is open. |
+| actions | `React.ReactNode` |  | nuova | A row of buttons fixed at the bottom, below a divider, while the content above it scrolls (named like `Dialog`'s `actions`). |
 | dismissOnScrimTap | `boolean` | true |  |  |
 | maxHeightRatio | `number` | 0.85 |  | Max sheet height as a fraction of the window height. |
 | showCloseButton | `boolean` | false | nuova | Adds a close button at the end of the title row. Defaults to `false`. |
 | showHandle | `boolean` | true |  |  |
 | title | `string` |  |  |  |
 
+### Box
+
+`packages/ui/src/components/Layout/Box.tsx` — prop nuove: `background`, `children`, `margin`, `padding`, `style`, `variant`; prop cambiate: `gap`; prop tolte: `bg`, `flex`, `m`, `mb`, `ml`, `mr`, `mt`, `mx`, `my`, `p`, `pb`, `pl`, `pr`, `pt`, `px`, `py`, `row`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `ViewStyle["alignItems"]` |  |  |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  |  | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  |  |  |
+| children | `React.ReactNode` |  | nuova |  |
+| gap | `number` |  | cambiata | Gap between children, in px. |
+| height | `ViewStyle["height"]` |  |  |  |
+| justify | `ViewStyle["justifyContent"]` |  |  |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| variant | `\| "standard" \| "flex" \| "column-flex" \| "centered-flex" \| "centered-column-flex" \| "full-page-flex" \| "full-page-column-flex" \| "full-size-flex" \| "full-size-column" \| "full-size-centered-flex" \| "full-size-centered-column-flex"` | "standard" | nuova | Layout preset: direction, centring and filling the parent. The other props and `style` are applied on top of it. - `standard`: a plain column (default). - `flex`: a row. - `column-flex`: a column. - `centered-flex`: a row, centred on both axes. - `centered-column-flex`: a column, centred on both axes. - `full-page-flex`: a row that fills the screen (`flex: 1`, minimum height 100%). - `full-page-column-flex`: the same, as a column. - `full-size-flex`: a row, 100% wide and 100% high. - `full-size-column`: a column, 100% wide and 100% high. - `full-size-centered-flex`: a row, 100% x 100%, centred on both axes. - `full-size-centered-column-flex`: a column, 100% x 100%, centred on both axes. |
+| width | `ViewStyle["width"]` |  |  |  |
+| wrap | `boolean` |  |  | Lets children flow onto the next line (or column) instead of overflowing. |
+
 ### Button
 
-`packages/ui/src/components/Button.tsx` — comportamento: `tone="success"` legge i ruoli `success` del tema; prop nuove: `badge`, `color`, `density`, `onClick`, `variant`; prop cambiate: `iconPosition`; prop tolte: `mode`, `onPress`, `tone`
+`packages/ui/src/components/Button.tsx` — comportamento: `color="success"` legge i ruoli `success` del tema; prop nuove: `badge`, `color`, `density`, `onClick`, `type`, `variant`; prop cambiate: `iconPosition`; prop tolte: `mode`, `onPress`, `tone`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -290,6 +486,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | size | `number` |  |  |  |
 | style | `object` | {} |  |  |
 | testID | `string` |  |  |  |
+| type | `"button" \| "submit"` | "button" | nuova | `"submit"` submits the enclosing `Form` when pressed, after `onClick`, on every platform. A button outside a `Form` ignores it. Defaults to `"button"`. |
 | underlay | `React.ReactNode` |  |  | Drawn behind the label across the whole surface, clipped to its shape: a progress fill, a state animation. It receives no touches. |
 | variant | `ButtonVariant` | "filled" | nuova |  |
 
@@ -356,6 +553,42 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | variant | `"filled" \| "tonal" \| "outlined"` | "outlined" | nuova | Chip look. Defaults to `"outlined"`, the M3 filter chip. |
 | wrap | `boolean` | true |  | `true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`. |
+
+### CircularProgress
+
+`packages/ui/src/components/Progress/CircularProgress.tsx` — prop nuove: `label`, `labelPosition`, `trackColor`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| accessibilityLabel | `string` |  |  |  |
+| color | `string` |  |  | Indicator colour. Defaults to `primary`. |
+| decorative | `boolean` | false |  | Hides it from assistive tech when something else announces the progress. |
+| duration | `number` | 1000 |  | Indeterminate only: one revolution, in ms. |
+| label | `React.ReactNode` |  | nuova | Text, a number or any node drawn with the ring, at `labelPosition`. Text is drawn in the theme's type, scaled to the ring when it is inside; a node as given. |
+| labelPosition | `"top" \| "bottom" \| "left" \| "right" \| "center"` |  | nuova | Where `label` goes: `"center"` inside the ring, or `"top"`, `"bottom"`, `"left"` or `"right"` of it. Defaults to `"center"` for a ring with a `progress` and to `"right"` for a spinner, which is too small to hold a label. |
+| progress | `number` |  |  | Completion from 0 to 1. Set, the ring fills to it over a track; unset, the indicator spins (indeterminate). |
+| size | `number` | 48 |  |  |
+| strokeWidth | `number` | 4 |  |  |
+| testID | `string` |  |  |  |
+| trackColor | `boolean \| string` |  | nuova | The ring under the indicator. `true` draws it in the indicator's colour at a low opacity, a string draws it in that colour, `false` draws none. Left out, a ring with a `progress` has its usual track (`secondaryContainer`) and a spinner has none. |
+
+### ConfirmDialog
+
+`packages/ui/src/components/Dialog/ConfirmDialog.tsx` — prop nuove: `slotStyles`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onCancel * | `() => void` |  |  |  |
+| onConfirm * | `() => void` |  |  |  |
+| visible * | `boolean` |  |  |  |
+| cancelText | `string` | "Cancel" |  |  |
+| confirmText | `string` | "Confirm" |  |  |
+| destructive | `boolean` | false |  | Renders the confirm action in the error tone (delete, discard). |
+| dismissable | `boolean` | true |  | Whether the backdrop and ESC cancel the dialog. Turn it off for a decision the user must answer explicitly. Defaults to `true`. |
+| icon | `IconSource` |  |  | Hero glyph above the title. |
+| message | `string` |  |  |  |
+| slotStyles | `DialogSlotStyles` |  | nuova | Style overrides for the parts of the dialog, merged after its own styles; `actions` covers the cancel and confirm buttons. |
+| title | `string` |  |  |  |
 
 ### DataGrid
 
@@ -458,7 +691,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### DrawerItem
 
-`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `children`, `defaultExpanded`, `onToggle`; prop cambiate: `onPress`
+`packages/ui/src/components/Drawer.tsx` — prop nuove: `children`, `defaultExpanded`, `onClick`, `onToggle`; prop tolte: `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -468,14 +701,14 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | defaultExpanded | `boolean` | false | nuova | For a group: start open. Defaults to `false`. |
 | disabled | `boolean` | false |  |  |
 | icon | `MaterialCommunityIconsGlyphs` |  |  | Leading glyph. The active state strips an "-outline" suffix. |
-| onPress | `() => void` |  | cambiata | Optional for an item with `children`, whose press opens and closes them. |
+| onClick | `() => void` |  | nuova | Optional for an item with `children`, whose press opens and closes them. |
 | onToggle | `(expanded: boolean) => void` |  | nuova | For a group: called with the new state after the user toggles it. |
 | selected | `boolean` | false |  | Whether this is the current destination. |
 | testID | `string` |  |  |  |
 
 ### DrawerSection
 
-`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `collapsible`, `defaultExpanded`, `onToggle`
+`packages/ui/src/components/Drawer.tsx` — prop nuove: `collapsible`, `defaultExpanded`, `onToggle`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -507,6 +740,44 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  | nuova |  |
 | variant | `FABVariant` |  | nuova | Defaults to `"icon"`. |
+
+### Grid
+
+`packages/ui/src/components/Layout/Grid.tsx` — prop nuove: `autoSize`, `children`, `container`, `size`, `style`, `wrap`; prop cambiate: `columns`, `spacing`; prop tolte: `minChildWidth`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| autoSize | `boolean \| GridSize \| GridAutoSizeFn` | false | nuova | Sizes the children of a container that have no `size` of their own, so they do not need one each. `true` is a card per row on a phone, two from `sm` and three from `md` (`{ xs: 12, sm: 6, md: 4 }`, for 12 columns); a size gives every child that size; a function is called with the index and the element of each child (its `key` is `child.key`) and returns its size: `(index, child) => child.key === "notes" ? { xs: 12 } : { xs: 12, md: 6 }`. A child that is not a `Grid` is put in an item of the size it gets. |
+| children | `ReactNode` |  | nuova |  |
+| columns | `number` | 12 | cambiata | Columns in a row of this container; an item's `size` counts in them. |
+| container | `boolean` | false | nuova | Makes this grid lay its children out in rows of `columns` columns. The grid items go inside it, each with its own `size`. A container inside another container is also an item of it, and takes a `size` too. |
+| size | `GridSize` |  | nuova | An item's width in the container's row: a number of columns (1 to `columns`), `"grow"` to share the rest of the row, `"auto"` to size to its content, or an object with one of those for each breakpoint (`{ xs: 12, md: 6 }`). A breakpoint without a value takes the next smaller one that has; with none, the item is `"auto"`. Without `size` an item is `"auto"`, unless the container has `autoSize`. |
+| spacing | `GridSpacing` | "s" | cambiata | Gap between the items of a container: a number of px, a spacing token name (`"m"`), or `{ row, column }` of those for the two axes. |
+| style | `StyleProp<ViewStyle>` |  | nuova |  |
+| wrap | `boolean` | true | nuova | Whether a container moves items that do not fit onto the next row. |
+
+### HStack
+
+`packages/ui/src/components/Layout/Stack.tsx` — prop nuove: `background`, `children`, `dividers`, `margin`, `padding`, `style`; prop cambiate: `spacing`; prop tolte: `bg`, `flex`, `m`, `mb`, `ml`, `mr`, `mt`, `mx`, `my`, `p`, `pb`, `pl`, `pr`, `pt`, `px`, `py`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `ViewStyle["alignItems"]` |  |  |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  |  | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  |  |  |
+| children | `React.ReactNode` |  | nuova |  |
+| dividers | `React.ReactNode` |  | nuova | Puts a divider between the children. `true` draws a hairline, vertical in a horizontal stack; a node is used as the divider instead. Empty children (`null`, `false`) get none, and the spacing applies on both sides of it. |
+| height | `ViewStyle["height"]` |  |  |  |
+| justify | `ViewStyle["justifyContent"]` |  |  |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
+| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
+| spacing | `SpacingInput` |  | cambiata | Space between children — a spacing token name (`"m"`), a number of px, or a string holding one (`"12"`). |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| width | `ViewStyle["width"]` |  |  |  |
+| wrap | `boolean` |  |  | Lets children flow onto the next line (or column) instead of overflowing. |
 
 ### IconButton
 
@@ -567,65 +838,94 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | type | `"text" \| "number"` | "text" |  |  |
 | variant | `"outlined" \| "filled"` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
 
-### ListItem
+### LinearProgress
 
-`packages/ui/src/components/List/ListItem.tsx` — comportamento: `children` e `secondary` accettano un nodo; solo il testo viene avvolto in `Text`; prop nuove: `dimmed`, `indicatorColor`, `trailingWidth`
+`packages/ui/src/components/Progress/LinearProgress.tsx` — prop nuove: `label`, `labelPosition`, `width`; prop cambiate: `height`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  | The first line. Text is drawn in the theme's type; any other node is drawn as given. |
+| color | `string` |  |  |  |
+| decorative | `boolean` | false |  | Hide the bar from assistive technology, for when the component around it already announces the progress — a bar inside a button is not a second control to land on. |
+| duration | `number` | 500 |  |  |
+| height | `DimensionValue` |  | cambiata | Bar thickness. A percentage fills the parent — a progress surface. Defaults to 4, and to 20 when the label is `"inside"`, which has to fit on the bar. |
+| indeterminate | `boolean` | false |  |  |
+| indeterminateDuration | `number` | 1500 |  |  |
+| label | `React.ReactNode` |  | nuova | Text, a number or any node drawn with the bar, at `labelPosition`. Text is drawn in the theme's type; a node as given. |
+| labelPosition | `LinearProgressLabelPosition` | "right" | nuova | Where `label` goes: above (`"top-left"`, `"top-center"`, `"top-right"`) or below (`"bottom-*"`) the bar, aligned as named, beside it (`"left"`, `"right"`), or `"inside"`, centred on the bar. Inside, text is drawn in two colours, over the filled part and over the track, so it reads on both; that suits a bar with a `progress`, on an indeterminate one the text is only legible over the track. Defaults to `"right"`. |
+| progress | `number` | 0 |  |  |
+| trackColor | `string` |  |  |  |
+| width | `DimensionValue` | "100%" | nuova | Width of the whole component, label included. Defaults to the full width of the parent. |
+
+### ListItem
+
+`packages/ui/src/components/List/ListItem.tsx` — comportamento: `primaryText` e `secondaryText` accettano un nodo; solo il testo viene avvolto in `Text`; prop nuove: `primaryText`, `action`, `dimmed`, `disabled`, `icon`, `indicatorColor`, `onClick`, `primaryTextStyle`, `secondaryText`, `secondaryTextStyle`, `testID`, `trailingWidth`; prop tolte: `children`, `itemSecondaryTextStyle`, `itemTextStyle`, `leading`, `onPress`, `secondary`, `trailing`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| primaryText * | `React.ReactNode` |  | nuova | The first line. Text is drawn in the theme's type; any other node is drawn as given. |
+| action | `React.ReactNode` |  | nuova | Trailing slot: a value, a Switch, an `IconButton`, a chevron. |
 | dimmed | `boolean` | false | nuova | Faded, for a row that is removed or inactive. Still pressable. |
+| disabled | `boolean` | false | nuova | Fades the row and stops it being pressed. The `action` is not disabled with it: it is a control of its own. |
+| icon | `MaterialCommunityIconsGlyphs \| Exclude<React.ReactNode, string>` |  | nuova | Leading slot: a glyph name, or any node (an Avatar, a Checkbox). |
 | indicatorColor | `string` |  | nuova | A coloured bar on the left edge, for a status or a priority. |
 | itemContainerStyle | `object` |  |  |  |
 | itemHoveredStyle | `object` |  |  |  |
 | itemPressedStyle | `object` |  |  |  |
-| itemSecondaryTextStyle | `object` |  |  |  |
-| itemTextStyle | `object` |  |  |  |
-| leading | `React.ReactNode` |  |  | Leading slot — an Avatar, an icon, a Checkbox. |
-| onPress | `() => void` |  |  |  |
-| secondary | `React.ReactNode` |  |  | Second line below `children`. Text or any node, like `children`. |
-| trailing | `React.ReactNode` |  |  | Trailing slot — a value, a Switch, a chevron. |
-| trailingWidth | `number` |  | nuova | Fixes the width of the trailing slot and right-aligns it, so a column of rows lines its trailing values up. |
+| onClick | `() => void` |  | nuova | Called when the row is pressed. Giving it makes the row a button. With an `action` as well, only the icon and the texts are the button: the action is a control of its own beside it, so a button never sits inside a button. |
+| primaryTextStyle | `StyleProp<TextStyle>` |  | nuova | Merged after the type of `primaryText`; applies when it is text, a node styles itself. |
+| secondaryText | `React.ReactNode` |  | nuova | Second line below `primaryText`. Text or any node, like `primaryText`. |
+| secondaryTextStyle | `StyleProp<TextStyle>` |  | nuova | Merged after the type of `secondaryText`; applies when it is text, a node styles itself. |
+| testID | `string` |  | nuova |  |
+| trailingWidth | `number` |  | nuova | Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up. |
 
-### Modal
+### Menu
 
-`packages/ui/src/components/Modal/Modal.tsx` — prop nuove: `size`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode \| string` |  |  |  |
-| visible * | `boolean` |  |  | Whether the dialog is on screen. |
-| actions | `React.ReactNode` |  |  | Trailing action row. Replaces the single `closeText` button. In a full-screen dialog it moves into the header, after the title. |
-| animationType | `"none" \| "slide" \| "fade"` | "fade" |  |  |
-| closeText | `string` | "Close" |  |  |
-| dismissable | `boolean` | true |  | Whether tapping the scrim (and pressing ESC on web) dismisses the dialog. Turn it off for a decision the user must not be able to skip. Defaults to `true`. |
-| fullScreen | `boolean` | false |  | The M3 full-screen dialog, for a form on a compact window: it fills the window, with a close button, the title and `actions` in a header row and a scrolling body. Defaults to `false`. |
-| icon | `IconSource` |  |  | Hero glyph above the title (M3 dialog icon). Centres the header. |
-| onClose | `() => void` |  |  |  |
-| onDismiss | `() => void` |  |  | Called on Android back / ESC without rendering the close button. Falls back to onClose. |
-| scrollable | `boolean` | false |  | Scrolls the body when the content is taller than the dialog. |
-| size | `keyof typeof MAX_WIDTHS` | "md" | nuova | How wide the dialog may grow on a wide window: `"xs"` 360, `"sm"` 480, `"md"` 560, `"lg"` 800. Defaults to `"md"`, the width it always had. Ignored by `fullScreen`. |
-| testID | `string` | "modal" |  | Root testID. The scrim gets `${testID}-scrim`. |
-| title | `string` |  |  |  |
-| transparent | `boolean` | true |  |  |
-
-### NavigationDrawer
-
-`packages/ui/src/components/NavigationDrawer.tsx` — prop nuove: `collapsed`, `header`
+`packages/ui/src/components/Menu.tsx` — prop nuove: `onClose`, `anchorPosition`, `dividers`, `onClick`, `selected`; prop tolte: `onDismiss`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  | `DrawerSection`s and/or `DrawerItem`s. |
-| collapsed | `boolean` | false | nuova | Icons only, 72 wide: labels, badges, titles and sub-items are hidden (an item without an icon shows its first letter). Defaults to `false`. |
-| footer | `React.ReactNode` |  |  | Pinned below the scrolling items. |
-| header | `React.ReactNode` |  | nuova | Pinned above the scrolling items: a logo, a site picker. |
-| onDismiss | `() => void` |  |  | Modal only: called on scrim press, Android back and Escape (web). |
+| anchor * | `React.ReactElement` |  |  | The element the menu opens from. |
+| items * | `MenuItem[]` |  |  |  |
+| onClose * | `() => void` |  | nuova | Called on a press outside the menu, on Android back, and after an item is clicked when `closeOnSelect` is on. |
+| visible * | `boolean` |  |  | Whether the menu is open. |
+| anchorPosition | `AnchorPosition` |  | nuova | Where the menu sits against its anchor: `vertical` is `"bottom"` (below it), `"top"` (above it) or `"center"` (centred on it); `horizontal` lines up the `"left"` edges, the `"right"` edges or the `"center"`s. It flips or slides to stay on screen. Defaults to `{ vertical: "bottom", horizontal: "left" }`. |
+| closeOnSelect | `boolean` | true |  | Close the menu automatically after an item is clicked. Default true. |
+| dividers | `boolean` | false | nuova | Draws a divider between every pair of items, on top of any `dividerAbove`. Defaults to `false`. |
+| onClick | `(item: MenuItem) => void` |  | nuova | Called with the clicked item, after the item's own `onClick`. |
+| selected | `string[]` |  | nuova | The `id`s of the items to draw as selected: a tinted row with a check mark, and `accessibilityState.selected` set on it. Items are not marked until you pass it, even as `[]`. |
+
+### NavigationRail
+
+`packages/ui/src/components/NavigationRail.tsx` — prop cambiate: `items`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| activeId * | `string` |  |  | `id` of the current destination. |
+| items * | `NavBarItem[]` |  | cambiata | Destinations, same shape as `NavBar`'s. Three to seven per M3. |
+| onItemPress * | `(id: string) => void` |  |  |  |
+| alignment | `"top" \| "center"` | "top" |  | Where the destinations sit vertically. Defaults to `"top"`. |
+| footer | `React.ReactNode` |  |  | Pinned to the bottom of the rail. |
+| header | `React.ReactNode` |  |  | Above the destinations: typically a menu `IconButton` and/or a `FAB`. |
+| showLabels | `"always" \| "selected" \| "none"` | "always" |  | `"always"` labels every destination, `"selected"` only the active one, `"none"` none (the label is still the accessible name). Defaults to `"always"`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
-| title | `string` |  |  | Headline at the top of the drawer. |
-| variant | `"standard" \| "modal"` | "standard" |  | `"standard"` is an inline panel to place beside the content (expanded windows and up). `"modal"` slides over the content with a scrim. Defaults to `"standard"`. |
-| visible | `boolean` | false |  | Modal only: whether the drawer is open. |
-| width | `number` | DRAWER_WIDTH |  | Defaults to 360 (M3), capped at the window width when modal. |
+
+### Pagination
+
+`packages/ui/src/components/Pagination.tsx` — prop nuove: `activePage`, `onChange`, `color`, `pageSelect`, `size`, `variant`; prop tolte: `onPageChange`, `page`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| activePage * | `number` |  | nuova | Current page, 1-based. |
+| onChange * | `(page: number) => void` |  | nuova | Called with the page the user picked: a page button, an arrow or `pageSelect`. |
+| totalPages * | `number` |  |  |  |
+| color | `ColorRole` | "primary" | nuova | Colour role of the selected page. Defaults to `"primary"`. |
+| disabled | `boolean` |  |  |  |
+| pageSelect | `boolean` | false | nuova | Adds a small select after the pager that jumps to any page: it shows the active page, and opens a list of pages under a search field. Typing digits narrows the list to the pages that contain them, which keeps it usable with thousands of pages; Enter picks the first match. |
+| showFirstLast | `boolean` | false |  | Show jump-to-first / jump-to-last arrows. |
+| siblingCount | `number` | 1 |  | Pages shown on each side of the current page. |
+| size | `PaginationSize` | "md" | nuova | Size of the buttons and their type: 32, 40 or 48 px. Defaults to `"md"`. |
+| variant | `PaginationVariant` | "rounded" | nuova | `"rounded"` draws the buttons as rounded squares, `"circular"` as circles. Defaults to `"rounded"`. |
 
 ### PinInput
 
@@ -649,6 +949,19 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | type | `"numeric" \| "alphanumeric"` | "numeric" |  | Restricts the accepted characters. Defaults to `"numeric"`. |
 | variant | `"filled" \| "outlined"` | "outlined" | nuova | Cell style: `"outlined"` draws each cell as a bordered box on the surface, `"filled"` as a tinted box that shows its border only while focused or in error. Defaults to `"outlined"`. |
+
+### Popover
+
+`packages/ui/src/components/Popover.tsx` — prop nuove: `anchorPosition`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| anchor * | `React.ReactElement` |  |  | The element the popover opens from. It stays in the layout; the popover floats over the window. |
+| children * | `React.ReactNode` |  |  |  |
+| onDismiss * | `() => void` |  |  | Called on a press outside the popover and on Android back. |
+| visible * | `boolean` |  |  | Whether the popover is open. |
+| anchorPosition | `AnchorPosition` | { vertical: "bottom", horizontal: "left" } | nuova | Where the popover sits against its anchor: `vertical` is `"bottom"` (below it), `"top"` (above it) or `"center"` (centred on it); `horizontal` lines up the `"left"` edges, the `"right"` edges or the `"center"`s. Whatever it asks, the popover flips or slides to stay on screen. Defaults to `{ vertical: "bottom", horizontal: "left" }`. |
+| matchAnchorWidth | `boolean` |  |  | Gives the popover the anchor's width instead of sizing it to its content. |
 
 ### ProgressButton
 
@@ -743,17 +1056,48 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Snackbar
 
-`packages/ui/src/components/Snackbar.tsx` — comportamento: `success` usa i ruoli del tema; icone per `warning` e `info`; prop cambiate: `type`
+`packages/ui/src/components/Snackbar.tsx` — comportamento: `success` usa i ruoli del tema; icone per `warning` e `info`; prop nuove: `onClose`, `position`, `severity`, `variant`; prop cambiate: `action`, `onDismiss`; prop tolte: `type`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | message * | `string` |  |  |  |
-| onDismiss * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| action | `{ label: string; onPress: () => void; }` |  |  |  |
-| duration | `number` | 4000 |  |  |
+| visible * | `boolean` |  |  | Whether the snackbar is on screen. |
+| action | `{ label: string; onClick: () => void; }` |  | cambiata | A text button after the message. Clicking it runs `onClick`, then dismisses the snackbar. |
+| duration | `number` | 4000 |  | Auto-hide delay in ms; `0` keeps it up. Defaults to 4000. Not used when `onClose` is set. |
+| icon | `MaterialCommunityIconsGlyphs` |  |  | Overrides the icon implied by `severity`. |
+| onClose | `() => void` |  | nuova | Shows a close icon button and keeps the snackbar up until the user closes it: `duration` is not used, and the timeout never calls `onDismiss`. |
+| onDismiss | `() => void` |  | cambiata | Called when the snackbar times out (after `duration`) or its `action` is clicked. Not called when `onClose` is set: the snackbar then stays up until the user closes it. |
+| position | `SnackbarPosition` | "bottom-center" | nuova | Which edge and corner it sits in, clear of the safe-area insets. Defaults to `"bottom-center"`. |
+| severity | `SnackbarSeverity` |  | nuova | What the message is about: `"success"` is green, `"info"` blue, `"warning"` amber and `"error"` red, with a matching icon. Left out, the snackbar is the neutral inverse surface, with no icon. |
+| variant | `SnackbarVariant` | "contained" | nuova | `"contained"` fills it with the severity's colours; `"outlined"` draws it on the surface with a severity-coloured outline, label and icon. Defaults to `"contained"`. |
+
+### Stack
+
+`packages/ui/src/components/Layout/Stack.tsx` — prop nuove: `dividers`; prop cambiate: `spacing`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| direction | `"vertical" \| "horizontal"` | "vertical" |  | Stacking axis. Defaults to `"vertical"`. |
+| dividers | `React.ReactNode` |  | nuova | Puts a divider between the children. `true` draws a hairline, vertical in a horizontal stack; a node is used as the divider instead. Empty children (`null`, `false`) get none, and the spacing applies on both sides of it. |
+| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
+| spacing | `SpacingInput` | "s" | cambiata | Space between children — a spacing token name (`"m"`), a number of px, or a string holding one (`"12"`). |
+
+### Stat
+
+`packages/ui/src/components/Stat.tsx` — prop nuove: `direction`, `trendColor`; prop tolte: `invertTrendColors`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| label * | `string` |  |  | What the number measures. |
+| value * | `string` |  |  | The number itself; pre-formatted by the caller. |
+| delta | `string` |  |  | Signed change shown next to an up/down arrow, e.g. `"12.5%"`. |
+| direction | `"column" \| "row"` | "column" | nuova | `"column"` stacks the label over the value. `"row"` puts them on one line, the value after the label, with the delta right behind the value. Defaults to `"column"`. |
+| helpText | `string` |  |  | Extra context under the value. |
 | icon | `MaterialCommunityIconsGlyphs` |  |  |  |
-| type | `SnackbarType` | "default" | cambiata |  |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| trend | `"up" \| "down" \| "flat"` |  |  | Direction of `delta`. Drives the arrow, and the colour unless `trendColor` is set. |
+| trendColor | `ThemeColor` |  | nuova | The colour of the arrow and `delta`: a theme colour token (a role such as `"success"` or `"error"`, or `"onSurfaceVariant"`, ...) or any colour string. Left out, `"up"` is `success`, `"down"` is `error` and `"flat"` neutral. For a metric where down is good, pass the colour yourself. |
 
 ### StatusBadge
 
@@ -766,37 +1110,84 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | toneFrom | `string` |  | nuova | Tints the badge from a `#RRGGBB` colour or from any text instead of from `type`, which still picks the default icon. |
 | type | `"success" \| "error" \| "warning"` | "success" |  |  |
 
+### Stepper
+
+`packages/ui/src/components/Stepper.tsx` — prop nuove: `direction`, `onClick`; prop tolte: `onStepPress`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| activeStep * | `number` |  |  | Position of the current step. Those before it are completed. |
+| steps * | `Step[] \| string[]` |  |  | The steps, in order; a string is a step with just a label. |
+| direction | `"row" \| "column"` | "row" | nuova | `"row"` lays the steps out side by side, the label under each circle; `"column"` stacks them, the label beside each circle. Defaults to `"row"`. |
+| onClick | `(stepIndex: number) => void` |  | nuova | Called with the pressed step's position. Makes the steps pressable. |
+| style | `object` |  |  |  |
+
+### Table
+
+`packages/ui/src/components/Table.tsx` — prop nuove: `columns`, `data`, `emptyMessage`, `height`, `hover`, `onClick`, `rowsPerPage`, `selected`, `tableTitle`, `testID`, `width`; prop cambiate: `children`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children | `ReactNode` |  | cambiata | The primitives (`TableHead`, `TableRow`, `TableCell`, ...), when you lay the rows out yourself. Ignored when `columns` is given. |
+| columns | `TableColumn[]` |  | nuova | The columns. Giving them makes the table data driven: it draws `data` itself. When they add up to more than `width` the table scrolls sideways. |
+| data | `TableRowData[]` |  | nuova | The rows, as `{ [column id]: cell }`. Data driven only. |
+| emptyMessage | `ReactNode` |  | nuova | Shown under the header when `data` is empty. Defaults to `"No data"`. |
+| height | `DimensionValue` |  | nuova | Height of the table. With it the rows scroll vertically under a header that stays in place; without it the table is as tall as its rows. |
+| hover | `boolean` |  | nuova | Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed. |
+| onClick | `(row: TableRowData, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable, with the button role. |
+| rowsPerPage | `number` |  | nuova | Rows per page. A number slices `data` into pages and shows a `Pagination` under the table (hidden while there is no data); the page goes back to the first when `rowsPerPage` or the number of rows changes. Left out, every row is drawn in one page. |
+| selected | `number \| number[]` |  | nuova | The row index, or indexes, to draw as selected. An index is a position in `data`, not in the page shown. The row is marked selected for assistive technology too. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| tableTitle | `string` |  | nuova | A heading drawn above the header row; also the table's accessible name. |
+| testID | `string` |  | nuova |  |
+| width | `DimensionValue` |  | nuova | Width of the table. Without it the table fills its container. |
+
 ### TableCell
 
-`packages/ui/src/components/Table.tsx` — prop nuove: `align`
+`packages/ui/src/components/Table.tsx` — prop nuove: `align`, `flex`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
 | align | `TableAlign` | "left" | nuova |  |
+| flex | `boolean` |  | nuova | Shares the row's free width with the other `flex` cells instead of having a fixed `width`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | textStyle | `StyleProp<TextStyle>` |  |  |  |
-| width | `number` |  |  |  |
+| width | `number` |  |  | Width in px. Defaults to 150. With `flex`, the narrowest the cell gets. |
 
 ### TableHeaderCell
 
-`packages/ui/src/components/Table.tsx` — comportamento: il padding a destra c'è solo con le frecce di riordino; prop nuove: `align`
+`packages/ui/src/components/Table.tsx` — comportamento: il padding a destra c'è solo con le frecce di riordino; prop nuove: `align`, `flex`, `onClick`; prop tolte: `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
 | align | `TableAlign` | "left" | nuova |  |
+| flex | `boolean` |  | nuova | Shares the row's free width with the other `flex` cells instead of having a fixed `width`. |
+| onClick | `() => void` |  | nuova | Called when a `sortable` header is pressed. |
 | onMoveLeft | `() => void` |  |  |  |
 | onMoveRight | `() => void` |  |  |  |
-| onPress | `() => void` |  |  |  |
 | sortable | `boolean` |  |  |  |
 | sortDirection | `"asc" \| "desc" \| null` |  |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
-| width | `number` |  |  |  |
+| width | `number` |  |  | Width in px. Defaults to 150. With `flex`, the narrowest the cell gets. |
+
+### TableRow
+
+`packages/ui/src/components/Table.tsx` — prop nuove: `hover`, `onClick`, `selected`, `testID`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `ReactNode` |  |  |  |
+| hover | `boolean` | false | nuova | Highlights the row under the pointer, on web. A row with `onClick` also highlights while it is pressed, `hover` or not. |
+| onClick | `() => void` |  | nuova | Makes the row pressable. It then takes the button role, so give it a cell that says what it does. |
+| selected | `boolean` | false | nuova | Draws the row highlighted and marks it selected for assistive technology. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  | nuova |  |
 
 ### Tabs
 
-`packages/ui/src/components/Tab/Tabs.tsx` — comportamento: `tabs[]` può essere un oggetto `TabItem` con `key`, `disabled`, `icon` opzionale; prop nuove: `activeKey`; prop cambiate: `onChange`, `tabs`, `activeTab`
+`packages/ui/src/components/Tab/Tabs.tsx` — comportamento: `tabs[]` può essere un oggetto `TabItem` con `key`, `disabled`, `icon` opzionale; prop nuove: `activeKey`, `color`, `fullWidth`, `height`, `showBorders`, `size`, `testID`, `variant`, `width`; prop cambiate: `onChange`, `tabs`, `activeTab`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -804,6 +1195,14 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | tabs * | `TabItem[] \| string[]` |  | cambiata |  |
 | activeKey | `string` |  | nuova | The active tab by its `key`, for tabs that come and go (by role, by flag). |
 | activeTab | `number` | 0 | cambiata | The active tab by position. Ignored when `activeKey` is given. Defaults to 0. |
+| color | `ColorRole` | "primary" | nuova | The colour role of the indicator and of the selected tab. Defaults to `"primary"`. |
+| fullWidth | `boolean` | true | nuova | `true` stretches the bar over the width it has and shares it equally between the tabs. `false` sizes each tab to its label, and the bar scrolls horizontally when they do not fit. Defaults to `true`. |
+| height | `number \| string` |  | nuova | Overrides the height of the bar: a number of dp, or a percentage. |
+| showBorders | `boolean` | false | nuova | Draws dividers between the tabs and, in the `"rounded"` variant, an outline around the track. Defaults to `false`. |
+| size | `"sm" \| "md" \| "lg"` | "md" | nuova | The height and the type of the tabs. Defaults to `"md"`. |
+| testID | `string` |  | nuova |  |
+| variant | `"standard" \| "rounded"` | "standard" | nuova | `"standard"` is a bar with an underline under the active tab. `"rounded"` is a pill-shaped active tab on a rounded track. Defaults to `"standard"`. |
+| width | `number \| string` |  | nuova | Overrides the width of the bar: a number of dp, or a percentage. |
 
 ### ThemeProvider
 
@@ -853,6 +1252,15 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | validRange | `ValidRange` |  |  | The selectable window plus individual excluded days. |
 | variant | `DateTimePickerVariant` |  | nuova | `"default"` shows a field that opens the picker in a popover (web) or a dialog; dismiss it by tapping outside, with the back gesture or with Escape. `"static"` draws the picker inline in the page instead: no field, no popup, no OK, and every selection calls `onChange` at once with the live value. Of the field props only `disabled` and `style` apply to a static picker, and it always shows the calendar and the clock, never typed entry. |
 
+### ToastProvider
+
+`packages/ui/src/providers/ToastProvider.tsx` — prop nuove: `position`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| position | `SnackbarPosition` | "bottom-center" | nuova | Where toasts appear unless one asks for another. Defaults to `"bottom-center"`. |
+
 ### Tooltip
 
 `packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`
@@ -885,20 +1293,30 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | onClick | `TextProps["onPress"]` |  | nuova | Makes the text pressable. |
 | variant | `TypographyName \| TypographyVariant` | "h1" | cambiata | Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline`. The M3 role names (`displayLarge`, `bodyMedium`, …) still work and name the same styles. Defaults to `"h1"`. |
 
-# Componenti tenuti
+### VStack
 
-### Accordion
-
-`packages/ui/src/components/Accordion.tsx`
+`packages/ui/src/components/Layout/Stack.tsx` — prop nuove: `background`, `children`, `dividers`, `margin`, `padding`, `style`; prop cambiate: `spacing`; prop tolte: `bg`, `flex`, `m`, `mb`, `ml`, `mr`, `mt`, `mx`, `my`, `p`, `pb`, `pl`, `pr`, `pt`, `px`, `py`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| title * | `string` |  |  |  |
-| onPress | `(expanded: boolean) => void` |  |  |  |
-| startExpanded | `boolean` | false |  |  |
-| style | `StyleProp<ViewStyle>` | {} |  |  |
-| titleStyle | `StyleProp<TextStyle>` | {} |  |  |
+| align | `ViewStyle["alignItems"]` |  |  |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  |  | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  |  |  |
+| children | `React.ReactNode` |  | nuova |  |
+| dividers | `React.ReactNode` |  | nuova | Puts a divider between the children. `true` draws a hairline, vertical in a horizontal stack; a node is used as the divider instead. Empty children (`null`, `false`) get none, and the spacing applies on both sides of it. |
+| height | `ViewStyle["height"]` |  |  |  |
+| justify | `ViewStyle["justifyContent"]` |  |  |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
+| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
+| spacing | `SpacingInput` |  | cambiata | Space between children — a spacing token name (`"m"`), a number of px, or a string holding one (`"12"`). |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| width | `ViewStyle["width"]` |  |  |  |
+| wrap | `boolean` |  |  | Lets children flow onto the next line (or column) instead of overflowing. |
+
+# Componenti tenuti
 
 ### AlertProvider
 
@@ -916,18 +1334,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
 
-### AppBar
-
-`packages/ui/src/components/AppBar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| navigation * | `any` |  |  |  |
-| options * | `any` |  |  |  |
-| route * | `any` |  |  |  |
-| back | `{ title?: string; href?: string } \| boolean` |  |  | Truthy when a back destination exists (native-stack passes { title, href }) |
-| isPinned | `boolean` | false |  |  |
-
 ### AspectRatio
 
 `packages/ui/src/components/Layout/AspectRatio.tsx`
@@ -935,39 +1341,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | ratio | `number` | 1 |  | Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`. |
-
-### Box
-
-`packages/ui/src/components/Layout/Box.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| align | `ViewStyle["alignItems"]` |  |  |  |
-| bg | `ColorValue` |  |  | Background — an M3 color role name or a raw color. |
-| borderColor | `ColorValue` |  |  |  |
-| borderWidth | `number` |  |  |  |
-| flex | `number` |  |  |  |
-| gap | `SpacingValue` |  |  |  |
-| height | `ViewStyle["height"]` |  |  |  |
-| justify | `ViewStyle["justifyContent"]` |  |  |  |
-| m | `SpacingValue` |  |  | Margin on every edge. |
-| mb | `SpacingValue` |  |  |  |
-| ml | `SpacingValue` |  |  |  |
-| mr | `SpacingValue` |  |  |  |
-| mt | `SpacingValue` |  |  |  |
-| mx | `SpacingValue` |  |  |  |
-| my | `SpacingValue` |  |  |  |
-| p | `SpacingValue` |  |  | Padding on every edge. |
-| pb | `SpacingValue` |  |  |  |
-| pl | `SpacingValue` |  |  |  |
-| pr | `SpacingValue` |  |  |  |
-| pt | `SpacingValue` |  |  |  |
-| px | `SpacingValue` |  |  | Horizontal padding. |
-| py | `SpacingValue` |  |  | Vertical padding. |
-| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
-| row | `boolean` |  |  | Lays children out horizontally instead of vertically. |
-| width | `ViewStyle["width"]` |  |  |  |
-| wrap | `boolean` |  |  |  |
 
 ### Breadcrumbs
 
@@ -1040,37 +1413,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | showArrows | `boolean` | false |  | Overlay prev/next arrow buttons. |
 | showDots | `boolean` | true |  |  |
 
-### Center
-
-`packages/ui/src/components/Layout/Center.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| bg | `ColorValue` |  |  | Background — an M3 color role name or a raw color. |
-| borderColor | `ColorValue` |  |  |  |
-| borderWidth | `number` |  |  |  |
-| flex | `number` |  |  |  |
-| gap | `SpacingValue` |  |  |  |
-| height | `ViewStyle["height"]` |  |  |  |
-| m | `SpacingValue` |  |  | Margin on every edge. |
-| mb | `SpacingValue` |  |  |  |
-| ml | `SpacingValue` |  |  |  |
-| mr | `SpacingValue` |  |  |  |
-| mt | `SpacingValue` |  |  |  |
-| mx | `SpacingValue` |  |  |  |
-| my | `SpacingValue` |  |  |  |
-| p | `SpacingValue` |  |  | Padding on every edge. |
-| pb | `SpacingValue` |  |  |  |
-| pl | `SpacingValue` |  |  |  |
-| pr | `SpacingValue` |  |  |  |
-| pt | `SpacingValue` |  |  |  |
-| px | `SpacingValue` |  |  | Horizontal padding. |
-| py | `SpacingValue` |  |  | Vertical padding. |
-| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
-| row | `boolean` |  |  | Lays children out horizontally instead of vertically. |
-| width | `ViewStyle["width"]` |  |  |  |
-| wrap | `boolean` |  |  |  |
-
 ### Checkbox
 
 `packages/ui/src/components/Checkbox.tsx`
@@ -1086,21 +1428,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | label | `string` |  |  |  |
 | labelPosition | `"left" \| "right"` | "right" |  |  |
 
-### CircularProgress
-
-`packages/ui/src/components/Progress/CircularProgress.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| accessibilityLabel | `string` |  |  |  |
-| color | `string` |  |  | Indicator colour. Defaults to `primary`. |
-| decorative | `boolean` | false |  | Hides it from assistive tech when something else announces the progress. |
-| duration | `number` | 1000 |  | Indeterminate only: one revolution, in ms. |
-| progress | `number` |  |  | Completion from 0 to 1. Set, the ring fills to it over a track; unset, the indicator spins (indeterminate). |
-| size | `number` | 48 |  |  |
-| strokeWidth | `number` | 4 |  |  |
-| testID | `string` |  |  |  |
-
 ### Collapse
 
 `packages/ui/src/components/Collapse.tsx`
@@ -1115,23 +1442,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | keepMounted | `boolean` | false |  | Skips unmounting the children while collapsed. Defaults to `false`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
-
-### ConfirmDialog
-
-`packages/ui/src/components/Modal/ConfirmDialog.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onCancel * | `() => void` |  |  |  |
-| onConfirm * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| cancelText | `string` | "Cancel" |  |  |
-| confirmText | `string` | "Confirm" |  |  |
-| destructive | `boolean` | false |  | Renders the confirm action in the error tone (delete, discard). |
-| dismissable | `boolean` | true |  | Whether the scrim and ESC cancel the dialog. Leave it off for a decision the user must answer explicitly. Defaults to `true`. |
-| icon | `IconSource` |  |  | Hero glyph above the title. |
-| message | `string` |  |  |  |
-| title | `string` |  |  |  |
 
 ### Divider
 
@@ -1172,16 +1482,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 
-### Grid
-
-`packages/ui/src/components/Layout/Grid.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| columns | `number` | 2 |  | Fixed column count. Ignored when `minChildWidth` is set. |
-| minChildWidth | `number` |  |  | Responsive alternative to `columns`: fits as many columns of at least this width as the container allows. |
-| spacing | `SpacingValue` | "s" |  | Gap between cells — a spacing token name or a raw value. |
-
 ### HelperText
 
 `packages/ui/src/components/HelperText.tsx`
@@ -1196,39 +1496,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | type | `HelperTextType` | "info" |  | `error` switches to the error role and shows the alert glyph. |
 | visible | `boolean` | true |  | Fades the text out instead of unmounting it, so the field doesn't jump. |
-
-### HStack
-
-`packages/ui/src/components/Layout/Stack.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| align | `ViewStyle["alignItems"]` |  |  |  |
-| bg | `ColorValue` |  |  | Background — an M3 color role name or a raw color. |
-| borderColor | `ColorValue` |  |  |  |
-| borderWidth | `number` |  |  |  |
-| flex | `number` |  |  |  |
-| height | `ViewStyle["height"]` |  |  |  |
-| justify | `ViewStyle["justifyContent"]` |  |  |  |
-| m | `SpacingValue` |  |  | Margin on every edge. |
-| mb | `SpacingValue` |  |  |  |
-| ml | `SpacingValue` |  |  |  |
-| mr | `SpacingValue` |  |  |  |
-| mt | `SpacingValue` |  |  |  |
-| mx | `SpacingValue` |  |  |  |
-| my | `SpacingValue` |  |  |  |
-| p | `SpacingValue` |  |  | Padding on every edge. |
-| pb | `SpacingValue` |  |  |  |
-| pl | `SpacingValue` |  |  |  |
-| pr | `SpacingValue` |  |  |  |
-| pt | `SpacingValue` |  |  |  |
-| px | `SpacingValue` |  |  | Horizontal padding. |
-| py | `SpacingValue` |  |  | Vertical padding. |
-| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
-| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
-| spacing | `SpacingValue` |  |  | Gap between children — a spacing token name or a raw value. |
-| width | `ViewStyle["width"]` |  |  |  |
-| wrap | `boolean` |  |  |  |
 
 ### Icon
 
@@ -1263,21 +1530,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 | width | `DimensionValue` |  |  |  |
-
-### LinearProgress
-
-`packages/ui/src/components/Progress/LinearProgress.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| color | `string` |  |  |  |
-| decorative | `boolean` | false |  | Hide the bar from assistive technology, for when the component around it already announces the progress — a bar inside a button is not a second control to land on. |
-| duration | `number` | 500 |  |  |
-| height | `DimensionValue` | 4 |  | Bar thickness. A percentage fills the parent — a progress surface. |
-| indeterminate | `boolean` | false |  |  |
-| indeterminateDuration | `number` | 1500 |  |  |
-| progress | `number` | 0 |  |  |
-| trackColor | `string` |  |  |  |
 
 ### Link
 
@@ -1320,58 +1572,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | children * | `React.ReactNode` |  |  |  |
 | style | `StyleProp<TextStyle>` |  |  |  |
 
-### Menu
-
-`packages/ui/src/components/Menu.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| anchor * | `React.ReactElement` |  |  |  |
-| items * | `MenuItem[]` |  |  |  |
-| onDismiss * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| closeOnSelect | `boolean` | true |  | Close the menu automatically after an item is pressed. Default true. |
-
-### NavigationBar
-
-`packages/ui/src/components/NavigationBar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| activeId * | `string` |  |  |  |
-| items * | `NavigationBarItem[]` |  |  |  |
-| onItemPress * | `(id: string) => void` |  |  |  |
-| showLabels | `"always" \| "selected"` | "always" |  | "always" shows every label, "selected" only the active one. |
-
-### NavigationRail
-
-`packages/ui/src/components/NavigationRail.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| activeId * | `string` |  |  | `id` of the current destination. |
-| items * | `NavigationBarItem[]` |  |  | Destinations, same shape as `NavigationBar`'s. Three to seven per M3. |
-| onItemPress * | `(id: string) => void` |  |  |  |
-| alignment | `"top" \| "center"` | "top" |  | Where the destinations sit vertically. Defaults to `"top"`. |
-| footer | `React.ReactNode` |  |  | Pinned to the bottom of the rail. |
-| header | `React.ReactNode` |  |  | Above the destinations: typically a menu `IconButton` and/or a `FAB`. |
-| showLabels | `"always" \| "selected" \| "none"` | "always" |  | `"always"` labels every destination, `"selected"` only the active one, `"none"` none (the label is still the accessible name). Defaults to `"always"`. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-
-### Pagination
-
-`packages/ui/src/components/Pagination.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onPageChange * | `(page: number) => void` |  |  |  |
-| page * | `number` |  |  | Current page, 1-based. |
-| totalPages * | `number` |  |  |  |
-| disabled | `boolean` |  |  |  |
-| showFirstLast | `boolean` | false |  | Show jump-to-first / jump-to-last arrows. |
-| siblingCount | `number` | 1 |  | Pages shown on each side of the current page. |
-
 ### Paper
 
 `packages/ui/src/components/Paper.tsx`
@@ -1383,18 +1583,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | glow | `boolean` | false |  |  |
 | outline | `boolean` | false |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
-
-### Popover
-
-`packages/ui/src/components/Popover.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| anchor * | `React.ReactElement` |  |  |  |
-| children * | `React.ReactNode` |  |  |  |
-| onDismiss * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| matchAnchorWidth | `boolean` |  |  |  |
 
 ### Portal
 
@@ -1440,25 +1628,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | error | `string` |  |  |  |
 | feedback | `boolean` | true |  | Report each selection to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | label | `string` |  |  |  |
-
-### SideSheet
-
-`packages/ui/src/components/SideSheet.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| onDismiss * | `() => void` |  |  | Called by the close button, and in modal mode by the scrim, Android back and Escape. |
-| actions | `React.ReactNode` |  |  | A row of buttons at the bottom, below a divider. |
-| modal | `boolean` | true |  | `true` slides over the content with a scrim; `false` is a standard sheet you place in a row beside the content. Defaults to `true`. |
-| onBack | `() => void` |  |  | Shows a back button before the title — for a sheet with sub-pages. |
-| showCloseButton | `boolean` | true |  | Defaults to `true`. |
-| side | `"start" \| "end"` | "end" |  | The edge it attaches to, in reading direction. Defaults to `"end"`. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| title | `string` |  |  |  |
-| visible | `boolean` | false |  | Modal only: whether the sheet is open. |
-| width | `number` | SHEET_WIDTH |  | Defaults to 360, capped at the window width. |
 
 ### Skeleton
 
@@ -1529,43 +1698,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 
-### Stack
-
-`packages/ui/src/components/Layout/Stack.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| direction | `"vertical" \| "horizontal"` | "vertical" |  | Stacking axis. Defaults to `"vertical"`. |
-| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
-| spacing | `SpacingValue` | "s" |  | Gap between children — a spacing token name or a raw value. |
-
-### Stat
-
-`packages/ui/src/components/Stat.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| label * | `string` |  |  | What the number measures. |
-| value * | `string` |  |  | The number itself; pre-formatted by the caller. |
-| delta | `string` |  |  | Signed change shown next to an up/down arrow, e.g. `"12.5%"`. |
-| helpText | `string` |  |  | Extra context under the value. |
-| icon | `MaterialCommunityIconsGlyphs` |  |  |  |
-| invertTrendColors | `boolean` |  |  | Inverts the trend colors, for metrics where down is good. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| testID | `string` |  |  |  |
-| trend | `"up" \| "down" \| "flat"` |  |  | Direction of `delta`. Drives both the arrow and its color. |
-
-### Stepper
-
-`packages/ui/src/components/Stepper.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| activeStep * | `number` |  |  |  |
-| steps * | `Step[] \| string[]` |  |  |  |
-| onStepPress | `(stepIndex: number) => void` |  |  |  |
-| style | `object` |  |  |  |
-
 ### TabContent
 
 `packages/ui/src/components/Tab/TabContent.tsx`
@@ -1576,15 +1708,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | children * | `React.ReactNode` |  |  |  |
 | style | `object` | {} |  |  |
 
-### Table
-
-`packages/ui/src/components/Table.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `ReactNode` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-
 ### TableHead
 
 `packages/ui/src/components/Table.tsx`
@@ -1593,23 +1716,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
-
-### TableRow
-
-`packages/ui/src/components/Table.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `ReactNode` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-
-### ToastProvider
-
-`packages/ui/src/providers/ToastProvider.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
 
 ### ToggleButton
 
@@ -1662,23 +1768,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | variant | `"docked" \| "floating"` | "docked" |  | `"docked"` spans the width of the screen's bottom edge (it replaces the bottom app bar); `"floating"` is a pill that floats over the content. Defaults to `"docked"`. |
 
-### TopAppBar
-
-`packages/ui/src/components/TopAppBar.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| title * | `React.ReactNode` |  |  |  |
-| actions | `React.ReactNode` |  |  | After the title: up to three action `IconButton`s per M3. |
-| divider | `boolean` | false |  | A hairline under the bar. |
-| elevated | `boolean` | false |  | The on-scroll state: `surfaceContainer` instead of `surface`. |
-| leading | `React.ReactNode` |  |  | Before the title: typically a back or menu `IconButton`. |
-| safeArea | `boolean` | true |  | Pads the top safe-area inset. Defaults to `true`. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| subtitle | `string` |  |  | A second line under the title. |
-| testID | `string` |  |  |  |
-| variant | `"small" \| "center" \| "medium" \| "large"` | "small" |  | `"small"` and `"center"` keep the title in the 64dp row; `"medium"` and `"large"` move it to a second, larger line. Defaults to `"small"`. |
-
 ### TouchableRipple
 
 `packages/ui/src/components/TouchableRipple.tsx`
@@ -1692,37 +1781,4 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | rippleColor | `string` |  |  | Colour of the state layer itself — the M3 "on" role of the surface. Defaults to `onSurface`. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | underlayColor | `string` |  |  | Surface the state layer is drawn over. Defaults to `surface`. |
-
-### VStack
-
-`packages/ui/src/components/Layout/Stack.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| align | `ViewStyle["alignItems"]` |  |  |  |
-| bg | `ColorValue` |  |  | Background — an M3 color role name or a raw color. |
-| borderColor | `ColorValue` |  |  |  |
-| borderWidth | `number` |  |  |  |
-| flex | `number` |  |  |  |
-| height | `ViewStyle["height"]` |  |  |  |
-| justify | `ViewStyle["justifyContent"]` |  |  |  |
-| m | `SpacingValue` |  |  | Margin on every edge. |
-| mb | `SpacingValue` |  |  |  |
-| ml | `SpacingValue` |  |  |  |
-| mr | `SpacingValue` |  |  |  |
-| mt | `SpacingValue` |  |  |  |
-| mx | `SpacingValue` |  |  |  |
-| my | `SpacingValue` |  |  |  |
-| p | `SpacingValue` |  |  | Padding on every edge. |
-| pb | `SpacingValue` |  |  |  |
-| pl | `SpacingValue` |  |  |  |
-| pr | `SpacingValue` |  |  |  |
-| pt | `SpacingValue` |  |  |  |
-| px | `SpacingValue` |  |  | Horizontal padding. |
-| py | `SpacingValue` |  |  | Vertical padding. |
-| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
-| reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
-| spacing | `SpacingValue` |  |  | Gap between children — a spacing token name or a raw value. |
-| width | `ViewStyle["width"]` |  |  |  |
-| wrap | `boolean` |  |  |  |
 

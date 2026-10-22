@@ -19,15 +19,13 @@ export const Grouped = () => (
     <Paper elevation={1} outline style={{ flex: 1 }}>
       <ListSection title="Notifications">
         <ListItem
-          trailing={<Typography variant="bodySmall">Weekly</Typography>}
-        >
-          Email digest
-        </ListItem>
+          action={<Typography variant="bodySmall">Weekly</Typography>}
+          primaryText="Email digest"
+        />
         <ListItem
-          trailing={<Typography variant="bodySmall">Instant</Typography>}
-        >
-          Mentions
-        </ListItem>
+          action={<Typography variant="bodySmall">Instant</Typography>}
+          primaryText="Mentions"
+        />
       </ListSection>
     </Paper>
   </View>
@@ -46,19 +44,20 @@ export const SettingsScreen = () => {
             here: an unlabelled Divider still opened a contentSpacing-wide gap
             in the middle of itself, so the group ended in line + gap + line. */}
         <ListSection title="Notifications" divider>
-          <ListItem trailing={<Switch value={digest} onChange={setDigest} />}>
-            Email digest
-          </ListItem>
           <ListItem
-            trailing={<Switch value={mentions} onChange={setMentions} />}
-          >
-            Mentions
-          </ListItem>
+            action={<Switch value={digest} onChange={setDigest} />}
+            primaryText="Email digest"
+          />
+          <ListItem
+            action={<Switch value={mentions} onChange={setMentions} />}
+            primaryText="Mentions"
+          />
         </ListSection>
         <ListSection title="Advanced">
-          <ListItem trailing={<Switch value={beta} onChange={setBeta} />}>
-            Experimental features
-          </ListItem>
+          <ListItem
+            action={<Switch value={beta} onChange={setBeta} />}
+            primaryText="Experimental features"
+          />
         </ListSection>
       </Paper>
     </View>

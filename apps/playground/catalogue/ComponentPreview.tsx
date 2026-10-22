@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import {
   useTheme,
@@ -10,7 +10,6 @@ import {
   Chip,
   Avatar,
   Card,
-  ListItem,
   IconButton,
   CardTitle,
   Portal,
@@ -68,33 +67,12 @@ const ComponentPreview = ({
   const [autocompleteChosen, setAutocompleteChosen] = useState<any[]>([]);
   const [collapseOpen, setCollapseOpen] = useState(false);
 
-  const gridData = useMemo(
-    () => [
-      { id: 1, name: "Item 1", value: "Val 1" },
-      { id: 2, name: "Item 2", value: "Val 2" },
-    ],
-    [],
-  );
-  const gridCols = useMemo(
-    () => [
-      { id: "name", label: "Name", width: 150 },
-      { id: "value", label: "Value", width: 150 },
-    ],
-    [],
-  );
-
   const { Component, Demo, isContainer, clientOnly } = activeMeta;
   if (clientOnly && !hydrated) return null;
   if (Demo) return <Demo props={componentProps} updateProp={updateProp} />;
   let props = { ...componentProps };
 
   // Special handling for some components
-  if (selectedComponentName === "DataGrid") {
-    props.data = props.empty ? [] : gridData;
-    props.columns = gridCols;
-    delete props.empty;
-  }
-
   if (selectedComponentName === "Badge") {
     props.count = Number(props.count) || 0;
     props.max = Number(props.max) || 99;
@@ -138,36 +116,18 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "Menu") {
-    props.items = [
-      { id: "1", label: "Edit", icon: "pencil-outline", onPress: () => {} },
-      {
-        id: "2",
-        label: "Duplicate",
-        icon: "content-copy",
-        trailing: "Ctrl+D",
-        onPress: () => {},
-      },
-      {
-        id: "3",
-        label: "Delete",
-        icon: "delete-outline",
-        destructive: true,
-        dividerAbove: true,
-        onPress: () => {},
-      },
-    ];
-    props.onDismiss = () => updateProp("visible", false);
-    props.anchor = (
-      <Button variant="tonal" onClick={() => updateProp("visible", true)}>
-        Open Menu
-      </Button>
-    );
-    return <Component {...props} />;
-  }
-
   if (selectedComponentName === "BottomSheet") {
-    props.onDismiss = () => updateProp("visible", false);
+    props.onClose = () => updateProp("visible", false);
+    props.maxHeightRatio = Number(props.maxHeightRatio) || 0.85;
+    props.actions = props.withActions ? (
+      <>
+        <Button variant="text" onClick={() => updateProp("visible", false)}>
+          Cancel
+        </Button>
+        <Button onClick={() => updateProp("visible", false)}>Apply</Button>
+      </>
+    ) : undefined;
+    delete props.withActions;
     return (
       <>
         <Button variant="tonal" onClick={() => updateProp("visible", true)}>
@@ -183,7 +143,7 @@ const ComponentPreview = ({
     );
   }
 
-  if (selectedComponentName === "NavigationBar") {
+  if (selectedComponentName === "NavBar") {
     props.items = [
       { id: "home", label: "Home", icon: "home-outline", badgeCount: 0 },
       {
@@ -203,7 +163,7 @@ const ComponentPreview = ({
         icon: "account-outline",
       },
     ];
-    props.onItemPress = (id: string) => updateProp("activeId", id);
+    props.onClick = (id: string) => updateProp("activeId", id);
   }
 
   if (selectedComponentName === "Skeleton") {
@@ -237,10 +197,11 @@ const ComponentPreview = ({
   }
 
   if (selectedComponentName === "Pagination") {
-    props.page = Number(props.page) || 1;
+    props.activePage = Number(props.activePage) || 1;
     props.totalPages = Number(props.totalPages) || 1;
-    props.siblingCount = Number(props.siblingCount) || 1;
-    props.onPageChange = (p: number) => updateProp("page", p);
+    // 0 is a real value: no siblings beside the current page.
+    props.siblingCount = Math.max(0, Number(props.siblingCount));
+    props.onChange = (p: number) => updateProp("activePage", p);
   }
 
   if (selectedComponentName === "Rating") {
@@ -357,14 +318,21 @@ const ComponentPreview = ({
     return <Component {...linkProps}>{children}</Component>;
   }
 
-  if (selectedComponentName === "Stat") {
-    if (!props.icon) delete props.icon;
-    if (!props.delta) delete props.delta;
-    if (!props.helpText) delete props.helpText;
+  if (selectedComponentName === "Blink") {
     return (
-      <View style={{ minWidth: 240 }}>
-        <Component {...props} />
-      </View>
+      <Component {...props}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 5,
+              backgroundColor: theme.colors.error,
+            }}
+          />
+          <Typography variant="labelLarge">Recording</Typography>
+        </View>
+      </Component>
     );
   }
 
@@ -479,53 +447,10 @@ const ComponentPreview = ({
     );
   }
 
-  if (
-    selectedComponentName === "Box" ||
-    selectedComponentName === "Stack" ||
-    selectedComponentName === "Grid"
-  ) {
-    if (selectedComponentName === "Grid") {
-      props.columns = Math.max(1, Number(props.columns) || 1);
-      const minChildWidth = Number(props.minChildWidth) || 0;
-      props.minChildWidth = minChildWidth > 0 ? minChildWidth : undefined;
-    }
-    const swatches = ["primary", "secondary", "tertiary", "error"];
-    return (
-      <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props}>
-          {swatches.map((colorKey) => (
-            <View
-              key={colorKey}
-              style={{
-                minWidth: 72,
-                paddingVertical: 18,
-                paddingHorizontal: 12,
-                borderRadius: 12,
-                alignItems: "center",
-                backgroundColor: (theme.colors as any)[colorKey],
-              }}
-            >
-              <Typography
-                variant="labelMedium"
-                style={{
-                  color: (theme.colors as any)[
-                    `on${colorKey[0].toUpperCase()}${colorKey.slice(1)}`
-                  ],
-                }}
-              >
-                {colorKey}
-              </Typography>
-            </View>
-          ))}
-        </Component>
-      </View>
-    );
-  }
-
   if (selectedComponentName === "Toast") {
     const duration = Number(props.duration) || 4000;
     const action = props.withAction
-      ? { label: "Undo", onPress: () => {} }
+      ? { label: "Undo", onClick: () => {} }
       : undefined;
     const message = props.message || "Changes saved";
     return (
@@ -622,7 +547,7 @@ const ComponentPreview = ({
   if (selectedComponentName === "Stepper") {
     props.activeStep = Number(props.activeStep) || 0;
     props.steps = ["Cart", "Shipping", "Payment", "Review"];
-    props.onStepPress = (i: number) => updateProp("activeStep", i);
+    props.onClick = (i: number) => updateProp("activeStep", i);
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
         <Component {...props} />
@@ -637,6 +562,8 @@ const ComponentPreview = ({
 
   if (selectedComponentName === "Tabs") {
     props.activeTab = Number(props.activeTab) || 0;
+    props.height = Number(props.height) || undefined;
+    props.width = Number(props.width) || undefined;
     props.tabs = ["Overview", "Specs", "Reviews"];
     props.onChange = (i: number) => updateProp("activeTab", i);
     return (
@@ -660,14 +587,26 @@ const ComponentPreview = ({
     props.size = Number(props.size) || 48;
     props.strokeWidth = Number(props.strokeWidth) || 4;
     props.duration = Number(props.duration) || 1000;
+    if (props.indeterminate) delete props.progress;
+    else props.progress = Number(props.progress) || 0;
+    delete props.indeterminate;
     if (!props.color) delete props.color;
+    if (!props.label) delete props.label;
+    // A spinner is too small to hold a label: its own default puts it beside.
+    if (props.progress === undefined && props.labelPosition === "center") {
+      delete props.labelPosition;
+    }
     return <Component {...props} />;
   }
 
   if (selectedComponentName === "LinearProgress") {
     props.progress = Number(props.progress) || 0;
-    props.height = Number(props.height) || 4;
+    if (!props.height) delete props.height;
+    if (!props.width) delete props.width;
+    else if (/^\d+$/.test(props.width)) props.width = Number(props.width);
     if (!props.color) delete props.color;
+    if (!props.trackColor) delete props.trackColor;
+    if (!props.label) delete props.label;
     return (
       <View style={{ width: "100%", maxWidth: 400 }}>
         <Component {...props} />
@@ -678,13 +617,23 @@ const ComponentPreview = ({
   if (selectedComponentName === "Snackbar") {
     props.duration = Number(props.duration) || 0;
     props.onDismiss = () => updateProp("visible", false);
-    props.action = { label: "Undo", onPress: () => {} };
+    // The neutral snackbar has no severity: "default" is the panel's name for it.
+    if (props.severity === "default") delete props.severity;
+    props.action = props.withAction
+      ? { label: "Undo", onClick: () => {} }
+      : undefined;
+    if (props.closable) props.onClose = () => updateProp("visible", false);
+    delete props.withAction;
+    delete props.closable;
     if (!props.icon) delete props.icon;
+    // Tall enough for the top and bottom positions to clear the button.
     return (
-      <View style={{ width: "100%", height: 160 }}>
-        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
-          Show Snackbar
-        </Button>
+      <View style={{ width: "100%", height: 200, alignItems: "center" }}>
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <Button variant="tonal" onClick={() => updateProp("visible", true)}>
+            Show Snackbar
+          </Button>
+        </View>
         <Component {...props} />
       </View>
     );
@@ -700,32 +649,6 @@ const ComponentPreview = ({
       <View style={{ width: "100%", height: 260 }}>
         <Component {...props} />
       </View>
-    );
-  }
-
-  if (selectedComponentName === "Modal") {
-    props.onClose = () => updateProp("visible", false);
-    const { children, ...modalProps } = props;
-    return (
-      <>
-        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
-          Open Modal
-        </Button>
-        <Component {...modalProps}>{children}</Component>
-      </>
-    );
-  }
-
-  if (selectedComponentName === "ConfirmDialog") {
-    props.onConfirm = () => updateProp("visible", false);
-    props.onCancel = () => updateProp("visible", false);
-    return (
-      <>
-        <Button variant="tonal" onClick={() => updateProp("visible", true)}>
-          Open Confirm Dialog
-        </Button>
-        <Component {...props} />
-      </>
     );
   }
 
@@ -887,22 +810,12 @@ const ComponentPreview = ({
     props.ratio = Number(props.ratio) || 1;
     return (
       <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props} radius="medium" bg="surfaceContainerHigh">
+        <Component {...props} radius="medium" background="surfaceContainerHigh">
           <Box variant="centered-column-flex" style={{ flex: 1 }}>
             <Typography variant="labelLarge">
               {`ratio ${props.ratio.toFixed(2)}`}
             </Typography>
           </Box>
-        </Component>
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "Center") {
-    return (
-      <View style={{ width: "100%", maxWidth: 420, height: 140 }}>
-        <Component {...props} style={{ flex: 1 }} bg="surfaceContainerHigh">
-          <Typography variant="labelLarge">Centred on both axes</Typography>
         </Component>
       </View>
     );
@@ -935,23 +848,6 @@ const ComponentPreview = ({
           <Typography variant="bodyMedium">Tab 0 content</Typography>
           <Typography variant="bodyMedium">Tab 1 content</Typography>
           <Typography variant="bodyMedium">Tab 2 content</Typography>
-        </Component>
-      </View>
-    );
-  }
-
-  if (selectedComponentName === "ListSection") {
-    return (
-      <View style={{ width: "100%", maxWidth: 420 }}>
-        <Component {...props}>
-          <ListItem
-            action={<Typography variant="bodySmall">Weekly</Typography>}
-            primaryText="Email digest"
-          />
-          <ListItem
-            action={<Typography variant="bodySmall">Instant</Typography>}
-            primaryText="Mentions"
-          />
         </Component>
       </View>
     );

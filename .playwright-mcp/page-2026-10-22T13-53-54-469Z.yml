@@ -1,0 +1,550 @@
+- generic [ref=f3e378]:
+  - generic [ref=f3e379]:
+    - link "Glowup home" [ref=f3e380] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f3e387]:
+        - generic [ref=f3e388]: Glowup
+        - generic [ref=f3e389]: Material You for React Native
+    - button "Search components and pages" [ref=f3e390] [cursor=pointer]:
+      - generic [ref=f3e391]: 󰍉
+      - generic [ref=f3e392]: Search
+      - generic [ref=f3e393]: Ctrl K
+    - button "Switch to dark theme" [ref=f3e394] [cursor=pointer]:
+      - generic [ref=f3e395]: 󰖔
+    - button "Open the repository on GitHub" [ref=f3e396] [cursor=pointer]:
+      - generic [ref=f3e397]: 󰊤
+  - generic [ref=f3e398]:
+    - navigation [ref=f3e399]:
+      - generic [ref=f3e401]:
+        - link "Overview" [ref=f3e402] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f3e403]:
+            - generic [ref=f3e404]: 󰚡
+            - generic [ref=f3e406]: Overview
+        - link "Getting started" [ref=f3e407] [cursor=pointer]:
+          - /url: /getting-started
+          - generic [ref=f3e408]:
+            - generic [ref=f3e409]: 󱓟
+            - generic [ref=f3e411]: Getting started
+        - link "Components" [ref=f3e412] [cursor=pointer]:
+          - /url: /components
+          - generic [ref=f3e413]:
+            - generic [ref=f3e414]: 󰕰
+            - generic [ref=f3e416]: Components
+        - link "Icons" [ref=f3e417] [cursor=pointer]:
+          - /url: /icons
+          - generic [ref=f3e418]:
+            - generic [ref=f3e419]: 󰠲
+            - generic [ref=f3e421]: Icons
+        - link "Theming" [ref=f3e422] [cursor=pointer]:
+          - /url: /theming
+          - generic [ref=f3e423]:
+            - generic [ref=f3e424]: 󰸌
+            - generic [ref=f3e426]: Theming
+        - link "Templates" [ref=f3e427] [cursor=pointer]:
+          - /url: /templates
+          - generic [ref=f3e428]:
+            - generic [ref=f3e429]: 󰛺
+            - generic [ref=f3e431]: Templates
+        - link "Notifications" [ref=f3e432] [cursor=pointer]:
+          - /url: /notifications
+          - generic [ref=f3e433]:
+            - generic [ref=f3e434]: 󰂜
+            - generic [ref=f3e436]: Notifications
+        - link "Device" [ref=f3e437] [cursor=pointer]:
+          - /url: /device
+          - generic [ref=f3e438]:
+            - generic [ref=f3e439]: 󰥑
+            - generic [ref=f3e441]: Device
+      - generic [ref=f3e443]:
+        - button "Open the package on npm" [ref=f3e444] [cursor=pointer]:
+          - generic [ref=f3e445]: 󰛷
+        - button "Open the repository on GitHub" [ref=f3e446] [cursor=pointer]:
+          - generic [ref=f3e447]: 󰊤
+    - generic [ref=f3e453]:
+      - generic [ref=f3e454]:
+        - generic [ref=f3e455]:
+          - generic [ref=f3e456]:
+            - generic [ref=f3e457]: 󰍉
+            - search "Filter components…" [ref=f3e458]
+          - generic [ref=f3e459]: 86 components
+        - generic [ref=f3e461]:
+          - generic [ref=f3e462]:
+            - generic [ref=f3e463]:
+              - generic [ref=f3e464]: 󰆧
+              - generic [ref=f3e465]: FOUNDATIONS
+              - generic [ref=f3e466]: "10"
+            - link "Typography" [ref=f3e467] [cursor=pointer]:
+              - /url: /components/Typography
+            - link "Divider" [ref=f3e470] [cursor=pointer]:
+              - /url: /components/Divider
+            - link "Paper" [ref=f3e473] [cursor=pointer]:
+              - /url: /components/Paper
+            - link "Card" [ref=f3e476] [cursor=pointer]:
+              - /url: /components/Card
+            - link "CardTitle" [ref=f3e479] [cursor=pointer]:
+              - /url: /components/CardTitle
+            - link "CardContent" [ref=f3e482] [cursor=pointer]:
+              - /url: /components/CardContent
+            - link "CardCover" [ref=f3e485] [cursor=pointer]:
+              - /url: /components/CardCover
+            - link "CardActions" [ref=f3e488] [cursor=pointer]:
+              - /url: /components/CardActions
+            - link "Icon" [ref=f3e491] [cursor=pointer]:
+              - /url: /components/Icon
+            - link "TouchableRipple" [ref=f3e494] [cursor=pointer]:
+              - /url: /components/TouchableRipple
+          - generic [ref=f3e497]:
+            - generic [ref=f3e498]:
+              - generic [ref=f3e499]: 󰳾
+              - generic [ref=f3e500]: ACTIONS
+              - generic [ref=f3e501]: "11"
+            - link "Button" [ref=f3e502] [cursor=pointer]:
+              - /url: /components/Button
+            - link "ProgressButton" [ref=f3e505] [cursor=pointer]:
+              - /url: /components/ProgressButton
+            - link "IconButton" [ref=f3e508] [cursor=pointer]:
+              - /url: /components/IconButton
+            - link "Chip" [ref=f3e511] [cursor=pointer]:
+              - /url: /components/Chip
+            - link "ChipGroup" [ref=f3e514] [cursor=pointer]:
+              - /url: /components/ChipGroup
+            - link "FAB" [ref=f3e517] [cursor=pointer]:
+              - /url: /components/FAB
+            - link "SpeedDial" [ref=f3e520] [cursor=pointer]:
+              - /url: /components/SpeedDial
+            - link "ToggleButton" [ref=f3e523] [cursor=pointer]:
+              - /url: /components/ToggleButton
+            - link "ToggleButtonGroup" [ref=f3e526] [cursor=pointer]:
+              - /url: /components/ToggleButtonGroup
+            - link "ButtonGroup" [ref=f3e529] [cursor=pointer]:
+              - /url: /components/ButtonGroup
+            - link "SplitButton" [ref=f3e532] [cursor=pointer]:
+              - /url: /components/SplitButton
+          - generic [ref=f3e535]:
+            - generic [ref=f3e536]:
+              - generic [ref=f3e537]: 󰘎
+              - generic [ref=f3e538]: INPUTS
+              - generic [ref=f3e539]: "18"
+            - link "Input" [ref=f3e540] [cursor=pointer]:
+              - /url: /components/Input
+            - link "Select" [ref=f3e543] [cursor=pointer]:
+              - /url: /components/Select
+            - link "Checkbox" [ref=f3e546] [cursor=pointer]:
+              - /url: /components/Checkbox
+            - link "CheckboxGroup" [ref=f3e549] [cursor=pointer]:
+              - /url: /components/CheckboxGroup
+            - link "RadioButton" [ref=f3e552] [cursor=pointer]:
+              - /url: /components/RadioButton
+            - link "RadioGroup" [ref=f3e555] [cursor=pointer]:
+              - /url: /components/RadioGroup
+            - link "Switch" [ref=f3e558] [cursor=pointer]:
+              - /url: /components/Switch
+            - link "Slider" [ref=f3e561] [cursor=pointer]:
+              - /url: /components/Slider
+            - link "NumberField" [ref=f3e564] [cursor=pointer]:
+              - /url: /components/NumberField
+            - link "SearchBar" [ref=f3e567] [cursor=pointer]:
+              - /url: /components/SearchBar
+            - link "Autocomplete" [ref=f3e570] [cursor=pointer]:
+              - /url: /components/Autocomplete
+            - link "PinInput" [ref=f3e573] [cursor=pointer]:
+              - /url: /components/PinInput
+            - link "FormControl" [ref=f3e576] [cursor=pointer]:
+              - /url: /components/FormControl
+            - link "DateTimePicker" [ref=f3e579] [cursor=pointer]:
+              - /url: /components/DateTimePicker
+            - link "DatePicker" [ref=f3e582] [cursor=pointer]:
+              - /url: /components/DatePicker
+            - link "TimePicker" [ref=f3e585] [cursor=pointer]:
+              - /url: /components/TimePicker
+            - link "Rating" [ref=f3e588] [cursor=pointer]:
+              - /url: /components/Rating
+            - link "HelperText" [ref=f3e591] [cursor=pointer]:
+              - /url: /components/HelperText
+          - generic [ref=f3e594]:
+            - generic [ref=f3e595]:
+              - generic [ref=f3e596]: 󱇙
+              - generic [ref=f3e597]: DATA DISPLAY
+              - generic [ref=f3e598]: "17"
+            - link "Avatar" [ref=f3e599] [cursor=pointer]:
+              - /url: /components/Avatar
+            - link "Badge" [ref=f3e602] [cursor=pointer]:
+              - /url: /components/Badge
+            - link "StatusBadge" [ref=f3e605] [cursor=pointer]:
+              - /url: /components/StatusBadge
+            - link "DataGrid" [ref=f3e608] [cursor=pointer]:
+              - /url: /components/DataGrid
+            - link "Table" [ref=f3e611] [cursor=pointer]:
+              - /url: /components/Table
+            - link "ListItem" [ref=f3e614] [cursor=pointer]:
+              - /url: /components/ListItem
+            - link "ListSection" [ref=f3e617] [cursor=pointer]:
+              - /url: /components/ListSection
+            - link "ListSubheader" [ref=f3e620] [cursor=pointer]:
+              - /url: /components/ListSubheader
+            - link "Tooltip" [ref=f3e623] [cursor=pointer]:
+              - /url: /components/Tooltip
+            - link "Accordion" [ref=f3e626] [cursor=pointer]:
+              - /url: /components/Accordion
+            - link "Carousel" [ref=f3e629] [cursor=pointer]:
+              - /url: /components/Carousel
+            - link "Stat" [ref=f3e632] [cursor=pointer]:
+              - /url: /components/Stat
+            - link "CaptionValue" [ref=f3e635] [cursor=pointer]:
+              - /url: /components/CaptionValue
+            - link "Image" [ref=f3e638] [cursor=pointer]:
+              - /url: /components/Image
+            - link "Link" [ref=f3e641] [cursor=pointer]:
+              - /url: /components/Link
+            - link "IFrame" [ref=f3e644] [cursor=pointer]:
+              - /url: /components/IFrame
+            - link "Blink" [ref=f3e647] [cursor=pointer]:
+              - /url: /components/Blink
+          - generic [ref=f3e650]:
+            - generic [ref=f3e651]:
+              - generic [ref=f3e652]: 󰨄
+              - generic [ref=f3e653]: FEEDBACK
+              - generic [ref=f3e654]: "15"
+            - link "Snackbar" [ref=f3e655] [cursor=pointer]:
+              - /url: /components/Snackbar
+            - link "Banner" [ref=f3e658] [cursor=pointer]:
+              - /url: /components/Banner
+            - link "Dialog" [ref=f3e661] [cursor=pointer]:
+              - /url: /components/Dialog
+            - link "ConfirmDialog" [ref=f3e664] [cursor=pointer]:
+              - /url: /components/ConfirmDialog
+            - link "Form" [ref=f3e667] [cursor=pointer]:
+              - /url: /components/Form
+            - link "Popover" [ref=f3e670] [cursor=pointer]:
+              - /url: /components/Popover
+            - link "BottomSheet" [ref=f3e673] [cursor=pointer]:
+              - /url: /components/BottomSheet
+            - link "Menu" [ref=f3e676] [cursor=pointer]:
+              - /url: /components/Menu
+            - link "Skeleton" [ref=f3e679] [cursor=pointer]:
+              - /url: /components/Skeleton
+            - link "CircularProgress" [ref=f3e682] [cursor=pointer]:
+              - /url: /components/CircularProgress
+            - link "LinearProgress" [ref=f3e685] [cursor=pointer]:
+              - /url: /components/LinearProgress
+            - link "EmptyState" [ref=f3e688] [cursor=pointer]:
+              - /url: /components/EmptyState
+            - link "Toast" [ref=f3e691] [cursor=pointer]:
+              - /url: /components/Toast
+            - link "Collapse" [ref=f3e694] [cursor=pointer]:
+              - /url: /components/Collapse
+            - link "Portal" [ref=f3e697] [cursor=pointer]:
+              - /url: /components/Portal
+          - generic [ref=f3e700]:
+            - generic [ref=f3e701]:
+              - generic [ref=f3e702]: 󰆌
+              - generic [ref=f3e703]: NAVIGATION
+              - generic [ref=f3e704]: "10"
+            - link "AppBar" [ref=f3e705] [cursor=pointer]:
+              - /url: /components/AppBar
+            - link "NavBar" [ref=f3e708] [cursor=pointer]:
+              - /url: /components/NavBar
+            - link "NavigationRail" [ref=f3e711] [cursor=pointer]:
+              - /url: /components/NavigationRail
+            - link "Drawer" [ref=f3e714] [cursor=pointer]:
+              - /url: /components/Drawer
+            - link "Toolbar" [ref=f3e717] [cursor=pointer]:
+              - /url: /components/Toolbar
+            - link "Tabs" [ref=f3e720] [cursor=pointer]:
+              - /url: /components/Tabs
+            - link "TabContent" [ref=f3e723] [cursor=pointer]:
+              - /url: /components/TabContent
+            - link "Breadcrumbs" [ref=f3e726] [cursor=pointer]:
+              - /url: /components/Breadcrumbs
+            - link "Pagination" [ref=f3e729] [cursor=pointer]:
+              - /url: /components/Pagination
+            - link "Stepper" [ref=f3e732] [cursor=pointer]:
+              - /url: /components/Stepper
+          - generic [ref=f3e735]:
+            - generic [ref=f3e736]:
+              - generic [ref=f3e737]: 󰨝
+              - generic [ref=f3e738]: LAYOUT
+              - generic [ref=f3e739]: "5"
+            - link "Box" [ref=f3e740] [cursor=pointer]:
+              - /url: /components/Box
+            - link "Stack" [ref=f3e743] [cursor=pointer]:
+              - /url: /components/Stack
+            - link "Grid" [ref=f3e746] [cursor=pointer]:
+              - /url: /components/Grid
+            - link "AspectRatio" [ref=f3e749] [cursor=pointer]:
+              - /url: /components/AspectRatio
+            - link "Spacer" [ref=f3e752] [cursor=pointer]:
+              - /url: /components/Spacer
+      - generic [ref=f3e758]:
+        - generic [ref=f3e759]:
+          - generic [ref=f3e760]: ACTIONS · 11 / 86
+          - generic [ref=f3e761]: Button
+          - generic [ref=f3e762]: "The main action control: filled, tonal, outlined or text, with colour roles, icons and a loading state."
+          - link "View Button source on GitHub" [ref=f3e763] [cursor=pointer]:
+            - generic [ref=f3e764]: 󱀫
+            - generic [ref=f3e765]: packages/ui/src/components/Button.tsx
+        - generic [ref=f3e766]:
+          - generic [ref=f3e767]:
+            - generic [ref=f3e768]: Example
+            - 'radiogroup "Button example: stage width" [ref=f3e769]':
+              - radio "360" [ref=f3e770] [cursor=pointer]:
+                - generic [ref=f3e771]: 󰄜
+              - radio "720" [ref=f3e773] [cursor=pointer]:
+                - generic [ref=f3e774]: 󰓶
+              - radio "Full" [ref=f3e776] [cursor=pointer]:
+                - generic [ref=f3e777]: 󰍹
+          - generic [ref=f3e780]:
+            - generic [ref=f3e781]:
+              - generic [ref=f3e782]: Profile
+              - generic [ref=f3e783]: You have unsaved changes.
+            - button "Save changes" [ref=f3e785] [cursor=pointer]:
+              - generic [ref=f3e786]:
+                - generic [ref=f3e787]: 󰠘
+                - generic [ref=f3e788]: Save changes
+          - generic [ref=f3e789]:
+            - generic [ref=f3e791]:
+              - generic [ref=f3e792]:
+                - generic [ref=f3e793]: Properties
+                - generic [ref=f3e794]: 8 controls
+              - generic [ref=f3e795]:
+                - generic [ref=f3e796]: Label
+                - textbox "Label" [ref=f3e799]: Save changes
+              - generic [ref=f3e800]:
+                - generic [ref=f3e801]: Variant
+                - listbox "Filled" [ref=f3e804] [cursor=pointer]:
+                  - generic [ref=f3e808]: 󰍝
+              - generic [ref=f3e811]:
+                - generic [ref=f3e812]: Color
+                - listbox "Primary" [ref=f3e815] [cursor=pointer]:
+                  - generic [ref=f3e819]: 󰍝
+              - generic [ref=f3e822]:
+                - generic [ref=f3e824]:
+                  - generic [ref=f3e825]: Icon Name
+                  - generic [ref=f3e826]:
+                    - generic [ref=f3e827]: 󰠘
+                    - textbox "Icon Name" [ref=f3e830]:
+                      - /placeholder: Type a name or search
+                      - text: content-save-outline
+                - button "Search icons for Icon Name" [ref=f3e831] [cursor=pointer]:
+                  - generic [ref=f3e832]: 󰍉
+              - generic [ref=f3e833]:
+                - generic [ref=f3e834]: Icon Position
+                - listbox "Start" [ref=f3e837] [cursor=pointer]:
+                  - generic [ref=f3e841]: 󰍝
+              - generic [ref=f3e844]:
+                - generic [ref=f3e845]: Full Width
+                - switch [ref=f3e846] [cursor=pointer]
+              - generic [ref=f3e850]:
+                - generic [ref=f3e851]: Disabled
+                - switch [ref=f3e852] [cursor=pointer]
+              - generic [ref=f3e856]:
+                - generic [ref=f3e857]: Loading
+                - switch [ref=f3e858] [cursor=pointer]
+            - generic [ref=f3e863]:
+              - generic [ref=f3e864]:
+                - generic [ref=f3e865]: Button.tsx
+                - generic [ref=f3e866]:
+                  - button "Reset to default" [disabled]:
+                    - generic [ref=f3e867] [cursor=pointer]:
+                      - generic [ref=f3e868]: 󰦛
+                      - generic [ref=f3e869]: Reset to default
+                  - button "Copy code" [ref=f3e870] [cursor=pointer]:
+                    - generic [ref=f3e871]: 󰆏
+              - generic [ref=f3e874]:
+                - generic [aria-hidden]: "import { useState } from \"react\"; import { Button, Divider, Typography, VStack } from \"@its/glowup-ui\"; const props = { children: \"Save changes\", iconName: \"content-save-outline\", }; export default function ButtonExample() { const [saves, setSaves] = useState(0); return ( <VStack spacing=\"m\" align=\"center\"> <VStack spacing=\"xs\" align=\"center\"> <Typography variant=\"titleMedium\">Profile</Typography> <Typography variant=\"bodySmall\" color=\"onSurfaceVariant\"> {saves === 0 ? \"You have unsaved changes.\" : `Saved ${saves} ${saves === 1 ? \"time\" : \"times\"}.`} </Typography> </VStack> <Divider /> <Button {...props} onClick={() => setSaves((n) => n + 1)} /> </VStack> ); }"
+                - 'textbox "Button example: code" [ref=f3e875]': "import { useState } from \"react\"; import { Button, Divider, Typography, VStack } from \"@its/glowup-ui\"; const props = { children: \"Save changes\", iconName: \"content-save-outline\", }; export default function ButtonExample() { const [saves, setSaves] = useState(0); return ( <VStack spacing=\"m\" align=\"center\"> <VStack spacing=\"xs\" align=\"center\"> <Typography variant=\"titleMedium\">Profile</Typography> <Typography variant=\"bodySmall\" color=\"onSurfaceVariant\"> {saves === 0 ? \"You have unsaved changes.\" : `Saved ${saves} ${saves === 1 ? \"time\" : \"times\"}.`} </Typography> </VStack> <Divider /> <Button {...props} onClick={() => setSaves((n) => n + 1)} /> </VStack> ); }"
+        - generic [ref=f3e876]:
+          - generic [ref=f3e877]: Variants
+          - generic [ref=f3e878]: The states and shapes this component is meant to be used in.
+          - generic [ref=f3e879]:
+            - generic [ref=f3e880]: Modes
+            - generic [ref=f3e882]:
+              - button "Save changes" [ref=f3e883] [cursor=pointer]
+              - button "Duplicate" [ref=f3e886] [cursor=pointer]
+              - button "Export CSV" [ref=f3e889] [cursor=pointer]
+              - button "Cancel" [ref=f3e892] [cursor=pointer]
+          - generic [ref=f3e895]:
+            - generic [ref=f3e896]: With icons
+            - generic [ref=f3e898]:
+              - button "New invoice" [ref=f3e899] [cursor=pointer]:
+                - generic [ref=f3e900]:
+                  - generic [ref=f3e901]: 󰐕
+                  - generic [ref=f3e902]: New invoice
+              - button "Download" [ref=f3e903] [cursor=pointer]:
+                - generic [ref=f3e904]:
+                  - generic [ref=f3e905]: 󰇚
+                  - generic [ref=f3e906]: Download
+              - button "Continue" [ref=f3e907] [cursor=pointer]:
+                - generic [ref=f3e908]:
+                  - generic [ref=f3e909]: Continue
+                  - generic [ref=f3e910]: 󰁔
+          - generic [ref=f3e911]:
+            - generic [ref=f3e912]: States
+            - generic [ref=f3e914]:
+              - button "Submitting" [disabled]:
+                - progressbar "Loading" [ref=f3e916] [cursor=pointer]
+              - button "Unavailable" [disabled]
+              - button "Locked" [disabled]:
+                - generic [ref=f3e921] [cursor=pointer]:
+                  - generic [ref=f3e922]: 󰍁
+                  - generic [ref=f3e923]: Locked
+          - generic [ref=f3e924]:
+            - generic [ref=f3e925]: Full width
+            - generic [ref=f3e927]:
+              - button "Confirm booking" [ref=f3e928] [cursor=pointer]:
+                - generic [ref=f3e929]:
+                  - generic [ref=f3e930]: 󰄬
+                  - generic [ref=f3e931]: Confirm booking
+              - button "Not now" [ref=f3e932] [cursor=pointer]
+          - generic [ref=f3e935]:
+            - generic [ref=f3e936]: With badge
+            - generic [ref=f3e938]:
+              - button "Filters" [ref=f3e939] [cursor=pointer]:
+                - generic [ref=f3e940]:
+                  - generic [ref=f3e941]: 󰈳
+                  - generic [ref=f3e942]: Filters
+              - button "Filters" [ref=f3e943] [cursor=pointer]:
+                - generic [ref=f3e944]:
+                  - generic [ref=f3e945]: 󰈶
+                  - generic [ref=f3e946]: Filters
+                  - generic [ref=f3e947]: "3"
+              - button "Inbox" [ref=f3e950] [cursor=pointer]:
+                - generic [ref=f3e951]:
+                  - generic [ref=f3e952]: Inbox
+                  - generic [ref=f3e953]: "12"
+              - button "Alerts" [ref=f3e956] [cursor=pointer]:
+                - generic [ref=f3e957]:
+                  - generic [ref=f3e958]: Alerts
+                  - generic [ref=f3e959]: 99+
+        - generic [ref=f3e962]:
+          - generic [ref=f3e963]: API reference
+          - generic [ref=f3e964]: Generated from the library's TypeScript, so it cannot drift from the implementation.
+          - generic [ref=f3e965]:
+            - generic [ref=f3e966]:
+              - generic [ref=f3e967]: Props
+              - generic [ref=f3e968]: 22 on ButtonProps
+            - generic [ref=f3e969]:
+              - generic [ref=f3e970]: Filter props
+              - generic [ref=f3e971]:
+                - generic [ref=f3e972]: 󰍉
+                - textbox "Filter props" [ref=f3e975]
+            - generic [ref=f3e976]:
+              - generic [ref=f3e977]:
+                - generic [ref=f3e978]: NAME
+                - generic [ref=f3e979]: TYPE
+                - generic [ref=f3e980]: DEFAULT
+                - generic [ref=f3e981]: DESCRIPTION
+              - generic [ref=f3e983]:
+                - generic [ref=f3e984]: accessibilityHint
+                - generic [ref=f3e986]: string
+                - generic [ref=f3e987]: —
+              - generic [ref=f3e990]:
+                - generic [ref=f3e991]: accessibilityLabel
+                - generic [ref=f3e993]: string
+                - generic [ref=f3e994]: —
+              - generic [ref=f3e997]:
+                - generic [ref=f3e998]: badge
+                - generic [ref=f3e1000]: number
+                - generic [ref=f3e1001]: —
+                - generic [ref=f3e1002]: "A count shown after the label (a `Badge`): active filters, unread items. Hidden at 0 or when left out."
+              - generic [ref=f3e1005]:
+                - generic [ref=f3e1006]: busy
+                - generic [ref=f3e1008]: boolean
+                - generic [ref=f3e1009]: "false"
+                - generic [ref=f3e1010]: "Blocks presses and announces the button as busy, but — unlike `loading` — keeps the label, the icon and the full-strength colours on screen."
+              - generic [ref=f3e1013]:
+                - generic [ref=f3e1014]: children
+                - generic [ref=f3e1016]: React.ReactNode
+                - generic [ref=f3e1017]: —
+              - generic [ref=f3e1020]:
+                - generic [ref=f3e1021]: color
+                - generic [ref=f3e1023]: ButtonColor
+                - generic [ref=f3e1024]: "\"primary\""
+                - generic [ref=f3e1025]: "Colour role. `error` is the destructive treatment (delete, discard); `success`, `warning`, `info` and `neutral` come from fixed hues kept off the seed."
+              - generic [ref=f3e1028]:
+                - generic [ref=f3e1029]: density
+                - generic [ref=f3e1031]: Density
+                - generic [ref=f3e1032]: —
+                - generic [ref=f3e1033]: "Control height. `\"dense\"` is for desktop forms and tables: about 36 px instead of 48."
+              - generic [ref=f3e1036]:
+                - generic [ref=f3e1037]: disabled
+                - generic [ref=f3e1039]: boolean
+                - generic [ref=f3e1040]: "false"
+              - generic [ref=f3e1043]:
+                - generic [ref=f3e1044]: feedback
+                - generic [ref=f3e1046]: boolean
+                - generic [ref=f3e1047]: "true"
+                - generic [ref=f3e1048]: "Report the press to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true."
+              - generic [ref=f3e1051]:
+                - generic [ref=f3e1052]: fullWidth
+                - generic [ref=f3e1054]: boolean
+                - generic [ref=f3e1055]: "false"
+                - generic [ref=f3e1056]: Stretch to fill the parent width.
+              - generic [ref=f3e1059]:
+                - generic [ref=f3e1060]: iconName
+                - generic [ref=f3e1062]: MaterialCommunityIconsGlyphs
+                - generic [ref=f3e1063]: —
+              - generic [ref=f3e1066]:
+                - generic [ref=f3e1067]: iconPosition
+                - generic [ref=f3e1069]: "\"start\" | \"end\""
+                - generic [ref=f3e1070]: "\"start\""
+                - generic [ref=f3e1071]: Icon side relative to the label.
+              - generic [ref=f3e1074]:
+                - generic [ref=f3e1075]: iconStyle
+                - generic [ref=f3e1077]: object
+                - generic [ref=f3e1078]: "{}"
+              - generic [ref=f3e1081]:
+                - generic [ref=f3e1082]: labelStyle
+                - generic [ref=f3e1084]: StyleProp<TextStyle>
+                - generic [ref=f3e1085]: —
+                - generic [ref=f3e1086]: Applied to the label text, after the theme's type style.
+              - generic [ref=f3e1089]:
+                - generic [ref=f3e1090]: loading
+                - generic [ref=f3e1092]: boolean
+                - generic [ref=f3e1093]: "false"
+              - generic [ref=f3e1096]:
+                - generic [ref=f3e1097]: onClick
+                - generic [ref=f3e1099]: () => void
+                - generic [ref=f3e1100]: —
+              - generic [ref=f3e1103]:
+                - generic [ref=f3e1104]: size
+                - generic [ref=f3e1106]: number
+                - generic [ref=f3e1107]: —
+              - generic [ref=f3e1110]:
+                - generic [ref=f3e1111]: style
+                - generic [ref=f3e1113]: object
+                - generic [ref=f3e1114]: "{}"
+              - generic [ref=f3e1117]:
+                - generic [ref=f3e1118]: testID
+                - generic [ref=f3e1120]: string
+                - generic [ref=f3e1121]: —
+              - generic [ref=f3e1124]:
+                - generic [ref=f3e1125]: type
+                - generic [ref=f3e1127]: "\"button\" | \"submit\""
+                - generic [ref=f3e1128]: "\"button\""
+                - generic [ref=f3e1129]: "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, on every platform. A button outside a `Form` ignores it. Defaults to `\"button\"`."
+              - generic [ref=f3e1132]:
+                - generic [ref=f3e1133]: underlay
+                - generic [ref=f3e1135]: React.ReactNode
+                - generic [ref=f3e1136]: —
+                - generic [ref=f3e1137]: "Drawn behind the label across the whole surface, clipped to its shape: a progress fill, a state animation. It receives no touches."
+              - generic [ref=f3e1140]:
+                - generic [ref=f3e1141]: variant
+                - generic [ref=f3e1143]: ButtonVariant
+                - generic [ref=f3e1144]: "\"filled\""
+        - generic [ref=f3e1146]:
+          - 'link "Previous component: TouchableRipple" [ref=f3e1147] [cursor=pointer]':
+            - /url: /components/TouchableRipple
+            - generic [ref=f3e1148]:
+              - generic [ref=f3e1149]: 󰅁
+              - generic [ref=f3e1150]:
+                - generic [ref=f3e1151]: Previous
+                - generic [ref=f3e1152]: TouchableRipple
+          - 'link "Next component: ProgressButton" [ref=f3e1153] [cursor=pointer]':
+            - /url: /components/ProgressButton
+            - generic [ref=f3e1154]:
+              - generic [ref=f3e1155]:
+                - generic [ref=f3e1156]: Next
+                - generic [ref=f3e1157]: ProgressButton
+              - generic [ref=f3e1158]: 󰅂

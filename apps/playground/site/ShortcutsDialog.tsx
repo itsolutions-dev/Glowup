@@ -26,11 +26,9 @@ export const ShortcutsDialog = ({
   return (
     <Dialog
       visible={visible}
-      onDismiss={onDismiss}
       onClose={onDismiss}
       title="Keyboard shortcuts"
       icon="keyboard-outline"
-      dismissable
     >
       <View style={styles.list}>
         {shortcuts.map((shortcut) => (

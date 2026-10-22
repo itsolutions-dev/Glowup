@@ -60,10 +60,30 @@ export const WithAction = () =>
     (t) =>
       t.show({
         message: "Chip moved to Buttons & actions.",
-        action: { label: "Undo", onPress: () => {} },
+        action: { label: "Undo", onClick: () => {} },
         duration: 0,
       }),
     "toast.show({ message, action })",
+  );
+
+export const Outlined = () =>
+  stage(
+    (t) =>
+      t.info("Sync paused while you are offline.", {
+        variant: "outlined",
+        position: "top-right",
+        duration: 0,
+      }),
+    "toast.info(message, { variant, position })",
+  );
+
+export const Closable = () =>
+  stage(
+    (t) =>
+      t.warning("Storage is almost full: 92% of 5 GB used.", {
+        onClose: () => {},
+      }),
+    "toast.warning(message, { onClose })",
   );
 
 export const Failure = () =>
@@ -91,7 +111,11 @@ export const TheApi = () => (
     <VStack spacing="xs" padding={8} background="surface" radius="medium">
       <Typography variant="bodySmall">const toast = useToast();</Typography>
       <Typography variant="bodySmall">
-        toast.show({"{ message, type?, duration?, icon?, action?, id? }"})
+        toast.show(
+        {
+          "{ message, severity?, variant?, position?, duration?, action?, onClose?, id? }"
+        }
+        )
       </Typography>
       <Typography variant="bodySmall">
         toast.success(msg) · toast.error(msg) · toast.hide(key?)

@@ -10,7 +10,7 @@ import {
 } from "@its/glowup-ui";
 
 // AlertProvider renders nothing on its own — it hosts the cross-platform alert
-// dialog (native Alert.alert on iOS/Android, this themed Modal on web). What
+// dialog (native Alert.alert on iOS/Android, this themed Dialog on web). What
 // the card can honestly show is the dialog it puts on screen, so these cells
 // mount the real provider stack and raise a real alert at mount.
 //
@@ -75,7 +75,7 @@ export const HostedDialog = () => (
           </div>
         </Paper>
         <Typography variant="bodySmall">
-          The dialog above is the provider&apos;s own web Modal — scrim, title
+          The dialog above is the provider&apos;s own web Dialog — scrim, title
           rule and one Button per entry in the buttons array.
         </Typography>
       </div>
@@ -138,7 +138,7 @@ export const TheApi = () => (
     </Button>
     <Typography variant="bodySmall">
       On iOS and Android the same call renders the OS dialog instead of this
-      Modal — one API, two presentations.
+      Dialog — one API, two presentations.
     </Typography>
   </div>
 );

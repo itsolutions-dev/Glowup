@@ -36,21 +36,21 @@ TextField, Toast, Tooltip, Transitions, Typeahead, Wrap.
 
 | NativeBase | Glowup | Note |
 |---|---|---|
-| Switch | `Toggle` | |
+| Switch | `Switch` | |
 | Tag | `Chip` | Glowup's also does selected/filter states |
 | Heading / Text | `Typography` | One component, M3 variant scale |
 | Progress | `LinearProgress` | plus `CircularProgress` |
-| Drawer | app-side since `0.5.0` (was `DrawerNavigation`) | responsive permanent/slide-over |
+| Drawer | `Drawer` | `variant="static"` (permanent) or `"swipeable"` (slide-over), on any edge; the navigator that drives it is app-side since `0.5.0` (was `DrawerNavigation`) |
 | Actionsheet | `BottomSheet` | |
 | AlertDialog | `ConfirmDialog` | |
 | Alert | `Banner` | M3 banner rather than an inline alert box |
 | Toast | `Snackbar` | the imperative API was the real gap — see below |
-| NumberInput | `NumericInput` | |
-| TextArea / TextField | `Input` | `multiline` + `numberOfLines` |
+| NumberInput | `NumberField` | |
+| TextArea / TextField | `Input` | `multiline` + `rows` |
 | Radio | `RadioButton` / `RadioGroup` | |
 | Breadcrumb | `Breadcrumbs` | |
 | Fab | `FAB` | plus `SpeedDial` |
-| Backdrop / Overlay | inside `Modal` / `BottomSheet` | not a standalone export |
+| Backdrop / Overlay | inside `Dialog` / `BottomSheet` | not a standalone export |
 | View / Pressable / Icon / Text | re-export `react-native` / `@expo/vector-icons` | no wrapper worth the indirection |
 
 ## Gaps closed on this branch
@@ -70,6 +70,12 @@ into a design system. The new primitives read spacing, shape and color straight 
 | `Grid` | SimpleGrid / Wrap — `columns` or responsive `minChildWidth` |
 | `AspectRatio` | AspectRatio |
 
+> The table records what this branch added. The API has since moved on: `Center` is gone
+> (`<Box variant="centered-flex">`), `Box` takes `padding` / `margin` / `background` and a `variant`
+> instead of `p` / `m` / `bg`, and `Grid` is a 12-column `container` whose items take a per-breakpoint
+> `size` (no `minChildWidth`). It no longer chunks its children into rows: it works the item widths
+> out from the container's measured width, which has the same effect.
+
 `Grid` chunks its children into explicit rows instead of letting them wrap. Wrapping plus a
 container `gap` overflows (`n × 100/n% + gap > 100%`) and silently drops to one column per row;
 chunking also keeps a short final row at column width instead of stretching it.
@@ -81,7 +87,7 @@ chunking also keeps a short final row at column width instead of stretching it.
   `useFormControl()`.
 - **`PinInput`** — OTP / PIN entry. Typing advances, Backspace retreats, and pasting a whole code
   into any cell fills the row (`maxLength` is deliberately *not* set — a longer string has to
-  reach `onChangeText` for paste and SMS autofill to work).
+  reach the change handler for paste and SMS autofill to work).
 - **`Autocomplete`** — NativeBase's Typeahead. Accent-insensitive matching, `description` lines,
   arrow/Enter/Escape navigation on web, `loading` state for server-side filtering. The list
   renders inside the field's own container rather than in a modal, because a modal steals focus
@@ -97,7 +103,7 @@ chunking also keeps a short final row at column width instead of stretching it.
   skeleton placeholder, a fallback for broken sources, and token-driven radius. `alt` is
   **required**.
 - **`Stat`** — labelled metric with a signed delta, trend arrow, and `invertTrendColors` for
-  metrics where down is good.
+  metrics where down is good (now `trendColor`, which takes any colour).
 - **`Collapse`** — animates between `collapsedHeight` and the *measured* content height, so it
   survives text reflow without a hardcoded height.
 
@@ -122,9 +128,9 @@ chunking also keeps a short final row at column width instead of stretching it.
 
 ## What Glowup has that NativeBase does not
 
-`DataGrid`, `DateTimePicker` / `DatePicker` / `TimePicker` / `Calendar` / `TimeSelect`, `Carousel`,
+`DataGrid`, `Table` (data driven), `DateTimePicker` / `DatePicker` / `TimePicker`, `Carousel`,
 `Rating`, `Pagination`, `Stepper`, `SpeedDial`, `EmptyState`, `SearchBar`, `StatusBadge`,
-`ToggleButtonGroup`, `LanguageSelector`, `IconBadge`,
+`ToggleButtonGroup`, `CaptionValue`, `IFrame`, `Blink`,
 `Paper`, and the whole Material You token system (`getStateColor`, `getGlowStyles`, dynamic
 light/dark).
 

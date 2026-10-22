@@ -135,6 +135,56 @@ export const UploadCard = () => (
   </View>
 );
 
+export const LabelPositions = () => (
+  <View style={stack}>
+    {(
+      [
+        "right",
+        "left",
+        "top-left",
+        "top-center",
+        "top-right",
+        "bottom-left",
+        "bottom-center",
+        "bottom-right",
+      ] as const
+    ).map((position) => (
+      <LinearProgress
+        key={position}
+        progress={0.6}
+        height={6}
+        label={position}
+        labelPosition={position}
+      />
+    ))}
+  </View>
+);
+
+export const InsideLabel = () => (
+  <View style={stack}>
+    <LinearProgress progress={0.4} label="40%" labelPosition="inside" />
+    <LinearProgress
+      progress={0.85}
+      label="Uploading 85%"
+      labelPosition="inside"
+    />
+    <LinearProgress
+      progress={0.6}
+      height={28}
+      label="60%"
+      labelPosition="inside"
+    />
+  </View>
+);
+
+export const Widths = () => (
+  <View style={stack}>
+    <LinearProgress progress={0.5} width={160} label="160 px" />
+    <LinearProgress progress={0.5} width="50%" label="50%" />
+    <LinearProgress progress={0.5} label="the whole width" />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Determinate",
@@ -160,5 +210,20 @@ export const variants: Variant[] = [
     name: "UploadCard",
     title: "Upload card",
     render: UploadCard,
+  },
+  {
+    name: "LabelPositions",
+    title: "Label positions",
+    render: LabelPositions,
+  },
+  {
+    name: "InsideLabel",
+    title: "Inside label",
+    render: InsideLabel,
+  },
+  {
+    name: "Widths",
+    title: "Widths",
+    render: Widths,
   },
 ];

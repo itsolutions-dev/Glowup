@@ -27,22 +27,58 @@ export const Trends = () => (
   </View>
 );
 
-/** `invertTrendColors` is for metrics where a fall is the good news. */
-export const InvertedTrend = () => (
+/**
+ * Up is `success`, down is `error` and flat neutral, unless `trendColor` says
+ * otherwise: pass it for a metric where a fall is the good news, a role or any colour.
+ */
+export const TrendColor = () => (
   <View style={row}>
     <Stat
       label="Failed builds"
       value="3"
       delta="42%"
       trend="down"
-      invertTrendColors
+      trendColor="success"
     />
     <Stat
       label="p95 latency"
       value="240 ms"
       delta="18%"
       trend="up"
-      invertTrendColors
+      trendColor="error"
+    />
+    <Stat
+      label="Waitlist"
+      value="1,380"
+      delta="9%"
+      trend="up"
+      trendColor="#6750A4"
+    />
+  </View>
+);
+
+/** `direction="row"` puts the label, the value and the delta on one line, for a dense strip of figures. */
+export const Direction = () => (
+  <View style={column}>
+    <Stat
+      label="Revenue"
+      value="€18,420"
+      delta="12.5%"
+      trend="up"
+      direction="row"
+    />
+    <Stat
+      label="Churn"
+      value="2.4%"
+      delta="0.8%"
+      trend="down"
+      direction="row"
+    />
+    <Stat
+      label="Active seats"
+      value="128"
+      icon="account-multiple-outline"
+      direction="row"
     />
   </View>
 );
@@ -94,7 +130,7 @@ export const OnAPanel = () => (
           value="18"
           delta="3.1%"
           trend="down"
-          invertTrendColors
+          trendColor="success"
         />
       </View>
     </Paper>
@@ -108,11 +144,18 @@ export const variants: Variant[] = [
     render: Trends,
   },
   {
-    name: "InvertedTrend",
-    title: "Inverted trend",
+    name: "TrendColor",
+    title: "Trend color",
     description:
-      "`invertTrendColors` is for metrics where a fall is the good news.",
-    render: InvertedTrend,
+      "Up is `success`, down is `error` and flat neutral, unless `trendColor` says otherwise: pass it for a metric where a fall is the good news, a role or any colour.",
+    render: TrendColor,
+  },
+  {
+    name: "Direction",
+    title: "Direction",
+    description:
+      '`direction="row"` puts the label, the value and the delta on one line, for a dense strip of figures.',
+    render: Direction,
   },
   {
     name: "WithIconsAndHelp",

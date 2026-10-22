@@ -50,3 +50,20 @@ export const ToolbarRow = () => (
     </HStack>
   </HStack>
 );
+
+/** `dividers` draws a vertical hairline between the children. */
+export const Dividers = () => (
+  <HStack
+    spacing="m"
+    dividers
+    align="center"
+    padding={16}
+    background="surfaceContainerLow"
+    radius="medium"
+    width={480}
+  >
+    <Typography variant="labelLarge">12 open</Typography>
+    <Typography variant="labelLarge">3 late</Typography>
+    <Typography variant="labelLarge">48 closed</Typography>
+  </HStack>
+);

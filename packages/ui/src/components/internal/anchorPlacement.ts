@@ -86,3 +86,67 @@ export const placeAnchored = (
         : { bottom: aboveEdge, left, width };
   }
 };
+
+/** The side of its anchor a floating card sits on. */
+export type PlacementSide = "top" | "bottom" | "left" | "right";
+
+/** A card's top-left corner in window coordinates, and the side it ended up on. */
+export interface SidePlacement {
+  left: number;
+  top: number;
+  side: PlacementSide;
+}
+
+const OPPOSITE: Record<PlacementSide, PlacementSide> = {
+  top: "bottom",
+  bottom: "top",
+  left: "right",
+  right: "left",
+};
+
+/**
+ * Places a card of `card` size on one `side` of `anchor`, `gap` away and
+ * centred along it. When that side has no room the card goes to the opposite
+ * one if that fits, and stays on the asked side if neither does; either way it
+ * slides back inside the window's `margin`s. All coordinates are the window's.
+ */
+export const placeOnSide = (
+  anchor: AnchorRect,
+  card: PlacementSize,
+  window: PlacementSize,
+  side: PlacementSide,
+  margin: number = 8,
+  gap: number = 8,
+): SidePlacement => {
+  const room: Record<PlacementSide, number> = {
+    top: anchor.y - margin,
+    bottom: window.height - (anchor.y + anchor.height) - margin,
+    left: anchor.x - margin,
+    right: window.width - (anchor.x + anchor.width) - margin,
+  };
+  const need =
+    (side === "top" || side === "bottom" ? card.height : card.width) + gap;
+  const used =
+    room[side] >= need || room[OPPOSITE[side]] < need ? side : OPPOSITE[side];
+
+  const centreX = anchor.x + (anchor.width - card.width) / 2;
+  const centreY = anchor.y + (anchor.height - card.height) / 2;
+  const raw = {
+    top: { left: centreX, top: anchor.y - gap - card.height },
+    bottom: { left: centreX, top: anchor.y + anchor.height + gap },
+    left: { left: anchor.x - gap - card.width, top: centreY },
+    right: { left: anchor.x + anchor.width + gap, top: centreY },
+  }[used];
+
+  return {
+    left: Math.max(
+      margin,
+      Math.min(raw.left, window.width - card.width - margin),
+    ),
+    top: Math.max(
+      margin,
+      Math.min(raw.top, window.height - card.height - margin),
+    ),
+    side: used,
+  };
+};

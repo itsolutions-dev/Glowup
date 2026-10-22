@@ -1,7 +1,7 @@
 import React from "react";
-import { ConfirmDialog, Typography } from "@its/glowup-ui";
+import { ConfirmDialog, Typography, useTheme } from "@its/glowup-ui";
 
-// ConfirmDialog wraps Modal, which portals into document.body with a
+// ConfirmDialog wraps Dialog, which portals into document.body with a
 // position: fixed scrim — it fills the capture viewport, not the card.
 // Needs cfg.overrides { cardMode: "single", viewport: "560x400" }.
 const backdrop: React.CSSProperties = {
@@ -55,3 +55,54 @@ export const DefaultLabels = () => (
     />
   </div>
 );
+
+export const MustAnswer = () => (
+  <div style={backdrop}>
+    <Typography variant="headlineSmall">Account</Typography>
+    <Typography variant="bodyMedium">3 devices signed in</Typography>
+    <ConfirmDialog
+      visible
+      icon="logout"
+      title="Sign out everywhere?"
+      message="A click outside and Escape are ignored: the answer has to be one of the buttons."
+      confirmText="Sign out"
+      cancelText="Stay signed in"
+      dismissable={false}
+      onConfirm={() => {}}
+      onCancel={() => {}}
+    />
+  </div>
+);
+
+export const CustomSlots = () => {
+  const { theme } = useTheme();
+  return (
+    <div style={backdrop}>
+      <Typography variant="headlineSmall">Theme</Typography>
+      <Typography variant="bodyMedium">Baseline, light</Typography>
+      <ConfirmDialog
+        visible
+        icon="palette-outline"
+        title="Apply this theme?"
+        message="slotStyles overrides the backdrop, the card, the title and the row of actions."
+        confirmText="Apply"
+        cancelText="Later"
+        slotStyles={{
+          backdrop: {
+            backgroundColor: theme.colors.primaryContainer,
+            opacity: 0.7,
+          },
+          container: {
+            borderRadius: theme.shape.small,
+            borderWidth: 2,
+            borderColor: theme.colors.primary,
+          },
+          title: { color: theme.colors.primary },
+          actions: { justifyContent: "space-between" },
+        }}
+        onConfirm={() => {}}
+        onCancel={() => {}}
+      />
+    </div>
+  );
+};

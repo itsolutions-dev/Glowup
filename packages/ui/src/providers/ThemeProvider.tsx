@@ -308,7 +308,10 @@ export const getStateColor = (
     press: 0.12,
   };
   const weight = opacities[state] || 0;
-  return mix(weight, stateColor, baseColor);
+  // `mix` against the keyword `transparent` returns the state colour fully
+  // opaque, which paints a solid disc over a standard `IconButton` on hover.
+  const base = baseColor === "transparent" ? "rgba(0, 0, 0, 0)" : baseColor;
+  return mix(weight, stateColor, base);
 };
 
 export const getGlowStyles = (

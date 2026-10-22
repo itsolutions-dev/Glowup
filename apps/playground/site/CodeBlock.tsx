@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  type StyleProp,
   type TextStyle,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -18,11 +19,55 @@ interface CodeBlockProps {
   language?: "tsx" | "bash" | "json";
 }
 
-const MONOSPACE = Platform.select({
+export const MONOSPACE = Platform.select({
   ios: "Menlo",
   android: "monospace",
   default: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
 });
+
+/**
+ * The tokens of a snippet as coloured `Text` runs, in the type of the site's
+ * code: what `CodeBlock` shows, and what the live editor draws under its field.
+ */
+export const HighlightedText = ({
+  code,
+  language = "tsx",
+  selectable,
+  hidden,
+  style,
+}: {
+  code: string;
+  language?: "tsx" | "bash" | "json";
+  selectable?: boolean;
+  /** Hidden from assistive technology, for a copy that only decorates. */
+  hidden?: boolean;
+  style?: StyleProp<TextStyle>;
+}) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+  const tokens = useMemo(
+    () => (language === "tsx" ? highlight(code) : [{ text: code }]),
+    [code, language],
+  );
+
+  return (
+    <Text
+      selectable={selectable}
+      aria-hidden={hidden}
+      style={[styles.code, style]}
+    >
+      {tokens.map((token, index) =>
+        token.kind ? (
+          <Text key={index} style={styles[token.kind]}>
+            {token.text}
+          </Text>
+        ) : (
+          token.text
+        ),
+      )}
+    </Text>
+  );
+};
 
 /**
  * A snippet with a copy button. Every code sample on the site goes through
@@ -37,10 +82,6 @@ export const CodeBlock = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [copied, setCopied] = useState(false);
-  const tokens = useMemo(
-    () => (language === "tsx" ? highlight(code) : [{ text: code }]),
-    [code, language],
-  );
 
   const copy = useCallback(async () => {
     await Clipboard.setStringAsync(code);
@@ -70,17 +111,7 @@ export const CodeBlock = ({
       {/* Code is the one thing allowed to scroll sideways: wrapping a JSX
           sample at a phone width makes it unreadable. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <Text selectable style={styles.code}>
-          {tokens.map((token, index) =>
-            token.kind ? (
-              <Text key={index} style={styles[token.kind]}>
-                {token.text}
-              </Text>
-            ) : (
-              token.text
-            ),
-          )}
-        </Text>
+        <HighlightedText code={code} language={language} selectable />
       </ScrollView>
     </View>
   );

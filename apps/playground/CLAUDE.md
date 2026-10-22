@@ -23,6 +23,40 @@ the embedded source differs from the file. A template that switches layout measu
 container with `onLayout`, never the window: it must reflow on the stage's 360 / 720 widths,
 and a first render at width 0 matches the prerendered HTML.
 
+## The examples
+
+`catalogue/examples/*.tsx` are components written the way an app would write them, with data
+(a team table, a product grid, an inbox), shown under "Examples" on the page of the components
+they name. Like a template, an example is a **real file** — type-checked, linted, prettier-formatted
+— importing only `react`, `react-native`, `@its/glowup-ui` and the icon font, with a default export;
+`catalogue/examples/index.ts` lists each with its title, description and the pages that show it,
+and `catalogue/examples/generate.mjs` embeds the files' text into `sources.generated.ts` (committed;
+never hand-edit it) — **after editing an example, run `npm run examples -w @its/glowup-playground`**.
+`site/LiveExample.tsx` puts the file's code in an editor under the stage: while the text is
+untouched the stage shows the real component (so a page prerenders and hydrates like any other and
+nothing is evaluated); the first edit compiles the text in the browser (`site/liveCode.ts`: `sucrase`
+strips the types and the JSX, the imports resolve against the packages the site already bundles,
+`new Function` runs it), a compile error keeps the last good render and shows the message, a
+render error is caught by the stage's error boundary, and "Reset to default" puts the file back.
+Evaluation needs `new Function`: fine on the web and in jest; on a native engine without it the
+editor reports the error and the stage keeps the real component. `__tests__/examples.test.tsx`
+renders every example, checks its embedded source against the file and checks that compiling the
+text draws the same tree as the real component. No `new Date()`, `Date.now()` or `Math.random()`
+in an example: the page is prerendered.
+
+## The icons
+
+`/icons` (`app/icons.tsx`) lists every glyph of the icon font (read from `glyphMap`, never copied)
+with its name: search (`site/iconCatalog.ts` ranks the exact name, then names starting with the
+text, then whole words, then prefixes, then substrings), press an icon to select it and copy its
+name, copy the filtered list as JSON or download it. The grid (`site/IconGrid.tsx`) is virtualised:
+the font has about 7,400 glyphs. A catalogue prop declared `type: "icon"` gets the same search as
+its control (`site/PropControls.tsx` + `site/IconPicker.tsx`): the field still takes a typed name, and
+a button beside it opens the search; `withOutline: true` narrows it to icons that have an
+`-outline` twin (Rating). Every registry prop named like an icon must be `icon`, not `text`: a
+test pins it. The picker gives its body an explicit width on purpose: the dialog's card is as wide
+as its content and the grid picks its columns from its width, so left to itself it loops.
+
 ## Three generated artefacts, all committed
 
 - `docgen/props.generated.json` — every exported component's prop table, read from the
@@ -140,7 +174,7 @@ prompt, refusal, no library). It mocks
 `useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
 `expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise
-to `onPress` (`() => void toggleRecording()`): RTL 14 awaits it and the test deadlocks.
+to `onClick` (`() => void toggleRecording()`): RTL 14 awaits it and the test deadlocks.
 
 ## Keyboard
 
@@ -173,8 +207,8 @@ on every page). Six causes were found and fixed; keep them fixed:
   the font) drew glyphs where the HTML had none.
 - **The current time.** The export freezes the build's "now". Date and time stages start from
   `DEMO_DATE` (`catalogue/ComponentPreview.tsx`), never `new Date()`.
-- **The library's `Grid`** (`minChildWidth`) falls back to the window width before its first
-  layout pass; it reads it through a server snapshot too (`packages/ui`,
+- **The library's `Grid`** (`autoSize` and the per-breakpoint `size`) picks its columns from the
+  window's size class; it reads the width through a server snapshot too (`packages/ui`,
   `components/internal/useWindowWidth.ts`).
 - **The OS colour scheme.** Node has none, a browser may be dark. The library's `ThemeProvider`
   reads `Appearance` through a server snapshot ("no preference") rather than `useColorScheme`.

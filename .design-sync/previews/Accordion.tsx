@@ -74,3 +74,57 @@ export const FaqGroup = () => (
     </Accordion>
   </div>
 );
+
+/** `variant="contained"` is a filled tonal panel with no border. */
+export const Contained = () => (
+  <div style={panel}>
+    <Accordion title="Shipping address" variant="contained" expanded>
+      Orders ship from the Milan warehouse within one business day.
+    </Accordion>
+    <Accordion title="Payment methods" variant="contained">
+      Hidden until expanded.
+    </Accordion>
+    <Accordion title="Returns and refunds" variant="contained">
+      Hidden until expanded.
+    </Accordion>
+  </div>
+);
+
+/** `icon` replaces the chevron, with a glyph name or any node. The chevron turns with the panel; a custom icon does not. */
+export const CustomIcon = () => (
+  <div style={panel}>
+    <Accordion title="Advanced options" icon="cog-outline">
+      Hidden until expanded.
+    </Accordion>
+    <Accordion
+      title="Billing"
+      icon={<StatusBadge label="New" type="success" />}
+      expanded
+    >
+      The icon slot takes any node, a badge here.
+    </Accordion>
+  </div>
+);
+
+/** `expanded` follows the parent when it changes, and `onClick` reports each toggle: one accordion open at a time. */
+export const OneAtATime = () => {
+  const [open, setOpen] = React.useState("shipping");
+  return (
+    <div style={panel}>
+      {[
+        ["shipping", "Shipping address", "Ships from the Milan warehouse."],
+        ["payment", "Payment methods", "Cards and bank transfer."],
+        ["returns", "Returns and refunds", "Within 30 days of delivery."],
+      ].map(([id, title, text]) => (
+        <Accordion
+          key={id}
+          title={title}
+          expanded={open === id}
+          onClick={(expanded) => setOpen(expanded ? id : "")}
+        >
+          {text}
+        </Accordion>
+      ))}
+    </div>
+  );
+};

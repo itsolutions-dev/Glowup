@@ -167,3 +167,29 @@ export const ReleaseNotes = () => (
     </BottomSheet>
   </div>
 );
+
+export const WithActions = () => (
+  <div style={behind}>
+    <BottomSheet
+      visible
+      title="Share preview"
+      showCloseButton
+      onClose={() => {}}
+      actions={
+        <>
+          <Button variant="text" onClick={() => {}}>
+            Cancel
+          </Button>
+          <Button variant="filled" onClick={() => {}}>
+            Copy link
+          </Button>
+        </>
+      }
+    >
+      <Typography variant="bodyMedium">
+        Anyone with the link sees this component page. The actions stay fixed
+        below the content, which scrolls on its own.
+      </Typography>
+    </BottomSheet>
+  </div>
+);

@@ -185,6 +185,39 @@ const ReleaseNotes = () => {
   );
 };
 
+const WithActions = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Button variant="tonal" iconName="share-variant" onClick={show}>
+        Share preview
+      </Button>
+      <BottomSheet
+        visible={open}
+        title="Share preview"
+        showCloseButton
+        onClose={hide}
+        actions={
+          <>
+            <Button variant="text" onClick={hide}>
+              Cancel
+            </Button>
+            <Button variant="filled" onClick={hide}>
+              Copy link
+            </Button>
+          </>
+        }
+      >
+        <Typography variant="bodyMedium">
+          Anyone with the link sees this component page. The actions stay fixed
+          below the content, which scrolls on its own.
+        </Typography>
+      </BottomSheet>
+    </View>
+  );
+};
+
 export const variants: Variant[] = [
   { name: "FilterSheet", title: "Filter sheet", render: FilterSheet },
   { name: "ActionSheet", title: "Action sheet", render: ActionSheet },
@@ -200,5 +233,12 @@ export const variants: Variant[] = [
     title: "Release notes",
     description: "maxHeightRatio caps the sheet at half the window.",
     render: ReleaseNotes,
+  },
+  {
+    name: "WithActions",
+    title: "With actions",
+    description:
+      "actions pins a row of buttons below a divider; showCloseButton adds a close icon to the title row.",
+    render: WithActions,
   },
 ];

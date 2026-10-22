@@ -8,7 +8,7 @@
   is why `expo-localization` (replaced by `Intl`) and `expo-status-bar` (the `StatusBar`
   component moved into the playground) are gone. `polished` is the only real dependency.
   The library is **navigation-agnostic**: it must never
-  depend on `@react-navigation/*`. It ships navigation widgets (`AppBar`, `NavigationBar`,
+  depend on `@react-navigation/*`. It ships navigation widgets (`AppBar`, `NavBar`, `Drawer`,
   `Tabs`, `Breadcrumbs`, `Pagination`, `Stepper`) but no navigator — that belongs to the
   consuming app.
 - Source maps are **not published**. `sourceMaps: false` on bob's babel targets drops the
@@ -70,7 +70,7 @@ supports a manual toggle.
   (default true), calls `useInteractionFeedback(feedback)` and emits **before** its handler,
   only on a press that does something. The library plays no haptic itself and must not depend on
   a haptics module: `@its/glowup-device/haptics` is wired in by the app.
-- `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom Modal on
+- `AlertProvider` — cross-platform alert: native `Alert.alert` on iOS/Android, custom `Dialog` on
   web. Call the `Alert(title, message, buttons)` singleton; `AlertProvider` wires it up
   (`AlertProviderWrapper` is a deprecated pass-through).
-- `ToastProvider` — imperative queued toasts via `useToast()`.
+- `ToastProvider` — imperative queued toasts via `useToast()` (`position` sets where they appear).

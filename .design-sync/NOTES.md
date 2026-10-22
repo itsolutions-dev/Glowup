@@ -53,8 +53,8 @@ loader and no asset loaders — all four are required here. Rather than fork
 - `Alert` — the imperative `Alert(title, message, buttons)` singleton, not a component.
   Excluded; it is documented in `conventions.md` instead.
 - `SafeAreaProvider` — re-exported from the barrel purely so `cfg.provider` can mount it
-  (AppBar and SpeedDial read safe-area insets and throw without it). Excluded from the
-  component list.
+  (AppBar, Toolbar, FAB, SpeedDial and a swipeable Drawer read safe-area insets and throw
+  without it). Excluded from the component list.
 - `DateTimePicker` is pinned to `DateTimePicker.web` in the barrel. Since the 2026-09-09
   Material 3 rebuild the native implementation no longer pulls
   `react-native-modal-datetime-picker` (it is a plain RN `Modal`, which react-native-web
@@ -67,15 +67,17 @@ loader and no asset loaders — all four are required here. Rather than fork
 
 `SafeAreaProvider` › `ThemeProvider` › `AlertProvider`. All three are required:
 `ThemeProvider` supplies every colour/type/spacing token (nothing is styled without it),
-`AlertProvider` backs `ConfirmDialog`/`Alert`, `SafeAreaProvider` backs AppBar/SpeedDial.
+`AlertProvider` backs the imperative `Alert()`, `SafeAreaProvider` backs AppBar/SpeedDial and
+the other inset readers.
 
 ## Lib forks (`cfg.libOverrides`)
 
-- `source-kit.mjs` — adds `list`, `modal`, `progress`, `tab`, `togglebutton` to
+- `source-kit.mjs` — adds `list`, `dialog`, `progress`, `tab`, `togglebutton` to
   `GENERIC_DIR`. Those are file-organisation dirs under `src/components/`, not DS groups;
-  without the fork `ConfirmDialog` lands in `modal/` while `Modal` itself lands in
+  without the fork `ConfirmDialog` lands in `dialog/` while `Dialog` itself lands in
   `feedback-overlays/`. Real grouping comes from the `category` frontmatter, and that only
-  applies when the src-derived group is generic.
+  applies when the src-derived group is generic. (The folder was `Modal/` before the batch 2
+  rename: the fork's list has to name the folder as it is today.)
 - `dts.mjs` — allowlists `FAB` in `isComponentName`. The ALL-CAPS-means-a-constant rule
   silently dropped a real Material component.
 - Both forks need `.design-sync/node_modules` → `.ds-sync/node_modules` (they import
@@ -85,7 +87,7 @@ loader and no asset loaders — all four are required here. Rather than fork
 
 ## Docs and groups
 
-`packages/ui/src/components/components.md` is a 670-line spec with a `### <Component>`
+`packages/ui/src/components/components.md` is the spec, with a `### <Component>`
 section per component under `## N. <Group>` headings. `.design-sync/split-docs.mjs`
 explodes it into `.design-sync/docs/<Name>.md` (with `category:` frontmatter, which drives
 the card group) plus `.design-sync/guidelines/design-system.md` (the M3 token tables,
@@ -103,7 +105,7 @@ because the script wipes that directory on every run.
   the dialog is a react-native-web `Modal`, i.e. a real `createPortal` into
   `document.body`, so nothing measurable stays inside the card root. The screenshot is a
   full, correctly styled M3 dialog (verified 2026-09-09). Any portal-based card with
-  `cardMode: single` can print this; `Modal`, `BottomSheet`, `Popover` and `Menu` happen
+  `cardMode: single` can print this; `Dialog`, `BottomSheet`, `Popover` and `Menu` happen
   not to because their compositions leave measurable content behind.
 - esbuild `direct-eval` warning on `eval("require")("node:crypto")` inside the prebundled
   entry (expo-modules-core's uuid path). Harmless in a browser; the code path isn't taken.
@@ -224,8 +226,9 @@ Learned while authoring; a future sync should not have to rediscover them.
 - **`TabContent` has `flex: 1`** and collapses without a wrapper of explicit height.
 - **`Carousel`**: don't pass `height` — the page wrapper doesn't stretch its child, so the
   slide floats at the top and the dots get pushed away. Put `minHeight` on the slide.
-- **`NavigationBar` strips a trailing `-outline`** from the active item's icon, so give
-  items the outline name and pick glyphs that have both variants.
+- **`NavBar` strips a trailing `-outline`** from the active item's icon (so do
+  `NavigationRail` and `DrawerItem`), so give items the outline name and pick glyphs that
+  have both variants.
 - **`Stepper`'s `Step.icon` only shows for incomplete steps**; completed steps always draw
   the check glyph.
 - `Chip` `filled` and `tonal` are visually very close in light mode — token question, not
@@ -235,8 +238,8 @@ Learned while authoring; a future sync should not have to rediscover them.
 - **`useTheme()` is exported from the barrel and works inside a preview** against the
   already-mounted provider - `theme.colors` / `.typography` / `.spacing` / `.shape` /
   `.isDark` all read cleanly, so colour-axis cells never need raw hexes.
-- **Portal vs sibling, tested not assumed.** `Modal`, `ConfirmDialog`, `BottomSheet`,
-  `Popover` and `Menu` all route through react-native-web's `Modal`, which is a real
+- **Portal vs sibling, tested not assumed.** `Dialog`, `ConfirmDialog`, `BottomSheet`,
+  `Popover`, `Menu` and a swipeable `Drawer` all route through react-native-web's `Modal`, which is a real
   `createPortal` into `document.body` - the card's `.ds-single` `translateZ(0)`
   containing block does NOT contain a portal, so each needs `cardMode: single` plus a
   card-sized `viewport`. `Snackbar` and `Tooltip` are absolutely-positioned _siblings_
@@ -246,23 +249,23 @@ Learned while authoring; a future sync should not have to rediscover them.
   on the first focusable child. That is the product's real open state; don't suppress it,
   but do put the primary action first so the ring doesn't land somewhere that reads as an
   error.
-- **`Alert()` is bound by `AlertProviderWrapper`, which `cfg.provider` does not mount** -
-  so `Alert()` is a no-op warning inside an ordinary card. A preview that needs a live
-  dialog mounts the `AlertProvider` > `AlertProviderWrapper` stack itself, and must queue
-  the call through `setTimeout(..., 0)`: the wrapper's effect (which assigns the
-  module-level `alertRef`) runs _after_ its children's.
+- **`Alert()` is bound by `AlertProvider`, which `cfg.provider` mounts** (`AlertProviderWrapper`
+  is a deprecated pass-through). A preview that needs a live dialog must queue the call
+  through `setTimeout(..., 0)`: the provider's effect (which assigns the module-level
+  `alertRef`) runs _after_ its children's.
 - **`Skeleton` on an elevated `Paper` is near-invisible** - placeholder
   `surfaceContainerHighest` (#EDE7F0) vs `Paper elevation={1}` `surfaceContainerLow`
   (#F7F2FA) is a ~4% delta and the pulse takes it below that. Put skeletons on `surface`
   (`<Paper elevation={0} outline>`).
-- **`CircularProgress` has no determinate mode** - only `size`/`strokeWidth`/`color`/
-  `duration`. `Spinner` is a _number stepper_, not a loading spinner.
+- **`CircularProgress` is a spinner until it gets a `progress`** (0-1), which makes it a
+  determinate ring over a track. `NumberField` is a _number stepper_, not a loading spinner.
 - **`Select` renders `label` only for `variant="outlined"`**; the filled closed field is
   intentionally label-less.
 - `Select`, `Spinner` and `DateTimePicker` each carry their own `marginBottom: 20` - don't
   add `gap` to a column of them. `Select`, `SearchBar`, `DateTimePicker`, `LinearProgress`
   and `EmptyState` are all `width: 100%` and need a width-constrained parent.
-- **`ListItem` takes `children`, not `title`.**
+- **`ListItem` takes `primaryText`, not `children` or `title`** (and `secondaryText`, `icon`,
+  `action`).
 - **The date/time pickers are one surface on every platform.** Since the Material 3
   rebuild there is no OS picker underneath, so what the capture shows on web is what an
   iOS or Android build shows too - the previous "native looks different" caveat is gone.
@@ -351,7 +354,7 @@ light-to-dark swap is interaction-only; the cards show the light side plus a liv
 `theme.isDark` readout, and `theme.json` documents the dark palette); `Skeleton`'s
 `duration`/`animate` props (the pulse is opacity-only, so a still catches an arbitrary
 phase and a side-by-side would read as "shorter duration = lighter", which is false - a
-`borderRadius` sweep replaced that cell); `Modal`'s `animationType` (all three settle to
+`borderRadius` sweep replaced that cell); `Dialog`'s `animationType` (all three settle to
 the same resting frame); `Popover`'s flip-above-anchor branch; `BottomSheet`'s
 drag-to-dismiss; and the native `Alert.alert` branch of `AlertProvider`, which cannot
 render in a browser at all and is described in copy instead of mocked up.

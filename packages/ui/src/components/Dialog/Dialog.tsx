@@ -1,6 +1,7 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useId, useMemo, useRef } from "react";
 import {
   Modal as NativeModal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -111,6 +112,26 @@ export interface DialogProps {
    * a scrolling body. Defaults to `false`.
    */
   fullScreen?: boolean;
+  /**
+   * The ARIA role of the card, for the web and for screen readers elsewhere.
+   * `"alertdialog"` marks a dialog that interrupts to ask for an answer (see
+   * `AlertDialog`); the title then names the card. Left out, the card has no
+   * role of its own and react-native-web's modal supplies `dialog`.
+   */
+  role?: "dialog" | "alertdialog";
+  /**
+   * The `nativeID` of the element that describes the dialog (an alert's
+   * message), set as `aria-describedby`. Only used with `role`.
+   */
+  describedBy?: string;
+  /**
+   * Web: where focus goes once the dialog is open. `"auto"` leaves it to the
+   * modal's focus trap, which takes the first focusable element (the close
+   * icon, or a field in the body). `"actions"` focuses the first control of
+   * the `actions` row, so an alert starts on its least destructive button.
+   * Ignored by `fullScreen`. Defaults to `"auto"`.
+   */
+  initialFocus?: "auto" | "actions";
   /** Style overrides for the parts of the dialog, merged after its own styles. */
   slotStyles?: DialogSlotStyles;
   /** Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`. */
@@ -118,6 +139,10 @@ export interface DialogProps {
 }
 
 const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
+
+/** What can take focus inside the actions row on the web. */
+const FOCUSABLE =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 interface CloseControlProps {
   icon: MaterialCommunityIconsGlyphs | React.ReactElement;
@@ -188,11 +213,31 @@ function Dialog({
   onSubmit,
   actions,
   fullScreen = false,
+  role,
+  describedBy,
+  initialFocus = "auto",
   slotStyles,
   testID = "dialog",
 }: DialogProps) {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const titleId = useId();
+  const actionsRef = useRef<View>(null);
+
+  // The modal calls this once it is on screen, before its focus trap looks for
+  // something to focus: focus already inside the dialog is left where it is.
+  const focusActions = useCallback(() => {
+    if (Platform.OS !== "web") return;
+    const row = actionsRef.current as unknown as HTMLElement | null;
+    row?.querySelector?.<HTMLElement>(FOCUSABLE)?.focus();
+  }, []);
+
+  const roleProps = role && {
+    role,
+    "aria-labelledby": title ? titleId : undefined,
+    "aria-describedby": describedBy,
+  };
+  const titleProps = role ? { nativeID: titleId } : undefined;
 
   // Read without requiring a SafeAreaProvider: only the full-screen dialog
   // uses the insets, and a plain dialog must keep working without one.
@@ -231,6 +276,7 @@ function Dialog({
             variant="titleLarge"
             numberOfLines={1}
             accessibilityRole="header"
+            {...titleProps}
             style={[styles.fullScreenTitle, slotStyles?.title]}
           >
             {title ?? ""}
@@ -255,6 +301,7 @@ function Dialog({
         <View
           testID={testID}
           accessibilityViewIsModal
+          {...roleProps}
           style={[
             styles.fullScreen,
             { paddingTop: insets.top, paddingBottom: insets.bottom },
@@ -287,7 +334,9 @@ function Dialog({
   ];
 
   const footer = actions ? (
-    <View style={[styles.actions, slotStyles?.actions]}>{actions}</View>
+    <View ref={actionsRef} style={[styles.actions, slotStyles?.actions]}>
+      {actions}
+    </View>
   ) : (
     // The text button stands in for the close icon, not next to it.
     !!onClose &&
@@ -313,6 +362,7 @@ function Dialog({
       transparent={transparent}
       visible={visible}
       onRequestClose={onEscape}
+      onShow={initialFocus === "actions" ? focusActions : undefined}
     >
       <View testID={testID} style={styles.overlay}>
         {/*
@@ -331,6 +381,7 @@ function Dialog({
 
         <View
           accessibilityViewIsModal
+          {...roleProps}
           style={[
             styles.modalContent,
             { maxWidth: MAX_WIDTHS[width] },
@@ -364,6 +415,7 @@ function Dialog({
                   <Title
                     variant="headlineMedium"
                     accessibilityRole="header"
+                    {...titleProps}
                     style={[
                       styles.modalTitleText,
                       closable && styles.titleInset,

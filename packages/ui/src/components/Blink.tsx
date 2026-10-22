@@ -22,7 +22,7 @@ export interface BlinkProps {
  * asks for reduced motion nothing blinks: the children stay at full opacity.
  *
  * ```tsx
- * <Blink><StatusBadge status="error" label="Offline" /></Blink>
+ * <Blink><StatusBadge type="error" label="Offline" /></Blink>
  * ```
  */
 const Blink = ({

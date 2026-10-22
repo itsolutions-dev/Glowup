@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View } from "react-native";
 import { Avatar, Button, Menu } from "@its/glowup-ui";
 import type { Variant } from "../types";
@@ -26,27 +27,27 @@ const ContextMenu = () => {
             id: "edit",
             label: "Edit props",
             icon: "pencil-outline",
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "duplicate",
             label: "Duplicate",
             icon: "content-copy",
             trailing: "Ctrl+D",
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "share",
             label: "Copy link",
             icon: "link-variant",
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "delete",
             label: "Delete",
             icon: "delete-outline",
             destructive: true,
-            onPress: () => {},
+            onClick: () => {},
           },
         ]}
       />
@@ -68,15 +69,15 @@ const WithDisabledItems = () => {
           </Button>
         }
         items={[
-          { id: "png", label: "PNG", icon: "image-outline", onPress: () => {} },
-          { id: "svg", label: "SVG", icon: "vector-square", onPress: () => {} },
+          { id: "png", label: "PNG", icon: "image-outline", onClick: () => {} },
+          { id: "svg", label: "SVG", icon: "vector-square", onClick: () => {} },
           {
             id: "figma",
             label: "Figma library",
             icon: "shape-outline",
             trailing: "Pro",
             disabled: true,
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "npm",
@@ -84,8 +85,82 @@ const WithDisabledItems = () => {
             icon: "package-variant-closed",
             trailing: "Pro",
             disabled: true,
-            onPress: () => {},
+            onClick: () => {},
           },
+        ]}
+      />
+    </View>
+  );
+};
+
+const Selected = () => {
+  const { open, show, hide } = useOverlayDemo();
+  const [chosen, setChosen] = useState(["system"]);
+
+  return (
+    <View style={demo.panel}>
+      <Menu
+        visible={open}
+        onClose={hide}
+        selected={chosen}
+        onClick={(item) => setChosen([item.id])}
+        anchor={
+          <Button variant="outlined" iconName="theme-light-dark" onClick={show}>
+            Appearance
+          </Button>
+        }
+        items={[
+          { id: "light", label: "Light", icon: "white-balance-sunny" },
+          { id: "dark", label: "Dark", icon: "weather-night" },
+          { id: "system", label: "System", icon: "laptop" },
+        ]}
+      />
+    </View>
+  );
+};
+
+const Dividers = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Menu
+        visible={open}
+        onClose={hide}
+        dividers
+        anchor={
+          <Button variant="tonal" iconName="sort" onClick={show}>
+            Sort by
+          </Button>
+        }
+        items={[
+          { id: "name", label: "Name", icon: "sort-alphabetical-ascending" },
+          { id: "date", label: "Date modified", icon: "calendar-outline" },
+          { id: "size", label: "Size", icon: "file-outline" },
+        ]}
+      />
+    </View>
+  );
+};
+
+const AnchorPosition = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Menu
+        visible={open}
+        onClose={hide}
+        anchorPosition={{ vertical: "top", horizontal: "right" }}
+        anchor={
+          <Button variant="outlined" iconName="dots-vertical" onClick={show}>
+            More
+          </Button>
+        }
+        items={[
+          { id: "pin", label: "Pin to top", icon: "pin-outline" },
+          { id: "archive", label: "Archive", icon: "archive-outline" },
+          { id: "mute", label: "Mute", icon: "bell-off-outline" },
         ]}
       />
     </View>
@@ -109,23 +184,23 @@ const AccountMenu = () => {
             id: "profile",
             label: "Marta Rossi",
             icon: "account-outline",
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "theme",
             label: "Appearance",
             icon: "theme-light-dark",
-            onPress: () => {},
+            onClick: () => {},
           },
           {
             id: "lang",
             label: "Language",
             icon: "translate",
             trailing: "IT",
-            onPress: () => {},
+            onClick: () => {},
           },
-          { id: "settings", label: "Settings", icon: "cog", onPress: () => {} },
-          { id: "logout", label: "Sign out", icon: "logout", onPress: hide },
+          { id: "settings", label: "Settings", icon: "cog", onClick: () => {} },
+          { id: "logout", label: "Sign out", icon: "logout", onClick: hide },
         ]}
       />
     </View>
@@ -138,6 +213,26 @@ export const variants: Variant[] = [
     name: "WithDisabledItems",
     title: "With disabled items",
     render: WithDisabledItems,
+  },
+  {
+    name: "Selected",
+    title: "Selected",
+    description:
+      "selected marks items with a check; the menu's onClick moves the mark.",
+    render: Selected,
+  },
+  {
+    name: "Dividers",
+    title: "Dividers",
+    description: "dividers draws a rule between every pair of items.",
+    render: Dividers,
+  },
+  {
+    name: "AnchorPosition",
+    title: "Anchor position",
+    description:
+      "anchorPosition opens the menu above the anchor, right edges aligned.",
+    render: AnchorPosition,
   },
   {
     name: "AccountMenu",

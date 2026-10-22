@@ -34,6 +34,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     summary: "Every component, live, with its generated API reference.",
   },
   {
+    href: "/icons",
+    label: "Icons",
+    icon: "shape-outline",
+    summary: "Every icon of the font by name: search, copy, export.",
+  },
+  {
     href: "/theming",
     label: "Theming",
     icon: "palette-outline",

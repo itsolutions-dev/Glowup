@@ -30,7 +30,7 @@ export const WithAction = () => (
       visible
       duration={0}
       message="Chip moved to Buttons & actions."
-      action={{ label: "Undo", onPress: () => {} }}
+      action={{ label: "Undo", onClick: () => {} }}
       onDismiss={() => {}}
     />
   </View>
@@ -50,7 +50,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="success"
+        severity="success"
         message="Published @its/glowup-ui 0.1.0 to the registry."
         onDismiss={() => {}}
       />
@@ -59,7 +59,7 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="warning"
+        severity="warning"
         message="Storage is almost full: 92% of 5 GB used."
         onDismiss={() => {}}
       />
@@ -68,9 +68,9 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="info"
+        severity="info"
         message="A new version of the app is available."
-        action={{ label: "Update", onPress: () => {} }}
+        action={{ label: "Update", onClick: () => {} }}
         onDismiss={() => {}}
       />
     </View>
@@ -78,9 +78,9 @@ export const Types = () => (
       <Snackbar
         visible
         duration={0}
-        type="error"
+        severity="error"
         message="Upload failed — the token file is larger than 2 MB."
-        action={{ label: "Retry", onPress: () => {} }}
+        action={{ label: "Retry", onClick: () => {} }}
         onDismiss={() => {}}
       />
     </View>
@@ -94,7 +94,7 @@ export const CustomIcon = () => (
       duration={0}
       icon="cloud-off-outline"
       message="Offline — 3 edits queued."
-      action={{ label: "Details", onPress: () => {} }}
+      action={{ label: "Details", onClick: () => {} }}
       onDismiss={() => {}}
     />
   </View>
@@ -107,6 +107,125 @@ export const LongMessage = () => (
       duration={0}
       message="Marta Rossi was invited to the shared component library and will receive read access once she signs in."
       onDismiss={() => {}}
+    />
+  </View>
+);
+
+export const Outlined = () => (
+  <View style={{ flexDirection: "column", gap: 12 }}>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        variant="outlined"
+        message="Changes saved."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        variant="outlined"
+        severity="success"
+        message="Published @its/glowup-ui 0.1.0 to the registry."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        variant="outlined"
+        severity="warning"
+        message="Storage is almost full: 92% of 5 GB used."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        variant="outlined"
+        severity="info"
+        message="A new version of the app is available."
+        action={{ label: "Update", onClick: () => {} }}
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        variant="outlined"
+        severity="error"
+        message="Upload failed — the token file is larger than 2 MB."
+        action={{ label: "Retry", onClick: () => {} }}
+        onDismiss={() => {}}
+      />
+    </View>
+  </View>
+);
+
+export const Positions = () => (
+  <View style={{ flexDirection: "column", gap: 12 }}>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        position="top-left"
+        message="Top left."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        position="top-center"
+        message="Top center."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        position="top-right"
+        message="Top right."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        position="bottom-left"
+        message="Bottom left."
+        onDismiss={() => {}}
+      />
+    </View>
+    <View style={frame(96)}>
+      <Snackbar
+        visible
+        duration={0}
+        position="bottom-right"
+        message="Bottom right."
+        onDismiss={() => {}}
+      />
+    </View>
+  </View>
+);
+
+// onClose adds the close button and keeps the snackbar up until it is used.
+export const Closable = () => (
+  <View style={frame(120)}>
+    <Snackbar
+      visible
+      severity="info"
+      message="3 edits are waiting to sync."
+      action={{ label: "Sync now", onClick: () => {} }}
+      onClose={() => {}}
     />
   </View>
 );
@@ -131,5 +250,20 @@ export const variants: Variant[] = [
     name: "LongMessage",
     title: "Long message",
     render: LongMessage,
+  },
+  {
+    name: "Outlined",
+    title: "Outlined",
+    render: Outlined,
+  },
+  {
+    name: "Positions",
+    title: "Positions",
+    render: Positions,
+  },
+  {
+    name: "Closable",
+    title: "Closable",
+    render: Closable,
   },
 ];

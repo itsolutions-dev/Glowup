@@ -138,3 +138,68 @@ export const InlineWithLabel = () => (
     </div>
   </div>
 );
+
+export const Determinate = () => (
+  <div style={row}>
+    {[0.25, 0.5, 0.75, 1].map((value) => (
+      <div key={value} style={cell}>
+        <CircularProgress
+          progress={value}
+          size={64}
+          strokeWidth={5}
+          label={`${Math.round(value * 100)}%`}
+        />
+        <Typography variant="labelSmall">progress {value}</Typography>
+      </div>
+    ))}
+  </div>
+);
+
+export const LabelPositions = () => (
+  <div style={row}>
+    {(["center", "top", "bottom", "left", "right"] as const).map((position) => (
+      <div key={position} style={cell}>
+        <CircularProgress
+          progress={0.65}
+          size={56}
+          label="65%"
+          labelPosition={position}
+        />
+        <Typography variant="labelSmall">{position}</Typography>
+      </div>
+    ))}
+    <div style={cell}>
+      <CircularProgress size={24} strokeWidth={3} label="Loading" />
+      <Typography variant="labelSmall">spinner: right</Typography>
+    </div>
+  </div>
+);
+
+export const Tracks = () => {
+  const { theme } = useTheme();
+  return (
+    <div style={row}>
+      <div style={cell}>
+        <CircularProgress progress={0.65} size={56} />
+        <Typography variant="labelSmall">ring: default</Typography>
+      </div>
+      <div style={cell}>
+        <CircularProgress progress={0.65} size={56} trackColor={false} />
+        <Typography variant="labelSmall">ring: none</Typography>
+      </div>
+      <div style={cell}>
+        <CircularProgress
+          progress={0.65}
+          size={56}
+          color={theme.colors.error}
+          trackColor={theme.colors.errorContainer}
+        />
+        <Typography variant="labelSmall">ring: a colour</Typography>
+      </div>
+      <div style={cell}>
+        <CircularProgress size={56} trackColor />
+        <Typography variant="labelSmall">spinner: tinted</Typography>
+      </div>
+    </div>
+  );
+};

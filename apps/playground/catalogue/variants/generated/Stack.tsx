@@ -77,6 +77,75 @@ export const Wrapped = () => (
   </Stack>
 );
 
+/** `spacing` takes a token name, a number of px, or a string holding one. */
+export const Spacing = () => (
+  <Stack direction="horizontal" spacing="m" align="flex-start" width={420} wrap>
+    {(["xs", "xl", 20, "12"] as const).map((spacing) => (
+      <Stack
+        key={spacing}
+        spacing={spacing}
+        padding={8}
+        background="surfaceContainerLow"
+        radius="medium"
+      >
+        <Typography variant="labelSmall">spacing: {spacing}</Typography>
+        <Chip label="One" variant="tonal" onClick={() => {}} />
+        <Chip label="Two" variant="tonal" onClick={() => {}} />
+      </Stack>
+    ))}
+  </Stack>
+);
+
+/** `dividers` puts a hairline between the children, vertical in a horizontal stack. */
+export const Dividers = () => (
+  <Stack direction="vertical" spacing="m" width={420}>
+    <Stack
+      spacing="s"
+      dividers
+      padding={8}
+      background="surfaceContainerLow"
+      radius="medium"
+    >
+      <Typography variant="bodyMedium">Profile</Typography>
+      <Typography variant="bodyMedium">Notifications</Typography>
+      <Typography variant="bodyMedium">Security</Typography>
+    </Stack>
+    <Stack
+      direction="horizontal"
+      spacing="m"
+      dividers
+      align="center"
+      padding={8}
+      background="surfaceContainerLow"
+      radius="medium"
+    >
+      <Typography variant="labelLarge">12 open</Typography>
+      <Typography variant="labelLarge">3 late</Typography>
+      <Typography variant="labelLarge">48 closed</Typography>
+    </Stack>
+  </Stack>
+);
+
+/** A node as `dividers` is drawn between the children instead of the hairline. */
+export const CustomDivider = () => (
+  <Stack
+    spacing="s"
+    align="center"
+    dividers={<Typography variant="labelSmall">or</Typography>}
+    padding={16}
+    background="surfaceContainerLow"
+    radius="medium"
+    width={280}
+  >
+    <Chip label="Continue with email" variant="tonal" onClick={() => {}} />
+    <Chip
+      label="Continue with a passkey"
+      variant="outlined"
+      onClick={() => {}}
+    />
+  </Stack>
+);
+
 export const variants: Variant[] = [
   {
     name: "Direction",
@@ -94,5 +163,26 @@ export const variants: Variant[] = [
     name: "Wrapped",
     title: "Wrapped",
     render: Wrapped,
+  },
+  {
+    name: "Spacing",
+    title: "Spacing",
+    description:
+      "`spacing` takes a token name, a number of px, or a string holding one.",
+    render: Spacing,
+  },
+  {
+    name: "Dividers",
+    title: "Dividers",
+    description:
+      "`dividers` puts a hairline between the children, vertical in a horizontal stack.",
+    render: Dividers,
+  },
+  {
+    name: "CustomDivider",
+    title: "Custom divider",
+    description:
+      "A node as `dividers` is drawn between the children instead of the hairline.",
+    render: CustomDivider,
   },
 ];

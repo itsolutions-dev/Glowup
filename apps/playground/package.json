@@ -16,6 +16,7 @@
     "export:web": "expo export --platform web",
     "variants": "node catalogue/variants/generate.mjs",
     "templates": "node templates/generate.mjs",
+    "examples": "node catalogue/examples/generate.mjs",
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
@@ -60,7 +61,8 @@
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.3",
     "react-native-worklets": "0.10.1",
-    "react-refresh": "^0.19.0"
+    "react-refresh": "^0.19.0",
+    "sucrase": "^3.35.1"
   },
   "jest": {
     "preset": "jest-expo",

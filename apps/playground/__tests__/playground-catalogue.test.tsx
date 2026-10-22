@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 
 import ComponentPreview from "../catalogue/ComponentPreview";
+import { exampleFor } from "../catalogue/examples";
 import { ComponentRegistry } from "../catalogue/registry";
 import { CATEGORIES, FLAT_ORDER, TOTAL_COUNT } from "../catalogue/categories";
 import { buildSnippet } from "../catalogue/snippet";
@@ -43,6 +44,16 @@ const Providers = ({ children }: { children: ReactNode }) => (
 const renderDemo = async (name: string) => {
   const meta = ComponentRegistry[name];
   const props = defaultsOf(name);
+  const example = exampleFor(name);
+
+  // A page with its example shows that; the others still have the stage.
+  if (example) {
+    return render(
+      <Providers>
+        <example.Component />
+      </Providers>,
+    );
+  }
 
   return render(
     <Providers>
@@ -142,14 +153,16 @@ const CATALOGUE = [
   "CaptionValue",
   "Image",
   "Link",
+  "IFrame",
+  "Blink",
   // Feedback
   "Snackbar",
   "Banner",
-  "Modal",
+  "Dialog",
   "ConfirmDialog",
+  "Form",
   "Popover",
   "BottomSheet",
-  "SideSheet",
   "Menu",
   "Skeleton",
   "CircularProgress",
@@ -159,10 +172,10 @@ const CATALOGUE = [
   "Collapse",
   "Portal",
   // Navigation
-  "TopAppBar",
-  "NavigationBar",
+  "AppBar",
+  "NavBar",
   "NavigationRail",
-  "NavigationDrawer",
+  "Drawer",
   "Toolbar",
   "Tabs",
   "TabContent",
@@ -174,7 +187,6 @@ const CATALOGUE = [
   "Stack",
   "Grid",
   "AspectRatio",
-  "Center",
   "Spacer",
 ];
 
@@ -257,7 +269,11 @@ describe("Playground catalogue", () => {
     expect(toJSON()).toBeTruthy();
   });
 
-  it.each(CATALOGUE)("builds a usage snippet for %s", (name) => {
+  // The usage snippet belongs to the stage that is being replaced by examples:
+  // a page with its example has the code in the editor instead.
+  const STAGED = CATALOGUE.filter((name) => !exampleFor(name));
+
+  it.each(STAGED)("builds a usage snippet for %s", (name) => {
     const snippet = buildSnippet(
       name,
       ComponentRegistry[name],
@@ -267,7 +283,7 @@ describe("Playground catalogue", () => {
     expect(snippet.startsWith(`<${name}`)).toBe(true);
   });
 
-  it.each(CATALOGUE)("puts %s's content in the right slot", (name) => {
+  it.each(STAGED)("puts %s's content in the right slot", (name) => {
     // `label` and `title` used to go between the tags alongside `children`,
     // which produced `<Slider>Volume</Slider>` — Slider takes no children, so
     // a reader who pasted it got a slider with no label. Whether a component
@@ -291,7 +307,7 @@ describe("Playground catalogue", () => {
     }
   });
 
-  it.each(CATALOGUE)("keeps %s's required props in the snippet", (name) => {
+  it.each(STAGED)("keeps %s's required props in the snippet", (name) => {
     // A prop equal to its default is omitted, which is what keeps a snippet to
     // the attributes that matter — but applied to a required one it produced
     // `<Modal>…</Modal>` without `visible`, the prop that decides whether the
@@ -495,13 +511,35 @@ describe("Playground catalogue", () => {
       component: "Stat",
       off: { delta: "" },
       on: { delta: "12.5%" },
-      props: ["trend", "invertTrendColors"],
+      props: ["trend", "trendColor"],
+    },
+    // A row with no action has no trailing slot to size.
+    {
+      component: "ListItem",
+      off: { action: "" },
+      on: { action: "chevron" },
+      props: ["trailingWidth"],
+    },
+    // The empty message replaces the rows, so it needs no rows.
+    {
+      component: "Table",
+      off: { empty: false },
+      on: { empty: true },
+      props: ["emptyMessage"],
+    },
+    // The fallback stands in for an empty value; a caption-less field has no
+    // caption to colour or to space from the value.
+    {
+      component: "CaptionValue",
+      off: { value: "+39 06 1234 5678" },
+      on: { value: "" },
+      props: ["fallback"],
     },
     {
-      component: "Stat",
-      off: { trend: "flat" },
-      on: { trend: "up" },
-      props: ["invertTrendColors"],
+      component: "CaptionValue",
+      off: { omitCaption: true },
+      on: { omitCaption: false },
+      props: ["captionColor", "gap"],
     },
 
     {
@@ -524,10 +562,53 @@ describe("Playground catalogue", () => {
       props: ["progress"],
     },
     {
-      component: "Grid",
-      off: { minChildWidth: 160 },
-      on: { minChildWidth: 0 },
-      props: ["columns"],
+      component: "CircularProgress",
+      off: { indeterminate: true },
+      on: { indeterminate: false },
+      props: ["progress"],
+    },
+    // A snackbar with a close button stays up: there is no timeout to set.
+    {
+      component: "Snackbar",
+      off: { closable: true },
+      on: { closable: false },
+      props: ["duration"],
+    },
+    // The full-screen dialog fills the window, so it has no width or height
+    // of its own, no scrim to click and no body to size.
+    {
+      component: "Dialog",
+      off: { fullScreen: true },
+      on: { fullScreen: false },
+      props: ["width", "height", "scrollable", "disableBackdropClick"],
+    },
+    // Only the swipeable drawer is opened and closed; a static one is always there.
+    {
+      component: "Drawer",
+      off: { variant: "static" },
+      on: { variant: "swipeable" },
+      props: ["visible"],
+    },
+    // A side drawer is a column of `width`; a top or bottom one spans the
+    // window and is as tall as its content, up to `height`.
+    {
+      component: "Drawer",
+      off: { position: "top" },
+      on: { position: "left" },
+      props: ["width"],
+    },
+    {
+      component: "Drawer",
+      off: { position: "left" },
+      on: { position: "top" },
+      props: ["height"],
+    },
+    // No border, no border colour.
+    {
+      component: "Box",
+      off: { borderWidth: 0 },
+      on: { borderWidth: 2 },
+      props: ["borderColor"],
     },
     {
       component: "Slider",
@@ -594,6 +675,12 @@ describe("Playground catalogue", () => {
       "DataGrid.emptyMessage", // Empty Data → on
       "ProgressButton.progress", // Status → Loading
       "ProgressButton.loadingLabel", // Status → Loading
+      "Drawer.visible", // Variant → Swipeable
+      "Drawer.height", // Position → Top / Bottom
+      "Box.borderColor", // Border Width → above 0
+      "ListItem.trailingWidth", // Action → anything but None
+      "Table.emptyMessage", // Empty Data → on
+      "CaptionValue.fallback", // Value → emptied
     ];
 
     const hidden = Object.entries(ComponentRegistry).flatMap(([name, meta]) =>

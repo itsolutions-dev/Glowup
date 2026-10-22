@@ -186,7 +186,7 @@ export const foundations: Record<string, ComponentMetadata> = {
     name: "Icon",
     Component: Icon,
     props: {
-      source: { type: "text", default: "camera", label: "Source (glyph)" },
+      source: { type: "icon", default: "camera", label: "Source (glyph)" },
       size: { type: "number", default: 32, label: "Size" },
       flipForRTL: { type: "boolean", default: false, label: "Flip for RTL" },
     },

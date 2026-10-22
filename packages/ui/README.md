@@ -46,7 +46,7 @@ export default function App() {
     <ThemeProvider>
       <AlertProvider>
         <ToastProvider>
-          <VStack p="m" spacing="s">
+          <VStack padding={16} spacing="s">
             <Typography variant="h5">Hello</Typography>
             <Button onClick={() => {}}>Tap me</Button>
           </VStack>
@@ -83,17 +83,22 @@ the browser, and the first client render must match the HTML. Two things to do i
 
 ### Layout
 
-`Box`, `Stack`/`HStack`/`VStack`, `Center`, `Spacer`, `Grid` and `AspectRatio` take spacing,
-shape and color as **token names** rather than numbers, so screens never hardcode a magic value:
+`Box`, `Stack`/`HStack`/`VStack`, `Spacer`, `Grid` and `AspectRatio` take spacing, shape and color
+as **token names** where it matters (`spacing="m"`, `radius="large"`,
+`background="primaryContainer"`), so screens never hardcode a magic value:
 
 ```tsx
-<Grid columns={2} spacing="m">
-  <Box p="m" bg="primaryContainer" radius="large">
-    …
-  </Box>
-  <Box p="m" bg="secondaryContainer" radius="large">
-    …
-  </Box>
+<Grid container spacing="m">
+  <Grid size={{ xs: 12, md: 6 }}>
+    <Box padding={16} background="primaryContainer" radius="large">
+      …
+    </Box>
+  </Grid>
+  <Grid size={{ xs: 12, md: 6 }}>
+    <Box padding={16} background="secondaryContainer" radius="large">
+      …
+    </Box>
+  </Grid>
 </Grid>
 ```
 
@@ -102,7 +107,7 @@ shape and color as **token names** rather than numbers, so screens never hardcod
 ```tsx
 const toast = useToast();
 toast.success("Saved");
-toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
+toast.error("Upload failed", { action: { label: "Retry", onClick: retry } });
 ```
 
 ### Interaction feedback (haptics)
@@ -178,17 +183,17 @@ src/
 ├── components/        # the Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
-│   ├── Modal/         # Modal, ConfirmDialog
+│   ├── Dialog/        # Dialog, ConfirmDialog
 │   ├── Progress/      # CircularProgress, LinearProgress
 │   ├── Tab/           # Tabs, TabContent
 │   ├── ToggleButton/  # ToggleButton, ToggleButtonGroup
-│   ├── Layout/        # Box, Stack/HStack/VStack, Center, Spacer, Grid, AspectRatio
+│   ├── Layout/        # Box, Stack/HStack/VStack, Spacer, Grid, AspectRatio
 │   ├── types.ts       # shared component types (e.g. PressableState)
 │   └── *.tsx          # Button, Card, Input, Chip, Select, DataGrid, Snackbar, ...
 └── providers/         # theme + alert infrastructure
     ├── ThemeProvider.tsx   # Material You theme, useTheme(), getStateColor(), getGlowStyles()
     ├── theme.json          # all color / typography / spacing / shape tokens (source of truth)
-    ├── AlertProvider.tsx   # cross-platform Alert() (native Alert.alert / web Modal)
+    ├── AlertProvider.tsx   # cross-platform Alert() (native Alert.alert / web Dialog)
     └── ToastProvider.tsx   # imperative queued toasts via useToast()
 ```
 
@@ -217,8 +222,8 @@ Exported from the library alongside the components:
 - **`getStateColor(bg, on, state)`** — composites a hover/press state-layer color over a base.
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native
-  `Alert.alert` on iOS/Android, custom `Modal` on web. Mounting `AlertProvider` is enough.
-- **`ToastProvider`** + **`useToast()`** — imperative, queued toasts (see
+  `Alert.alert` on iOS/Android, custom `Dialog` on web. Mounting `AlertProvider` is enough.
+- **`ToastProvider`** (`position`) + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 - **`ViewportProvider`** (`width`) — makes `useBreakpoint`, `Grid` and the date pickers' dialog-or-popover
   choice see `width` instead of the window's, to preview a phone layout inside a desktop page (the
@@ -364,65 +369,72 @@ is safe in a tree that has not been wrapped.
 
 **Which overlays use it.** `Tooltip` and `Autocomplete`'s suggestion list render through the
 Portal when a host is mounted, and stay anchored in place when one is not. Those two are the
-only overlays in the kit that lay out inline: `Modal`, `ConfirmDialog`, `Popover`, `Menu`,
-`Select` and `BottomSheet` all go through a native `Modal`, which is a separate window on
-native and a `createPortal` into `document.body` on web — already stronger isolation than an
-in-tree Portal, so they are deliberately left alone. Portal exists for the cases a `Modal`
+only overlays in the kit that lay out inline: `Dialog`, `ConfirmDialog`, `Popover`, `Menu`,
+`Select`, `BottomSheet` and a swipeable `Drawer` all go through a native `Modal`, which is a
+separate window on native and a `createPortal` into `document.body` on web — already stronger
+isolation than an in-tree Portal, so they are deliberately left alone. Portal exists for the cases a `Modal`
 cannot serve: a tooltip must never take touches, and the Autocomplete list must not steal
 focus from the field being typed into.
 
 ### Layout
 
 Token-driven layout primitives, so screens stop hardcoding spacing. `SpacingValue` is a
-`theme.spacing` key (`"xs" | "s" | "m" | "l" | "xl"`) or a raw number; `RadiusValue` is a
-`theme.shape` key or a raw number; `ColorValue` is an M3 color role name or any raw color.
+`theme.spacing` key (`"xs" | "s" | "m" | "l" | "xl"`) or a raw number (`SpacingInput` also takes a
+numeric string such as `"12"`); `RadiusValue` is a `theme.shape` key or a raw number; `ColorValue`
+is a theme color token or any raw color.
 
 #### `Box`
 
-A `View` that reads spacing, shape and color off the theme. Extends `ViewProps`, so anything not
-covered by a prop still goes through `style`.
+A `View` that reads shape and color off the theme, with a `variant` for the usual layouts. Extends
+`ViewProps`, so anything not covered by a prop still goes through `style`, merged last.
 
-| Prop                      | Type                                   | Default |
-| ------------------------- | -------------------------------------- | ------- |
-| p, px, py, pt, pr, pb, pl | SpacingValue — padding, narrowest wins |         |
-| m, mx, my, mt, mr, mb, ml | SpacingValue — margin                  |         |
-| bg / borderColor          | ColorValue                             |         |
-| radius                    | RadiusValue                            |         |
-| borderWidth               | number                                 |         |
-| flex / gap                | number / SpacingValue                  |         |
-| align / justify           | `alignItems` / `justifyContent` values |         |
-| width / height            | ViewStyle dimensions                   |         |
-| row / wrap                | boolean                                | `false` |
+| Prop                     | Type                                                                                                                                                                                                                                           | Default    |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| variant                  | `"standard" \| "flex" \| "column-flex" \| "centered-flex" \| "centered-column-flex" \| "full-page-flex" \| "full-page-column-flex" \| "full-size-flex" \| "full-size-column" \| "full-size-centered-flex" \| "full-size-centered-column-flex"` | `standard` |
+| padding / margin         | number (px, every edge; one edge or axis goes through `style`)                                                                                                                                                                                 |            |
+| background / borderColor | ColorValue                                                                                                                                                                                                                                     |            |
+| radius                   | RadiusValue                                                                                                                                                                                                                                    |            |
+| borderWidth              | number                                                                                                                                                                                                                                         |            |
+| gap                      | number (px between children)                                                                                                                                                                                                                   |            |
+| align / justify          | `alignItems` / `justifyContent` values                                                                                                                                                                                                         |            |
+| width / height           | ViewStyle dimensions                                                                                                                                                                                                                           |            |
+| wrap                     | boolean (children flow onto the next line)                                                                                                                                                                                                     |            |
+| style                    | ViewStyle (merged last, over the variant and every other prop)                                                                                                                                                                                 |            |
+
+`standard` is a plain column, `flex` a row and `column-flex` a column; `centered-flex` and
+`centered-column-flex` centre on both axes (`<Box variant="centered-flex">` is the way to centre
+children); `full-page-*` fill the screen (`flex: 1`, minimum height 100%) and `full-size-*` are 100%
+wide and high.
 
 #### `Stack` / `HStack` / `VStack`
 
 Evenly spaced children via `gap`, so spacing stays right when children are conditionally
-rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `row` and `gap`.
+rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `variant` and `gap`.
 
-| Prop      | Type                         | Default    |
-| --------- | ---------------------------- | ---------- |
-| direction | `"vertical" \| "horizontal"` | `vertical` |
-| spacing   | SpacingValue                 | `"s"`      |
-| reverse   | boolean                      |            |
+| Prop      | Type                                                                                    | Default    |
+| --------- | --------------------------------------------------------------------------------------- | ---------- |
+| direction | `"vertical" \| "horizontal"`                                                            | `vertical` |
+| spacing   | SpacingInput (a token, a number of px or a numeric string)                              | `"s"`      |
+| dividers  | ReactNode (`true` draws a hairline between the children; a node is used as the divider) |            |
+| reverse   | boolean                                                                                 |            |
 
-#### `Center` / `Spacer` / `AspectRatio` / `Grid`
+#### `Spacer` / `AspectRatio` / `Grid`
 
-- **`Center`** — centres children on both axes; every `Box` prop except `align`/`justify`.
 - **`Spacer`** — `size` (SpacingValue) for a fixed gap on `axis`, or no props to absorb the
   leftover space and push siblings apart.
-- **`AspectRatio`** — `ratio` (default `1`), e.g. `16 / 9`.
-- **`Grid`** — equal-width grid: `columns` (default `2`) or a responsive `minChildWidth`, plus
-  `spacing`. Children are chunked into explicit rows rather than left to wrap, so the gap never
-  pushes a cell onto the next line and a short last row keeps its cells at column width.
+- **`AspectRatio`** — `ratio` (default `1`), e.g. `16 / 9`; takes the `Box` props except `height`.
+- **`Grid`** — a 12-column responsive grid. A `container` lays its items out in a wrapping row, and
+  an item's `size` is how many columns it spans: a number, `"grow"` (share the rest of the row),
+  `"auto"` (size to content) or one per breakpoint (`{ xs: 12, md: 6 }`, mobile-first; `xs` from
+  0 dp, `sm` 600, `md` 840, `lg` 1200, `xl` 1600). Also `columns` (`12`), `spacing` (a token, px or
+  `{ row, column }`, `"s"`), `wrap` (`true`) and `autoSize` (sizes the children that have no `size`
+  of their own). The widths come from the container's measured width, so it needs one from its
+  parent; a `Grid` that is neither a container nor inside one is a plain `View`.
 
 ```tsx
-<Grid columns={2} spacing="m">
-  <Box p="m" bg="primaryContainer" radius="large">
-    …
-  </Box>
-  <Box p="m" bg="secondaryContainer" radius="large">
-    …
-  </Box>
+<Grid container spacing="m">
+  <Grid size={{ xs: 12, md: 6 }}>…</Grid>
+  <Grid size={{ xs: 12, md: 6 }}>…</Grid>
 </Grid>
 ```
 
@@ -430,19 +442,20 @@ rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `ro
 
 #### `Button`
 
-| Prop               | Type                                          | Default              |
-| ------------------ | --------------------------------------------- | -------------------- |
-| children           | ReactNode (label)                             |                      |
-| onClick            | () => void                                    |                      |
-| variant            | `"filled" \| "tonal" \| "outlined" \| "text"` | `filled`             |
-| color              | `ButtonColor` (a colour role, see below)      | `primary`            |
-| iconName           | icon                                          |                      |
-| iconPosition       | `"start" \| "end"`                            | `start`              |
-| size               | number (icon size)                            | `theme.shape.medium` |
-| fullWidth          | boolean                                       | `false`              |
-| loading            | boolean (inline spinner)                      | `false`              |
-| disabled           | boolean                                       | `false`              |
-| accessibilityLabel | string (falls back to string child)           |                      |
+| Prop               | Type                                                                             | Default              |
+| ------------------ | -------------------------------------------------------------------------------- | -------------------- |
+| children           | ReactNode (label)                                                                |                      |
+| onClick            | () => void                                                                       |                      |
+| variant            | `"filled" \| "tonal" \| "outlined" \| "text"`                                    | `filled`             |
+| color              | `ButtonColor` (a colour role, see below)                                         | `primary`            |
+| iconName           | icon                                                                             |                      |
+| iconPosition       | `"start" \| "end"`                                                               | `start`              |
+| size               | number (icon size)                                                               | `theme.shape.medium` |
+| fullWidth          | boolean                                                                          | `false`              |
+| loading            | boolean (inline spinner)                                                         | `false`              |
+| disabled           | boolean                                                                          | `false`              |
+| type               | `"button" \| "submit"` (`"submit"` submits the enclosing `Form` after `onClick`) | `button`             |
+| accessibilityLabel | string (falls back to string child)                                              |                      |
 
 `color` takes a colour role: `primary`, `secondary`, `tertiary`, `error` (the destructive
 treatment), `success`, `warning`, `info` or `neutral`. `IconButton`, `Chip` and `Badge` take the
@@ -585,7 +598,7 @@ buttons), single or `multiSelect`, sizes `xs` / `s` / `m`. Same `options` / `val
 #### `SplitButton`
 
 A primary action (`children`, `iconName`, `onPress`) joined to a trailing button that opens a
-`Menu` of `items`.
+`Menu` of `items` (`MenuItem`s, so each takes `onClick`).
 
 #### `ChipGroup`
 
@@ -784,7 +797,7 @@ use `variant="static"` for an inline one.
 | onChange                      | matching setter (required)                                                                                                                                                     | —             |
 | variant                       | `"default" \| "static"` — a field with a dialog, or the picker inline                                                                                                          | `default`     |
 | presentation                  | `"auto" \| "popover" \| "dialog"` — web only: docked to the field, or a centred dialog (`auto`: the dialog on a touch device or under 600 px, as Material UI's mobile pickers) | `auto`        |
-| fieldVariant                  | `"outlined" \| "filled"` — the look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                          |
+| fieldVariant                  | `"outlined" \| "filled"` — the look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                          | `outlined`    |
 | label                         | string                                                                                                                                                                         |               |
 | mode                          | `"date" \| "datetime" \| "time"`                                                                                                                                               | `date`        |
 | selectionMode                 | `"single" \| "range" \| "multiple"` (ignored when `mode="time"`)                                                                                                               | `single`      |
@@ -884,6 +897,28 @@ Backspace retreats, and pasting a whole code into any cell fills the row.
 | autoFocus                                        | boolean (first cell only)                      |            |
 | cellSize                                         | number                                         | `48`       |
 
+#### `Form`
+
+Groups fields and a submit button so that one action submits them. On the web it is a real
+`<form>`: Enter in a field submits, and a `Button type="submit"` inside it submits too. On iOS and
+Android it is a plain `View` and the submit button calls `onSubmit` directly. Either way `onSubmit`
+runs once per submission, and the page is never navigated. A `Dialog` with `form` wraps its body
+and `actions` in one.
+
+| Prop     | Type                                                                                 | Default |
+| -------- | ------------------------------------------------------------------------------------ | ------- |
+| onSubmit | () => void (a `Button type="submit"` inside it is pressed, or Enter in a field, web) |         |
+| children | ReactNode                                                                            |         |
+| style    | ViewStyle                                                                            |         |
+| testID   | string                                                                               |         |
+
+```tsx
+<Form onSubmit={save}>
+  <Input label="Name" value={name} onChange={setName} />
+  <Button type="submit">Save</Button>
+</Form>
+```
+
 #### `FormControl`
 
 Groups a label, a control and its supporting text, and shares invalid/disabled/required state with
@@ -968,33 +1003,62 @@ Small labeled status pill with its own semantic colors (light/dark aware).
 | type  | `"success" \| "error" \| "warning"`   | `success` |
 | icon  | icon (override default per-type icon) |           |
 
+#### `Blink`
+
+Fades its children between full opacity and `minOpacity`, over and over: a live indicator, a
+pending status, a field that wants attention. A plain wrapper that takes no space of its own beyond
+its children; with reduced motion on, nothing blinks.
+
+| Prop       | Type                                                    | Default |
+| ---------- | ------------------------------------------------------- | ------- |
+| children   | ReactNode (what blinks: a dot, a badge, a line of text) |         |
+| interval   | number (ms one half of a blink takes)                   | `600`   |
+| active     | boolean (stays at full opacity while `false`)           | `true`  |
+| minOpacity | number 0–1 (the dimmest point of a blink)               | `0.2`   |
+
+```tsx
+<Blink>
+  <StatusBadge label="Offline" type="error" />
+</Blink>
+```
+
 #### `DataGrid`
 
-Virtualized table: sortable columns, reorder, density, loading + empty state. Also exports
-composable primitives `Table, Thead, Tfoot, Tr, Th, Td`.
+Virtualized table: sortable columns, reorder, density, loading + empty state. Built on the `Table`
+primitives below.
 
-| Prop            | Type                                                                 | Default  |
-| --------------- | -------------------------------------------------------------------- | -------- |
-| data            | any[] (row objects, required)                                        | —        |
-| columns         | `ColumnDefinition[]` = `{ id, label, width?, sortable? }` (required) | —        |
-| loading         | boolean                                                              | `false`  |
-| density         | `"normal" \| "dense"`                                                | `normal` |
-| sortColumn      | string                                                               |          |
-| sortDirection   | `"asc" \| "desc"`                                                    |          |
-| onSort          | (columnId, direction) => void                                        |          |
-| onColumnReorder | (newColumns) => void                                                 |          |
-| onEndReached    | () => void (infinite scroll)                                         |          |
-| emptyMessage    | string                                                               |          |
+| Prop            | Type                                                                                      | Default  |
+| --------------- | ----------------------------------------------------------------------------------------- | -------- |
+| data            | any[] (row objects, required)                                                             | —        |
+| columns         | `ColumnDefinition[]` = `{ id, label, width?, sortable?, align?, renderCell? }` (required) | —        |
+| loading         | boolean                                                                                   | `false`  |
+| density         | `"normal" \| "dense"`                                                                     | `normal` |
+| sortColumn      | string                                                                                    |          |
+| sortDirection   | `"asc" \| "desc"`                                                                         |          |
+| onSort          | (columnId, direction) => void                                                             |          |
+| onColumnReorder | (newColumns) => void                                                                      |          |
+| onEndReached    | () => void (infinite scroll)                                                              |          |
+| emptyMessage    | string                                                                                    |          |
 
 #### `ListItem`
 
-Single pressable list row.
+A list row: text, with an optional leading icon, a second line and a trailing slot; with none of
+them a centred single-line tile. Giving `onClick` makes it a button.
 
-| Prop                                                                     | Type                                 | Default |
-| ------------------------------------------------------------------------ | ------------------------------------ | ------- |
-| children                                                                 | ReactNode (label, required)          | —       |
-| onPress                                                                  | () => void (adds hover/press states) |         |
-| itemContainerStyle / itemTextStyle / itemPressedStyle / itemHoveredStyle | object                               |         |
+| Prop                                                     | Type                                                                                              | Default |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------- |
+| primaryText                                              | ReactNode (the first line; text is drawn in the theme's type, a node as given, required)          | —       |
+| secondaryText                                            | ReactNode (second line)                                                                           |         |
+| onClick                                                  | () => void (makes the row a button; with an `action` too, only the icon and texts are the button) |         |
+| icon                                                     | icon \| ReactNode (leading slot: a glyph name, or any node such as an `Avatar`)                   |         |
+| action                                                   | ReactNode (trailing slot: a value, a `Switch`, an `IconButton`; a control of its own)             |         |
+| primaryTextStyle / secondaryTextStyle                    | TextStyle (merged after the type of the text)                                                     |         |
+| indicatorColor                                           | string (a bar on the left edge)                                                                   |         |
+| dimmed                                                   | boolean (faded, still pressable)                                                                  | `false` |
+| trailingWidth                                            | number (fixes and right-aligns the `action` slot, so a column of rows lines up)                   |         |
+| disabled                                                 | boolean (fades the row and stops presses; not the `action`)                                       | `false` |
+| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object                                                                                            |         |
+| testID                                                   | string                                                                                            |         |
 
 #### `ListSection` / `ListSubheader`
 
@@ -1029,12 +1093,14 @@ instead of being clipped; with no host it stays anchored in place as before.
 
 Expandable section with animated height.
 
-| Prop          | Type                          | Default |
-| ------------- | ----------------------------- | ------- |
-| title         | string (required)             | —       |
-| children      | ReactNode (content, required) | —       |
-| startExpanded | boolean                       | `false` |
-| onPress       | (expanded) => void            |         |
+| Prop     | Type                                                                                                | Default    |
+| -------- | --------------------------------------------------------------------------------------------------- | ---------- |
+| title    | string (required)                                                                                   | —          |
+| children | ReactNode (content, required)                                                                       | —          |
+| expanded | boolean (starts open; follows the prop again whenever it changes)                                   | `false`    |
+| onClick  | (expanded) => void (every press of the header, with the new state)                                  |            |
+| icon     | icon \| ReactNode (end of the header; the default chevron turns while open, a custom icon does not) | chevron    |
+| variant  | `"outlined" \| "contained"` (a bordered panel, or a filled tonal one)                               | `outlined` |
 
 #### `Carousel`
 
@@ -1053,14 +1119,33 @@ Paged horizontal slider.
 
 A single labelled metric with an optional trend delta.
 
-| Prop              | Type                                                   | Default |
-| ----------------- | ------------------------------------------------------ | ------- |
-| label / value     | string (both required)                                 | —       |
-| delta             | string, e.g. `"12.5%"`                                 |         |
-| trend             | `"up" \| "down" \| "flat"` — arrow + color for `delta` |         |
-| invertTrendColors | boolean — for metrics where down is good               | `false` |
-| helpText          | string                                                 |         |
-| icon              | icon                                                   |         |
+| Prop          | Type                                                                                           | Default                                             |
+| ------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| label / value | string (both required)                                                                         | —                                                   |
+| delta         | string, e.g. `"12.5%"`                                                                         |                                                     |
+| trend         | `"up" \| "down" \| "flat"` — arrow (+ colour unless `trendColor`) for `delta`                  |                                                     |
+| trendColor    | theme color token or colour string — for a metric where down is good, pass the colour yourself | up `success`, down `error`, flat `onSurfaceVariant` |
+| direction     | `"column" \| "row"` (`row`: label and value on one line)                                       | `column`                                            |
+| helpText      | string                                                                                         |                                                     |
+| icon          | icon                                                                                           |                                                     |
+
+#### `CaptionValue`
+
+A caption and its value, stacked or in a row: the read-only pair a detail screen is made of. An
+empty value shows `fallback` instead of leaving a hole.
+
+| Prop                                          | Type                                                                                                             | Default                          |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| caption / value                               | ReactNode (text and numbers are drawn in the theme's type, a node as given)                                      |                                  |
+| direction                                     | `"column" \| "row"`                                                                                              | `column`                         |
+| reverse / omitCaption                         | boolean (value before the caption / no caption at all)                                                           | `false`                          |
+| fallback                                      | ReactNode (drawn when `value` is `null`, `undefined`, `""` or `false`; `0` is a value)                           | `N/A`                            |
+| captionColor / valueColor                     | theme color token or colour string                                                                               | `onSurfaceVariant` / `onSurface` |
+| gap / numberOfLines                           | number (px between caption and value) / number (lines before an ellipsis, `0` = no limit)                        | `4` / `1`                        |
+| width / height / flex / padding               | size of the pair, its flex in the parent, the padding around it                                                  |                                  |
+| enableCopy / onCopy                           | boolean (a copy button after a text value; web writes to the clipboard, native needs `onCopy`) / (value) => void | `false`                          |
+| showTooltip                                   | boolean (a `Tooltip` with the value in full, for when `numberOfLines` cuts it)                                   | `false`                          |
+| textAlign / captionStyle / valueStyle / style | text and container styles                                                                                        |                                  |
 
 #### `Image`
 
@@ -1080,26 +1165,99 @@ token-driven corner radius.
 | showLoader       | boolean                                                             | `true`                 |
 | onLoad / onError | () => void                                                          |                        |
 
+#### `IFrame`
+
+A page embedded in the screen: a real `<iframe>` on the web. iOS and Android have no equivalent in
+React Native itself (that is `react-native-webview`, which this library does not depend on), so
+there it draws `fallback`, a notice that embedded pages are not available.
+
+| Prop             | Type                                                                                         | Default           |
+| ---------------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| src              | string (required)                                                                            | —                 |
+| title            | string (the frame's accessible name, required)                                               | —                 |
+| width / height   | DimensionValue                                                                               | `100%` / `300`    |
+| style            | ViewStyle (the box the frame fills: radius, border, margin)                                  |                   |
+| allow            | string (the `allow` attribute, e.g. `"fullscreen; clipboard-write"`)                         |                   |
+| sandbox          | string (`""` applies every restriction; tokens lift the ones named; left out, not sandboxed) |                   |
+| referrerPolicy   | the `referrerpolicy` attribute                                                               |                   |
+| loading          | `"lazy" \| "eager"`                                                                          | `lazy`            |
+| onLoad / onError | () => void (browsers rarely report a page that fails to load)                                |                   |
+| fallback         | ReactNode (drawn on iOS and Android instead of the page)                                     | icon and a notice |
+| testID           | string                                                                                       |                   |
+
+```tsx
+<IFrame
+  src="https://example.com/report"
+  title="Quarterly report"
+  height={480}
+/>
+```
+
 #### `Table`, `TableHead`, `TableRow`, `TableHeaderCell`, `TableCell`
 
-The primitives `DataGrid` is built from, for a table whose rows you lay out yourself; they carry
-the table / row / columnheader / cell roles.
+`Table` draws a whole table from `columns` and `data`: an optional title, a header row, the rows, an
+empty state and paging. Without `columns` it is only the container of the primitives, for a table
+whose rows you lay out yourself. Either way it carries the table / row / columnheader / cell roles;
+`DataGrid` is built from the same primitives.
+
+| Prop           | Type                                                                                                             | Default             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------- |
+| columns        | `TableColumn[]` = `{ id, label, alignment?, fallback?, width? }` (makes the table data driven)                   |                     |
+| data           | `TableRowData[]` — rows as `{ [column id]: cell }`                                                               |                     |
+| tableTitle     | string (heading above the header row, also the accessible name)                                                  |                     |
+| width          | DimensionValue (the table scrolls sideways when the columns add up to more)                                      | fills the container |
+| height         | DimensionValue (the rows scroll under a header that stays in place)                                              | as tall as its rows |
+| rowsPerPage    | number (pages `data` and shows a `Pagination` under the table; the page resets when it or the row count changes) | one page            |
+| hover          | boolean (highlights the row under the pointer, web)                                                              | `false`             |
+| selected       | number \| number[] (indexes in `data` of the rows drawn as selected)                                             |                     |
+| emptyMessage   | ReactNode                                                                                                        | `No data`           |
+| onClick        | (row, index) => void (makes the rows pressable, with the button role)                                            |                     |
+| children       | ReactNode (the primitives, when there are no `columns`)                                                          |                     |
+| style / testID | ViewStyle / string                                                                                               |                     |
+
+A column's `fallback` is drawn in a cell whose value is `null`, `undefined`, `""` or `false`; its
+`width` is in px, and without it the column shares the free width of the table, never narrower than
+120 px.
+
+```tsx
+<Table
+  tableTitle="Invoices"
+  columns={[
+    { id: "number", label: "Invoice", width: 120 },
+    { id: "customer", label: "Customer" },
+    { id: "total", label: "Total", alignment: "right" },
+  ]}
+  data={[
+    { number: "INV-001", customer: "Acme", total: "€ 1,200.00" },
+    { number: "INV-002", customer: "Globex", total: "€ 480.00" },
+  ]}
+  rowsPerPage={10}
+  hover
+  onClick={(row, index) => open(index)}
+/>
+```
+
+The primitives: `TableRow` takes `onClick`, `hover`, `selected` and `testID`; `TableHeaderCell` takes
+`sortable`, `sortDirection` and `onClick`; the cells take `align`, `width` (150) and `flex`.
 
 ### Feedback & overlays
 
 #### `Snackbar`
 
-Bottom transient message; animated in/out.
+Transient message, animated in/out; bottom centre by default.
 
-| Prop      | Type                                   | Default   |
-| --------- | -------------------------------------- | --------- |
-| visible   | boolean (required)                     | —         |
-| message   | string (required)                      | —         |
-| onDismiss | () => void (required)                  | —         |
-| duration  | number (ms, 0 = no auto-hide)          | `4000`    |
-| action    | `{ label, onPress }` (trailing button) |           |
-| type      | `"default" \| "success" \| "error"`    | `default` |
-| icon      | icon                                   |           |
+| Prop      | Type                                                                                              | Default         |
+| --------- | ------------------------------------------------------------------------------------------------- | --------------- |
+| visible   | boolean (required)                                                                                | —               |
+| message   | string (required)                                                                                 | —               |
+| onDismiss | () => void (the timeout elapsed or the `action` was clicked; not called when `onClose` is set)    |                 |
+| duration  | number (ms, 0 = no auto-hide; not used with `onClose`)                                            | `4000`          |
+| action    | `{ label, onClick }` (trailing button; runs `onClick`, then dismisses)                            |                 |
+| onClose   | () => void (shows a close button and keeps the snackbar up until it is pressed)                   |                 |
+| severity  | `"success" \| "info" \| "warning" \| "error"` (colours + icon; left out: neutral, no icon)        |                 |
+| variant   | `"contained" \| "outlined"`                                                                       | `contained`     |
+| position  | `"top-left" \| "top-center" \| "top-right" \| "bottom-left" \| "bottom-center" \| "bottom-right"` | `bottom-center` |
+| icon      | icon (overrides the one `severity` implies)                                                       |                 |
 
 #### `Banner`
 
@@ -1115,79 +1273,115 @@ Inline prominent message with up to two actions.
 | dismissable | boolean (close X; needs onDismiss)            | `false`   |
 | onDismiss   | () => void                                    |           |
 
-#### `Modal`
+#### `Dialog`
 
-Centered dialog surface.
+Centered dialog surface. `onClose` turns on the close icon in the header; Escape, the backdrop and
+Android back call it too.
 
-| Prop          | Type                                                  | Default |
-| ------------- | ----------------------------------------------------- | ------- |
-| visible       | boolean                                               |         |
-| children      | ReactNode \| string (string → styled text, required)  | —       |
-| title         | string                                                |         |
-| icon          | `IconSource` (hero glyph above the title)             |         |
-| animationType | `"none" \| "slide" \| "fade"`                         | `fade`  |
-| transparent   | boolean                                               | `true`  |
-| onClose       | () => void (renders close button)                     |         |
-| onDismiss     | () => void (Android back / ESC / scrim tap)           |         |
-| closeText     | string                                                | `Close` |
-| dismissable   | boolean (scrim tap and ESC dismiss)                   | `true`  |
-| scrollable    | boolean (scrolls a body taller than the dialog)       | `false` |
-| actions       | ReactNode (trailing action row; replaces `closeText`) |         |
-| testID        | string (the scrim gets `${testID}-scrim`)             | `modal` |
+| Prop                 | Type                                                                                                          | Default  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------- | -------- |
+| visible              | boolean (required)                                                                                            | —        |
+| children             | ReactNode \| string (string → styled text, required)                                                          | —        |
+| title                | string                                                                                                        |          |
+| icon                 | `IconSource` (hero glyph above the title)                                                                     |          |
+| onClose              | () => void (the close icon, a backdrop click, Escape on web, Android back)                                    |          |
+| closeIcon            | glyph name \| ReactElement \| `false` (hidden, a dialog without `actions` falls back to a `closeText` button) | `close`  |
+| closeText            | string (accessible name of the close icon, label of the fallback button)                                      | `Close`  |
+| disableEscapeKeyDown | boolean (Escape and Android back no longer call `onClose`)                                                    | `false`  |
+| disableBackdropClick | boolean (a backdrop click no longer calls `onClose`)                                                          | `false`  |
+| width                | `"xs" \| "sm" \| "md" \| "lg"` (largest width: 360 / 480 / 560 / 800 px)                                      | `md`     |
+| height               | number \| `"60%"` (fixed card height, the body scrolls; at most 90% of the window)                            |          |
+| scrollable           | boolean (scrolls a body taller than the dialog)                                                               | `false`  |
+| form / onSubmit      | boolean / () => void (body and `actions` inside a `Form`: `Button type="submit"` or Enter calls `onSubmit`)   | `false`  |
+| actions              | ReactNode (trailing action row; replaces the fallback close button)                                           |          |
+| fullScreen           | boolean (M3 full-screen dialog: close, title and `actions` in a header row; ignores `width` and `height`)     | `false`  |
+| animationType        | `"none" \| "slide" \| "fade"`                                                                                 | `fade`   |
+| transparent          | boolean                                                                                                       | `true`   |
+| slotStyles           | `DialogSlotStyles` — `backdrop`, `container`, `header`, `title`, `content`, `actions` style overrides         |          |
+| testID               | string (the scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`)        | `dialog` |
+
+```tsx
+<Dialog
+  visible={open}
+  title="New contact"
+  width="sm"
+  onClose={close}
+  form
+  onSubmit={save}
+  actions={
+    <>
+      <Button variant="text" onClick={close}>
+        Cancel
+      </Button>
+      <Button type="submit">Save</Button>
+    </>
+  }
+>
+  <Input label="Name" value={name} onChange={setName} />
+</Dialog>
+```
 
 #### `ConfirmDialog`
 
-Modal preset with confirm/cancel actions.
+`Dialog` preset with confirm/cancel actions.
 
-| Prop            | Type                                | Default   |
-| --------------- | ----------------------------------- | --------- |
-| visible         | boolean (required)                  | —         |
-| onConfirm       | () => void (required)               | —         |
-| onCancel        | () => void (required)               | —         |
-| title / message | string                              |           |
-| confirmText     | string                              | `Confirm` |
-| cancelText      | string                              | `Cancel`  |
-| destructive     | boolean (confirm in the error tone) | `false`   |
-| icon            | `IconSource` (hero glyph)           |           |
-| dismissable     | boolean (scrim tap and ESC cancel)  | `true`    |
+| Prop            | Type                                               | Default   |
+| --------------- | -------------------------------------------------- | --------- |
+| visible         | boolean (required)                                 | —         |
+| onConfirm       | () => void (required)                              | —         |
+| onCancel        | () => void (required)                              | —         |
+| title / message | string                                             |           |
+| confirmText     | string                                             | `Confirm` |
+| cancelText      | string                                             | `Cancel`  |
+| destructive     | boolean (confirm in the error tone)                | `false`   |
+| icon            | `IconSource` (hero glyph)                          |           |
+| dismissable     | boolean (backdrop and Escape cancel)               | `true`    |
+| slotStyles      | `DialogSlotStyles` (`actions` covers both buttons) |           |
 
 #### `Popover`
 
 Anchored floating panel; auto-positions within the viewport.
 
-| Prop             | Type                                | Default |
-| ---------------- | ----------------------------------- | ------- |
-| anchor           | ReactElement (trigger, required)    | —       |
-| children         | ReactNode (panel content, required) | —       |
-| visible          | boolean (required)                  | —       |
-| onDismiss        | () => void (required)               | —       |
-| matchAnchorWidth | boolean (constrain to anchor width) | `false` |
+| Prop             | Type                                                                                                                           | Default                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| anchor           | ReactElement (trigger, required)                                                                                               | —                                            |
+| children         | ReactNode (panel content, required)                                                                                            | —                                            |
+| visible          | boolean (required)                                                                                                             | —                                            |
+| onDismiss        | () => void (a press outside, Android back; required)                                                                           | —                                            |
+| matchAnchorWidth | boolean (constrain to anchor width)                                                                                            | `false`                                      |
+| anchorPosition   | `{ vertical: "bottom" \| "top" \| "center", horizontal: "left" \| "right" \| "center" }`; it flips or slides to stay on screen | `{ vertical: "bottom", horizontal: "left" }` |
 
 #### `BottomSheet`
 
 Draggable bottom sheet with scrim.
 
-| Prop              | Type                        | Default |
-| ----------------- | --------------------------- | ------- |
-| visible           | boolean (required)          | —       |
-| onDismiss         | () => void (required)       | —       |
-| children          | ReactNode (required)        | —       |
-| title             | string                      |         |
-| showHandle        | boolean (drag handle)       | `true`  |
-| dismissOnScrimTap | boolean                     | `true`  |
-| maxHeightRatio    | number (fraction of window) |         |
+| Prop              | Type                                                                       | Default |
+| ----------------- | -------------------------------------------------------------------------- | ------- |
+| visible           | boolean (required)                                                         | —       |
+| onClose           | () => void (close button, scrim tap, drag down, Android back; required)    | —       |
+| children          | ReactNode (required)                                                       | —       |
+| title             | string                                                                     |         |
+| showCloseButton   | boolean (a close button at the end of the title row)                       | `false` |
+| actions           | ReactNode (a row of buttons fixed at the bottom while the content scrolls) |         |
+| showHandle        | boolean (drag handle)                                                      | `true`  |
+| dismissOnScrimTap | boolean                                                                    | `true`  |
+| maxHeightRatio    | number (fraction of window)                                                | `0.85`  |
 
 #### `Menu`
 
 Anchored action menu.
 
-| Prop          | Type                                                                                                         | Default |
-| ------------- | ------------------------------------------------------------------------------------------------------------ | ------- |
-| anchor        | ReactElement (required)                                                                                      | —       |
-| items         | `MenuItem[]` = `{ id, label, icon?, trailing?, disabled?, destructive?, dividerAbove?, onPress }` (required) | —       |
-| visible       | boolean (required)                                                                                           | —       |
-| onDismiss     | () => void (required)                                                                                        | —       |
-| closeOnSelect | boolean                                                                                                      | `true`  |
+| Prop           | Type                                                                                                          | Default                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| anchor         | ReactElement (required)                                                                                       | —                                            |
+| items          | `MenuItem[]` = `{ id, label, icon?, trailing?, disabled?, destructive?, dividerAbove?, onClick? }` (required) | —                                            |
+| visible        | boolean (required)                                                                                            | —                                            |
+| onClose        | () => void (a press outside, Android back, and after an item when `closeOnSelect`; required)                  | —                                            |
+| closeOnSelect  | boolean                                                                                                       | `true`                                       |
+| anchorPosition | as `Popover`                                                                                                  | `{ vertical: "bottom", horizontal: "left" }` |
+| dividers       | boolean (a divider between every pair of items)                                                               | `false`                                      |
+| selected       | string[] (the `id`s drawn as selected, with a check mark; none marked until you pass it, even as `[]`)        |                                              |
+| onClick        | (item) => void (after the item's own `onClick`)                                                               |                                              |
 
 #### `Skeleton`
 
@@ -1203,28 +1397,35 @@ Loading placeholder with pulse.
 
 #### `CircularProgress`
 
-Indeterminate SVG spinner.
+Indeterminate SVG spinner, or a determinate ring when `progress` is set.
 
-| Prop        | Type                         | Default   |
-| ----------- | ---------------------------- | --------- |
-| size        | number                       | `48`      |
-| strokeWidth | number                       | `4`       |
-| color       | string                       | `primary` |
-| duration    | number (ms, rotation period) | `1000`    |
+| Prop          | Type                                                                                                                        | Default                                           |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| progress      | number 0–1 (a ring over a track; unset, the indicator spins)                                                                |                                                   |
+| size          | number                                                                                                                      | `48`                                              |
+| strokeWidth   | number                                                                                                                      | `4`                                               |
+| color         | string                                                                                                                      | `primary`                                         |
+| trackColor    | boolean \| string (`true`: the indicator colour at a low opacity; `false`: none; unset: a ring has a track, a spinner none) |                                                   |
+| label         | ReactNode (text, a number or a node drawn with the ring)                                                                    |                                                   |
+| labelPosition | `"top" \| "bottom" \| "left" \| "right" \| "center"`                                                                        | `center` with a `progress`, `right` for a spinner |
+| duration      | number (ms, rotation period of the spinner)                                                                                 | `1000`                                            |
 
 #### `LinearProgress`
 
 Determinate or indeterminate bar.
 
-| Prop                  | Type                                | Default                   |
-| --------------------- | ----------------------------------- | ------------------------- |
-| progress              | number 0–1 (determinate value)      | `0`                       |
-| indeterminate         | boolean                             | `false`                   |
-| height                | number                              | `4`                       |
-| color                 | string                              | `primary`                 |
-| trackColor            | string                              | `surfaceContainerHighest` |
-| duration              | number (ms, determinate transition) | `500`                     |
-| indeterminateDuration | number (ms)                         | `1500`                    |
+| Prop                  | Type                                                                                                                               | Default                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| progress              | number 0–1 (determinate value)                                                                                                     | `0`                       |
+| indeterminate         | boolean                                                                                                                            | `false`                   |
+| height                | number (`20` when the label is `inside`)                                                                                           | `4`                       |
+| width                 | DimensionValue (the whole component, label included)                                                                               | full width of the parent  |
+| color                 | string                                                                                                                             | `primary`                 |
+| trackColor            | string                                                                                                                             | `surfaceContainerHighest` |
+| label                 | ReactNode (text, a number or a node drawn with the bar)                                                                            |                           |
+| labelPosition         | `"top-left" \| "top-center" \| "top-right" \| "left" \| "right" \| "bottom-left" \| "bottom-center" \| "bottom-right" \| "inside"` | `right`                   |
+| duration              | number (ms, determinate transition)                                                                                                | `500`                     |
+| indeterminateDuration | number (ms)                                                                                                                        | `1500`                    |
 
 #### `EmptyState`
 
@@ -1254,29 +1455,28 @@ survives text reflow without a hardcoded height.
 #### `ToastProvider` / `useToast()`
 
 Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
-Mount `ToastProvider` once above the app; the queue is FIFO and renders one `Snackbar` at a time.
+Mount `ToastProvider` once above the app (its `position` is where toasts appear unless one asks for
+another, `"bottom-center"` by default); the queue is FIFO and renders one `Snackbar` at a time.
 
 ```tsx
 const toast = useToast();
 toast.success("Saved");
-toast.error("Upload failed", { action: { label: "Retry", onPress: retry } });
+toast.error("Upload failed", { action: { label: "Retry", onClick: retry } });
 toast.show({ id: "sync", message: "Syncing…", duration: 8000 }); // same id replaces
 toast.hide(); // clears the queue
 ```
 
-| `ToastOptions` | Type                                                                  | Default     |
-| -------------- | --------------------------------------------------------------------- | ----------- |
-| message        | string (required)                                                     | —           |
-| type           | `"default" \| "success" \| "error"`                                   | `default`   |
-| duration       | number (ms)                                                           | `4000`      |
-| icon           | icon                                                                  | from `type` |
-| action         | `{ label, onPress }`                                                  |             |
-| id             | string — replaces a queued toast with the same id instead of stacking |             |
-
-#### `SideSheet`
-
-M3 side sheet: `modal` (over a scrim, from the `end` or `start` edge) or standard (inline beside
-the content), with back / close buttons and an `actions` row.
+| `ToastOptions` | Type                                                                       | Default         |
+| -------------- | -------------------------------------------------------------------------- | --------------- |
+| message        | string (required)                                                          | —               |
+| severity       | `"success" \| "info" \| "warning" \| "error"` (left out: neutral, no icon) |                 |
+| variant        | `"contained" \| "outlined"`                                                | `contained`     |
+| position       | `Snackbar`'s `position` values                                             | the provider's  |
+| duration       | number (ms; not used with `onClose`)                                       | `4000`          |
+| icon           | icon                                                                       | from `severity` |
+| action         | `{ label, onClick }`                                                       |                 |
+| onClose        | () => void (keeps the toast up until its close button is pressed)          |                 |
+| id             | string — replaces a queued toast with the same id instead of stacking      |                 |
 
 ### Navigation
 
@@ -1287,21 +1487,34 @@ the content), with back / close buttons and an `actions` row.
 
 #### `AppBar`
 
-`TopAppBar` behind react-navigation's header contract (drawer/back button, title, right
-actions). Its props are navigator-shaped
-(`navigation`, `route`, `options`, `back`, `isPinned`) and structurally typed, so it drops
-into a React Navigation `header` renderer without the library depending on the navigator.
+The M3 top app bar, drawn on a `Paper`. On its own the screen passes `title`, `leading` and
+`actions`; as a navigator's `header` it adapts to react-navigation's contract (`navigation`,
+`route`, `options`, `back`, `isPinned`, structurally typed, so it drops into a `header` renderer
+without the library depending on the navigator): it reads the title from `options` / `route`,
+shows a back button or a drawer menu button, and renders `options.headerRight`.
 
-#### `NavigationBar`
+| Prop     | Type                                                                                                       | Default |
+| -------- | ---------------------------------------------------------------------------------------------------------- | ------- |
+| title    | ReactNode (a string uses the variant's type; left out, read from `options` / `route`)                      |         |
+| subtitle | string                                                                                                     |         |
+| variant  | `"small" \| "center" \| "medium" \| "large"` (`medium` and `large` put the title on a second, larger line) | `small` |
+| leading  | ReactNode (a back or menu `IconButton`; under a navigator a back or menu button by default)                |         |
+| actions  | ReactNode (up to three action `IconButton`s; under a navigator `options.headerRight()`)                    |         |
+| elevated | boolean (the on-scroll state: `surfaceContainer` instead of `surface`)                                     | `false` |
+| safeArea | boolean (pads the top safe-area inset)                                                                     | `true`  |
+| divider  | boolean (a hairline under the bar; left out, drawn on the web under a navigator)                           |         |
+| paper    | `Omit<PaperProps, "children">` (`elevation`, `outline`, `glow`, `style` of the `Paper` it is drawn on)     |         |
 
-Bottom navigation bar.
+#### `NavBar`
 
-| Prop        | Type                                                                             | Default  |
-| ----------- | -------------------------------------------------------------------------------- | -------- |
-| items       | `NavigationBarItem[]` = `{ id, label, icon, badgeCount?, disabled? }` (required) | —        |
-| activeId    | string (required)                                                                | —        |
-| onItemPress | (id) => void (required)                                                          | —        |
-| showLabels  | `"always" \| "selected"`                                                         | `always` |
+Bottom navigation bar: the destinations of a compact window, three to five per M3.
+
+| Prop       | Type                                                                      | Default  |
+| ---------- | ------------------------------------------------------------------------- | -------- |
+| items      | `NavBarItem[]` = `{ id, label, icon, badgeCount?, disabled? }` (required) | —        |
+| activeId   | string (required)                                                         | —        |
+| onClick    | (id) => void (the pressed destination; required)                          | —        |
+| showLabels | `"always" \| "selected"`                                                  | `always` |
 
 #### `Tabs` / `TabContent`
 
@@ -1310,11 +1523,18 @@ renders the child at the active index.
 
 Tabs:
 
-| Prop      | Type                                         | Default |
-| --------- | -------------------------------------------- | ------- |
-| tabs      | `string[]` \| `{ label, icon }[]` (required) | —       |
-| activeTab | number (index, required)                     | —       |
-| onChange  | (index) => void (required)                   | —       |
+| Prop           | Type                                                                                            | Default    |
+| -------------- | ----------------------------------------------------------------------------------------------- | ---------- |
+| tabs           | `string[]` \| `{ label, icon?, key?, disabled? }[]` (required; an icon on every tab or on none) | —          |
+| activeTab      | number (index; ignored when `activeKey` is given)                                               | `0`        |
+| activeKey      | string (the active tab by its `key`, for tabs that come and go)                                 |            |
+| onChange       | (index, key?) => void (required)                                                                | —          |
+| variant        | `"standard" \| "rounded"` (an underline, or a pill on a rounded track)                          | `standard` |
+| showBorders    | boolean (dividers between the tabs; in `rounded`, an outline around the track)                  | `false`    |
+| size           | `"sm" \| "md" \| "lg"`                                                                          | `md`       |
+| fullWidth      | boolean (`false` sizes each tab to its label and scrolls the bar when they do not fit)          | `true`     |
+| height / width | number \| string (override the bar's size, dp or a percentage)                                  |            |
+| color          | `ColorRole` (the indicator and the selected tab)                                                | `primary`  |
 
 TabContent: `activeTab` (index, required), `children` (required), `style`.
 
@@ -1328,39 +1548,61 @@ TabContent: `activeTab` (index, required), `children` (required), `style`.
 
 #### `Pagination`
 
-| Prop          | Type                                | Default |
-| ------------- | ----------------------------------- | ------- |
-| page          | number (1-based, required)          | —       |
-| totalPages    | number (required)                   | —       |
-| onPageChange  | (page) => void (required)           | —       |
-| siblingCount  | number (pages each side of current) | `1`     |
-| showFirstLast | boolean (first/last arrows)         | `false` |
-| disabled      | boolean                             |         |
+| Prop          | Type                                                                                      | Default   |
+| ------------- | ----------------------------------------------------------------------------------------- | --------- |
+| activePage    | number (1-based, required)                                                                | —         |
+| totalPages    | number (required)                                                                         | —         |
+| onChange      | (page) => void (a page button, an arrow or `pageSelect`; required)                        | —         |
+| siblingCount  | number (pages each side of current)                                                       | `1`       |
+| showFirstLast | boolean (first/last arrows)                                                               | `false`   |
+| pageSelect    | boolean (a select after the pager that opens a searchable list of pages and jumps to one) | `false`   |
+| color         | `ColorRole` (the selected page)                                                           | `primary` |
+| variant       | `"rounded" \| "circular"` (rounded squares, or circles)                                   | `rounded` |
+| size          | `"sm" \| "md" \| "lg"` (32 / 40 / 48 px)                                                  | `md`      |
+| disabled      | boolean                                                                                   |           |
 
 #### `Stepper`
 
-Horizontal progress steps.
+Progress steps, in a row or a column.
 
-| Prop        | Type                                          | Default |
-| ----------- | --------------------------------------------- | ------- |
-| steps       | `string[]` \| `{ label, icon? }[]` (required) | —       |
-| activeStep  | number (index, required)                      | —       |
-| onStepPress | (stepIndex) => void (makes steps tappable)    |         |
-
-#### `TopAppBar`
-
-The navigator-agnostic top app bar `AppBar` is built on: `small`, `center`, `medium`, `large`,
-with `leading` and `actions` slots and an `elevated` on-scroll state.
+| Prop       | Type                                                                            | Default |
+| ---------- | ------------------------------------------------------------------------------- | ------- |
+| steps      | `string[]` \| `{ label, icon? }[]` (required)                                   | —       |
+| activeStep | number (index, required)                                                        | —       |
+| direction  | `"row" \| "column"` (`row`: label under each circle; `column`: label beside it) | `row`   |
+| onClick    | (stepIndex) => void (makes steps tappable)                                      |         |
 
 #### `NavigationRail`
 
-The side-mounted counterpart of `NavigationBar` for medium and expanded windows — same item
-shape, `header` / `footer` slots for a menu button or a FAB.
+The side-mounted counterpart of `NavBar` for medium and expanded windows — same item shape (its
+press callback is still `onItemPress`), `header` / `footer` slots for a menu button or a FAB.
 
-#### `NavigationDrawer`, `DrawerItem`, `DrawerSection`
+#### `Drawer`, `DrawerItem`, `DrawerSection`
 
-M3 navigation drawer, `variant="standard"` (inline) or `"modal"` (over a scrim; Escape and Android
-back close it).
+The M3 navigation drawer, which doubles as a side sheet: with `position`, any content as `children`
+and a close button it holds filters, details or a form on any edge of the window
+(`<Drawer variant="swipeable" position="right">` is a right-hand side sheet).
+
+| Prop            | Type                                                                                                                              | Default                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| variant         | `"static" \| "swipeable"` (a panel beside the content, or one over a scrim that a drag, the scrim, Android back and Escape close) | `static`                  |
+| position        | `"left" \| "right" \| "top" \| "bottom"` (physical edges, not mirrored in right-to-left layouts)                                  | `left`                    |
+| visible         | boolean (swipeable only)                                                                                                          | `false`                   |
+| onClose         | () => void (the close button; for a swipeable drawer also the scrim, a closing drag, Android back and Escape)                     |                           |
+| elevation       | number 0–5 (surface tone and, on native, shadow)                                                                                  | `0` static, `1` swipeable |
+| title           | string (headline; with a close or back button or `actions`, the title of a header row)                                            |                           |
+| children        | ReactNode (`DrawerSection`s and / or `DrawerItem`s, or any content; required)                                                     | —                         |
+| header / footer | ReactNode (pinned above / below the scrolling items)                                                                              |                           |
+| actions         | ReactNode (a row of buttons at the bottom, below a divider)                                                                       |                           |
+| showCloseButton | boolean (a close button in the header row)                                                                                        | `false`                   |
+| onBack          | () => void (a back button before the title)                                                                                       |                           |
+| collapsed       | boolean (icons only, 72 wide)                                                                                                     | `false`                   |
+| width / height  | number (left and right / top and bottom: the largest height)                                                                      | `360` / `360`             |
+
+`DrawerItem`: `label` (required), `icon`, `selected`, `badge`, `onClick`, `disabled`, and `children`
+(sub-items, which make it a group the press opens and closes: `defaultExpanded`, `onToggle`).
+`DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
+`defaultExpanded` (`true`) and `onToggle`.
 
 #### `Toolbar`
 

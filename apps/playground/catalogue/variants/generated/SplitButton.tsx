@@ -13,12 +13,12 @@ const row: ViewStyle = {
 };
 
 const SAVE_ITEMS = [
-  { id: "copy", label: "Save a copy", icon: "content-copy", onPress: () => {} },
+  { id: "copy", label: "Save a copy", icon: "content-copy", onClick: () => {} },
   {
     id: "draft",
     label: "Save as draft",
     icon: "file-outline",
-    onPress: () => {},
+    onClick: () => {},
   },
   {
     id: "discard",
@@ -26,7 +26,7 @@ const SAVE_ITEMS = [
     icon: "delete-outline",
     destructive: true,
     dividerAbove: true,
-    onPress: () => {},
+    onClick: () => {},
   },
 ] as const;
 
@@ -66,7 +66,7 @@ export const Disabled = () => (
         id: "schedule",
         label: "Schedule send",
         icon: "clock-outline",
-        onPress: () => {},
+        onClick: () => {},
       },
     ]}
     onPress={() => {}}

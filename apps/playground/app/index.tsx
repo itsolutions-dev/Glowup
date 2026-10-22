@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Button,
@@ -85,24 +85,22 @@ export default function Home() {
             </Typography>
 
             <View style={styles.actions}>
-              <Link href="/components" asChild>
-                <Button
-                  variant="filled"
-                  iconName="view-grid-outline"
-                  onClick={() => {}}
-                >
-                  Browse components
-                </Button>
-              </Link>
-              <Link href="/getting-started" asChild>
-                <Button
-                  variant="tonal"
-                  iconName="rocket-launch-outline"
-                  onClick={() => {}}
-                >
-                  Get started
-                </Button>
-              </Link>
+              {/* `Button` listens to `onClick`, which a `Link asChild` never sets
+                  (it passes `onPress`), so these navigate themselves. */}
+              <Button
+                variant="filled"
+                iconName="view-grid-outline"
+                onClick={() => router.push("/components")}
+              >
+                Browse components
+              </Button>
+              <Button
+                variant="tonal"
+                iconName="rocket-launch-outline"
+                onClick={() => router.push("/getting-started")}
+              >
+                Get started
+              </Button>
               <Button
                 variant="outlined"
                 iconName="npm"
@@ -215,9 +213,9 @@ export default function Home() {
       >
         <View style={styles.bullets}>
           <Bullet icon="navigation-outline">
-            Navigation-agnostic: it ships AppBar, NavigationBar, Tabs,
-            Breadcrumbs, Pagination and Stepper, but no navigator. Picking a
-            router stays your call.
+            Navigation-agnostic: it ships AppBar, NavBar, Tabs, Breadcrumbs,
+            Pagination and Stepper, but no navigator. Picking a router stays
+            your call.
           </Bullet>
           <Bullet icon="palette-swatch-outline">
             Token-driven: every colour, type ramp, spacing step and corner

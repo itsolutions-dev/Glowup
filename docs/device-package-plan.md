@@ -2174,14 +2174,14 @@ confirm on the TC22):
 | ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                                                                                                                                          |
 | ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call.                                                                                                                          |
 | ZD4 | Claim    | The claim's decoders written in the app's stored profile (`SET_CONFIG`); `null` puts back the profile's own, kept on the device from before the first write. Not `SWITCH_SCANNER_PARAMS`: on the TC22 it changed no decoder (ZB2). The barcode input enabled on `open()`, disabled on `close()` while the app is in front on its profile. |
-| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2.                                                                                                                                                                                                                                |
+| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2; publishable from ZB3.                                                                                                                                                                                                          |
 | ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                                |
 
 | Phase | Content                                                                                                                                                         | Release | Status |
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
 | ZB1   | `packages/scanner-zebra` (private): Kotlin module over DataWedge, adapter, the conformance kit over a fake; the Zebra build of the diagnostics gets the scanner | —       | done   |
 | ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | done   |
-| ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | —      |
+| ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | done   |
 | ZB4   | The playground's install line, `examples/consumer` and its smoke                                                                                                | —       | —      |
 
 ### Phase ZB1 — what landed
@@ -2319,6 +2319,23 @@ notes:
   symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
   not reopen and the setting waited for the next claim. The screen now lets go of the scanner for
   a moment, and its tests check the new `open()`.
+
+### Phase ZB3 — what landed
+
+- **`@its/scanner-zebra` is publishable** (no longer `private`), as `@its/scanner-honeywell`
+  became in phase C3: bob into `lib/`, the `exports` map (`.`, `./package.json`: no
+  `./app.plugin.js`, there is no plugin), `validate-package` (publint, attw) in CI and the root
+  `build`, `release.yml` and the changesets' README naming it, `publishConfig` (`access: public`,
+  `provenance: true`). The tarball holds `lib/`, `src/`, the Android module (`build.gradle`,
+  sources, its manifest with the `<queries>` entry) and `expo-module.config.json`: no SDK. A
+  changeset makes it `0.1.0`.
+- **`examples/consumer` waits for phase ZB4** (with the playground's install line), as it waited
+  for C4: it installs from the registry, and the package is not there yet.
+- **Not published yet:** npm still knows only `@its/glowup-ui`. Trusted publishing cannot create
+  a package, so the first version of this one, like the device package's (its peer, which goes
+  first) and the Honeywell ones', needs a publish by hand or a temporary token before its trusted
+  publisher is set up: a maintainer's choice. Until then the Release fails with `E404`, as it does
+  for the others.
 
 ## Open for later
 

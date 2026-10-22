@@ -1,7 +1,6 @@
 {
   "name": "@its/scanner-zebra",
   "version": "0.0.0",
-  "private": true,
   "description": "Zebra barcode scanners (the TC22 imager and other Zebra mobile computers, through DataWedge) behind @its/glowup-device/scanner: an Android Expo module and its adapter",
   "license": "MIT",
   "repository": {
@@ -101,5 +100,9 @@
         }
       ]
     ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

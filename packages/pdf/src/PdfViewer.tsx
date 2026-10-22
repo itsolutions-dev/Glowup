@@ -105,9 +105,11 @@ const PdfDocument = ({
 
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [canSearch, setCanSearch] = useState(false);
+  const [downloaded, setDownloaded] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const abort = new AbortController();
     let file: ResolvedFile | null = null;
     let released = false;
     const release = () => {
@@ -118,7 +120,12 @@ const PdfDocument = ({
     };
     (async () => {
       try {
-        file = await resolveSource(sourceRef.current, files);
+        file = await resolveSource(sourceRef.current, files, {
+          signal: abort.signal,
+          onProgress: (fraction) => {
+            if (!cancelled) setDownloaded(fraction);
+          },
+        });
         if (cancelled) return release();
         const document = await native.open(file.uri);
         if (cancelled) return release();
@@ -134,6 +141,7 @@ const PdfDocument = ({
     })();
     return () => {
       cancelled = true;
+      abort.abort();
       release();
     };
   }, [native, files]);
@@ -353,7 +361,10 @@ const PdfDocument = ({
   if (!loaded) {
     body = (
       <View style={styles.center}>
-        <CircularProgress accessibilityLabel={labels.loading} />
+        <CircularProgress
+          accessibilityLabel={labels.loading}
+          progress={downloaded ?? undefined}
+        />
         <Text
           style={[
             theme.typography.bodyMedium,

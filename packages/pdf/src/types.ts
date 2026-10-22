@@ -41,8 +41,20 @@ export interface PdfNative {
 }
 
 /** Local files the viewer needs: the downloaded or decoded PDF lives in the cache and is removed afterwards. */
+export type PdfDownloadOptions = {
+  /** Stops the transfer: the download rejects and leaves nothing behind. */
+  signal?: AbortSignal;
+  /** The share received, 0 to 1; `null` when the server did not say how big the file is. */
+  onProgress?: (fraction: number | null) => void;
+};
+
 export interface PdfFiles {
-  download(uri: string, headers?: Record<string, string>): Promise<string>;
+  /** Resolves to a local file that starts like a PDF; rejects with a `format` error when what came is not one. */
+  download(
+    uri: string,
+    headers?: Record<string, string>,
+    options?: PdfDownloadOptions,
+  ): Promise<string>;
   write(bytes: Uint8Array): Promise<string>;
   remove(uri: string): Promise<void>;
 }

@@ -1,5 +1,5 @@
-import { createPdfError } from "./errors";
-import type { PdfFiles, PdfSource } from "./types";
+import { createPdfError, isPdfError } from "./errors";
+import type { PdfDownloadOptions, PdfFiles, PdfSource } from "./types";
 
 const ALPHABET =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -33,6 +33,23 @@ export const decodeBase64 = (input: string): Uint8Array => {
     }
   }
   return bytes;
+};
+
+/** A PDF starts with `%PDF-`, allowed anywhere in the first KB (some writers put a few bytes before it). */
+export const looksLikePdf = (head: Uint8Array): boolean => {
+  const end = Math.min(head.length, 1024) - 4;
+  for (let i = 0; i < end; i++) {
+    if (
+      head[i] === 0x25 &&
+      head[i + 1] === 0x50 &&
+      head[i + 2] === 0x44 &&
+      head[i + 3] === 0x46 &&
+      head[i + 4] === 0x2d
+    ) {
+      return true;
+    }
+  }
+  return false;
 };
 
 /** FNV-1a over every element: two documents of one size that differ only in the middle must not share a key. */
@@ -86,6 +103,7 @@ export type ResolvedFile = {
 export const resolveSource = async (
   source: PdfSource,
   files: PdfFiles,
+  options?: PdfDownloadOptions,
 ): Promise<ResolvedFile> => {
   if ("uri" in source) {
     if (source.uri.startsWith("file://")) {
@@ -93,10 +111,11 @@ export const resolveSource = async (
     }
     try {
       return {
-        uri: await files.download(source.uri, source.headers),
+        uri: await files.download(source.uri, source.headers, options),
         temporary: true,
       };
     } catch (error) {
+      if (isPdfError(error)) throw error;
       throw createPdfError(
         "network",
         error instanceof Error ? error.message : String(error),

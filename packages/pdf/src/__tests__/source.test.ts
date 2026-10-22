@@ -1,5 +1,10 @@
 import { createPdfError } from "../errors";
-import { decodeBase64, resolveSource, sourceKey } from "../source";
+import {
+  decodeBase64,
+  looksLikePdf,
+  resolveSource,
+  sourceKey,
+} from "../source";
 import { createMemoryPdf } from "../testing";
 
 describe("decodeBase64", () => {
@@ -69,6 +74,19 @@ describe("sourceKey", () => {
   });
 });
 
+describe("looksLikePdf", () => {
+  const bytes = (text: string) => new TextEncoder().encode(text);
+  it("finds the header at the start or a little after it, not in an HTML page", () => {
+    expect(looksLikePdf(bytes("%PDF-1.7\n%body"))).toBe(true);
+    expect(looksLikePdf(bytes("\r\n  %PDF-1.4"))).toBe(true);
+    expect(
+      looksLikePdf(bytes("<html><body>Please sign in</body></html>")),
+    ).toBe(false);
+    expect(looksLikePdf(bytes(""))).toBe(false);
+    expect(looksLikePdf(bytes(`${" ".repeat(1100)}%PDF-1.7`))).toBe(false);
+  });
+});
+
 describe("resolveSource", () => {
   it("downloads a remote uri with its headers and marks the file temporary", async () => {
     const { adapters, calls } = createMemoryPdf();
@@ -110,6 +128,28 @@ describe("resolveSource", () => {
     await expect(
       resolveSource({ uri: "https://x/a.pdf" }, adapters.files),
     ).rejects.toMatchObject({ code: "network", message: "401" });
+  });
+
+  it("passes the abort signal and the progress callback to the download", async () => {
+    const { adapters, calls } = createMemoryPdf({
+      downloadProgress: [0.5, null],
+    });
+    const seen: (number | null)[] = [];
+    const controller = new AbortController();
+    await resolveSource({ uri: "https://x/a.pdf" }, adapters.files, {
+      signal: controller.signal,
+      onProgress: (fraction) => seen.push(fraction),
+    });
+    expect(calls.signals).toEqual([controller.signal]);
+    expect(seen).toEqual([0.5, null]);
+  });
+
+  it("keeps a format error from the download instead of calling it a network one", async () => {
+    const error = createPdfError("format", "The downloaded file is not a PDF.");
+    const { adapters } = createMemoryPdf({ downloadError: error });
+    await expect(
+      resolveSource({ uri: "https://x/a.pdf" }, adapters.files),
+    ).rejects.toBe(error);
   });
 
   it("keeps the format error of a bad base64 text", async () => {

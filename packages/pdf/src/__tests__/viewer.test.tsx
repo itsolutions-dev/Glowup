@@ -74,6 +74,27 @@ describe("PdfViewer", () => {
     expect(screen.queryByLabelText("Opening the document")).toBeNull();
   });
 
+  it("stops the transfer when it is unmounted before the download ends", async () => {
+    const memory = createMemoryPdf();
+    let signal: AbortSignal | undefined;
+    memory.adapters.files.download = (_uri, _headers, options) =>
+      new Promise((_resolve, reject) => {
+        signal = options?.signal;
+        signal?.addEventListener("abort", () => reject(new Error("aborted")));
+      });
+    const view = await render(
+      <ThemeProvider>
+        <PdfProvider adapters={memory.adapters}>
+          <PdfViewer source={{ uri: "https://x/a.pdf" }} />
+        </PdfProvider>
+      </ThemeProvider>,
+    );
+    expect(signal?.aborted).toBe(false);
+    await view.unmount();
+    expect(signal?.aborted).toBe(true);
+    expect(memory.calls.opened).toEqual([]);
+  });
+
   it("opens a local file as it is and leaves it where it is", async () => {
     const { calls, view } = await open({
       source: { uri: "file:///docs/a.pdf" },

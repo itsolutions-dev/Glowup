@@ -36,6 +36,10 @@ Plan and decisions: `docs/pdf-package-plan.md` (it replaces D9 of `docs/solaris-
   per-page find in PDFKit, so the Swift side searches the page's text and asks PDFKit for the rectangles of each range
   (`page.selection(for:)`); Android calls `Page.searchText` on that page. Hits are kept in document order and the shown one stays
   put when an earlier page's hit arrives (`mergeMatches`).
+- **A download lands in a `.part` and is renamed only when whole and starting with `%PDF-`** (`createExpoFiles` in `src/adapters.ts`,
+  `looksLikePdf` in `src/source.ts`); anything else is a `format` error, not `network`, and leaves no file. The viewer aborts the
+  transfer when it unmounts (`signal`) and feeds the loading ring with `onProgress`. There is no download cache; if one is ever added,
+  its key must include the headers (as `sourceKey` does).
 - **Drawings go through a queue** (`src/renderQueue.ts`), never straight to `native.renderPage`: the module cannot stop a drawing that
   has begun, so the queue holds what waits, drops what a page withdrew (`cancel`, called when the page leaves the list or changes
   width), picks the page nearest the one being read (`reading(page)`), lets two drawings into the module at a time and remembers

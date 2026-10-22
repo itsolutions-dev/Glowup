@@ -13,6 +13,8 @@ export type MemoryPdfOptions = {
   openError?: PdfError;
   /** What a download rejects with. */
   downloadError?: Error;
+  /** What a download reports before it resolves (the share received, 0 to 1; `null`: size unknown). */
+  downloadProgress?: (number | null)[];
 };
 
 /** The viewer's adapters in memory, and a record of what they were asked. For tests. */
@@ -24,6 +26,8 @@ export const createMemoryPdf = (options: MemoryPdfOptions = {}) => {
   ];
   const calls = {
     downloaded: [] as { uri: string; headers?: Record<string, string> }[],
+    /** The signal each download was given. */
+    signals: [] as (AbortSignal | undefined)[],
     written: [] as Uint8Array[],
     removed: [] as string[],
     opened: [] as string[],
@@ -57,8 +61,12 @@ export const createMemoryPdf = (options: MemoryPdfOptions = {}) => {
       },
     },
     files: {
-      download: async (uri, headers) => {
+      download: async (uri, headers, downloadOptions) => {
         calls.downloaded.push({ uri, headers });
+        calls.signals.push(downloadOptions?.signal);
+        options.downloadProgress?.forEach((p) =>
+          downloadOptions?.onProgress?.(p),
+        );
         if (options.downloadError) throw options.downloadError;
         return `file:///memory/${++files}.pdf`;
       },

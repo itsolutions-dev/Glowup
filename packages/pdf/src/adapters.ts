@@ -4,6 +4,7 @@
 // `native-missing` error instead of a crash at start-up (spike 0.3).
 import { requireOptionalNativeModule } from "expo";
 import { createPdfError, isPdfError, toPdfError } from "./errors";
+import { looksLikePdf } from "./source";
 import type {
   PdfActions,
   PdfCapabilities,
@@ -33,18 +34,50 @@ const fileSystem = () =>
 const uniqueName = () =>
   `glowup-pdf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-export const expoFiles: PdfFiles = {
-  async download(uri, headers) {
-    const { File, Paths } = await fileSystem();
-    const target = new File(Paths.cache, `${uniqueName()}.pdf`);
-    const file = await File.downloadFileAsync(uri, target, {
-      headers,
-      idempotent: true,
-    });
-    return file.uri;
+/** The file operations over expo-file-system; `system` is how it is loaded (a fake one in the tests: jest has no dynamic `import()`). */
+export const createExpoFiles = (system: typeof fileSystem): PdfFiles => ({
+  async download(uri, headers, options) {
+    const { File, Paths } = await system();
+    const name = uniqueName();
+    // It lands in a `.part` and gets its name only when it is whole and is a PDF: an aborted or failed
+    // transfer, or a login page served with a 200, never reaches the native module as "the document".
+    const part = new File(Paths.cache, `${name}.pdf.part`);
+    try {
+      await File.downloadFileAsync(uri, part, {
+        headers,
+        idempotent: true,
+        signal: options?.signal,
+        onProgress: options?.onProgress
+          ? ({ bytesWritten, totalBytes }) =>
+              options.onProgress!(
+                totalBytes > 0 ? Math.min(1, bytesWritten / totalBytes) : null,
+              )
+          : undefined,
+      });
+      const handle = part.open();
+      let head: Uint8Array;
+      try {
+        head = handle.readBytes(Math.min(1024, part.size));
+      } finally {
+        handle.close();
+      }
+      if (!looksLikePdf(head)) {
+        throw createPdfError("format", "The downloaded file is not a PDF.");
+      }
+      const target = new File(Paths.cache, `${name}.pdf`);
+      await part.move(target);
+      return target.uri;
+    } catch (error) {
+      try {
+        if (part.exists) part.delete();
+      } catch {
+        // Nothing more to do: the cache is the system's to clean.
+      }
+      throw error;
+    }
   },
   async write(bytes) {
-    const { File, Paths } = await fileSystem();
+    const { File, Paths } = await system();
     const target = new File(Paths.cache, `${uniqueName()}.pdf`);
     target.create({ overwrite: true });
     target.write(bytes);
@@ -52,14 +85,16 @@ export const expoFiles: PdfFiles = {
   },
   async remove(uri) {
     try {
-      const { File } = await fileSystem();
+      const { File } = await system();
       const file = new File(uri);
       if (file.exists) file.delete();
     } catch {
       // The cache is the system's to clean: failing to remove a copy is not worth an error.
     }
   },
-};
+});
+
+export const expoFiles = createExpoFiles(fileSystem);
 
 /** What a native error from the module means to the viewer. Expo reports a `code` on its exceptions. */
 const fromNativeError = (error: unknown) => {

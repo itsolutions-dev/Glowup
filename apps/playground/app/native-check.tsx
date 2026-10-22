@@ -237,27 +237,25 @@ export default function NativeCheck() {
   const [chartWidths, setChartWidths] = useState<number[]>([]);
   const [pick, setPick] = useState<number | null>(null);
   const [part, setPart] = useState<string | null>(null);
-  // iOS has nothing to scroll the page from CI: it moves itself to the charts once the first
-  // screenshot has been taken, and later to the PDF page (native.yml takes a screenshot after each).
+  // iOS has nothing to scroll the page from CI: it cycles by itself, 10 s each, over the top, the
+  // charts and the PDF page, and native.yml takes a screenshot every few seconds. Fixed delays from
+  // the screen opening drifted away from the workflow's clock (a slow runner took every shot at the PDF).
   const scroll = useRef<ScrollView>(null);
   const chartsAt = useRef(0);
   const pdfAt = useRef(0);
   useEffect(() => {
     if (Platform.OS !== "ios") return;
-    const timers = [
-      [35_000, chartsAt],
-      [50_000, pdfAt],
-    ].map(([delay, at]) =>
-      setTimeout(
-        () =>
-          scroll.current?.scrollTo({
-            y: (at as typeof chartsAt).current,
-            animated: false,
-          }),
-        delay as number,
-      ),
-    );
-    return () => timers.forEach(clearTimeout);
+    const stops = [0, chartsAt, pdfAt];
+    let i = 0;
+    const timer = setInterval(() => {
+      i = (i + 1) % stops.length;
+      const stop = stops[i];
+      scroll.current?.scrollTo({
+        y: typeof stop === "number" ? stop : stop.current,
+        animated: false,
+      });
+    }, 10_000);
+    return () => clearInterval(timer);
   }, []);
 
   // Each check compares a difference, not an absolute size: line heights differ

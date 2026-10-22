@@ -88,8 +88,8 @@ It gets its page, its props table and its URL for free.
   fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
   Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
   "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
-  the state lines `onSelect` writes. On iOS the screen scrolls itself to the charts 35 s after it opens (`Platform.OS === "ios"` only:
-  on Android it would fight the script) and to the PDF page 15 s later, and `native.yml` takes `ios-charts.png` 15 s and `ios-pdf.png` 30 s after `ios-check.png`. Android leaves
+  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts and the PDF page, 10 s each (`Platform.OS === "ios"` only:
+  on Android it would fight the script), and `native.yml` takes `ios-seq-NN.png` every 6 s for two minutes: read the ones that show each position (fixed delays from the screen opening drifted off the workflow's clock once). Android leaves
   `android-chart-bars.png` and `android-chart-donut.png`.
 
 ## The notifications page

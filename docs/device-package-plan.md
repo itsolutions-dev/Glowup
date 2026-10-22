@@ -1901,7 +1901,7 @@ and a scanner screen used in turn.
 | C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done   |
 | C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | done   |
 | C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | done   |
-| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | device minor | —      |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | —            | done   |
 
 ### Phase C1 — what landed
 
@@ -2072,6 +2072,33 @@ The team's CT40 (Android 11, API 30), the reports of 21 October, native module r
   October). Trusted publishing cannot create a package, so the first version of each, this one
   included, needs a publish by hand or a temporary token before its trusted publisher is set up:
   a maintainer's choice. Until then the Release fails with `E404`, as it does for the others.
+
+### Phase C4 — what landed
+
+- **Playground `/device/scanner`** on a simulated scanner (`site/scannerDemo.ts`: the package's
+  mock with five warehouse labels to aim at). The page holds the scanner with the first scope's
+  symbologies (C7) and shows its state, the trigger and the busy guard; switches turn the
+  symbologies off (the device's settings), make the confirmation slow (1.5 s, reads meanwhile
+  dropped), let the same code through every time, and give the scanner back to read through
+  `CameraView` into the same `onScan` (C8, C10). The simulated trigger, the software trigger and
+  another app taking the scanner (with `retry()`) are buttons; an EAN-8, outside the scope, is
+  not decoded until the first switch is off. The page provides the demo only without an adapter
+  above it; its tests drive a mock: the symbologies, the repeat window, a slow confirmation, the
+  scanner taken away, the camera fallback, the simulated scanner. Checked in Chromium on the
+  static export at 1440 and 390 px: no console error (hydration included), no horizontal scroll,
+  the trigger, the ignored EAN-8 and the software trigger as in the tests.
+- **No vendor in the playground,** as decided for RFID in phase 37: `@its/scanner-honeywell`'s
+  module would be autolinked into every Android build of the playground, which would then need
+  Honeywell's `DataCollection.aar`.
+- **`examples/consumer`** installs `@its/scanner-honeywell` from the registry beside the other
+  three: it renders `/scanner` on the Honeywell adapter (unsupported on the web), types it as
+  `BarcodeScannerAdapter` and lists the config plugin with a `DataCollection.aar` path that does
+  not exist. The smoke workflow waits for, installs and checks the four versions. Checked here on
+  the four packages packed locally: `tsc`, the web export (the page reads `Scanner honeywell
+false · closed`) and `expo config` resolving both Honeywell plugins.
+- **No release:** the playground is private and the consumer is no package, so no changeset;
+  the table's "device minor" for this phase did not hold, nothing in `/scanner` changed. The
+  smoke stays red until the packages are on npm (see "Phase C3 — what landed").
 
 ## Open for later
 

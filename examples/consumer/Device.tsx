@@ -6,7 +6,7 @@
  *    (`/info`, `/location`, `/camera`, `/network`, `/battery`, `/keep-awake`,
  *    `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`,
  *    `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/rfid`,
- *    `/testing`), with its own published
+ *    `/scanner`, `/testing`), with its own published
  *    `.d.ts` — the types annotated below fail `tsc --noEmit` if one stops
  *    resolving,
  *  - the root entry loads without any capability's Expo module,
@@ -18,6 +18,11 @@
  * unsupported, its published types implement the published contract, and its
  * config plugin resolves (app.json points it at SDK copies that do not exist:
  * it reads them only at prebuild, which the smoke test does not run).
+ *
+ * And the same for `@its/scanner-honeywell`, the first vendor of `/scanner`:
+ * its adapter reads unsupported on the web, implements the published
+ * contract, and its config plugin resolves (with a `DataCollection.aar` path
+ * that does not exist).
  */
 import { Typography, useTheme } from "@its/glowup-ui";
 import {
@@ -96,10 +101,17 @@ import {
   type RfidErrorCode,
 } from "@its/glowup-device/rfid";
 import {
+  useBarcodeScanner,
+  type BarcodeScannerAdapter,
+  type BarcodeScannerErrorCode,
+} from "@its/glowup-device/scanner";
+import {
+  createMockBarcodeScannerAdapter,
   createMockDeviceInfoAdapter,
   createMockRfidAdapter,
 } from "@its/glowup-device/testing";
 import { getHoneywellRfidAdapter } from "@its/rfid-honeywell";
+import { getHoneywellBarcodeScannerAdapter } from "@its/scanner-honeywell";
 import { useRef } from "react";
 
 const FIRST_CODE: LocationErrorCode = "permission-denied";
@@ -131,6 +143,9 @@ const NOT_CONNECTED: RfidErrorCode = "not-connected";
 // The vendor's adapter must satisfy the published contract.
 const RFID: RfidAdapter = getHoneywellRfidAdapter();
 const RFID_MOCK: RfidAdapter = createMockRfidAdapter();
+const TAKEN: BarcodeScannerErrorCode = "unavailable";
+const SCANNER: BarcodeScannerAdapter = getHoneywellBarcodeScannerAdapter();
+const SCANNER_MOCK: BarcodeScannerAdapter = createMockBarcodeScannerAdapter();
 
 /** The bridge `App.tsx` passes to `ThemeProvider onInteractionFeedback`. */
 export const interactionFeedback: (kind: InteractionKind) => void =
@@ -238,6 +253,7 @@ const Readout = () => {
         {`Bluetooth ${radio.state} · ${nearby.status} · ${scan.devices.length} found · clock ${clock.status} · ${POWERED_OFF}`}
       </Typography>
       <RfidReadout />
+      <ScannerReadout />
       {camera.status === "granted" ? (
         <CameraView ref={handle} style={{ height: theme.spacing.xl * 4 }} />
       ) : null}
@@ -264,6 +280,29 @@ const RfidLine = () => {
 const RfidReadout = () => (
   <DeviceAdaptersProvider adapters={{ rfid: RFID }}>
     <RfidLine />
+  </DeviceAdaptersProvider>
+);
+
+const ScannerLine = () => {
+  const { theme } = useTheme();
+  const scanner = useBarcodeScanner({
+    onScan: (scan) => console.log(scan.type, scan.data),
+    symbologies: ["qr", "code128", "ean13", "datamatrix"],
+  });
+  return (
+    <Typography
+      variant="bodyMedium"
+      style={{ color: theme.colors.onSurfaceVariant }}
+    >
+      {`Scanner ${scanner.vendor} ${String(scanner.isSupported)} · ${scanner.state} · busy ${String(scanner.isBusy)} · ${TAKEN} · mock ${SCANNER_MOCK.vendor}`}
+    </Typography>
+  );
+};
+
+/** `/scanner` on the Honeywell adapter: unsupported on the web. */
+const ScannerReadout = () => (
+  <DeviceAdaptersProvider adapters={{ barcodeScanner: SCANNER }}>
+    <ScannerLine />
   </DeviceAdaptersProvider>
 );
 

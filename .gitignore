@@ -88,3 +88,5 @@ zebra-rfid-repository/
 # brands' hosts): no package uses it (@its/scanner-zebra drives DataWedge), and
 # it comes from Zebra's portal too.
 barcode_scanner_library*.aar
+# Git Bash on Windows (msys) writes these when it crashes.
+*.stackdump

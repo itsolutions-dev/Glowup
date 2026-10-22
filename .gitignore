@@ -43,6 +43,7 @@ lib/
 # generated native folders
 **/ios/
 **/android/
+**/build/
 # …but a vendor package's Android module (RFID, barcode scanner) is source.
 !packages/rfid-*/android/
 !packages/scanner-*/android/

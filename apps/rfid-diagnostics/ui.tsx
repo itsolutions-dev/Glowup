@@ -90,7 +90,7 @@ export function Toggle({
 }) {
   return (
     <View style={styles.toggle}>
-      <Text style={styles.line}>{label}</Text>
+      <Text style={[styles.line, styles.toggleLabel]}>{label}</Text>
       <Switch value={value} onValueChange={onChange} />
     </View>
   );
@@ -130,7 +130,10 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
   },
+  // A long label wraps instead of pushing the switch off screen.
+  toggleLabel: { flexShrink: 1 },
   button: {
     backgroundColor: "#1f5fbf",
     paddingHorizontal: 14,

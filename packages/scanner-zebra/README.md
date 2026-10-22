@@ -5,8 +5,17 @@ The imager of Zebra mobile computers (the TC22 and the others DataWedge runs on)
 The screens use `/scanner`'s `useBarcodeScanner`; this package is the one line that picks the
 vendor.
 
-**Private, not published yet** (phase ZB1): it builds and passes the conformance kit, and waits
-for its run on a TC22 (`apps/rfid-diagnostics`, the "Barcode scanner" screen of a Zebra build).
+It has run on a TC22 (Android 15, DataWedge 15.0.96): the label types, the symbologies, the
+profile, the background and the software trigger, as the plan's "Phase ZB2 — measured on the
+TC22" lists. `apps/rfid-diagnostics` in the repository (the "Barcode scanner" screen of a Zebra
+build) is the app that measured it.
+
+```sh
+npm install @its/scanner-zebra
+```
+
+It needs `@its/glowup-device` (`/scanner`) and an Expo development build for Android: no config
+plugin and nothing to supply.
 
 ## No SDK
 

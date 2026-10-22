@@ -17,7 +17,8 @@
       "@its/rfid-zebra": ["../../packages/rfid-zebra/src/index.ts"],
       "@its/scanner-honeywell": [
         "../../packages/scanner-honeywell/src/index.ts"
-      ]
+      ],
+      "@its/scanner-zebra": ["../../packages/scanner-zebra/src/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"]

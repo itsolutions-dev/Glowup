@@ -83,3 +83,7 @@ honeywell-scanner-repository/
 rfidapi3*.aar
 API3_*.aar
 zebra-rfid-repository/
+# Zebra's Scanner SDK for Android (external Bluetooth / USB scanners on other
+# brands' hosts): no package uses it (@its/scanner-zebra drives DataWedge), and
+# it comes from Zebra's portal too.
+barcode_scanner_library*.aar

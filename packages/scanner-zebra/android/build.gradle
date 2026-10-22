@@ -1,0 +1,19 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.scannerzebra'
+version = '0.0.0'
+
+android {
+  namespace "expo.modules.scannerzebra"
+  defaultConfig {
+    versionCode 1
+    versionName '0.0.0'
+  }
+}
+
+// No dependency: DataWedge, the service on every Zebra mobile computer, is
+// driven by broadcast intents. Neither Zebra's EMDK nor any other SDK is
+// needed (plan ZD1).

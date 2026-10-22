@@ -9,6 +9,11 @@ import {
   HONEYWELL_SCANNER_NATIVE_REVISION,
   type HoneywellBarcodeScannerAdapter,
 } from "@its/scanner-honeywell";
+import {
+  getZebraBarcodeScannerAdapter,
+  ZEBRA_SCANNER_NATIVE_REVISION,
+  type ZebraBarcodeScannerAdapter,
+} from "@its/scanner-zebra";
 
 import type { RfidDiagnostic } from "./measurements";
 
@@ -33,20 +38,27 @@ export interface DiagnosticsVendor {
   idPlaceholder: string;
   /** Adds or removes the reader's own search, where the vendor can (Zebra). */
   setNativeLocate?(enabled: boolean): void;
-  /** The host's barcode scanner: the CT40's imager. */
+  /** The host's barcode scanner: the CT40's imager, the TC22's. */
   scanner: ScannerVendor;
 }
 
 /**
- * The barcode scanner the diagnostics drive. Honeywell's in every build: in
- * a Zebra build its module is left out, and it reads unsupported.
+ * The barcode scanner the diagnostics drive, the build's vendor's: the other
+ * vendor's module is left out of the build.
  */
-export interface ScannerVendor {
-  name: "honeywell";
-  adapter: HoneywellBarcodeScannerAdapter;
-  expectedRevision: number;
-  unsupportedReason(): string;
-}
+export type ScannerVendor =
+  | {
+      name: "honeywell";
+      adapter: HoneywellBarcodeScannerAdapter;
+      expectedRevision: number;
+      unsupportedReason(): string;
+    }
+  | {
+      name: "zebra";
+      adapter: ZebraBarcodeScannerAdapter;
+      expectedRevision: number;
+      unsupportedReason(): string;
+    };
 
 export function honeywellScanner(): ScannerVendor {
   const adapter = getHoneywellBarcodeScannerAdapter();
@@ -58,6 +70,21 @@ export function honeywellScanner(): ScannerVendor {
       !adapter.isHoneywellHost()
         ? "unsupported: not a Honeywell host"
         : `${MISSING} (RFID_VENDOR=honeywell links it)`,
+  };
+}
+
+export function zebraScanner(): ScannerVendor {
+  const adapter = getZebraBarcodeScannerAdapter();
+  return {
+    name: "zebra",
+    adapter,
+    expectedRevision: ZEBRA_SCANNER_NATIVE_REVISION,
+    unsupportedReason: () =>
+      adapter.nativeRevision() === null
+        ? "unsupported: the native module is missing (RFID_VENDOR=zebra links it)"
+        : !adapter.isZebraHost()
+          ? "unsupported: not a Zebra host"
+          : "unsupported: DataWedge is not installed",
   };
 }
 
@@ -88,7 +115,7 @@ export function zebraVendor(): DiagnosticsVendor {
     filterLabel: "Only Zebra-looking readers (RFD…)",
     idPlaceholder: "Paired reader's address or name, e.g. RFD40+_2115…",
     setNativeLocate: (enabled) => adapter.setNativeLocate(enabled),
-    scanner: honeywellScanner(),
+    scanner: zebraScanner(),
   };
 }
 

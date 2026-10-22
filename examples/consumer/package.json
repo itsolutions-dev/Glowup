@@ -2,7 +2,7 @@
   "name": "glowup-consumer-smoke",
   "version": "0.0.0",
   "private": true,
-  "description": "Deliberately OUTSIDE the npm workspaces: installs @its/glowup-ui, @its/glowup-device and @its/rfid-honeywell from the registry so the published artefacts are exercised, not the local source.",
+  "description": "Deliberately OUTSIDE the npm workspaces: installs @its/glowup-ui, @its/glowup-device, @its/rfid-honeywell and @its/scanner-honeywell from the registry so the published artefacts are exercised, not the local source.",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -15,6 +15,7 @@
     "@its/glowup-device": "0.x",
     "@its/glowup-ui": "0.x",
     "@its/rfid-honeywell": "0.x",
+    "@its/scanner-honeywell": "0.x",
     "@react-native-community/netinfo": "12.0.1",
     "expo": "~57.0.25",
     "expo-application": "~57.0.3",

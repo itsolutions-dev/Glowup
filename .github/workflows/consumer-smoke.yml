@@ -2,7 +2,7 @@ name: Consumer smoke
 
 # Validates the PUBLISHED packages, not the working tree: examples/consumer is
 # outside the npm workspaces and installs @its/glowup-ui, @its/glowup-device
-# and @its/rfid-honeywell from the registry. It
+# @its/rfid-honeywell and @its/scanner-honeywell from the registry. It
 # therefore does not run on pull requests — a PR cannot change what is already
 # published — and instead chains off Release.
 #
@@ -65,10 +65,12 @@ jobs:
           ui=$(node -p "require('../../packages/ui/package.json').version")
           device=$(node -p "require('../../packages/device/package.json').version")
           rfid=$(node -p "require('../../packages/rfid-honeywell/package.json').version")
+          scanner=$(node -p "require('../../packages/scanner-honeywell/package.json').version")
           echo "ui=$ui" >> "$GITHUB_OUTPUT"
           echo "device=$device" >> "$GITHUB_OUTPUT"
           echo "rfid=$rfid" >> "$GITHUB_OUTPUT"
-          for spec in "@its/glowup-ui@$ui" "@its/glowup-device@$device" "@its/rfid-honeywell@$rfid"; do
+          echo "scanner=$scanner" >> "$GITHUB_OUTPUT"
+          for spec in "@its/glowup-ui@$ui" "@its/glowup-device@$device" "@its/rfid-honeywell@$rfid" "@its/scanner-honeywell@$scanner"; do
             for i in $(seq 1 20); do
               if npm view "$spec" version; then continue 2; fi
               echo "$spec not resolvable yet; retrying in 15s"
@@ -86,14 +88,15 @@ jobs:
           UI_VERSION: ${{ steps.version.outputs.ui }}
           DEVICE_VERSION: ${{ steps.version.outputs.device }}
           RFID_VERSION: ${{ steps.version.outputs.rfid }}
+          SCANNER_VERSION: ${{ steps.version.outputs.scanner }}
         run: >-
           npm install --no-audit --no-fund --no-save
           "@its/glowup-ui@$UI_VERSION" "@its/glowup-device@$DEVICE_VERSION"
-          "@its/rfid-honeywell@$RFID_VERSION"
+          "@its/rfid-honeywell@$RFID_VERSION" "@its/scanner-honeywell@$SCANNER_VERSION"
 
       - name: Refuse a workspace symlink
         run: |
-          for pkg in glowup-ui glowup-device rfid-honeywell; do
+          for pkg in glowup-ui glowup-device rfid-honeywell scanner-honeywell; do
             if [ -L "node_modules/@its/$pkg" ]; then
               echo "::error::node_modules/@its/$pkg is a symlink to the local package. This app must consume the published one — do not add examples/ to the npm workspaces."
               exit 1

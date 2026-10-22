@@ -18,7 +18,7 @@ An **npm-workspaces monorepo** with eight workspaces:
 | `apps/rfid-diagnostics`      | `@its/rfid-diagnostics`     | Private Android development build that runs the RFID and barcode scanner spikes on real hardware, one vendor per build (`RFID_VENDOR`). |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
-`@its/glowup-ui`, `@its/glowup-device` and `@its/rfid-honeywell` **from the npm registry** and is
+`@its/glowup-ui`, `@its/glowup-device`, `@its/rfid-honeywell` and `@its/scanner-honeywell` **from the npm registry** and is
 the runtime check on the published artefacts (the playground, being a workspace, always runs the
 local source). Never add it to the `workspaces` array — npm would link the local packages and the
 check would silently test nothing; its CI job fails if any of them is a symlink in its

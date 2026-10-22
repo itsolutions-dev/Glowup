@@ -28,6 +28,7 @@ import {
   createMockSensorsAdapter,
   createMockMediaPickerAdapter,
   createMockMediaLibraryAdapter,
+  createMockBarcodeScannerAdapter,
   createMockRfidAdapter,
   buildPickedMedia,
   OFFLINE_NETWORK,
@@ -46,6 +47,7 @@ import {
   type MockSensorsAdapter,
   type MockMediaPickerAdapter,
   type MockMediaLibraryAdapter,
+  type MockBarcodeScannerAdapter,
   type MockRfidAdapter,
 } from "@its/glowup-device/testing";
 import { bleManagerAdapter } from "@its/glowup-device/bluetooth";
@@ -68,6 +70,7 @@ import MediaLibraryPage from "../app/device/media-library";
 import BackgroundLocationPage from "../app/device/background-location";
 import BluetoothPage from "../app/device/bluetooth";
 import RfidPage from "../app/device/rfid";
+import ScannerPage from "../app/device/scanner";
 import { clearTaskLog } from "../site/backgroundLog";
 import { SITES_TASK, TRIP_TASK } from "../site/backgroundTasks";
 import { HapticThemeProvider } from "../site/HapticsPreference";
@@ -141,6 +144,7 @@ let backgroundLocation: MockBackgroundLocationAdapter;
 let bluetooth: MockBluetoothAdapter;
 // Undefined: no vendor, as on the site.
 let rfid: MockRfidAdapter | undefined;
+let barcodeScanner: MockBarcodeScannerAdapter | undefined;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -168,6 +172,7 @@ beforeEach(() => {
     },
   });
   rfid = createMockRfidAdapter();
+  barcodeScanner = createMockBarcodeScannerAdapter();
   clearTaskLog();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
@@ -202,6 +207,7 @@ const Providers = ({ children }: { children: ReactNode }) => (
               backgroundLocation,
               bluetooth,
               rfid,
+              barcodeScanner,
             }}
           >
             {children}
@@ -231,6 +237,7 @@ it("links the overview to every capability", async () => {
     ["Background location", "/device/background-location"],
     ["Bluetooth", "/device/bluetooth"],
     ["RFID", "/device/rfid"],
+    ["Barcode scanner", "/device/scanner"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -317,6 +324,130 @@ describe("location", () => {
         "No geocoder here. An app supplies its own provider through the geocoder adapter.",
       ),
     ).toBeTruthy();
+  });
+});
+
+describe("barcode scanner", () => {
+  const [FIRST_SCOPE, SLOW, REPEAT, CAMERA] = [0, 1, 2, 3];
+  const switches = () => screen.getAllByRole("switch");
+
+  it("holds the scanner with the screen's symbologies and lists what reaches onScan", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    expect(
+      screen.getByText("A real scanner, through the app's adapter."),
+    ).toBeTruthy();
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    expect(scanner.request).toEqual({
+      symbologies: ["qr", "code128", "ean13", "datamatrix"],
+    });
+    expect(screen.getByText("Held by this page")).toBeTruthy();
+
+    await act(async () => {
+      scanner.scan({ data: "8001234567897", type: "ean13" });
+    });
+    expect(screen.getByText("8001234567897")).toBeTruthy();
+    expect(
+      screen.getByText(/^ean13 · AIM \]E0 · id ean13 · scanner/),
+    ).toBeTruthy();
+    // Outside the screen's symbologies: the scanner does not decode it.
+    expect(scanner.scan({ data: "96385074", type: "ean8" })).toBe(false);
+    await fireEvent.press(switches()[FIRST_SCOPE]!);
+    await waitFor(() => expect(scanner.request).toEqual({ symbologies: null }));
+    await act(async () => {
+      scanner.scan({ data: "96385074", type: "ean8" });
+    });
+    expect(screen.getByText("96385074")).toBeTruthy();
+
+    // The same code within a second once, then every time.
+    await act(async () => {
+      scanner.scan({ data: "LOC:A-03-12" });
+      scanner.scan({ data: "LOC:A-03-12" });
+    });
+    expect(screen.getAllByText("LOC:A-03-12")).toHaveLength(1);
+    await fireEvent.press(switches()[REPEAT]!);
+    await act(async () => {
+      scanner.scan({ data: "LOC:A-03-12" });
+    });
+    expect(screen.getAllByText("LOC:A-03-12")).toHaveLength(2);
+    expect(screen.getByText("4 reads")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scanner info"));
+    await waitFor(() =>
+      expect(
+        screen.getByText("Mock imager · MOCK-1 · firmware 1.0"),
+      ).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Scan button"));
+    await waitFor(() =>
+      expect(scanner.softwareTriggerCalls).toEqual([true, false]),
+    );
+  });
+
+  it("drops the reads that arrive while a slow confirmation runs", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await fireEvent.press(switches()[SLOW]!);
+    await act(async () => {
+      scanner.scan({ data: "PAL-1", type: "code128" });
+      scanner.scan({ data: "PAL-2", type: "code128" });
+    });
+    expect(screen.getByText("PAL-1")).toBeTruthy();
+    expect(screen.queryByText("PAL-2")).toBeNull();
+    expect(screen.getByText("Confirming…")).toBeTruthy();
+  });
+
+  it("says when another app takes the scanner, and holds it again on retry", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await act(async () => scanner.takeAway());
+    expect(screen.getByText("Another app holds the scanner.")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Retry"));
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    expect(screen.queryByText("Another app holds the scanner.")).toBeNull();
+  });
+
+  it("gives the scanner back and reads through the camera with the same handler", async () => {
+    const scanner = barcodeScanner!;
+    camera.setPermission("camera", "granted");
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await fireEvent.press(switches()[CAMERA]!);
+    await waitFor(() => expect(scanner.isOpen).toBe(false));
+    await waitFor(() =>
+      expect(screen.getByTestId("mock-camera-preview")).toBeTruthy(),
+    );
+    expect(camera.preview?.barcodeTypes).toEqual([
+      "qr",
+      "code128",
+      "ean13",
+      "datamatrix",
+    ]);
+    await act(async () => camera.scan({ data: "TICKET-42" }));
+    expect(screen.getByText("TICKET-42")).toBeTruthy();
+    expect(screen.getByText(/^qr · id .* · camera/)).toBeTruthy();
+  });
+
+  it("runs on a simulated scanner without a vendor", async () => {
+    barcodeScanner = undefined;
+    await render(<ScannerPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated scanner/)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByText("Held by this page")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() => expect(screen.getByText("LOC:A-03-12")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Small pack (EAN-8)"));
+    await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "The scanner did not decode Small pack (EAN-8): its symbology is off for this screen.",
+        ),
+      ).toBeTruthy(),
+    );
   });
 });
 

@@ -78,7 +78,7 @@ cannot fetch a token.
 `app/device/` demos `@its/glowup-device`: an overview (`index.tsx`) and one page per
 capability (`info`, `location`, `camera`, `network`, `battery`, `keep-awake`, `orientation`,
 `haptics`, `biometrics`, `secure-store`, `sensors`, `media-picker`, `media-library`,
-`background-location`, `bluetooth`, `rfid`). They import only the package's public subpaths. Every capability's native module
+`background-location`, `bluetooth`, `rfid`, `scanner`). They import only the package's public subpaths. Every capability's native module
 (`expo-device`, `expo-application`, `expo-location`, `expo-camera`, netinfo, `expo-battery`,
 `expo-keep-awake`, `expo-screen-orientation`, `expo-haptics`, `expo-local-authentication`, `expo-secure-store`, `expo-sensors`, `expo-image-picker`, `expo-media-library`, `expo-task-manager`, `react-native-ble-manager`) is a dependency of the
 playground because it is the package's peer, and the package's config plugin is listed in
@@ -121,6 +121,12 @@ the repository and binds to the vendor's hardware. `@its/rfid-honeywell` runs on
 `apps/rfid-diagnostics` instead. The page provides the demo only when `useRfidReader().vendor`
 is `"none"` (no adapter above it, the same answer in Node and the browser), so its test provides
 a mock and drives it.
+The barcode scanner page does the same for `/scanner` with `site/scannerDemo.ts` (the package's
+in-memory scanner: five warehouse labels to aim at, a hardware trigger, the software one, another
+app taking the scanner), asking `useBarcodeScanner({ enabled: false }).vendor` so the asking hook
+holds nothing; no `@its/scanner-*` package is a dependency, for the same reason. Its last switch
+gives the scanner back and reads through `CameraView` into the same `onScan`: the fallback a
+phone without an imager uses (plan C8).
 
 **Haptics across the site.** `site/HapticsPreference.tsx` is the root `ThemeProvider` (mounted by
 `app/_layout.tsx`): it passes `@its/glowup-device/haptics`'s `hapticFeedback` to
@@ -134,8 +140,9 @@ adapters (`@its/glowup-device/testing`) and drives them: permission, position, p
 recording, scan, network and battery changes, wake lock, orientation lock, haptics, biometric prompt and app lock, secure store items (plain and protected), sensor readings,
 intervals and motion access, picks (options, cancel, the pending result), saves (permission
 prompt, refusal, no library), Bluetooth (permission, scan, connection, a read, the simulated
-devices) and RFID (search, connection, scan, the trigger, a single read with its TID, a search,
-the simulated reader). It mocks
+devices), RFID (search, connection, scan, the trigger, a single read with its TID, a search,
+the simulated reader) and the barcode scanner (the symbologies, the repeat window, a slow
+confirmation, another app taking it, the camera fallback, the simulated scanner). It mocks
 `useFocusEffect`, `useIsFocused` and `useRouter`, since no navigator is mounted, and
 `expo-haptics` to assert what the site-wide `hapticFeedback` plays.
 A camera control whose handler awaits the end of a recording must not return that promise

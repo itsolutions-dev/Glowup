@@ -185,22 +185,30 @@ export function createFakeDataWedge(): FakeDataWedge {
     async getScannerInfo() {
       takeFailure("getScannerInfo");
       return {
+        // As the TC22 measured (the list goes on with Bluetooth and USB
+        // scanners, not connected).
         datawedge: "15.0.96",
         barcodeScanning: "43.63.50.0",
-        decoderLibrary: "DECODER_LIBRARY",
-        firmware: ["PAAFNS00-001-R02", "CAMERA"],
+        decoderLibrary: "IMGKIT_10.04T02.20|Digimarc-3.9.1 - 20200506124529",
+        firmware: ["2D Barcode Imager: PAAFNS00-002-R06"],
         scanners: [
           {
-            name: "2D Barcode Imager",
+            name: "camera scanner",
             index: 0,
+            identifier: "INTERNAL_CAMERA",
+            connected: true,
+          },
+          {
+            name: "2D Barcode Imager",
+            index: 1,
             identifier: "INTERNAL_IMAGER",
             connected: true,
           },
           {
-            name: "Camera Scanner",
-            index: 1,
-            identifier: "INTERNAL_CAMERA",
-            connected: true,
+            name: "Zebra Bluetooth Scanner",
+            index: 5,
+            identifier: "BLUETOOTH_ZEBRA",
+            connected: false,
           },
         ],
       };

@@ -151,17 +151,26 @@ export function fromNativeRead(read: NativeRead): BarcodeScannerRead {
   };
 }
 
-/** The internal imager when DataWedge lists one, else the first scanner. */
+/**
+ * The internal imager when DataWedge lists one, else the first scanner. Its
+ * firmware is the `SCANNER_FIRMWARE` entry named after it: the TC22 measured
+ * one entry, `"2D Barcode Imager: PAAFNS00-002-R06"`, for ten scanners listed
+ * with the camera first, so the list does not follow the scanners' order.
+ */
 export function fromNativeInfo(info: NativeScannerInfo): BarcodeScannerInfo {
-  const index = info.scanners.findIndex(
-    (scanner) => scanner.identifier === "INTERNAL_IMAGER",
-  );
-  const scanner = info.scanners[Math.max(index, 0)] ?? null;
+  const scanner =
+    info.scanners.find((s) => s.identifier === "INTERNAL_IMAGER") ??
+    info.scanners[0] ??
+    null;
+  const prefix = scanner?.name ? `${scanner.name}:` : null;
+  const firmware = prefix
+    ? info.firmware.find((entry) => entry.startsWith(prefix))
+    : undefined;
   return {
     name: scanner?.name || null,
     model: scanner?.identifier || null,
     serialNumber: null,
-    firmwareVersion: info.firmware[Math.max(index, 0)] || null,
+    firmwareVersion: firmware?.slice(prefix!.length).trim() || null,
   };
 }
 

@@ -303,9 +303,9 @@ describe("createZebraBarcodeScannerAdapter", () => {
         name: "2D Barcode Imager",
         model: "INTERNAL_IMAGER",
         serialNumber: null,
-        firmwareVersion: "PAAFNS00-001-R02",
+        firmwareVersion: "PAAFNS00-002-R06",
       });
-      await expect(adapter.listDevices()).resolves.toHaveLength(2);
+      await expect(adapter.listDevices()).resolves.toHaveLength(3);
       await expect(adapter.getRawScannerInfo()).resolves.toMatchObject({
         datawedge: "15.0.96",
       });
@@ -403,13 +403,13 @@ describe("fromNativeRead", () => {
 });
 
 describe("fromNativeInfo", () => {
-  it("falls back to the first scanner without an internal imager", () => {
+  it("falls back to the first scanner, and takes no other scanner's firmware", () => {
     expect(
       fromNativeInfo({
         datawedge: null,
         barcodeScanning: null,
         decoderLibrary: null,
-        firmware: [],
+        firmware: ["2D Barcode Imager: PAAFNS00-002-R06"],
         scanners: [
           {
             name: "Camera Scanner",

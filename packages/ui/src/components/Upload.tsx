@@ -318,7 +318,7 @@ const Upload = ({
     .filter(Boolean)
     .join(" · ");
   const problem =
-    error ??
+    error ||
     (!onReject && rejected.length
       ? [...new Set(rejected.map((rejection) => rejection.message))].join(". ")
       : undefined);

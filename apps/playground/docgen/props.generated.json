@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 99,
+  "componentCount": 116,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -21,6 +21,35 @@
           "type": "number",
           "required": false,
           "description": "The width, in dp, to report instead of the window's. Leave it out (or\n`undefined`) and the real window width is reported, so the provider can sit\nin place permanently and be switched on by a value.",
+          "deprecated": false
+        }
+      ]
+    },
+    "AbsoluteCenter": {
+      "name": "AbsoluteCenter",
+      "source": "packages/ui/src/components/Layout/AbsoluteCenter.tsx",
+      "propsTypeName": "AbsoluteCenterProps",
+      "extends": [
+        "ViewProps"
+      ],
+      "props": [
+        {
+          "name": "axis",
+          "type": "\"both\" | \"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"both\"",
+          "description": "Which axis the child is centred on. On the other axis it keeps its normal\nplace (the start, or the full width of a vertically centred child).\nDefaults to `\"both\"`.",
+          "values": [
+            "both",
+            "horizontal",
+            "vertical"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
           "deprecated": false
         }
       ]
@@ -230,11 +259,118 @@
       ],
       "props": [
         {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "background",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": false,
+          "description": "Gap between children, in px.",
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "margin",
+          "type": "number",
+          "required": false,
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "padding",
+          "type": "number",
+          "required": false,
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
           "name": "ratio",
           "type": "number",
           "required": false,
           "default": "1",
           "description": "Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Merged last, over the variant and every other prop.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "| \"standard\" | \"flex\" | \"column-flex\" | \"centered-flex\" | \"centered-column-flex\" | \"full-page-flex\" | \"full-page-column-flex\" | \"full-size-flex\" | \"full-size-column\" | \"full-size-centered-flex\" | \"full-size-centered-column-flex\"",
+          "required": false,
+          "description": "Layout preset: direction, centring and filling the parent. The other props\nand `style` are applied on top of it.\n- `standard`: a plain column (default).\n- `flex`: a row.\n- `column-flex`: a column.\n- `centered-flex`: a row, centred on both axes.\n- `centered-column-flex`: a column, centred on both axes.\n- `full-page-flex`: a row that fills the screen (`flex: 1`, minimum height 100%).\n- `full-page-column-flex`: the same, as a column.\n- `full-size-flex`: a row, 100% wide and 100% high.\n- `full-size-column`: a column, 100% wide and 100% high.\n- `full-size-centered-flex`: a row, 100% x 100%, centred on both axes.\n- `full-size-centered-column-flex`: a column, 100% x 100%, centred on both axes.",
+          "values": [
+            "standard",
+            "flex",
+            "column-flex",
+            "centered-flex",
+            "centered-column-flex",
+            "full-page-flex",
+            "full-page-column-flex",
+            "full-size-flex",
+            "full-size-column",
+            "full-size-centered-flex",
+            "full-size-centered-column-flex"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "default": "\"100%\"",
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -932,6 +1068,64 @@
         }
       ]
     },
+    "Break": {
+      "name": "Break",
+      "source": "packages/ui/src/components/Layout/Break.tsx",
+      "propsTypeName": "BreakProps",
+      "extends": [
+        "ViewProps"
+      ],
+      "props": [
+        {
+          "name": "block",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out on both vertical edges: a spacing token or px.",
+          "deprecated": false
+        },
+        {
+          "name": "blockEnd",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out at the bottom; wins over `block`.",
+          "deprecated": false
+        },
+        {
+          "name": "blockStart",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out at the top; wins over `block`.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out on both horizontal edges: a spacing token or px.",
+          "deprecated": false
+        },
+        {
+          "name": "inlineEnd",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out at the end edge (right in LTR); wins over `inline`.",
+          "deprecated": false
+        },
+        {
+          "name": "inlineStart",
+          "type": "SpacingValue",
+          "required": false,
+          "description": "Breaks out at the start edge (left in LTR); wins over `inline`.",
+          "deprecated": false
+        }
+      ]
+    },
     "Button": {
       "name": "Button",
       "source": "packages/ui/src/components/Button.tsx",
@@ -1078,7 +1272,7 @@
           "type": "\"button\" | \"submit\"",
           "required": false,
           "default": "\"button\"",
-          "description": "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, on\nevery platform. A button outside a `Form` ignores it. Defaults to\n`\"button\"`.",
+          "description": "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, on\nevery platform. While the form submits (an async `onSubmit` or validator\nis running) it shows `loading`, and it is `disabled` with the form. A\nbutton outside a `Form` ignores it. Defaults to `\"button\"`.",
           "values": [
             "button",
             "submit"
@@ -1425,6 +1619,120 @@
           "type": "boolean",
           "required": false,
           "default": "true",
+          "deprecated": false
+        }
+      ]
+    },
+    "Center": {
+      "name": "Center",
+      "source": "packages/ui/src/components/Layout/Center.tsx",
+      "propsTypeName": "CenterProps",
+      "extends": [
+        "Omit<BoxProps, \"variant\">"
+      ],
+      "props": [
+        {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "background",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "direction",
+          "type": "\"row\" | \"column\"",
+          "required": false,
+          "default": "\"row\"",
+          "description": "Whether the children flow in a row or in a column; either way each is\ncentred on both axes. Defaults to `\"row\"`.",
+          "values": [
+            "row",
+            "column"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": false,
+          "description": "Gap between children, in px.",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "margin",
+          "type": "number",
+          "required": false,
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "padding",
+          "type": "number",
+          "required": false,
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Merged last, over the variant and every other prop.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -1790,6 +2098,208 @@
           "required": false,
           "default": "true",
           "description": "`true` wraps onto more lines; `false` scrolls sideways. Defaults to `true`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Clipboard": {
+      "name": "Clipboard",
+      "source": "packages/ui/src/components/Clipboard.tsx",
+      "propsTypeName": "ClipboardProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "description": "The text a press copies.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "| React.ReactNode | ((state: { copied: boolean; copy: () => Promise<boolean>; }) => React.ReactNode)",
+          "required": false,
+          "description": "Draws your own trigger instead of the default icon button. A node is the\ncontent of a pressable (a button inside it would nest buttons: draw the\ntrigger yourself for that); a function gets `{ copied, copy }`, `copy`\ncopying `value`, and is drawn as returned, the trigger being yours.",
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "description": "Colour role of the default `IconButton`. The confirmation is always `success`.",
+          "deprecated": false
+        },
+        {
+          "name": "copiedLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Copied\"",
+          "description": "Accessible label of the trigger after the copy, also announced to screen readers. Defaults to `\"Copied\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "copy",
+          "type": "ClipboardWriter",
+          "required": false,
+          "description": "Writes the text. On web it defaults to `navigator.clipboard.writeText`\n(with an `execCommand(\"copy\")` fallback). On native there is no default:\npass one (`expo-clipboard`'s `setStringAsync`), or the trigger is drawn\nonly with an `onCopy` that does the copying, and nothing without either.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": "\"Copy\"",
+          "description": "Accessible label of the trigger before the copy. Defaults to `\"Copy\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "onCopy",
+          "type": "(value: string) => void",
+          "required": false,
+          "description": "Called with `value` after it was copied.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "IconButtonSize",
+          "required": false,
+          "default": "\"large\"",
+          "description": "Size of the default `IconButton`. Defaults to `\"large\"`, the 48 dp touch target; `\"small\"` suits a button beside a value.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the trigger.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "timeout",
+          "type": "number",
+          "required": false,
+          "description": "How long the confirmation (the check, `copied`) shows, in ms. Defaults to 1500.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "IconButtonVariant",
+          "required": false,
+          "default": "\"standard\"",
+          "description": "Container style of the default `IconButton`. Defaults to `\"standard\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "CodeBlock": {
+      "name": "CodeBlock",
+      "source": "packages/ui/src/components/CodeBlock.tsx",
+      "propsTypeName": "CodeBlockProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": "The source to show.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Read by screen readers as the name of the block. Defaults to the title, or \"{LANGUAGE} code\".",
+          "deprecated": false
+        },
+        {
+          "name": "copy",
+          "type": "ClipboardWriter",
+          "required": false,
+          "description": "Writes the copied text: `expo-clipboard`'s `setStringAsync` on native. On\nweb it defaults to `navigator.clipboard.writeText`.",
+          "deprecated": false
+        },
+        {
+          "name": "copyable",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows a copy button in the header. On web it works as is; on native it is\ndrawn only with a `copy` writer or an `onCopy`. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "highlightLines",
+          "type": "number[]",
+          "required": false,
+          "description": "Lines to mark with a band and an accent edge, counted from 1.",
+          "deprecated": false
+        },
+        {
+          "name": "language",
+          "type": "CodeLanguage",
+          "required": false,
+          "default": "\"tsx\"",
+          "description": "What it is written in, for the colours. Defaults to `\"tsx\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "maxHeight",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Height of the block's body before it scrolls vertically. Left out, it grows with the code.",
+          "deprecated": false
+        },
+        {
+          "name": "onCopy",
+          "type": "(code: string) => void",
+          "required": false,
+          "description": "Called with the code after the copy button copied it.",
+          "deprecated": false
+        },
+        {
+          "name": "showLineNumbers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Numbers the lines, in a gutter that is not selected with the code.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "Shown above the snippet: a file name, or what it is for. Defaults to the language's name.",
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Wraps long lines instead of scrolling the block sideways.",
           "deprecated": false
         }
       ]
@@ -2421,6 +2931,125 @@
         }
       ]
     },
+    "AlertDialog": {
+      "name": "AlertDialog",
+      "source": "packages/ui/src/components/Dialog/AlertDialog.tsx",
+      "propsTypeName": "AlertDialogProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": true,
+          "description": "Whether the dialog is on screen.",
+          "deprecated": false
+        },
+        {
+          "name": "actionText",
+          "type": "string",
+          "required": false,
+          "default": "\"OK\"",
+          "description": "Label of the primary action. Defaults to `\"OK\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "cancelText",
+          "type": "string",
+          "required": false,
+          "description": "Label of the secondary action, drawn before the primary one. Left out,\nthe alert has the primary action only.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "More body under the `message`, or in its place: a string or any node.",
+          "deprecated": false
+        },
+        {
+          "name": "destructive",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws the primary action in the error tone (delete, discard).",
+          "deprecated": false
+        },
+        {
+          "name": "disableBackdropClick",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Keeps a click on the backdrop from calling `onCancel`: an alert needs an\nanswer. Set `false` to let it dismiss. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "disableEscapeKeyDown",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Keeps Escape (web) and Android back from calling `onCancel`. Set `false`\nto let them dismiss. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The primary action shows a spinner and does nothing, the secondary one is\ndisabled, and the alert stays until `visible` goes down: dismissing it is\noff while it works.",
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "description": "What the alert says. With the `children`, it is the dialog's accessible description.",
+          "deprecated": false
+        },
+        {
+          "name": "onAction",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the primary action is pressed.",
+          "deprecated": false
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the secondary action is pressed, and when the backdrop,\nEscape or Android back dismiss the alert (once enabled).",
+          "deprecated": false
+        },
+        {
+          "name": "severity",
+          "type": "AlertDialogSeverity",
+          "required": false,
+          "description": "Puts a status icon above the title, in the colour of the status role.\nLeft out, no icon.",
+          "deprecated": false
+        },
+        {
+          "name": "slotStyles",
+          "type": "DialogSlotStyles",
+          "required": false,
+          "description": "As `Dialog`; `actions` covers the buttons and `title` the headline.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "default": "\"alert-dialog\"",
+          "description": "Root testID. The buttons get `${testID}-cancel` and `${testID}-action`. Defaults to `\"alert-dialog\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": false,
+          "description": "The headline. It is the dialog's accessible name.",
+          "deprecated": false
+        }
+      ]
+    },
     "ConfirmDialog": {
       "name": "ConfirmDialog",
       "source": "packages/ui/src/components/Dialog/ConfirmDialog.tsx",
@@ -2558,6 +3187,13 @@
           "deprecated": false
         },
         {
+          "name": "describedBy",
+          "type": "string",
+          "required": false,
+          "description": "The `nativeID` of the element that describes the dialog (an alert's\nmessage), set as `aria-describedby`. Only used with `role`.",
+          "deprecated": false
+        },
+        {
           "name": "disableBackdropClick",
           "type": "boolean",
           "required": false,
@@ -2604,6 +3240,18 @@
           "deprecated": false
         },
         {
+          "name": "initialFocus",
+          "type": "\"auto\" | \"actions\"",
+          "required": false,
+          "default": "\"auto\"",
+          "description": "Web: where focus goes once the dialog is open. `\"auto\"` leaves it to the\nmodal's focus trap, which takes the first focusable element (the close\nicon, or a field in the body). `\"actions\"` focuses the first control of\nthe `actions` row, so an alert starts on its least destructive button.\nIgnored by `fullScreen`. Defaults to `\"auto\"`.",
+          "values": [
+            "auto",
+            "actions"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "onClose",
           "type": "() => void",
           "required": false,
@@ -2615,6 +3263,17 @@
           "type": "() => void",
           "required": false,
           "description": "Called when the `form` is submitted. Only used with `form`.",
+          "deprecated": false
+        },
+        {
+          "name": "role",
+          "type": "\"dialog\" | \"alertdialog\"",
+          "required": false,
+          "description": "The ARIA role of the card, for the web and for screen readers elsewhere.\n`\"alertdialog\"` marks a dialog that interrupts to ask for an answer (see\n`AlertDialog`); the title then names the card. Left out, the card has no\nrole of its own and react-native-web's modal supplies `dialog`.",
+          "values": [
+            "dialog",
+            "alertdialog"
+          ],
           "deprecated": false
         },
         {
@@ -2715,6 +3374,315 @@
           "required": false,
           "default": "1",
           "description": "Line thickness, in pixels.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Download": {
+      "name": "Download",
+      "source": "packages/ui/src/components/Download.tsx",
+      "propsTypeName": "DownloadProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "| React.ReactNode | ((state: { download: () => Promise<boolean>; downloading: boolean; }) => React.ReactNode)",
+          "required": false,
+          "description": "The button's label, `\"Download\"` if left out. A function draws your own\ntrigger instead of the button: it gets `{ download, downloading }`,\n`download` saving this file, and is drawn as returned.",
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "ColorRole",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "The button's colour role. Defaults to `\"primary\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "string | object | Blob",
+          "required": false,
+          "description": "The content: a string (saved as text), an object (saved as JSON) or a\n`Blob` (any binary file). Wins over `url` when both are given.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "required": false,
+          "description": "The saved file's name. Defaults to the last part of `url`, else `download` (`download.json`, `download.txt` for `data`).",
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "default": "\"download\"",
+          "description": "The button's icon. Defaults to `\"download\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "mimeType",
+          "type": "string",
+          "required": false,
+          "description": "The media type. Defaults to the one the extension of `filename` tells,\nelse `application/json` for an object, `text/plain` for a string, the\n`Blob`'s own type or the response's.",
+          "deprecated": false
+        },
+        {
+          "name": "onDownload",
+          "type": "(file: DownloadFile) => void",
+          "required": false,
+          "description": "Called with the file after it was saved.",
+          "deprecated": false
+        },
+        {
+          "name": "onError",
+          "type": "(error: Error) => void",
+          "required": false,
+          "description": "Called when fetching or saving failed.",
+          "deprecated": false
+        },
+        {
+          "name": "save",
+          "type": "DownloadSaver",
+          "required": false,
+          "description": "Saves the file. On web it defaults to a temporary `<a download>` link; on\nnative to the system share sheet with the text (or the link), which is\nenough for text and links. Pass one to write real files\n(`expo-file-system` + `expo-sharing`) and for a `Blob`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the button.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "required": false,
+          "description": "A file to fetch. On web it is fetched into a `Blob` first, as browsers\nignore `download` on a cross-origin link. On native it is not fetched: the\n`save` writer gets it as `file.url` and downloads it its own way\n(`expo-file-system`), and without a writer it is shared as a link.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "ButtonVariant",
+          "required": false,
+          "default": "\"filled\"",
+          "description": "The button's variant. Defaults to `\"filled\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Editable": {
+      "name": "Editable",
+      "source": "packages/ui/src/components/Editable.tsx",
+      "propsTypeName": "EditableProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "The value to start from when uncontrolled. Defaults to `\"\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Dims the text and keeps it from opening.",
+          "deprecated": false
+        },
+        {
+          "name": "editing",
+          "type": "boolean",
+          "required": false,
+          "description": "Controls whether the field is open; pair with `onEditingChange`.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "The accessible name of the display button and of the open field. Not drawn.",
+          "deprecated": false
+        },
+        {
+          "name": "onCancel",
+          "type": "(previous: string) => void",
+          "required": false,
+          "description": "Called with the value the edit started from when it is cancelled (Escape or the close button).",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "description": "Called with the text on every edit while the field is open. When the edit\nis cancelled it is called once more with the value the edit started from.",
+          "deprecated": false
+        },
+        {
+          "name": "onEditingChange",
+          "type": "(editing: boolean) => void",
+          "required": false,
+          "description": "Called with the new state when the edit starts, is confirmed or is cancelled.",
+          "deprecated": false
+        },
+        {
+          "name": "onSubmit",
+          "type": "(value: string) => void",
+          "required": false,
+          "description": "Called with the value when the edit is confirmed (Enter, blur or the check button, per `submitMode`).",
+          "deprecated": false
+        },
+        {
+          "name": "options",
+          "type": "Option[]",
+          "required": false,
+          "description": "The choices of a `type=\"select\"`. The display shows the label of the selected one.",
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "default": "\"Edit\"",
+          "description": "Drawn in the muted tone when the value is empty. Defaults to `\"Edit\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "precision",
+          "type": "number",
+          "required": false,
+          "description": "For `type=\"number\"`: the decimals the field keeps.",
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shows the text as plain text, with no way to open it.",
+          "deprecated": false
+        },
+        {
+          "name": "renderDisplay",
+          "type": "(value: string) => React.ReactNode",
+          "required": false,
+          "description": "Draws the displayed value your way (a link, a badge, a formatted amount) instead of as text.",
+          "deprecated": false
+        },
+        {
+          "name": "selectAllOnFocus",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Selects the whole text when the field opens, to type over it. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "showControls",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shows the check and close buttons whatever the `submitMode`. With them\nshown, leaving the field no longer confirms it. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "The size of the text, the pencil and the open field (`\"small\"` is dense). Defaults to `\"medium\"`.",
+          "values": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "startWithEditView",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Mounts with the field already open (uncontrolled). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "submitMode",
+          "type": "\"blur\" | \"enter\" | \"both\" | \"none\"",
+          "required": false,
+          "default": "\"both\"",
+          "description": "What confirms the edit: `\"blur\"` (focus leaving the field), `\"enter\"`\n(Enter), `\"both\"`, or `\"none\"`, which shows check and close buttons to\nconfirm and cancel with. Escape cancels in every mode. Defaults to\n`\"both\"`.",
+          "values": [
+            "blur",
+            "enter",
+            "both",
+            "none"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Root testID. The open field gets `${testID}-input`, the buttons `${testID}-save` and `${testID}-cancel`.",
+          "deprecated": false
+        },
+        {
+          "name": "textVariant",
+          "type": "TypographyProps[\"variant\"]",
+          "required": false,
+          "description": "The type-scale role of the displayed text, over what `size` picks.",
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "EditableType",
+          "required": false,
+          "default": "\"text\"",
+          "description": "The field that opens: `\"text\"` is an `Input`, `\"textarea\"` a multi-line\n`Input` (Enter adds a line; Ctrl or Cmd + Enter confirms), `\"number\"` an\n`Input type=\"number\"` (the value stays plain text) and `\"select\"` a\n`Select` that is already open, which confirms on the pick. Defaults to\n`\"text\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "validate",
+          "type": "(value: string) => string | undefined",
+          "required": false,
+          "description": "Checks the value: return the message to show as the field's error, or\n`undefined` when it is fine. While there is an error the edit cannot be\nconfirmed.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "description": "The value, as text (for `type=\"number\"` too: `\"12.50\"`, as `Input` has it). Controlled; pair with `onChange`.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "The look of the open field: `\"outlined\"` or `\"filled\"`, as in `Input`. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
           "deprecated": false
         }
       ]
@@ -2879,10 +3847,46 @@
           "deprecated": false
         },
         {
-          "name": "onSubmit",
-          "type": "() => void",
+          "name": "disabled",
+          "type": "boolean",
           "required": false,
-          "description": "Called when the form is submitted: a `Button type=\"submit\"` inside it is\npressed, or (on the web) Enter is pressed in one of its fields.",
+          "default": "false",
+          "description": "Disables every `FormField` and the form's submit buttons.",
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "FormInstance",
+          "required": false,
+          "description": "The instance from `useForm()`, to read and drive the form from outside it\n(`form.setValue`, `form.reset()`, `useWatch(\"name\", form)`). Without it\nthe form keeps its own, reachable from inside through the hooks.",
+          "deprecated": false
+        },
+        {
+          "name": "initialValues",
+          "type": "FormValues",
+          "required": false,
+          "description": "Values the fields start from, as `{ email: \"\", address: { city: \"\" } }`.\nRead when the form mounts; `form.reset(values)` starts over with new ones.\nGive every field one (or its own `initialValue`): a field with none has\nthe value `undefined`.",
+          "deprecated": false
+        },
+        {
+          "name": "onSubmit",
+          "type": "(values: FormValues) => void",
+          "required": false,
+          "description": "Called with the values when the form is submitted and every field passes\nits rules: a `Button type=\"submit\"` inside it is pressed, or (on the web)\nEnter is pressed in one of its fields. It may be async: the form's\n`isSubmitting` (and a submit `Button`'s `loading`) stay true until it\nsettles, and a second submission is ignored meanwhile. A form of\nparent-held state, with no `FormField`, calls it too (with `{}`).",
+          "deprecated": false
+        },
+        {
+          "name": "onSubmitFailed",
+          "type": "(errors: FormErrors, values: FormValues) => void",
+          "required": false,
+          "description": "Called instead of `onSubmit` when a field fails its rules, with the messages by field name and the values.",
+          "deprecated": false
+        },
+        {
+          "name": "onValuesChange",
+          "type": "(changed: FormValues, all: FormValues) => void",
+          "required": false,
+          "description": "Called after a field's value changes (a user edit, `setValue`,\n`setValues`; not `reset`) with just what changed, nested like the values\n(`{ address: { city: \"Rome\" } }`), and with all of them.",
           "deprecated": false
         },
         {
@@ -2895,6 +3899,124 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "validateOn",
+          "type": "FormValidateOn",
+          "required": false,
+          "default": "\"change\"",
+          "description": "When a field is validated: `\"change\"` after every edit, `\"blur\"` when it\nis left, `\"submit\"` only on submit. After a submit, or once a field shows\nan error, an edit validates it again whatever the mode, so a fixed field\nclears at once. A `FormField` can override it. Defaults to `\"change\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "FormField": {
+      "name": "FormField",
+      "source": "packages/ui/src/components/FormField.tsx",
+      "propsTypeName": "FormFieldProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactElement | ((field: FormFieldChildProps) => React.ReactNode)",
+          "required": true,
+          "description": "The one control to connect, which receives the value, the trigger,\n`onBlur`, `error`, `required` and `disabled` as props. Or a function\nthat gets those props and returns the control, for a control whose\nrequired props (`Input` needs `value` and `onChange`) you would otherwise\nhave to write out: `{(field) => <Input label=\"Email\" {...field} />}`.",
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": "The field's name in the form's values: `\"email\"`, `\"address.city\"`,\n`\"items[0].qty\"` (dots and brackets both nest).",
+          "deprecated": false
+        },
+        {
+          "name": "control",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "For a child that draws no label, helper or error text of its own\n(`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a\n`FormControl` that does, and passes it `error` as a boolean (and no\n`required`, `label` or `helperText`: `FormControl` draws those). Defaults\nto `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "dependencies",
+          "type": "string[]",
+          "required": false,
+          "description": "Names of other fields this one's rules read (`\"password\"` for a\n\"confirm password\"): it is validated again when one changes, once it\nhas been touched or edited, or shows an error.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Disables this field (the child's `disabled`); the form's `disabled` does it for all.",
+          "deprecated": false
+        },
+        {
+          "name": "getValueFromEvent",
+          "type": "(...args: any[]) => unknown",
+          "required": false,
+          "description": "Turns what the trigger is called with into the value to store. By default\nthe first argument, or, when that is a DOM event, its `target.value`\n(`target.checked` for `valuePropName=\"checked\"`).",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text, passed to the child as `helperText` (or drawn by `FormControl` with `control`). Hidden while there is an error.",
+          "deprecated": false
+        },
+        {
+          "name": "initialValue",
+          "type": "unknown",
+          "required": false,
+          "description": "The value the field starts with when the form's `initialValues` has none for it.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "Label, passed to the child as its `label` (`Input`, `Select`... draw it).\nWith `control`, drawn above the child by `FormControl` instead.",
+          "deprecated": false
+        },
+        {
+          "name": "normalize",
+          "type": "(value: any, previous: any, values: FormValues) => unknown",
+          "required": false,
+          "description": "Turns the reported value into the stored one: `(value, previous, allValues) => stored`. Trim, uppercase, format.",
+          "deprecated": false
+        },
+        {
+          "name": "rules",
+          "type": "FormRule[]",
+          "required": false,
+          "description": "What the value must satisfy, checked in order; the first failure is the field's `error`.",
+          "deprecated": false
+        },
+        {
+          "name": "trigger",
+          "type": "string",
+          "required": false,
+          "default": "\"onChange\"",
+          "description": "The child's callback that reports a new value. `\"onValueChange\"` for a\n`Checkbox` or a `Slider`. Defaults to `\"onChange\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "validateOn",
+          "type": "FormValidateOn",
+          "required": false,
+          "description": "Overrides the form's `validateOn` for this field: a `Checkbox` has no blur, so `\"change\"` suits it.",
+          "deprecated": false
+        },
+        {
+          "name": "valuePropName",
+          "type": "string",
+          "required": false,
+          "default": "\"value\"",
+          "description": "The child's prop that takes the value. `\"checked\"` for a `Checkbox`.\nDefaults to `\"value\"`.",
           "deprecated": false
         }
       ]
@@ -3092,6 +4214,111 @@
           "required": false,
           "default": "true",
           "description": "Fades the text out instead of unmounting it, so the field doesn't jump.",
+          "deprecated": false
+        }
+      ]
+    },
+    "HoverCard": {
+      "name": "HoverCard",
+      "source": "packages/ui/src/components/HoverCard.tsx",
+      "propsTypeName": "HoverCardProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "description": "The trigger. It is not wrapped in an accessible element of its own.",
+          "deprecated": false
+        },
+        {
+          "name": "content",
+          "type": "React.ReactNode",
+          "required": true,
+          "description": "What the card shows: any node. It is supplementary, never the only way to something.",
+          "deprecated": false
+        },
+        {
+          "name": "anchorPosition",
+          "type": "AnchorPosition",
+          "required": false,
+          "description": "Places the card as `Popover` does (below, above or over the trigger,\naligned by its left edge, right edge or centre) instead of by\n`placement`, which it replaces when given.",
+          "deprecated": false
+        },
+        {
+          "name": "closeDelay",
+          "type": "number",
+          "required": false,
+          "default": "150",
+          "description": "Web: how long after the pointer leaves the trigger and the card before it closes, in ms. Defaults to `150`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Whether the card starts open (uncontrolled). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The card never opens, and closes if it was open.",
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "required": false,
+          "description": "Called with the new state when the user opens or closes the card.",
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "required": false,
+          "description": "Controls whether the card is open; pair with `onOpenChange`.",
+          "deprecated": false
+        },
+        {
+          "name": "openDelay",
+          "type": "number",
+          "required": false,
+          "default": "300",
+          "description": "Web: how long the pointer or focus rests on the trigger before the card opens, in ms. Defaults to `300`.",
+          "deprecated": false
+        },
+        {
+          "name": "placement",
+          "type": "PlacementSide",
+          "required": false,
+          "default": "\"bottom\"",
+          "description": "The side of the trigger the card opens on, centred on it. When that side\nhas no room the card goes to the opposite one, and it always stays inside\nthe window. Defaults to `\"bottom\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the trigger's wrapper, which shrinks to the trigger by default.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Root testID. The card gets `${testID}-card`, the native outside-press layer `${testID}-backdrop`.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "number",
+          "required": false,
+          "default": "280",
+          "description": "Width of the card in px; it never grows past the window. Defaults to `280`.",
           "deprecated": false
         }
       ]
@@ -3504,6 +4731,13 @@
           "deprecated": false
         },
         {
+          "name": "endAdornment",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Any element drawn at the end of the field, after `suffix` or\n`trailingIcon` (which keep working): an `IconButton` with its own accessible\nname, a spinner, a unit picker. It is not clipped by the field and takes\nits own touches.",
+          "deprecated": false
+        },
+        {
           "name": "error",
           "type": "string",
           "required": false,
@@ -3522,6 +4756,20 @@
           "type": "string",
           "required": false,
           "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputProps",
+          "type": "InputTextInputProps",
+          "required": false,
+          "description": "Autofill and keyboard hints, focus and key handling for the underlying\n`TextInput`: `autoComplete`, `textContentType`, `autoCorrect`,\n`autoCapitalize`, `spellCheck`, `autoFocus`, `selectTextOnFocus`,\n`returnKeyType`, `enterKeyHint`, `onSubmitEditing`, `onKeyPress`,\n`accessibilityLabel` / `accessibilityValue` (replace the ones drawn from\n`label` and `value`) and `testID`.",
+          "deprecated": false
+        },
+        {
+          "name": "inputRef",
+          "type": "React.Ref<TextInput>",
+          "required": false,
+          "description": "A ref to the underlying `TextInput`, to focus it or select its text.",
           "deprecated": false
         },
         {
@@ -3586,6 +4834,7 @@
           "name": "onTrailingIconPress",
           "type": "() => void",
           "required": false,
+          "description": "Pressing `trailingIcon`. It is a bare, unlabelled icon: for a real control use `endAdornment`.",
           "deprecated": false
         },
         {
@@ -4413,6 +5662,247 @@
         }
       ]
     },
+    "PasswordField": {
+      "name": "PasswordField",
+      "source": "packages/ui/src/components/PasswordField.tsx",
+      "propsTypeName": "PasswordFieldProps",
+      "extends": [
+        "Omit<\n  InputProps,\n  | \"secureTextEntry\"\n  | \"type\"\n  | \"precision\"\n  | \"decimalSeparator\"\n  | \"allUpperCase\"\n  | \"multiline\"\n  | \"rows\"\n  | \"trailingIcon\"\n  | \"onTrailingIconPress\"\n  | \"endAdornment\"\n>"
+      ],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(text: string) => void",
+          "required": true,
+          "description": "Called with the new text on every edit (for `type=\"number\"`, already cleaned).",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "autoComplete",
+          "type": "\"current-password\" | \"new-password\"",
+          "required": false,
+          "default": "\"current-password\"",
+          "description": "What the platform's password manager should do: fill the saved password\n(`\"current-password\"`) or offer to generate and save a new one\n(`\"new-password\"`). Defaults to `\"current-password\"`.",
+          "values": [
+            "current-password",
+            "new-password"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "defaultVisible",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Whether the text starts revealed (uncontrolled). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "density",
+          "type": "Density",
+          "required": false,
+          "description": "Control height. `\"dense\"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Stretches the field to its container's width. `false` shrinks it to its\ncontent, with a minimum width so an empty field stays usable. Defaults to\n`true`.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputProps",
+          "type": "InputTextInputProps",
+          "required": false,
+          "description": "Autofill and keyboard hints, focus and key handling for the underlying\n`TextInput`: `autoComplete`, `textContentType`, `autoCorrect`,\n`autoCapitalize`, `spellCheck`, `autoFocus`, `selectTextOnFocus`,\n`returnKeyType`, `enterKeyHint`, `onSubmitEditing`, `onKeyPress`,\n`accessibilityLabel` / `accessibilityValue` (replace the ones drawn from\n`label` and `value`) and `testID`.",
+          "deprecated": false
+        },
+        {
+          "name": "inputRef",
+          "type": "React.Ref<TextInput>",
+          "required": false,
+          "description": "A ref to the underlying `TextInput`, to focus it or select its text.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPlacement",
+          "type": "\"inside\" | \"outside\"",
+          "required": false,
+          "description": "Where the label is drawn: `\"outside\"` above the box, or `\"inside\"`, small,\nabove the text within it. Independent of `variant`. Defaults to `\"outside\"`.",
+          "values": [
+            "inside",
+            "outside"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "leadingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "minHeight",
+          "type": "number",
+          "required": false,
+          "description": "Overrides the height `density` gives (56, or 40 when dense).",
+          "deprecated": false
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the field loses focus.",
+          "deprecated": false
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the field gains focus.",
+          "deprecated": false
+        },
+        {
+          "name": "onVisibleChange",
+          "type": "(visible: boolean) => void",
+          "required": false,
+          "description": "Called with the new state when the eye button is pressed.",
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "prefix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Marks the label with an asterisk.",
+          "deprecated": false
+        },
+        {
+          "name": "reserveHelperText",
+          "type": "boolean",
+          "required": false,
+          "description": "Keeps the line under the field even with no helper or error text, so a\nmessage appearing does not push the next field down. Default false.",
+          "deprecated": false
+        },
+        {
+          "name": "showStrength",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws a strength meter under the field once something is typed, scored by\n`passwordStrength`. For a field that creates a password, not one that\nenters it. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "showToggle",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows the eye button at the end of the field that reveals and hides the\ntext. Turn it off for a field that must never be revealed. Defaults to\n`true`.",
+          "deprecated": false
+        },
+        {
+          "name": "strengthLabels",
+          "type": "readonly string[]",
+          "required": false,
+          "default": "DEFAULT_LABELS",
+          "description": "The words of the meter, from very weak (index 0) to strong (index 4).\nDefaults to `[\"Very weak\", \"Weak\", \"Fair\", \"Good\", \"Strong\"]`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "suffix",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "toggleLabels",
+          "type": "{ show?: string; hide?: string }",
+          "required": false,
+          "description": "The accessible names of the eye button. Default `Show password` / `Hide password`.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box (like `PinInput`'s) that shows its border only\nwhile focused or in error. Where the label sits is `labelPlacement`'s\nbusiness, not the variant's. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "visible",
+          "type": "boolean",
+          "required": false,
+          "description": "Controls whether the text is revealed; pair with `onVisibleChange`.",
+          "deprecated": false
+        }
+      ]
+    },
     "PinInput": {
       "name": "PinInput",
       "source": "packages/ui/src/components/PinInput.tsx",
@@ -4958,6 +6448,93 @@
         }
       ]
     },
+    "QrCode": {
+      "name": "QrCode",
+      "source": "packages/ui/src/components/QrCode.tsx",
+      "propsTypeName": "QrCodeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "description": "What the code says: a URL, a Wi-Fi string, a vCard, any text. Encoded as\nUTF-8, in the narrowest of the numeric, alphanumeric and byte modes. The\nmost a code holds is 2953 bytes at level `\"L\"`; past that nothing is\ndrawn and `onError` is called.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"QR code\"",
+          "description": "What a screen reader says about the code. The value is not read out by\ndefault (it may be a secret). Defaults to `\"QR code\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "backgroundColor",
+          "type": "ThemeColor",
+          "required": false,
+          "description": "The background, a theme colour token or any colour string. See `color` for the default.",
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "ThemeColor",
+          "required": false,
+          "description": "The modules: a theme colour token or any colour string. Scanners read dark\nmodules on a light background, so the default does not follow the theme's\nmode: `onSurface` on `surface` in a light theme, `inverseOnSurface` on\n`inverseSurface` (still dark on light) in a dark one.",
+          "deprecated": false
+        },
+        {
+          "name": "level",
+          "type": "QrLevel",
+          "required": false,
+          "default": "\"M\"",
+          "description": "How much damage the code survives, and so how big it grows: `\"L\"` about 7%\nof it can be lost, `\"M\"` 15%, `\"Q\"` 25%, `\"H\"` 30%. A `logo` raises it to\n`\"H\"` whatever this says. Defaults to `\"M\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "logo",
+          "type": "MaterialCommunityIconsGlyphs | Exclude<React.ReactNode, string>",
+          "required": false,
+          "description": "A mark drawn over the middle of the code: a glyph name, or any node (an\n`Image`), centred in a box a fifth of the code wide. The modules under it\nare lost, so the level is raised to `\"H\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "onError",
+          "type": "(error: Error) => void",
+          "required": false,
+          "description": "Called with the error when `value` does not fit in a code, which is then drawn empty.",
+          "deprecated": false
+        },
+        {
+          "name": "quietZone",
+          "type": "number",
+          "required": false,
+          "default": "4",
+          "description": "The empty margin around the modules, in modules. Scanners need it to find\nthe code; the standard asks for 4. Defaults to 4.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "number",
+          "required": false,
+          "default": "160",
+          "description": "Side of the whole code, quiet zone included, in px. Defaults to 160.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
     "RadioButton": {
       "name": "RadioButton",
       "source": "packages/ui/src/components/RadioButton.tsx",
@@ -5081,6 +6658,128 @@
           "type": "number",
           "required": false,
           "default": "24",
+          "deprecated": false
+        }
+      ]
+    },
+    "ScrollArea": {
+      "name": "ScrollArea",
+      "source": "packages/ui/src/components/ScrollArea.tsx",
+      "propsTypeName": "ScrollAreaProps",
+      "extends": [
+        "Omit<\n  ScrollViewProps,\n  | \"horizontal\"\n  | \"showsVerticalScrollIndicator\"\n  | \"showsHorizontalScrollIndicator\"\n  | \"scrollEventThrottle\"\n  | \"onScroll\"\n  | \"style\"\n  | \"contentContainerStyle\"\n>"
+      ],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentContainerStyle",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the view wrapping the children inside the scroll view (padding, `flexGrow`).",
+          "deprecated": false
+        },
+        {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Fixed height of the area. Leave it out to size to the content, up to `maxHeight`.",
+          "deprecated": false
+        },
+        {
+          "name": "maxHeight",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "The height at which the content starts to scroll.",
+          "deprecated": false
+        },
+        {
+          "name": "onScroll",
+          "type": "(event: NativeSyntheticEvent<NativeScrollEvent>) => void",
+          "required": false,
+          "description": "Called on every scroll, like `ScrollView`'s. With `orientation=\"both\"` the\nevent carries both axes' offset, content size and layout measurement.",
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "\"vertical\" | \"horizontal\" | \"both\"",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "The axis that scrolls. `\"both\"` nests a horizontal scroll view in a\nvertical one, so the content may overflow in either direction. Defaults to\n`\"vertical\"`.",
+          "values": [
+            "vertical",
+            "horizontal",
+            "both"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<ScrollView>",
+          "required": false,
+          "description": "A ref to the scroll view: the vertical one, or the horizontal one for\n`orientation=\"horizontal\"`. Use it for `scrollTo`, `scrollToEnd`, …",
+          "deprecated": false
+        },
+        {
+          "name": "scrollbarSize",
+          "type": "number",
+          "required": false,
+          "default": "10",
+          "description": "Thickness of the scrollbar, in dp: raise it on touch screens for a bigger grab area. Defaults to `10`.",
+          "deprecated": false
+        },
+        {
+          "name": "scrollHideDelay",
+          "type": "number",
+          "required": false,
+          "default": "600",
+          "description": "How long, in ms, a `scroll` or `hover` scrollbar stays after the last scroll, drag or hover. Defaults to `600`.",
+          "deprecated": false
+        },
+        {
+          "name": "slotStyles",
+          "type": "ScrollAreaSlotStyles",
+          "required": false,
+          "description": "Style overrides for the track and the thumb.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Style of the outer view. The scrollbars are laid over it.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Root testID. The scroll view gets `${testID}-viewport` (the horizontal one\nof `both`, `${testID}-viewport-x`), each scrollbar `${testID}-scrollbar-vertical` or\n`${testID}-scrollbar-horizontal`, and its thumb `${testID}-thumb-vertical`\nor `${testID}-thumb-horizontal`.",
+          "deprecated": false
+        },
+        {
+          "name": "type",
+          "type": "\"auto\" | \"always\" | \"scroll\" | \"hover\"",
+          "required": false,
+          "default": "\"auto\"",
+          "description": "When the scrollbars are visible.\n- `auto`: whenever the content overflows.\n- `always`: always, overflowing or not.\n- `scroll`: while scrolling or dragging, and `scrollHideDelay` after.\n- `hover`: while the pointer is over the area (web), and while scrolling\n  or dragging. Without a pointer, as on a phone, it behaves like `scroll`.\n\nDefaults to `\"auto\"`.",
+          "values": [
+            "auto",
+            "always",
+            "scroll",
+            "hover"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Fixed width of the area.",
           "deprecated": false
         }
       ]
@@ -5752,6 +7451,38 @@
       ],
       "props": [
         {
+          "name": "align",
+          "type": "ViewStyle[\"alignItems\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "background",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Background — a theme colour token (`\"surfaceContainer\"`) or any colour\nstring.",
+          "deprecated": false
+        },
+        {
+          "name": "borderColor",
+          "type": "ColorValue",
+          "required": false,
+          "description": "Border colour — a theme colour token or any colour string.",
+          "deprecated": false
+        },
+        {
+          "name": "borderWidth",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "direction",
           "type": "\"vertical\" | \"horizontal\"",
           "required": false,
@@ -5771,6 +7502,39 @@
           "deprecated": false
         },
         {
+          "name": "height",
+          "type": "ViewStyle[\"height\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "justify",
+          "type": "ViewStyle[\"justifyContent\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "margin",
+          "type": "number",
+          "required": false,
+          "description": "Margin on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "padding",
+          "type": "number",
+          "required": false,
+          "description": "Padding on every edge, in px. One edge or one axis goes through `style`.",
+          "deprecated": false
+        },
+        {
+          "name": "radius",
+          "type": "RadiusValue",
+          "required": false,
+          "description": "Corner radius — a shape token name or a raw radius.",
+          "deprecated": false
+        },
+        {
           "name": "reverse",
           "type": "boolean",
           "required": false,
@@ -5783,6 +7547,26 @@
           "required": false,
           "default": "\"s\"",
           "description": "Space between children — a spacing token name (`\"m\"`), a number of px, or\na string holding one (`\"12\"`).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "Merged last, over the variant and every other prop.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "ViewStyle[\"width\"]",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "wrap",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets children flow onto the next line (or column) instead of overflowing.",
           "deprecated": false
         }
       ]
@@ -5899,6 +7683,13 @@
           "deprecated": false
         },
         {
+          "name": "copy",
+          "type": "ClipboardWriter",
+          "required": false,
+          "description": "Writes the copied text: `expo-clipboard`'s `setStringAsync` on native, or\nyour own on web. On web it defaults to `navigator.clipboard.writeText`.",
+          "deprecated": false
+        },
+        {
           "name": "direction",
           "type": "\"column\" | \"row\"",
           "required": false,
@@ -5915,7 +7706,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Shows a small copy button after the value, for a text or number value (a\nnode has nothing to copy). On web it writes the value to the clipboard\n(`navigator.clipboard`); the library has no clipboard dependency, so on\nnative the button is shown only with an `onCopy` that does the copying.\nThe button's icon changes to a check for a moment, and \"Copied\" is\nannounced, once the value is copied.",
+          "description": "Shows a small copy button (a `Clipboard`) after the value, for a text or\nnumber value (a node has nothing to copy). On web it writes the value to\nthe clipboard (`navigator.clipboard`); the library has no clipboard\ndependency, so on native the button is shown only with a `copy` writer or\nan `onCopy` that does the copying. The button's icon changes to a check\nfor a moment, and \"Copied\" is announced, once the value is copied.",
           "deprecated": false
         },
         {
@@ -5968,7 +7759,7 @@
           "name": "onCopy",
           "type": "(value: string) => void",
           "required": false,
-          "description": "Called with the value as text when the copy button is pressed. On native\nit is where the app copies it (`Clipboard.setStringAsync` from\n`expo-clipboard`); on web it is called after the clipboard write succeeded.",
+          "description": "Called with the value as text after it was copied. Without a `copy`\nwriter it is, on native, where the app copies it; on web it is called\nafter the clipboard write succeeded.",
           "deprecated": false
         },
         {
@@ -7074,6 +8865,179 @@
         }
       ]
     },
+    "Tree": {
+      "name": "Tree",
+      "source": "packages/ui/src/components/Tree.tsx",
+      "propsTypeName": "TreeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "data",
+          "type": "TreeNode[]",
+          "required": true,
+          "description": "The roots. Keep the array (and the nodes in it) stable between renders: rows whose node did not change are not drawn again.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "Names the tree for assistive tech.",
+          "deprecated": false
+        },
+        {
+          "name": "checkboxes",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "With `selectionMode=\"multiple\"`, a checkbox on each row: checking a parent\nchecks everything under it, and a parent with only some children checked\nshows the mixed state. Ignored in the other modes. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "The ids of the nodes that start open, when `expanded` is not set.",
+          "deprecated": false
+        },
+        {
+          "name": "defaultSelected",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "The ids that start selected, when `selected` is not set.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Nothing can be opened, selected or focused. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "expanded",
+          "type": "string[]",
+          "required": false,
+          "description": "The ids of the open nodes. Set, the tree is controlled: it opens and closes what this says, and reports through `onExpandedChange`.",
+          "deprecated": false
+        },
+        {
+          "name": "indent",
+          "type": "number",
+          "required": false,
+          "default": "24",
+          "description": "How far each level is pushed in, in px. Defaults to 24.",
+          "deprecated": false
+        },
+        {
+          "name": "loadChildren",
+          "type": "(node: TreeNode) => Promise<TreeNode[]>",
+          "required": false,
+          "description": "Fetches the children of a node marked `hasChildren` when it is first\nopened; a loading row shows meanwhile, and a retry row if the promise\nrejects. The result is kept: the node is not asked again.",
+          "deprecated": false
+        },
+        {
+          "name": "loadingText",
+          "type": "string",
+          "required": false,
+          "default": "\"Loading…\"",
+          "description": "The text of the loading row. Defaults to `\"Loading…\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: string[]) => void",
+          "required": false,
+          "description": "Called with the open ids after a node is opened or closed.",
+          "deprecated": false
+        },
+        {
+          "name": "onLoadError",
+          "type": "(error: unknown, node: TreeNode) => void",
+          "required": false,
+          "description": "Called when `loadChildren` rejects.",
+          "deprecated": false
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(selected: string[]) => void",
+          "required": false,
+          "description": "Called with the selected ids after a press, a Space or an Enter on a row.",
+          "deprecated": false
+        },
+        {
+          "name": "renderLabel",
+          "type": "(node: TreeNode, state: TreeRowState) => React.ReactNode",
+          "required": false,
+          "description": "Draws the label of a row instead of `node.label`. Rows are memoised: pass\na function that does not change between renders (`useCallback`), or every\nrow is drawn again whenever the tree is.",
+          "deprecated": false
+        },
+        {
+          "name": "retryText",
+          "type": "string",
+          "required": false,
+          "default": "\"Could not load. Try again\"",
+          "description": "The text of the row that retries a failed load. Defaults to `\"Could not load. Try again\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string[]",
+          "required": false,
+          "description": "The ids of the selected nodes: at most one with `selectionMode=\"single\"`.\nWith checkboxes it lists every checked node, a parent whose children are\nall checked included. Set, the tree is controlled.",
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "\"none\" | \"single\" | \"multiple\"",
+          "required": false,
+          "default": "\"none\"",
+          "description": "What pressing a row does. `\"none\"` opens and closes it, `\"single\"` selects\nit (and only it), `\"multiple\"` toggles it in the selection. The chevron\nalways opens and closes. Defaults to `\"none\"`.",
+          "values": [
+            "none",
+            "single",
+            "multiple"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "showLines",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws a vertical guide line down each open node's children. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "\"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "Row height and text size: 32, 40 or 48 px. Defaults to `\"medium\"`.",
+          "values": [
+            "small",
+            "medium",
+            "large"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
     "Typography": {
       "name": "Typography",
       "source": "packages/ui/src/components/Typography.tsx",
@@ -7136,6 +9100,202 @@
           "required": false,
           "default": "\"h1\"",
           "description": "Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`,\n`button`, `caption`, `overline`. The M3 role names (`displayLarge`,\n`bodyMedium`, …) still work and name the same styles. Defaults to `\"h1\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Upload": {
+      "name": "Upload",
+      "source": "packages/ui/src/components/Upload.tsx",
+      "propsTypeName": "UploadProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "accept",
+          "type": "string",
+          "required": false,
+          "description": "What may be picked, written like the `accept` of an `<input type=\"file\">`:\n`\"image/*,.pdf\"`. It filters the web file dialog and is checked on every\nfile added, on every platform (a drop, or what `onPick` returns).",
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "UploadFile[]",
+          "required": false,
+          "description": "The files the list starts with, when it is not controlled.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "description": "An error message under the field, in the error colour.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "description": "A label above the field.",
+          "deprecated": false
+        },
+        {
+          "name": "maxFiles",
+          "type": "number",
+          "required": false,
+          "description": "How many files the list may hold with `multiple`: the ones past it are rejected.",
+          "deprecated": false
+        },
+        {
+          "name": "maxSize",
+          "type": "number",
+          "required": false,
+          "description": "The largest file, in bytes: a bigger one is rejected.",
+          "deprecated": false
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Allows several files. Without it a new file replaces the one in the list. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(files: UploadFile[]) => void",
+          "required": false,
+          "description": "Called with the whole list whenever it changes: files added or removed, a status or a progress moved.",
+          "deprecated": false
+        },
+        {
+          "name": "onPick",
+          "type": "() => Promise<PickedFile[]>",
+          "required": false,
+          "description": "Opens a picker and resolves the files chosen (an empty list for none): the\napp wires `@its/glowup-device/media-picker` or a document picker here. The\nlibrary imports no picker. On native it is required for the field to be\ndrawn; on web it replaces the browser's file dialog when given.",
+          "deprecated": false
+        },
+        {
+          "name": "onReject",
+          "type": "(rejections: UploadRejection[]) => void",
+          "required": false,
+          "description": "Called with the files that were not added (too large, wrong type, past\n`maxFiles`). Without it the reasons are shown under the field.",
+          "deprecated": false
+        },
+        {
+          "name": "onUpload",
+          "type": "(file: UploadFile, handlers: UploadHandlers) => Promise<void>",
+          "required": false,
+          "description": "Uploads each new file. Return a promise that resolves when it is done and\nrejects when it failed; report `onProgress` as it goes and stop on\n`signal`. The file is listed as `\"uploading\"` with its progress, then\n`\"done\"`, or `\"error\"` with a retry button. Without it files are only\ncollected (`\"pending\"`), for you to send with a form.",
+          "deprecated": false
+        },
+        {
+          "name": "prompt",
+          "type": "string",
+          "required": false,
+          "description": "What the dropzone or the button says. Defaults to \"Drag files here or\nclick to browse\" in a web dropzone, else \"Choose files\" (\"Choose a file\"\nwithout `multiple`).",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "UploadFile[]",
+          "required": false,
+          "description": "The files in the list. Give it with `onChange` to control the list.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"dropzone\" | \"button\"",
+          "required": false,
+          "default": "\"dropzone\"",
+          "description": "`\"dropzone\"` is a dashed area to drop files on or press; `\"button\"` is a plain button (a drop on it still works on web). Defaults to `\"dropzone\"`.",
+          "values": [
+            "dropzone",
+            "button"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "Visible": {
+      "name": "Visible",
+      "source": "packages/ui/src/components/Visible.tsx",
+      "propsTypeName": "VisibleProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "above",
+          "type": "SizeClass",
+          "required": false,
+          "description": "Shows from this window size class up (`\"medium\"` is medium, expanded, large, …).",
+          "deprecated": false
+        },
+        {
+          "name": "below",
+          "type": "SizeClass",
+          "required": false,
+          "description": "Shows only on size classes smaller than this one (`\"medium\"` is compact only).",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "fallback",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Rendered in place of the children while they are not shown.",
+          "deprecated": false
+        },
+        {
+          "name": "keepMounted",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hides the children with `display: \"none\"` instead of unmounting them, so\ntheir state survives. They are then wrapped in a `View` (laid out as if it\nwere not there while they show). Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "only",
+          "type": "SizeClass | SizeClass[]",
+          "required": false,
+          "description": "Shows only on this size class, or on any of these.",
+          "deprecated": false
+        },
+        {
+          "name": "when",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "A condition of your own; the children show only while it holds. Defaults to `true`.",
           "deprecated": false
         }
       ]
@@ -7219,6 +9379,56 @@
           "required": false,
           "default": "\"bottom-center\"",
           "description": "Where toasts appear unless one asks for another. Defaults to `\"bottom-center\"`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "HighlightedCode": {
+      "name": "HighlightedCode",
+      "source": "packages/ui/src/components/CodeBlock.tsx",
+      "propsTypeName": "HighlightedCodeProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "description": "The source to colour.",
+          "deprecated": false
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "description": "Hides the text from assistive technology, for a copy that only decorates (a field's own text is read instead).",
+          "deprecated": false
+        },
+        {
+          "name": "language",
+          "type": "CodeLanguage",
+          "required": false,
+          "default": "\"tsx\"",
+          "description": "What the source is written in. Defaults to `\"tsx\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "selectable",
+          "type": "boolean",
+          "required": false,
+          "description": "Lets the reader select the text.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<TextStyle>",
+          "required": false,
+          "description": "Merged after the code type: padding, font size.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         }
       ]

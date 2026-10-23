@@ -3,13 +3,12 @@ import { render } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AlertProvider, ThemeProvider, ToastProvider } from "@its/glowup-ui";
 
-import ComponentPreview from "../catalogue/ComponentPreview";
-import { exampleFor } from "../catalogue/examples";
+import { DESCRIPTIONS } from "../catalogue/descriptions";
+import { EXAMPLES, exampleFor } from "../catalogue/examples";
 import { ComponentRegistry } from "../catalogue/registry";
 import { CATEGORIES, FLAT_ORDER, TOTAL_COUNT } from "../catalogue/categories";
-import { buildSnippet } from "../catalogue/snippet";
 import { VARIANTS_BY_COMPONENT } from "../catalogue/variants";
-import { COMPONENT_DOCS, requiredPropsOf } from "../site/propsData";
+import { COMPONENT_DOCS } from "../site/propsData";
 
 /** The panel's opening state for a component: every prop at its default. */
 const defaultsOf = (name: string) => {
@@ -41,28 +40,13 @@ const Providers = ({ children }: { children: ReactNode }) => (
   </SafeAreaProvider>
 );
 
+// A page is its example: that is what the stage draws.
 const renderDemo = async (name: string) => {
-  const meta = ComponentRegistry[name];
-  const props = defaultsOf(name);
   const example = exampleFor(name);
-
-  // A page with its example shows that; the others still have the stage.
-  if (example) {
-    return render(
-      <Providers>
-        <example.Component />
-      </Providers>,
-    );
-  }
-
+  if (!example) throw new Error(`${name} has no example`);
   return render(
     <Providers>
-      <ComponentPreview
-        selectedComponentName={name}
-        activeMeta={meta}
-        componentProps={props}
-        updateProp={() => {}}
-      />
+      <example.Component />
     </Providers>,
   );
 };
@@ -118,8 +102,11 @@ const CATALOGUE = [
   "ToggleButtonGroup",
   "ButtonGroup",
   "SplitButton",
+  "Clipboard",
+  "Download",
   // Inputs
   "Input",
+  "PasswordField",
   "Select",
   "Checkbox",
   "CheckboxGroup",
@@ -131,6 +118,8 @@ const CATALOGUE = [
   "SearchBar",
   "Autocomplete",
   "PinInput",
+  "Editable",
+  "Upload",
   "FormControl",
   "DateTimePicker",
   "DatePicker",
@@ -153,6 +142,9 @@ const CATALOGUE = [
   "CaptionValue",
   "Image",
   "Link",
+  "CodeBlock",
+  "QrCode",
+  "Tree",
   "IFrame",
   "Blink",
   // Feedback
@@ -160,8 +152,10 @@ const CATALOGUE = [
   "Banner",
   "Dialog",
   "ConfirmDialog",
+  "AlertDialog",
   "Form",
   "Popover",
+  "HoverCard",
   "BottomSheet",
   "Menu",
   "Skeleton",
@@ -184,10 +178,15 @@ const CATALOGUE = [
   "Stepper",
   // Layout
   "Box",
+  "Center",
+  "AbsoluteCenter",
+  "Break",
   "Stack",
   "Grid",
   "AspectRatio",
   "Spacer",
+  "Visible",
+  "ScrollArea",
 ];
 
 // Catalogued, but not a component the extractor can document: `Toast` is the
@@ -242,6 +241,32 @@ describe("Playground catalogue", () => {
     expect(withoutGallery).toEqual([]);
   });
 
+  it("gives every catalogued component an example", () => {
+    // The page is its one example; a component without one has no stage.
+    const withoutExample = FLAT_ORDER.filter((name) => !exampleFor(name));
+    expect(withoutExample).toEqual([]);
+  });
+
+  it("has no example that is not a catalogued component's", () => {
+    const stray = Object.keys(EXAMPLES).filter(
+      (name) => !FLAT_ORDER.includes(name),
+    );
+    expect(stray).toEqual([]);
+  });
+
+  it("gives every catalogued component one sentence of description", () => {
+    // It sits under the title, in the gallery card and in the search result.
+    const missing = FLAT_ORDER.filter((name) => !DESCRIPTIONS[name]?.trim());
+    expect(missing).toEqual([]);
+    const notASentence = FLAT_ORDER.filter(
+      (name) => !/^[A-Z].*[.)]$/.test(DESCRIPTIONS[name] ?? ""),
+    );
+    expect(notASentence).toEqual([]);
+    expect(
+      Object.keys(DESCRIPTIONS).filter((name) => !FLAT_ORDER.includes(name)),
+    ).toEqual([]);
+  });
+
   it.each(GALLERY)(
     "renders the %s gallery entry closed",
     async (label, Demo) => {
@@ -269,123 +294,6 @@ describe("Playground catalogue", () => {
     expect(toJSON()).toBeTruthy();
   });
 
-  // The usage snippet belongs to the stage that is being replaced by examples:
-  // a page with its example has the code in the editor instead.
-  const STAGED = CATALOGUE.filter((name) => !exampleFor(name));
-
-  it.each(STAGED)("builds a usage snippet for %s", (name) => {
-    const snippet = buildSnippet(
-      name,
-      ComponentRegistry[name],
-      defaultsOf(name),
-      requiredPropsOf(name),
-    );
-    expect(snippet.startsWith(`<${name}`)).toBe(true);
-  });
-
-  it.each(STAGED)("puts %s's content in the right slot", (name) => {
-    // `label` and `title` used to go between the tags alongside `children`,
-    // which produced `<Slider>Volume</Slider>` — Slider takes no children, so
-    // a reader who pasted it got a slider with no label. Whether a component
-    // takes children is whether its entry declares a `children` prop, nothing
-    // else, and that is what decides the slot.
-    const meta = ComponentRegistry[name];
-    const snippet = buildSnippet(
-      name,
-      meta,
-      defaultsOf(name),
-      requiredPropsOf(name),
-    );
-    const takesChildren = typeof meta.props.children?.default === "string";
-
-    expect(snippet.endsWith("/>")).toBe(!takesChildren);
-    for (const key of ["label", "title"]) {
-      const value = meta.props[key]?.default;
-      if (typeof value !== "string" || !value) continue;
-      // Written, but inside the tag rather than between the tags.
-      expect(snippet).toContain(`${key}=${JSON.stringify(value)}`);
-    }
-  });
-
-  it.each(STAGED)("keeps %s's required props in the snippet", (name) => {
-    // A prop equal to its default is omitted, which is what keeps a snippet to
-    // the attributes that matter — but applied to a required one it produced
-    // `<Modal>…</Modal>` without `visible`, the prop that decides whether the
-    // dialog is on screen at all. Required-ness comes from the library's own
-    // types via the generated docs, so this cannot drift from the source.
-    const meta = ComponentRegistry[name];
-    const values = defaultsOf(name);
-    const snippet = buildSnippet(name, meta, values, requiredPropsOf(name));
-
-    for (const key of requiredPropsOf(name)) {
-      const definition = meta.props[key];
-      // Only the ones the panel drives: a required handler or data prop has no
-      // control and no value to write. See the note in snippet.ts.
-      if (!definition || values[key] === undefined) continue;
-      if (definition.appliesWhen?.(values) === false) continue;
-
-      if (key === "children") expect(snippet).toContain(values[key]);
-      // A `true` boolean is written bare, the way it would be by hand.
-      else if (definition.type === "boolean" && values[key])
-        expect(snippet).toMatch(new RegExp(`\\b${key}\\b`));
-      else expect(snippet).toContain(`${key}=`);
-    }
-  });
-
-  it("writes a content prop even at its default, and drops it when emptied", () => {
-    // Every other prop is omitted at its default, which is what keeps the
-    // snippet short. Applied to the content prop it gave `<Chip />`, a tag
-    // whose whole subject is missing.
-    expect(
-      buildSnippet(
-        "Chip",
-        ComponentRegistry.Chip,
-        defaultsOf("Chip"),
-        requiredPropsOf("Chip"),
-      ),
-    ).toBe('<Chip label="React Native" />');
-
-    // Emptying an optional one is a deliberate "no label"…
-    expect(
-      buildSnippet(
-        "Input",
-        ComponentRegistry.Input,
-        { ...defaultsOf("Input"), label: "" },
-        requiredPropsOf("Input"),
-      ),
-    ).not.toContain("label=");
-
-    // …but a required one is written as the empty string the demo passes,
-    // because a tag without it does not type-check.
-    expect(
-      buildSnippet(
-        "Chip",
-        ComponentRegistry.Chip,
-        { ...defaultsOf("Chip"), label: "" },
-        requiredPropsOf("Chip"),
-      ),
-    ).toBe('<Chip label="" />');
-  });
-
-  it("leaves an inapplicable prop out of the snippet", () => {
-    // Divider drops its label once it is vertical, so a snippet that still
-    // wrote one would promise something the demo above it visibly does not do.
-    const meta = ComponentRegistry.Divider;
-    const required = requiredPropsOf("Divider");
-
-    expect(
-      buildSnippet("Divider", meta, defaultsOf("Divider"), required),
-    ).toContain("OR");
-    expect(
-      buildSnippet(
-        "Divider",
-        meta,
-        { ...defaultsOf("Divider"), orientation: "vertical" },
-        required,
-      ),
-    ).not.toContain("OR");
-  });
-
   // Every `appliesWhen` in the catalogue, as the pair of panel states that
   // makes it fire and unfire: the props listed are inapplicable under `off`
   // and applicable under `on`. Each was read off the library source — the
@@ -409,10 +317,14 @@ describe("Playground catalogue", () => {
     // Every field in the kit hides its helper text while an error shows.
     ...[
       "Input",
+      "PasswordField",
       "Autocomplete",
       "PinInput",
       "FormControl",
+      "CheckboxGroup",
       "DateTimePicker",
+      "DatePicker",
+      "TimePicker",
     ].map((component) => ({
       component,
       off: { error: "Something is wrong" },
@@ -425,19 +337,13 @@ describe("Playground catalogue", () => {
       component: "DateTimePicker",
       off: { mode: "time" },
       on: { mode: "date" },
-      props: ["selectionMode", "scrollMode", "limitToThisMonth", "noWeekends"],
+      props: ["scrollMode"],
     },
     {
       component: "DateTimePicker",
       off: { mode: "date" },
       on: { mode: "time" },
       props: ["minuteInterval", "use24HourClock"],
-    },
-    {
-      component: "DateTimePicker",
-      off: { mode: "date", selectionMode: "range" },
-      on: { mode: "date", selectionMode: "single" },
-      props: ["inputEnabled"],
     },
 
     // A static picker is the bare surface: nothing of the field is drawn.
@@ -454,14 +360,24 @@ describe("Playground catalogue", () => {
         "error",
         "required",
         "clearable",
-        "inputEnabled",
+        "defaultInputType",
       ],
     },
     ...["DatePicker", "TimePicker"].map((component) => ({
       component,
       off: { variant: "static" },
       on: { variant: "default" },
-      props: ["label", "presentation", "fieldVariant"],
+      props: [
+        "label",
+        "presentation",
+        "fieldVariant",
+        "placeholder",
+        "helperText",
+        "error",
+        "required",
+        "clearable",
+        "defaultInputType",
+      ],
     })),
 
     // Only a multiline field has lines to count.
@@ -471,12 +387,25 @@ describe("Playground catalogue", () => {
       on: { multiline: true },
       props: ["rows"],
     },
-    // The empty message replaces the list, so it needs an empty list.
+    // Decimals and the separator belong to a number field.
+    {
+      component: "Input",
+      off: { type: "text" },
+      on: { type: "number" },
+      props: ["decimalSeparator", "precision"],
+    },
+    // Chips are a way of showing several choices; one choice can be cleared.
     {
       component: "Select",
-      off: { empty: false },
-      on: { empty: true },
-      props: ["emptyMessage"],
+      off: { multiple: false },
+      on: { multiple: true },
+      props: ["showAsChips"],
+    },
+    {
+      component: "Select",
+      off: { multiple: true },
+      on: { multiple: false },
+      props: ["nullable"],
     },
     // A switch without a label has nothing to place.
     {
@@ -491,19 +420,14 @@ describe("Playground catalogue", () => {
       component: "FAB",
       off: { variant: "icon" },
       on: { variant: "animated" },
-      props: ["extended", "animateFrom", "iconMode"],
+      props: ["animateFrom", "iconMode", "duration"],
     },
 
+    // The empty message is for a grid that is not loading.
     {
       component: "DataGrid",
-      off: { empty: false },
-      on: { empty: true, loading: false },
-      props: ["emptyMessage"],
-    },
-    {
-      component: "DataGrid",
-      off: { empty: true, loading: true },
-      on: { empty: true, loading: false },
+      off: { loading: true },
+      on: { loading: false },
       props: ["emptyMessage"],
     },
 
@@ -512,20 +436,6 @@ describe("Playground catalogue", () => {
       off: { delta: "" },
       on: { delta: "12.5%" },
       props: ["trend", "trendColor"],
-    },
-    // A row with no action has no trailing slot to size.
-    {
-      component: "ListItem",
-      off: { action: "" },
-      on: { action: "chevron" },
-      props: ["trailingWidth"],
-    },
-    // The empty message replaces the rows, so it needs no rows.
-    {
-      component: "Table",
-      off: { empty: false },
-      on: { empty: true },
-      props: ["emptyMessage"],
     },
     // The fallback stands in for an empty value; a caption-less field has no
     // caption to colour or to space from the value.
@@ -548,30 +458,17 @@ describe("Playground catalogue", () => {
       on: { animate: true },
       props: ["duration"],
     },
-    // Progress and the per-status labels only mean something in their status.
-    {
-      component: "ProgressButton",
-      off: { status: "idle" },
-      on: { status: "loading" },
-      props: ["progress", "loadingLabel"],
-    },
     {
       component: "LinearProgress",
       off: { indeterminate: true },
       on: { indeterminate: false },
       props: ["progress"],
     },
+    // A ring with a value does not spin: there is no spin to time.
     {
       component: "CircularProgress",
-      off: { indeterminate: true },
-      on: { indeterminate: false },
-      props: ["progress"],
-    },
-    // A snackbar with a close button stays up: there is no timeout to set.
-    {
-      component: "Snackbar",
-      off: { closable: true },
-      on: { closable: false },
+      off: { progress: 0.5 },
+      on: { progress: undefined },
       props: ["duration"],
     },
     // The full-screen dialog fills the window, so it has no width or height
@@ -581,13 +478,6 @@ describe("Playground catalogue", () => {
       off: { fullScreen: true },
       on: { fullScreen: false },
       props: ["width", "height", "scrollable", "disableBackdropClick"],
-    },
-    // Only the swipeable drawer is opened and closed; a static one is always there.
-    {
-      component: "Drawer",
-      off: { variant: "static" },
-      on: { variant: "swipeable" },
-      props: ["visible"],
     },
     // A side drawer is a column of `width`; a top or bottom one spans the
     // window and is as tall as its content, up to `height`.
@@ -603,13 +493,13 @@ describe("Playground catalogue", () => {
       on: { position: "top" },
       props: ["height"],
     },
-    // No border, no border colour.
-    {
-      component: "Box",
+    // No border, no border colour (on a Box and on what is built on one).
+    ...["Box", "Stack", "Center", "AspectRatio"].map((component) => ({
+      component,
       off: { borderWidth: 0 },
       on: { borderWidth: 2 },
       props: ["borderColor"],
-    },
+    })),
     {
       component: "Slider",
       off: { step: 0 },
@@ -629,12 +519,68 @@ describe("Playground catalogue", () => {
       on: { multiple: false },
       props: ["required"],
     },
-    // Colour, orientation and the FAB belong to the floating toolbar.
+    // A tonal colour is drawn from a seed; an outlined chip has no fill to tint.
+    {
+      component: "Chip",
+      off: { variant: "outlined" },
+      on: { variant: "filled" },
+      props: ["toneFrom"],
+    },
+    // Only a rich tooltip has a title.
+    {
+      component: "Tooltip",
+      off: { variant: "plain" },
+      on: { variant: "rich" },
+      props: ["title"],
+    },
+    // Colour and orientation belong to the floating toolbar.
     {
       component: "Toolbar",
       off: { variant: "docked" },
       on: { variant: "floating" },
-      props: ["color", "orientation", "withFab"],
+      props: ["color", "orientation"],
+    },
+    // A bar that is always there, or hides itself on its own, has no delay.
+    {
+      component: "ScrollArea",
+      off: { type: "auto" },
+      on: { type: "scroll" },
+      props: ["scrollHideDelay"],
+    },
+    // A select edits through its menu: there is no text to select, and a number
+    // is the only value with decimals.
+    {
+      component: "Editable",
+      off: { type: "select" },
+      on: { type: "text" },
+      props: ["selectAllOnFocus"],
+    },
+    {
+      component: "Editable",
+      off: { type: "text" },
+      on: { type: "number" },
+      props: ["precision"],
+    },
+    // An anchor position replaces the side the card is placed on.
+    {
+      component: "HoverCard",
+      off: { anchorPosition: { vertical: "top", horizontal: "center" } },
+      on: { anchorPosition: undefined },
+      props: ["placement"],
+    },
+    // A logo covers the middle of the code, which raises the level to High.
+    {
+      component: "QrCode",
+      off: { logo: "star" },
+      on: { logo: "" },
+      props: ["level"],
+    },
+    // Boxes to tick belong to a tree that selects several rows.
+    {
+      component: "Tree",
+      off: { selectionMode: "single" },
+      on: { selectionMode: "multiple" },
+      props: ["checkboxes"],
     },
   ];
 
@@ -668,19 +614,27 @@ describe("Playground catalogue", () => {
       "DateTimePicker.minuteInterval", // Mode → Time / Date & Time
       "DateTimePicker.use24HourClock", // Mode → Time / Date & Time
       "Input.rows", // Multiline → on
-      "Select.emptyMessage", // Empty options → on
-      "FAB.extended", // Variant → Animated
+      "Input.decimalSeparator", // Type → Number
+      "Input.precision", // Type → Number
+      "Select.showAsChips", // Multiple → on
+      "Slider.marks", // Step → a number
+      "Switch.labelPlacement", // Label → anything
       "FAB.animateFrom", // Variant → Animated
       "FAB.iconMode", // Variant → Animated
-      "DataGrid.emptyMessage", // Empty Data → on
-      "ProgressButton.progress", // Status → Loading
-      "ProgressButton.loadingLabel", // Status → Loading
-      "Drawer.visible", // Variant → Swipeable
+      "FAB.duration", // Variant → Animated
       "Drawer.height", // Position → Top / Bottom
       "Box.borderColor", // Border Width → above 0
-      "ListItem.trailingWidth", // Action → anything but None
-      "Table.emptyMessage", // Empty Data → on
-      "CaptionValue.fallback", // Value → emptied
+      "Stack.borderColor", // Border Width → above 0
+      "Center.borderColor", // Border Width → above 0
+      "AspectRatio.borderColor", // Border Width → above 0
+      "Stat.trend", // Delta → anything
+      "Stat.trendColor", // Delta → anything
+      "Tooltip.title", // Variant → Rich
+      "Toolbar.color", // Variant → Floating
+      "Toolbar.orientation", // Variant → Floating
+      "ScrollArea.scrollHideDelay", // Type → Scroll / Hover
+      "Editable.precision", // Type → Number
+      "Tree.checkboxes", // Selection Mode → Multiple
     ];
 
     const hidden = Object.entries(ComponentRegistry).flatMap(([name, meta]) =>

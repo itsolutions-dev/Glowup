@@ -1,9 +1,12 @@
 import type { Variant } from "../types";
+import { variants as AlertDialog } from "./AlertDialog";
 import { variants as Autocomplete } from "./Autocomplete";
 import { variants as BottomSheet } from "./BottomSheet";
 import { variants as ConfirmDialog } from "./ConfirmDialog";
 import { variants as Dialog } from "./Dialog";
+import { variants as Drawer } from "./Drawer";
 import { variants as FAB } from "./FAB";
+import { variants as HoverCard } from "./HoverCard";
 import { variants as Icon } from "./Icon";
 import { variants as Menu } from "./Menu";
 import { variants as Popover } from "./Popover";
@@ -15,14 +18,6 @@ import {
   cardCoverVariants,
   cardTitleVariants,
 } from "./CardParts";
-import {
-  buttonGroupVariants,
-  chipGroupVariants,
-  drawerVariants,
-  navigationRailVariants,
-  splitButtonVariants,
-  toolbarVariants,
-} from "./fromDemos";
 
 /**
  * Galleries written by hand, for components the preview rewriter cannot reach.
@@ -45,11 +40,14 @@ import {
  * matter of deleting its file.
  */
 export const MANUAL_VARIANTS: Record<string, Variant[]> = {
+  AlertDialog,
   Autocomplete,
   BottomSheet,
   ConfirmDialog,
   Dialog,
+  Drawer,
   FAB,
+  HoverCard,
   Icon,
   Menu,
   Popover,
@@ -59,12 +57,4 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   CardContent: cardContentVariants,
   CardCover: cardCoverVariants,
   CardActions: cardActionsVariants,
-  // Components added after the design-sync previews: no authored preview, so
-  // their galleries are their stage demos with fixed values (./fromDemos).
-  ButtonGroup: buttonGroupVariants,
-  ChipGroup: chipGroupVariants,
-  Drawer: drawerVariants,
-  NavigationRail: navigationRailVariants,
-  SplitButton: splitButtonVariants,
-  Toolbar: toolbarVariants,
 };

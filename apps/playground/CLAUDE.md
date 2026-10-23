@@ -23,26 +23,53 @@ the embedded source differs from the file. A template that switches layout measu
 container with `onLayout`, never the window: it must reflow on the stage's 360 / 720 widths,
 and a first render at width 0 matches the prerendered HTML.
 
-## The examples
+## The component page: one example, bound to its props
 
-`catalogue/examples/*.tsx` are components written the way an app would write them, with data
-(a team table, a product grid, an inbox), shown under "Examples" on the page of the components
-they name. Like a template, an example is a **real file** — type-checked, linted, prettier-formatted
-— importing only `react`, `react-native`, `@its/glowup-ui` and the icon font, with a default export;
-`catalogue/examples/index.ts` lists each with its title, description and the pages that show it,
-and `catalogue/examples/generate.mjs` embeds the files' text into `sources.generated.ts` (committed;
-never hand-edit it) — **after editing an example, run `npm run examples -w @its/glowup-playground`**.
-`site/LiveExample.tsx` puts the file's code in an editor under the stage: while the text is
-untouched the stage shows the real component (so a page prerenders and hydrates like any other and
-nothing is evaluated); the first edit compiles the text in the browser (`site/liveCode.ts`: `sucrase`
-strips the types and the JSX, the imports resolve against the packages the site already bundles,
-`new Function` runs it), a compile error keeps the last good render and shows the message, a
-render error is caught by the stage's error boundary, and "Reset to default" puts the file back.
-Evaluation needs `new Function`: fine on the web and in jest; on a native engine without it the
-editor reports the error and the stage keeps the real component. `__tests__/examples.test.tsx`
-renders every example, checks its embedded source against the file and checks that compiling the
-text draws the same tree as the real component. No `new Date()`, `Date.now()` or `Math.random()`
-in an example: the page is prerendered.
+Every catalogue page has **one example**: a realistic, app-like piece of UI built around the
+component, running on a stage (with a 360 / 720 / Full width switch), with its **code editable**
+and a "Reset to default", and the Properties panel **bound to that code**. There is no separate
+stage-plus-usage block and no list of examples.
+
+An example is a **real file**, `catalogue/examples/<ComponentName>.tsx` (the file name is the
+page name), type-checked, linted and prettier-formatted like a template: a default-exported
+component importing only `react`, `react-native`, `@its/glowup-ui` and the icon font.
+`catalogue/examples/generate.mjs` embeds every file's text and imports its component into
+`examples.generated.ts` (committed; never hand-edit it) — **after adding or editing an example,
+run `npm run examples -w @its/glowup-playground`**. `catalogue/examples/Button.tsx` is the model.
+
+**The `props` literal.** After the imports comes `const props: Partial<XProps> = { ... };`
+(the annotation keeps strings typed against the real props), spread onto the component the page
+is about: `<Button {...props} onClick={...} />`. It holds the real props that are plain data;
+handlers, state, nodes and the example's own data (rows, items) stay in the code. The Properties
+panel reads and writes exactly this literal (`site/exampleProps.ts`): moving a control rewrites
+its text, typing in the editor moves the control, and a key left out means "the component's own
+default". The literal is found by shape (a line starting `const props` to the first line that is
+exactly `};`) and written in Prettier's shape (2 spaces, double quotes, trailing commas, short
+values inline), so a control moved and moved back is no edit.
+
+**The registry** (`catalogue/registry/*.ts`) now only lists the controls: each one a **real prop**
+of the component with the **component's own default** (`__tests__/registry-defaults.test.ts`
+checks both against the generated prop tables). No stage-only toggles, no `node` controls, no
+controlled-value props (the example owns that state), `type: "icon"` for glyph names (the field
+opens the icon search), selects listing every value of the union, `appliesWhen` for a prop that
+does nothing in the current state, `clientOnly` for a component that reads the clock or the locale.
+
+**How it runs** (`site/LiveExample.tsx`, `site/liveCode.ts`). While the text is untouched the stage
+shows the real component the file exports: the page prerenders and hydrates like any other and
+nothing is evaluated. The first change compiles the text in the browser (`sucrase` strips the
+types and the JSX, the imports resolve against the packages the site already bundles, `new Function`
+runs it) once; the compiled component reads `props` from an object kept outside it, so moving a
+control redraws it **without compiling again and without losing its state** (a table's selected row
+stays selected). A compile error keeps the last good render and shows the message under the editor,
+a render error is caught by the stage's error boundary, an unreadable `props` literal turns the
+controls off until Reset. Evaluation needs `new Function`: fine on the web and in jest; on a native
+engine without it the editor reports the error and the stage keeps the real component. The editor
+is a transparent text field laid over a highlighted copy on the web (Tab indents, Esc lets the next
+Tab leave), a plain field on native. `__tests__/examples.test.tsx` renders every example, checks its
+embedded source, checks that compiling it draws the same tree as the real component, and that its
+`props` literal is one its controls can edit. No `new Date()`, `Date.now()` or `Math.random()` in
+an example: the page is prerendered. A page's one-line description is in `catalogue/descriptions.ts`
+(under the title, in the gallery card, in the search; the catalogue test pins one per component).
 
 ## The icons
 
@@ -61,8 +88,11 @@ as its content and the grid picks its columns from its width, so left to itself 
 
 - `docgen/props.generated.json` — every exported component's prop table, read from the
   library's TypeScript with ts-morph: name, type as written, optionality, JSDoc, and the
-  default taken from the destructuring pattern. `npm run docgen -w @its/glowup-playground`
-  regenerates it; CI regenerates and fails on a diff. **Never hand-edit it**, and never
+  default taken from the destructuring pattern. A props type that builds on another of the
+  library's own (`extends Omit<BoxProps, "variant">`) also lists the parent's props, which is how
+  Stack, Center, AspectRatio and PasswordField get their Box and Input controls (the registry
+  shares those definitions: `BOX_PROPS`, `INPUT_PROPS`); what comes from react-native is left out.
+  `npm run docgen -w @its/glowup-playground` regenerates it; CI regenerates and fails on a diff. **Never hand-edit it**, and never
   hand-write a prop table beside it.
 - `catalogue/variants/generated/` — the variant galleries, rewritten from
   `.design-sync/previews/*.tsx` (the authored demos) into React Native primitives by
@@ -84,15 +114,14 @@ as its content and the grid picks its columns from its width, so left to itself 
   and adaptive-icon background; keep it in step.
 
 Adding a component to the catalogue means: an entry in the right `catalogue/registry/*.ts`
-module, its name in the right group in `catalogue/categories.ts`, and its name in the
-`CATALOGUE` list in `__tests__/playground-catalogue.test.tsx`. When the stage needs more than
-`<Component {...props} />` (sample data, controlled state, an overlay behind a trigger), give the
-entry a `Demo` component (`catalogue/demos.tsx`) instead of adding a branch to
-`ComponentPreview.tsx`; a component with no authored preview can reuse that demo as its
-gallery (`catalogue/variants/manual/fromDemos.tsx`). The test pins the `CATALOGUE` list
-against `FLAT_ORDER`, the registry and the generated docs, so a component catalogued without a
-working demo fails there.
-It gets its page, its props table and its URL for free.
+module (its controls), its name in the right group in `catalogue/categories.ts`, its one-line
+description in `catalogue/descriptions.ts`, its example `catalogue/examples/<Name>.tsx` (then
+`npm run examples`), a gallery of its states (an authored preview in `.design-sync/previews`, or a
+hand-written one in `catalogue/variants/manual/` for an overlay that opens over the page; then
+`npm run variants`), and its name in the `CATALOGUE` list in
+`__tests__/playground-catalogue.test.tsx`. The test pins the `CATALOGUE` list against `FLAT_ORDER`,
+the registry, the descriptions, the examples and the generated docs, so a component catalogued
+without one of them fails there. It gets its page, its props table and its URL for free.
 
 ## The native check screen
 
@@ -205,8 +234,8 @@ on every page). Six causes were found and fixed; keep them fixed:
   `useFonts(MaterialCommunityIcons.font)` so the prerender draws icons and the HTML carries the
   `@font-face`; without it the page content (hydrated after the shell, whose icons had loaded
   the font) drew glyphs where the HTML had none.
-- **The current time.** The export freezes the build's "now". Date and time stages start from
-  `DEMO_DATE` (`catalogue/ComponentPreview.tsx`), never `new Date()`.
+- **The current time.** The export freezes the build's "now". An example that shows a date or a
+  time writes one into its code (`new Date(2026, 0, 15)`), never `new Date()` / `Date.now()`.
 - **The library's `Grid`** (`autoSize` and the per-breakpoint `size`) picks its columns from the
   window's size class; it reads the width through a server snapshot too (`packages/ui`,
   `components/internal/useWindowWidth.ts`).
@@ -215,7 +244,7 @@ on every page). Six causes were found and fixed; keep them fixed:
 - **The reader's locale.** The date and time components format weekday names, 12- or 24-hour
   and placeholders with the runtime's locale: Node's in the HTML, the reader's in the browser.
   Their catalogue entries set `clientOnly`, so the stage and the variants render after
-  hydration (`site/useHydrated.ts`). `DEMO_DATE` alone does not cover this.
+  hydration (`site/useHydrated.ts`). A fixed date alone does not cover this.
 
 To check: `EXPO_WEB_DEV_HYDRATE=1 npx expo start --web` hydrates in development, where React
 prints the actual diff instead of the minified code. Load pages at a desktop and a phone width,

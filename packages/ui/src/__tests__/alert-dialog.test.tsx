@@ -52,6 +52,11 @@ describe("AlertDialog", () => {
     expect(view.queryByText("Hidden")).toBeNull();
   });
 
+  it("draws no secondary action for an empty cancelText", async () => {
+    const view = await draw(<AlertDialog visible title="T" cancelText="" />);
+    expect(view.getAllByRole("button")).toHaveLength(1);
+  });
+
   it("adds a secondary action before the primary one when cancelText is given", async () => {
     const onAction = jest.fn();
     const onCancel = jest.fn();

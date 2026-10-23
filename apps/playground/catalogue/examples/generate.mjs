@@ -25,7 +25,8 @@ const files = readdirSync(HERE)
   .sort();
 
 const imports = files.map(
-  (file) => `import ${file.replace(/\.tsx$/, "")} from "./${file.replace(/\.tsx$/, "")}";`,
+  (file) =>
+    `import ${file.replace(/\.tsx$/, "")} from "./${file.replace(/\.tsx$/, "")}";`,
 );
 
 const entries = files.map((file) => {

@@ -197,11 +197,12 @@ const Scrollbar = ({
     const animation = Animated.timing(opacity, {
       toValue: shown ? 1 : 0,
       duration: reduceMotion ? 0 : shown ? FADE_IN : FADE_OUT,
-      useNativeDriver: true,
+      // react-native-web has no native driver and warns when asked for one.
+      useNativeDriver: !web,
     });
     animation.start();
     return () => animation.stop();
-  }, [shown, reduceMotion, opacity]);
+  }, [shown, reduceMotion, opacity, web]);
 
   const begin = (point: number) => {
     session.current = {

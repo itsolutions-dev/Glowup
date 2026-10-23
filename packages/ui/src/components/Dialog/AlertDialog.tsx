@@ -133,7 +133,7 @@ const AlertDialog = ({
       testID={testID}
       actions={
         <>
-          {cancelText !== undefined && (
+          {!!cancelText && (
             <Button
               variant="text"
               disabled={loading}

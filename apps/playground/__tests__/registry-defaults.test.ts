@@ -35,10 +35,6 @@ describe("the controls of a catalogue entry", () => {
           wrong.push(`${key}: not a prop of ${name}`);
           continue;
         }
-        if (control.type === "node") {
-          wrong.push(`${key}: a node control (the example supplies nodes)`);
-          continue;
-        }
 
         const own =
           prop.default === undefined ? undefined : evaluate(prop.default);

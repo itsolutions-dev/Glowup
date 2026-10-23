@@ -9,7 +9,12 @@ import {
   useRouter,
 } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AlertProvider, ToastProvider, useTheme } from "@its/glowup-ui";
+import {
+  AlertProvider,
+  PortalHost,
+  ToastProvider,
+  useTheme,
+} from "@its/glowup-ui";
 
 import { HapticThemeProvider } from "../site/HapticsPreference";
 import { SiteShell } from "../site/SiteShell";
@@ -55,9 +60,14 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <AlertProvider>
           <ToastProvider>
-            <ThemeStatusBar />
-            <Navigator />
-            <NativeCheckTrigger />
+            {/* The host an app mounts once at its root: a tooltip or a hover card
+            drawn through it escapes the page's scroll area and sits above the
+            sidebar, instead of being cut off at the edge of the content. */}
+            <PortalHost>
+              <ThemeStatusBar />
+              <Navigator />
+              <NativeCheckTrigger />
+            </PortalHost>
           </ToastProvider>
         </AlertProvider>
       </SafeAreaProvider>

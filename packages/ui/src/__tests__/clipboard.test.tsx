@@ -52,6 +52,17 @@ describe("useClipboard", () => {
     expect(result.current.copied).toBe(false);
   });
 
+  it("takes a writer that resolves a value, like expo-clipboard's boolean", async () => {
+    const onCopy = jest.fn();
+    const { result } = await renderHook(() =>
+      useClipboard({ copy: async () => true, onCopy }),
+    );
+    await act(async () => {
+      expect(await result.current.copy("x")).toBe(true);
+    });
+    expect(onCopy).toHaveBeenCalledWith("x");
+  });
+
   it("defaults to 1500 ms", async () => {
     jest.useFakeTimers();
     const { result } = await renderHook(() => useClipboard({ copy: () => {} }));

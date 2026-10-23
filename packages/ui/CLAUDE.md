@@ -23,6 +23,20 @@
   master, plus weekly and on demand — never on a PR, which cannot change what is already
   published). Run validate-package
   after touching `package.json`, the export map or anything a `.d.ts` imports.
+- **The form store lives outside React state.** `internal/formStore.ts` holds values, errors and
+  the dirty / touched / submitting flags, and each field subscribes to its own slice (`useSlice`
+  in `Form.tsx`). Never mirror a value in component state or in the `Form` context's value: a
+  keystroke must re-render its own field and nothing else (`form-engine.test.tsx` counts the
+  renders, one in a hundred fields).
+- **`useId()` must not reach native output.** The playground's "compiles to the same screen" test
+  (`examples.test.tsx`) renders an example twice and compares the JSON, and two instances never
+  share an id. Ids go on the web only, as in `Tree` (`id={isWeb ? id : undefined}`).
+- **The QR encoder is the library's own** (`internal/qr.ts`): no dependency, and not to be swapped
+  for one. It is held to reference encoders' matrices in `__tests__/__fixtures__/qr-vectors.json`;
+  "it still scans" is not a test.
+- **`copy`, `save` and `onPick` are adapters because the library depends on no native module.**
+  The app brings `expo-clipboard`, `expo-file-system` or a picker; web has a default, and on native
+  a trigger is drawn only when the app passed one. Don't import an Expo module to give it a default.
 
 ## Theme system
 

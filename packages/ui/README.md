@@ -1,9 +1,9 @@
 # @its/glowup-ui
 
 A **Material You (Material Design 3)** component library for **React Native + Web** (Expo).
-~60 theme-reactive components — layout primitives, buttons, inputs, navigation, dialogs, data
-grids, progress indicators and a locale-aware date/time picker family — built on a single
-design-token system with light/dark support.
+~80 theme-reactive components — layout primitives, buttons, inputs, a form engine with validation,
+navigation, dialogs, data grids, progress indicators and a locale-aware date/time picker family —
+built on a single design-token system with light/dark support.
 
 > Status: pre-`1.0.0`. The API may still change between minor versions; see
 > [`CHANGELOG.md`](CHANGELOG.md).
@@ -83,8 +83,8 @@ the browser, and the first client render must match the HTML. Two things to do i
 
 ### Layout
 
-`Box`, `Stack`/`HStack`/`VStack`, `Spacer`, `Grid` and `AspectRatio` take spacing, shape and color
-as **token names** where it matters (`spacing="m"`, `radius="large"`,
+`Box`, `Stack`/`HStack`/`VStack`, `Spacer`, `Grid`, `AspectRatio`, `Center` and `Break` take
+spacing, shape and color as **token names** where it matters (`spacing="m"`, `radius="large"`,
 `background="primaryContainer"`), so screens never hardcode a magic value:
 
 ```tsx
@@ -183,13 +183,17 @@ src/
 ├── components/        # the Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
-│   ├── Dialog/        # Dialog, ConfirmDialog
+│   ├── Dialog/        # Dialog, ConfirmDialog, AlertDialog
 │   ├── Progress/      # CircularProgress, LinearProgress
 │   ├── Tab/           # Tabs, TabContent
 │   ├── ToggleButton/  # ToggleButton, ToggleButtonGroup
-│   ├── Layout/        # Box, Stack/HStack/VStack, Spacer, Grid, AspectRatio
+│   ├── Layout/        # Box, Stack/HStack/VStack, Spacer, Grid, AspectRatio, Center, AbsoluteCenter, Break
+│   ├── internal/      # helpers behind the components: scrollbar.ts, highlight.ts, upload.ts, qr.ts,
+│   │                  #   treeModel.ts, formStore.ts, formRules.ts, anchorPlacement.ts, ...
+│   │                  #   (public only where index.ts re-exports them: highlight, formatBytes, ...)
 │   ├── types.ts       # shared component types (e.g. PressableState)
-│   └── *.tsx          # Button, Card, Input, Chip, Select, DataGrid, Snackbar, ...
+│   └── *.tsx          # Button, Card, Input, Chip, Select, DataGrid, Tree, Form, Upload, ...
+├── hooks/             # useBreakpoint (and useBreakpointValue), useDebounce
 └── providers/         # theme + alert infrastructure
     ├── ThemeProvider.tsx   # Material You theme, useTheme(), getStateColor(), getGlowStyles()
     ├── theme.json          # all color / typography / spacing / shape tokens (source of truth)
@@ -367,9 +371,10 @@ is safe in a tree that has not been wrapped.
 
 `usePortalHost()` reports whether a host is mounted above the caller.
 
-**Which overlays use it.** `Tooltip` and `Autocomplete`'s suggestion list render through the
-Portal when a host is mounted, and stay anchored in place when one is not. Those two are the
-only overlays in the kit that lay out inline: `Dialog`, `ConfirmDialog`, `Popover`, `Menu`,
+**Which overlays use it.** `Tooltip`, `HoverCard` (on the web; on native it opens in a `Modal`) and
+`Autocomplete`'s suggestion list render through the Portal when a host is mounted, and stay
+anchored in place when one is not. Those are the only overlays in the kit that lay out inline:
+`Dialog`, `ConfirmDialog`, `AlertDialog`, `Popover`, `Menu`,
 `Select`, `BottomSheet` and a swipeable `Drawer` all go through a native `Modal`, which is a
 separate window on native and a `createPortal` into `document.body` on web — already stronger
 isolation than an in-tree Portal, so they are deliberately left alone. Portal exists for the cases a `Modal`
@@ -402,8 +407,7 @@ A `View` that reads shape and color off the theme, with a `variant` for the usua
 | style                    | ViewStyle (merged last, over the variant and every other prop)                                                                                                                                                                                 |            |
 
 `standard` is a plain column, `flex` a row and `column-flex` a column; `centered-flex` and
-`centered-column-flex` centre on both axes (`<Box variant="centered-flex">` is the way to centre
-children); `full-page-*` fill the screen (`flex: 1`, minimum height 100%) and `full-size-*` are 100%
+`centered-column-flex` centre on both axes (`Center` below is a `Box` with one of them); `full-page-*` fill the screen (`flex: 1`, minimum height 100%) and `full-size-*` are 100%
 wide and high.
 
 #### `Stack` / `HStack` / `VStack`
@@ -436,6 +440,128 @@ rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `va
   <Grid size={{ xs: 12, md: 6 }}>…</Grid>
   <Grid size={{ xs: 12, md: 6 }}>…</Grid>
 </Grid>
+```
+
+#### `Center`
+
+A `Box` that centres its children on both axes. Takes every `Box` prop except `variant` (`width`,
+`height`, `gap`, `background`…).
+
+| Prop      | Type                                                                             | Default |
+| --------- | -------------------------------------------------------------------------------- | ------- |
+| direction | `"row" \| "column"` (how the children flow; each is centred on both axes anyway) | `row`   |
+
+```tsx
+<Center direction="column" height={200} gap={8}>
+  <CircularProgress />
+  <Typography variant="body2">Syncing</Typography>
+</Center>
+```
+
+#### `AbsoluteCenter`
+
+Centres its child in the parent's box, out of the flow: it fills the parent with absolute
+positioning, so the parent's own content is not pushed around. The parent needs a size of its own.
+The layer lets touches through to what lies under it; only the child takes them. Extends `ViewProps`.
+
+| Prop | Type                                   | Default |
+| ---- | -------------------------------------- | ------- |
+| axis | `"both" \| "horizontal" \| "vertical"` | `both`  |
+
+On the other axis the child keeps its normal place.
+
+```tsx
+<Box height={160} width={360}>
+  <AbsoluteCenter>
+    <CircularProgress />
+  </AbsoluteCenter>
+</Box>
+```
+
+#### `Break`
+
+Lets a child out of its container's padding: a negative margin of the same size, so an image or a
+divider runs edge to edge inside a padded `Box`, `Paper` or `Card`. Give each edge the padding it
+should cancel. Extends `ViewProps`.
+
+| Prop                    | Type                                                                            | Default |
+| ----------------------- | ------------------------------------------------------------------------------- | ------- |
+| inline / block          | SpacingValue (both horizontal edges / both vertical edges)                      |         |
+| inlineStart / inlineEnd | SpacingValue (the start and end edge: left and right in LTR; win over `inline`) |         |
+| blockStart / blockEnd   | SpacingValue (the top and bottom edge; win over `block`)                        |         |
+
+```tsx
+<Box padding={16} background="surfaceContainerLow" radius="medium" gap={8}>
+  <Typography variant="body2">Text stays inside the padding.</Typography>
+  <Break inline="m">
+    <Image source={photo} alt="Impianto 4" />
+  </Break>
+</Box>
+```
+
+#### `Visible`
+
+Shows its children only while every condition holds: your own (`when`) and the window's Material 3
+size class — `compact` (from 0 dp), `medium` (600), `expanded` (840), `large` (1200), `extraLarge`
+(1600), the thresholds of `Grid`'s `xs`…`xl` — read through `useBreakpoint()`, so a
+`ViewportProvider` is followed. While a prerendered page hydrates the class is `compact`, then the
+real one.
+
+| Prop        | Type                                                                                                                     | Default |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
+| when        | boolean (a condition of your own)                                                                                        | `true`  |
+| above       | size class (from this one up: `"medium"` is medium, expanded, large…)                                                    |         |
+| below       | size class (only the classes smaller than this one: `"medium"` is compact only)                                          |         |
+| only        | size class \| size class[]                                                                                               |         |
+| fallback    | ReactNode (drawn in place of the children while they are not shown)                                                      |         |
+| keepMounted | boolean (hides with `display: "none"` instead of unmounting, so their state survives; they are then wrapped in a `View`) | `false` |
+
+```tsx
+<Visible
+  above="expanded"
+  fallback={<NavBar items={items} activeId={tab} onClick={setTab} />}
+>
+  <NavigationRail items={items} activeId={tab} onItemPress={setTab} />
+</Visible>
+```
+
+`useBreakpointValue(values, fallback)` picks a value by size class: the one set for the current
+class, or else for the largest class below it (mobile first, like `Grid`); `fallback` is what a window
+smaller than every class set gets.
+
+```tsx
+const columns = useBreakpointValue({ compact: 1, medium: 2, large: 4 }, 1);
+```
+
+`useBreakpoint(overrides?)` returns `{ width, sizeClass, atLeast(size) }` for your own checks; pass a
+partial set of thresholds (`{ large: 1300 }`) to change where a class starts.
+
+#### `ScrollArea`
+
+A scrollable area whose scrollbars are drawn from the theme instead of the platform's, on web and
+native alike: the native indicators are hidden and a thumb and track take their place (a draggable
+thumb, a track that pages by a press). Keyboard, wheel and touch scrolling stay the platform's own,
+because the content sits in a real `ScrollView`. The scrollbars are laid over the content, not
+beside it: pad the content (`contentContainerStyle`) by `scrollbarSize` where they must not cover
+it. Every `ScrollView` prop not listed is forwarded.
+
+| Prop                  | Type                                                                                                                                                                                                         | Default    |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| orientation           | `"vertical" \| "horizontal" \| "both"`                                                                                                                                                                       | `vertical` |
+| type                  | `"auto" \| "always" \| "scroll" \| "hover"` (when the bars show: while the content overflows, always, while scrolling, or while the pointer is over the area — `hover` acts like `scroll` without a pointer) | `auto`     |
+| scrollbarSize         | number (dp; raise it on touch screens for a bigger grab area)                                                                                                                                                | `10`       |
+| scrollHideDelay       | number (ms a `scroll` or `hover` bar stays after the last scroll, drag or hover)                                                                                                                             | `600`      |
+| height / maxHeight    | DimensionValue (fixed height / the height at which the content starts to scroll; left out, it sizes to the content)                                                                                          |            |
+| width                 | DimensionValue                                                                                                                                                                                               |            |
+| contentContainerStyle | ViewStyle (the view wrapping the children: padding, `flexGrow`)                                                                                                                                              |            |
+| onScroll              | like `ScrollView`'s; with `orientation="both"` the event carries both axes                                                                                                                                   |            |
+| slotStyles            | `{ track?, thumb? }` style overrides                                                                                                                                                                         |            |
+| ref                   | a ref to the `ScrollView` (the horizontal one for `orientation="horizontal"`): `scrollTo`, `scrollToEnd`…                                                                                                    |            |
+
+```tsx
+<ScrollArea maxHeight={240} type="hover">
+  {items}
+</ScrollArea>
 ```
 
 ### Buttons & actions
@@ -492,6 +618,98 @@ Inline navigational text.
 | externalIcon     | icon                                                                  | `open-in-new`              |
 | color            | string                                                                | `colors.primary`           |
 | disabled         | boolean                                                               |                            |
+
+#### `Clipboard`
+
+A copy trigger: an icon button that copies `value`, then shows a check (and announces "Copied") for a
+moment. The library depends on no clipboard module. On web it works as is (the browser clipboard
+API, with the old `execCommand("copy")` where that is missing). On native pass `copy`, a
+`ClipboardWriter` — `expo-clipboard`'s `setStringAsync` fits — or only `onCopy`, which then does the
+copying; with neither, nothing is drawn.
+
+A `ClipboardWriter` is `(text: string) => void | Promise<unknown>`: throw or reject when the text
+could not be written; what it resolves to is ignored, so a writer that resolves a boolean
+(`setStringAsync`) is fine.
+
+| Prop        | Type                                                                                                                               | Default    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| value       | string (the text a press copies, required)                                                                                         | —          |
+| copy        | `ClipboardWriter` (web default: the clipboard API)                                                                                 |            |
+| onCopy      | (value) => void (after it was copied)                                                                                              |            |
+| timeout     | number (ms the check shows)                                                                                                        | `1500`     |
+| variant     | `IconButton`'s variants                                                                                                            | `standard` |
+| color       | `ColorRole` (the check is always `success`)                                                                                        |            |
+| size        | `"small" \| "medium" \| "large"` (`small` suits a button beside a value)                                                           | `large`    |
+| label       | string (accessible name before the copy)                                                                                           | `Copy`     |
+| copiedLabel | string (accessible name after it, also announced)                                                                                  | `Copied`   |
+| disabled    | boolean                                                                                                                            |            |
+| children    | ReactNode (the content of the trigger, drawn as a pressable) \| `({ copied, copy }) => ReactNode` (draws the whole trigger itself) |            |
+
+```tsx
+import { setStringAsync } from "expo-clipboard";
+
+<Clipboard value={apiKey} copy={setStringAsync} />
+
+<Clipboard value={apiKey} copy={setStringAsync}>
+  {({ copied, copy }) => (
+    <Button onClick={copy}>{copied ? "Copied" : "Copy key"}</Button>
+  )}
+</Clipboard>
+```
+
+`useClipboard({ timeout, copy, onCopy, announcement })` is the same without the trigger. It returns
+`{ copy(text), copied }`; `copy` resolves `true` once the text is copied and `false` when the write
+was refused or there was nothing to write with. `CaptionValue` (`enableCopy`) and `CodeBlock`
+(`copyable`) copy through it and take the same `copy` and `onCopy`.
+
+#### `Download`
+
+A button that saves a file: the content you hold (a string as text, an object as JSON, a `Blob`) or
+the file at a `url`. On web it works as is: a temporary `<a download>` link, a `url` fetched into a
+`Blob` first (browsers ignore `download` on a cross-origin link). On native, text and links go to
+the system share sheet; pass `save` (`expo-file-system` and `expo-sharing`) to write real files and
+for a `Blob`, which has no default there. A `url` is not fetched on native: `save` receives it as
+`file.url` and downloads it its own way.
+
+A `DownloadSaver` is `(file: DownloadFile) => void | Promise<void>`, with `file` =
+`{ name, mimeType, data?, url? }`: throw or reject when the file could not be saved.
+
+| Prop       | Type                                                                                                 | Default    |
+| ---------- | ---------------------------------------------------------------------------------------------------- | ---------- |
+| data       | string \| object \| `Blob` (text, JSON, binary; wins over `url`)                                     |            |
+| url        | string                                                                                               |            |
+| filename   | string (default: the end of `url`, else `download`, `download.txt` or `download.json`)               |            |
+| mimeType   | string (default: from the extension of `filename`, else by the kind of `data`)                       |            |
+| save       | `DownloadSaver` (web default: the link; native default: the share sheet)                             |            |
+| onDownload | (file) => void (after it was saved)                                                                  |            |
+| onError    | (error) => void (fetching or saving failed)                                                          |            |
+| children   | ReactNode (the label) \| `({ download, downloading }) => ReactNode` (draws the whole trigger itself) | `Download` |
+| icon       | icon                                                                                                 | `download` |
+| variant    | `Button`'s variants                                                                                  | `filled`   |
+| color      | `ColorRole`                                                                                          | `primary`  |
+| disabled   | boolean                                                                                              |            |
+
+```tsx
+<Download data={rows} filename="rows.json">
+  Export rows
+</Download>
+<Download url="https://example.com/report.pdf" />
+```
+
+`useDownload({ save, onDownload, onError })` saves from an event handler and returns
+`{ download({ data, url, filename, mimeType }), downloading, error }`; `download` resolves `true`
+once the file is saved and `false` if it failed.
+
+```tsx
+const { download, downloading } = useDownload();
+
+<Button
+  loading={downloading}
+  onClick={() => download({ data: csv, filename: "rows.csv" })}
+>
+  Export
+</Button>;
+```
 
 #### `FAB` — Floating Action Button
 
@@ -625,16 +843,54 @@ Text field (outlined or filled) with affixes, icons, multiline and number mode.
 | prefix / suffix            | string (inline affix)                                                                                                                       |            |
 | leadingIcon / trailingIcon | icon                                                                                                                                        |            |
 | onTrailingIconPress        | () => void                                                                                                                                  |            |
+| endAdornment               | ReactNode (an element after `suffix` / `trailingIcon`: an `IconButton`, a spinner; takes its own touches)                                   |            |
+| inputProps                 | `InputTextInputProps` (`TextInput` hints and handlers: `autoComplete`, `textContentType`, `returnKeyType`…)                                 |            |
+| inputRef                   | `Ref<TextInput>` (focus it, select its text)                                                                                                |            |
 | error                      | string (message + error styling)                                                                                                            |            |
 | helperText                 | string (hidden while error shown)                                                                                                           |            |
 | required                   | boolean (asterisk on label)                                                                                                                 |            |
 | disabled / readonly        | boolean                                                                                                                                     |            |
-| secureTextEntry            | boolean (password)                                                                                                                          |            |
+| secureTextEntry            | boolean (hides the text; `PasswordField` adds the reveal button)                                                                            |            |
 | maxLength                  | number                                                                                                                                      |            |
 | multiline                  | boolean                                                                                                                                     | `false`    |
 | rows                       | number (visible lines of a `multiline` field)                                                                                               | `4`        |
 | minHeight                  | number                                                                                                                                      | `56`       |
 | onFocus / onBlur           | () => void                                                                                                                                  |            |
+
+#### `PasswordField`
+
+An `Input` for passwords: the text is hidden, with a labelled eye button to reveal it, the autofill
+and keyboard hints a password manager needs, and an optional strength meter. The typed text is
+never put into an accessibility prop, hidden or revealed. Takes every `Input` prop except
+`secureTextEntry`, `type`, `precision`, `decimalSeparator`, `allUpperCase`, `multiline`, `rows`,
+`trailingIcon`, `onTrailingIconPress` and `endAdornment` (the eye button sits there).
+
+| Prop                      | Type                                                                                                                         | Default                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| showToggle                | boolean (the eye button; turn it off for a field that must never be revealed)                                                | `true`                            |
+| defaultVisible            | boolean (starts revealed, uncontrolled)                                                                                      | `false`                           |
+| visible / onVisibleChange | boolean / (visible) => void (controls whether the text is revealed)                                                          |                                   |
+| toggleLabels              | `{ show?, hide? }` (accessible names of the eye button)                                                                      | `Show password` / `Hide password` |
+| showStrength              | boolean (a meter under the field once something is typed, scored by `passwordStrength`; for a field that creates a password) | `false`                           |
+| strengthLabels            | string[5] (the words of the meter, very weak to strong)                                                                      | `Very weak` … `Strong`            |
+| autoComplete              | `"current-password" \| "new-password"` (fill the saved password, or offer to generate and save a new one)                    | `current-password`                |
+
+```tsx
+<PasswordField label="Password" value={password} onChange={setPassword} />
+<PasswordField
+  label="New password"
+  value={password}
+  onChange={setPassword}
+  autoComplete="new-password"
+  showStrength
+/>
+```
+
+`passwordStrength(value)` is the score behind the meter, `0` (very weak) to `4` (strong): one point
+each for 8 or more characters, 12 or more, at least two character classes and at least three,
+capped at 1 for a password under 6 characters, one repeated character, digits only or one of a
+handful of the most common passwords. It is a hint to show next to the field, not a security check —
+it knows no dictionary beyond that handful, so use a real estimator where that matters.
 
 #### `Select`
 
@@ -897,6 +1153,112 @@ Backspace retreats, and pasting a whole code into any cell fills the row.
 | autoFocus                                        | boolean (first cell only)                      |            |
 | cellSize                                         | number                                         | `48`       |
 
+#### `Editable`
+
+Text that edits in place: it reads as text, and a click, tap, Enter or Space opens the library's own
+field in its place. Enter or leaving the field keeps the change, Escape drops it. The display
+carries a pencil (always drawn on native, on hover or focus on web) and is a button for screen
+readers.
+
+| Prop                      | Type                                                                                                                                                           | Default    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| value / onChange          | string (controlled; `onChange` runs on every edit, and once more with the starting value when the edit is cancelled)                                           |            |
+| defaultValue              | string (uncontrolled start)                                                                                                                                    | `""`       |
+| onSubmit / onCancel       | (value) => void (confirmed) / (previous) => void (cancelled)                                                                                                   |            |
+| type                      | `"text" \| "textarea" \| "number" \| "select"` (`textarea`: Enter adds a line, Ctrl or Cmd + Enter confirms; `select`: opens a `Select`, confirms on the pick) | `text`     |
+| options                   | `Option[]` (the choices of a `select`; the display shows the selected label)                                                                                   |            |
+| submitMode                | `"blur" \| "enter" \| "both" \| "none"` (what confirms; `none` shows check and close buttons instead; Escape cancels in every mode)                            | `both`     |
+| showControls              | boolean (the check and close buttons whatever the mode; leaving the field then no longer confirms)                                                             | `false`    |
+| placeholder               | string (muted, drawn while the value is empty)                                                                                                                 | `Edit`     |
+| validate                  | (value) => string \| undefined (the message is the field's error, and the edit cannot be confirmed while there is one)                                         |            |
+| selectAllOnFocus          | boolean (selects the text when the field opens)                                                                                                                | `false`    |
+| startWithEditView         | boolean (mounts with the field open)                                                                                                                           | `false`    |
+| editing / onEditingChange | boolean / (editing) => void (controls whether the field is open)                                                                                               |            |
+| disabled / readOnly       | boolean (dimmed, cannot open / plain text, no way to open)                                                                                                     | `false`    |
+| variant                   | `"outlined" \| "filled"` (the open field, as `Input`)                                                                                                          | `outlined` |
+| size                      | `"small" \| "medium" \| "large"` (text, pencil and field; `small` is dense)                                                                                    | `medium`   |
+| textVariant               | typography variant (over what `size` picks)                                                                                                                    |            |
+| renderDisplay             | (value) => ReactNode (draws the shown value your way: a link, a badge, a formatted amount)                                                                     |            |
+| label                     | string (accessible name of the display and of the open field; not drawn)                                                                                       |            |
+| precision                 | number (decimals kept by `type="number"`; the value stays text)                                                                                                |            |
+
+```tsx
+<Editable value={name} onChange={setName} onSubmit={save} label="Name" />
+<Editable type="select" options={roles} value={role} onChange={setRole} />
+```
+
+#### `Upload`
+
+Pick or drop files, validate them and, with an `onUpload`, upload each one with a progress bar,
+retry and cancel. On web it is a drop target (or a plain button, `variant="button"`) and the
+browser's file dialog. On native the library has no picker, so **the field is not drawn without an
+`onPick`** — the adapter that opens one (a document picker, or
+`@its/glowup-device/media-picker`) and resolves the files chosen; on web `onPick` replaces the
+browser's dialog when given. The list is kept by the component, or controlled with `value` and
+`onChange`.
+
+| Prop               | Type                                                                                                                                                                                                      | Default    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| value / onChange   | `UploadFile[]` / (files) => void (the whole list, on every change: files added or removed, a status or progress moved)                                                                                    |            |
+| defaultValue       | `UploadFile[]` (the list it starts with, uncontrolled)                                                                                                                                                    |            |
+| accept             | string (as the `accept` of an `<input type="file">`: `"image/*,.pdf"`; filters the web dialog and checks every file added, on every platform)                                                             |            |
+| multiple           | boolean (without it a new file replaces the one in the list)                                                                                                                                              | `false`    |
+| maxSize            | number (bytes; a bigger file is rejected)                                                                                                                                                                 |            |
+| maxFiles           | number (with `multiple`: the files past it are rejected)                                                                                                                                                  |            |
+| onUpload           | `(file, { onProgress, signal }) => Promise<void>` (resolve when done, reject on failure; report `onProgress` 0–1, stop on `signal`; without it files are only collected, `"pending"`, for a form to send) |            |
+| onReject           | (rejections) => void (the files not added, each with a `reason` and a `message`; without it the messages show under the field)                                                                            |            |
+| onPick             | `() => Promise<PickedFile[]>` (the native adapter; an empty list for none)                                                                                                                                |            |
+| variant            | `"dropzone" \| "button"`                                                                                                                                                                                  | `dropzone` |
+| label / prompt     | string (above the field / what the dropzone or button says)                                                                                                                                               |            |
+| helperText / error | string (under the field; a non-empty `error` replaces the rejection messages; `helperText` is hidden while either shows)                                                                                  |            |
+| disabled           | boolean                                                                                                                                                                                                   | `false`    |
+
+A file in the list is an `UploadFile`: `{ id, name, size, type, uri?, file?, status, progress?, error? }`,
+with `status` one of `"pending"`, `"uploading"`, `"done"` and `"error"`; `file` is the browser's
+`File` (put it in a `FormData`) and `uri` where a native pick lives. Every new file starts at once;
+a failed one offers a retry, and removing or cancelling aborts its `signal`.
+
+```tsx
+<Upload
+  label="Attachments"
+  accept="image/*,.pdf"
+  multiple
+  maxSize={5 * 1024 * 1024}
+  onUpload={async (file, { onProgress, signal }) => {
+    await send(file.file!, onProgress, signal);
+  }}
+/>
+```
+
+On native, wire the picker:
+
+```tsx
+import { useMediaPicker } from "@its/glowup-device/media-picker";
+
+const { pick } = useMediaPicker();
+
+<Upload
+  multiple
+  accept="image/*"
+  onPick={async () => {
+    const result = await pick({ mediaTypes: ["image"], multiple: true });
+    if (result.status !== "picked") return [];
+    return result.assets.map((asset) => ({
+      name: asset.fileName ?? "photo",
+      size: asset.fileSize ?? 0,
+      type: asset.mimeType ?? "",
+      uri: asset.uri,
+    }));
+  }}
+/>;
+```
+
+The checks behind it are exported for your own: `formatBytes(1536)` is `"1.5 KB"`,
+`acceptMatches(file, "image/*,.pdf")` says whether a file passes an `accept` filter, and
+`validateFiles(files, { accept, maxSize, maxFiles, count })` splits files into `accepted` and
+`rejected` (each with its reason: `"wrong-type"`, `"too-large"` or `"too-many"`, in that order of
+checking).
+
 #### `Form`
 
 Groups fields and a submit button so that one action submits them. On the web it is a real
@@ -905,19 +1267,140 @@ Android it is a plain `View` and the submit button calls `onSubmit` directly. Ei
 runs once per submission, and the page is never navigated. A `Dialog` with `form` wraps its body
 and `actions` in one.
 
-| Prop     | Type                                                                                 | Default |
-| -------- | ------------------------------------------------------------------------------------ | ------- |
-| onSubmit | () => void (a `Button type="submit"` inside it is pressed, or Enter in a field, web) |         |
-| children | ReactNode                                                                            |         |
-| style    | ViewStyle                                                                            |         |
-| testID   | string                                                                               |         |
+With `FormField`s the form also keeps the fields' values, errors and flags (dirty, touched,
+submitting) in a store **outside React state**, and each field subscribes to its own slice: typing in
+one field re-renders that field alone, not the form or its siblings. A `Form` without fields is the
+plain wrapper it always was, for fields whose state the parent holds (`onSubmit` then gets `{}`).
+
+| Prop           | Type                                                                                                                                                                                                                                                              | Default  |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| onSubmit       | (values) => void (every field passed its rules and a `Button type="submit"` was pressed, or Enter in a field on web; may be async: the form is submitting, and a submit `Button` shows `loading`, until it settles, and a second submission is ignored meanwhile) |          |
+| onSubmitFailed | (errors, values) => void (called instead of `onSubmit` when a field fails its rules; `errors` by field name)                                                                                                                                                      |          |
+| initialValues  | object, as `{ email: "", address: { city: "" } }` (read when the form mounts; give every field one, or its own `initialValue`)                                                                                                                                    |          |
+| onValuesChange | (changed, all) => void (after a user edit, `setValue` or `setValues`, not `reset`; `changed` is nested like the values)                                                                                                                                           |          |
+| validateOn     | `"change" \| "blur" \| "submit"` (when a field is validated; after a submit, or once a field shows an error, every edit validates it again)                                                                                                                       | `change` |
+| disabled       | boolean (every `FormField` and the form's submit buttons)                                                                                                                                                                                                         | `false`  |
+| form           | `FormInstance` (from `useForm()`, to drive the form from outside it; without it the form keeps its own)                                                                                                                                                           |          |
+| children       | ReactNode                                                                                                                                                                                                                                                         |          |
+| style          | ViewStyle                                                                                                                                                                                                                                                         |          |
+| testID         | string                                                                                                                                                                                                                                                            |          |
 
 ```tsx
-<Form onSubmit={save}>
-  <Input label="Name" value={name} onChange={setName} />
+<Form
+  initialValues={{ email: "", terms: false }}
+  onSubmit={(values) => save(values)}
+>
+  <FormField
+    name="email"
+    label="Email"
+    rules={[{ required: true }, { type: "email" }]}
+  >
+    {(field) => <Input {...field} />}
+  </FormField>
+  <FormField
+    name="terms"
+    control
+    valuePropName="checked"
+    trigger="onValueChange"
+    rules={[{ required: true, message: "Accept the terms to continue" }]}
+  >
+    {(field) => <Checkbox {...field} label="I accept the terms" />}
+  </FormField>
   <Button type="submit">Save</Button>
 </Form>
 ```
+
+#### `FormField`
+
+Connects the one control inside it to a field of the surrounding `Form`: it hands the control the
+field's `value`, the callback that reports a new one, `onBlur`, `error`, `required` and `disabled`
+(and `label` / `helperText`), and nothing else re-renders when it changes. The control's own props
+stay and its own handlers still run.
+
+A control whose props are required — the library's `Input` needs `value` and `onChange` — takes a
+**function child**: `{(field) => <Input {...field} />}`, where `field` carries what is listed above.
+A plain element child (`<Input label="Email" />`) works the same at runtime, but TypeScript then
+asks for the `value` and `onChange` the control requires.
+
+| Prop               | Type                                                                                                                                                                                    | Default    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| name               | string (the field's name in the values: `"email"`, `"address.city"`, `"items[0].qty"`, required)                                                                                        | —          |
+| rules              | `FormRule[]` (checked in order; the first failure is the field's `error`)                                                                                                               |            |
+| label / helperText | string (passed to the child; with `control`, drawn by `FormControl` instead; `helperText` is hidden while there is an error)                                                            |            |
+| valuePropName      | string (the child's prop that takes the value: `"checked"` for a `Checkbox`)                                                                                                            | `value`    |
+| trigger            | string (the child's callback that reports a value: `"onValueChange"` for a `Checkbox` or a `Slider`)                                                                                    | `onChange` |
+| getValueFromEvent  | (...args) => unknown (what to store; by default the first argument, or `target.value` / `target.checked` of a DOM event)                                                                |            |
+| normalize          | (value, previous, allValues) => unknown (what is stored in place of what was reported: trim, uppercase, format)                                                                         |            |
+| dependencies       | string[] (other fields this one's rules read — `["password"]` for a confirmation; it is validated again when one changes, once touched or edited, or showing an error)                  |            |
+| initialValue       | unknown (when `initialValues` has none for it)                                                                                                                                          |            |
+| validateOn         | as `Form` (for this field: a `Checkbox` has no blur, so `"change"` suits it)                                                                                                            |            |
+| disabled           | boolean (this field; `Form`'s `disabled` does all)                                                                                                                                      | `false`    |
+| control            | boolean (for `Checkbox`, `Switch`, `Slider`, `RadioGroup`, which draw no label, helper or error text: wraps the child in a `FormControl` that does, and passes it `error` as a boolean) | `false`    |
+
+A `FormRule` is checked in the order `required`, `type`, `min`, `max`, `minLength`, `maxLength`,
+`pattern`, `validator`; all but `validator` skip an empty value unless `required` is set.
+
+| Rule                      | Meaning                                                                                                                                                                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `required`                | not empty: `""`, whitespace, `null`, `undefined`, `false` and `[]` are                                                                                                                                                                             |
+| `type`                    | `"email"`, `"url"` (http or https) or `"number"`                                                                                                                                                                                                   |
+| `min` / `max`             | a number range (the value is read as a number: `"12"` is 12)                                                                                                                                                                                       |
+| `minLength` / `maxLength` | characters, or items of an array                                                                                                                                                                                                                   |
+| `pattern`                 | a `RegExp` the text must match                                                                                                                                                                                                                     |
+| `validator`               | `(value, values, { signal }) => …`, sync or async: return the message to fail, anything else passes; a throw or a rejection fails with its message; `signal` aborts when the field is validated again before this run settles (pass it to `fetch`) |
+| `message`                 | replaces the default message of the built-in checks (not what a `validator` returns)                                                                                                                                                               |
+
+```tsx
+<FormField
+  name="confirm"
+  label="Confirm password"
+  dependencies={["password"]}
+  rules={[
+    {
+      validator: (value, all) =>
+        value !== all.password && "The passwords do not match",
+    },
+  ]}
+>
+  {(field) => <PasswordField {...field} />}
+</FormField>
+```
+
+#### `useForm`, `useFormField`, `useWatch`, `useFormState`
+
+The same engine without the components. `useForm(initialValues?)` creates a `FormInstance` that
+lives as long as the component and **never re-renders it**: read values with `useWatch`, flags with
+`useFormState`, and pass the instance to `<Form form={form}>` to drive the form from outside. Inside
+a `Form` the hooks find it by themselves; outside one they take it as `form`, and throw without
+either.
+
+```tsx
+const form = useForm({ email: "" });
+const email = useWatch<string>("email", form);
+const { isDirty } = useFormState(form);
+
+<Form form={form} onSubmit={save}>
+  …
+</Form>;
+<Button variant="text" disabled={!isDirty} onClick={() => form.reset()}>
+  Reset
+</Button>;
+```
+
+| Hook                                        | Returns                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `useForm(initialValues?)`                   | a `FormInstance`                                                                                                                                                                                                                                                                                                                                                                                             |
+| `useWatch(name \| names \| nothing, form?)` | one value, an array of values, or all of them; the component re-renders only when what it watches changes                                                                                                                                                                                                                                                                                                    |
+| `useFormState(form?)`                       | `{ isDirty, isSubmitting, isValidating, submitCount, errors }`                                                                                                                                                                                                                                                                                                                                               |
+| `useFormField(name, options?)`              | `{ value, error, touched, dirty, validating, setValue, onBlur, setError, validate }` for one field, re-rendering only when one changes. Pass `options` (`rules`, `dependencies`, `initialValue`, `normalize`, `validateOn`, `form`) to register the field: only registered fields are validated and submitted through; without them it just reads. The hook behind `FormField`, for a control it cannot wrap |
+
+A `FormInstance` has `getValues()`, `getValue(name)`, `setValues(values)` (merges, nested objects
+included), `setValue(name, value)`, `reset(values?)` (back to the initial values, or to `values`, which
+then become the initial ones: no errors, nothing touched), `validate(names?)` (resolves whether every
+registered field passed), `submit()` (marks every field touched, validates and calls `onSubmit` or
+`onSubmitFailed`; resolves whether it submitted), `isDirty(name?)`, `isTouched(name?)`,
+`isSubmitting()`, `getFieldState(name)`, `getError(name)`, `getErrors()`, `setError(name, message)`
+(a server-side error, say; `undefined` clears it) and `subscribe(listener)` / `subscribe(name, listener)`.
 
 #### `FormControl`
 
@@ -1102,6 +1585,55 @@ Expandable section with animated height.
 | icon     | icon \| ReactNode (end of the header; the default chevron turns while open, a custom icon does not) | chevron    |
 | variant  | `"outlined" \| "contained"` (a bordered panel, or a filled tonal one)                               | `outlined` |
 
+#### `Tree`
+
+A hierarchy that opens and closes: folders and files, a category tree, an org chart. Rows open with
+a chevron and can be selected one at a time, or with checkboxes (a parent shows the mixed state when
+only some of its children are checked), and can load their children the first time they are opened.
+A node's `id` is its identity in `expanded` and `selected`: keep it unique and stable, and keep
+`data` (and the nodes in it) stable between renders, since a row whose node did not change is not
+drawn again. On the web it follows the ARIA tree pattern (one tab stop, then Up / Down, Right opens
+or steps in, Left closes or steps out, Home / End, Enter or Space acts on the row, `*` opens the
+siblings, typing a letter jumps to the next label that starts with it). On native each row is one
+accessible element, with expand and collapse as accessibility actions.
+
+| Prop                        | Type                                                                                                                                                                                       | Default                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| data                        | `TreeNode[]` = `{ id, label, icon?, children?, disabled?, hasChildren?, badge? }` (the roots, required)                                                                                    | —                                        |
+| expanded / onExpandedChange | string[] / (expanded) => void (the ids of the open nodes; set `expanded` to control it)                                                                                                    |                                          |
+| defaultExpanded             | string[] (uncontrolled start)                                                                                                                                                              | `[]`                                     |
+| selected / onSelectedChange | string[] / (selected) => void (with `checkboxes` every checked node, a fully checked parent included; set `selected` to control it)                                                        |                                          |
+| defaultSelected             | string[] (uncontrolled start)                                                                                                                                                              | `[]`                                     |
+| selectionMode               | `"none" \| "single" \| "multiple"` (what pressing a row does: opens and closes it, selects only it, toggles it; the chevron always opens)                                                  | `none`                                   |
+| checkboxes                  | boolean (`multiple` only: a checkbox per row; checking a parent checks everything under it, a disabled row keeps its state)                                                                | `false`                                  |
+| loadChildren / onLoadError  | (node) => Promise<TreeNode[]> / (error, node) => void (for a node marked `hasChildren`, on first open; a loading row shows, then a retry row if it rejects; the result is kept)            |                                          |
+| renderLabel                 | (node, state) => ReactNode (replaces the label; `state` is `{ level, expanded, selected, indeterminate, loading, disabled }`; pass a stable function, `useCallback`, or every row redraws) |                                          |
+| indent                      | number (px per level)                                                                                                                                                                      | `24`                                     |
+| size                        | `"small" \| "medium" \| "large"` (row height 32 / 40 / 48)                                                                                                                                 | `medium`                                 |
+| disabled                    | boolean (nothing can be opened, selected or focused)                                                                                                                                       | `false`                                  |
+| showLines                   | boolean (a vertical guide line down each open node's children)                                                                                                                             | `false`                                  |
+| loadingText / retryText     | string                                                                                                                                                                                     | `Loading…` / `Could not load. Try again` |
+| accessibilityLabel          | string (names the tree)                                                                                                                                                                    |                                          |
+
+On a `TreeNode`, `icon` is a glyph name or any node, `badge` a count (text or a number) or any node,
+and `disabled` a row that cannot be selected or checked (it can still be opened).
+
+```tsx
+<Tree
+  data={[
+    {
+      id: "src",
+      label: "src",
+      icon: "folder-outline",
+      children: [{ id: "app", label: "App.tsx", icon: "file-outline" }],
+    },
+  ]}
+  defaultExpanded={["src"]}
+  selectionMode="single"
+  onSelectedChange={([id]) => open(id)}
+/>
+```
+
 #### `Carousel`
 
 Paged horizontal slider.
@@ -1143,7 +1675,7 @@ empty value shows `fallback` instead of leaving a hole.
 | captionColor / valueColor                     | theme color token or colour string                                                                               | `onSurfaceVariant` / `onSurface` |
 | gap / numberOfLines                           | number (px between caption and value) / number (lines before an ellipsis, `0` = no limit)                        | `4` / `1`                        |
 | width / height / flex / padding               | size of the pair, its flex in the parent, the padding around it                                                  |                                  |
-| enableCopy / onCopy                           | boolean (a copy button after a text value; web writes to the clipboard, native needs `onCopy`) / (value) => void | `false`                          |
+| enableCopy / onCopy / copy                    | boolean (a copy button; native: only with `copy` or `onCopy`) / (value) => void (after copy) / `ClipboardWriter` | `false`                          |
 | showTooltip                                   | boolean (a `Tooltip` with the value in full, for when `numberOfLines` cuts it)                                   | `false`                          |
 | textAlign / captionStyle / valueStyle / style | text and container styles                                                                                        |                                  |
 
@@ -1192,6 +1724,71 @@ there it draws `fallback`, a notice that embedded pages are not available.
   height={480}
 />
 ```
+
+#### `QrCode`
+
+Any text as a QR code, drawn with react-native-svg (already a required peer) from the library's own
+encoder: ISO/IEC 18004, versions 1 to 40, error-correction levels L to H, numeric, alphanumeric and
+byte modes (UTF-8, in the narrowest that fits). No native module and no dependency, and the same
+code on iOS, Android and web.
+
+| Prop               | Type                                                                                                                                                  | Default                      |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| value              | string (a URL, a Wi-Fi string, a vCard, any text, required; at most 2953 bytes at level `L`: past what fits nothing is drawn and `onError` is called) | —                            |
+| size               | number (px, the whole code, quiet zone included)                                                                                                      | `160`                        |
+| level              | `"L" \| "M" \| "Q" \| "H"` (damage it survives: about 7 / 15 / 25 / 30%; a higher level grows the code; a `logo` raises it to `H`)                    | `M`                          |
+| quietZone          | number (empty margin around the modules, in modules; scanners need it, the standard asks for 4)                                                       | `4`                          |
+| color              | theme color token or colour string (the modules)                                                                                                      | dark on light, in both modes |
+| backgroundColor    | theme color token or colour string                                                                                                                    | dark on light, in both modes |
+| logo               | icon \| ReactNode (a mark centred over the code in a box a fifth of its width; the modules under it are lost)                                         |                              |
+| accessibilityLabel | string (the value is not read out: it may be a secret)                                                                                                | `QR code`                    |
+| onError            | (error) => void (`value` does not fit; the code is then drawn empty)                                                                                  |                              |
+
+Scanners read dark modules on a light background, so the default colours do not follow the theme's
+mode: `onSurface` on `surface` in a light theme, `inverseOnSurface` on `inverseSurface` (still dark
+on light) in a dark one.
+
+```tsx
+<QrCode value="https://example.com/invite/9f3a" size={200} />
+<QrCode value={wifi} level="Q" logo="wifi" />
+```
+
+#### `CodeBlock`
+
+A snippet with syntax colours and a copy button, in a bordered block. The text is selectable, long
+lines scroll sideways unless `wrap`, and the colours are theme roles, so they follow the palette and
+the scheme. Highlighting is the library's own small tokenizer for `tsx`, `jsx`, `ts`, `js`, `json`
+and `bash` (`"text"` is drawn plain): comments, strings, numbers, keywords, JSX tags and attributes,
+names, keys, commands and flags — not a full parser.
+
+| Prop               | Type                                                                                      | Default                         |
+| ------------------ | ----------------------------------------------------------------------------------------- | ------------------------------- |
+| code               | string (required)                                                                         | —                               |
+| language           | `"tsx" \| "jsx" \| "ts" \| "js" \| "json" \| "bash" \| "text"`                            | `tsx`                           |
+| title              | string (a file name, or what it is for; shown in the header)                              | the language's name             |
+| showLineNumbers    | boolean (a gutter that is not selected with the code)                                     | `false`                         |
+| highlightLines     | number[] (lines marked with a band and an accent edge, counted from 1)                    |                                 |
+| copyable           | boolean (a copy button in the header; on native drawn only with `copy` or `onCopy`)       | `true`                          |
+| copy / onCopy      | `ClipboardWriter` (web default: the clipboard API) / (code) => void (after it was copied) |                                 |
+| wrap               | boolean (wraps long lines instead of scrolling sideways)                                  | `false`                         |
+| maxHeight          | DimensionValue (the body scrolls past it; left out, it grows with the code)               |                                 |
+| accessibilityLabel | string (names the block for screen readers)                                               | the title, or `{LANGUAGE} code` |
+
+```tsx
+<CodeBlock
+  title="App.tsx"
+  code={source}
+  showLineNumbers
+  highlightLines={[3, 4]}
+/>
+```
+
+`HighlightedCode` is just the coloured text, in one `Text` with no chrome (`code`, `language`,
+`selectable`, `decorative`, `style`): what `CodeBlock` draws, and what a live editor draws under its
+text field. Give the field `CODE_FONT_FAMILY` too, so the two line up. `highlight(code, language?)`
+returns the runs as `{ text, kind? }[]` (`kind` is `"comment"`, `"string"`, `"keyword"`, `"tag"`,
+`"attribute"`, `"type"` or `"number"`; plain text has none), for a renderer of your own. The runs
+join back into `code`.
 
 #### `Table`, `TableHead`, `TableRow`, `TableHeaderCell`, `TableCell`
 
@@ -1295,6 +1892,9 @@ Android back call it too.
 | form / onSubmit      | boolean / () => void (body and `actions` inside a `Form`: `Button type="submit"` or Enter calls `onSubmit`)   | `false`  |
 | actions              | ReactNode (trailing action row; replaces the fallback close button)                                           |          |
 | fullScreen           | boolean (M3 full-screen dialog: close, title and `actions` in a header row; ignores `width` and `height`)     | `false`  |
+| role                 | `"dialog" \| "alertdialog"` (the card's ARIA role; the title names it)                                        |          |
+| describedBy          | string (`nativeID` of the element that describes it, as `aria-describedby`; needs `role`)                     |          |
+| initialFocus         | `"auto" \| "actions"` (web: the first control of the modal, or of `actions`)                                  | `auto`   |
 | animationType        | `"none" \| "slide" \| "fade"`                                                                                 | `fade`   |
 | transparent          | boolean                                                                                                       | `true`   |
 | slotStyles           | `DialogSlotStyles` — `backdrop`, `container`, `header`, `title`, `content`, `actions` style overrides         |          |
@@ -1338,6 +1938,44 @@ Android back call it too.
 | dismissable     | boolean (backdrop and Escape cancel)               | `true`    |
 | slotStyles      | `DialogSlotStyles` (`actions` covers both buttons) |           |
 
+#### `AlertDialog`
+
+A `Dialog` for something that needs an answer: `role="alertdialog"` (the title names it, the
+message describes it), one primary action and an optional cancel, and **no way out but its
+buttons** — a backdrop click, Escape and Android back do nothing unless you turn that on. On web
+focus starts on the first button of the row: the cancel, when there is one, so Enter does not
+confirm a destructive action by reflex. For a plain two-way question use `ConfirmDialog`.
+
+| Prop                  | Type                                                                                                                                                                                                 | Default        |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| visible               | boolean (required)                                                                                                                                                                                   | —              |
+| title                 | string (the headline, and the dialog's accessible name)                                                                                                                                              |                |
+| message               | string (what the alert says; with `children`, the dialog's accessible description)                                                                                                                   |                |
+| children              | ReactNode \| string (more body, under the message or in its place)                                                                                                                                   |                |
+| severity              | `"info" \| "success" \| "warning" \| "error"` (a status icon above the title, in the status colour; left out: no icon)                                                                               |                |
+| actionText / onAction | string / () => void (the primary action)                                                                                                                                                             | `OK`           |
+| cancelText / onCancel | string / () => void (the secondary action, before the primary; an empty or missing `cancelText` draws none. `onCancel` also runs on a backdrop click, Escape or Android back once those are enabled) |                |
+| destructive           | boolean (the primary action in the error tone)                                                                                                                                                       | `false`        |
+| loading               | boolean (the primary action shows a spinner and does nothing, the cancel is disabled, nothing dismisses the alert; it stays until `visible` goes down)                                               | `false`        |
+| disableBackdropClick  | boolean (set `false` to let a backdrop click call `onCancel`)                                                                                                                                        | `true`         |
+| disableEscapeKeyDown  | boolean (set `false` to let Escape and Android back call `onCancel`)                                                                                                                                 | `true`         |
+| slotStyles            | `DialogSlotStyles` (`actions` covers the buttons)                                                                                                                                                    |                |
+| testID                | string (the buttons get `${testID}-cancel` and `${testID}-action`)                                                                                                                                   | `alert-dialog` |
+
+```tsx
+<AlertDialog
+  visible={open}
+  severity="error"
+  title="Delete the project?"
+  message="Its 12 files are removed for good."
+  actionText="Delete"
+  destructive
+  cancelText="Keep it"
+  onAction={remove}
+  onCancel={() => setOpen(false)}
+/>
+```
+
 #### `Popover`
 
 Anchored floating panel; auto-positions within the viewport.
@@ -1350,6 +1988,39 @@ Anchored floating panel; auto-positions within the viewport.
 | onDismiss        | () => void (a press outside, Android back; required)                                                                           | —                                            |
 | matchAnchorWidth | boolean (constrain to anchor width)                                                                                            | `false`                                      |
 | anchorPosition   | `{ vertical: "bottom" \| "top" \| "center", horizontal: "left" \| "right" \| "center" }`; it flips or slides to stay on screen | `{ vertical: "bottom", horizontal: "left" }` |
+
+#### `HoverCard`
+
+A card that shows more about its trigger — a profile on a username, a preview on a link. On web it
+opens when the pointer rests on the trigger or it takes focus, and stays open while the pointer is
+over the card, so the card can hold links; Escape closes it. On native it opens on a **long press**
+of the trigger and closes on a press outside or Android back. It is not modal. Like a tooltip it is
+for sighted users: whatever it shows has to be reachable some other way too. With a `Portal.Host`
+mounted the card renders through it on web, so it escapes a clipping parent; with none it stays
+anchored in place.
+
+On native a trigger that is itself pressable (`Link`, `Button`) captures the touch, so the long
+press never reaches the card: use text, `Typography` or a plain view as the trigger there.
+
+| Prop                   | Type                                                                                                                                       | Default       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| content                | ReactNode (what the card shows, required)                                                                                                  | —             |
+| children               | ReactNode (the trigger, required; it is not wrapped in an accessible element)                                                              | —             |
+| placement              | `"top" \| "bottom" \| "left" \| "right"` (the side of the trigger, centred; flips when that side has no room, and stays inside the window) | `bottom`      |
+| anchorPosition         | as `Popover` (places the card as `Popover` does, and replaces `placement`)                                                                 |               |
+| openDelay / closeDelay | number (web, ms the pointer or focus rests before it opens / after it leaves before it closes)                                             | `300` / `150` |
+| open / onOpenChange    | boolean / (open) => void (controls whether it is open)                                                                                     |               |
+| defaultOpen            | boolean (uncontrolled start)                                                                                                               | `false`       |
+| disabled               | boolean (never opens, and closes if it was open)                                                                                           | `false`       |
+| width                  | number (px; never wider than the window)                                                                                                   | `280`         |
+| style                  | ViewStyle (the trigger's wrapper, which shrinks to the trigger)                                                                            |               |
+| testID                 | string (the card gets `${testID}-card`)                                                                                                    |               |
+
+```tsx
+<HoverCard content={<Profile user={user} />} placement="top">
+  <Typography variant="body2">@{user.handle}</Typography>
+</HoverCard>
+```
 
 #### `BottomSheet`
 

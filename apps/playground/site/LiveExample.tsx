@@ -15,10 +15,12 @@ import {
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from "react-native";
-import * as Clipboard from "expo-clipboard";
+import { setStringAsync } from "expo-clipboard";
 import {
   Button,
-  IconButton,
+  Clipboard,
+  CODE_FONT_FAMILY,
+  HighlightedCode,
   ToggleButtonGroup,
   Typography,
   ViewportProvider,
@@ -28,7 +30,6 @@ import {
 
 import type { LiveExampleDef } from "../catalogue/examples";
 import type { ComponentMetadata } from "../catalogue/types";
-import { HighlightedText, MONOSPACE } from "./CodeBlock";
 import { DemoErrorBoundary } from "./ErrorBoundary";
 import { PropControls } from "./PropControls";
 import { useLayout } from "./breakpoints";
@@ -92,7 +93,6 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [code, setCode] = useState(example.source);
   const [stageWidth, setStageWidth] = useState<StageWidth>("full");
-  const [copied, setCopied] = useState(false);
 
   // The values of the `props` literal, held outside the compiled component so
   // it can read them on every render. Kept current wherever the code changes
@@ -187,12 +187,6 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
     },
     [authored, code, edit, meta.props],
   );
-
-  const copy = useCallback(async () => {
-    await Clipboard.setStringAsync(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [code]);
 
   // The real component while the text is the file's, the last good compile
   // once it has been edited (and still the real one if nothing has compiled
@@ -336,11 +330,11 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
                 >
                   Reset to default
                 </Button>
-                <IconButton
-                  icon={copied ? "check" : "content-copy"}
+                <Clipboard
+                  value={code}
                   size="small"
-                  accessibilityLabel={copied ? "Copied" : "Copy code"}
-                  onClick={copy}
+                  label="Copy code"
+                  copy={setStringAsync}
                 />
               </View>
             </View>
@@ -355,9 +349,9 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
                 keyboardShouldPersistTaps="handled"
               >
                 <View style={styles.overlay}>
-                  <HighlightedText
+                  <HighlightedCode
                     code={`${code}\n`}
-                    hidden
+                    decorative
                     style={styles.overlayText}
                   />
                   {field}
@@ -384,7 +378,7 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
 };
 
 const Code = ({ children }: { children: string }) => (
-  <Typography variant="labelSmall" style={{ fontFamily: MONOSPACE }}>
+  <Typography variant="labelSmall" style={{ fontFamily: CODE_FONT_FAMILY }}>
     {children}
   </Typography>
 );
@@ -437,7 +431,7 @@ const makeStyles = (theme: Theme) =>
     },
     editorActions: { flexDirection: "row", alignItems: "center" },
     code: {
-      fontFamily: MONOSPACE,
+      fontFamily: CODE_FONT_FAMILY,
       fontSize: 13,
       lineHeight: LINE_HEIGHT,
       color: theme.colors.onSurface,
@@ -455,7 +449,13 @@ const makeStyles = (theme: Theme) =>
     // laid over it.
     overlayScroll: { minWidth: "100%" },
     overlay: { flexGrow: 1, position: "relative" },
-    overlayText: { pointerEvents: "none" },
+    // The type of the field laid over it, so the two line up.
+    overlayText: {
+      pointerEvents: "none",
+      fontSize: 13,
+      lineHeight: LINE_HEIGHT,
+      padding: theme.spacing.m,
+    },
     overlayField: {
       position: "absolute",
       top: 0,

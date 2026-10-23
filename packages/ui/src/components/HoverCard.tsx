@@ -83,7 +83,7 @@ export interface HoverCardProps {
  *
  * ```tsx
  * <HoverCard content={<Profile user={user} />} placement="top">
- *   <Link href={user.url}>@{user.handle}</Link>
+ *   <Typography>@{user.handle}</Typography>
  * </HoverCard>
  * ```
  */

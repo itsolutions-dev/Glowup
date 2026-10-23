@@ -2,7 +2,15 @@ import React, { useEffect } from "react";
 import { StyleSheet, Text } from "react-native";
 import { render } from "@testing-library/react-native";
 import * as library from "..";
-import { Box, HStack, Stack, ThemeProvider, VStack, useTheme } from "..";
+import {
+  Box,
+  Center,
+  HStack,
+  Stack,
+  ThemeProvider,
+  VStack,
+  useTheme,
+} from "..";
 import type { BoxVariant, Theme } from "..";
 
 let theme: Theme;
@@ -308,21 +316,31 @@ describe("Stack", () => {
 });
 
 describe("Center", () => {
-  it("is gone from the library: Box variant centered-flex replaces it", async () => {
-    expect(Object.keys(library)).not.toContain("Center");
+  it("is exported again, as a thin wrapper on Box's centered variants", async () => {
+    expect(Object.keys(library)).toContain("Center");
     const { getByTestId } = await draw(
-      <Box testID="centre" variant="centered-flex" />,
+      <>
+        <Center testID="row" />
+        <Center testID="column" direction="column" />
+        <Box testID="box" variant="centered-flex" />
+      </>,
     );
-    expect(style(getByTestId("centre"))).toEqual({
+    expect(style(getByTestId("row"))).toEqual(style(getByTestId("box")));
+    expect(style(getByTestId("row"))).toEqual({
       flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    });
+    expect(style(getByTestId("column"))).toEqual({
+      flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
     });
   });
 
-  it("is gone from the types too: the export list no longer names it", () => {
-    // A compile-time check: `type-check` fails while `Center` is exported.
-    const gone: "Center" extends keyof typeof library ? false : true = true;
-    expect(gone).toBe(true);
+  it("is in the types too: the export list names it", () => {
+    // A compile-time check: `type-check` fails while `Center` is not exported.
+    const present: "Center" extends keyof typeof library ? true : false = true;
+    expect(present).toBe(true);
   });
 });

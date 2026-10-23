@@ -1,19 +1,16 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Divider,
   EmptyState,
-  ToggleButtonGroup,
-  ViewportProvider,
   Typography,
   useTheme,
   type PressableState,
   type Theme,
 } from "@its/glowup-ui";
 
-import ComponentPreview from "../../catalogue/ComponentPreview";
 import { ComponentRegistry } from "../../catalogue/registry";
 import {
   CATEGORY_OF,
@@ -22,23 +19,15 @@ import {
 } from "../../catalogue/categories";
 import { descriptionOf } from "../../catalogue/descriptions";
 import { exampleFor } from "../../catalogue/examples";
-import { buildSnippet } from "../../catalogue/snippet";
 import { VARIANTS_BY_COMPONENT } from "../../catalogue/variants";
-import { CodeBlock } from "../../site/CodeBlock";
 import { DemoErrorBoundary } from "../../site/ErrorBoundary";
 import { LiveExample } from "../../site/LiveExample";
 import { PageHead, Section } from "../../site/Page";
-import { PropControls } from "../../site/PropControls";
 import { PropsTable } from "../../site/PropsTable";
-import { docFor, requiredPropsOf } from "../../site/propsData";
+import { docFor } from "../../site/propsData";
 import { useLayout } from "../../site/breakpoints";
 import { useHydrated } from "../../site/useHydrated";
 import { GITHUB_URL } from "../../site/siteNav";
-import {
-  STAGE_WIDTHS,
-  STAGE_WIDTH_OPTIONS,
-  type StageWidth,
-} from "../../site/stage";
 
 // The name comes from the URL, so only the registry's own keys count:
 // /components/constructor must be a 404, not Object.prototype.constructor.
@@ -46,16 +35,6 @@ const entryFor = (name?: string) =>
   name && Object.hasOwn(ComponentRegistry, name)
     ? ComponentRegistry[name]
     : undefined;
-
-const defaultsOf = (name: string) => {
-  const meta = entryFor(name);
-  const values: Record<string, any> = {};
-  if (!meta) return values;
-  for (const [key, definition] of Object.entries(meta.props)) {
-    values[key] = definition.default;
-  }
-  return values;
-};
 
 /**
  * Every route this page can be rendered at. `expo export` calls it to
@@ -75,33 +54,6 @@ export default function ComponentPage() {
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const meta = entryFor(name);
-  const [stageWidth, setStageWidth] = useState<StageWidth>("full");
-
-  // The layout keeps this page mounted across catalogue navigation, so the
-  // props of the component being left behind must not leak onto the next one.
-  // The component name is stored alongside the values and the pair is reset
-  // during render — React's own way to adjust state when a prop changes, and
-  // one frame earlier than an effect would manage.
-  const [edited, setEdited] = useState(() => ({
-    name: name ?? "",
-    values: defaultsOf(name ?? ""),
-  }));
-  if (edited.name !== (name ?? "")) {
-    setEdited({ name: name ?? "", values: defaultsOf(name ?? "") });
-  }
-  const props = edited.values;
-
-  const updateProp = useCallback((key: string, value: any) => {
-    setEdited((previous) => ({
-      ...previous,
-      values: { ...previous.values, [key]: value },
-    }));
-  }, []);
-
-  const reset = useCallback(
-    () => setEdited({ name: name ?? "", values: defaultsOf(name ?? "") }),
-    [name],
-  );
 
   if (!name || !meta) {
     return (
@@ -132,7 +84,6 @@ export default function ComponentPage() {
     index < FLAT_ORDER.length - 1 ? FLAT_ORDER[index + 1] : undefined;
   const variants = VARIANTS_BY_COMPONENT[name] ?? [];
   const example = exampleFor(name);
-  const snippet = buildSnippet(name, meta, props, requiredPropsOf(name));
   const description = descriptionOf(name, category);
 
   return (
@@ -190,95 +141,13 @@ export default function ComponentPage() {
           ) : null}
         </View>
 
+        {/* The page is its one example: the stage, the code and the controls.
+        Keyed by the name: the layout keeps this page mounted across catalogue
+        navigation, and the code typed into one example must not follow the
+        reader to the next. */}
         {example ? (
-          <LiveExample name={name} example={example} meta={meta} />
-        ) : (
-          <>
-            <View style={styles.stageBlock}>
-              <View style={styles.stageToolbar}>
-                <Typography
-                  variant="labelSmall"
-                  style={[
-                    styles.eyebrow,
-                    { color: theme.colors.onSurfaceVariant },
-                  ]}
-                >
-                  Live demo
-                </Typography>
-                <ToggleButtonGroup
-                  accessibilityLabel="Stage width"
-                  value={stageWidth}
-                  onValueChange={(value) => setStageWidth(value as StageWidth)}
-                  options={[...STAGE_WIDTH_OPTIONS]}
-                />
-              </View>
-
-              {/* The cap goes on the stage, not on a wrapper inside it. Capping an
-              inner box that is already wider than its content changes nothing
-              anyone can see: the frame stayed 912px and the demo never
-              reflowed. Narrowing the frame itself is both the feedback that
-              the viewport changed and the constraint the demo lays out in. */}
-              <View
-                style={[
-                  styles.stage,
-                  STAGE_WIDTHS[stageWidth] !== undefined && {
-                    // A fixed width, not a cap: `alignSelf` takes the stage out of
-                    // the column's stretch, so a maxWidth alone let it shrink-wrap
-                    // its content and 360 and 720 rendered identically. maxWidth
-                    // "100%" keeps it inside the column on a narrow screen.
-                    width: STAGE_WIDTHS[stageWidth],
-                    maxWidth: "100%",
-                    alignSelf: "center",
-                  },
-                ]}
-              >
-                <View style={styles.stageInner}>
-                  {/* The frame cannot change the window, so the components are told
-                  how wide their device is: a date picker in the 360 frame opens
-                  as the dialog it is on a phone, a Grid reflows to its columns. */}
-                  <ViewportProvider width={STAGE_WIDTHS[stageWidth]}>
-                    <DemoErrorBoundary label={name}>
-                      <ComponentPreview
-                        selectedComponentName={name}
-                        activeMeta={meta}
-                        componentProps={props}
-                        updateProp={updateProp}
-                      />
-                    </DemoErrorBoundary>
-                  </ViewportProvider>
-                </View>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.controlsAndCode,
-                layout.hasSidebar && styles.controlsAndCodeWide,
-              ]}
-            >
-              <View style={styles.controlsColumn}>
-                <PropControls
-                  meta={meta}
-                  values={props}
-                  onChange={updateProp}
-                  onReset={reset}
-                />
-              </View>
-              <View style={styles.codeColumn}>
-                <Typography
-                  variant="labelSmall"
-                  style={[
-                    styles.eyebrow,
-                    { color: theme.colors.onSurfaceVariant },
-                  ]}
-                >
-                  Usage
-                </Typography>
-                <CodeBlock code={snippet} title={`${name}.tsx`} />
-              </View>
-            </View>
-          </>
-        )}
+          <LiveExample key={name} name={name} example={example} meta={meta} />
+        ) : null}
 
         {variants.length > 0 && (
           <Section
@@ -426,33 +295,6 @@ const makeStyles = (theme: Theme) =>
       gap: theme.spacing.xs,
       marginTop: theme.spacing.xs,
     },
-    stageBlock: { gap: theme.spacing.s },
-    stageToolbar: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      flexWrap: "wrap",
-      gap: theme.spacing.s,
-    },
-    stage: {
-      minHeight: 260,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: theme.spacing.l,
-      borderRadius: theme.shape.large,
-      borderWidth: 1,
-      borderColor: theme.colors.outlineVariant,
-      backgroundColor: theme.colors.surfaceContainerLow,
-    },
-    stageInner: {
-      width: "100%",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    controlsAndCode: { gap: theme.spacing.l },
-    controlsAndCodeWide: { flexDirection: "row", alignItems: "flex-start" },
-    controlsColumn: { flex: 1, minWidth: 0 },
-    codeColumn: { flex: 1, minWidth: 0, gap: theme.spacing.s },
     variant: { gap: theme.spacing.xs },
     variantStage: {
       padding: theme.spacing.l,

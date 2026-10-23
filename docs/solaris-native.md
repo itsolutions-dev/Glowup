@@ -60,7 +60,7 @@ _Proposta_ = scelta mia, non ancora confermata da te.
 | Hook esportati          | `useTheme`, `useToast`, `useInteractionFeedback`, `useFormControl`, `usePortalHost`, `useStateLayer`. **Nessun hook di breakpoint/window esportato** (vivono nel playground: `useLayout`, `useWindowSize`); `useWindowWidth`/`useReduceMotion` sono interni.                                                         |
 | Template                | 8 file in `apps/playground/templates` (Checkout, Dashboard, Inbox, Pricing, Profile, Settings, SignIn, SignUp), ~2.000 righe, **solo nel playground**. Ogni file è autonomo, importa solo `react`, `react-native`, `@its/glowup-ui`, ed è mostrato come codice da copiare (`generate.mjs` → `sources.generated.ts`). |
 | Pagina template         | (Verificato sulla pagina pubblicata `/templates/sign-in`) anteprima live con selettore di larghezza 360 / 720 / Full, chip "Built with" che rimandano ai componenti, e il sorgente completo (~150 righe) con copia. Il codice mostrato è il file che si renderizza.                                                  |
-| Pipeline docs           | `docgen` (ts-morph) → `props.generated.json`; registry con controlli prop tipizzati (`catalogue/registry`, `site/PropControls.tsx`, `catalogue/snippet.ts` genera codice dai valori live); 97 preview in `.design-sync/previews` → galleria varianti.                                                                |
+| Pipeline docs           | `docgen` (ts-morph) → `props.generated.json`; un esempio editabile per componente (`catalogue/examples/<Nome>.tsx`, `npm run examples`) col pannello Proprietà legato al suo `const props`; registry dei controlli (`catalogue/registry`); 106 preview in `.design-sync/previews` → galleria varianti.               |
 | Precedente di struttura | `@its/glowup-device`: 15 subpath, un modulo nativo per capability, peer opzionali, ESLint che vieta incroci tra capability, test sull'export map. Esiste anche `@its/glowup-notifications` (push), indipendente.                                                                                                     |
 
 Limiti di `DataGrid` (verificato, `Table.tsx`/`DataGrid.tsx`): ordinamento solo controllato (la griglia non ordina
@@ -688,8 +688,9 @@ che abbiamo provato); la matrice 0.5 è aggiornata con i vuoti trovati.
 
 **Non si costruisce adesso (D12).** Si fissa cosa serve, e si lavora **da ora** solo sui prerequisiti.
 
-Ciò che esiste già e si riusa: registry con controlli prop tipizzati (`site/PropControls.tsx`), generatore
-di codice dai valori live (`catalogue/snippet.ts`), `props.generated.json`, galleria template con codice,
+Ciò che esiste già e si riusa: registry con controlli prop tipizzati (`site/PropControls.tsx`), esempio
+editabile per componente il cui `const props` è letto e riscritto dal pannello Proprietà (`catalogue/examples`,
+`site/exampleProps.ts`), `props.generated.json`, galleria template con codice,
 `.design-sync/conventions.md` (guida scritta per generare UI dalla libreria).
 
 Cosa servirà:
@@ -697,8 +698,8 @@ Cosa servirà:
 1. **Schema di layout**: un albero JSON versionato `{ type, props, children }` con validazione per tipo,
    generato dai metadati dei componenti.
 2. **Compositore nel playground**: tavolozza dal registry, albero, pannello prop (riusa `PropControls`),
-   anteprima live a 360/720/Full, **esportazione di codice** (estende `snippet.ts` dai singoli componenti agli
-   alberi) e salvataggio/riapertura del JSON. Coerente con D10: l'uscita è **codice** da copiare, come le pagine d'esempio.
+   anteprima live a 360/720/Full, **esportazione di codice** (estende agli alberi il modello dell'esempio
+   editabile, codice con `const props` riscritto dal pannello) e salvataggio/riapertura del JSON. Coerente con D10: l'uscita è **codice** da copiare, come le pagine d'esempio.
 3. **Server MCP** (`@its/glowup-mcp`, pacchetto proprio, fuori dalla libreria): strumenti `list_components`,
    `get_component(name)` (prop da docgen), `list_templates`, `get_template(slug)` (sorgente), `validate_layout(json)`,
    `generate_code(layout)`, `suggest_components(intent)`; risorse: conventions, token del tema, esempi. Il server

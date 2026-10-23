@@ -35,8 +35,8 @@ const COMMON = [
  * the most common passwords. An empty string is `0`.
  *
  * Ceiling: it knows no dictionary beyond that handful, so a long phrase of
- * lower-case words scores a modest `2`; use a real estimator (zxcvbn) and the
- * `strength` of your own where that matters.
+ * lower-case words scores a modest `2`; use a real estimator (zxcvbn) where
+ * that matters.
  */
 export const passwordStrength = (value: string): PasswordStrength => {
   const classes = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/].filter((re) =>

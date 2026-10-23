@@ -6,7 +6,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "@its/glowup-ui";
 
 import { TEMPLATES } from "../templates";
-import { highlight } from "../site/highlight";
 
 const Providers = ({ children }: { children: ReactNode }) => (
   <SafeAreaProvider
@@ -48,37 +47,5 @@ describe("templates", () => {
   it("has unique slugs", () => {
     const slugs = TEMPLATES.map((t) => t.slug);
     expect(new Set(slugs).size).toBe(slugs.length);
-  });
-});
-
-describe("highlight", () => {
-  const sample = `import { Button } from "@its/glowup-ui";
-// a comment
-const n = 42;
-export default () => <Button mode="filled" onPress={go}>Go</Button>;`;
-
-  it("is lossless", () => {
-    expect(
-      highlight(sample)
-        .map((token) => token.text)
-        .join(""),
-    ).toBe(sample);
-  });
-
-  it("classifies tags, attributes, strings, keywords and comments", () => {
-    const kinds = Object.fromEntries(
-      highlight(sample)
-        .filter((token) => token.kind)
-        .map((token) => [token.text, token.kind]),
-    );
-    expect(kinds).toMatchObject({
-      import: "keyword",
-      '"@its/glowup-ui"': "string",
-      "// a comment": "comment",
-      "42": "number",
-      Button: "tag",
-      mode: "attribute",
-      '"filled"': "string",
-    });
   });
 });

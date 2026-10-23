@@ -1,13 +1,11 @@
 // Shape of the playground catalogue: what a component entry declares and how
 // the entries are grouped in the navigator.
-import type { ComponentType } from "react";
 
 /**
  * `icon` is a text control for a glyph name that opens a search of the whole
  * icon font; its value is the name, like `text`.
  */
-export type PropType =
-  "text" | "number" | "boolean" | "select" | "node" | "icon";
+export type PropType = "text" | "number" | "boolean" | "select" | "icon";
 
 export interface PropDefinition {
   type: PropType;
@@ -26,28 +24,12 @@ export interface PropDefinition {
   appliesWhen?: (values: Record<string, any>) => boolean;
 }
 
-/** What an entry's `Demo` receives from the stage. */
-export interface DemoProps {
-  /** Live values from the properties panel. */
-  props: Record<string, any>;
-  /** Writes a value back to the panel, for demos that are controlled. */
-  updateProp: (key: string, value: any) => void;
-}
-
 export interface ComponentMetadata {
   name: string;
   Component: any;
   props: Record<string, PropDefinition>;
-  isContainer?: boolean;
   /**
-   * Renders the stage when `<Component {...props} />` is not enough: sample
-   * data, controlled state, an overlay opened from a trigger. Lives with the
-   * entry, so a component's demo is in one place instead of a branch in
-   * ComponentPreview.
-   */
-  Demo?: ComponentType<DemoProps>;
-  /**
-   * Render the stage and the variants only after hydration. For components
+   * Render the example and the variants only after hydration. For components
    * that read the reader's clock or locale (today, the current time, weekday
    * names, 12- or 24-hour): the exported HTML would carry the build's date and
    * Node's locale, and hydrating over it throws #418.

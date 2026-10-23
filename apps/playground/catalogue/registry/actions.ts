@@ -10,9 +10,10 @@ import {
   ButtonGroup,
   SplitButton,
   ChipGroup,
+  Clipboard,
+  Download,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
-import { ButtonGroupDemo, SplitButtonDemo, ChipGroupDemo } from "../demos";
 
 /** Actions: 12 catalogue entries. */
 export const actions: Record<string, ComponentMetadata> = {
@@ -66,46 +67,20 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "ProgressButton",
     Component: ProgressButton,
     props: {
-      children: {
-        type: "text",
-        default: "Start navigation",
-        label: "Label",
+      children: { type: "text", default: "", label: "Label" },
+      loadingLabel: { type: "text", default: "", label: "Loading label" },
+      successLabel: { type: "text", default: "Done", label: "Success label" },
+      errorLabel: { type: "text", default: "Try again", label: "Error label" },
+      iconName: { type: "icon", default: "", label: "Icon Name" },
+      successIconName: {
+        type: "icon",
+        default: "check",
+        label: "Success icon",
       },
-      status: {
-        type: "select",
-        default: "idle",
-        label: "Status",
-        options: [
-          { label: "Idle", value: "idle" },
-          { label: "Loading", value: "loading" },
-          { label: "Success", value: "success" },
-          { label: "Error", value: "error" },
-        ],
-      },
-      progress: {
-        type: "number",
-        // Unset, like the component's own default: an indeterminate sweep.
-        default: undefined,
-        label: "Progress (0-1, empty = indeterminate)",
-        appliesWhen: (values) => values.status === "loading",
-      },
-      loadingLabel: {
-        type: "text",
-        // Empty falls back to the label, which is what the component does
-        // without one — so the snippet only writes it once it says something.
-        default: "",
-        label: "Loading label",
-        appliesWhen: (values) => values.status === "loading",
-      },
-      successLabel: {
-        type: "text",
-        default: "Done",
-        label: "Success label",
-      },
-      errorLabel: {
-        type: "text",
-        default: "Try again",
-        label: "Error label",
+      errorIconName: {
+        type: "icon",
+        default: "alert-circle-outline",
+        label: "Error icon",
       },
       indicator: {
         type: "select",
@@ -127,10 +102,10 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Text", value: "text" },
         ],
       },
-      iconName: {
-        type: "icon",
-        default: "",
-        label: "Icon Name",
+      successDuration: {
+        type: "number",
+        default: 2000,
+        label: "Success duration (ms, 0 = stay)",
       },
       fullWidth: { type: "boolean", default: false, label: "Full Width" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -140,7 +115,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "IconButton",
     Component: IconButton,
     props: {
-      icon: { type: "icon", default: "heart-outline", label: "Icon" },
+      icon: { type: "icon", default: "", label: "Icon" },
       title: { type: "text", default: "", label: "Title (tooltip)" },
       variant: {
         type: "select",
@@ -179,7 +154,8 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Large", value: "large" },
         ],
       },
-      selected: { type: "boolean", default: false, label: "Selected" },
+      // Unset, like the component's own default: no badge.
+      badge: { type: "number", default: undefined, label: "Badge (count)" },
       loading: { type: "boolean", default: false, label: "Loading" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -188,8 +164,8 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "Chip",
     Component: Chip,
     props: {
-      label: { type: "text", default: "React Native", label: "Label" },
-      selected: { type: "boolean", default: false, label: "Selected" },
+      label: { type: "text", default: "", label: "Label" },
+      icon: { type: "icon", default: "", label: "Icon" },
       variant: {
         type: "select",
         default: "filled",
@@ -215,6 +191,13 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Info", value: "info" },
           { label: "Neutral", value: "neutral" },
         ],
+      },
+      toneFrom: {
+        type: "text",
+        default: "",
+        label: "Tone from (any text or #RRGGBB)",
+        // Only a filled or tonal chip is tinted: an outlined one has no fill.
+        appliesWhen: (values) => values.variant !== "outlined",
       },
       size: {
         type: "select",
@@ -243,10 +226,10 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "FAB",
     Component: FAB,
     props: {
-      icon: { type: "icon", default: "plus", label: "Icon" },
+      icon: { type: "icon", default: "", label: "Icon" },
       label: {
         type: "text",
-        default: "Create",
+        default: "",
         label: "Label (extended, animated)",
       },
       variant: {
@@ -269,11 +252,25 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Large", value: "large" },
         ],
       },
-      extended: {
-        type: "boolean",
-        default: true,
-        label: "Extended",
-        appliesWhen: (values) => values.variant === "animated",
+      position: {
+        type: "select",
+        default: "bottom-right",
+        label: "Position",
+        options: [
+          { label: "Bottom Right", value: "bottom-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Top Left", value: "top-left" },
+        ],
+      },
+      placement: {
+        type: "select",
+        default: "floating",
+        label: "Placement",
+        options: [
+          { label: "Floating", value: "floating" },
+          { label: "Inline", value: "inline" },
+        ],
       },
       animateFrom: {
         type: "select",
@@ -295,16 +292,12 @@ export const actions: Record<string, ComponentMetadata> = {
         ],
         appliesWhen: (values) => values.variant === "animated",
       },
-      position: {
-        type: "select",
-        default: "bottom-right",
-        label: "Position",
-        options: [
-          { label: "Bottom Right", value: "bottom-right" },
-          { label: "Bottom Left", value: "bottom-left" },
-          { label: "Top Right", value: "top-right" },
-          { label: "Top Left", value: "top-left" },
-        ],
+      // Unset: the component folds and unfolds in 150 ms.
+      duration: {
+        type: "number",
+        default: undefined,
+        label: "Duration (ms, default 150)",
+        appliesWhen: (values) => values.variant === "animated",
       },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -313,7 +306,7 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "SpeedDial",
     Component: SpeedDial,
     props: {
-      mainIcon: { type: "icon", default: "plus", label: "Main Icon" },
+      mainIcon: { type: "icon", default: "", label: "Main Icon" },
       position: {
         type: "select",
         default: "bottom-right",
@@ -331,9 +324,10 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "ToggleButton",
     Component: ToggleButton,
     props: {
-      active: { type: "boolean", default: true, label: "Active" },
-      label: { type: "text", default: "Grid", label: "Label" },
-      icon: { type: "icon", default: "view-grid-outline", label: "Icon" },
+      label: { type: "text", default: "", label: "Label" },
+      icon: { type: "icon", default: "", label: "Icon" },
+      isFirst: { type: "boolean", default: false, label: "First in a group" },
+      isLast: { type: "boolean", default: false, label: "Last in a group" },
       showSelectedCheck: {
         type: "boolean",
         default: false,
@@ -346,13 +340,19 @@ export const actions: Record<string, ComponentMetadata> = {
     name: "ToggleButtonGroup",
     Component: ToggleButtonGroup,
     props: {
-      value: { type: "text", default: "list", label: "Value" },
+      multiSelect: { type: "boolean", default: false, label: "Multi select" },
+      showSelectedCheck: {
+        type: "boolean",
+        default: false,
+        label: "Selected check",
+      },
+      fullWidth: { type: "boolean", default: false, label: "Full Width" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   ButtonGroup: {
     name: "ButtonGroup",
     Component: ButtonGroup,
-    Demo: ButtonGroupDemo,
     props: {
       type: {
         type: "select",
@@ -388,9 +388,9 @@ export const actions: Record<string, ComponentMetadata> = {
   SplitButton: {
     name: "SplitButton",
     Component: SplitButton,
-    Demo: SplitButtonDemo,
     props: {
-      children: { type: "text", default: "Save", label: "Label" },
+      children: { type: "text", default: "", label: "Label" },
+      iconName: { type: "icon", default: "", label: "Icon Name" },
       mode: {
         type: "select",
         default: "filled",
@@ -401,13 +401,17 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Outlined", value: "outlined" },
         ],
       },
+      menuAccessibilityLabel: {
+        type: "text",
+        default: "More options",
+        label: "Menu label (accessibility)",
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   ChipGroup: {
     name: "ChipGroup",
     Component: ChipGroup,
-    Demo: ChipGroupDemo,
     props: {
       multiple: { type: "boolean", default: false, label: "Multiple" },
       required: {
@@ -427,6 +431,100 @@ export const actions: Record<string, ComponentMetadata> = {
           { label: "Filled", value: "filled" },
         ],
       },
+    },
+  },
+  Clipboard: {
+    name: "Clipboard",
+    Component: Clipboard,
+    props: {
+      value: { type: "text", default: "", label: "Text to copy" },
+      variant: {
+        type: "select",
+        default: "standard",
+        label: "Variant",
+        options: [
+          { label: "Standard", value: "standard" },
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      color: {
+        type: "select",
+        default: "",
+        label: "Color",
+        options: [
+          { label: "Default", value: "" },
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
+        ],
+      },
+      size: {
+        type: "select",
+        default: "large",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
+      label: { type: "text", default: "Copy", label: "Label (accessibility)" },
+      copiedLabel: {
+        type: "text",
+        default: "Copied",
+        label: "Copied label (accessibility)",
+      },
+      // Unset: the check shows for 1500 ms.
+      timeout: {
+        type: "number",
+        default: undefined,
+        label: "Confirmation (ms, default 1500)",
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Download: {
+    name: "Download",
+    Component: Download,
+    props: {
+      children: { type: "text", default: "", label: "Label" },
+      filename: { type: "text", default: "", label: "File name" },
+      mimeType: { type: "text", default: "", label: "Media type" },
+      variant: {
+        type: "select",
+        default: "filled",
+        label: "Variant",
+        options: [
+          { label: "Filled", value: "filled" },
+          { label: "Tonal", value: "tonal" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Text", value: "text" },
+        ],
+      },
+      color: {
+        type: "select",
+        default: "primary",
+        label: "Color",
+        options: [
+          { label: "Primary", value: "primary" },
+          { label: "Secondary", value: "secondary" },
+          { label: "Tertiary", value: "tertiary" },
+          { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
+        ],
+      },
+      icon: { type: "icon", default: "download", label: "Icon" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
 };

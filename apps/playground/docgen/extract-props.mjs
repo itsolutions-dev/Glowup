@@ -331,7 +331,21 @@ for (const entry of allExports) {
 
   const declaredMembers = membersOf(annotation);
   const derived = declaredMembers.length === 0;
-  const members = derived ? membersFromChecker(param) : declaredMembers;
+  // A props type that builds on another of the library's (`extends
+  // Omit<InputProps, "value">`, `extends Omit<BoxProps, "variant">`) has the
+  // parent's props too, and the page is where a reader looks for them: add what
+  // the checker finds in this package that the type does not write out itself.
+  const written = new Set(
+    declaredMembers.filter(Node.isPropertySignature).map((m) => m.getName()),
+  );
+  const members = derived
+    ? membersFromChecker(param)
+    : [
+        ...declaredMembers,
+        ...(extendsOf(annotation).length
+          ? membersFromChecker(param).filter((m) => !written.has(m.getName()))
+          : []),
+      ];
 
   for (const member of members) {
     if (!Node.isPropertySignature(member)) continue;

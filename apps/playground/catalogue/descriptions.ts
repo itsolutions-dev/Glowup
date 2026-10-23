@@ -16,7 +16,8 @@ export const DESCRIPTIONS: Record<string, string> = {
   Card: "A grouped, pressable surface for one entity, with a title, cover, content and actions.",
   CardTitle:
     "The header row of a Card: a title, a subtitle and optional icons at either end.",
-  CardContent: "The padded body of a Card, for text and other content.",
+  CardContent:
+    "The body of a Card: spaces its text and other content between the header and the actions.",
   CardCover: "A full-width image or media block at the edge of a Card.",
   CardActions: "The row of buttons at the bottom of a Card.",
   Icon: "An icon from a glyph name, an image, an element or a render function, at any size and colour.",
@@ -42,10 +43,16 @@ export const DESCRIPTIONS: Record<string, string> = {
     "Connected buttons that share one selection, in a standard or a connected layout.",
   SplitButton:
     "A button with a main action and, beside it, a menu of related actions.",
+  Clipboard:
+    "A copy button that writes a text to the clipboard and confirms it, with a hook for your own trigger.",
+  Download:
+    "A button that saves a file from data you hold or from a URL, on the web and on a phone.",
 
   // Inputs
   Input:
     "A text field with a label, helper and error text, icons, prefixes and number formatting.",
+  PasswordField:
+    "A password field with a show and hide button, autofill hints and an optional strength meter.",
   Select: "A dropdown to choose one or several options from a list.",
   Checkbox: "A box that switches a choice on or off, with an in-between state.",
   CheckboxGroup: "A labelled set of checkboxes that share one array value.",
@@ -61,6 +68,8 @@ export const DESCRIPTIONS: Record<string, string> = {
     "A text field that suggests options as you type, for one or several values, local or async.",
   PinInput:
     "Separate cells for a one-time code or a PIN, with paste and automatic advance.",
+  Editable:
+    "Text that turns into a field when you click it, for a name, a note, a number or a choice, kept on Enter or blur.",
   FormControl:
     "Wraps a field with a label, helper text and a shared disabled and error state.",
   DateTimePicker:
@@ -69,6 +78,8 @@ export const DESCRIPTIONS: Record<string, string> = {
   TimePicker: "Picks a time on a clock dial or by typing it.",
   Rating: "A star rating, or any icon, with half steps and a hover preview.",
   HelperText: "The small line under a field for hints and validation messages.",
+  Upload:
+    "Selects files by dialog or drag and drop and uploads them, with a progress bar, retry and cancel per file.",
 
   // Data Display
   Avatar:
@@ -94,8 +105,13 @@ export const DESCRIPTIONS: Record<string, string> = {
     "A caption and its value as a pair, with a fallback, copying and truncation.",
   Image: "An image with a fixed ratio, a fit mode and a fallback.",
   Link: "Text that opens an address or runs an action, styled and announced as a link.",
+  CodeBlock:
+    "Syntax-coloured code with line numbers, marked lines and a copy button.",
   IFrame: "Embeds a web page in a frame (a notice on iOS and Android).",
   Blink: "Pulses its content in opacity to draw attention.",
+  QrCode:
+    "Draws any text, such as a link or a Wi-Fi login, as a QR code you can scan, with its own encoder and an optional logo.",
+  Tree: "A hierarchy of rows that open and close, with selection or checkboxes, lazy loading and keyboard navigation.",
 
   // Feedback
   Snackbar:
@@ -105,9 +121,13 @@ export const DESCRIPTIONS: Record<string, string> = {
   Dialog:
     "A modal window for one focused task: a title, content, actions and an optional form.",
   ConfirmDialog: "A dialog that asks the user to confirm or cancel an action.",
+  AlertDialog:
+    "An alert that interrupts to say something and waits for an answer, with a status icon and one or two actions.",
   Form: "Groups fields and submits them: Enter submits on the web, and a submit button does it everywhere.",
   Popover:
     "Floating content anchored to an element and placed against its edges.",
+  HoverCard:
+    "A card with more about its trigger, shown on hover or focus on the web and on long press on touch.",
   BottomSheet:
     "A panel that slides up from the bottom for secondary content or actions.",
   Menu: "A list of actions in a floating panel anchored to a trigger.",
@@ -146,6 +166,16 @@ export const DESCRIPTIONS: Record<string, string> = {
   Grid: "A 12-column responsive grid, with container and item sizes per breakpoint.",
   AspectRatio: "Keeps its child at a fixed width-to-height ratio.",
   Spacer: "Fixed or flexible empty space between elements.",
+  Center:
+    "Centres its children within itself on both axes, as a row or a column.",
+  AbsoluteCenter:
+    "Centres an element on its parent's box without moving the parent's other content.",
+  Break:
+    "Lets an element run out to the edges of its padded container by cancelling the padding.",
+  Visible:
+    "Shows or hides part of a screen by a condition or the window's size class, with a fallback.",
+  ScrollArea:
+    "A scrollable area with themed scrollbars on web and native, a draggable thumb and automatic hiding.",
 };
 
 /** The sentence for a component, or a plain fallback for one not listed yet. */

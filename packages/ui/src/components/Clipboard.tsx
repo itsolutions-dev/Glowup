@@ -15,9 +15,9 @@ import { type ColorRole } from "./internal/colorRole";
 /**
  * Writes `text` to the clipboard. Resolve when it is written, throw (or reject)
  * when it could not be: the app wires `expo-clipboard`'s `setStringAsync` here
- * on native.
+ * on native. What it resolves to is ignored (that one resolves a boolean).
  */
-export type ClipboardWriter = (text: string) => void | Promise<void>;
+export type ClipboardWriter = (text: string) => void | Promise<unknown>;
 
 // The copy command on a hidden textarea: what a page without the async
 // Clipboard API (an insecure origin, an old browser) has left. False when there

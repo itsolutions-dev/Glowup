@@ -14,9 +14,10 @@ import {
   Popover,
   Collapse,
   Portal,
+  AlertDialog,
+  HoverCard,
 } from "@its/glowup-ui";
 import type { ComponentMetadata, PropDefinition } from "../types";
-import { ConfirmDialogDemo, DialogDemo, FormDemo, MenuDemo } from "../demos";
 
 const titleCase = (word: string) => word[0].toUpperCase() + word.slice(1);
 
@@ -46,19 +47,14 @@ export const feedback: Record<string, ComponentMetadata> = {
     name: "Snackbar",
     Component: Snackbar,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
-      message: {
-        type: "text",
-        default: "Changes saved.",
-        label: "Message",
-      },
+      message: { type: "text", default: "", label: "Message" },
       severity: {
         type: "select",
-        // "default" is the neutral inverse surface: the stage leaves `severity` out.
-        default: "default",
+        // Left out, the snackbar is the neutral inverse surface.
+        default: undefined,
         label: "Severity",
         options: [
-          { label: "Default", value: "default" },
+          { label: "Default", value: undefined },
           { label: "Success", value: "success" },
           { label: "Info", value: "info" },
           { label: "Warning", value: "warning" },
@@ -87,16 +83,7 @@ export const feedback: Record<string, ComponentMetadata> = {
           { label: "Bottom Right", value: "bottom-right" },
         ],
       },
-      duration: {
-        type: "number",
-        default: 4000,
-        label: "Duration (ms)",
-        // A snackbar with a close button waits for it instead of timing out.
-        appliesWhen: (values) => !values.closable,
-      },
-      // The stage supplies the `action` object and the `onClose` handler.
-      withAction: { type: "boolean", default: true, label: "With Action" },
-      closable: { type: "boolean", default: false, label: "Close Button" },
+      duration: { type: "number", default: 4000, label: "Duration (ms)" },
       icon: { type: "icon", default: "", label: "Icon Override" },
     },
   },
@@ -104,12 +91,8 @@ export const feedback: Record<string, ComponentMetadata> = {
     name: "Banner",
     Component: Banner,
     props: {
-      visible: { type: "boolean", default: true, label: "Visible" },
-      message: {
-        type: "text",
-        default: "Your subscription is about to expire.",
-        label: "Message",
-      },
+      message: { type: "text", default: "", label: "Message" },
+      icon: { type: "icon", default: "", label: "Icon Override" },
       type: {
         type: "select",
         default: "default",
@@ -127,15 +110,9 @@ export const feedback: Record<string, ComponentMetadata> = {
   Dialog: {
     name: "Dialog",
     Component: Dialog,
-    Demo: DialogDemo,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
-      title: { type: "text", default: "Dialog Title", label: "Title" },
-      children: {
-        type: "text",
-        default: "This is the dialog body content.",
-        label: "Content",
-      },
+      title: { type: "text", default: "", label: "Title" },
+      children: { type: "text", default: "", label: "Body" },
       icon: { type: "icon", default: "", label: "Hero Icon" },
       width: {
         type: "select",
@@ -152,8 +129,9 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       height: {
         type: "number",
-        default: 0,
-        label: "Height (px, 0 = auto)",
+        // Empty is the library's own: as tall as the content.
+        default: undefined,
+        label: "Height (px)",
         appliesWhen: (values) => !values.fullScreen,
       },
       scrollable: {
@@ -164,7 +142,6 @@ export const feedback: Record<string, ComponentMetadata> = {
         appliesWhen: (values) => !values.fullScreen,
       },
       fullScreen: { type: "boolean", default: false, label: "Full Screen" },
-      form: { type: "boolean", default: false, label: "Form" },
       closeIcon: {
         type: "select",
         default: "close",
@@ -199,51 +176,76 @@ export const feedback: Record<string, ComponentMetadata> = {
           { label: "None", value: "none" },
         ],
       },
-      // The stage supplies the `slotStyles` object.
-      customSlots: {
-        type: "boolean",
-        default: false,
-        label: "Custom Slot Styles",
-      },
     },
   },
   ConfirmDialog: {
     name: "ConfirmDialog",
     Component: ConfirmDialog,
-    Demo: ConfirmDialogDemo,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
-      title: { type: "text", default: "Delete item?", label: "Title" },
-      message: {
-        type: "text",
-        default: "This action cannot be undone.",
-        label: "Message",
-      },
-      confirmText: { type: "text", default: "Delete", label: "Confirm Text" },
+      title: { type: "text", default: "", label: "Title" },
+      message: { type: "text", default: "", label: "Message" },
+      confirmText: { type: "text", default: "Confirm", label: "Confirm Text" },
       cancelText: { type: "text", default: "Cancel", label: "Cancel Text" },
       destructive: { type: "boolean", default: false, label: "Destructive" },
       icon: { type: "icon", default: "", label: "Hero Icon" },
       dismissable: { type: "boolean", default: true, label: "Dismissable" },
-      // The stage supplies the `slotStyles` object.
-      customSlots: {
+    },
+  },
+  AlertDialog: {
+    name: "AlertDialog",
+    Component: AlertDialog,
+    props: {
+      title: { type: "text", default: "", label: "Title" },
+      message: { type: "text", default: "", label: "Message" },
+      severity: {
+        type: "select",
+        default: undefined,
+        label: "Severity",
+        options: [
+          { label: "None", value: undefined },
+          { label: "Info", value: "info" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      actionText: { type: "text", default: "OK", label: "Action Text" },
+      cancelText: { type: "text", default: "", label: "Cancel Text" },
+      destructive: { type: "boolean", default: false, label: "Destructive" },
+      loading: { type: "boolean", default: false, label: "Loading" },
+      disableBackdropClick: {
         type: "boolean",
-        default: false,
-        label: "Custom Slot Styles",
+        default: true,
+        label: "Disable Backdrop Click",
+      },
+      disableEscapeKeyDown: {
+        type: "boolean",
+        default: true,
+        label: "Disable Escape Key",
       },
     },
   },
   Form: {
     name: "Form",
     Component: Form,
-    Demo: FormDemo,
-    // `onSubmit` is the demo's: it shows what the submission carried.
-    props: {},
+    props: {
+      validateOn: {
+        type: "select",
+        default: "change",
+        label: "Validate On",
+        options: [
+          { label: "Change", value: "change" },
+          { label: "Blur", value: "blur" },
+          { label: "Submit", value: "submit" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
   },
   Popover: {
     name: "Popover",
     Component: Popover,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
       anchorPosition,
       matchAnchorWidth: {
         type: "boolean",
@@ -252,12 +254,43 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
     },
   },
+  HoverCard: {
+    name: "HoverCard",
+    Component: HoverCard,
+    props: {
+      placement: {
+        type: "select",
+        default: "bottom",
+        label: "Placement",
+        options: [
+          { label: "Bottom", value: "bottom" },
+          { label: "Top", value: "top" },
+          { label: "Left", value: "left" },
+          { label: "Right", value: "right" },
+        ],
+        // An anchor position replaces it.
+        appliesWhen: (values) => !values.anchorPosition,
+      },
+      anchorPosition: {
+        ...anchorPosition,
+        // Unset, like the component's own default: `placement` decides.
+        default: undefined,
+        options: [
+          { label: "None (use placement)", value: undefined },
+          ...ANCHOR_POSITIONS,
+        ],
+      },
+      openDelay: { type: "number", default: 300, label: "Open Delay (ms)" },
+      closeDelay: { type: "number", default: 150, label: "Close Delay (ms)" },
+      width: { type: "number", default: 280, label: "Width (px)" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
   BottomSheet: {
     name: "BottomSheet",
     Component: BottomSheet,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
-      title: { type: "text", default: "Sheet Title", label: "Title" },
+      title: { type: "text", default: "", label: "Title" },
       showCloseButton: {
         type: "boolean",
         default: false,
@@ -274,16 +307,12 @@ export const feedback: Record<string, ComponentMetadata> = {
         default: 0.85,
         label: "Max Height (0-1)",
       },
-      // The stage supplies the `actions` row.
-      withActions: { type: "boolean", default: false, label: "With Actions" },
     },
   },
   Menu: {
     name: "Menu",
     Component: Menu,
-    Demo: MenuDemo,
     props: {
-      visible: { type: "boolean", default: false, label: "Visible" },
       closeOnSelect: {
         type: "boolean",
         default: true,
@@ -291,18 +320,6 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       anchorPosition,
       dividers: { type: "boolean", default: false, label: "Dividers" },
-      selected: {
-        type: "select",
-        // Not even `[]`: items are not marked until the prop is passed.
-        default: undefined,
-        label: "Selected",
-        options: [
-          { label: "None", value: undefined },
-          { label: "Edit", value: ["edit"] },
-          { label: "Edit And Duplicate", value: ["edit", "duplicate"] },
-          { label: "Delete", value: ["delete"] },
-        ],
-      },
     },
   },
   Skeleton: {
@@ -319,8 +336,14 @@ export const feedback: Record<string, ComponentMetadata> = {
           { label: "Text", value: "text" },
         ],
       },
-      width: { type: "number", default: 200, label: "Width" },
-      height: { type: "number", default: 48, label: "Height" },
+      // Empty is the library's own: the variant's (a rect is 100% x 48).
+      width: { type: "number", default: undefined, label: "Width" },
+      height: { type: "number", default: undefined, label: "Height" },
+      borderRadius: {
+        type: "number",
+        default: undefined,
+        label: "Border Radius",
+      },
       duration: {
         type: "number",
         default: 1200,
@@ -335,25 +358,20 @@ export const feedback: Record<string, ComponentMetadata> = {
     name: "CircularProgress",
     Component: CircularProgress,
     props: {
-      // Unset, the ring spins: the stage leaves `progress` out when this is on.
-      indeterminate: {
-        type: "boolean",
-        default: false,
-        label: "Indeterminate",
-      },
+      // Empty, the ring spins (indeterminate): the field is the switch.
       progress: {
         type: "number",
-        default: 0.65,
-        label: "Progress (0-1)",
-        appliesWhen: (values) => !values.indeterminate,
+        default: undefined,
+        label: "Progress (0-1, empty spins)",
       },
-      label: { type: "text", default: "65%", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       labelPosition: {
         type: "select",
-        // The library's own default for a ring with a `progress`.
-        default: "center",
+        // Left out, the library picks: center for a ring, right for a spinner.
+        default: undefined,
         label: "Label Position",
         options: [
+          { label: "Auto", value: undefined },
           { label: "Center", value: "center" },
           { label: "Top", value: "top" },
           { label: "Bottom", value: "bottom" },
@@ -374,8 +392,20 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       size: { type: "number", default: 48, label: "Size" },
       strokeWidth: { type: "number", default: 4, label: "Stroke Width" },
-      duration: { type: "number", default: 1000, label: "Duration (ms)" },
+      duration: {
+        type: "number",
+        default: 1000,
+        label: "Duration (ms)",
+        // One revolution of the spinner: a ring with a progress does not turn.
+        appliesWhen: (values) => values.progress === undefined,
+      },
       color: { type: "text", default: "", label: "Color" },
+      decorative: { type: "boolean", default: false, label: "Decorative" },
+      accessibilityLabel: {
+        type: "text",
+        default: "",
+        label: "Accessibility Label",
+      },
     },
   },
   LinearProgress: {
@@ -384,7 +414,7 @@ export const feedback: Record<string, ComponentMetadata> = {
     props: {
       progress: {
         type: "number",
-        default: 0.6,
+        default: 0,
         label: "Progress (0-1)",
         // The indeterminate bar reports no value, to the eye or to a11y.
         appliesWhen: (values) => !values.indeterminate,
@@ -394,7 +424,7 @@ export const feedback: Record<string, ComponentMetadata> = {
         default: false,
         label: "Indeterminate",
       },
-      label: { type: "text", default: "60%", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       labelPosition: {
         type: "select",
         default: "right",
@@ -411,11 +441,12 @@ export const feedback: Record<string, ComponentMetadata> = {
           { label: "Inside", value: "inside" },
         ],
       },
-      width: { type: "text", default: "100%", label: "Width" },
+      width: { type: "text", default: "100%", label: "Width (e.g. 50%)" },
       // Empty is the library's own: 4, or 20 for an inside label.
       height: { type: "number", default: undefined, label: "Height" },
       color: { type: "text", default: "", label: "Color" },
       trackColor: { type: "text", default: "", label: "Track Color" },
+      decorative: { type: "boolean", default: false, label: "Decorative" },
     },
   },
   EmptyState: {
@@ -423,21 +454,55 @@ export const feedback: Record<string, ComponentMetadata> = {
     Component: EmptyState,
     props: {
       icon: { type: "icon", default: "inbox-outline", label: "Icon" },
-      title: { type: "text", default: "No items yet", label: "Title" },
-      description: {
-        type: "text",
-        default: "Items you add will show up here.",
-        label: "Description",
-      },
+      title: { type: "text", default: "", label: "Title" },
+      description: { type: "text", default: "", label: "Description" },
     },
   },
   Toast: {
     name: "Toast",
     Component: Button,
+    // Not a component, so no props table: these are the options of
+    // `toast.show`, which the example spreads into the call.
     props: {
-      message: { type: "text", default: "Changes saved", label: "Message" },
+      message: { type: "text", default: "", label: "Message" },
+      severity: {
+        type: "select",
+        // Left out, the toast is the neutral inverse surface.
+        default: undefined,
+        label: "Severity",
+        options: [
+          { label: "Default", value: undefined },
+          { label: "Success", value: "success" },
+          { label: "Info", value: "info" },
+          { label: "Warning", value: "warning" },
+          { label: "Error", value: "error" },
+        ],
+      },
+      variant: {
+        type: "select",
+        default: "contained",
+        label: "Variant",
+        options: [
+          { label: "Contained", value: "contained" },
+          { label: "Outlined", value: "outlined" },
+        ],
+      },
+      position: {
+        type: "select",
+        // The provider's own default.
+        default: "bottom-center",
+        label: "Position",
+        options: [
+          { label: "Top Left", value: "top-left" },
+          { label: "Top Center", value: "top-center" },
+          { label: "Top Right", value: "top-right" },
+          { label: "Bottom Left", value: "bottom-left" },
+          { label: "Bottom Center", value: "bottom-center" },
+          { label: "Bottom Right", value: "bottom-right" },
+        ],
+      },
       duration: { type: "number", default: 4000, label: "Duration (ms)" },
-      withAction: { type: "boolean", default: false, label: "With action" },
+      icon: { type: "icon", default: "", label: "Icon Override" },
     },
   },
   Collapse: {
@@ -451,6 +516,7 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       duration: { type: "number", default: 200, label: "Duration (ms)" },
       animateOpacity: { type: "boolean", default: true, label: "Fade" },
+      keepMounted: { type: "boolean", default: false, label: "Keep Mounted" },
     },
   },
   Portal: {

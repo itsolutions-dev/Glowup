@@ -291,8 +291,10 @@ interface BranchProps {
   shared: Shared;
 }
 
-/** One node and, when it is open, the branches under it. */
-const TreeBranch = React.memo(function TreeBranch({
+// One node and, when it is open, the branches under it. The function's name is
+// not `TreeBranch`: inside it that name would be the bare function, and the
+// recursion below would skip the memo.
+const TreeBranch = React.memo(function Branch({
   node,
   level,
   posInSet,
@@ -439,7 +441,9 @@ const TreeBranch = React.memo(function TreeBranch({
 
   return (
     <View
-      id={id}
+      // The ids are for the web (aria-labelledby, focus()): off it they would
+      // only add an instance-dependent value to every row.
+      id={isWeb ? id : undefined}
       style={isWeb ? styles.item : undefined}
       testID={shared.testID ? `${shared.testID}-item-${node.id}` : undefined}
       {...itemProps}
@@ -528,7 +532,7 @@ const TreeBranch = React.memo(function TreeBranch({
           </View>
         )}
         {iconNode}
-        <View style={styles.label} id={`${id}-label`}>
+        <View style={styles.label} id={isWeb ? `${id}-label` : undefined}>
           {labelNode}
         </View>
         {badgeNode}

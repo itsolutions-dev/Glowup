@@ -278,11 +278,7 @@ export * from "./components/Tooltip";
 export { default as TouchableRipple } from "./components/TouchableRipple";
 export * from "./components/TouchableRipple";
 export { default as Tree } from "./components/Tree";
-export type {
-  TreeProps,
-  TreeNode,
-  TreeRowState,
-} from "./components/Tree";
+export type { TreeProps, TreeNode, TreeRowState } from "./components/Tree";
 export { default as Typography } from "./components/Typography";
 export * from "./components/Typography";
 export {

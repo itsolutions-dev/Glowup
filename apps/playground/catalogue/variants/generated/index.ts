@@ -1,6 +1,7 @@
 // GENERATED — do not edit.
 // Built from .design-sync/previews by `npm run variants -w @its/glowup-playground`.
 import type { Variant } from "../types";
+import { variants as AbsoluteCenter } from "./AbsoluteCenter";
 import { variants as Accordion } from "./Accordion";
 import { variants as AppBar } from "./AppBar";
 import { variants as AspectRatio } from "./AspectRatio";
@@ -10,22 +11,28 @@ import { variants as Banner } from "./Banner";
 import { variants as Blink } from "./Blink";
 import { variants as Box } from "./Box";
 import { variants as Breadcrumbs } from "./Breadcrumbs";
+import { variants as Break } from "./Break";
 import { variants as Button } from "./Button";
 import { variants as ButtonGroup } from "./ButtonGroup";
 import { variants as CaptionValue } from "./CaptionValue";
 import { variants as Card } from "./Card";
 import { variants as Carousel } from "./Carousel";
+import { variants as Center } from "./Center";
 import { variants as Checkbox } from "./Checkbox";
 import { variants as CheckboxGroup } from "./CheckboxGroup";
 import { variants as Chip } from "./Chip";
 import { variants as ChipGroup } from "./ChipGroup";
 import { variants as CircularProgress } from "./CircularProgress";
+import { variants as Clipboard } from "./Clipboard";
+import { variants as CodeBlock } from "./CodeBlock";
 import { variants as Collapse } from "./Collapse";
 import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
 import { variants as Divider } from "./Divider";
+import { variants as Download } from "./Download";
 import { variants as Drawer } from "./Drawer";
+import { variants as Editable } from "./Editable";
 import { variants as EmptyState } from "./EmptyState";
 import { variants as Form } from "./Form";
 import { variants as FormControl } from "./FormControl";
@@ -45,12 +52,15 @@ import { variants as NavigationRail } from "./NavigationRail";
 import { variants as NumberField } from "./NumberField";
 import { variants as Pagination } from "./Pagination";
 import { variants as Paper } from "./Paper";
+import { variants as PasswordField } from "./PasswordField";
 import { variants as PinInput } from "./PinInput";
 import { variants as Portal } from "./Portal";
 import { variants as ProgressButton } from "./ProgressButton";
+import { variants as QrCode } from "./QrCode";
 import { variants as RadioButton } from "./RadioButton";
 import { variants as RadioGroup } from "./RadioGroup";
 import { variants as Rating } from "./Rating";
+import { variants as ScrollArea } from "./ScrollArea";
 import { variants as SearchBar } from "./SearchBar";
 import { variants as Select } from "./Select";
 import { variants as Skeleton } from "./Skeleton";
@@ -72,9 +82,13 @@ import { variants as ToggleButton } from "./ToggleButton";
 import { variants as ToggleButtonGroup } from "./ToggleButtonGroup";
 import { variants as Toolbar } from "./Toolbar";
 import { variants as TouchableRipple } from "./TouchableRipple";
+import { variants as Tree } from "./Tree";
 import { variants as Typography } from "./Typography";
+import { variants as Upload } from "./Upload";
+import { variants as Visible } from "./Visible";
 
 export const GENERATED_VARIANTS: Record<string, Variant[]> = {
+  AbsoluteCenter,
   Accordion,
   AppBar,
   AspectRatio,
@@ -84,22 +98,28 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Blink,
   Box,
   Breadcrumbs,
+  Break,
   Button,
   ButtonGroup,
   CaptionValue,
   Card,
   Carousel,
+  Center,
   Checkbox,
   CheckboxGroup,
   Chip,
   ChipGroup,
   CircularProgress,
+  Clipboard,
+  CodeBlock,
   Collapse,
   DataGrid,
   DatePicker,
   DateTimePicker,
   Divider,
+  Download,
   Drawer,
+  Editable,
   EmptyState,
   Form,
   FormControl,
@@ -119,12 +139,15 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   NumberField,
   Pagination,
   Paper,
+  PasswordField,
   PinInput,
   Portal,
   ProgressButton,
+  QrCode,
   RadioButton,
   RadioGroup,
   Rating,
+  ScrollArea,
   SearchBar,
   Select,
   Skeleton,
@@ -146,5 +169,8 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   ToggleButtonGroup,
   Toolbar,
   TouchableRipple,
+  Tree,
   Typography,
+  Upload,
+  Visible,
 };

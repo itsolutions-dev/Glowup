@@ -12,56 +12,75 @@ import {
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
+/** The Material type scale by name, then the M3 role names that name the same styles. */
+const TYPOGRAPHY_VARIANTS = [
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "subtitle1",
+  "subtitle2",
+  "body1",
+  "body2",
+  "button",
+  "caption",
+  "overline",
+  "displayLarge",
+  "displayMedium",
+  "displaySmall",
+  "headlineLarge",
+  "headlineMedium",
+  "headlineSmall",
+  "titleLarge",
+  "titleMedium",
+  "titleSmall",
+  "labelLarge",
+  "labelMedium",
+  "labelSmall",
+  "bodyLarge",
+  "bodyMedium",
+  "bodySmall",
+].map((value) => ({ label: value, value }));
+
 /** Foundations: 10 catalogue entries. */
 export const foundations: Record<string, ComponentMetadata> = {
   Typography: {
     name: "Typography",
     Component: Typography,
     props: {
-      children: {
-        type: "text",
-        default: "The quick brown fox",
-        label: "Text",
-      },
+      children: { type: "text", default: "", label: "Text" },
       variant: {
         type: "select",
-        default: "body1",
+        default: "h1",
         label: "Variant",
-        options: [
-          { label: "h1", value: "h1" },
-          { label: "h2", value: "h2" },
-          { label: "h3", value: "h3" },
-          { label: "h4", value: "h4" },
-          { label: "h5", value: "h5" },
-          { label: "h6", value: "h6" },
-          { label: "subtitle1", value: "subtitle1" },
-          { label: "subtitle2", value: "subtitle2" },
-          { label: "body1", value: "body1" },
-          { label: "body2", value: "body2" },
-          { label: "button", value: "button" },
-          { label: "caption", value: "caption" },
-          { label: "overline", value: "overline" },
-        ],
+        options: TYPOGRAPHY_VARIANTS,
       },
       color: {
         type: "select",
-        default: "",
+        default: undefined,
         label: "Color",
         options: [
-          { label: "Default", value: "" },
+          { label: "Default (onSurface)", value: undefined },
           { label: "Primary", value: "primary" },
           { label: "Secondary", value: "secondary" },
           { label: "Tertiary", value: "tertiary" },
           { label: "Error", value: "error" },
+          { label: "Success", value: "success" },
+          { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
           { label: "On surface variant", value: "onSurfaceVariant" },
+          { label: "Outline", value: "outline" },
         ],
       },
       fontSize: { type: "number", default: undefined, label: "Font size" },
       align: {
         type: "select",
-        default: "left",
+        default: undefined,
         label: "Align",
         options: [
+          { label: "Default", value: undefined },
           { label: "Left", value: "left" },
           { label: "Center", value: "center" },
           { label: "Right", value: "right" },
@@ -74,7 +93,6 @@ export const foundations: Record<string, ComponentMetadata> = {
   Divider: {
     name: "Divider",
     Component: Divider,
-    isContainer: true,
     props: {
       orientation: {
         type: "select",
@@ -87,9 +105,14 @@ export const foundations: Record<string, ComponentMetadata> = {
       },
       thickness: { type: "number", default: 1, label: "Thickness" },
       inset: { type: "number", default: 0, label: "Inset" },
+      contentSpacing: {
+        type: "number",
+        default: 16,
+        label: "Label spacing",
+      },
       children: {
         type: "text",
-        default: "OR",
+        default: "",
         label: "Label",
         // Horizontal only — a vertical rule takes no label.
         appliesWhen: (values) => values.orientation !== "vertical",
@@ -99,22 +122,15 @@ export const foundations: Record<string, ComponentMetadata> = {
   Paper: {
     name: "Paper",
     Component: Paper,
-    isContainer: true,
     props: {
       elevation: { type: "number", default: 1, label: "Elevation (0-5)" },
       outline: { type: "boolean", default: false, label: "Outline" },
       glow: { type: "boolean", default: false, label: "Glow" },
-      children: {
-        type: "text",
-        default: "Elevated surface content",
-        label: "Content",
-      },
     },
   },
   Card: {
     name: "Card",
     Component: Card,
-    isContainer: true,
     props: {
       variant: {
         type: "select",
@@ -127,10 +143,10 @@ export const foundations: Record<string, ComponentMetadata> = {
           { label: "Glow", value: "glow" },
         ],
       },
-      children: {
+      accessibilityLabel: {
         type: "text",
-        default: "This is a card content",
-        label: "Content",
+        default: "",
+        label: "Accessibility label",
       },
     },
   },
@@ -138,32 +154,33 @@ export const foundations: Record<string, ComponentMetadata> = {
     name: "CardTitle",
     Component: CardTitle,
     props: {
-      title: { type: "text", default: "Line 4", label: "Title" },
-      subtitle: {
-        type: "text",
-        default: "Scheduled maintenance",
-        label: "Subtitle",
+      title: { type: "text", default: "", label: "Title" },
+      subtitle: { type: "text", default: "", label: "Subtitle" },
+      titleNumberOfLines: {
+        type: "number",
+        default: 1,
+        label: "Title lines",
+      },
+      subtitleNumberOfLines: {
+        type: "number",
+        default: 2,
+        label: "Subtitle lines",
       },
     },
   },
   CardContent: {
     name: "CardContent",
     Component: CardContent,
-    isContainer: true,
     props: {
-      children: {
-        type: "text",
-        default: "Next service: 12 March",
-        label: "Content",
-      },
+      children: { type: "text", default: "", label: "Content" },
     },
   },
   CardCover: {
     name: "CardCover",
     Component: CardCover,
     props: {
-      ratio: { type: "number", default: 1.78, label: "Ratio (w / h)" },
-      alt: { type: "text", default: "Line 4", label: "Alt text" },
+      alt: { type: "text", default: "", label: "Alt text" },
+      ratio: { type: "number", default: 16 / 9, label: "Ratio (w / h)" },
     },
   },
   CardActions: {
@@ -186,8 +203,9 @@ export const foundations: Record<string, ComponentMetadata> = {
     name: "Icon",
     Component: Icon,
     props: {
-      source: { type: "icon", default: "camera", label: "Source (glyph)" },
-      size: { type: "number", default: 32, label: "Size" },
+      source: { type: "icon", default: "", label: "Source (glyph)" },
+      size: { type: "number", default: 24, label: "Size" },
+      color: { type: "text", default: "", label: "Color" },
       flipForRTL: { type: "boolean", default: false, label: "Flip for RTL" },
     },
   },
@@ -196,8 +214,11 @@ export const foundations: Record<string, ComponentMetadata> = {
     Component: TouchableRipple,
     props: {
       borderless: { type: "boolean", default: false, label: "Borderless" },
-      borderRadius: { type: "number", default: 12, label: "Border radius" },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
+      borderRadius: {
+        type: "number",
+        default: undefined,
+        label: "Border radius",
+      },
     },
   },
 };

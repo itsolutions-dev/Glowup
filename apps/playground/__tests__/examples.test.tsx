@@ -24,8 +24,13 @@ const Providers = ({ children }: { children: ReactNode }) => (
   </SafeAreaProvider>
 );
 
+// A React element held in a host prop (a list's empty component) carries its
+// owner fibre, which loops back on itself: leave that out of the dump.
 const json = async (node: ReactNode) =>
-  JSON.stringify((await render(<Providers>{node}</Providers>)).toJSON());
+  JSON.stringify(
+    (await render(<Providers>{node}</Providers>)).toJSON(),
+    (key, value) => (key === "_owner" ? undefined : value),
+  );
 
 // The examples that belong to a catalogue page. (A file that is not named after
 // one is an example of nothing: the catalogue test pins that none is left.)
@@ -71,9 +76,14 @@ describe("an example", () => {
   it.each(all)(
     "%s has a props object its controls can edit",
     (name, example) => {
+      const controls = ComponentRegistry[name].props;
+      // A page whose component has nothing to control (Portal) has no literal.
+      if (Object.keys(controls).length === 0) {
+        expect(readProps(example.source)).toBeNull();
+        return;
+      }
       const props = readProps(example.source);
       expect(props).not.toBeNull();
-      const controls = ComponentRegistry[name].props;
       for (const [key, value] of Object.entries(props as object)) {
         const control = controls[key];
         expect({ key, known: !!control }).toEqual({ key, known: true });

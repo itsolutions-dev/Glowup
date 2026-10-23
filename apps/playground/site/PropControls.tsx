@@ -218,27 +218,6 @@ const PropControl = ({
       );
     }
 
-    case "node":
-      // Declared by the catalogue but never renderable from a control: say so
-      // instead of rendering nothing, which is what the previous panel did and
-      // which reads as a missing control rather than an inapplicable one.
-      return (
-        <View style={styles.row}>
-          <Typography
-            variant="bodyMedium"
-            style={{ color: theme.colors.onSurface }}
-          >
-            {definition.label}
-          </Typography>
-          <Typography
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            set in the demo
-          </Typography>
-        </View>
-      );
-
     default:
       return (
         <Typography variant="labelSmall" style={{ color: theme.colors.error }}>

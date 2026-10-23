@@ -11,12 +11,6 @@ import {
   Toolbar,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
-import {
-  NavigationRailDemo,
-  DrawerDemo,
-  AppBarDemo,
-  ToolbarDemo,
-} from "../demos";
 
 /** The library's `ColorRole`s, for every `color` control of this module. */
 const COLOR_OPTIONS = [
@@ -30,13 +24,15 @@ const COLOR_OPTIONS = [
   { label: "Neutral", value: "neutral" },
 ];
 
-/** Navigation: 10 catalogue entries. */
+/**
+ * Navigation: 10 catalogue entries. Where the user is (`activeId`, `activeTab`,
+ * `activePage`, `activeStep`) is the example's own state, not a control.
+ */
 export const navigation: Record<string, ComponentMetadata> = {
   NavBar: {
     name: "NavBar",
     Component: NavBar,
     props: {
-      activeId: { type: "text", default: "home", label: "Active Id" },
       showLabels: {
         type: "select",
         default: "always",
@@ -52,7 +48,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     name: "Tabs",
     Component: Tabs,
     props: {
-      activeTab: { type: "number", default: 0, label: "Active Tab" },
       variant: {
         type: "select",
         default: "standard",
@@ -74,8 +69,8 @@ export const navigation: Record<string, ComponentMetadata> = {
         ],
       },
       fullWidth: { type: "boolean", default: true, label: "Full Width" },
-      height: { type: "number", default: 0, label: "Height (0 = auto)" },
-      width: { type: "number", default: 0, label: "Width (0 = auto)" },
+      height: { type: "number", default: undefined, label: "Height" },
+      width: { type: "number", default: undefined, label: "Width" },
       color: {
         type: "select",
         default: "primary",
@@ -84,26 +79,30 @@ export const navigation: Record<string, ComponentMetadata> = {
       },
     },
   },
+  // Its one real prop that is not a node or a style is `activeTab`, which the
+  // example's state owns: nothing to drive from a panel.
   TabContent: {
     name: "TabContent",
     Component: TabContent,
-    props: {
-      activeTab: { type: "number", default: 0, label: "Active tab" },
-    },
+    props: {},
   },
   Breadcrumbs: {
     name: "Breadcrumbs",
     Component: Breadcrumbs,
     props: {
-      maxItems: { type: "number", default: 0, label: "Max Items (0 = all)" },
+      maxItems: { type: "number", default: undefined, label: "Max Items" },
+      separator: {
+        type: "icon",
+        default: "chevron-right",
+        label: "Separator",
+      },
     },
   },
   Pagination: {
     name: "Pagination",
     Component: Pagination,
     props: {
-      activePage: { type: "number", default: 1, label: "Active Page" },
-      totalPages: { type: "number", default: 12, label: "Total Pages" },
+      totalPages: { type: "number", default: undefined, label: "Total Pages" },
       siblingCount: { type: "number", default: 1, label: "Sibling Count" },
       showFirstLast: {
         type: "boolean",
@@ -143,7 +142,6 @@ export const navigation: Record<string, ComponentMetadata> = {
     name: "Stepper",
     Component: Stepper,
     props: {
-      activeStep: { type: "number", default: 1, label: "Active Step" },
       direction: {
         type: "select",
         default: "row",
@@ -158,9 +156,8 @@ export const navigation: Record<string, ComponentMetadata> = {
   AppBar: {
     name: "AppBar",
     Component: AppBar,
-    Demo: AppBarDemo,
     props: {
-      title: { type: "text", default: "Orders", label: "Title" },
+      title: { type: "text", default: "", label: "Title" },
       subtitle: { type: "text", default: "", label: "Subtitle" },
       variant: {
         type: "select",
@@ -173,20 +170,14 @@ export const navigation: Record<string, ComponentMetadata> = {
           { label: "Large", value: "large" },
         ],
       },
-      elevated: {
-        type: "boolean",
-        default: false,
-        label: "Elevated (scrolled)",
-      },
+      elevated: { type: "boolean", default: false, label: "Elevated" },
       divider: { type: "boolean", default: false, label: "Divider" },
     },
   },
   NavigationRail: {
     name: "NavigationRail",
     Component: NavigationRail,
-    Demo: NavigationRailDemo,
     props: {
-      activeId: { type: "text", default: "home", label: "Active Id" },
       showLabels: {
         type: "select",
         default: "always",
@@ -206,13 +197,11 @@ export const navigation: Record<string, ComponentMetadata> = {
           { label: "Center", value: "center" },
         ],
       },
-      withFab: { type: "boolean", default: true, label: "Menu + FAB header" },
     },
   },
   Drawer: {
     name: "Drawer",
     Component: Drawer,
-    Demo: DrawerDemo,
     props: {
       variant: {
         type: "select",
@@ -234,12 +223,6 @@ export const navigation: Record<string, ComponentMetadata> = {
           { label: "Bottom", value: "bottom" },
         ],
       },
-      visible: {
-        type: "boolean",
-        default: false,
-        label: "Visible",
-        appliesWhen: (values) => values.variant === "swipeable",
-      },
       elevation: {
         type: "select",
         default: "",
@@ -254,7 +237,7 @@ export const navigation: Record<string, ComponentMetadata> = {
           { label: "5", value: 5 },
         ],
       },
-      title: { type: "text", default: "Mail", label: "Title" },
+      title: { type: "text", default: "", label: "Title" },
       collapsed: { type: "boolean", default: false, label: "Collapsed" },
       showCloseButton: {
         type: "boolean",
@@ -280,46 +263,40 @@ export const navigation: Record<string, ComponentMetadata> = {
   Toolbar: {
     name: "Toolbar",
     Component: Toolbar,
-    Demo: ToolbarDemo,
     props: {
       variant: {
         type: "select",
-        default: "floating",
+        default: "docked",
         label: "Variant",
         options: [
-          { label: "Floating", value: "floating" },
           { label: "Docked", value: "docked" },
+          { label: "Floating", value: "floating" },
         ],
       },
       color: {
-        ...{
-          type: "select",
-          default: "standard",
-          label: "Color",
-          options: [
-            { label: "Standard", value: "standard" },
-            { label: "Vibrant", value: "vibrant" },
-          ],
-        },
+        type: "select",
+        default: "standard",
+        label: "Color",
+        options: [
+          { label: "Standard", value: "standard" },
+          { label: "Vibrant", value: "vibrant" },
+        ],
         appliesWhen: (values) => values.variant === "floating",
       },
       orientation: {
-        ...{
-          type: "select",
-          default: "horizontal",
-          label: "Orientation",
-          options: [
-            { label: "Horizontal", value: "horizontal" },
-            { label: "Vertical", value: "vertical" },
-          ],
-        },
+        type: "select",
+        default: "horizontal",
+        label: "Orientation",
+        options: [
+          { label: "Horizontal", value: "horizontal" },
+          { label: "Vertical", value: "vertical" },
+        ],
         appliesWhen: (values) => values.variant === "floating",
       },
-      withFab: {
-        type: "boolean",
-        default: false,
-        label: "With FAB",
-        appliesWhen: (values) => values.variant === "floating",
+      accessibilityLabel: {
+        type: "text",
+        default: "",
+        label: "Accessibility Label",
       },
     },
   },

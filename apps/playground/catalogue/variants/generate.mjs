@@ -71,6 +71,8 @@ const EXCLUDED = new Set([
  */
 const PORTAL_OVERLAYS = new Set([
   "Dialog",
+  "AlertDialog",
+  "HoverCard",
   "ConfirmDialog",
   "BottomSheet",
   "Popover",
@@ -228,7 +230,8 @@ const convert = (source) => {
   // Import only what the converted file actually uses: an unused import is a
   // lint error, and not every preview has a layout wrapper or a style object.
   const needed = [
-    out.includes("<View") ? "View" : null,
+    // `<ViewportProvider` is not a View.
+    /<View[\s>]/.test(out) ? "View" : null,
     out.includes("ViewStyle") ? "type ViewStyle" : null,
   ].filter(Boolean);
 
@@ -253,8 +256,10 @@ const convert = (source) => {
 /** Exported preview functions, in the order the author wrote them. */
 const exportedVariants = (source) => {
   const found = [];
+  // The comment is the one right above the export: a body that may not hold
+  // `*/` keeps a comment above a helper from reaching down to the next export.
   const pattern =
-    /(\/\*\*([\s\S]*?)\*\/\s*)?export const ([A-Z][A-Za-z0-9]*)\s*=/g;
+    /(\/\*\*((?:(?!\*\/)[\s\S])*)\*\/\s*)?export const ([A-Z][A-Za-z0-9]*)\s*=/g;
   let match;
   while ((match = pattern.exec(source)) !== null) {
     const description = (match[2] ?? "")

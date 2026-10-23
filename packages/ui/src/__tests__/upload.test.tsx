@@ -373,6 +373,15 @@ describe("Upload on native", () => {
       ).toBeTruthy();
     });
 
+    it("an empty error prop does not hide them", async () => {
+      const { getByRole, getByText } = await pickFrom(
+        [picked("huge.png", 10_000)],
+        { maxSize: 1000, error: "" },
+      );
+      await fireEvent.press(getByRole("button", { name: "Choose files" }));
+      expect(getByText("huge.png is larger than 1000 B")).toBeTruthy();
+    });
+
     it("the message goes at the next pick that has nothing to reject", async () => {
       const batches = [[picked("huge.png", 10_000)], [picked("ok.png", 1)]];
       const { getByRole, queryByText } = await draw(

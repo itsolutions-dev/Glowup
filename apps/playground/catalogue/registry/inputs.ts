@@ -17,9 +17,11 @@ import {
   RadioButton,
   DatePicker,
   TimePicker,
+  PasswordField,
+  Editable,
+  Upload,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
-import { CheckboxGroupDemo, RatingDemo } from "../demos";
 
 /**
  * Which surface a DateTimePicker's `mode` puts up. A prop the other surface
@@ -82,68 +84,282 @@ const VARIANT = {
   ],
 };
 
+/**
+ * The field of every picker, whatever it is locked to. The library keeps the
+ * defaults of the picker's props in a hook, not in the component's
+ * destructuring, so the prop table shows none: these start empty or off.
+ * `value`, `onChange` and `selectionMode` (the shape of the value) are the
+ * example's state, not controls.
+ */
+const PICKER_FIELD = {
+  label: {
+    type: "text" as const,
+    default: "",
+    label: "Label",
+    appliesWhen: HAS_FIELD,
+  },
+  placeholder: {
+    type: "text" as const,
+    default: "",
+    label: "Placeholder",
+    appliesWhen: HAS_FIELD,
+  },
+  helperText: {
+    type: "text" as const,
+    default: "",
+    label: "Helper Text",
+    // Every field in the kit hides its helper text while an error shows.
+    appliesWhen: (values: Record<string, any>) =>
+      !values.error && HAS_FIELD(values),
+  },
+  error: {
+    type: "text" as const,
+    default: "",
+    label: "Error Message",
+    appliesWhen: HAS_FIELD,
+  },
+  required: {
+    type: "boolean" as const,
+    default: false,
+    label: "Required",
+    appliesWhen: HAS_FIELD,
+  },
+  clearable: {
+    type: "boolean" as const,
+    default: false,
+    label: "Clearable",
+    appliesWhen: HAS_FIELD,
+  },
+};
+
+const LOCALE = {
+  type: "select" as const,
+  default: "",
+  label: "Locale override",
+  options: [
+    { label: "Device", value: "" },
+    { label: "it-IT", value: "it-IT" },
+    { label: "en-US", value: "en-US" },
+    { label: "de-DE", value: "de-DE" },
+    { label: "ja-JP", value: "ja-JP" },
+    { label: "ar-EG", value: "ar-EG" },
+  ],
+};
+
+const SCROLL_MODE = {
+  type: "select" as const,
+  default: "endless",
+  label: "Month scrolling",
+  options: [
+    { label: "Endless", value: "endless" },
+    { label: "Paged", value: "paged" },
+  ],
+};
+
+const MINUTE_INTERVAL = {
+  type: "select" as const,
+  default: 1,
+  label: "Minute interval",
+  options: [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30].map((minutes) => ({
+    label: String(minutes),
+    value: minutes,
+  })),
+};
+
+const USE_24_HOUR_CLOCK = {
+  type: "boolean" as const,
+  default: false,
+  label: "Force 24h clock",
+};
+
+/** Which surface the dialog opens on. A static picker has no dialog. */
+const DEFAULT_INPUT_TYPE = {
+  type: "select" as const,
+  default: "picker",
+  label: "Opens on",
+  options: [
+    { label: "Calendar / clock", value: "picker" },
+    { label: "Typed entry", value: "keyboard" },
+  ],
+  appliesWhen: HAS_FIELD,
+};
+
+/**
+ * The controls of `Input`'s props. `PasswordField` is an Input with a few
+ * props taken away and a few added, so it offers the same controls for the ones
+ * it keeps.
+ */
+const INPUT_PROPS: ComponentMetadata["props"] = {
+  label: { type: "text", default: "", label: "Label" },
+  placeholder: { type: "text", default: "", label: "Placeholder" },
+  helperText: {
+    type: "text",
+    default: "",
+    label: "Helper Text",
+    // Every field in the kit hides its helper text while an error shows.
+    appliesWhen: (values) => !values.error,
+  },
+  error: { type: "text", default: "", label: "Error Message" },
+  leadingIcon: { type: "icon", default: "", label: "Leading icon" },
+  trailingIcon: { type: "icon", default: "", label: "Trailing icon" },
+  prefix: { type: "text", default: "", label: "Prefix" },
+  suffix: { type: "text", default: "", label: "Suffix" },
+  type: {
+    type: "select",
+    default: "text",
+    label: "Type",
+    options: [
+      { label: "Text", value: "text" },
+      { label: "Number", value: "number" },
+    ],
+  },
+  decimalSeparator: {
+    type: "select",
+    default: ".",
+    label: "Decimal separator",
+    options: [
+      { label: "Point (12.50)", value: "." },
+      { label: "Comma (12,50)", value: "," },
+    ],
+    // Only a number field has a decimal mark.
+    appliesWhen: (values) => values.type === "number",
+  },
+  precision: {
+    type: "number",
+    // Unset, like the component's own default: any number of decimals.
+    default: undefined,
+    label: "Precision (decimals)",
+    appliesWhen: (values) => values.type === "number",
+  },
+  maxLength: {
+    type: "number",
+    default: undefined,
+    label: "Max length",
+  },
+  variant: FIELD_VARIANT,
+  labelPlacement: LABEL_PLACEMENT,
+  density: {
+    type: "select",
+    default: "normal",
+    label: "Density",
+    options: [
+      { label: "Normal", value: "normal" },
+      { label: "Dense", value: "dense" },
+    ],
+  },
+  fullWidth: { type: "boolean", default: true, label: "Full width" },
+  multiline: { type: "boolean", default: false, label: "Multiline" },
+  rows: {
+    type: "number",
+    default: 4,
+    label: "Rows",
+    // Only a multiline field has lines to count.
+    appliesWhen: (values) => !!values.multiline,
+  },
+  required: { type: "boolean", default: false, label: "Required" },
+  disabled: { type: "boolean", default: false, label: "Disabled" },
+  readonly: { type: "boolean", default: false, label: "Read only" },
+  secureTextEntry: {
+    type: "boolean",
+    default: false,
+    label: "Secure text entry",
+  },
+  allUpperCase: { type: "boolean", default: false, label: "Upper case" },
+  reserveHelperText: {
+    type: "boolean",
+    default: false,
+    label: "Reserve helper line",
+  },
+};
+
+/** The controls of `source` named by `keys`. */
+const pick = (source: ComponentMetadata["props"], keys: string[]) =>
+  Object.fromEntries(keys.map((key) => [key, source[key]]));
+
 /** Inputs: 22 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
   Input: {
     name: "Input",
     Component: Input,
     props: {
-      label: { type: "text", default: "User Name", label: "Label" },
-      placeholder: {
-        type: "text",
-        default: "Enter name...",
-        label: "Placeholder",
+      ...INPUT_PROPS,
+    },
+  },
+  PasswordField: {
+    name: "PasswordField",
+    Component: PasswordField,
+    props: {
+      ...pick(INPUT_PROPS, [
+        "label",
+        "placeholder",
+        "helperText",
+        "error",
+        "leadingIcon",
+        "prefix",
+        "suffix",
+        "maxLength",
+        "variant",
+        "labelPlacement",
+        "density",
+        "fullWidth",
+        "required",
+        "disabled",
+        "readonly",
+        "reserveHelperText",
+      ]),
+      showToggle: { type: "boolean", default: true, label: "Show toggle" },
+      showStrength: {
+        type: "boolean",
+        default: false,
+        label: "Strength meter",
       },
-      value: { type: "text", default: "", label: "Value" },
-      variant: FIELD_VARIANT,
-      labelPlacement: LABEL_PLACEMENT,
-      fullWidth: { type: "boolean", default: true, label: "Full width" },
-      multiline: { type: "boolean", default: false, label: "Multiline" },
-      rows: {
-        type: "number",
-        default: 4,
-        label: "Rows",
-        // Only a multiline field has lines to count.
-        appliesWhen: (values) => !!values.multiline,
+      autoComplete: {
+        type: "select",
+        default: "current-password",
+        label: "Autofill",
+        options: [
+          { label: "Current password", value: "current-password" },
+          { label: "New password", value: "new-password" },
+        ],
       },
-      error: { type: "text", default: "", label: "Error Message" },
-      helperText: {
-        type: "text",
-        default: "",
-        label: "Helper Text",
-        // Every field in the kit hides its helper text while an error shows.
-        appliesWhen: (values) => !values.error,
-      },
-      required: { type: "boolean", default: false, label: "Required" },
-      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   Select: {
     name: "Select",
     Component: Select,
     props: {
-      label: { type: "text", default: "Country", label: "Label" },
-      value: { type: "text", default: "it", label: "Value" },
-      placeholder: { type: "text", default: "Select…", label: "Placeholder" },
-      variant: {
+      label: { type: "text", default: "", label: "Label" },
+      placeholder: {
+        type: "text",
+        default: "Select an option",
+        label: "Placeholder",
+      },
+      variant: FIELD_VARIANT,
+      labelPlacement: LABEL_PLACEMENT,
+      density: {
         type: "select",
-        default: "outlined",
-        label: "Variant",
+        default: "normal",
+        label: "Density",
         options: [
-          { label: "Outlined", value: "outlined" },
-          { label: "Filled", value: "filled" },
+          { label: "Normal", value: "normal" },
+          { label: "Dense", value: "dense" },
         ],
       },
-      labelPlacement: LABEL_PLACEMENT,
       fullWidth: { type: "boolean", default: true, label: "Full width" },
-      nullable: { type: "boolean", default: false, label: "Nullable" },
-      empty: { type: "boolean", default: false, label: "Empty options" },
-      emptyMessage: {
-        type: "text",
-        default: "No options",
-        label: "Empty message",
-        // Shown in place of the list, so only an empty list uses it.
-        appliesWhen: (values) => !!values.empty,
+      multiple: { type: "boolean", default: false, label: "Multiple" },
+      showAsChips: {
+        type: "boolean",
+        default: false,
+        label: "Show as chips",
+        // The chips are the selection of a multiple select.
+        appliesWhen: (values) => !!values.multiple,
+      },
+      nullable: {
+        type: "boolean",
+        default: false,
+        label: "Nullable",
+        // A multiple select can already uncheck every option.
+        appliesWhen: (values) => !values.multiple,
       },
       error: { type: "text", default: "", label: "Error Message" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
@@ -153,8 +369,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "Checkbox",
     Component: Checkbox,
     props: {
-      label: { type: "text", default: "Accept terms", label: "Label" },
-      checked: { type: "boolean", default: false, label: "Checked" },
+      label: { type: "text", default: "", label: "Label" },
       indeterminate: {
         type: "boolean",
         default: false,
@@ -176,9 +391,8 @@ export const inputs: Record<string, ComponentMetadata> = {
   CheckboxGroup: {
     name: "CheckboxGroup",
     Component: CheckboxGroup,
-    Demo: CheckboxGroupDemo,
     props: {
-      label: { type: "text", default: "Notify me about", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       direction: {
         type: "select",
         default: "column",
@@ -188,17 +402,22 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "Row", value: "row" },
         ],
       },
+      helperText: {
+        type: "text",
+        default: "",
+        label: "Helper Text",
+        // Every field in the kit hides its helper text while an error shows.
+        appliesWhen: (values) => !values.error,
+      },
+      error: { type: "text", default: "", label: "Error Message" },
       required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
-      error: { type: "text", default: "", label: "Error Message" },
     },
   },
   RadioButton: {
     name: "RadioButton",
     Component: RadioButton,
     props: {
-      selected: { type: "boolean", default: true, label: "Selected" },
-      label: { type: "text", default: "Single option", label: "Label" },
       labelPosition: {
         type: "select",
         default: "right",
@@ -216,8 +435,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "RadioGroup",
     Component: RadioGroup,
     props: {
-      label: { type: "text", default: "Choose one", label: "Label" },
-      value: { type: "text", default: "a", label: "Value" },
+      label: { type: "text", default: "", label: "Label" },
       direction: {
         type: "select",
         default: "column",
@@ -235,8 +453,7 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "Switch",
     Component: Switch,
     props: {
-      value: { type: "boolean", default: true, label: "Value" },
-      label: { type: "text", default: "Email notifications", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       labelPlacement: {
         type: "select",
         default: "end",
@@ -267,18 +484,18 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "Slider",
     Component: Slider,
     props: {
-      value: { type: "number", default: 40, label: "Value" },
       min: { type: "number", default: 0, label: "Min" },
       max: { type: "number", default: 100, label: "Max" },
-      // Not 0: a continuous slider is the duller half of this component and
-      // it left both this control and Marks doing nothing until you found the
-      // connection between them. 10 divides the default 0-100 range evenly and
-      // the default value of 40 sits on a step.
-      step: { type: "number", default: 10, label: "Step (0 = off)" },
-      label: { type: "text", default: "Volume", label: "Label" },
+      step: {
+        type: "number",
+        // Unset, like the component's own default: a continuous track.
+        default: undefined,
+        label: "Step (empty = continuous)",
+      },
+      label: { type: "text", default: "", label: "Label" },
       showValueLabel: {
         type: "boolean",
-        default: true,
+        default: false,
         label: "Show Value",
       },
       marks: {
@@ -295,17 +512,17 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "NumberField",
     Component: NumberField,
     props: {
-      label: { type: "text", default: "Loading...", label: "Label" },
-      value: { type: "number", default: 10, label: "Value" },
+      label: { type: "text", default: "", label: "Label" },
       min: { type: "number", default: 0, label: "Min" },
       max: { type: "number", default: 100, label: "Max" },
+      step: { type: "number", default: 1, label: "Step" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   SearchBar: {
     name: "SearchBar",
     Component: SearchBar,
     props: {
-      value: { type: "text", default: "", label: "Value" },
       placeholder: { type: "text", default: "Search", label: "Placeholder" },
       icon: { type: "icon", default: "magnify", label: "Icon" },
       debounceTime: { type: "number", default: 0, label: "Debounce (ms)" },
@@ -317,28 +534,22 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "Autocomplete",
     Component: Autocomplete,
     props: {
-      label: { type: "text", default: "Country", label: "Label" },
-      placeholder: {
-        type: "text",
-        default: "Start typing…",
-        label: "Placeholder",
-      },
+      label: { type: "text", default: "", label: "Label" },
+      placeholder: { type: "text", default: "", label: "Placeholder" },
       variant: FIELD_VARIANT,
       labelPlacement: LABEL_PLACEMENT,
       fullWidth: { type: "boolean", default: true, label: "Full width" },
       multiple: { type: "boolean", default: false, label: "Multiple" },
-      defaultOptions: {
-        type: "boolean",
-        default: false,
-        label: "Default options",
-      },
+      leadingIcon: { type: "icon", default: "", label: "Leading icon" },
       minChars: { type: "number", default: 1, label: "Min Chars" },
       loading: { type: "boolean", default: false, label: "Loading" },
-      emptyMessage: {
-        type: "text",
-        default: "No match",
-        label: "Empty Message",
+      allowCustomValue: {
+        type: "boolean",
+        default: true,
+        label: "Allow custom value",
       },
+      clearable: { type: "boolean", default: true, label: "Clearable" },
+      emptyMessage: { type: "text", default: "", label: "Empty Message" },
       helperText: {
         type: "text",
         default: "",
@@ -347,6 +558,7 @@ export const inputs: Record<string, ComponentMetadata> = {
         appliesWhen: (values) => !values.error,
       },
       error: { type: "text", default: "", label: "Error Message" },
+      required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -354,8 +566,9 @@ export const inputs: Record<string, ComponentMetadata> = {
     name: "PinInput",
     Component: PinInput,
     props: {
-      label: { type: "text", default: "Verification code", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       length: { type: "number", default: 6, label: "Length" },
+      cellSize: { type: "number", default: 48, label: "Cell size" },
       variant: {
         type: "select",
         default: "outlined",
@@ -377,23 +590,81 @@ export const inputs: Record<string, ComponentMetadata> = {
       mask: { type: "boolean", default: false, label: "Mask" },
       helperText: {
         type: "text",
-        default: "Paste the whole code into any cell",
+        default: "",
         label: "Helper Text",
         // Every field in the kit hides its helper text while an error shows.
         appliesWhen: (values) => !values.error,
       },
       error: { type: "text", default: "", label: "Error Message" },
+      required: { type: "boolean", default: false, label: "Required" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  Editable: {
+    name: "Editable",
+    Component: Editable,
+    props: {
+      type: {
+        type: "select",
+        default: "text",
+        label: "Type",
+        options: [
+          { label: "Text", value: "text" },
+          { label: "Textarea", value: "textarea" },
+          { label: "Number", value: "number" },
+          { label: "Select", value: "select" },
+        ],
+      },
+      placeholder: { type: "text", default: "Edit", label: "Placeholder" },
+      submitMode: {
+        type: "select",
+        default: "both",
+        label: "Submit mode",
+        options: [
+          { label: "Enter or blur", value: "both" },
+          { label: "Blur", value: "blur" },
+          { label: "Enter", value: "enter" },
+          { label: "Buttons only", value: "none" },
+        ],
+      },
+      showControls: { type: "boolean", default: false, label: "Show buttons" },
+      selectAllOnFocus: {
+        type: "boolean",
+        default: false,
+        label: "Select all on focus",
+        // A dropdown has no text to select.
+        appliesWhen: (values) => values.type !== "select",
+      },
+      precision: {
+        type: "number",
+        // Unset, like the component's own default: any number of decimals.
+        default: undefined,
+        label: "Precision (decimals)",
+        appliesWhen: (values) => values.type === "number",
+      },
+      variant: FIELD_VARIANT,
+      size: {
+        type: "select",
+        default: "medium",
+        label: "Size",
+        options: [
+          { label: "Small", value: "small" },
+          { label: "Medium", value: "medium" },
+          { label: "Large", value: "large" },
+        ],
+      },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+      readOnly: { type: "boolean", default: false, label: "Read only" },
     },
   },
   FormControl: {
     name: "FormControl",
     Component: FormControl,
     props: {
-      label: { type: "text", default: "Notifications", label: "Label" },
+      label: { type: "text", default: "", label: "Label" },
       helperText: {
         type: "text",
-        default: "We only email about incidents.",
+        default: "",
         label: "Helper Text",
         // Every field in the kit hides its helper text while an error shows.
         appliesWhen: (values) => !values.error,
@@ -411,12 +682,6 @@ export const inputs: Record<string, ComponentMetadata> = {
       variant: VARIANT,
       presentation: PRESENTATION,
       fieldVariant: FIELD_VARIANT_PICKER,
-      label: {
-        type: "text",
-        default: "Pick a date",
-        label: "Label",
-        appliesWhen: HAS_FIELD,
-      },
       mode: {
         type: "select",
         default: "date",
@@ -427,113 +692,12 @@ export const inputs: Record<string, ComponentMetadata> = {
           { label: "Time", value: "time" },
         ],
       },
-      selectionMode: {
-        type: "select",
-        default: "single",
-        label: "Selection",
-        options: [
-          { label: "Single", value: "single" },
-          { label: "Range", value: "range" },
-          { label: "Multiple", value: "multiple" },
-        ],
-        // A time picker always collects one instant; the library forces
-        // "single" behind your back rather than honouring this.
-        appliesWhen: (values) => values.mode !== "time",
-      },
-      scrollMode: {
-        type: "select",
-        default: "endless",
-        label: "Month scrolling",
-        options: [
-          { label: "Endless", value: "endless" },
-          { label: "Paged", value: "paged" },
-        ],
-        appliesWhen: HAS_CALENDAR,
-      },
-      locale: {
-        type: "select",
-        default: "",
-        label: "Locale override",
-        options: [
-          { label: "Device", value: "" },
-          { label: "it-IT", value: "it-IT" },
-          { label: "en-US", value: "en-US" },
-          { label: "de-DE", value: "de-DE" },
-          { label: "ja-JP", value: "ja-JP" },
-          { label: "ar-EG", value: "ar-EG" },
-        ],
-      },
-      minuteInterval: {
-        type: "select",
-        default: 1,
-        label: "Minute interval",
-        options: [
-          { label: "1", value: 1 },
-          { label: "5", value: 5 },
-          { label: "15", value: 15 },
-          { label: "30", value: 30 },
-        ],
-        appliesWhen: HAS_CLOCK,
-      },
-      placeholder: {
-        type: "text",
-        default: "No date selected",
-        label: "Placeholder",
-        appliesWhen: HAS_FIELD,
-      },
-      helperText: {
-        type: "text",
-        default: "",
-        label: "Helper Text",
-        // Every field in the kit hides its helper text while an error shows.
-        appliesWhen: (values) => !values.error && HAS_FIELD(values),
-      },
-      error: {
-        type: "text",
-        default: "",
-        label: "Error Message",
-        appliesWhen: HAS_FIELD,
-      },
-      required: {
-        type: "boolean",
-        default: false,
-        label: "Required",
-        appliesWhen: HAS_FIELD,
-      },
-      clearable: {
-        type: "boolean",
-        default: true,
-        label: "Clearable",
-        appliesWhen: HAS_FIELD,
-      },
-      inputEnabled: {
-        type: "boolean",
-        default: true,
-        label: "Typed entry",
-        // The keyboard surface is only offered for one plain date.
-        appliesWhen: (values) =>
-          HAS_FIELD(values) &&
-          values.mode === "date" &&
-          values.selectionMode === "single",
-      },
-      use24HourClock: {
-        type: "boolean",
-        default: false,
-        label: "Force 24h clock",
-        appliesWhen: HAS_CLOCK,
-      },
-      limitToThisMonth: {
-        type: "boolean",
-        default: false,
-        label: "Min/max = this month",
-        appliesWhen: HAS_CALENDAR,
-      },
-      noWeekends: {
-        type: "boolean",
-        default: false,
-        label: "Disable weekends",
-        appliesWhen: HAS_CALENDAR,
-      },
+      ...PICKER_FIELD,
+      locale: LOCALE,
+      scrollMode: { ...SCROLL_MODE, appliesWhen: HAS_CALENDAR },
+      minuteInterval: { ...MINUTE_INTERVAL, appliesWhen: HAS_CLOCK },
+      use24HourClock: { ...USE_24_HOUR_CLOCK, appliesWhen: HAS_CLOCK },
+      defaultInputType: DEFAULT_INPUT_TYPE,
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -545,12 +709,11 @@ export const inputs: Record<string, ComponentMetadata> = {
       variant: VARIANT,
       presentation: PRESENTATION,
       fieldVariant: FIELD_VARIANT_PICKER,
-      label: {
-        type: "text",
-        default: "Service date",
-        label: "Label",
-        appliesWhen: HAS_FIELD,
-      },
+      ...PICKER_FIELD,
+      locale: LOCALE,
+      scrollMode: SCROLL_MODE,
+      defaultInputType: DEFAULT_INPUT_TYPE,
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   TimePicker: {
@@ -561,20 +724,18 @@ export const inputs: Record<string, ComponentMetadata> = {
       variant: VARIANT,
       presentation: PRESENTATION,
       fieldVariant: FIELD_VARIANT_PICKER,
-      label: {
-        type: "text",
-        default: "Service time",
-        label: "Label",
-        appliesWhen: HAS_FIELD,
-      },
+      ...PICKER_FIELD,
+      locale: LOCALE,
+      minuteInterval: MINUTE_INTERVAL,
+      use24HourClock: USE_24_HOUR_CLOCK,
+      defaultInputType: DEFAULT_INPUT_TYPE,
+      disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
   Rating: {
     name: "Rating",
     Component: Rating,
-    Demo: RatingDemo,
     props: {
-      value: { type: "number", default: 3.5, label: "Value" },
       max: { type: "number", default: 5, label: "Max" },
       size: { type: "number", default: 24, label: "Size" },
       interval: {
@@ -597,15 +758,49 @@ export const inputs: Record<string, ComponentMetadata> = {
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
+  Upload: {
+    name: "Upload",
+    Component: Upload,
+    props: {
+      label: { type: "text", default: "", label: "Label" },
+      prompt: { type: "text", default: "", label: "Prompt" },
+      accept: {
+        type: "text",
+        default: "",
+        label: "Accept (image/*,.pdf)",
+      },
+      multiple: { type: "boolean", default: false, label: "Multiple" },
+      // Unset: no size limit.
+      maxSize: {
+        type: "number",
+        default: undefined,
+        label: "Max Size (bytes)",
+      },
+      // Only a list that takes several files has a limit to reach.
+      maxFiles: {
+        type: "number",
+        default: undefined,
+        label: "Max Files (with Multiple)",
+      },
+      variant: {
+        type: "select",
+        default: "dropzone",
+        label: "Variant",
+        options: [
+          { label: "Dropzone", value: "dropzone" },
+          { label: "Button", value: "button" },
+        ],
+      },
+      helperText: { type: "text", default: "", label: "Helper Text" },
+      error: { type: "text", default: "", label: "Error" },
+      disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
   HelperText: {
     name: "HelperText",
     Component: HelperText,
     props: {
-      children: {
-        type: "text",
-        default: "Maximum 8 characters",
-        label: "Text",
-      },
+      children: { type: "text", default: "", label: "Text" },
       type: {
         type: "select",
         default: "info",

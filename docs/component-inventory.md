@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 99 componenti.
+Ora: versione 0.11.1, 116 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,28 +11,45 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 11 | 117 |
-| Aggiornati | 52 | 648 |
-| Tenuti (invariati) | 36 | 212 |
+| Aggiunti | 27 | 351 |
+| Aggiornati | 54 | 694 |
+| Tenuti (invariati) | 35 | 211 |
 
 ## Aggiunti
 
+- [AbsoluteCenter](#absolutecenter)
+- [AlertDialog](#alertdialog)
 - [Blink](#blink)
+- [Break](#break)
 - [CaptionValue](#captionvalue)
 - [CheckboxGroup](#checkboxgroup)
+- [Clipboard](#clipboard)
+- [CodeBlock](#codeblock)
 - [Dialog](#dialog)
+- [Download](#download)
 - [Drawer](#drawer)
+- [Editable](#editable)
 - [Form](#form)
+- [FormField](#formfield)
+- [HighlightedCode](#highlightedcode)
+- [HoverCard](#hovercard)
 - [IFrame](#iframe)
 - [NavBar](#navbar)
 - [NumberField](#numberfield)
+- [PasswordField](#passwordfield)
+- [QrCode](#qrcode)
+- [ScrollArea](#scrollarea)
 - [Switch](#switch)
+- [Tree](#tree)
+- [Upload](#upload)
 - [ViewportProvider](#viewportprovider)
+- [Visible](#visible)
 
 ## Aggiornati
 
 - [Accordion](#accordion): + expanded, icon, onClick, variant · − onPress, startExpanded
 - [AppBar](#appbar): + actions, divider, elevated, leading, paper, safeArea, style, subtitle, testID, title, variant · ~ navigation, options, route
+- [AspectRatio](#aspectratio): + align, background, borderColor, borderWidth, children, gap, justify, margin, padding, radius, style, variant, width, wrap
 - [Autocomplete](#autocomplete): comportamento · + onChange, allowCustomValue, debounce, defaultOptions, fullWidth, labelPlacement, multiple, onSearch, onSelectedChange, selected, variant · ~ filter · − onChangeText, onSelect
 - [Avatar](#avatar): + onClick · ~ size · − onPress
 - [Badge](#badge): + color, position
@@ -42,6 +59,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Button](#button): comportamento · + badge, color, density, onClick, type, variant · ~ iconPosition · − mode, onPress, tone
 - [Card](#card): + onClick · − onPress
 - [CardTitle](#cardtitle): + endIcon, startIcon · − left, right
+- [Center](#center): + align, background, children, direction, justify, margin, padding, style · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
 - [ChipGroup](#chipgroup): + onChange, multiple, variant · − onValueChange, mode, multiSelect
 - [CircularProgress](#circularprogress): + label, labelPosition, trackColor
@@ -55,7 +73,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Grid](#grid): + autoSize, children, container, size, style, wrap · ~ columns, spacing · − minChildWidth
 - [HStack](#hstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 - [IconButton](#iconbutton): + badge, color, onClick, title, variant · − mode, onPress
-- [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, fullWidth, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
+- [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, endAdornment, fullWidth, inputProps, inputRef, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
 - [LinearProgress](#linearprogress): + label, labelPosition, width · ~ height
 - [ListItem](#listitem): comportamento · + primaryText, action, dimmed, disabled, icon, indicatorColor, onClick, primaryTextStyle, secondaryText, secondaryTextStyle, testID, trailingWidth · − children, itemSecondaryTextStyle, itemTextStyle, leading, onPress, secondary, trailing
 - [Menu](#menu): + onClose, anchorPosition, dividers, onClick, selected · − onDismiss
@@ -68,7 +86,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
 - [Select](#select): comportamento · + onChange, density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable · − onSelect, multiSelect
 - [Snackbar](#snackbar): comportamento · + onClose, position, severity, variant · ~ action, onDismiss · − type
-- [Stack](#stack): + dividers · ~ spacing
+- [Stack](#stack): + align, background, borderColor, borderWidth, children, dividers, height, justify, margin, padding, radius, style, width, wrap · ~ spacing
 - [Stat](#stat): + direction, trendColor · − invertTrendColors
 - [StatusBadge](#statusbadge): + toneFrom
 - [Stepper](#stepper): + direction, onClick · − onStepPress
@@ -86,7 +104,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ## Tenuti
 
-[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [AspectRatio](#aspectratio) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
+[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
 
 ## Altre aggiunte (non componenti)
 
@@ -108,6 +126,37 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 # Componenti aggiunti
 
+### AbsoluteCenter
+
+`packages/ui/src/components/Layout/AbsoluteCenter.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| axis | `"both" \| "horizontal" \| "vertical"` | "both" |  | Which axis the child is centred on. On the other axis it keeps its normal place (the start, or the full width of a vertically centred child). Defaults to `"both"`. |
+| children | `React.ReactNode` |  |  |  |
+
+### AlertDialog
+
+`packages/ui/src/components/Dialog/AlertDialog.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| visible * | `boolean` |  |  | Whether the dialog is on screen. |
+| actionText | `string` | "OK" |  | Label of the primary action. Defaults to `"OK"`. |
+| cancelText | `string` |  |  | Label of the secondary action, drawn before the primary one. Left out, the alert has the primary action only. |
+| children | `React.ReactNode` |  |  | More body under the `message`, or in its place: a string or any node. |
+| destructive | `boolean` | false |  | Draws the primary action in the error tone (delete, discard). |
+| disableBackdropClick | `boolean` | true |  | Keeps a click on the backdrop from calling `onCancel`: an alert needs an answer. Set `false` to let it dismiss. Defaults to `true`. |
+| disableEscapeKeyDown | `boolean` | true |  | Keeps Escape (web) and Android back from calling `onCancel`. Set `false` to let them dismiss. Defaults to `true`. |
+| loading | `boolean` | false |  | The primary action shows a spinner and does nothing, the secondary one is disabled, and the alert stays until `visible` goes down: dismissing it is off while it works. |
+| message | `string` |  |  | What the alert says. With the `children`, it is the dialog's accessible description. |
+| onAction | `() => void` |  |  | Called when the primary action is pressed. |
+| onCancel | `() => void` |  |  | Called when the secondary action is pressed, and when the backdrop, Escape or Android back dismiss the alert (once enabled). |
+| severity | `AlertDialogSeverity` |  |  | Puts a status icon above the title, in the colour of the status role. Left out, no icon. |
+| slotStyles | `DialogSlotStyles` |  |  | As `Dialog`; `actions` covers the buttons and `title` the headline. |
+| testID | `string` | "alert-dialog" |  | Root testID. The buttons get `${testID}-cancel` and `${testID}-action`. Defaults to `"alert-dialog"`. |
+| title | `string` |  |  | The headline. It is the dialog's accessible name. |
+
 ### Blink
 
 `packages/ui/src/components/Blink.tsx`
@@ -121,6 +170,20 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 
+### Break
+
+`packages/ui/src/components/Layout/Break.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| block | `SpacingValue` |  |  | Breaks out on both vertical edges: a spacing token or px. |
+| blockEnd | `SpacingValue` |  |  | Breaks out at the bottom; wins over `block`. |
+| blockStart | `SpacingValue` |  |  | Breaks out at the top; wins over `block`. |
+| children | `React.ReactNode` |  |  |  |
+| inline | `SpacingValue` |  |  | Breaks out on both horizontal edges: a spacing token or px. |
+| inlineEnd | `SpacingValue` |  |  | Breaks out at the end edge (right in LTR); wins over `inline`. |
+| inlineStart | `SpacingValue` |  |  | Breaks out at the start edge (left in LTR); wins over `inline`. |
+
 ### CaptionValue
 
 `packages/ui/src/components/CaptionValue.tsx`
@@ -130,15 +193,16 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | caption | `React.ReactNode` |  |  | The label: "Phone", "Due date". Text, or any node. |
 | captionColor | `ThemeColor` |  |  | A theme colour token (`"primary"`, `"onSurfaceVariant"`, ...) or any colour string. Defaults to `onSurfaceVariant`. |
 | captionStyle | `StyleProp<TextStyle>` |  |  |  |
+| copy | `ClipboardWriter` |  |  | Writes the copied text: `expo-clipboard`'s `setStringAsync` on native, or your own on web. On web it defaults to `navigator.clipboard.writeText`. |
 | direction | `"column" \| "row"` | "column" |  | `"column"` stacks the caption over the value, `"row"` puts them side by side. |
-| enableCopy | `boolean` | false |  | Shows a small copy button after the value, for a text or number value (a node has nothing to copy). On web it writes the value to the clipboard (`navigator.clipboard`); the library has no clipboard dependency, so on native the button is shown only with an `onCopy` that does the copying. The button's icon changes to a check for a moment, and "Copied" is announced, once the value is copied. |
+| enableCopy | `boolean` | false |  | Shows a small copy button (a `Clipboard`) after the value, for a text or number value (a node has nothing to copy). On web it writes the value to the clipboard (`navigator.clipboard`); the library has no clipboard dependency, so on native the button is shown only with a `copy` writer or an `onCopy` that does the copying. The button's icon changes to a check for a moment, and "Copied" is announced, once the value is copied. |
 | fallback | `React.ReactNode` | "N/A" |  | Drawn when `value` is empty (`null`, `undefined`, `""` or `false`; `0` is a value). Defaults to `"N/A"`. |
 | flex | `number` |  |  | Flex of the pair in its parent. |
 | gap | `number` | 4 |  | Space between the caption and the value, in px. Defaults to 4. |
 | height | `DimensionValue` |  |  | Height of the pair. |
 | numberOfLines | `number` | 1 |  | Lines the value may use before it is cut with an ellipsis; `0` is no limit. Defaults to 1. |
 | omitCaption | `boolean` | false |  | Draws no caption at all, instead of an empty line. |
-| onCopy | `(value: string) => void` |  |  | Called with the value as text when the copy button is pressed. On native it is where the app copies it (`Clipboard.setStringAsync` from `expo-clipboard`); on web it is called after the clipboard write succeeded. |
+| onCopy | `(value: string) => void` |  |  | Called with the value as text after it was copied. Without a `copy` writer it is, on native, where the app copies it; on web it is called after the clipboard write succeeded. |
 | padding | `number` |  |  | Padding around the pair, in px. |
 | reverse | `boolean` | false |  | Puts the value before the caption. |
 | showTooltip | `boolean` | false |  | Wraps a text or number value in a `Tooltip` with the value as its content: the value in full, for when `numberOfLines` cuts it. |
@@ -169,6 +233,46 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 
+### Clipboard
+
+`packages/ui/src/components/Clipboard.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| value * | `string` |  |  | The text a press copies. |
+| children | `\| React.ReactNode \| ((state: { copied: boolean; copy: () => Promise<boolean>; }) => React.ReactNode)` |  |  | Draws your own trigger instead of the default icon button. A node is the content of a pressable (a button inside it would nest buttons: draw the trigger yourself for that); a function gets `{ copied, copy }`, `copy` copying `value`, and is drawn as returned, the trigger being yours. |
+| color | `ColorRole` |  |  | Colour role of the default `IconButton`. The confirmation is always `success`. |
+| copiedLabel | `string` | "Copied" |  | Accessible label of the trigger after the copy, also announced to screen readers. Defaults to `"Copied"`. |
+| copy | `ClipboardWriter` |  |  | Writes the text. On web it defaults to `navigator.clipboard.writeText` (with an `execCommand("copy")` fallback). On native there is no default: pass one (`expo-clipboard`'s `setStringAsync`), or the trigger is drawn only with an `onCopy` that does the copying, and nothing without either. |
+| disabled | `boolean` |  |  |  |
+| label | `string` | "Copy" |  | Accessible label of the trigger before the copy. Defaults to `"Copy"`. |
+| onCopy | `(value: string) => void` |  |  | Called with `value` after it was copied. |
+| size | `IconButtonSize` | "large" |  | Size of the default `IconButton`. Defaults to `"large"`, the 48 dp touch target; `"small"` suits a button beside a value. |
+| style | `StyleProp<ViewStyle>` |  |  | Style of the trigger. |
+| testID | `string` |  |  |  |
+| timeout | `number` |  |  | How long the confirmation (the check, `copied`) shows, in ms. Defaults to 1500. |
+| variant | `IconButtonVariant` | "standard" |  | Container style of the default `IconButton`. Defaults to `"standard"`. |
+
+### CodeBlock
+
+`packages/ui/src/components/CodeBlock.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| code * | `string` |  |  | The source to show. |
+| accessibilityLabel | `string` |  |  | Read by screen readers as the name of the block. Defaults to the title, or "{LANGUAGE} code". |
+| copy | `ClipboardWriter` |  |  | Writes the copied text: `expo-clipboard`'s `setStringAsync` on native. On web it defaults to `navigator.clipboard.writeText`. |
+| copyable | `boolean` | true |  | Shows a copy button in the header. On web it works as is; on native it is drawn only with a `copy` writer or an `onCopy`. Defaults to `true`. |
+| highlightLines | `number[]` |  |  | Lines to mark with a band and an accent edge, counted from 1. |
+| language | `CodeLanguage` | "tsx" |  | What it is written in, for the colours. Defaults to `"tsx"`. |
+| maxHeight | `DimensionValue` |  |  | Height of the block's body before it scrolls vertically. Left out, it grows with the code. |
+| onCopy | `(code: string) => void` |  |  | Called with the code after the copy button copied it. |
+| showLineNumbers | `boolean` | false |  | Numbers the lines, in a gutter that is not selected with the code. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| title | `string` |  |  | Shown above the snippet: a file name, or what it is for. Defaults to the language's name. |
+| wrap | `boolean` | false |  | Wraps long lines instead of scrolling the block sideways. |
+
 ### Dialog
 
 `packages/ui/src/components/Dialog/Dialog.tsx`
@@ -181,20 +285,44 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | animationType | `"none" \| "slide" \| "fade"` | "fade" |  |  |
 | closeIcon | `MaterialCommunityIconsGlyphs \| React.ReactElement \| false` | "close" |  | The close icon in the header, shown while `onClose` is set: a glyph name, your own element, or `false` to hide it. Hidden, a dialog without `actions` falls back to a text button labelled `closeText`. Defaults to `"close"`. |
 | closeText | `string` | "Close" |  | Accessible name of the close icon, and the label of the fallback close button. |
+| describedBy | `string` |  |  | The `nativeID` of the element that describes the dialog (an alert's message), set as `aria-describedby`. Only used with `role`. |
 | disableBackdropClick | `boolean` | false |  | Keeps a click on the backdrop from calling `onClose`. Defaults to `false`. |
 | disableEscapeKeyDown | `boolean` | false |  | Keeps Escape (web) and Android back from calling `onClose`. Turn it on for a decision the user must not be able to skip. Defaults to `false`. |
 | form | `boolean` | false |  | Wraps the body and the `actions` in a `Form`, so a `Button type="submit"` in `actions` (or Enter in a field, on the web) calls `onSubmit`. In a `fullScreen` dialog the header is inside it too. |
 | fullScreen | `boolean` | false |  | The M3 full-screen dialog, for a form on a compact window: it fills the window, with a close button, the title and `actions` in a header row and a scrolling body. Defaults to `false`. |
 | height | `number \| `${number}%`` |  |  | A fixed height for the dialog card, in px or as a percentage of the window (`"60%"`). The body scrolls when the content is taller. The card never grows past 90% of the window. Ignored by `fullScreen`. |
 | icon | `IconSource` |  |  | Hero glyph above the title (M3 dialog icon). Centres the header. |
+| initialFocus | `"auto" \| "actions"` | "auto" |  | Web: where focus goes once the dialog is open. `"auto"` leaves it to the modal's focus trap, which takes the first focusable element (the close icon, or a field in the body). `"actions"` focuses the first control of the `actions` row, so an alert starts on its least destructive button. Ignored by `fullScreen`. Defaults to `"auto"`. |
 | onClose | `() => void` |  |  | Asks the dialog to close: called by the close icon, a click on the backdrop, Escape (web) and Android back. Without it the dialog has no way to close itself, so `visible` stays up to the app. |
 | onSubmit | `() => void` |  |  | Called when the `form` is submitted. Only used with `form`. |
+| role | `"dialog" \| "alertdialog"` |  |  | The ARIA role of the card, for the web and for screen readers elsewhere. `"alertdialog"` marks a dialog that interrupts to ask for an answer (see `AlertDialog`); the title then names the card. Left out, the card has no role of its own and react-native-web's modal supplies `dialog`. |
 | scrollable | `boolean` | false |  | Scrolls the body when the content is taller than the dialog. |
 | slotStyles | `DialogSlotStyles` |  |  | Style overrides for the parts of the dialog, merged after its own styles. |
 | testID | `string` | "dialog" |  | Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`. |
 | title | `string` |  |  |  |
 | transparent | `boolean` | true |  |  |
 | width | `DialogWidth` | "md" |  | How wide the dialog may grow on a wide window: `"xs"` 360, `"sm"` 480, `"md"` 560, `"lg"` 800. Defaults to `"md"`. Ignored by `fullScreen`. |
+
+### Download
+
+`packages/ui/src/components/Download.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children | `\| React.ReactNode \| ((state: { download: () => Promise<boolean>; downloading: boolean; }) => React.ReactNode)` |  |  | The button's label, `"Download"` if left out. A function draws your own trigger instead of the button: it gets `{ download, downloading }`, `download` saving this file, and is drawn as returned. |
+| color | `ColorRole` | "primary" |  | The button's colour role. Defaults to `"primary"`. |
+| data | `string \| object \| Blob` |  |  | The content: a string (saved as text), an object (saved as JSON) or a `Blob` (any binary file). Wins over `url` when both are given. |
+| disabled | `boolean` |  |  |  |
+| filename | `string` |  |  | The saved file's name. Defaults to the last part of `url`, else `download` (`download.json`, `download.txt` for `data`). |
+| icon | `MaterialCommunityIconsGlyphs` | "download" |  | The button's icon. Defaults to `"download"`. |
+| mimeType | `string` |  |  | The media type. Defaults to the one the extension of `filename` tells, else `application/json` for an object, `text/plain` for a string, the `Blob`'s own type or the response's. |
+| onDownload | `(file: DownloadFile) => void` |  |  | Called with the file after it was saved. |
+| onError | `(error: Error) => void` |  |  | Called when fetching or saving failed. |
+| save | `DownloadSaver` |  |  | Saves the file. On web it defaults to a temporary `<a download>` link; on native to the system share sheet with the text (or the link), which is enough for text and links. Pass one to write real files (`expo-file-system` + `expo-sharing`) and for a `Blob`. |
+| style | `StyleProp<ViewStyle>` |  |  | Style of the button. |
+| testID | `string` |  |  |  |
+| url | `string` |  |  | A file to fetch. On web it is fetched into a `Blob` first, as browsers ignore `download` on a cross-origin link. On native it is not fetched: the `save` writer gets it as `file.url` and downloads it its own way (`expo-file-system`), and without a writer it is shared as a link. |
+| variant | `ButtonVariant` | "filled" |  | The button's variant. Defaults to `"filled"`. |
 
 ### Drawer
 
@@ -220,6 +348,37 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | visible | `boolean` | false |  | Swipeable only: whether the drawer is open. |
 | width | `number` | DRAWER_WIDTH |  | Left and right: defaults to 360 (M3), capped at the window width when swipeable. |
 
+### Editable
+
+`packages/ui/src/components/Editable.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| defaultValue | `string` | "" |  | The value to start from when uncontrolled. Defaults to `""`. |
+| disabled | `boolean` | false |  | Dims the text and keeps it from opening. |
+| editing | `boolean` |  |  | Controls whether the field is open; pair with `onEditingChange`. |
+| label | `string` |  |  | The accessible name of the display button and of the open field. Not drawn. |
+| onCancel | `(previous: string) => void` |  |  | Called with the value the edit started from when it is cancelled (Escape or the close button). |
+| onChange | `(value: string) => void` |  |  | Called with the text on every edit while the field is open. When the edit is cancelled it is called once more with the value the edit started from. |
+| onEditingChange | `(editing: boolean) => void` |  |  | Called with the new state when the edit starts, is confirmed or is cancelled. |
+| onSubmit | `(value: string) => void` |  |  | Called with the value when the edit is confirmed (Enter, blur or the check button, per `submitMode`). |
+| options | `Option[]` |  |  | The choices of a `type="select"`. The display shows the label of the selected one. |
+| placeholder | `string` | "Edit" |  | Drawn in the muted tone when the value is empty. Defaults to `"Edit"`. |
+| precision | `number` |  |  | For `type="number"`: the decimals the field keeps. |
+| readOnly | `boolean` | false |  | Shows the text as plain text, with no way to open it. |
+| renderDisplay | `(value: string) => React.ReactNode` |  |  | Draws the displayed value your way (a link, a badge, a formatted amount) instead of as text. |
+| selectAllOnFocus | `boolean` | false |  | Selects the whole text when the field opens, to type over it. Defaults to `false`. |
+| showControls | `boolean` | false |  | Shows the check and close buttons whatever the `submitMode`. With them shown, leaving the field no longer confirms it. Defaults to `false`. |
+| size | `"small" \| "medium" \| "large"` | "medium" |  | The size of the text, the pencil and the open field (`"small"` is dense). Defaults to `"medium"`. |
+| startWithEditView | `boolean` | false |  | Mounts with the field already open (uncontrolled). Defaults to `false`. |
+| submitMode | `"blur" \| "enter" \| "both" \| "none"` | "both" |  | What confirms the edit: `"blur"` (focus leaving the field), `"enter"` (Enter), `"both"`, or `"none"`, which shows check and close buttons to confirm and cancel with. Escape cancels in every mode. Defaults to `"both"`. |
+| testID | `string` |  |  | Root testID. The open field gets `${testID}-input`, the buttons `${testID}-save` and `${testID}-cancel`. |
+| textVariant | `TypographyProps["variant"]` |  |  | The type-scale role of the displayed text, over what `size` picks. |
+| type | `EditableType` | "text" |  | The field that opens: `"text"` is an `Input`, `"textarea"` a multi-line `Input` (Enter adds a line; Ctrl or Cmd + Enter confirms), `"number"` an `Input type="number"` (the value stays plain text) and `"select"` a `Select` that is already open, which confirms on the pick. Defaults to `"text"`. |
+| validate | `(value: string) => string \| undefined` |  |  | Checks the value: return the message to show as the field's error, or `undefined` when it is fine. While there is an error the edit cannot be confirmed. |
+| value | `string` |  |  | The value, as text (for `type="number"` too: `"12.50"`, as `Input` has it). Controlled; pair with `onChange`. |
+| variant | `"outlined" \| "filled"` | "outlined" |  | The look of the open field: `"outlined"` or `"filled"`, as in `Input`. Defaults to `"outlined"`. |
+
 ### Form
 
 `packages/ui/src/components/Form.tsx`
@@ -227,9 +386,69 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children | `React.ReactNode` |  |  |  |
-| onSubmit | `() => void` |  |  | Called when the form is submitted: a `Button type="submit"` inside it is pressed, or (on the web) Enter is pressed in one of its fields. |
+| disabled | `boolean` | false |  | Disables every `FormField` and the form's submit buttons. |
+| form | `FormInstance` |  |  | The instance from `useForm()`, to read and drive the form from outside it (`form.setValue`, `form.reset()`, `useWatch("name", form)`). Without it the form keeps its own, reachable from inside through the hooks. |
+| initialValues | `FormValues` |  |  | Values the fields start from, as `{ email: "", address: { city: "" } }`. Read when the form mounts; `form.reset(values)` starts over with new ones. Give every field one (or its own `initialValue`): a field with none has the value `undefined`. |
+| onSubmit | `(values: FormValues) => void` |  |  | Called with the values when the form is submitted and every field passes its rules: a `Button type="submit"` inside it is pressed, or (on the web) Enter is pressed in one of its fields. It may be async: the form's `isSubmitting` (and a submit `Button`'s `loading`) stay true until it settles, and a second submission is ignored meanwhile. A form of parent-held state, with no `FormField`, calls it too (with `{}`). |
+| onSubmitFailed | `(errors: FormErrors, values: FormValues) => void` |  |  | Called instead of `onSubmit` when a field fails its rules, with the messages by field name and the values. |
+| onValuesChange | `(changed: FormValues, all: FormValues) => void` |  |  | Called after a field's value changes (a user edit, `setValue`, `setValues`; not `reset`) with just what changed, nested like the values (`{ address: { city: "Rome" } }`), and with all of them. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
+| validateOn | `FormValidateOn` | "change" |  | When a field is validated: `"change"` after every edit, `"blur"` when it is left, `"submit"` only on submit. After a submit, or once a field shows an error, an edit validates it again whatever the mode, so a fixed field clears at once. A `FormField` can override it. Defaults to `"change"`. |
+
+### FormField
+
+`packages/ui/src/components/FormField.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactElement \| ((field: FormFieldChildProps) => React.ReactNode)` |  |  | The one control to connect, which receives the value, the trigger, `onBlur`, `error`, `required` and `disabled` as props. Or a function that gets those props and returns the control, for a control whose required props (`Input` needs `value` and `onChange`) you would otherwise have to write out: `{(field) => <Input label="Email" {...field} />}`. |
+| name * | `string` |  |  | The field's name in the form's values: `"email"`, `"address.city"`, `"items[0].qty"` (dots and brackets both nest). |
+| control | `boolean` | false |  | For a child that draws no label, helper or error text of its own (`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a `FormControl` that does, and passes it `error` as a boolean (and no `required`, `label` or `helperText`: `FormControl` draws those). Defaults to `false`. |
+| dependencies | `string[]` |  |  | Names of other fields this one's rules read (`"password"` for a "confirm password"): it is validated again when one changes, once it has been touched or edited, or shows an error. |
+| disabled | `boolean` | false |  | Disables this field (the child's `disabled`); the form's `disabled` does it for all. |
+| getValueFromEvent | `(...args: any[]) => unknown` |  |  | Turns what the trigger is called with into the value to store. By default the first argument, or, when that is a DOM event, its `target.value` (`target.checked` for `valuePropName="checked"`). |
+| helperText | `string` |  |  | Supporting text, passed to the child as `helperText` (or drawn by `FormControl` with `control`). Hidden while there is an error. |
+| initialValue | `unknown` |  |  | The value the field starts with when the form's `initialValues` has none for it. |
+| label | `string` |  |  | Label, passed to the child as its `label` (`Input`, `Select`... draw it). With `control`, drawn above the child by `FormControl` instead. |
+| normalize | `(value: any, previous: any, values: FormValues) => unknown` |  |  | Turns the reported value into the stored one: `(value, previous, allValues) => stored`. Trim, uppercase, format. |
+| rules | `FormRule[]` |  |  | What the value must satisfy, checked in order; the first failure is the field's `error`. |
+| trigger | `string` | "onChange" |  | The child's callback that reports a new value. `"onValueChange"` for a `Checkbox` or a `Slider`. Defaults to `"onChange"`. |
+| validateOn | `FormValidateOn` |  |  | Overrides the form's `validateOn` for this field: a `Checkbox` has no blur, so `"change"` suits it. |
+| valuePropName | `string` | "value" |  | The child's prop that takes the value. `"checked"` for a `Checkbox`. Defaults to `"value"`. |
+
+### HighlightedCode
+
+`packages/ui/src/components/CodeBlock.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| code * | `string` |  |  | The source to colour. |
+| decorative | `boolean` |  |  | Hides the text from assistive technology, for a copy that only decorates (a field's own text is read instead). |
+| language | `CodeLanguage` | "tsx" |  | What the source is written in. Defaults to `"tsx"`. |
+| selectable | `boolean` |  |  | Lets the reader select the text. |
+| style | `StyleProp<TextStyle>` |  |  | Merged after the code type: padding, font size. |
+| testID | `string` |  |  |  |
+
+### HoverCard
+
+`packages/ui/src/components/HoverCard.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  | The trigger. It is not wrapped in an accessible element of its own. |
+| content * | `React.ReactNode` |  |  | What the card shows: any node. It is supplementary, never the only way to something. |
+| anchorPosition | `AnchorPosition` |  |  | Places the card as `Popover` does (below, above or over the trigger, aligned by its left edge, right edge or centre) instead of by `placement`, which it replaces when given. |
+| closeDelay | `number` | 150 |  | Web: how long after the pointer leaves the trigger and the card before it closes, in ms. Defaults to `150`. |
+| defaultOpen | `boolean` | false |  | Whether the card starts open (uncontrolled). Defaults to `false`. |
+| disabled | `boolean` | false |  | The card never opens, and closes if it was open. |
+| onOpenChange | `(open: boolean) => void` |  |  | Called with the new state when the user opens or closes the card. |
+| open | `boolean` |  |  | Controls whether the card is open; pair with `onOpenChange`. |
+| openDelay | `number` | 300 |  | Web: how long the pointer or focus rests on the trigger before the card opens, in ms. Defaults to `300`. |
+| placement | `PlacementSide` | "bottom" |  | The side of the trigger the card opens on, centred on it. When that side has no room the card goes to the opposite one, and it always stays inside the window. Defaults to `"bottom"`. |
+| style | `StyleProp<ViewStyle>` |  |  | Style of the trigger's wrapper, which shrinks to the trigger by default. |
+| testID | `string` |  |  | Root testID. The card gets `${testID}-card`, the native outside-press layer `${testID}-backdrop`. |
+| width | `number` | 280 |  | Width of the card in px; it never grows past the window. Defaults to `280`. |
 
 ### IFrame
 
@@ -276,6 +495,84 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | min | `number` | 0 |  |  |
 | step | `number` | 1 |  |  |
 
+### PasswordField
+
+`packages/ui/src/components/PasswordField.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(text: string) => void` |  |  | Called with the new text on every edit (for `type="number"`, already cleaned). |
+| value * | `string` |  |  |  |
+| autoComplete | `"current-password" \| "new-password"` | "current-password" |  | What the platform's password manager should do: fill the saved password (`"current-password"`) or offer to generate and save a new one (`"new-password"`). Defaults to `"current-password"`. |
+| defaultVisible | `boolean` | false |  | Whether the text starts revealed (uncontrolled). Defaults to `false`. |
+| density | `Density` |  |  | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below. |
+| disabled | `boolean` |  |  |  |
+| error | `string` |  |  |  |
+| fullWidth | `boolean` | true |  | Stretches the field to its container's width. `false` shrinks it to its content, with a minimum width so an empty field stays usable. Defaults to `true`. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputProps | `InputTextInputProps` |  |  | Autofill and keyboard hints, focus and key handling for the underlying `TextInput`: `autoComplete`, `textContentType`, `autoCorrect`, `autoCapitalize`, `spellCheck`, `autoFocus`, `selectTextOnFocus`, `returnKeyType`, `enterKeyHint`, `onSubmitEditing`, `onKeyPress`, `accessibilityLabel` / `accessibilityValue` (replace the ones drawn from `label` and `value`) and `testID`. |
+| inputRef | `React.Ref<TextInput>` |  |  | A ref to the underlying `TextInput`, to focus it or select its text. |
+| label | `string` |  |  |  |
+| labelPlacement | `"inside" \| "outside"` |  |  | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the text within it. Independent of `variant`. Defaults to `"outside"`. |
+| leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
+| maxLength | `number` |  |  |  |
+| minHeight | `number` |  |  | Overrides the height `density` gives (56, or 40 when dense). |
+| onBlur | `() => void` |  |  | Called when the field loses focus. |
+| onFocus | `() => void` |  |  | Called when the field gains focus. |
+| onVisibleChange | `(visible: boolean) => void` |  |  | Called with the new state when the eye button is pressed. |
+| placeholder | `string` |  |  |  |
+| prefix | `string` |  |  |  |
+| readonly | `boolean` |  |  |  |
+| required | `boolean` |  |  | Marks the label with an asterisk. |
+| reserveHelperText | `boolean` |  |  | Keeps the line under the field even with no helper or error text, so a message appearing does not push the next field down. Default false. |
+| showStrength | `boolean` | false |  | Draws a strength meter under the field once something is typed, scored by `passwordStrength`. For a field that creates a password, not one that enters it. Defaults to `false`. |
+| showToggle | `boolean` | true |  | Shows the eye button at the end of the field that reveals and hides the text. Turn it off for a field that must never be revealed. Defaults to `true`. |
+| strengthLabels | `readonly string[]` | DEFAULT_LABELS |  | The words of the meter, from very weak (index 0) to strong (index 4). Defaults to `["Very weak", "Weak", "Fair", "Good", "Strong"]`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| suffix | `string` |  |  |  |
+| toggleLabels | `{ show?: string; hide?: string }` |  |  | The accessible names of the eye button. Default `Show password` / `Hide password`. |
+| variant | `"outlined" \| "filled"` |  |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
+| visible | `boolean` |  |  | Controls whether the text is revealed; pair with `onVisibleChange`. |
+
+### QrCode
+
+`packages/ui/src/components/QrCode.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| value * | `string` |  |  | What the code says: a URL, a Wi-Fi string, a vCard, any text. Encoded as UTF-8, in the narrowest of the numeric, alphanumeric and byte modes. The most a code holds is 2953 bytes at level `"L"`; past that nothing is drawn and `onError` is called. |
+| accessibilityLabel | `string` | "QR code" |  | What a screen reader says about the code. The value is not read out by default (it may be a secret). Defaults to `"QR code"`. |
+| backgroundColor | `ThemeColor` |  |  | The background, a theme colour token or any colour string. See `color` for the default. |
+| color | `ThemeColor` |  |  | The modules: a theme colour token or any colour string. Scanners read dark modules on a light background, so the default does not follow the theme's mode: `onSurface` on `surface` in a light theme, `inverseOnSurface` on `inverseSurface` (still dark on light) in a dark one. |
+| level | `QrLevel` | "M" |  | How much damage the code survives, and so how big it grows: `"L"` about 7% of it can be lost, `"M"` 15%, `"Q"` 25%, `"H"` 30%. A `logo` raises it to `"H"` whatever this says. Defaults to `"M"`. |
+| logo | `MaterialCommunityIconsGlyphs \| Exclude<React.ReactNode, string>` |  |  | A mark drawn over the middle of the code: a glyph name, or any node (an `Image`), centred in a box a fifth of the code wide. The modules under it are lost, so the level is raised to `"H"`. |
+| onError | `(error: Error) => void` |  |  | Called with the error when `value` does not fit in a code, which is then drawn empty. |
+| quietZone | `number` | 4 |  | The empty margin around the modules, in modules. Scanners need it to find the code; the standard asks for 4. Defaults to 4. |
+| size | `number` | 160 |  | Side of the whole code, quiet zone included, in px. Defaults to 160. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
+### ScrollArea
+
+`packages/ui/src/components/ScrollArea.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children | `React.ReactNode` |  |  |  |
+| contentContainerStyle | `StyleProp<ViewStyle>` |  |  | Style of the view wrapping the children inside the scroll view (padding, `flexGrow`). |
+| height | `DimensionValue` |  |  | Fixed height of the area. Leave it out to size to the content, up to `maxHeight`. |
+| maxHeight | `DimensionValue` |  |  | The height at which the content starts to scroll. |
+| onScroll | `(event: NativeSyntheticEvent<NativeScrollEvent>) => void` |  |  | Called on every scroll, like `ScrollView`'s. With `orientation="both"` the event carries both axes' offset, content size and layout measurement. |
+| orientation | `"vertical" \| "horizontal" \| "both"` | "vertical" |  | The axis that scrolls. `"both"` nests a horizontal scroll view in a vertical one, so the content may overflow in either direction. Defaults to `"vertical"`. |
+| ref | `React.Ref<ScrollView>` |  |  | A ref to the scroll view: the vertical one, or the horizontal one for `orientation="horizontal"`. Use it for `scrollTo`, `scrollToEnd`, … |
+| scrollbarSize | `number` | 10 |  | Thickness of the scrollbar, in dp: raise it on touch screens for a bigger grab area. Defaults to `10`. |
+| scrollHideDelay | `number` | 600 |  | How long, in ms, a `scroll` or `hover` scrollbar stays after the last scroll, drag or hover. Defaults to `600`. |
+| slotStyles | `ScrollAreaSlotStyles` |  |  | Style overrides for the track and the thumb. |
+| style | `StyleProp<ViewStyle>` |  |  | Style of the outer view. The scrollbars are laid over it. |
+| testID | `string` |  |  | Root testID. The scroll view gets `${testID}-viewport` (the horizontal one of `both`, `${testID}-viewport-x`), each scrollbar `${testID}-scrollbar-vertical` or `${testID}-scrollbar-horizontal`, and its thumb `${testID}-thumb-vertical` or `${testID}-thumb-horizontal`. |
+| type | `"auto" \| "always" \| "scroll" \| "hover"` | "auto" |  | When the scrollbars are visible. - `auto`: whenever the content overflows. - `always`: always, overflowing or not. - `scroll`: while scrolling or dragging, and `scrollHideDelay` after. - `hover`: while the pointer is over the area (web), and while scrolling or dragging. Without a pointer, as on a phone, it behaves like `scroll`. Defaults to `"auto"`. |
+| width | `DimensionValue` |  |  | Fixed width of the area. |
+
 ### Switch
 
 `packages/ui/src/components/Switch.tsx`
@@ -293,6 +590,59 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | size | `"small" \| "medium" \| "large"` | "medium" |  | Switch size: `"small"` is 24 x 14, `"medium"` 32 x 18, `"large"` 40 x 22. `width` and `height` override it. Defaults to `"medium"`. |
 | width | `number` | SIZES[size].width |  | Track width. Defaults to the `size`'s (32 for medium). |
 
+### Tree
+
+`packages/ui/src/components/Tree.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| data * | `TreeNode[]` |  |  | The roots. Keep the array (and the nodes in it) stable between renders: rows whose node did not change are not drawn again. |
+| accessibilityLabel | `string` |  |  | Names the tree for assistive tech. |
+| checkboxes | `boolean` | false |  | With `selectionMode="multiple"`, a checkbox on each row: checking a parent checks everything under it, and a parent with only some children checked shows the mixed state. Ignored in the other modes. Defaults to `false`. |
+| defaultExpanded | `string[]` | [] |  | The ids of the nodes that start open, when `expanded` is not set. |
+| defaultSelected | `string[]` | [] |  | The ids that start selected, when `selected` is not set. |
+| disabled | `boolean` | false |  | Nothing can be opened, selected or focused. Defaults to `false`. |
+| expanded | `string[]` |  |  | The ids of the open nodes. Set, the tree is controlled: it opens and closes what this says, and reports through `onExpandedChange`. |
+| indent | `number` | 24 |  | How far each level is pushed in, in px. Defaults to 24. |
+| loadChildren | `(node: TreeNode) => Promise<TreeNode[]>` |  |  | Fetches the children of a node marked `hasChildren` when it is first opened; a loading row shows meanwhile, and a retry row if the promise rejects. The result is kept: the node is not asked again. |
+| loadingText | `string` | "Loading…" |  | The text of the loading row. Defaults to `"Loading…"`. |
+| onExpandedChange | `(expanded: string[]) => void` |  |  | Called with the open ids after a node is opened or closed. |
+| onLoadError | `(error: unknown, node: TreeNode) => void` |  |  | Called when `loadChildren` rejects. |
+| onSelectedChange | `(selected: string[]) => void` |  |  | Called with the selected ids after a press, a Space or an Enter on a row. |
+| renderLabel | `(node: TreeNode, state: TreeRowState) => React.ReactNode` |  |  | Draws the label of a row instead of `node.label`. Rows are memoised: pass a function that does not change between renders (`useCallback`), or every row is drawn again whenever the tree is. |
+| retryText | `string` | "Could not load. Try again" |  | The text of the row that retries a failed load. Defaults to `"Could not load. Try again"`. |
+| selected | `string[]` |  |  | The ids of the selected nodes: at most one with `selectionMode="single"`. With checkboxes it lists every checked node, a parent whose children are all checked included. Set, the tree is controlled. |
+| selectionMode | `"none" \| "single" \| "multiple"` | "none" |  | What pressing a row does. `"none"` opens and closes it, `"single"` selects it (and only it), `"multiple"` toggles it in the selection. The chevron always opens and closes. Defaults to `"none"`. |
+| showLines | `boolean` | false |  | Draws a vertical guide line down each open node's children. Defaults to `false`. |
+| size | `"small" \| "medium" \| "large"` | "medium" |  | Row height and text size: 32, 40 or 48 px. Defaults to `"medium"`. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
+### Upload
+
+`packages/ui/src/components/Upload.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| accept | `string` |  |  | What may be picked, written like the `accept` of an `<input type="file">`: `"image/*,.pdf"`. It filters the web file dialog and is checked on every file added, on every platform (a drop, or what `onPick` returns). |
+| defaultValue | `UploadFile[]` |  |  | The files the list starts with, when it is not controlled. |
+| disabled | `boolean` | false |  |  |
+| error | `string` |  |  | An error message under the field, in the error colour. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| label | `string` |  |  | A label above the field. |
+| maxFiles | `number` |  |  | How many files the list may hold with `multiple`: the ones past it are rejected. |
+| maxSize | `number` |  |  | The largest file, in bytes: a bigger one is rejected. |
+| multiple | `boolean` | false |  | Allows several files. Without it a new file replaces the one in the list. Defaults to `false`. |
+| onChange | `(files: UploadFile[]) => void` |  |  | Called with the whole list whenever it changes: files added or removed, a status or a progress moved. |
+| onPick | `() => Promise<PickedFile[]>` |  |  | Opens a picker and resolves the files chosen (an empty list for none): the app wires `@its/glowup-device/media-picker` or a document picker here. The library imports no picker. On native it is required for the field to be drawn; on web it replaces the browser's file dialog when given. |
+| onReject | `(rejections: UploadRejection[]) => void` |  |  | Called with the files that were not added (too large, wrong type, past `maxFiles`). Without it the reasons are shown under the field. |
+| onUpload | `(file: UploadFile, handlers: UploadHandlers) => Promise<void>` |  |  | Uploads each new file. Return a promise that resolves when it is done and rejects when it failed; report `onProgress` as it goes and stop on `signal`. The file is listed as `"uploading"` with its progress, then `"done"`, or `"error"` with a retry button. Without it files are only collected (`"pending"`), for you to send with a form. |
+| prompt | `string` |  |  | What the dropzone or the button says. Defaults to "Drag files here or click to browse" in a web dropzone, else "Choose files" ("Choose a file" without `multiple`). |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| value | `UploadFile[]` |  |  | The files in the list. Give it with `onChange` to control the list. |
+| variant | `"dropzone" \| "button"` | "dropzone" |  | `"dropzone"` is a dashed area to drop files on or press; `"button"` is a plain button (a drop on it still works on web). Defaults to `"dropzone"`. |
+
 ### ViewportProvider
 
 `packages/ui/src/providers/Viewport.tsx`
@@ -301,6 +651,20 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
 | width | `number` |  |  | The width, in dp, to report instead of the window's. Leave it out (or `undefined`) and the real window width is reported, so the provider can sit in place permanently and be switched on by a value. |
+
+### Visible
+
+`packages/ui/src/components/Visible.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| above | `SizeClass` |  |  | Shows from this window size class up (`"medium"` is medium, expanded, large, …). |
+| below | `SizeClass` |  |  | Shows only on size classes smaller than this one (`"medium"` is compact only). |
+| children | `React.ReactNode` |  |  |  |
+| fallback | `React.ReactNode` |  |  | Rendered in place of the children while they are not shown. |
+| keepMounted | `boolean` | false |  | Hides the children with `display: "none"` instead of unmounting them, so their state survives. They are then wrapped in a `View` (laid out as if it were not there while they show). Defaults to `false`. |
+| only | `SizeClass \| SizeClass[]` |  |  | Shows only on this size class, or on any of these. |
+| when | `boolean` | true |  | A condition of your own; the children show only while it holds. Defaults to `true`. |
 
 # Componenti aggiornati
 
@@ -341,6 +705,28 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  | nuova |  |
 | title | `React.ReactNode` |  | nuova | The headline. A string is drawn in the variant's type style; any other node is placed as is. Left out, it is read from `options` and `route` (see `navigation`). |
 | variant | `"small" \| "center" \| "medium" \| "large"` | "small" | nuova | `"small"` and `"center"` keep the title in the 64dp row; `"medium"` and `"large"` move it to a second, larger line. Defaults to `"small"`. |
+
+### AspectRatio
+
+`packages/ui/src/components/Layout/AspectRatio.tsx` — prop nuove: `align`, `background`, `borderColor`, `borderWidth`, `children`, `gap`, `justify`, `margin`, `padding`, `radius`, `style`, `variant`, `width`, `wrap`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `ViewStyle["alignItems"]` |  | nuova |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  | nuova | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  | nuova |  |
+| children | `React.ReactNode` |  | nuova |  |
+| gap | `number` |  | nuova | Gap between children, in px. |
+| justify | `ViewStyle["justifyContent"]` |  | nuova |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  | nuova | Corner radius — a shape token name or a raw radius. |
+| ratio | `number` | 1 |  | Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`. |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| variant | `\| "standard" \| "flex" \| "column-flex" \| "centered-flex" \| "centered-column-flex" \| "full-page-flex" \| "full-page-column-flex" \| "full-size-flex" \| "full-size-column" \| "full-size-centered-flex" \| "full-size-centered-column-flex"` |  | nuova | Layout preset: direction, centring and filling the parent. The other props and `style` are applied on top of it. - `standard`: a plain column (default). - `flex`: a row. - `column-flex`: a column. - `centered-flex`: a row, centred on both axes. - `centered-column-flex`: a column, centred on both axes. - `full-page-flex`: a row that fills the screen (`flex: 1`, minimum height 100%). - `full-page-column-flex`: the same, as a column. - `full-size-flex`: a row, 100% wide and 100% high. - `full-size-column`: a column, 100% wide and 100% high. - `full-size-centered-flex`: a row, 100% x 100%, centred on both axes. - `full-size-centered-column-flex`: a column, 100% x 100%, centred on both axes. |
+| width | `ViewStyle["width"]` | "100%" | nuova |  |
+| wrap | `boolean` |  | nuova | Lets children flow onto the next line (or column) instead of overflowing. |
 
 ### Autocomplete
 
@@ -486,7 +872,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | size | `number` |  |  |  |
 | style | `object` | {} |  |  |
 | testID | `string` |  |  |  |
-| type | `"button" \| "submit"` | "button" | nuova | `"submit"` submits the enclosing `Form` when pressed, after `onClick`, on every platform. A button outside a `Form` ignores it. Defaults to `"button"`. |
+| type | `"button" \| "submit"` | "button" | nuova | `"submit"` submits the enclosing `Form` when pressed, after `onClick`, on every platform. While the form submits (an async `onSubmit` or validator is running) it shows `loading`, and it is `disabled` with the form. A button outside a `Form` ignores it. Defaults to `"button"`. |
 | underlay | `React.ReactNode` |  |  | Drawn behind the label across the whole surface, clipped to its shape: a progress fill, a state animation. It receives no touches. |
 | variant | `ButtonVariant` | "filled" | nuova |  |
 
@@ -515,6 +901,28 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | subtitle | `React.ReactNode` |  |  |  |
 | subtitleNumberOfLines | `number` | 2 |  |  |
 | titleNumberOfLines | `number` | 1 |  |  |
+
+### Center
+
+`packages/ui/src/components/Layout/Center.tsx` — prop nuove: `align`, `background`, `children`, `direction`, `justify`, `margin`, `padding`, `style`; prop cambiate: `gap`; prop tolte: `bg`, `flex`, `m`, `mb`, `ml`, `mr`, `mt`, `mx`, `my`, `p`, `pb`, `pl`, `pr`, `pt`, `px`, `py`, `row`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `ViewStyle["alignItems"]` |  | nuova |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  |  | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  |  |  |
+| children | `React.ReactNode` |  | nuova |  |
+| direction | `"row" \| "column"` | "row" | nuova | Whether the children flow in a row or in a column; either way each is centred on both axes. Defaults to `"row"`. |
+| gap | `number` |  | cambiata | Gap between children, in px. |
+| height | `ViewStyle["height"]` |  |  |  |
+| justify | `ViewStyle["justifyContent"]` |  | nuova |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  |  | Corner radius — a shape token name or a raw radius. |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| width | `ViewStyle["width"]` |  |  |  |
+| wrap | `boolean` |  |  | Lets children flow onto the next line (or column) instead of overflowing. |
 
 ### Chip
 
@@ -802,7 +1210,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Input
 
-`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `onChange`, `allUpperCase`, `decimalSeparator`, `density`, `fullWidth`, `labelPlacement`, `reserveHelperText`, `rows`; prop cambiate: `minHeight`; prop tolte: `onChangeText`, `numberOfLines`
+`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `onChange`, `allUpperCase`, `decimalSeparator`, `density`, `endAdornment`, `fullWidth`, `inputProps`, `inputRef`, `labelPlacement`, `reserveHelperText`, `rows`; prop cambiate: `minHeight`; prop tolte: `onChangeText`, `numberOfLines`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -812,9 +1220,12 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | decimalSeparator | `"." \| ","` | "." | nuova | The decimal mark a `type="number"` field types and shows: `","` for a user who writes 12,50. `value` and `onChange` stay in the plain form ("12.50"), so the app parses nothing; a typed "." is then ignored, as a thousands mark. Defaults to `"."`. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
+| endAdornment | `React.ReactNode` |  | nuova | Any element drawn at the end of the field, after `suffix` or `trailingIcon` (which keep working): an `IconButton` with its own accessible name, a spinner, a unit picker. It is not clipped by the field and takes its own touches. |
 | error | `string` |  |  |  |
 | fullWidth | `boolean` | true | nuova | Stretches the field to its container's width. `false` shrinks it to its content, with a minimum width so an empty field stays usable. Defaults to `true`. |
 | helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputProps | `InputTextInputProps` |  | nuova | Autofill and keyboard hints, focus and key handling for the underlying `TextInput`: `autoComplete`, `textContentType`, `autoCorrect`, `autoCapitalize`, `spellCheck`, `autoFocus`, `selectTextOnFocus`, `returnKeyType`, `enterKeyHint`, `onSubmitEditing`, `onKeyPress`, `accessibilityLabel` / `accessibilityValue` (replace the ones drawn from `label` and `value`) and `testID`. |
+| inputRef | `React.Ref<TextInput>` |  | nuova | A ref to the underlying `TextInput`, to focus it or select its text. |
 | label | `string` |  |  |  |
 | labelPlacement | `"inside" \| "outside"` |  | nuova | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the text within it. Independent of `variant`. Defaults to `"outside"`. |
 | leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
@@ -823,7 +1234,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | multiline | `boolean` | false |  | Lets the text wrap over several lines; see `rows`. |
 | onBlur | `() => void` |  |  | Called when the field loses focus. |
 | onFocus | `() => void` |  |  | Called when the field gains focus. |
-| onTrailingIconPress | `() => void` |  |  |  |
+| onTrailingIconPress | `() => void` |  |  | Pressing `trailingIcon`. It is a bare, unlabelled icon: for a real control use `endAdornment`. |
 | placeholder | `string` |  |  |  |
 | precision | `number` |  |  |  |
 | prefix | `string` |  |  |  |
@@ -1073,14 +1484,27 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Stack
 
-`packages/ui/src/components/Layout/Stack.tsx` — prop nuove: `dividers`; prop cambiate: `spacing`
+`packages/ui/src/components/Layout/Stack.tsx` — prop nuove: `align`, `background`, `borderColor`, `borderWidth`, `children`, `dividers`, `height`, `justify`, `margin`, `padding`, `radius`, `style`, `width`, `wrap`; prop cambiate: `spacing`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
+| align | `ViewStyle["alignItems"]` |  | nuova |  |
+| background | `ColorValue` |  | nuova | Background — a theme colour token (`"surfaceContainer"`) or any colour string. |
+| borderColor | `ColorValue` |  | nuova | Border colour — a theme colour token or any colour string. |
+| borderWidth | `number` |  | nuova |  |
+| children | `React.ReactNode` |  | nuova |  |
 | direction | `"vertical" \| "horizontal"` | "vertical" |  | Stacking axis. Defaults to `"vertical"`. |
 | dividers | `React.ReactNode` |  | nuova | Puts a divider between the children. `true` draws a hairline, vertical in a horizontal stack; a node is used as the divider instead. Empty children (`null`, `false`) get none, and the spacing applies on both sides of it. |
+| height | `ViewStyle["height"]` |  | nuova |  |
+| justify | `ViewStyle["justifyContent"]` |  | nuova |  |
+| margin | `number` |  | nuova | Margin on every edge, in px. One edge or one axis goes through `style`. |
+| padding | `number` |  | nuova | Padding on every edge, in px. One edge or one axis goes through `style`. |
+| radius | `RadiusValue` |  | nuova | Corner radius — a shape token name or a raw radius. |
 | reverse | `boolean` |  |  | Reverses the visual order without touching the children array. |
 | spacing | `SpacingInput` | "s" | cambiata | Space between children — a spacing token name (`"m"`), a number of px, or a string holding one (`"12"`). |
+| style | `StyleProp<ViewStyle>` |  | nuova | Merged last, over the variant and every other prop. |
+| width | `ViewStyle["width"]` |  | nuova |  |
+| wrap | `boolean` |  | nuova | Lets children flow onto the next line (or column) instead of overflowing. |
 
 ### Stat
 
@@ -1333,14 +1757,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
-
-### AspectRatio
-
-`packages/ui/src/components/Layout/AspectRatio.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| ratio | `number` | 1 |  | Width divided by height — `16 / 9`, `1`, `4 / 3`. Defaults to `1`. |
 
 ### Breadcrumbs
 

@@ -11,10 +11,8 @@ import {
   type Theme,
 } from "@its/glowup-ui";
 
-import ComponentPreview from "../../catalogue/ComponentPreview";
 import { descriptionOf } from "../../catalogue/descriptions";
 import { exampleFor } from "../../catalogue/examples";
-import { ComponentRegistry } from "../../catalogue/registry";
 import {
   CATEGORIES,
   CATEGORY_OF,
@@ -39,15 +37,6 @@ const PREVIEW_HEIGHT = 132;
 const PREVIEW_SCALE = 0.78;
 
 type LayoutMode = "gallery" | "list";
-
-const defaultsOf = (name: string) => {
-  const meta = ComponentRegistry[name];
-  const values: Record<string, any> = {};
-  for (const [key, definition] of Object.entries(meta.props)) {
-    values[key] = definition.default;
-  }
-  return values;
-};
 
 /**
  * The catalogue, as a gallery of live components.
@@ -281,10 +270,8 @@ const CategoryChip = ({
 const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const meta = ComponentRegistry[name];
   const doc = docFor(name);
   const variants = VARIANTS_BY_COMPONENT[name]?.length ?? 0;
-  const props = useMemo(() => defaultsOf(name), [name]);
   const example = exampleFor(name);
   const description = descriptionOf(name, CATEGORY_OF[name]);
 
@@ -315,16 +302,7 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
               <View style={styles.well} pointerEvents="none">
                 <View style={styles.wellInner}>
                   <DemoErrorBoundary label={name}>
-                    {example ? (
-                      <example.Component />
-                    ) : (
-                      <ComponentPreview
-                        selectedComponentName={name}
-                        activeMeta={meta}
-                        componentProps={props}
-                        updateProp={() => {}}
-                      />
-                    )}
+                    {example ? <example.Component /> : null}
                   </DemoErrorBoundary>
                 </View>
               </View>

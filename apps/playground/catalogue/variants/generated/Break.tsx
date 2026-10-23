@@ -1,0 +1,96 @@
+// GENERATED — do not edit.
+// Source: .design-sync/previews/Break.tsx
+// Regenerate with `npm run variants -w @its/glowup-playground`.
+import React from "react";
+import type { Variant } from "../types";
+import { Box, Break, Typography } from "@its/glowup-ui";
+
+const lorem =
+  "Padding keeps the text off the edge; Break lets one child run out to it.";
+
+/** `inline="m"` cancels the 16px of padding on both sides. */
+export const FullBleedBand = () => (
+  <Box
+    background="surfaceContainerLow"
+    padding={16}
+    radius="medium"
+    gap={8}
+    width={360}
+  >
+    <Typography variant="bodyMedium">{lorem}</Typography>
+    <Break inline="m">
+      <Box background="primaryContainer" padding={12}>
+        <Typography variant="labelLarge">inline=&quot;m&quot;</Typography>
+      </Box>
+    </Break>
+    <Typography variant="bodyMedium">Back inside the padding.</Typography>
+  </Box>
+);
+
+export const Edges = () => (
+  <Box
+    background="surfaceContainerLow"
+    padding={16}
+    radius="medium"
+    gap={16}
+    width={360}
+  >
+    <Break inlineStart="m">
+      <Box background="secondaryContainer" padding={8}>
+        <Typography variant="labelMedium">inlineStart=&quot;m&quot;</Typography>
+      </Box>
+    </Break>
+    <Break inlineEnd="m">
+      <Box background="tertiaryContainer" padding={8}>
+        <Typography variant="labelMedium">inlineEnd=&quot;m&quot;</Typography>
+      </Box>
+    </Break>
+    <Break blockStart={16} blockEnd={16}>
+      <Box background="primaryContainer" padding={8}>
+        <Typography variant="labelMedium">
+          blockStart / blockEnd=&#123;16&#125; into the padding above and below
+        </Typography>
+      </Box>
+    </Break>
+  </Box>
+);
+
+/** Both axes at once, in px: the band meets the corners of the container. */
+export const BothAxes = () => (
+  <Box
+    background="surfaceContainerHigh"
+    padding={24}
+    radius="large"
+    width={360}
+    style={{ overflow: "hidden" }}
+  >
+    <Break inline="l" block="l">
+      <Box background="primaryContainer" padding={16}>
+        <Typography variant="titleSmall">
+          inline=&quot;l&quot; block=&quot;l&quot;
+        </Typography>
+      </Box>
+    </Break>
+  </Box>
+);
+
+export const variants: Variant[] = [
+  {
+    name: "FullBleedBand",
+    title: "Full bleed band",
+    description: '`inline="m"` cancels the 16px of padding on both sides.',
+    render: FullBleedBand,
+  },
+  {
+    name: "Edges",
+    title: "Edges",
+    render: Edges,
+  },
+  {
+    name: "BothAxes",
+    title: "Both axes",
+    description:
+      "Both axes at once, in px: the band meets the corners of the container.",
+    render: BothAxes,
+  },
+];

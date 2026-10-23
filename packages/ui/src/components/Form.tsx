@@ -327,7 +327,7 @@ const HIDDEN_SUBMIT = {
  * ```tsx
  * <Form initialValues={{ email: "" }} onSubmit={(values) => save(values)}>
  *   <FormField name="email" rules={[{ required: true }, { type: "email" }]}>
- *     <Input label="Email" />
+ *     {(field) => <Input label="Email" {...field} />}
  *   </FormField>
  *   <Button type="submit">Save</Button>
  * </Form>

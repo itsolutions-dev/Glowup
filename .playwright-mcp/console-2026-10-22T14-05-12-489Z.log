@@ -1,7 +1,0 @@
-[    9956ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8097/apps/playground/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:27075
-[   10403ms] [LOG] Running application "main" with appParams:
- {rootTag: #root, hydrate: undefined} 
-Development-level warnings: ON.
-Performance optimizations: OFF. @ http://localhost:8097/apps/playground/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:27075
-[   22120ms] [WARNING] [expo-notifications] Listening to push token changes is not yet fully supported on web. Adding a listener will have no effect. @ http://localhost:8097/apps/playground/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:27075
-[   24279ms] [WARNING] "shadow*" style props are deprecated. Use "boxShadow". @ http://localhost:8097/apps/playground/index.ts.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app:27075

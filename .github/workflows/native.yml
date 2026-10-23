@@ -113,7 +113,7 @@ jobs:
           UDID="${{ steps.sim.outputs.udid }}"
           # The app opens the route 60 s after launch; the smoke check above took 40 s.
           sleep 45
-          # The screen cycles by itself over its top, the charts and the PDF page, 10 s each, so a
+          # The screen cycles by itself over its top, the charts, the pivot grid and the PDF page, 10 s each, so a
           # shot every 6 s for two minutes catches each position whatever the runner's speed.
           for i in $(seq -w 1 20); do
             xcrun simctl io "$UDID" screenshot "ios-seq-$i.png"
@@ -121,7 +121,7 @@ jobs:
           done
           {
             echo "### iOS native check"
-            echo "Measured on the simulator: read the lines, the charts and the PDF page in ios-seq-*.png (the artifact): the screen cycles top, charts, PDF every 10 s."
+            echo "Measured on the simulator: read the lines, the charts, the pivot grid and the PDF page in ios-seq-*.png (the artifact): the screen cycles top, charts, pivot, PDF every 10 s."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Collect crash reports
@@ -240,6 +240,7 @@ jobs:
             android-check-after.png
             android-step-*.png
             android-chart-*.png
+            android-pivot*.png
             android-pdf.png
             android-typed.png
             android-plain.png

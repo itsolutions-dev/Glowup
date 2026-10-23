@@ -25,3 +25,9 @@ export const visibleRange = ({
     end: Math.min(count, last + overscan),
   };
 };
+
+/** Whether two ranges cover the same rows: a scroll that leaves it so needs no new render. */
+export const sameRange = (
+  a: { start: number; end: number },
+  b: { start: number; end: number },
+): boolean => a.start === b.start && a.end === b.end;

@@ -33,7 +33,9 @@ import {
 } from "@its/glowup-ui";
 import { BarChart, DonutChart } from "@its/glowup-charts";
 import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
+import { PivotGrid, usePivotGrid } from "@its/glowup-pivot";
 
+import { samplePivotEngine } from "../site/samplePivot";
 import {
   LONG_PDF_PAGES,
   SAMPLE_PDF_PAGES,
@@ -66,6 +68,8 @@ const CHART_PARTS = [
   { id: "lost", label: "Lost", value: 19 },
   { id: "void", label: "Void", value: 1 },
 ];
+
+const PIVOT_HEIGHT = 240;
 
 const PDF_WIDTH = 600;
 const PDF_OPEN = "pdf opens and reports its pages";
@@ -273,15 +277,19 @@ export default function NativeCheck() {
   const [chartWidths, setChartWidths] = useState<number[]>([]);
   const [pick, setPick] = useState<number | null>(null);
   const [part, setPart] = useState<string | null>(null);
+  // The phone grid on invented data: `pivot=<rows>` is what scripts/android-interact.mjs reads after a tap on an arrow.
+  const pivotEngine = useMemo(() => samplePivotEngine(), []);
+  const { model: pivotModel } = usePivotGrid(pivotEngine);
   // iOS has nothing to scroll the page from CI: it cycles by itself, 10 s each, over the top, the
   // charts and the PDF page, and native.yml takes a screenshot every few seconds. Fixed delays from
   // the screen opening drifted away from the workflow's clock (a slow runner took every shot at the PDF).
   const scroll = useRef<ScrollView>(null);
   const chartsAt = useRef(0);
+  const pivotAt = useRef(0);
   const pdfAt = useRef(0);
   useEffect(() => {
     if (Platform.OS !== "ios") return;
-    const stops = [0, chartsAt, pdfAt];
+    const stops = [0, chartsAt, pivotAt, pdfAt];
     let i = 0;
     const timer = setInterval(() => {
       i = (i + 1) % stops.length;
@@ -311,6 +319,11 @@ export default function NativeCheck() {
         "chart box shrinks with its container",
         chartWidths.length < 2 ? null : chartWidths.at(-1) === 100,
         chartWidths.join(" -> "),
+      ],
+      [
+        "pivot grid is laid out at its height",
+        h.pivotBox == null ? null : h.pivotBox === PIVOT_HEIGHT,
+        `${h.pivotBox}, expected ${PIVOT_HEIGHT}`,
       ],
       [
         "button badge adds width",
@@ -423,6 +436,28 @@ export default function NativeCheck() {
           <Text
             style={{ color: theme.colors.onSurface }}
           >{`part=${part ?? "none"}`}</Text>
+        </View>
+
+        {/* The phone grid: the state line sits right above it, so a tap on an arrow and its effect are on screen together. */}
+        <View
+          style={{ gap: 8 }}
+          onLayout={(e: LayoutChangeEvent) => {
+            pivotAt.current = e.nativeEvent.layout.y;
+          }}
+        >
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`pivot=${pivotModel?.rows.length ?? "none"}`}</Text>
+          <View
+            onLayout={(e: LayoutChangeEvent) =>
+              setH((prev) => ({
+                ...prev,
+                pivotBox: Math.round(e.nativeEvent.layout.height),
+              }))
+            }
+          >
+            <PivotGrid engine={pivotEngine} height={PIVOT_HEIGHT} />
+          </View>
         </View>
 
         <Text style={{ color: theme.colors.onSurfaceVariant }}>

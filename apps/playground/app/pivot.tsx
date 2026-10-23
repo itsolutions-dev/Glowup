@@ -77,7 +77,7 @@ export default function PivotPage() {
     <Page
       eyebrow="Companion package"
       title="Pivot"
-      description="@its/glowup-pivot shows a pivot table, with the engine of AuraPivot copied into the package. On the web, phone browsers included, it is a read-only grid; in the iOS and Android app it is not available yet. This page is not published yet."
+      description="@its/glowup-pivot shows a pivot table, with the engine of AuraPivot copied into the package. It is a read-only grid on the web, phone browsers included, and in the iOS and Android app. This page is not published yet."
       banner={
         <Banner
           visible

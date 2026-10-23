@@ -44,7 +44,12 @@ describe("native check screen", () => {
     expect(getByText("sheet=closed")).toBeTruthy();
     expect(getByText("chart=none")).toBeTruthy();
     expect(getByText("part=none")).toBeTruthy();
+    // The pivot grid: one row for the grand total, six sites and four categories under each.
+    expect(getByText("pivot=31")).toBeTruthy();
     // jest lays nothing out, so no measurement has arrived yet.
+    expect(
+      getByText(/^PENDING pivot grid is laid out at its height/),
+    ).toBeTruthy();
     expect(getByText(/^PENDING input dense is 24 shorter/)).toBeTruthy();
     expect(
       getByText(/^PENDING bar chart is laid out at its height/),

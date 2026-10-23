@@ -23,10 +23,9 @@ describe("the pivot page", () => {
     expect(await screen.findByText("Pivot")).toBeTruthy();
     expect(screen.getByText("Live")).toBeTruthy();
     expect(screen.getByText("Use it")).toBeTruthy();
-    // Jest runs as a phone, where the grid says it is not there yet; the web grid is tested in the package.
-    expect(
-      screen.getByText("The pivot grid is not available on this platform yet."),
-    ).toBeTruthy();
+    // Jest runs as a phone, so this is the phone grid; the web grid is tested in the package.
+    expect(screen.getByLabelText("Pivot grid")).toBeTruthy();
+    expect(screen.getByText("Harbour")).toBeTruthy();
   });
 });
 

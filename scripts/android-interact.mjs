@@ -318,6 +318,98 @@ steps.push(
   ],
 );
 
+/** The first node inside a box (the grid's) that passes the test. */
+const within = (nodes, box, test) =>
+  nodes.find(
+    (n) =>
+      n.l >= box.l - 2 &&
+      n.r <= box.r + 2 &&
+      n.t >= box.t - 2 &&
+      n.b <= box.b + 2 &&
+      test(n),
+  );
+
+const pivotGrid = () =>
+  bring(
+    (nodes) => nodes.find((n) => n.desc === "Pivot grid"),
+    "the pivot grid",
+  );
+
+/** Taps the first arrow with this label inside the pivot grid. */
+const tapArrow = async (label) => {
+  const box = await pivotGrid();
+  const arrow = within(screen(), box, (n) => n.desc === label);
+  if (!arrow) {
+    throw new Error(
+      `no "${label}" arrow in the grid; on screen: ${describe(screen())}`,
+    );
+  }
+  console.log(
+    `  tap the ${label} arrow at ${arrow.x},${arrow.y} (grid ${box.l},${box.t} - ${box.r},${box.b})`,
+  );
+  adb("shell", "input", "tap", arrow.x, arrow.y);
+  await sleep(700);
+};
+
+steps.push(
+  [
+    "a tap on a pivot arrow closes a group and opens it again",
+    async () => {
+      await scrollToTop();
+      // The first arrow is the first site's: it hides its four categories (31 rows become 27).
+      await tapArrow("Collapse");
+      photo("android-pivot.png");
+      await expectText(/^pivot=27$/, "pivot rows after closing the first site");
+      await tapArrow("Expand");
+      await expectText(/^pivot=31$/, "pivot rows after opening it again");
+    },
+  ],
+  [
+    "the pivot header stays put while the rows scroll, and an arrow still answers after the scroll",
+    async () => {
+      const box = await pivotGrid();
+      const total = (nodes) => within(nodes, box, (n) => n.text === "Total");
+      const before = total(screen());
+      if (!before) {
+        throw new Error(
+          `the header is not on screen; on screen: ${describe(screen())}`,
+        );
+      }
+      // A drag up the grid: its rows move, its header must not.
+      const x = Math.round((box.l + box.r) / 2);
+      adb(
+        "shell",
+        "input",
+        "swipe",
+        x,
+        Math.round(box.b - 20),
+        x,
+        Math.round(box.t + 60),
+        400,
+      );
+      await sleep(900);
+      photo("android-pivot-scrolled.png");
+      const after = total(screen());
+      if (!after || Math.abs(after.t - before.t) > 6) {
+        throw new Error(
+          `the header moved: top ${before.t} -> ${after ? after.t : "gone"}`,
+        );
+      }
+      if (within(screen(), box, (n) => n.text === "Sum Total of Count")) {
+        throw new Error(
+          "the rows did not scroll: the first row is still there",
+        );
+      }
+      // An arrow of the rows now in view: the touch must reach it after the animated move.
+      await tapArrow("Collapse");
+      await expectText(
+        /^pivot=27$/,
+        "pivot rows after a tap following the scroll",
+      );
+    },
+  ],
+);
+
 steps.push([
   "the sample PDF page is on screen, drawn at the viewer's size",
   async () => {

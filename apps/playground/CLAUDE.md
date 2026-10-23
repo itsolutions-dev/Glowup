@@ -146,7 +146,7 @@ without one of them fails there. It gets its page, its props table and its URL f
 `app/native-check.tsx` (/native-check) is a verification screen for the **native smoke job only**
 (`.github/workflows/native.yml`); nothing links to it. A build made with
 `EXPO_PUBLIC_NATIVE_CHECK_ROUTE=/native-check` opens it a minute after launch (`NativeCheckTrigger` in
-`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has four parts:
+`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has five parts:
 
 - **Measurements**: normal and dense controls and a button with and without a badge are laid out on the
   device and their sizes compared (Δ height 24 / 12 / 20, badge width +12), so it catches what jest cannot.
@@ -171,9 +171,11 @@ without one of them fails there. It gets its page, its props table and its URL f
   fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
   Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
   "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
-  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts and the PDF page, 10 s each (`Platform.OS === "ios"` only:
+  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts, the pivot grid and the PDF page, 10 s each (`Platform.OS === "ios"` only:
   on Android it would fight the script), and `native.yml` takes `ios-seq-NN.png` every 6 s for two minutes: read the ones that show each position (fixed delays from the screen opening drifted off the workflow's clock once). Android leaves
   `android-chart-bars.png` and `android-chart-donut.png`.
+
+- **Pivot rows**: a `PivotGrid` (the phone one: two scrolls, one inside the other, with the header and the column of labels moved by the native animation) on the sample of `site/samplePivot.ts`, 240 px high, with a state line `pivot=<rows>` right above it (31 rows at the start: the grand total, six sites and four categories under each; closing the first site makes it 27). The row `pivot grid is laid out at its height` checks the 240. Two steps of `scripts/android-interact.mjs` find the grid by its label `Pivot grid`: one taps the first arrow (`Collapse`, then `Expand`) and reads the line; the other drags the grid up, checks that the header (`Total`) has not moved and the first row has, then taps an arrow **after the scroll** (the touch on a view the native animation has moved is the risk on Android) and reads the line again. They leave `android-pivot.png` and `android-pivot-scrolled.png`. On iOS read the grid in `ios-seq-*.png`: look at the screenshot, not only at the lines.
 
 ## The notifications page
 

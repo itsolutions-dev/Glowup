@@ -14,4 +14,5 @@ Design and plan: `docs/superpowers/specs/2026-10-23-pivot-core-design.md` and `d
   rows and column groups that open and close, rows virtualized, numbers formatted with the engine's locale. `usePivotGrid` and
   `buildGridModel` are exported for other renderers. Checked in jest; looked at in Chrome at 1280 and 390 px; in the iOS and Android app it only says it is not
   available.
-- Not here yet: the grid on a phone, the field panel, filters, calculated fields, conditional formats, drill-through and export.
+- **Piece 3 (the same grid on iOS and Android):** two scrolls, one inside the other, and the header and the column of labels moved by the native animation. Checked in jest, on the local Android emulator (header fixed while the rows scroll, a tap on an arrow after the scroll, scrolling sideways) and by `/native-check` in CI (iPhone, Android 14 and 15): **read the CI screenshots, not only the lines**.
+- Not here yet: the field panel, filters, calculated fields, conditional formats, drill-through and export.

@@ -1,0 +1,64 @@
+// What the web and the phone grids draw alike: colours of a row, the label of a cell with an error,
+// the empty and loading message, and the arrow that opens or closes a node.
+import React from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
+import type { useTheme } from "@its/glowup-ui";
+
+export type ThemeColors = ReturnType<typeof useTheme>["theme"]["colors"];
+
+export const rowColors = (
+  row: { isTotal: boolean },
+  colors: ThemeColors,
+): { background: string; color: string } =>
+  row.isTotal
+    ? { background: colors.primaryContainer, color: colors.onPrimaryContainer }
+    : { background: colors.surface, color: colors.onSurface };
+
+/** What a screen reader says for a cell with a formula error (nothing for the others). */
+export const cellLabel = (
+  cell: { error: string | null },
+  grid: Record<string, string>,
+): string | undefined =>
+  cell.error
+    ? `${grid.formulaError || "Formula error"}: ${cell.error}`
+    : undefined;
+
+export const messageText = (
+  loading: boolean,
+  grid: Record<string, string>,
+): string =>
+  loading ? grid.loading || "Processing…" : grid.empty || "No data to display";
+
+export const ToggleArrow = ({
+  item,
+  size,
+  color,
+  collapse,
+  expand,
+  onToggle,
+}: {
+  item: { canToggle: boolean; isExpanded: boolean; nodeKey: string };
+  size: number;
+  color: string;
+  collapse: string;
+  expand: string;
+  onToggle: (nodeKey: string) => void;
+}) =>
+  item.canToggle ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={item.isExpanded ? collapse : expand}
+      onPress={() => onToggle(item.nodeKey)}
+      style={[styles.arrow, { width: size }]}
+    >
+      <Text style={{ color }}>{item.isExpanded ? "▾" : "▸"}</Text>
+    </Pressable>
+  ) : null;
+
+const styles = StyleSheet.create({
+  arrow: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

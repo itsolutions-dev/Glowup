@@ -6,7 +6,6 @@
 // fixed ones leave, and on a phone the fixed ones shrink so the numbers stay in view.
 import React, { createElement, useState } from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -21,6 +20,7 @@ import {
   gridSizes,
 } from "./grid/layout";
 import { gridStrings, type GridColumn, type GridRow } from "./grid/model";
+import { ToggleArrow, cellLabel, messageText, rowColors } from "./grid/parts";
 import type { PivotGridProps } from "./grid/props";
 import { usePivotGrid } from "./grid/usePivotGrid";
 import { visibleRange } from "./grid/windowing";
@@ -51,11 +51,7 @@ const PivotGrid = ({
   if (!model || model.empty) {
     return (
       <View style={[styles.message, { height }]}>
-        <Text style={text}>
-          {loading
-            ? grid.loading || "Processing…"
-            : grid.empty || "No data to display"}
-        </Text>
+        <Text style={text}>{messageText(loading, grid)}</Text>
       </View>
     );
   }
@@ -75,21 +71,19 @@ const PivotGrid = ({
     count: model.rows.length,
   });
 
-  const arrow = (item: GridColumn | GridRow, size: number, color: string) =>
-    item.canToggle ? (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={item.isExpanded ? collapse : expand}
-        onPress={() => toggle(item.nodeKey)}
-        style={[styles.arrow, { width: size }]}
-      >
-        <Text style={{ color }}>{item.isExpanded ? "▾" : "▸"}</Text>
-      </Pressable>
-    ) : null;
+  const arrow = (item: GridColumn | GridRow, size: number, color: string) => (
+    <ToggleArrow
+      item={item}
+      size={size}
+      color={color}
+      collapse={collapse}
+      expand={expand}
+      onToggle={toggle}
+    />
+  );
 
   const renderRow = (row: GridRow) => {
-    const background = row.isTotal ? colors.primaryContainer : colors.surface;
-    const color = row.isTotal ? colors.onPrimaryContainer : colors.onSurface;
+    const { background, color } = rowColors(row, colors);
     return (
       <View
         key={row.key}
@@ -132,11 +126,7 @@ const PivotGrid = ({
           <View
             key={cell.key}
             testID={`pivot-cell-${row.key}-${index}`}
-            accessibilityLabel={
-              cell.error
-                ? `${grid.formulaError || "Formula error"}: ${cell.error}`
-                : undefined
-            }
+            accessibilityLabel={cellLabel(cell, grid)}
             style={[styles.cell, numberCell]}
           >
             <Text style={[text, { color: cell.error ? colors.error : color }]}>
@@ -215,11 +205,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   chevron: { alignItems: "center", justifyContent: "center" },
-  arrow: {
-    alignSelf: "stretch",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   label: { justifyContent: "center" },
   cell: {
     justifyContent: "center",

@@ -73,7 +73,6 @@ const PORTAL_OVERLAYS = new Set([
   "Dialog",
   "AlertDialog",
   "HoverCard",
-  "ConfirmDialog",
   "BottomSheet",
   "Popover",
   "Menu",

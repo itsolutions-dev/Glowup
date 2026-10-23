@@ -1,12 +1,12 @@
 import { useState } from "react";
 import {
+  AlertDialog,
   Avatar,
   Banner,
   Box,
   Button,
   ButtonGroup,
   Chip,
-  ConfirmDialog,
   Divider,
   HStack,
   Icon,
@@ -202,12 +202,15 @@ export default function Settings() {
         </HStack>
       </VStack>
 
-      <ConfirmDialog
+      <AlertDialog
         visible={confirmDelete}
         title="Delete your account?"
         message="All 24 projects and their history will be removed permanently."
-        confirmText="Delete"
-        onConfirm={() => setConfirmDelete(false)}
+        actionText="Delete"
+        cancelText="Cancel"
+        disableBackdropClick={false}
+        disableEscapeKeyDown={false}
+        onAction={() => setConfirmDelete(false)}
         onCancel={() => setConfirmDelete(false)}
       />
     </Box>

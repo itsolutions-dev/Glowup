@@ -6,7 +6,7 @@ import {
   useTheme,
   Theme,
   getStateColor,
-  getGlowStyles,
+  getFocusRing,
 } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { toneFrom as resolveTone } from "../providers/toneFrom";
@@ -142,13 +142,14 @@ const Chip = ({
     );
   }
 
-  const glow =
-    (bodyHovered || bodyPressed) && !disabled
-      ? getGlowStyles(theme, true)
-      : {
-          borderWidth: variant === "outlined" ? 1 : 0,
-          borderColor: border || theme.colors.outlineVariant,
-        };
+  // The border is the same idle and hovered; only the ring is added.
+  const glow = {
+    borderWidth: variant === "outlined" ? 1 : 0,
+    borderColor: border || theme.colors.outlineVariant,
+    ...((bodyHovered || bodyPressed) && !disabled
+      ? getFocusRing(theme)
+      : undefined),
+  };
 
   const iconSize =
     size === "small"

@@ -11,8 +11,8 @@ export type TimePickerProps = Omit<
  * `DateTimePicker` locked to time-of-day selection on the M3 clock dial. With
  * `variant="static"` it is the clock alone, inline in the page.
  */
-const TimePicker = (props: TimePickerProps) => (
-  <DateTimePicker {...props} mode="time" />
+const TimePicker = ({ showOkButton = true, ...props }: TimePickerProps) => (
+  <DateTimePicker {...props} showOkButton={showOkButton} mode="time" />
 );
 
 export default TimePicker;

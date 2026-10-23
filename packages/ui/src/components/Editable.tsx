@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from "react-native";
@@ -24,6 +25,9 @@ import type { PressableState } from "./types";
 
 /** What an `Editable` edits with: a text field, a multi-line one, a number field or a dropdown. */
 export type EditableType = "text" | "textarea" | "number" | "select";
+
+/** Room an open field keeps when the text it replaced was shorter (or empty). */
+const MIN_FIELD_WIDTH = 120;
 
 const SIZES = {
   small: { text: "bodyMedium", icon: 16, dense: true, min: 32 },
@@ -95,6 +99,13 @@ export interface EditableProps {
   textVariant?: TypographyProps["variant"];
   /** Draws the displayed value your way (a link, a badge, a formatted amount) instead of as text. */
   renderDisplay?: (value: string) => React.ReactNode;
+  /**
+   * Fills the width of its container, in display and in edit alike. Left off,
+   * the display is as wide as its text and the open field takes exactly that
+   * width (at least 120 px), so opening it moves nothing; a textarea keeps the
+   * width and grows in height. Defaults to `false`.
+   */
+  fullWidth?: boolean;
   /** The accessible name of the display button and of the open field. Not drawn. */
   label?: string;
   /** For `type="number"`: the decimals the field keeps. */
@@ -135,6 +146,7 @@ const Editable = ({
   size = "medium",
   textVariant,
   renderDisplay,
+  fullWidth = false,
   label,
   precision,
   testID,
@@ -143,6 +155,12 @@ const Editable = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const sizing = SIZES[size];
   const displayRef = useRef<View>(null);
+  // The width the text had on display, which the open field then takes.
+  const [displayWidth, setDisplayWidth] = useState<number | null>(null);
+  const onDisplayLayout = (event: LayoutChangeEvent) => {
+    const width = Math.ceil(event.nativeEvent.layout.width);
+    setDisplayWidth((known) => (known === width ? known : width));
+  };
 
   const [valueState, setValueState] = useState(defaultValue);
   const value = valueProp ?? valueState;
@@ -154,9 +172,11 @@ const Editable = ({
   const [session, setSession] = useState<{
     from: string;
     touched: boolean;
+    focused: boolean;
   } | null>(null);
-  if (isEditing && !session) setSession({ from: value, touched: false });
-  else if (!isEditing && session) setSession(null);
+  if (isEditing && !session) {
+    setSession({ from: value, touched: false, focused: false });
+  } else if (!isEditing && session) setSession(null);
 
   // Set while an edit is being confirmed or dropped, so a second signal for the
   // same end (Enter, then the blur it causes) does not count twice.
@@ -250,21 +270,26 @@ const Editable = ({
   const selected = options?.find((o) => String(o.value) === value);
   const text = selected?.label ?? value;
 
-  if (!isEditing) {
-    const shown = text ? (
-      <Typography variant={textVariant ?? sizing.text}>{text}</Typography>
-    ) : (
-      <Typography variant={textVariant ?? sizing.text} color="onSurfaceVariant">
-        {placeholder}
-      </Typography>
-    );
-    const content = renderDisplay ? renderDisplay(value) : shown;
+  const shown = text ? (
+    <Typography variant={textVariant ?? sizing.text}>{text}</Typography>
+  ) : (
+    <Typography variant={textVariant ?? sizing.text} color="onSurfaceVariant">
+      {placeholder}
+    </Typography>
+  );
+  const content = renderDisplay ? renderDisplay(value) : shown;
 
+  if (!isEditing) {
     if (readOnly) {
       return (
         <View
           testID={testID}
-          style={[styles.display, { minHeight: sizing.min }]}
+          onLayout={onDisplayLayout}
+          style={[
+            styles.display,
+            fullWidth && styles.displayFull,
+            { minHeight: sizing.min },
+          ]}
         >
           {content}
         </View>
@@ -280,8 +305,10 @@ const Editable = ({
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={() => setEditing(true)}
+        onLayout={onDisplayLayout}
         style={({ hovered, focused }: PressableState) => [
           styles.display,
+          fullWidth && styles.displayFull,
           styles.interactive,
           { minHeight: sizing.min },
           (hovered || focused) && {
@@ -342,9 +369,13 @@ const Editable = ({
         density={sizing.dense ? "dense" : "normal"}
         error={error}
         style={styles.fieldNoGap}
+        onFocus={() => setSession((s) => s && { ...s, focused: true })}
         onBlur={blurSubmits ? () => commit() : undefined}
         inputProps={{
-          autoFocus: true,
+          // Asked for until the field has focus, once: a later render (the
+          // width it learns from the display) must not take focus back from a
+          // second field that opened meanwhile, and a blur confirms.
+          autoFocus: !session?.focused,
           selectTextOnFocus: selectAllOnFocus,
           accessibilityLabel: label,
           testID: testID ? `${testID}-input` : undefined,
@@ -358,8 +389,34 @@ const Editable = ({
     );
 
   return (
-    <View style={styles.row}>
-      <View style={styles.field}>{field}</View>
+    <View style={[styles.row, fullWidth ? styles.rowFull : styles.rowFit]}>
+      {/* Opened without ever being on display (startWithEditView): draw the
+          text once, unseen, to learn the width the field has to be. */}
+      {!fullWidth && displayWidth === null && (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          onLayout={onDisplayLayout}
+          style={[styles.display, styles.measure, { minHeight: sizing.min }]}
+        >
+          {content}
+          <View style={{ width: sizing.icon }} />
+        </View>
+      )}
+      <View
+        testID={testID ? `${testID}-field` : undefined}
+        style={
+          fullWidth
+            ? styles.field
+            : {
+                width: Math.max(displayWidth ?? 0, MIN_FIELD_WIDTH),
+                flexShrink: 1,
+              }
+        }
+      >
+        {field}
+      </View>
       {controls && (
         <View style={[styles.controls, { height: sizing.dense ? 40 : 56 }]}>
           <IconButton
@@ -393,13 +450,23 @@ const makeStyles = (theme: Theme) =>
       alignSelf: "flex-start",
       gap: theme.spacing.s,
       borderRadius: theme.shape.small,
-      paddingHorizontal: theme.spacing.s,
+      // The open field's own inset (16 and its 1 px border), so the text
+      // stays where it was when the field opens and always fits inside it.
+      paddingHorizontal: theme.spacing.m + 1,
     },
+    measure: { position: "absolute", opacity: 0 },
     interactive: {
       ...Platform.select({ web: { cursor: "pointer" } }),
     },
     disabled: { opacity: 0.38 },
+    displayFull: {
+      alignSelf: "stretch",
+      width: "100%",
+      justifyContent: "space-between",
+    },
     row: { flexDirection: "row", alignItems: "flex-start" },
+    rowFull: { alignSelf: "stretch", width: "100%" },
+    rowFit: { alignSelf: "flex-start", maxWidth: "100%" },
     field: { flex: 1 },
     // The open field takes the room of the text it replaced, no more.
     fieldNoGap: { marginBottom: 0 },

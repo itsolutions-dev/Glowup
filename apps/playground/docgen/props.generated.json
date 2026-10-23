@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 116,
+  "componentCount": 115,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -2396,7 +2396,7 @@
         },
         {
           "name": "emptyMessage",
-          "type": "string",
+          "type": "ReactNode",
           "required": false,
           "description": "Shown centered when data is empty and not loading.",
           "deprecated": false
@@ -2415,10 +2415,32 @@
           "deprecated": false
         },
         {
+          "name": "height",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Height of the grid. The header stays in place and the rows scroll under it\n(a virtualised list). Without it the grid fills the height of its container,\nwhich must then be bounded for the rows to scroll.",
+          "deprecated": false
+        },
+        {
+          "name": "hover",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed.",
+          "deprecated": false
+        },
+        {
           "name": "loading",
           "type": "boolean",
           "required": false,
           "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "(row: any, index: number) => void",
+          "required": false,
+          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable, with the button role: a cell then should not hold\na control of its own.",
           "deprecated": false
         },
         {
@@ -2447,10 +2469,24 @@
           "deprecated": false
         },
         {
+          "name": "rowsPerPage",
+          "type": "number",
+          "required": false,
+          "description": "Rows per page. A number slices `data` into pages and shows a `Pagination`\nunder the grid (hidden while there is no data); the page goes back to the\nfirst when `rowsPerPage` or the number of rows changes. Left out, every row\nis one scrolling list. Not meant to be combined with `onEndReached`: a page\nis finished by the user, not by scrolling.",
+          "deprecated": false
+        },
+        {
           "name": "rowStyle",
           "type": "ViewStyle | ((row: any, index: number) => ViewStyle | undefined)",
           "required": false,
           "description": "One style for every row, or a function of the row (to dim or highlight one).",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "number | number[]",
+          "required": false,
+          "description": "The row index, or indexes, to draw as selected. An index is a position in\n`data`, not in the page shown, so it follows the order `data` is given in\n(sort the rows before passing them). The row is marked selected for\nassistive technology too.",
           "deprecated": false
         },
         {
@@ -2473,6 +2509,20 @@
           "name": "style",
           "type": "ViewStyle",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "tableTitle",
+          "type": "string",
+          "required": false,
+          "description": "A heading drawn above the header row.",
+          "deprecated": false
+        },
+        {
+          "name": "width",
+          "type": "DimensionValue",
+          "required": false,
+          "description": "Width of the grid. Without it the grid fills its container.",
           "deprecated": false
         }
       ]
@@ -2650,6 +2700,14 @@
           "name": "selectionMode",
           "type": "\"single\"",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "showOkButton",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows the OK button in the popup. Default `true`. Set to `false` and the\npicker finishes by itself instead of waiting for OK: a time is set and the\npopup closes once the minute is picked (`mode=\"datetime\"`: after the day,\nthe hour and the minute), and a date range once its second end is. A single\ndate already closes on the tap. It has no effect on `selectionMode=\"multiple\"`,\nwhich cannot tell when it is finished, nor on typed entry\n(`defaultInputType=\"keyboard\"`), which keeps its OK; and a\n`variant=\"static\"` picker has no popup, so it does nothing there.",
           "deprecated": false
         },
         {
@@ -2883,6 +2941,14 @@
           "deprecated": false
         },
         {
+          "name": "showOkButton",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows the OK button in the popup. Default `true`. Set to `false` and the\npicker finishes by itself instead of waiting for OK: a time is set and the\npopup closes once the minute is picked (`mode=\"datetime\"`: after the day,\nthe hour and the minute), and a date range once its second end is. A single\ndate already closes on the tap. It has no effect on `selectionMode=\"multiple\"`,\nwhich cannot tell when it is finished, nor on typed entry\n(`defaultInputType=\"keyboard\"`), which keeps its OK; and a\n`variant=\"static\"` picker has no popup, so it does nothing there.",
+          "deprecated": false
+        },
+        {
           "name": "showToday",
           "type": "boolean",
           "required": false,
@@ -2991,6 +3057,13 @@
           "deprecated": false
         },
         {
+          "name": "icon",
+          "type": "IconSource",
+          "required": false,
+          "description": "Hero glyph above the title; takes the place of the `severity` icon.",
+          "deprecated": false
+        },
+        {
           "name": "loading",
           "type": "boolean",
           "required": false,
@@ -3046,88 +3119,6 @@
           "type": "string",
           "required": false,
           "description": "The headline. It is the dialog's accessible name.",
-          "deprecated": false
-        }
-      ]
-    },
-    "ConfirmDialog": {
-      "name": "ConfirmDialog",
-      "source": "packages/ui/src/components/Dialog/ConfirmDialog.tsx",
-      "propsTypeName": "ConfirmDialogProps",
-      "extends": [],
-      "props": [
-        {
-          "name": "onCancel",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "onConfirm",
-          "type": "() => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "visible",
-          "type": "boolean",
-          "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "cancelText",
-          "type": "string",
-          "required": false,
-          "default": "\"Cancel\"",
-          "deprecated": false
-        },
-        {
-          "name": "confirmText",
-          "type": "string",
-          "required": false,
-          "default": "\"Confirm\"",
-          "deprecated": false
-        },
-        {
-          "name": "destructive",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Renders the confirm action in the error tone (delete, discard).",
-          "deprecated": false
-        },
-        {
-          "name": "dismissable",
-          "type": "boolean",
-          "required": false,
-          "default": "true",
-          "description": "Whether the backdrop and ESC cancel the dialog. Turn it off for a decision\nthe user must answer explicitly. Defaults to `true`.",
-          "deprecated": false
-        },
-        {
-          "name": "icon",
-          "type": "IconSource",
-          "required": false,
-          "description": "Hero glyph above the title.",
-          "deprecated": false
-        },
-        {
-          "name": "message",
-          "type": "string",
-          "required": false,
-          "deprecated": false
-        },
-        {
-          "name": "slotStyles",
-          "type": "DialogSlotStyles",
-          "required": false,
-          "description": "Style overrides for the parts of the dialog, merged after its own styles;\n`actions` covers the cancel and confirm buttons.",
-          "deprecated": false
-        },
-        {
-          "name": "title",
-          "type": "string",
-          "required": false,
           "deprecated": false
         }
       ]
@@ -3512,6 +3503,14 @@
           "type": "boolean",
           "required": false,
           "description": "Controls whether the field is open; pair with `onEditingChange`.",
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Fills the width of its container, in display and in edit alike. Left off,\nthe display is as wide as its text and the open field takes exactly that\nwidth (at least 120 px), so opening it moves nothing; a textarea keeps the\nwidth and grows in height. Defaults to `false`.",
           "deprecated": false
         },
         {
@@ -5111,7 +5110,7 @@
           "name": "onClick",
           "type": "() => void",
           "required": false,
-          "description": "Called when the row is pressed. Giving it makes the row a button. With an\n`action` as well, only the icon and the texts are the button: the action is\na control of its own beside it, so a button never sits inside a button.",
+          "description": "Called when the row is pressed. Giving it makes the whole row pressable,\nthe `action` zone included. The `action` is a sibling of the row's button,\nnever inside it: a control in it (an `IconButton`, a Switch) runs its own\nhandler and never this one, while a bare icon, chip or text there presses\nthe row.",
           "deprecated": false
         },
         {
@@ -5147,6 +5146,14 @@
           "required": false,
           "description": "Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up.",
           "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "ListItemVariant",
+          "required": false,
+          "default": "\"contained\"",
+          "description": "How the row is drawn. `\"contained\"` (the default) fills it with the\n`secondaryContainer` surface; `\"outlined\"` draws it on no fill with an\noutline; `\"standard\"` is transparent with no border, like the rows of a\nsidebar. The border is the same width in all three and in every state, so\nhover and press never move the layout.",
+          "deprecated": false
         }
       ]
     },
@@ -5167,7 +5174,22 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Rule below the section, for a settings screen of stacked groups.",
+          "description": "One rule below the section, after its last item: it closes the group, for\na settings screen of stacked groups. `showDividers` is the rules *between*\nthe items, and the two can be used together.",
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\" | number",
+          "required": false,
+          "description": "Space between consecutive items: a spacing token (`\"xs\"` 4, `\"s\"` 8, `\"m\"`\n16, `\"l\"` 24, `\"xl\"` 32) or a number of pixels. Each `ListItem` already\nkeeps a small margin of its own: this is added to it.",
+          "deprecated": false
+        },
+        {
+          "name": "showDividers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "A rule between each pair of consecutive items, so `n` items get `n - 1`\nrules, none before the first or after the last (that one is `divider`).\nWith a `gap`, the rule sits in the middle of it.",
           "deprecated": false
         },
         {
@@ -6874,23 +6896,9 @@
       "extends": [],
       "props": [
         {
-          "name": "onChange",
-          "type": "(value: any) => void",
-          "required": true,
-          "description": "Called with the picked option's `value`, or with `null` when a\n`nullable` select is cleared. Not called with `multiple`: see\n`toggleOptions`.",
-          "deprecated": false
-        },
-        {
           "name": "options",
           "type": "Option[]",
           "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "value",
-          "type": "any",
-          "required": true,
-          "description": "The `value` of the selected option; `null` for none. Ignored with `multiple`.",
           "deprecated": false
         },
         {
@@ -6966,7 +6974,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too.",
+          "description": "Picks several options at once; the list stays open. `value` and `onChange` then carry arrays.",
           "deprecated": false
         },
         {
@@ -6975,6 +6983,13 @@
           "required": false,
           "default": "false",
           "description": "Lets the user go back to no selection: a clear button shows in the field\nwhile an option is selected, and pressing the selected option again\ndeselects it. Both call `onChange(null)`. Ignored with `multiple`, where\nevery option can already be unchecked. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: any) => void",
+          "required": false,
+          "description": "Called with the picked option's `value`, or with `null` when a\n`nullable` select is cleared. With `multiple`: called with the new array\nof selected `value`s on every toggle (a new array, never the one passed\nas `value`).",
           "deprecated": false
         },
         {
@@ -6988,14 +7003,6 @@
           "type": "string",
           "required": false,
           "default": "\"Select an option\"",
-          "deprecated": false
-        },
-        {
-          "name": "selectedValues",
-          "type": "any[]",
-          "required": false,
-          "default": "[]",
-          "description": "With `multiple`: the `value`s of the selected options.",
           "deprecated": false
         },
         {
@@ -7013,10 +7020,10 @@
           "deprecated": false
         },
         {
-          "name": "toggleOptions",
-          "type": "(value: any) => void",
+          "name": "value",
+          "type": "any",
           "required": false,
-          "description": "With `multiple`: called with the new array of selected `value`s after each toggle.",
+          "description": "The `value` of the selected option, `null` for none. With `multiple`: the\narray of selected `value`s (defaults to `[]`).",
           "deprecated": false
         },
         {
@@ -7106,6 +7113,7 @@
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "description": "Blocks the pointer, the keyboard and assistive actions, and dims the slider.",
           "deprecated": false
         },
         {
@@ -7114,6 +7122,14 @@
           "required": false,
           "default": "true",
           "description": "Report each step the thumb crosses to `ThemeProvider`'s\n`onInteractionFeedback` (haptics), as a selection. Only with a `step`: a\ncontinuous slider would report every pixel. Defaults to true.",
+          "deprecated": false
+        },
+        {
+          "name": "interaction",
+          "type": "SliderInteraction",
+          "required": false,
+          "default": "\"both\"",
+          "description": "What a pointer (finger or mouse) may do: `\"both\"` drags the thumb and\njumps to where the track is pressed, `\"drag\"` only drags the thumb,\n`\"click\"` only jumps to the pressed point. The keyboard (arrows, Page\nUp/Down, Home/End) and assistive actions work in every mode. Defaults to\n`\"both\"`.",
           "deprecated": false
         },
         {
@@ -8318,6 +8334,14 @@
           "deprecated": false
         },
         {
+          "name": "showOkButton",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Shows the OK button in the popup. Default `true`. Set to `false` and the\npicker finishes by itself instead of waiting for OK: a time is set and the\npopup closes once the minute is picked (`mode=\"datetime\"`: after the day,\nthe hour and the minute), and a date range once its second end is. A single\ndate already closes on the tap. It has no effect on `selectionMode=\"multiple\"`,\nwhich cannot tell when it is finished, nor on typed entry\n(`defaultInputType=\"keyboard\"`), which keeps its OK; and a\n`variant=\"static\"` picker has no popup, so it does nothing there.",
+          "deprecated": false
+        },
+        {
           "name": "showToday",
           "type": "boolean",
           "required": false,
@@ -9098,8 +9122,8 @@
           "name": "variant",
           "type": "TypographyName | TypographyVariant",
           "required": false,
-          "default": "\"h1\"",
-          "description": "Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`,\n`button`, `caption`, `overline`. The M3 role names (`displayLarge`,\n`bodyMedium`, …) still work and name the same styles. Defaults to `\"h1\"`.",
+          "default": "\"body1\"",
+          "description": "Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`,\n`button`, `caption`, `overline`. The M3 role names (`displayLarge`,\n`bodyMedium`, …) still work and name the same styles. Defaults to `\"body1\"`.",
           "deprecated": false
         }
       ]
@@ -9371,6 +9395,14 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "maxVisible",
+          "type": "number",
+          "required": false,
+          "default": "1",
+          "description": "How many toasts are on screen together. The others wait in the queue and\nappear, in order, as a slot frees. Defaults to `1`: one at a time. At a\ngiven position they stack with a gap, the newest nearest the edge.",
           "deprecated": false
         },
         {

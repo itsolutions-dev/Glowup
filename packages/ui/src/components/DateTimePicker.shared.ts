@@ -216,6 +216,17 @@ export interface DateTimePickerCommonProps {
    * `validRange` or excluded by `isDateDisabled`.
    */
   showToday?: boolean;
+  /**
+   * Shows the OK button in the popup. Default `true`. Set to `false` and the
+   * picker finishes by itself instead of waiting for OK: a time is set and the
+   * popup closes once the minute is picked (`mode="datetime"`: after the day,
+   * the hour and the minute), and a date range once its second end is. A single
+   * date already closes on the tap. It has no effect on `selectionMode="multiple"`,
+   * which cannot tell when it is finished, nor on typed entry
+   * (`defaultInputType="keyboard"`), which keeps its OK; and a
+   * `variant="static"` picker has no popup, so it does nothing there.
+   */
+  showOkButton?: boolean;
   /** Month navigation inside the dialog. Default `"endless"`. */
   scrollMode?: CalendarScrollMode;
   /** First year offered by the year grid. Defaults to 100 years back. */

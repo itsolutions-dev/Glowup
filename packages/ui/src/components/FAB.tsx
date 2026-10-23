@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import Icons from "./Glyph";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { useStateLayer } from "./TouchableRipple";
 import { cornerStyle, type Corner } from "./internal/cornerPlacement";
@@ -158,9 +158,7 @@ const StaticFab = ({
         // The M3 state layer, not a hex string with an alpha suffix glued on:
         // that only worked for 6-digit hex and skipped the press state.
         { backgroundColor: stateLayer(state, disabled) },
-        (state.hovered || state.pressed) &&
-          !disabled &&
-          getGlowStyles(theme, true),
+        (state.hovered || state.pressed) && !disabled && getFocusRing(theme),
         disabled && styles.disabled,
         customStyle,
       ]}
@@ -326,9 +324,7 @@ const AnimatedFab = ({
                   ? "flex-start"
                   : "flex-end",
           },
-          (state.hovered || state.pressed) &&
-            !disabled &&
-            getGlowStyles(theme, true),
+          (state.hovered || state.pressed) && !disabled && getFocusRing(theme),
           disabled && styles.disabled,
         ]}
       >

@@ -110,8 +110,6 @@ export type {
   AlertDialogProps,
   AlertDialogSeverity,
 } from "./components/Dialog/AlertDialog";
-export { default as ConfirmDialog } from "./components/Dialog/ConfirmDialog";
-export type { ConfirmDialogProps } from "./components/Dialog/ConfirmDialog";
 export { default as Dialog } from "./components/Dialog/Dialog";
 export type {
   DialogProps,
@@ -183,7 +181,10 @@ export type { InputProps, InputTextInputProps } from "./components/Input";
 export { default as Link } from "./components/Link";
 export * from "./components/Link";
 export { default as ListItem } from "./components/List/ListItem";
-export type { ListItemProps } from "./components/List/ListItem";
+export type {
+  ListItemProps,
+  ListItemVariant,
+} from "./components/List/ListItem";
 export { default as ListSection } from "./components/List/ListSection";
 export * from "./components/List/ListSection";
 export { default as ListSubheader } from "./components/List/ListSubheader";

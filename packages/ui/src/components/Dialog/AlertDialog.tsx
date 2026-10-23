@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import Dialog, { type DialogSlotStyles } from "./Dialog";
 import Button from "../Button";
+import type { IconSource } from "../Icon";
 import Icons from "../Glyph";
 import type { MaterialCommunityIconsGlyphs } from "../types";
 import { colorRoleTokens } from "../internal/colorRole";
@@ -31,6 +32,8 @@ export interface AlertDialogProps {
    * Left out, no icon.
    */
   severity?: AlertDialogSeverity;
+  /** Hero glyph above the title; takes the place of the `severity` icon. */
+  icon?: IconSource;
   /** Label of the primary action. Defaults to `"OK"`. */
   actionText?: string;
   /** Called when the primary action is pressed. */
@@ -74,7 +77,7 @@ export interface AlertDialogProps {
  * primary action, optionally a secondary. `Dialog` underneath, with the
  * `alertdialog` role (the title names it, the message describes it), no way
  * out but its buttons, and focus on its least destructive one on the web.
- * For a plain two-way question use `ConfirmDialog`.
+ * With `cancelText` and `destructive` it is also the plain confirmation.
  *
  * ```tsx
  * <AlertDialog
@@ -96,6 +99,7 @@ const AlertDialog = ({
   message,
   children,
   severity,
+  icon,
   actionText = "OK",
   onAction,
   cancelText,
@@ -117,8 +121,9 @@ const AlertDialog = ({
       visible={visible}
       title={title}
       icon={
-        severity &&
-        (() => <Icons name={ICONS[severity]} size={24} color={tone} />)
+        icon ??
+        (severity &&
+          (() => <Icons name={ICONS[severity]} size={24} color={tone} />))
       }
       role="alertdialog"
       describedBy={descriptionId}

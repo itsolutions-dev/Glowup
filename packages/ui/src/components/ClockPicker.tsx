@@ -37,6 +37,11 @@ export interface ClockPickerProps {
   locale?: string;
   /** Forces the 24-hour face. Left unset, the locale decides. */
   use24HourClock?: boolean;
+  /**
+   * Fires when the minutes are set: the finger lifts off the minute dial, after
+   * the hour. Lets a host finish by itself instead of waiting for an OK.
+   */
+  onComplete?: () => void;
   /** `picker` shows the dial, `keyboard` two text fields. Defaults to `picker`. */
   inputType?: PickerInputType;
   labels?: DateTimePickerLabels;
@@ -61,6 +66,7 @@ const ClockPicker = ({
   locale: localeProp,
   use24HourClock,
   inputType = "picker",
+  onComplete,
   labels: labelOverrides,
   style,
   testID,
@@ -299,7 +305,9 @@ const ClockPicker = ({
           onChangeMinutes={(next) => commit(hours, next)}
           // Setting the hour is only half the job, so hand over to the minutes
           // the moment the finger lifts — the M3 dial's own behaviour.
-          onUnitComplete={() => unit === "hours" && setUnit("minutes")}
+          onUnitComplete={() =>
+            unit === "hours" ? setUnit("minutes") : onComplete?.()
+          }
           isTimeDisabled={isTimeDisabled}
           style={styles.dial}
           testID={testID ? `${testID}-dial` : undefined}

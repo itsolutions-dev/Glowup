@@ -255,6 +255,40 @@ export default function Probe() {
     ).toMatchObject({ disabled: true });
   });
 
+  it("keeps the code collapsed until asked, and stays whole and editable either way", async () => {
+    await draw();
+    const toggle = () =>
+      screen.getByRole("button", { name: /Show full code|Collapse code/ });
+    expect(toggle().props.accessibilityLabel).toBe("Show full code");
+    expect(toggle().props.accessibilityState).toMatchObject({
+      expanded: false,
+    });
+    // Collapsed is a window onto the text, not a shorter text.
+    expect(editor().props.value).toBe(SOURCE);
+    await typeCode(SOURCE.replace("`clicks ", "`taps "));
+    expect(screen.getByText("taps 0 count 1")).toBeTruthy();
+
+    await fireEvent.press(toggle());
+    expect(toggle().props.accessibilityLabel).toBe("Collapse code");
+    expect(toggle().props.accessibilityState).toMatchObject({ expanded: true });
+    await fireEvent.press(toggle());
+    expect(toggle().props.accessibilityLabel).toBe("Show full code");
+  });
+
+  it("opens the collapsed window at the line that renders the component", async () => {
+    // Line 12 of the source is `<Button`; 12 lines of 20 are moved out of sight.
+    await render(
+      <Providers>
+        <LiveExample name="Button" example={example} meta={meta} />
+      </Providers>,
+    );
+    expect(JSON.stringify(screen.toJSON())).toContain('"marginTop":-240');
+    await fireEvent.press(
+      screen.getByRole("button", { name: "Show full code" }),
+    );
+    expect(JSON.stringify(screen.toJSON())).not.toContain('"marginTop":-240');
+  });
+
   it("writes a control into the code and redraws without losing state", async () => {
     await draw();
     await fireEvent.changeText(screen.getByLabelText("Label"), "Send");

@@ -160,27 +160,57 @@ describe("Select", () => {
       l: string,
     ) => view.getAllByLabelText(l);
 
-    it("toggles values through toggleOptions and keeps the list open", async () => {
-      const toggleOptions = jest.fn();
+    it("calls onChange with the new array on every toggle and keeps the list open", async () => {
+      const onChange = jest.fn();
+      const value = [1];
       const view = await draw({
         multiple: true,
-        selectedValues: [1],
-        toggleOptions,
+        value,
+        onChange,
         defaultOpen: true,
       });
       await fireEvent.press(row(view, "Due")[0]);
-      expect(toggleOptions).toHaveBeenLastCalledWith([1, 2]);
+      expect(onChange).toHaveBeenLastCalledWith([1, 2]);
       await fireEvent.press(row(view, "Uno")[1]);
-      expect(toggleOptions).toHaveBeenLastCalledWith([]);
+      expect(onChange).toHaveBeenLastCalledWith([]);
+      expect(onChange).toHaveBeenCalledTimes(2);
+      expect(value).toEqual([1]);
       expect(row(view, "Tre")).toHaveLength(2);
     });
 
-    it("does not toggle a disabled option, from the row or its checkbox", async () => {
-      const toggleOptions = jest.fn();
+    it("starts from an empty selection when value is left out", async () => {
+      const onChange = jest.fn();
+      const view = await wrap(
+        <Select multiple options={options} onChange={onChange} defaultOpen />,
+      );
+      await fireEvent.press(row(view, "Tre")[0]);
+      expect(onChange).toHaveBeenCalledWith([3]);
+    });
+
+    it("shows the selected labels in the field, '+n' past two", async () => {
+      const view = await draw({ multiple: true, value: [1, 2, 3] });
+      expect(view.getByText("Uno, Due (+1)")).toBeTruthy();
+    });
+
+    it("shows only the selected labels as chips", async () => {
+      const onChange = jest.fn();
       const view = await draw({
         multiple: true,
-        selectedValues: [],
-        toggleOptions,
+        showAsChips: true,
+        value: [1, 3],
+        onChange,
+      });
+      expect(view.getByText("Uno")).toBeTruthy();
+      expect(view.getByText("Tre")).toBeTruthy();
+      expect(view.queryByText("Due")).toBeNull();
+    });
+
+    it("does not toggle a disabled option, from the row or its checkbox", async () => {
+      const onChange = jest.fn();
+      const view = await draw({
+        multiple: true,
+        value: [],
+        onChange,
         disabledOptions: [3],
         defaultOpen: true,
       });
@@ -191,7 +221,12 @@ describe("Select", () => {
       });
       await fireEvent.press(outer);
       await fireEvent.press(checkbox);
-      expect(toggleOptions).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("has no clear button with nullable, where every option can already be unchecked", async () => {
+      const view = await draw({ multiple: true, nullable: true, value: [1] });
+      expect(view.queryByLabelText("Clear selection")).toBeNull();
     });
   });
 

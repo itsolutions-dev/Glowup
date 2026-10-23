@@ -83,10 +83,6 @@
     "Collapse": {
       "cardMode": "column"
     },
-    "ConfirmDialog": {
-      "cardMode": "single",
-      "viewport": "560x400"
-    },
     "DataGrid": {
       "cardMode": "column"
     },

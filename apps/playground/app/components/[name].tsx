@@ -1,10 +1,18 @@
-import { useMemo } from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useMemo, useRef } from "react";
+import {
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Divider,
   EmptyState,
+  FAB,
   Typography,
   useTheme,
   type PressableState,
@@ -19,9 +27,15 @@ import {
 } from "../../catalogue/categories";
 import { descriptionOf } from "../../catalogue/descriptions";
 import { exampleFor } from "../../catalogue/examples";
+import type { ComponentMetadata } from "../../catalogue/types";
 import { VARIANTS_BY_COMPONENT } from "../../catalogue/variants";
 import { DemoErrorBoundary } from "../../site/ErrorBoundary";
 import { LiveExample } from "../../site/LiveExample";
+import {
+  OnThisPage,
+  useScrollSpy,
+  type PageSection,
+} from "../../site/OnThisPage";
 import { PageHead, Section } from "../../site/Page";
 import { PropsTable } from "../../site/PropsTable";
 import { docFor } from "../../site/propsData";
@@ -49,8 +63,6 @@ export function generateStaticParams(): { name: string }[] {
 export default function ComponentPage() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const { theme } = useTheme();
-  const layout = useLayout();
-  const hydrated = useHydrated();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const meta = entryFor(name);
@@ -76,6 +88,24 @@ export default function ComponentPage() {
     );
   }
 
+  // Keyed: the layout keeps this route mounted across catalogue navigation, and
+  // the scroll position, the section being read and the typed code must not
+  // follow the reader to the next component.
+  return <ComponentView key={name} name={name} meta={meta} />;
+}
+
+const ComponentView = ({
+  name,
+  meta,
+}: {
+  name: string;
+  meta: ComponentMetadata;
+}) => {
+  const { theme } = useTheme();
+  const layout = useLayout();
+  const hydrated = useHydrated();
+  const styles = useMemo(() => makeStyles(theme), [theme]);
+
   const doc = docFor(name);
   const category = CATEGORY_OF[name];
   const index = FLAT_ORDER.indexOf(name);
@@ -86,124 +116,171 @@ export default function ComponentPage() {
   const example = exampleFor(name);
   const description = descriptionOf(name, category);
 
-  return (
-    <ScrollView
-      contentContainerStyle={styles.page}
-      showsVerticalScrollIndicator={false}
-    >
-      <PageHead title={name} description={description} />
-
-      <View style={[styles.column, { maxWidth: layout.contentMaxWidth }]}>
-        <View style={styles.header}>
-          <Typography
-            variant="labelSmall"
-            style={[styles.eyebrow, { color: theme.colors.primary }]}
-          >
-            {(category ?? "").toUpperCase()} ·{" "}
-            {String(index + 1).padStart(2, "0")} / {TOTAL_COUNT}
-          </Typography>
-          <Typography
-            variant={layout.isCompact ? "headlineSmall" : "headlineMedium"}
-            style={{ color: theme.colors.onSurface }}
-          >
-            {name}
-          </Typography>
-          <Typography
-            variant="bodyLarge"
-            style={{ color: theme.colors.onSurfaceVariant }}
-          >
-            {description}
-          </Typography>
-          {doc ? (
-            <Pressable
-              accessibilityRole="link"
-              accessibilityLabel={`View ${name} source on GitHub`}
-              onPress={() =>
-                Linking.openURL(`${GITHUB_URL}/blob/master/${doc.source}`)
-              }
-              style={({ hovered }: PressableState) => [
-                styles.sourceLink,
-                hovered && { opacity: 0.7 },
-              ]}
-            >
-              <Icons
-                name="file-code-outline"
-                size={14}
-                color={theme.colors.primary}
-              />
-              <Typography
-                variant="labelMedium"
-                style={{ color: theme.colors.primary }}
-              >
-                {doc.source}
-              </Typography>
-            </Pressable>
-          ) : null}
-        </View>
-
-        {/* The page is its one example: the stage, the code and the controls.
-        Keyed by the name: the layout keeps this page mounted across catalogue
-        navigation, and the code typed into one example must not follow the
-        reader to the next. */}
-        {example ? (
-          <LiveExample key={name} name={name} example={example} meta={meta} />
-        ) : null}
-
-        {variants.length > 0 && (
-          <Section
-            title="Variants"
-            description="The states and shapes this component is meant to be used in."
-          >
-            {variants.map((variant) => (
-              <View key={variant.name} style={styles.variant}>
-                <Typography
-                  variant="titleSmall"
-                  style={{ color: theme.colors.onSurface }}
-                >
-                  {variant.title}
-                </Typography>
-                {variant.description ? (
-                  <Typography
-                    variant="bodySmall"
-                    style={{ color: theme.colors.onSurfaceVariant }}
-                  >
-                    {variant.description}
-                  </Typography>
-                ) : null}
-                <View style={styles.variantStage}>
-                  <DemoErrorBoundary label={`${name} — ${variant.title}`}>
-                    {/* The same rule as the stage: see `clientOnly`. */}
-                    {(hydrated || !meta.clientOnly) && <variant.render />}
-                  </DemoErrorBoundary>
-                </View>
-              </View>
-            ))}
-          </Section>
-        )}
-
-        {doc ? (
-          <Section
-            title="API reference"
-            description="Generated from the library's TypeScript, so it cannot drift from the implementation."
-          >
-            <PropsTable doc={doc} />
-          </Section>
-        ) : null}
-
-        <Divider />
-
-        <View style={styles.pager}>
-          {previous ? (
-            <PagerLink name={previous} direction="previous" />
-          ) : (
-            <View style={styles.pagerSpacer} />
-          )}
-          {next ? <PagerLink name={next} direction="next" /> : null}
-        </View>
-      </View>
-    </ScrollView>
+  // The sections that exist on this page, in order: the links of "On this page"
+  // and what the scroll spy follows.
+  const sections: PageSection[] = [
+    ...(example ? [{ id: "example", label: "Example" }] : []),
+    ...(variants.length > 0 ? [{ id: "variants", label: "Variants" }] : []),
+    ...(doc ? [{ id: "api", label: "API reference" }] : []),
+  ];
+  const scrollRef = useRef<ScrollView>(null);
+  const spy = useScrollSpy(
+    sections.map((section) => section.id),
+    scrollRef,
   );
-}
+  // The window's size is the server's while hydrating, so the first client
+  // render has no column, like the HTML.
+  const showLinks =
+    Platform.OS === "web" && layout.hasThirdColumn && sections.length > 1;
+
+  return (
+    <View style={styles.screen}>
+      <ScrollView
+        ref={scrollRef}
+        onScroll={spy.onScroll}
+        scrollEventThrottle={50}
+        contentContainerStyle={styles.page}
+        showsVerticalScrollIndicator={false}
+      >
+        <PageHead title={name} description={description} />
+
+        <View
+          onLayout={spy.track("column")}
+          style={[styles.column, { maxWidth: layout.contentMaxWidth }]}
+        >
+          <View style={styles.header}>
+            <Typography
+              variant="labelSmall"
+              style={[styles.eyebrow, { color: theme.colors.primary }]}
+            >
+              {(category ?? "").toUpperCase()} ·{" "}
+              {String(index + 1).padStart(2, "0")} / {TOTAL_COUNT}
+            </Typography>
+            <Typography
+              variant={layout.isCompact ? "headlineSmall" : "headlineMedium"}
+              style={{ color: theme.colors.onSurface }}
+            >
+              {name}
+            </Typography>
+            <Typography
+              variant="bodyLarge"
+              style={{ color: theme.colors.onSurfaceVariant }}
+            >
+              {description}
+            </Typography>
+            {doc ? (
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={`View ${name} source on GitHub`}
+                onPress={() =>
+                  Linking.openURL(`${GITHUB_URL}/blob/master/${doc.source}`)
+                }
+                style={({ hovered }: PressableState) => [
+                  styles.sourceLink,
+                  hovered && { opacity: 0.7 },
+                ]}
+              >
+                <Icons
+                  name="file-code-outline"
+                  size={14}
+                  color={theme.colors.primary}
+                />
+                <Typography
+                  variant="labelMedium"
+                  style={{ color: theme.colors.primary }}
+                >
+                  {doc.source}
+                </Typography>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {/* The main column and, on a wide window, "On this page" beside it. The
+            row is always there so the example is not remounted (and its typed
+            code lost) when the window crosses the breakpoint. */}
+          <View onLayout={spy.track("row")} style={styles.row}>
+            <View style={styles.main}>
+              {/* The page is its one example: the stage, the code and the controls. */}
+              {example ? (
+                <View onLayout={spy.track("example")}>
+                  <LiveExample name={name} example={example} meta={meta} />
+                </View>
+              ) : null}
+
+              {variants.length > 0 && (
+                <Section
+                  title="Variants"
+                  description="The states and shapes this component is meant to be used in."
+                  onLayout={spy.track("variants")}
+                >
+                  {variants.map((variant) => (
+                    <View key={variant.name} style={styles.variant}>
+                      <Typography
+                        variant="titleSmall"
+                        style={{ color: theme.colors.onSurface }}
+                      >
+                        {variant.title}
+                      </Typography>
+                      {variant.description ? (
+                        <Typography
+                          variant="bodySmall"
+                          style={{ color: theme.colors.onSurfaceVariant }}
+                        >
+                          {variant.description}
+                        </Typography>
+                      ) : null}
+                      <View style={styles.variantStage}>
+                        <DemoErrorBoundary label={`${name} — ${variant.title}`}>
+                          {/* The same rule as the stage: see `clientOnly`. */}
+                          {(hydrated || !meta.clientOnly) && <variant.render />}
+                        </DemoErrorBoundary>
+                      </View>
+                    </View>
+                  ))}
+                </Section>
+              )}
+
+              {doc ? (
+                <Section
+                  title="API reference"
+                  description="Generated from the library's TypeScript, so it cannot drift from the implementation."
+                  onLayout={spy.track("api")}
+                >
+                  <PropsTable doc={doc} />
+                </Section>
+              ) : null}
+            </View>
+
+            {showLinks ? (
+              <View style={styles.links}>
+                <OnThisPage
+                  sections={sections}
+                  active={spy.active}
+                  onSelect={spy.scrollToSection}
+                />
+              </View>
+            ) : null}
+          </View>
+
+          <Divider />
+
+          <View style={styles.pager}>
+            {previous ? (
+              <PagerLink name={previous} direction="previous" />
+            ) : (
+              <View style={styles.pagerSpacer} />
+            )}
+            {next ? <PagerLink name={next} direction="next" /> : null}
+          </View>
+        </View>
+      </ScrollView>
+
+      {spy.scrolled ? (
+        <FAB icon="arrow-up" label="Back to top" onClick={spy.scrollToTop} />
+      ) : null}
+    </View>
+  );
+};
 
 const PagerLink = ({
   name,
@@ -273,7 +350,7 @@ const makeStyles = (theme: Theme) =>
     page: {
       flexGrow: 1,
       alignItems: "center",
-      paddingHorizontal: theme.spacing.l,
+      paddingHorizontal: theme.spacing.m,
       paddingTop: theme.spacing.l,
       paddingBottom: theme.spacing.xl * 2,
     },
@@ -282,7 +359,24 @@ const makeStyles = (theme: Theme) =>
       justifyContent: "center",
       padding: theme.spacing.l,
     },
+    screen: { flex: 1 },
     column: { width: "100%", gap: theme.spacing.xl },
+    // The content and, on a wide window, the links; both inside the column's
+    // `contentMaxWidth`, so the links take their room from the content.
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: theme.spacing.l,
+    },
+    main: { flex: 1, minWidth: 0, gap: theme.spacing.xl },
+    // Stays in view while the page scrolls (web only: this column is not drawn
+    // anywhere else).
+    links: {
+      width: 160,
+      ...(Platform.OS === "web"
+        ? ({ position: "sticky", top: theme.spacing.l } as object)
+        : null),
+    },
     header: { gap: theme.spacing.xs },
     eyebrow: {
       textTransform: "uppercase",

@@ -129,3 +129,27 @@ export const EmptyState = () => (
     />
   </div>
 );
+
+export const TitleAndPaging = () => (
+  <div style={{ ...frame, height: 420 }}>
+    <DataGrid
+      data={rows}
+      columns={columns}
+      tableTitle="Invoices"
+      rowsPerPage={3}
+      height={400}
+    />
+  </div>
+);
+
+export const HoverSelectedAndClick = () => (
+  <div style={frame}>
+    <DataGrid
+      data={rows}
+      columns={columns}
+      hover
+      selected={1}
+      onClick={() => {}}
+    />
+  </div>
+);

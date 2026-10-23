@@ -11,9 +11,12 @@ questions. Numbers compare the tree with commit `14a148f`, the last one before t
   `ScrollArea`, `Clipboard`, `Download`, `Upload`, `Editable`, `PasswordField`, `CodeBlock`, `QrCode`, `Tree`,
   `AlertDialog`, `HoverCard`, plus a full **form engine** in `Form`.
 - **The documentation site was rebuilt around one idea**: every component page is one realistic example
-  whose code you can edit, with the Properties panel wired to that code. 101 pages, each with a description.
-- **Tests grew**: library 717 to 1,351 tests, playground 948 to 1,279. Type-check, lint, build and
+  whose code you can edit, with the Properties panel wired to that code. 100 pages, each with a description.
+- **Tests grew**: library 717 to 1,472 tests, playground 948 to 1,280. Type-check, lint, build and
   package validation are green.
+- **Four follow-up changes were applied the same afternoon** (section 7.1): `Typography` defaults to
+  `body1`, `Select multiple` takes `value[]`, `ConfirmDialog` is fused into `AlertDialog`, and a `ListItem`
+  with `onClick` is one pressable row.
 - **What is not proven**: nothing built in this period has run on a real phone. The web is verified; iOS and
   Android are not.
 
@@ -51,24 +54,24 @@ the roadmap.
 
 ### 3.2 The 16 new components (23 Oct)
 
-| Group    | Component                          | What it does                                                                                        |
-| -------- | ---------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Layout   | `Center`                           | A `Box` that centres its children; `direction="column"` for a column.                               |
-|          | `AbsoluteCenter`                   | Lifts a child out of the flow and centres it in its parent, on one axis or both.                    |
-|          | `Break`                            | Negative margins that let a child run to the edge of a padded container.                            |
-|          | `Visible` (+ `useBreakpointValue`) | Shows content only above, below or at given window sizes, with a fallback.                          |
-|          | `ScrollArea`                       | A scroll area whose bars are drawn from the theme, on web and native.                               |
-| Actions  | `Clipboard` (+ `useClipboard`)     | A copy button, or your own trigger; `CaptionValue` copies through it too.                           |
-|          | `Download` (+ `useDownload`)       | Saves a file from a string, an object (as JSON), a Blob or a URL.                                   |
-| Inputs   | `PasswordField`                    | Show or hide, password-manager hints, optional strength meter.                                      |
-|          | `Editable`                         | Text that edits in place with the library's own fields (text, textarea, number, select).            |
-|          | `Upload`                           | Pick or drop files, validate type and size, show progress, retry and cancel.                        |
-| Data     | `CodeBlock` (+ `HighlightedCode`)  | Syntax-coloured code with line numbers and a copy button.                                           |
-|          | `QrCode`                           | Any text as a QR code, from the library's own encoder (no QR dependency), with an optional logo.    |
-|          | `Tree`                             | An expandable hierarchy: selection or checkboxes, lazy loading, keyboard and screen-reader support. |
-| Overlays | `AlertDialog`                      | A dialog that needs an answer: severity, one action, optional cancel, no way out but its buttons.   |
-|          | `HoverCard`                        | A card shown on hover or focus (web) or long press (native).                                        |
-| Forms    | **Form engine** in `Form`          | `FormField`, `useForm`, `useFormField`, `useWatch`, `useFormState`.                                 |
+| Group    | Component                                                                   | What it does                                                                                        |
+| -------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Layout   | `Center`                                                                    | A `Box` that centres its children; `direction="column"` for a column.                               |
+|          | `AbsoluteCenter`                                                            | Lifts a child out of the flow and centres it in its parent, on one axis or both.                    |
+|          | `Break`                                                                     | Negative margins that let a child run to the edge of a padded container.                            |
+|          | `Visible` (+ `useBreakpointValue`)                                          | Shows content only above, below or at given window sizes, with a fallback.                          |
+|          | `ScrollArea`                                                                | A scroll area whose bars are drawn from the theme, on web and native.                               |
+| Actions  | `Clipboard` (+ `useClipboard`)                                              | A copy button, or your own trigger; `CaptionValue` copies through it too.                           |
+|          | `Download` (+ `useDownload`)                                                | Saves a file from a string, an object (as JSON), a Blob or a URL.                                   |
+| Inputs   | `PasswordField`                                                             | Show or hide, password-manager hints, optional strength meter.                                      |
+|          | `Editable`                                                                  | Text that edits in place with the library's own fields (text, textarea, number, select).            |
+|          | `Upload`                                                                    | Pick or drop files, validate type and size, show progress, retry and cancel.                        |
+| Data     | `CodeBlock` (+ `HighlightedCode`)                                           | Syntax-coloured code with line numbers and a copy button.                                           |
+|          | `QrCode`                                                                    | Any text as a QR code, from the library's own encoder (no QR dependency), with an optional logo.    |
+|          | `Tree`                                                                      | An expandable hierarchy: selection or checkboxes, lazy loading, keyboard and screen-reader support. |
+| Overlays | `AlertDialog` (also replaces the old `ConfirmDialog`, removed the same day) | A dialog that needs an answer: severity, one action, optional cancel, no way out but its buttons.   |
+|          | `HoverCard`                                                                 | A card shown on hover or focus (web) or long press (native).                                        |
+| Forms    | **Form engine** in `Form`                                                   | `FormField`, `useForm`, `useFormField`, `useWatch`, `useFormState`.                                 |
 
 **The form engine in two sentences.** Values, errors and the dirty, touched and submitting flags live in a
 store outside React state, and each field subscribes only to its own slice, so typing in one field of a
@@ -107,7 +110,7 @@ profile header), running on a stage with a 360, 720 or full width switch.
 - Until you touch the text, the stage shows the real component (nothing is evaluated, the static export is
   unchanged); after the first change the text is compiled in the browser and later control changes redraw it
   **without losing its state** (a selected table row stays selected).
-- 101 examples, each a real checked file (types, lint, formatting). A test renders each one, compares the
+- 100 examples, each a real checked file (types, lint, formatting). A test renders each one, compares the
   compiled version with the real one, and checks that every control it uses is one the panel knows.
 
 ### 4.2 Everything else on the site
@@ -130,8 +133,8 @@ profile header), running on a stage with a 360, 720 or full width switch.
 | Check                                                              | Result                                                                                                        |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | Type-check (4 workspaces plus design-sync), lint                   | Pass                                                                                                          |
-| Library tests                                                      | 1,351 tests, 63 suites (was 717, 44)                                                                          |
-| Playground tests                                                   | 1,279 tests, 10 suites (was 948, 8)                                                                           |
+| Library tests                                                      | 1,472 tests, 70 suites (was 717, 44)                                                                          |
+| Playground tests                                                   | 1,280 tests, 12 suites (was 948, 8)                                                                           |
 | Package build and validation (`publint`, types)                    | Pass for `@its/glowup-ui`                                                                                     |
 | Generated files (props, galleries, templates, examples, inventory) | Regenerated, stable on a second run                                                                           |
 | Seen in a browser (web)                                            | Icons page and filters, gallery, sidebar search, Stack, Tree, QrCode, AlertDialog, HoverCard, Tooltip, Portal |
@@ -148,22 +151,35 @@ Test suites that render many pages can time out when run in parallel on a slow m
 - **New**: `docs/decisions.md` (decided versus waiting), `docs/library-roadmap.md` (the plan in section 8),
   this report.
 - **Rewritten for the new components**: the library README and specification (`components.md`), the component
-  inventory (116 components, 27 added, 54 updated), the per-package `CLAUDE.md` rules.
+  inventory (115 components, 27 added, 53 updated), the per-package `CLAUDE.md` rules.
 - **Changesets** for every library change: `component-api-batch-1`, `-2` and `new-components-batch-3`.
 
-## 7. Decisions to take in the meeting
+## 7. Decisions
 
-| #   | Question                                                                       | Why it matters                                          | Default                         |
-| --- | ------------------------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------- |
-| 1   | Do rename batch 3 now (field family, feedback), or leave the mixed vocabulary? | Breaking; cheaper before more apps adopt today's names. | Do it, with the field contract. |
-| 2   | `AlertDialog` and `ConfirmDialog` overlap: keep both or fuse?                  | Two ways to ask the same thing.                         | Keep both.                      |
-| 3   | `Typography` defaults to `h1` (57 px): change to `body1`?                      | A bare `<Typography>` is huge and has no heading role.  | Keep for now.                   |
-| 4   | `Center` returned (as a thin `Box`) after being removed on 22 Oct. Keep?       | Reverses an earlier decision.                           | Keep.                           |
-| 5   | Truly rounded icons: add a second icon set (Material Icons Rounded)?           | Only tiles are rounder today; glyphs are not.           | Not started.                    |
-| 6   | Rename the package to Solaris UI?                                              | Names and paths still say Glowup.                       | Not now.                        |
-| 7   | Who verifies on a phone, and when?                                             | Nothing from 10-23 has run natively.                    | Add to `/native-check`.         |
+### 7.1 Settled on 23 October and already applied
 
-The full list of waiting questions is in `docs/decisions.md`.
+The questions raised by this report's first draft were answered the same day and the changes are in the tree:
+
+| Question                                                                     | Answer                                                            | What changed                                                                                                                         |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `Typography` default variant                                                 | `body1`                                                           | A bare `<Typography>` is body text, not 57 px. Breaking.                                                                             |
+| `Select multiple`: one value shape                                           | `value[]` and `onChange(values)`                                  | `selectedValues` and `toggleOptions` are gone. `Autocomplete` keeps its own picks API on purpose (its `onChange` is the typed text). |
+| `AlertDialog` and `ConfirmDialog`                                            | Fuse into `AlertDialog`                                           | `ConfirmDialog` is removed; `confirmText`/`onConfirm` are `actionText`/`onAction`; `AlertDialog` gained `icon`.                      |
+| `ListItem` with `onClick` and `action`                                       | The whole row is pressable; the action never also presses the row | One pressable row; the action's click is stopped on web.                                                                             |
+| `Center`, `Dialog` close icon, `Pagination` shape, `Stat` colours, `density` | Keep as they are                                                  | Nothing.                                                                                                                             |
+| Rename to Solaris UI                                                         | Not now                                                           | Nothing.                                                                                                                             |
+| Hooks (`useInfiniteList`, `useActiveFilters`)                                | Later, with a hooks section in the docs                           | Nothing yet.                                                                                                                         |
+
+### 7.2 Still to take
+
+| #   | Question                                                                                              | Why it matters                                          | Default                         |
+| --- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------- |
+| 1   | Do rename batch 3 now (field family, feedback), or leave the mixed vocabulary?                        | Breaking; cheaper before more apps adopt today's names. | Do it, with the field contract. |
+| 2   | Truly rounded icons: add a second icon set (Material Icons Rounded)?                                  | Only tiles are rounder today; glyphs are not.           | Not started.                    |
+| 3   | Should `Autocomplete` follow `Select` (`value` and `onChange(selected)`, typed text as `inputValue`)? | Consistent vocabulary, but breaks `onChange(text)`.     | Leave as is.                    |
+| 4   | Who verifies on a phone, and when?                                                                    | Nothing from 10-23 has run natively.                    | Add to `/native-check`.         |
+
+The full list is in `docs/decisions.md`.
 
 ## 8. Risks and what is not verified
 

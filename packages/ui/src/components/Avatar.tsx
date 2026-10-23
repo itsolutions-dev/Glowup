@@ -7,7 +7,7 @@ import {
   Pressable,
   ImageSourcePropType,
 } from "react-native";
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 
 import Icons from "./Glyph";
 import Tooltip from "./Tooltip";
@@ -95,7 +95,7 @@ const Avatar = ({
             borderRadius,
             backgroundColor: backgroundColor || theme.colors.primaryContainer,
           },
-          onClick && (hovered || pressed) && getGlowStyles(theme, true),
+          onClick && (hovered || pressed) && getFocusRing(theme),
         ]}
       >
         {source ? (

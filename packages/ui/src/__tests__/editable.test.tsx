@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Platform, Text } from "react-native";
+import { Platform, StyleSheet, Text } from "react-native";
 import { act, cleanup, fireEvent, render } from "@testing-library/react-native";
 import { Editable, ThemeProvider } from "..";
 import type { EditableProps } from "..";
@@ -409,5 +409,160 @@ describe("Editable on the web", () => {
     );
     expect(onCancel).toHaveBeenCalledWith("admin");
     expect(view.getByRole("button", { name: "Role: Admin" })).toBeTruthy();
+  });
+});
+
+describe("Editable width", () => {
+  const measure = (node: any, width: number) =>
+    fireEvent(node, "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width, height: 40 } },
+    });
+  const widthOf = (node: any) => StyleSheet.flatten(node.props.style);
+
+  it.each(["text", "textarea", "number"] as const)(
+    "%s: the open field is as wide as the text it replaced",
+    async (type) => {
+      const view = await draw(
+        <Editable label="Name" type={type} defaultValue="12" testID="e" />,
+      );
+      await measure(view.getByTestId("e"), 240);
+      await fireEvent.press(view.getByTestId("e"));
+      expect(widthOf(view.getByTestId("e-field")).width).toBe(240);
+      expect(widthOf(view.getByTestId("e-field")).flex).toBeUndefined();
+    },
+  );
+
+  it("select: the open dropdown field is as wide as the label it replaced", async () => {
+    const view = await draw(
+      <Editable
+        type="select"
+        label="Role"
+        options={[{ id: "a", label: "Admin", value: "admin" }]}
+        defaultValue="admin"
+        testID="e"
+      />,
+    );
+    await measure(view.getByTestId("e"), 180);
+    await fireEvent.press(view.getByTestId("e"));
+    expect(widthOf(view.getByTestId("e-field")).width).toBe(180);
+  });
+
+  it("keeps room for a short or empty value, and when never measured", async () => {
+    const view = await draw(<Editable label="Name" testID="e" />);
+    await measure(view.getByTestId("e"), 40);
+    await fireEvent.press(view.getByTestId("e"));
+    expect(widthOf(view.getByTestId("e-field")).width).toBe(120);
+
+    const open = await draw(<Editable startWithEditView testID="o" />);
+    expect(widthOf(open.getByTestId("o-field")).width).toBe(120);
+  });
+
+  it("fullWidth fills the container in display and in edit", async () => {
+    const view = await draw(
+      <Editable label="Name" defaultValue="Ada" fullWidth testID="e" />,
+    );
+    expect(widthOf(view.getByTestId("e")).width).toBe("100%");
+    await measure(view.getByTestId("e"), 240);
+    await fireEvent.press(view.getByTestId("e"));
+    const field = widthOf(view.getByTestId("e-field"));
+    expect(field.width).toBeUndefined();
+    expect(field.flex).toBe(1);
+    expect(widthOf(view.getByTestId("e-field").parent!).width).toBe("100%");
+  });
+
+  // The open field insets its text by 16 px plus a 1 px border on each side;
+  // the display has to inset by the same, or the text that fits on display is
+  // clipped once the field takes its width.
+  const FIELD_INSET = 17;
+
+  it("leaves the open field a text area at least as wide as the display text", async () => {
+    const TEXT = 107; // "Ada Lovelace" in bodyLarge
+    const ICON = 18; // medium
+    const view = await draw(
+      <Editable label="Name" defaultValue="Ada Lovelace" testID="e" />,
+    );
+    const display = widthOf(view.getByTestId("e"));
+    expect(display.paddingHorizontal).toBe(FIELD_INSET);
+
+    const outer = TEXT + 2 * display.paddingHorizontal + display.gap + ICON;
+    await measure(view.getByTestId("e"), outer);
+    await fireEvent.press(view.getByTestId("e"));
+    const field = widthOf(view.getByTestId("e-field")).width;
+    expect(field).toBe(outer);
+    expect(field - 2 * FIELD_INSET).toBeGreaterThanOrEqual(TEXT);
+  });
+
+  it("opened without a display, measures the text unseen and takes its width", async () => {
+    const view = await draw(
+      <Editable defaultValue="Ada Lovelace" startWithEditView testID="e" />,
+    );
+    const field = view.getByTestId("e-field");
+    expect(widthOf(field).width).toBe(120);
+    const measurer = field.parent!.children[0] as any;
+    await measure(measurer, 149);
+    expect(widthOf(view.getByTestId("e-field")).width).toBe(149);
+    // Once known, it is not drawn again.
+    expect(view.getByTestId("e-field").parent!.children).toHaveLength(1);
+  });
+
+  describe("started in edit view", () => {
+    const roles = [{ id: "a", label: "Admin", value: "admin" }];
+
+    it.each(["text", "number", "textarea"] as const)(
+      "%s: the editor is there on the first render, with no layout event at all",
+      async (type) => {
+        const view = await draw(
+          <Editable
+            type={type}
+            defaultValue="12"
+            startWithEditView
+            testID="e"
+          />,
+        );
+        expect(view.getByTestId("e-input")).toBeTruthy();
+        expect(widthOf(view.getByTestId("e-field")).width).toBe(120);
+      },
+    );
+
+    it("select: the dropdown field is there on the first render", async () => {
+      const view = await draw(
+        <Editable
+          type="select"
+          label="Role"
+          options={roles}
+          defaultValue="admin"
+          startWithEditView
+          testID="e"
+        />,
+      );
+      expect(view.getByTestId("e-field")).toBeTruthy();
+      expect(view.queryByRole("button", { name: "Role: Admin" })).toBeNull();
+      expect(widthOf(view.getByTestId("e-field")).width).toBe(120);
+    });
+
+    it("the measuring text is out of sight and of assistive tech, and refines the width", async () => {
+      const view = await draw(
+        <Editable defaultValue="Ada Lovelace" startWithEditView testID="e" />,
+      );
+      const measurer = view.getByTestId("e-field").parent!.children[0] as any;
+      const style = widthOf(measurer);
+      expect(style).toMatchObject({ position: "absolute", opacity: 0 });
+      expect(measurer.props.pointerEvents).toBe("none");
+      expect(measurer.props.accessibilityElementsHidden).toBe(true);
+
+      await measure(measurer, 200);
+      expect(widthOf(view.getByTestId("e-field")).width).toBe(200);
+      expect(view.getByTestId("e-input")).toBeTruthy();
+    });
+
+    it("asks for focus once: a later render does not take it back", async () => {
+      const view = await draw(
+        <Editable defaultValue="Ada" startWithEditView testID="e" />,
+      );
+      expect(view.getByTestId("e-input").props.autoFocus).toBe(true);
+      await fireEvent(view.getByTestId("e-input"), "focus");
+      await measure(view.getByTestId("e-field").parent!.children[0], 149);
+      expect(view.getByTestId("e-input").props.autoFocus).toBe(false);
+    });
   });
 });

@@ -154,6 +154,17 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "DataGrid",
     Component: DataGrid,
     props: {
+      tableTitle: { type: "text", default: "", label: "Title" },
+      // Left out, the grid fills its container; with a height the header stays
+      // and the rows scroll under it.
+      width: { type: "number", default: undefined, label: "Width (px)" },
+      height: { type: "number", default: undefined, label: "Height (px)" },
+      rowsPerPage: {
+        type: "number",
+        default: undefined,
+        label: "Rows per page",
+      },
+      hover: { type: "boolean", default: false, label: "Hover" },
       density: {
         type: "select",
         // Left out, the grid follows ThemeProvider's density.
@@ -184,6 +195,16 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
       // A glyph name; the library also takes a node (an Avatar), which the
       // gallery shows.
       icon: { type: "icon", default: "", label: "Icon (glyph name)" },
+      variant: {
+        type: "select",
+        default: "contained",
+        label: "Variant",
+        options: [
+          { label: "Standard", value: "standard" },
+          { label: "Outlined", value: "outlined" },
+          { label: "Contained", value: "contained" },
+        ],
+      },
       trailingWidth: {
         type: "number",
         default: undefined,
@@ -204,6 +225,25 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     props: {
       title: { type: "text", default: "", label: "Title" },
       divider: { type: "boolean", default: false, label: "Divider below" },
+      gap: {
+        type: "select",
+        // Left out, the items touch: each keeps only its own small margin.
+        default: undefined,
+        label: "Gap",
+        options: [
+          { label: "None", value: undefined },
+          { label: "XS", value: "xs" },
+          { label: "S", value: "s" },
+          { label: "M", value: "m" },
+          { label: "L", value: "l" },
+          { label: "XL", value: "xl" },
+        ],
+      },
+      showDividers: {
+        type: "boolean",
+        default: false,
+        label: "Dividers between items",
+      },
     },
   },
   ListSubheader: {

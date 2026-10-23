@@ -34,6 +34,44 @@ and D1–D17 in full). When a pending item is answered, move it up.
   native), not the browser `title`.
 - `SideSheet` is `Drawer position="right"`; `TopAppBar` is `AppBar`; `Modal` is `Dialog`.
 
+**Answered on 2026-10-23** (the first batch of questions)
+
+- `Typography` without a `variant` is `body1`, not `h1`. Done; breaking, in `typography-default-body1.md`.
+- `Select multiple` takes `value[]` and `onChange(values)`; `selectedValues` and `toggleOptions` are gone. Done
+  (`select-multiple-value.md`). `Autocomplete` is not part of it: its `onChange` is the typed text and its
+  picks go through `selected` / `onSelectedChange`, arrays when `multiple`.
+- `ConfirmDialog` is fused into `AlertDialog` and removed (`alert-dialog-replaces-confirm-dialog.md`):
+  `confirmText`/`onConfirm` are `actionText`/`onAction`, `dismissable` is `disableBackdropClick` and
+  `disableEscapeKeyDown`, and `AlertDialog` gained `icon`.
+- `Center` stays (a thin `Box` wrapper).
+- A `ListItem` with `onClick` is pressable as a whole row; a press on its `action` never also presses the
+  row (`list-item-pressable-row.md`).
+- Kept as they are: the `Dialog` header close icon and the pickers' native-style dialog on mobile; the rounded
+  square `Pagination`; the `Stat` trend colours (`success` up, `error` down).
+- `density` stays a choice of the app, not set from the window width inside the library.
+- No rename to Solaris UI for now.
+- Hooks (`useInfiniteList`, `useActiveFilters`, where they live and how they are documented) are decided
+  later, with a dedicated hooks section in the docs.
+
+**Applied on the afternoon of 2026-10-23** (twelve changes the maintainer found by hand)
+
+- `Table` and `DataGrid` stay two separate components; `DataGrid` takes `Table`'s props (`tableTitle`, `width`,
+  `height`, `rowsPerPage` with a pager, `hover`, `selected`, `onClick`). `selected` is indices into `data` only.
+- The date and time pickers take `showOkButton` (default `true`). Off: the time picker sets and closes after the
+  minute, `datetime` after day, hour and minute, a range after its second end. Multiple selection and typed entry
+  keep OK; `variant="static"` ignores it.
+- `ListItem` has `variant`: `standard` (transparent, like the docs sidebar), `outlined`, `contained`. The default
+  is `contained` (it is what the row looked like); the row now has a constant 1 px border, 2 px taller than before.
+  `ListSection` takes `gap` and `showDividers`.
+- `ToastProvider` takes `maxVisible` (default `1`): that many toasts show together, the rest queue.
+- `Slider` takes `interaction` (`both` default, `drag`, `click`) and the keyboard.
+- Hover, press and focus feedback never changes a control's box: a halo (`getFocusRing`) replaces the border that
+  used to appear on hover.
+- `Editable` keeps its width between display and edit mode, `fullWidth` fills the container in both.
+- Docs site: component code is collapsed to the component's own lines with "Show full code"; the page has a sticky
+  "On this page" list with the active section and a back-to-top button; the gallery cards show a large preview and
+  two lines of description.
+
 **Documentation site** (playground)
 
 - A component page is **one** example bound to its props: the Properties panel reads and writes a
@@ -43,18 +81,9 @@ and D1–D17 in full). When a pending item is answered, move it up.
 
 ## Waiting for a yes or no
 
-| Question                                                                                                                                                                                 | Default if nobody answers            |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| `Typography` default `variant`: keep `h1` (57 px) or `body1`?                                                                                                                            | Keep `h1` (no behaviour change).     |
-| `Select multiple` and `Autocomplete multiple`: move both to `value[]` + `onChange(values)`?                                                                                              | Leave as is until rename batch 3.    |
-| `AlertDialog` and `ConfirmDialog` overlap: keep both or fuse?                                                                                                                            | Keep both.                           |
-| `Center` came back as a thin `Box` wrapper (it was removed on 22 Oct for `Box variant="centered-flex"`): keep?                                                                           | Keep.                                |
-| `ListItem` with `onClick` and `action`: icon and texts are the button and the action sits beside them. Should the whole row be pressable?                                                | As is.                               |
-| `Dialog`'s header close icon replaces the "Close" text button. Keep? And the pickers' dialog on mobile is the native centred card; should it get the Material Cancel and OK layout back? | As is.                               |
-| `Pagination` default shape is a rounded square (`circular` is the old circle). Keep?                                                                                                     | Keep.                                |
-| `Stat` trend defaults are `success` up and `error` down (were `primary`). Keep?                                                                                                          | Keep.                                |
-| Set `density` automatically from the window width inside the library, or leave it to the app?                                                                                            | Leave it to the app.                 |
-| Where do `useInfiniteList` and `useActiveFilters` live (library or CRM), and how are hooks documented (docgen covers components only)?                                                   | CRM; hooks documented in the README. |
-| Rename the package to Solaris UI (names and paths are still Glowup)?                                                                                                                     | Not now.                             |
-| Rounded icon glyphs through a second icon set (Material Icons Rounded) via the palette's `iconSet`?                                                                                      | Not started.                         |
-| `QrCode` uses fixed colours in the example rather than theme tokens (a light code on dark scans badly). Keep?                                                                            | Keep.                                |
+| Question                                                                                                                                                                    | Default if nobody answers                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Rounded icon glyphs through a second icon set (Material Icons Rounded) via the palette's `iconSet`?                                                                         | Not started.                                            |
+| `QrCode` uses fixed colours in the example rather than theme tokens (a light code on dark scans badly). Keep?                                                               | Keep.                                                   |
+| `Autocomplete` follows `Select` (`value` and `onChange(selected)`, the typed text moving to `inputValue` and `onInputChange`)? It would break its current `onChange(text)`. | Leave as is.                                            |
+| Rename batch 3 (the field family and feedback pieces still on `onPress`, `mode`, `onValueChange`, `multiSelect`): now, or later?                                            | Later, with the field contract in `library-roadmap.md`. |

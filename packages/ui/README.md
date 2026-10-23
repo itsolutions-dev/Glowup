@@ -183,7 +183,7 @@ src/
 ├── components/        # the Material You components
 │   ├── CardParts/     # CardTitle, CardContent, CardCover, CardActions
 │   ├── List/          # ListItem, ListSection, ListSubheader
-│   ├── Dialog/        # Dialog, ConfirmDialog, AlertDialog
+│   ├── Dialog/        # Dialog, AlertDialog
 │   ├── Progress/      # CircularProgress, LinearProgress
 │   ├── Tab/           # Tabs, TabContent
 │   ├── ToggleButton/  # ToggleButton, ToggleButtonGroup
@@ -227,7 +227,7 @@ Exported from the library alongside the components:
 - **`getGlowStyles(theme, active, variant?)`** — the M3 "glow" focus/hover ring (`variant="error"` for error state).
 - **`AlertProvider`** + **`Alert(title, message, buttons)`** — cross-platform alert: native
   `Alert.alert` on iOS/Android, custom `Dialog` on web. Mounting `AlertProvider` is enough.
-- **`ToastProvider`** (`position`) + **`useToast()`** — imperative, queued toasts (see
+- **`ToastProvider`** (`position`, `maxVisible`) + **`useToast()`** — imperative, queued toasts (see
   [`ToastProvider` / `useToast()`](#toastprovider--usetoast) below).
 - **`ViewportProvider`** (`width`) — makes `useBreakpoint`, `Grid` and the date pickers' dialog-or-popover
   choice see `width` instead of the window's, to preview a phone layout inside a desktop page (the
@@ -247,7 +247,7 @@ Renders themed text at an M3 type scale.
 | Prop     | Type                                                                                                     | Default     | Req |
 | -------- | -------------------------------------------------------------------------------------------------------- | ----------- | --- |
 | children | ReactNode                                                                                                | —           | ✓   |
-| variant  | `"h1"`…`"h6"`, `"subtitle1"`, `"subtitle2"`, `"body1"`, `"body2"`, `"button"`, `"caption"`, `"overline"` | `h1`        |     |
+| variant  | `"h1"`…`"h6"`, `"subtitle1"`, `"subtitle2"`, `"body1"`, `"body2"`, `"button"`, `"caption"`, `"overline"` | `body1`     |     |
 | color    | theme colour token (`primary`, `onSurfaceVariant`, `error`…) or any colour string                        | `onSurface` |     |
 | fontSize | number (the line height scales with it)                                                                  |             |     |
 | nowrap   | boolean (one line, ending in an ellipsis)                                                                | `false`     |     |
@@ -374,7 +374,7 @@ is safe in a tree that has not been wrapped.
 **Which overlays use it.** `Tooltip`, `HoverCard` (on the web; on native it opens in a `Modal`) and
 `Autocomplete`'s suggestion list render through the Portal when a host is mounted, and stay
 anchored in place when one is not. Those are the only overlays in the kit that lay out inline:
-`Dialog`, `ConfirmDialog`, `AlertDialog`, `Popover`, `Menu`,
+`Dialog`, `AlertDialog`, `Popover`, `Menu`,
 `Select`, `BottomSheet` and a swipeable `Drawer` all go through a native `Modal`, which is a
 separate window on native and a `createPortal` into `document.body` on web — already stronger
 isolation than an in-tree Portal, so they are deliberately left alone. Portal exists for the cases a `Modal`
@@ -393,18 +393,17 @@ is a theme color token or any raw color.
 A `View` that reads shape and color off the theme, with a `variant` for the usual layouts. Extends
 `ViewProps`, so anything not covered by a prop still goes through `style`, merged last.
 
-| Prop                     | Type                                                                                                                                                                                                                                           | Default    |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| variant                  | `"standard" \| "flex" \| "column-flex" \| "centered-flex" \| "centered-column-flex" \| "full-page-flex" \| "full-page-column-flex" \| "full-size-flex" \| "full-size-column" \| "full-size-centered-flex" \| "full-size-centered-column-flex"` | `standard` |
-| padding / margin         | number (px, every edge; one edge or axis goes through `style`)                                                                                                                                                                                 |            |
-| background / borderColor | ColorValue                                                                                                                                                                                                                                     |            |
-| radius                   | RadiusValue                                                                                                                                                                                                                                    |            |
-| borderWidth              | number                                                                                                                                                                                                                                         |            |
-| gap                      | number (px between children)                                                                                                                                                                                                                   |            |
-| align / justify          | `alignItems` / `justifyContent` values                                                                                                                                                                                                         |            |
-| width / height           | ViewStyle dimensions                                                                                                                                                                                                                           |            |
-| wrap                     | boolean (children flow onto the next line)                                                                                                                                                                                                     |            |
-| style                    | ViewStyle (merged last, over the variant and every other prop)                                                                                                                                                                                 |            |
+| Prop                     | Type                                                           | Default |
+| ------------------------ | -------------------------------------------------------------- | ------- |
+| padding / margin         | number (px, every edge; one edge or axis goes through `style`) |         |
+| background / borderColor | ColorValue                                                     |         |
+| radius                   | RadiusValue                                                    |         |
+| borderWidth              | number                                                         |         |
+| gap                      | number (px between children)                                   |         |
+| align / justify          | `alignItems` / `justifyContent` values                         |         |
+| width / height           | ViewStyle dimensions                                           |         |
+| wrap                     | boolean (children flow onto the next line)                     |         |
+| style                    | ViewStyle (merged last, over the variant and every other prop) |         |
 
 `standard` is a plain column, `flex` a row and `column-flex` a column; `centered-flex` and
 `centered-column-flex` centre on both axes (`Center` below is a `Box` with one of them); `full-page-*` fill the screen (`flex: 1`, minimum height 100%) and `full-size-*` are 100%
@@ -591,17 +590,16 @@ same roles.
 
 Square, icon-only action — `Button` with only an icon comes out pill-shaped and label-padded.
 
-| Prop               | Type                                                              | Default    |
-| ------------------ | ----------------------------------------------------------------- | ---------- |
-| icon               | icon (required)                                                   | —          |
-| accessibilityLabel | string (required — an icon carries no accessible name)            | —          |
-| onClick            | () => void                                                        |            |
-| variant            | `"standard" \| "filled" \| "tonal" \| "outlined"`                 | `standard` |
-| color              | same roles as `Button` (omit for the neutral M3 look)             |            |
-| title              | string (tooltip text: hover / focus on web, long press on native) |            |
-| size               | `"small" \| "medium" \| "large"` (32 / 40 / 48)                   | `medium`   |
-| selected           | boolean — M3 toggle-icon-button state                             |            |
-| loading / disabled | boolean                                                           |            |
+| Prop               | Type                                                              | Default  |
+| ------------------ | ----------------------------------------------------------------- | -------- |
+| icon               | icon (required)                                                   | —        |
+| accessibilityLabel | string (required — an icon carries no accessible name)            | —        |
+| onClick            | () => void                                                        |          |
+| color              | same roles as `Button` (omit for the neutral M3 look)             |          |
+| title              | string (tooltip text: hover / focus on web, long press on native) |          |
+| size               | `"small" \| "medium" \| "large"` (32 / 40 / 48)                   | `medium` |
+| selected           | boolean — M3 toggle-icon-button state                             |          |
+| loading / disabled | boolean                                                           |          |
 
 #### `Link`
 
@@ -899,8 +897,8 @@ Dropdown built on `Popover`; single or multi select, optional chip display.
 | Prop            | Type                                                                                                                                        | Default            |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | options         | `Option[]` = `{ id, label, value, icon? }` (required)                                                                                       | —                  |
-| value           | any (single selection, `null` for none, required)                                                                                           | —                  |
-| onChange        | (value) => void (required; `null` when a `nullable` select is cleared)                                                                      | —                  |
+| value           | any (the picked option's `value`, `null` for none; with `multiple`, the array of selected `value`s)                                         | —                  |
+| onChange        | (value) => void (`null` when a `nullable` select is cleared; with `multiple`, the new array on every toggle)                                | —                  |
 | label           | string                                                                                                                                      |                    |
 | placeholder     | string                                                                                                                                      | `Select an option` |
 | variant         | `"outlined" \| "filled"` (the look of the box: `filled` is tinted, with its border only while focused or in error, like `PinInput`'s cells) | `outlined`         |
@@ -911,10 +909,8 @@ Dropdown built on `Popover`; single or multi select, optional chip display.
 | disabledOptions | `RegExp` \| `(string \| number)[]` (values that stay visible but cannot be picked)                                                          |                    |
 | error           | string                                                                                                                                      |                    |
 | disabled        | boolean                                                                                                                                     |                    |
-| multiple        | boolean                                                                                                                                     | `false`            |
+| multiple        | boolean (`value` and `onChange` then carry arrays)                                                                                          | `false`            |
 | showAsChips     | boolean (render selection as chips)                                                                                                         | `false`            |
-| selectedValues  | any[] (multi-select set)                                                                                                                    | `[]`               |
-| toggleOptions   | (value) => void (multi-select handler)                                                                                                      |                    |
 
 #### `Checkbox`
 
@@ -991,6 +987,8 @@ Animated M3 switch, in three sizes or with fully configurable dimensions.
 | width / height | number (override the `size`)                             | from `size` |
 | containerStyle | ViewStyle                                                |             |
 
+The thumb stays inside the track at both ends, with the same inset on every side.
+
 #### `Slider`
 
 | Prop              | Type                                     | Default     |
@@ -1003,7 +1001,13 @@ Animated M3 switch, in three sizes or with fully configurable dimensions.
 | label             | string                                   |             |
 | showValueLabel    | boolean                                  |             |
 | marks             | boolean (ticks at each step, needs step) |             |
+| interaction       | `"both"                                  | "drag"      | "click"` | `both` |
 | disabled          | boolean                                  |             |
+
+`interaction` is what a pointer may do: `"drag"` moves the thumb only, `"click"` jumps to the
+pressed point only, `"both"` does either. On the web the slider is focusable (`role="slider"`):
+arrow keys step, Page Up / Down move ten steps, Home / End go to the ends, in every mode. On
+native it is `adjustable` with increment and decrement actions.
 
 #### `NumberField` — number stepper
 
@@ -1047,33 +1051,34 @@ memoized per locale. Relative labels (Today/Yesterday/Tomorrow) come from `Intl.
 only public pickers: the calendar and the clock they are built from are not exported on their own,
 use `variant="static"` for an inline one.
 
-| Prop                          | Type                                                                                                                                                                           | Default       |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| value                         | `Date \| null` · `DateRange` · `Date[]`, following `selectionMode` (required)                                                                                                  | —             |
-| onChange                      | matching setter (required)                                                                                                                                                     | —             |
-| variant                       | `"default" \| "static"` — a field with a dialog, or the picker inline                                                                                                          | `default`     |
-| presentation                  | `"auto" \| "popover" \| "dialog"` — web only: docked to the field, or a centred dialog (`auto`: the dialog on a touch device or under 600 px, as Material UI's mobile pickers) | `auto`        |
-| fieldVariant                  | `"outlined" \| "filled"` — the look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                          | `outlined`    |
-| label                         | string                                                                                                                                                                         |               |
-| mode                          | `"date" \| "datetime" \| "time"`                                                                                                                                               | `date`        |
-| selectionMode                 | `"single" \| "range" \| "multiple"` (ignored when `mode="time"`)                                                                                                               | `single`      |
-| validRange                    | `{ startDate?, endDate?, disabledDates? }`                                                                                                                                     |               |
-| isDateDisabled                | (date) => boolean — for rules `validRange` can't express                                                                                                                       |               |
-| scrollMode                    | `"endless" \| "paged"` month navigation                                                                                                                                        | `endless`     |
-| inputEnabled                  | boolean — lets the user type a single date into the field                                                                                                                      | `true`        |
-| defaultInputType              | `"picker" \| "keyboard"` — which surface the dialog opens on                                                                                                                   | `picker`      |
-| showToday                     | boolean — the "Today" button in the calendar header (single dates)                                                                                                             | `true`        |
-| use24HourClock                | boolean — forces the 24-hour dial                                                                                                                                              | locale's own  |
-| minuteInterval                | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`                                                                                                                                         | `1`           |
-| startYear / endYear           | number — bounds of the year grid and the endless scroller                                                                                                                      | ±100 years    |
-| placeholder                   | string (shown while the value is empty)                                                                                                                                        |               |
-| clearable / onClear           | boolean / () => void                                                                                                                                                           |               |
-| error / helperText / required | string / string / boolean                                                                                                                                                      |               |
-| locale                        | string                                                                                                                                                                         | device locale |
-| firstDayOfWeek                | 0–6 (0 = Sunday)                                                                                                                                                               | locale's own  |
-| labels                        | `DateTimePickerLabels` — chrome strings, pass i18n values                                                                                                                      | English       |
-| relativeLabels                | `{ today?, yesterday?, tomorrow? }`                                                                                                                                            | `Intl`        |
-| disabled                      | boolean                                                                                                                                                                        |               |
+| Prop                          | Type                                                                                                                                                                                                        | Default       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| value                         | `Date \| null` · `DateRange` · `Date[]`, following `selectionMode` (required)                                                                                                                               | —             |
+| onChange                      | matching setter (required)                                                                                                                                                                                  | —             |
+| variant                       | `"default" \| "static"` — a field with a dialog, or the picker inline                                                                                                                                       | `default`     |
+| presentation                  | `"auto" \| "popover" \| "dialog"` — web only: docked to the field, or a centred dialog (`auto`: the dialog on a touch device or under 600 px, as Material UI's mobile pickers)                              | `auto`        |
+| fieldVariant                  | `"outlined" \| "filled"` — the look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                                                       | `outlined`    |
+| label                         | string                                                                                                                                                                                                      |               |
+| mode                          | `"date" \| "datetime" \| "time"`                                                                                                                                                                            | `date`        |
+| selectionMode                 | `"single" \| "range" \| "multiple"` (ignored when `mode="time"`)                                                                                                                                            | `single`      |
+| validRange                    | `{ startDate?, endDate?, disabledDates? }`                                                                                                                                                                  |               |
+| isDateDisabled                | (date) => boolean — for rules `validRange` can't express                                                                                                                                                    |               |
+| scrollMode                    | `"endless" \| "paged"` month navigation                                                                                                                                                                     | `endless`     |
+| inputEnabled                  | boolean — lets the user type a single date into the field                                                                                                                                                   | `true`        |
+| defaultInputType              | `"picker" \| "keyboard"` — which surface the dialog opens on                                                                                                                                                | `picker`      |
+| showToday                     | boolean — the "Today" button in the calendar header (single dates)                                                                                                                                          | `true`        |
+| showOkButton                  | boolean — the popup's OK. `false` finishes a time after its minute (a date-time after day, hour, minute) and a range after its second end; no effect on `multiple`, on typed entry or on `variant="static"` | `true`        |
+| use24HourClock                | boolean — forces the 24-hour dial                                                                                                                                                                           | locale's own  |
+| minuteInterval                | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`                                                                                                                                                                      | `1`           |
+| startYear / endYear           | number — bounds of the year grid and the endless scroller                                                                                                                                                   | ±100 years    |
+| placeholder                   | string (shown while the value is empty)                                                                                                                                                                     |               |
+| clearable / onClear           | boolean / () => void                                                                                                                                                                                        |               |
+| error / helperText / required | string / string / boolean                                                                                                                                                                                   |               |
+| locale                        | string                                                                                                                                                                                                      | device locale |
+| firstDayOfWeek                | 0–6 (0 = Sunday)                                                                                                                                                                                            | locale's own  |
+| labels                        | `DateTimePickerLabels` — chrome strings, pass i18n values                                                                                                                                                   | English       |
+| relativeLabels                | `{ today?, yesterday?, tomorrow? }`                                                                                                                                                                         | `Intl`        |
+| disabled                      | boolean                                                                                                                                                                                                     |               |
 
 Typed entry follows the locale's own field order — `22/11/2026` in `it-IT`, `11/22/2026` in
 `en-US` — and is validated against `validRange` on blur. The field itself only accepts typing for
@@ -1160,27 +1165,28 @@ field in its place. Enter or leaving the field keeps the change, Escape drops it
 carries a pencil (always drawn on native, on hover or focus on web) and is a button for screen
 readers.
 
-| Prop                      | Type                                                                                                                                                           | Default    |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| value / onChange          | string (controlled; `onChange` runs on every edit, and once more with the starting value when the edit is cancelled)                                           |            |
-| defaultValue              | string (uncontrolled start)                                                                                                                                    | `""`       |
-| onSubmit / onCancel       | (value) => void (confirmed) / (previous) => void (cancelled)                                                                                                   |            |
-| type                      | `"text" \| "textarea" \| "number" \| "select"` (`textarea`: Enter adds a line, Ctrl or Cmd + Enter confirms; `select`: opens a `Select`, confirms on the pick) | `text`     |
-| options                   | `Option[]` (the choices of a `select`; the display shows the selected label)                                                                                   |            |
-| submitMode                | `"blur" \| "enter" \| "both" \| "none"` (what confirms; `none` shows check and close buttons instead; Escape cancels in every mode)                            | `both`     |
-| showControls              | boolean (the check and close buttons whatever the mode; leaving the field then no longer confirms)                                                             | `false`    |
-| placeholder               | string (muted, drawn while the value is empty)                                                                                                                 | `Edit`     |
-| validate                  | (value) => string \| undefined (the message is the field's error, and the edit cannot be confirmed while there is one)                                         |            |
-| selectAllOnFocus          | boolean (selects the text when the field opens)                                                                                                                | `false`    |
-| startWithEditView         | boolean (mounts with the field open)                                                                                                                           | `false`    |
-| editing / onEditingChange | boolean / (editing) => void (controls whether the field is open)                                                                                               |            |
-| disabled / readOnly       | boolean (dimmed, cannot open / plain text, no way to open)                                                                                                     | `false`    |
-| variant                   | `"outlined" \| "filled"` (the open field, as `Input`)                                                                                                          | `outlined` |
-| size                      | `"small" \| "medium" \| "large"` (text, pencil and field; `small` is dense)                                                                                    | `medium`   |
-| textVariant               | typography variant (over what `size` picks)                                                                                                                    |            |
-| renderDisplay             | (value) => ReactNode (draws the shown value your way: a link, a badge, a formatted amount)                                                                     |            |
-| label                     | string (accessible name of the display and of the open field; not drawn)                                                                                       |            |
-| precision                 | number (decimals kept by `type="number"`; the value stays text)                                                                                                |            |
+| Prop                      | Type                                                                                                                                                                         | Default    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| value / onChange          | string (controlled; `onChange` runs on every edit, and once more with the starting value when the edit is cancelled)                                                         |            |
+| defaultValue              | string (uncontrolled start)                                                                                                                                                  | `""`       |
+| onSubmit / onCancel       | (value) => void (confirmed) / (previous) => void (cancelled)                                                                                                                 |            |
+| type                      | `"text" \| "textarea" \| "number" \| "select"` (`textarea`: Enter adds a line, Ctrl or Cmd + Enter confirms; `select`: opens a `Select`, confirms on the pick)               | `text`     |
+| options                   | `Option[]` (the choices of a `select`; the display shows the selected label)                                                                                                 |            |
+| submitMode                | `"blur" \| "enter" \| "both" \| "none"` (what confirms; `none` shows check and close buttons instead; Escape cancels in every mode)                                          | `both`     |
+| showControls              | boolean (the check and close buttons whatever the mode; leaving the field then no longer confirms)                                                                           | `false`    |
+| placeholder               | string (muted, drawn while the value is empty)                                                                                                                               | `Edit`     |
+| validate                  | (value) => string \| undefined (the message is the field's error, and the edit cannot be confirmed while there is one)                                                       |            |
+| selectAllOnFocus          | boolean (selects the text when the field opens)                                                                                                                              | `false`    |
+| startWithEditView         | boolean (mounts with the field open)                                                                                                                                         | `false`    |
+| editing / onEditingChange | boolean / (editing) => void (controls whether the field is open)                                                                                                             |            |
+| disabled / readOnly       | boolean (dimmed, cannot open / plain text, no way to open)                                                                                                                   | `false`    |
+| variant                   | `"outlined" \| "filled"` (the open field, as `Input`)                                                                                                                        | `outlined` |
+| size                      | `"small" \| "medium" \| "large"` (text, pencil and field; `small` is dense)                                                                                                  | `medium`   |
+| textVariant               | typography variant (over what `size` picks)                                                                                                                                  |            |
+| renderDisplay             | (value) => ReactNode (draws the shown value your way: a link, a badge, a formatted amount)                                                                                   |            |
+| label                     | string (accessible name of the display and of the open field; not drawn)                                                                                                     |            |
+| precision                 | number (decimals kept by `type="number"`; the value stays text)                                                                                                              |            |
+| fullWidth                 | boolean (display and open field fill the container; off, the open field takes exactly the width the text had, at least 120 px, so nothing jumps; a textarea grows in height) | `false`    |
 
 ```tsx
 <Editable value={name} onChange={setName} onSubmit={save} label="Name" />
@@ -1507,41 +1513,59 @@ its children; with reduced motion on, nothing blinks.
 
 #### `DataGrid`
 
-Virtualized table: sortable columns, reorder, density, loading + empty state. Built on the `Table`
+Virtualized, sortable grid: sortable columns, reorder, density, loading + empty state, and the
+props `Table` has (title, size, paging, hover, selected rows, row press). Built on the `Table`
 primitives below.
 
-| Prop            | Type                                                                                      | Default  |
-| --------------- | ----------------------------------------------------------------------------------------- | -------- |
-| data            | any[] (row objects, required)                                                             | —        |
-| columns         | `ColumnDefinition[]` = `{ id, label, width?, sortable?, align?, renderCell? }` (required) | —        |
-| loading         | boolean                                                                                   | `false`  |
-| density         | `"normal" \| "dense"`                                                                     | `normal` |
-| sortColumn      | string                                                                                    |          |
-| sortDirection   | `"asc" \| "desc"`                                                                         |          |
-| onSort          | (columnId, direction) => void                                                             |          |
-| onColumnReorder | (newColumns) => void                                                                      |          |
-| onEndReached    | () => void (infinite scroll)                                                              |          |
-| emptyMessage    | string                                                                                    |          |
+**DataGrid or Table?** `Table` is for simple data tables: a few rows, drawn all at once.
+`DataGrid` is for large, sortable grids: the rows are a virtualised list, with sorting, column
+reorder, custom cells (`renderCell`) and infinite scroll. They are two components and now share
+`tableTitle`, `width`, `height`, `rowsPerPage`, `hover`, `selected`, `onClick` and `emptyMessage`,
+with the same meaning, and a column may be spelled `alignment` / `fallback` in both.
+
+| Prop            | Type                                                                                                                              | Default  |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| data            | any[] (row objects, required)                                                                                                     | —        |
+| columns         | `ColumnDefinition[]` = `{ id, label, width?, sortable?, align? \| alignment?, fallback?, renderCell? }` (required)                | —        |
+| tableTitle      | string (a heading above the header)                                                                                               |          |
+| width           | DimensionValue (default: fills the container)                                                                                     |          |
+| height          | DimensionValue (the header stays, the rows scroll under it)                                                                       |          |
+| rowsPerPage     | number (pages the rows under a `Pagination`; back to page 1 when it or the row count changes; do not combine with `onEndReached`) |          |
+| hover           | boolean (highlights the row under the pointer, on web)                                                                            | `false`  |
+| selected        | number \| number[] (row indexes in `data`, not in the page shown; follows the order of `data`)                                    |          |
+| onClick         | (row, index) => void (makes the rows pressable, with the button role; keep controls out of the cells)                             |          |
+| loading         | boolean                                                                                                                           | `false`  |
+| density         | `"normal" \| "dense"`                                                                                                             | `normal` |
+| sortColumn      | string                                                                                                                            |          |
+| sortDirection   | `"asc" \| "desc"`                                                                                                                 |          |
+| onSort          | (columnId, direction) => void                                                                                                     |          |
+| onColumnReorder | (newColumns) => void (the order is kept by column id, so an inline `columns` array does not undo it)                              |          |
+| onEndReached    | () => void (infinite scroll)                                                                                                      |          |
+| emptyMessage    | ReactNode                                                                                                                         |          |
 
 #### `ListItem`
 
 A list row: text, with an optional leading icon, a second line and a trailing slot; with none of
-them a centred single-line tile. Giving `onClick` makes it a button.
+them a centred single-line tile. Giving `onClick` makes the whole row pressable (hover and press
+are drawn over the full row). The `action` is a sibling of the row's button, not inside it: a bare
+icon, chip or text there presses the row, a control in it (an `IconButton`, a `Switch`) runs its own
+handler and never the row's. The row's accessible name is its texts, not the action's. Without
+`onClick` the row is not pressable.
 
-| Prop                                                     | Type                                                                                              | Default |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------- |
-| primaryText                                              | ReactNode (the first line; text is drawn in the theme's type, a node as given, required)          | —       |
-| secondaryText                                            | ReactNode (second line)                                                                           |         |
-| onClick                                                  | () => void (makes the row a button; with an `action` too, only the icon and texts are the button) |         |
-| icon                                                     | icon \| ReactNode (leading slot: a glyph name, or any node such as an `Avatar`)                   |         |
-| action                                                   | ReactNode (trailing slot: a value, a `Switch`, an `IconButton`; a control of its own)             |         |
-| primaryTextStyle / secondaryTextStyle                    | TextStyle (merged after the type of the text)                                                     |         |
-| indicatorColor                                           | string (a bar on the left edge)                                                                   |         |
-| dimmed                                                   | boolean (faded, still pressable)                                                                  | `false` |
-| trailingWidth                                            | number (fixes and right-aligns the `action` slot, so a column of rows lines up)                   |         |
-| disabled                                                 | boolean (fades the row and stops presses; not the `action`)                                       | `false` |
-| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object                                                                                            |         |
-| testID                                                   | string                                                                                            |         |
+| Prop                                                     | Type                                                                                     | Default |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------- |
+| primaryText                                              | ReactNode (the first line; text is drawn in the theme's type, a node as given, required) | —       |
+| secondaryText                                            | ReactNode (second line)                                                                  |         |
+| onClick                                                  | () => void (makes the whole row one button; a control in the `action` does not press it) |         |
+| icon                                                     | icon \| ReactNode (leading slot: a glyph name, or any node such as an `Avatar`)          |         |
+| action                                                   | ReactNode (trailing slot: a value, a `Switch`, an `IconButton`, a chevron)               |         |
+| primaryTextStyle / secondaryTextStyle                    | TextStyle (merged after the type of the text)                                            |         |
+| indicatorColor                                           | string (a bar on the left edge)                                                          |         |
+| dimmed                                                   | boolean (faded, still pressable)                                                         | `false` |
+| trailingWidth                                            | number (fixes and right-aligns the `action` slot, so a column of rows lines up)          |         |
+| disabled                                                 | boolean (fades the row and stops presses; not the `action`)                              | `false` |
+| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object                                                                                   |         |
+| testID                                                   | string                                                                                   |         |
 
 #### `ListSection` / `ListSubheader`
 
@@ -1552,6 +1576,8 @@ each group in a `Card` — a sequence of labelled groups, not a pile of equal su
 | --------------- | ---------------------------------------------------------------------------- |
 | `ListSection`   | `children` (required), `title` (heading above the rows), `divider` (`false`) |
 | `ListSubheader` | `children` (required) — a standalone group label, marked as a heading        |
+
+`ListItem` takes `variant` (`"standard" | "outlined" | "contained"`, default `"contained"`, the secondary-container fill it always had): `standard` is transparent with no border, like a sidebar's rows; `outlined` draws an outline. The border is one width in every variant and state, so hover and press never move the layout. `ListSection` also takes `gap` (`"xs" | "s" | "m" | "l" | "xl"` or a number: the space between items) and `showDividers` (a rule between consecutive items, `n - 1` for `n`; `divider` is the one rule after the last item, and both can be used together). `variant="standard"` rows with `gap` and `showDividers` make a plain list, like a sidebar's.
 
 #### `Tooltip`
 
@@ -1921,30 +1947,13 @@ Android back call it too.
 </Dialog>
 ```
 
-#### `ConfirmDialog`
-
-`Dialog` preset with confirm/cancel actions.
-
-| Prop            | Type                                               | Default   |
-| --------------- | -------------------------------------------------- | --------- |
-| visible         | boolean (required)                                 | —         |
-| onConfirm       | () => void (required)                              | —         |
-| onCancel        | () => void (required)                              | —         |
-| title / message | string                                             |           |
-| confirmText     | string                                             | `Confirm` |
-| cancelText      | string                                             | `Cancel`  |
-| destructive     | boolean (confirm in the error tone)                | `false`   |
-| icon            | `IconSource` (hero glyph)                          |           |
-| dismissable     | boolean (backdrop and Escape cancel)               | `true`    |
-| slotStyles      | `DialogSlotStyles` (`actions` covers both buttons) |           |
-
 #### `AlertDialog`
 
 A `Dialog` for something that needs an answer: `role="alertdialog"` (the title names it, the
 message describes it), one primary action and an optional cancel, and **no way out but its
 buttons** — a backdrop click, Escape and Android back do nothing unless you turn that on. On web
 focus starts on the first button of the row: the cancel, when there is one, so Enter does not
-confirm a destructive action by reflex. For a plain two-way question use `ConfirmDialog`.
+confirm a destructive action by reflex. With `cancelText` and `destructive` it is also the plain confirmation (`icon` takes a hero glyph in place of the status icon).
 
 | Prop                  | Type                                                                                                                                                                                                 | Default        |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
@@ -1952,6 +1961,7 @@ confirm a destructive action by reflex. For a plain two-way question use `Confir
 | title                 | string (the headline, and the dialog's accessible name)                                                                                                                                              |                |
 | message               | string (what the alert says; with `children`, the dialog's accessible description)                                                                                                                   |                |
 | children              | ReactNode \| string (more body, under the message or in its place)                                                                                                                                   |                |
+| icon                  | `IconSource` (hero glyph above the title; replaces the `severity` icon)                                                                                                                              |                |
 | severity              | `"info" \| "success" \| "warning" \| "error"` (a status icon above the title, in the status colour; left out: no icon)                                                                               |                |
 | actionText / onAction | string / () => void (the primary action)                                                                                                                                                             | `OK`           |
 | cancelText / onCancel | string / () => void (the secondary action, before the primary; an empty or missing `cancelText` draws none. `onCancel` also runs on a backdrop click, Escape or Android back once those are enabled) |                |
@@ -1975,6 +1985,16 @@ confirm a destructive action by reflex. For a plain two-way question use `Confir
   onCancel={() => setOpen(false)}
 />
 ```
+
+Migrating from `ConfirmDialog` (removed): `title`, `message`, `destructive`, `icon` and `slotStyles` keep their names.
+
+| ConfirmDialog                     | AlertDialog                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `confirmText` (default `Confirm`) | `actionText` (default `OK`)                                                             |
+| `onConfirm`                       | `onAction`                                                                              |
+| `cancelText` (default `Cancel`)   | `cancelText`, no default: pass it, or the alert has no cancel button                    |
+| `dismissable` (default `true`)    | `disableBackdropClick={false}` and `disableEscapeKeyDown={false}` (both default `true`) |
+| `dismissable={false}`             | nothing: it is the default                                                              |
 
 #### `Popover`
 
@@ -2127,7 +2147,12 @@ survives text reflow without a hardcoded height.
 
 Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
 Mount `ToastProvider` once above the app (its `position` is where toasts appear unless one asks for
-another, `"bottom-center"` by default); the queue is FIFO and renders one `Snackbar` at a time.
+another, `"bottom-center"` by default); the queue is FIFO and renders one `Snackbar` at a time,
+or up to `maxVisible` together (`1` by default): they stack with a gap, top positions downward and
+bottom ones upward, the newest nearest the edge, each on its own timer, and the rest appear in order
+as slots free. `useToast()` returns one object for the provider's whole life (an effect depending on
+it runs once); `toast.queue` is read when accessed, it does not re-render. Showing a toast with the
+id of one already queued replaces it in its place, and restarts its timer if it is on screen.
 
 ```tsx
 const toast = useToast();
@@ -2194,18 +2219,17 @@ renders the child at the active index.
 
 Tabs:
 
-| Prop           | Type                                                                                            | Default    |
-| -------------- | ----------------------------------------------------------------------------------------------- | ---------- |
-| tabs           | `string[]` \| `{ label, icon?, key?, disabled? }[]` (required; an icon on every tab or on none) | —          |
-| activeTab      | number (index; ignored when `activeKey` is given)                                               | `0`        |
-| activeKey      | string (the active tab by its `key`, for tabs that come and go)                                 |            |
-| onChange       | (index, key?) => void (required)                                                                | —          |
-| variant        | `"standard" \| "rounded"` (an underline, or a pill on a rounded track)                          | `standard` |
-| showBorders    | boolean (dividers between the tabs; in `rounded`, an outline around the track)                  | `false`    |
-| size           | `"sm" \| "md" \| "lg"`                                                                          | `md`       |
-| fullWidth      | boolean (`false` sizes each tab to its label and scrolls the bar when they do not fit)          | `true`     |
-| height / width | number \| string (override the bar's size, dp or a percentage)                                  |            |
-| color          | `ColorRole` (the indicator and the selected tab)                                                | `primary`  |
+| Prop           | Type                                                                                            | Default   |
+| -------------- | ----------------------------------------------------------------------------------------------- | --------- |
+| tabs           | `string[]` \| `{ label, icon?, key?, disabled? }[]` (required; an icon on every tab or on none) | —         |
+| activeTab      | number (index; ignored when `activeKey` is given)                                               | `0`       |
+| activeKey      | string (the active tab by its `key`, for tabs that come and go)                                 |           |
+| onChange       | (index, key?) => void (required)                                                                | —         |
+| showBorders    | boolean (dividers between the tabs; in `rounded`, an outline around the track)                  | `false`   |
+| size           | `"sm" \| "md" \| "lg"`                                                                          | `md`      |
+| fullWidth      | boolean (`false` sizes each tab to its label and scrolls the bar when they do not fit)          | `true`    |
+| height / width | number \| string (override the bar's size, dp or a percentage)                                  |           |
+| color          | `ColorRole` (the indicator and the selected tab)                                                | `primary` |
 
 TabContent: `activeTab` (index, required), `children` (required), `style`.
 

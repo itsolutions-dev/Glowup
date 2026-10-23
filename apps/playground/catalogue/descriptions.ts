@@ -120,9 +120,8 @@ export const DESCRIPTIONS: Record<string, string> = {
     "A persistent message at the top of a screen or a section, with actions.",
   Dialog:
     "A modal window for one focused task: a title, content, actions and an optional form.",
-  ConfirmDialog: "A dialog that asks the user to confirm or cancel an action.",
   AlertDialog:
-    "An alert that interrupts to say something and waits for an answer, with a status icon and one or two actions.",
+    "A dialog that interrupts to say something or ask for confirmation and waits for an answer: a status icon and one or two actions, one of them destructive.",
   Form: "Groups fields and submits them: Enter submits on the web, and a submit button does it everywhere.",
   Popover:
     "Floating content anchored to an element and placed against its edges.",

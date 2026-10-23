@@ -39,7 +39,7 @@ export const gradientCover = (from: string, to: string) => ({
  * Open/closed state for a gallery entry that renders an overlay, plus the two
  * callbacks its trigger and its dismiss need.
  *
- * Dialog, ConfirmDialog, BottomSheet, Popover and Menu all render through
+ * Dialog, AlertDialog, BottomSheet, Popover and Menu all render through
  * react-native-web's Modal: a real portal into document.body, covering the
  * whole viewport rather than the demo's card. The authored previews mount them
  * already open, which is what a screenshot needs and exactly what a page must

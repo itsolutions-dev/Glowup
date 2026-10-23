@@ -231,6 +231,7 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     startYear,
     endYear,
     showToday,
+    showOkButton,
     style,
     testID,
     defaultOpen = false,
@@ -294,6 +295,7 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     startYear,
     endYear,
     showToday,
+    showOkButton,
     defaultInputType,
     // The popup's field owns `style` and `testID`; inline there is no field.
     style: live ? style : undefined,

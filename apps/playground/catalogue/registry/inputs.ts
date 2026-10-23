@@ -132,6 +132,18 @@ const PICKER_FIELD = {
   },
 };
 
+/**
+ * Whether the popup draws OK. Off, a time finishes after its minute and a range
+ * after its second end (a set of days and typed entry keep theirs). The
+ * component reads its default from the picker's own wrapper, so it is `true`.
+ */
+const SHOW_OK_BUTTON = {
+  type: "boolean" as const,
+  default: true,
+  label: "Show OK button",
+  appliesWhen: HAS_FIELD,
+};
+
 const LOCALE = {
   type: "select" as const,
   default: "",
@@ -505,6 +517,16 @@ export const inputs: Record<string, ComponentMetadata> = {
         // A tick per step, so there is nothing to draw on a continuous track.
         appliesWhen: (values) => Number(values.step) > 0,
       },
+      interaction: {
+        type: "select",
+        default: "both",
+        label: "Interaction",
+        options: [
+          { label: "Both", value: "both" },
+          { label: "Drag", value: "drag" },
+          { label: "Click", value: "click" },
+        ],
+      },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -628,6 +650,7 @@ export const inputs: Record<string, ComponentMetadata> = {
         ],
       },
       showControls: { type: "boolean", default: false, label: "Show buttons" },
+      fullWidth: { type: "boolean", default: false, label: "Full width" },
       selectAllOnFocus: {
         type: "boolean",
         default: false,
@@ -698,6 +721,7 @@ export const inputs: Record<string, ComponentMetadata> = {
       minuteInterval: { ...MINUTE_INTERVAL, appliesWhen: HAS_CLOCK },
       use24HourClock: { ...USE_24_HOUR_CLOCK, appliesWhen: HAS_CLOCK },
       defaultInputType: DEFAULT_INPUT_TYPE,
+      showOkButton: SHOW_OK_BUTTON,
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -713,6 +737,7 @@ export const inputs: Record<string, ComponentMetadata> = {
       locale: LOCALE,
       scrollMode: SCROLL_MODE,
       defaultInputType: DEFAULT_INPUT_TYPE,
+      showOkButton: SHOW_OK_BUTTON,
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },
@@ -729,6 +754,7 @@ export const inputs: Record<string, ComponentMetadata> = {
       minuteInterval: MINUTE_INTERVAL,
       use24HourClock: USE_24_HOUR_CLOCK,
       defaultInputType: DEFAULT_INPUT_TYPE,
+      showOkButton: SHOW_OK_BUTTON,
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
   },

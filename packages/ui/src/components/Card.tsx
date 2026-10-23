@@ -7,7 +7,12 @@ import {
   View,
   Platform,
 } from "react-native";
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import {
+  useTheme,
+  Theme,
+  getGlowStyles,
+  getFocusRing,
+} from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import CardActions from "./CardParts/CardActions";
 import CardContent from "./CardParts/CardContent";
@@ -43,7 +48,7 @@ const CardBase = ({
         styles[variant],
         (hovered || pressed) &&
           !(styles[variant] as any).boxShadow &&
-          getGlowStyles(theme, true),
+          getFocusRing(theme),
 
         hovered && styles.hovered,
         pressed && styles.pressed,

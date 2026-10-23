@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import type { DimensionValue, LayoutChangeEvent } from "react-native";
 import Icons from "../Glyph";
-import { useTheme, getGlowStyles, Theme } from "../../providers/ThemeProvider";
+import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { colorRoleTokens } from "../internal/colorRole";
 import type { ColorRole } from "../internal/colorRole";
 import { useReduceMotion } from "../internal/useReduceMotion";
@@ -224,7 +224,6 @@ const Tabs = ({
           fullWidth ? styles.tabFill : styles.tabFit,
           rounded && styles.tabRounded,
           disabled && styles.disabled,
-          !disabled && (hovered || pressed) && getGlowStyles(theme, true),
           // Use theme-defined state layer colors for consistency
           !disabled &&
             hovered && {

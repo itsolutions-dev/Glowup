@@ -1,4 +1,7 @@
-import { placeBesideAnchor } from "../components/internal/popoverPlacement";
+import {
+  placeBesideAnchor,
+  planPopoverHeight,
+} from "../components/internal/popoverPlacement";
 
 const VIEW = { width: 1280, height: 900 };
 const SIZE = { width: 328, height: 470 };
@@ -61,5 +64,43 @@ describe("placeBesideAnchor", () => {
       VIEW.width - SIZE.width - MARGIN,
     );
     expect(place({ top: 100, bottom: 150, left: -40 }).left).toBe(MARGIN);
+  });
+});
+
+describe("planPopoverHeight", () => {
+  // A hovered footer button gains a border (about 3 px); the surface must keep
+  // that much room wherever it lands, or the popover grows a scrollbar.
+  const HOVER_GROWTH = 3;
+
+  it("plans a few pixels taller than the measured content", () => {
+    expect(planPopoverHeight(430, 0, 900, MARGIN)).toBeGreaterThan(
+      430 + HOVER_GROWTH,
+    );
+  });
+
+  it("plans for the tallest step of a datetime picker", () => {
+    expect(planPopoverHeight(431, 560, 900, MARGIN)).toBeGreaterThan(560);
+  });
+
+  it("never plans past the window, where scrolling is the answer", () => {
+    expect(planPopoverHeight(554, 0, 400, MARGIN)).toBe(400 - MARGIN * 2);
+  });
+
+  it.each([
+    ["below the field", { top: 100, bottom: 150 }],
+    ["above the field", { top: 700, bottom: 750 }],
+    ["over the field in a short window", { top: 400, bottom: 451 }],
+  ])("leaves room for a hovered button when placed %s", (_name, anchor) => {
+    const view = anchor.top === 400 ? { width: 1280, height: 860 } : VIEW;
+    const measured = 554;
+    const placed = place(
+      anchor,
+      {
+        width: 328,
+        height: planPopoverHeight(measured, 0, view.height, MARGIN),
+      },
+      view,
+    );
+    expect(placed.maxHeight).toBeGreaterThanOrEqual(measured + HOVER_GROWTH);
   });
 });

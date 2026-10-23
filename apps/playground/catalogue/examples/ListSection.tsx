@@ -11,6 +11,8 @@ import {
 const props: Partial<ListSectionProps> = {
   title: "Notifications",
   divider: true,
+  gap: "xs",
+  showDividers: true,
 };
 
 const SETTINGS = [
@@ -51,6 +53,7 @@ export default function ListSectionExample() {
           return (
             <ListItem
               key={setting.id}
+              variant="standard"
               icon={setting.icon}
               primaryText={setting.title}
               secondaryText={setting.detail}

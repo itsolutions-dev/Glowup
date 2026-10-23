@@ -59,6 +59,13 @@ const style = (element: { props: { style?: unknown } }) =>
   StyleSheet.flatten(element.props.style as never) as Record<string, unknown>;
 
 describe("Typography", () => {
+  it("is body text unless a variant says otherwise", async () => {
+    const { getByText } = await draw(<Typography>Plain</Typography>);
+    expect(style(getByText("Plain")).fontSize).toBe(
+      theme.typography.bodyLarge.fontSize,
+    );
+  });
+
   it("draws the Material names with the theme's roles", async () => {
     const { getByText } = await draw(
       <>

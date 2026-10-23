@@ -71,6 +71,24 @@ embedded source, checks that compiling it draws the same tree as the real compon
 an example: the page is prerendered. A page's one-line description is in `catalogue/descriptions.ts`
 (under the title, in the gallery card, in the search; the catalogue test pins one per component).
 
+**The code starts collapsed.** The editor is still the whole text, but it opens as an 8-line window
+moved to the first line that renders the page's component (`<Button`, found in the live text since a
+control adds lines above it) with a fade at the bottom; "Show full code" / "Collapse code" (a button
+with `aria-expanded`) opens it. The tree is the same open or closed, so the field keeps its focus.
+
+**Quick links and "Back to top"** (`site/OnThisPage.tsx`, used by `app/components/[name].tsx`).
+`useScrollSpy` reads each section's `onLayout` offset (plus the "column" and "row" wrappers') on the
+ScrollView's `onScroll` and keeps only two derived values in state, the current section and "scrolled
+past 400 px": the offset itself is never state, or every scroll would redraw the live example. On web
+at `layout.hasThirdColumn` a sticky "On this page" column sits beside the content (inside
+`contentMaxWidth`, so the content gives it room); on every width the library's `FAB` ("Back to top")
+appears after 400 px. A section needs `track(id)` on its `onLayout` (`Section` takes `onLayout`).
+
+**The gallery cards** (`app/components/index.tsx`) show the example in a 240 px well: it is laid out in
+a box 1 / 0.75 as wide as the well and drawn at 0.75 from its centre (inert, `pointerEvents="none"`),
+under a `ViewportProvider` of 360. 3 columns from the `large` class, 2 from `medium`, 1 below; the
+description is clamped to 2 lines (and reserves them) in the card and in the list.
+
 ## The icons
 
 `/icons` (`app/icons.tsx`) lists every glyph of the icon font (read from `glyphMap`, never copied)

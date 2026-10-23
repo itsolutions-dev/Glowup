@@ -151,7 +151,6 @@ const CATALOGUE = [
   "Snackbar",
   "Banner",
   "Dialog",
-  "ConfirmDialog",
   "AlertDialog",
   "Form",
   "Popover",
@@ -271,7 +270,7 @@ describe("Playground catalogue", () => {
     "renders the %s gallery entry closed",
     async (label, Demo) => {
       // A gallery entry may not mount an overlay already open. Modal,
-      // ConfirmDialog, BottomSheet, Popover and Menu all render through
+      // AlertDialog, BottomSheet, Popover and Menu all render through
       // react-native-web's Modal — a real portal into document.body — so an
       // entry that opened on mount would cover the component page it belongs
       // to, and a demo's close handler is the page's only way back out. The
@@ -361,6 +360,7 @@ describe("Playground catalogue", () => {
         "required",
         "clearable",
         "defaultInputType",
+        "showOkButton",
       ],
     },
     ...["DatePicker", "TimePicker"].map((component) => ({
@@ -377,6 +377,7 @@ describe("Playground catalogue", () => {
         "required",
         "clearable",
         "defaultInputType",
+        "showOkButton",
       ],
     })),
 

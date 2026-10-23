@@ -45,7 +45,7 @@ export interface TypographyProps extends Omit<TextProps, "onPress"> {
   /**
    * Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`,
    * `button`, `caption`, `overline`. The M3 role names (`displayLarge`,
-   * `bodyMedium`, …) still work and name the same styles. Defaults to `"h1"`.
+   * `bodyMedium`, …) still work and name the same styles. Defaults to `"body1"`.
    */
   variant?: TypographyName | TypographyVariant;
   /**
@@ -70,7 +70,7 @@ export interface TypographyProps extends Omit<TextProps, "onPress"> {
  */
 const Typography = ({
   children,
-  variant = "h1",
+  variant = "body1",
   color,
   fontSize,
   nowrap = false,

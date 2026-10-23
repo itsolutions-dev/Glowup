@@ -53,7 +53,7 @@ export const foundations: Record<string, ComponentMetadata> = {
       children: { type: "text", default: "", label: "Text" },
       variant: {
         type: "select",
-        default: "h1",
+        default: "body1",
         label: "Variant",
         options: TYPOGRAPHY_VARIANTS,
       },

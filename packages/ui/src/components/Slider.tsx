@@ -4,13 +4,25 @@ import {
   Text,
   StyleSheet,
   Platform,
+  AccessibilityActionEvent,
   GestureResponderEvent,
   LayoutChangeEvent,
   StyleProp,
   ViewStyle,
 } from "react-native";
-import { useTheme, Theme } from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+
+/**
+ * How a pointer moves the value: `"drag"` only by dragging the thumb,
+ * `"click"` only by jumping to where the track is pressed, `"both"` either.
+ */
+export type SliderInteraction = "both" | "drag" | "click";
+
+interface KeyEventLike {
+  key: string;
+  preventDefault?: () => void;
+}
 
 export interface SliderProps {
   value: number;
@@ -23,6 +35,15 @@ export interface SliderProps {
   showValueLabel?: boolean;
   /** Draw a tick at every step (requires step > 0). */
   marks?: boolean;
+  /**
+   * What a pointer (finger or mouse) may do: `"both"` drags the thumb and
+   * jumps to where the track is pressed, `"drag"` only drags the thumb,
+   * `"click"` only jumps to the pressed point. The keyboard (arrows, Page
+   * Up/Down, Home/End) and assistive actions work in every mode. Defaults to
+   * `"both"`.
+   */
+  interaction?: SliderInteraction;
+  /** Blocks the pointer, the keyboard and assistive actions, and dims the slider. */
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   /**
@@ -46,6 +67,7 @@ const Slider = ({
   label,
   showValueLabel = false,
   marks = false,
+  interaction = "both",
   disabled,
   style,
   feedback = true,
@@ -54,10 +76,16 @@ const Slider = ({
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
+  // The track's width: the touch area minus the half thumb kept free at each end.
   const [trackWidth, setTrackWidth] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const trackRef = useRef<View>(null);
-  const trackPageX = useRef(0);
+  const [focused, setFocused] = useState(false);
+  const areaRef = useRef<View>(null);
+  // Where the touch area starts on the page. A grant reads it from the event
+  // itself (pageX - locationX), so the first touch never waits for a measure.
+  const areaPageX = useRef(0);
+  // How far the grab was from the thumb's centre, so a drag does not jump.
+  const grabOffset = useRef(0);
 
   const clamp = useCallback(
     (raw: number) => {
@@ -71,11 +99,11 @@ const Slider = ({
     [min, max, step],
   );
 
-  const valueFromEvent = useCallback(
-    (event: GestureResponderEvent) => {
+  const valueFromPage = useCallback(
+    (pageX: number) => {
       if (trackWidth === 0) return clamp(value);
-      const ratio = (event.nativeEvent.pageX - trackPageX.current) / trackWidth;
-      return clamp(min + ratio * (max - min));
+      const along = (pageX - areaPageX.current - THUMB_SIZE / 2) / trackWidth;
+      return clamp(min + along * (max - min));
     },
     [trackWidth, min, max, clamp, value],
   );
@@ -89,30 +117,45 @@ const Slider = ({
     [step, clamp, value, emitFeedback, onValueChange],
   );
 
+  const ratio = max > min ? (clamp(value) - min) / (max - min) : 0;
+  const thumbCentre = THUMB_SIZE / 2 + ratio * trackWidth;
+  const dragsThumb = interaction !== "click";
+  const jumps = interaction !== "drag";
+
   const handleGrant = useCallback(
     (event: GestureResponderEvent) => {
+      const { pageX, locationX } = event.nativeEvent;
+      if (typeof pageX === "number" && typeof locationX === "number") {
+        areaPageX.current = pageX - locationX;
+      }
       setDragging(true);
-      trackRef.current?.measureInWindow((x) => {
-        trackPageX.current = x;
-      });
-      change(valueFromEvent(event));
+      if (jumps) {
+        grabOffset.current = 0;
+        change(valueFromPage(pageX));
+      } else {
+        // "drag": the thumb was grabbed, keep the grip where it was.
+        grabOffset.current = (locationX ?? thumbCentre) - thumbCentre;
+      }
     },
-    [change, valueFromEvent],
+    [jumps, change, valueFromPage, thumbCentre],
   );
 
   const handleMove = useCallback(
     (event: GestureResponderEvent) => {
-      change(valueFromEvent(event));
+      if (!dragsThumb) return;
+      change(valueFromPage(event.nativeEvent.pageX - grabOffset.current));
     },
-    [change, valueFromEvent],
+    [dragsThumb, change, valueFromPage],
   );
 
   const handleRelease = useCallback(
     (event: GestureResponderEvent) => {
       setDragging(false);
-      onSlidingComplete?.(valueFromEvent(event));
+      onSlidingComplete?.(
+        valueFromPage(event.nativeEvent.pageX - grabOffset.current),
+      );
     },
-    [onSlidingComplete, valueFromEvent],
+    [onSlidingComplete, valueFromPage],
   );
 
   const handleTerminate = useCallback(() => {
@@ -120,15 +163,98 @@ const Slider = ({
     onSlidingComplete?.(clamp(value));
   }, [onSlidingComplete, clamp, value]);
 
-  const onTrackLayout = useCallback((event: LayoutChangeEvent) => {
-    setTrackWidth(event.nativeEvent.layout.width);
-    trackRef.current?.measureInWindow((x) => {
-      trackPageX.current = x;
+  // "drag" only takes a touch that starts on the thumb.
+  const shouldStart = (event?: GestureResponderEvent) => {
+    if (disabled) return false;
+    if (interaction !== "drag") return true;
+    const x = event?.nativeEvent?.locationX;
+    return typeof x !== "number" || Math.abs(x - thumbCentre) <= THUMB_SIZE;
+  };
+
+  const onAreaLayout = useCallback(() => {
+    // Fallback for a grant that carries no locationX.
+    areaRef.current?.measureInWindow?.((x) => {
+      areaPageX.current = x;
     });
   }, []);
+  const onTrackLayout = useCallback((event: LayoutChangeEvent) => {
+    setTrackWidth(event.nativeEvent.layout.width);
+  }, []);
 
-  const ratio = max > min ? (clamp(value) - min) / (max - min) : 0;
-  const thumbLeft = ratio * trackWidth - THUMB_SIZE / 2;
+  // Keyboard and assistive technology, whatever the pointer may do.
+  const keyStep = step && step > 0 ? step : (max - min) / 100;
+  const commit = (next: number) => {
+    const target = clamp(next);
+    if (target === clamp(value)) return;
+    change(target);
+    onSlidingComplete?.(target);
+  };
+  const onKeyDown = (event: KeyEventLike) => {
+    if (disabled) return;
+    const current = clamp(value);
+    let next: number;
+    switch (event.key) {
+      case "ArrowRight":
+      case "ArrowUp":
+        next = current + keyStep;
+        break;
+      case "ArrowLeft":
+      case "ArrowDown":
+        next = current - keyStep;
+        break;
+      case "PageUp":
+        next = current + 10 * keyStep;
+        break;
+      case "PageDown":
+        next = current - 10 * keyStep;
+        break;
+      case "Home":
+        next = min;
+        break;
+      case "End":
+        next = max;
+        break;
+      default:
+        return;
+    }
+    event.preventDefault?.();
+    commit(next);
+  };
+
+  // Web: a real slider for the browser (focusable, with its value); native:
+  // an adjustable element with increment and decrement actions.
+  const semantics =
+    Platform.OS === "web"
+      ? ({
+          role: "slider",
+          tabIndex: disabled ? -1 : 0,
+          "aria-label": label,
+          "aria-valuemin": min,
+          "aria-valuemax": max,
+          "aria-valuenow": clamp(value),
+          "aria-disabled": disabled || undefined,
+          "aria-orientation": "horizontal",
+          onKeyDown,
+          onFocus: () => setFocused(true),
+          onBlur: () => setFocused(false),
+        } as object)
+      : {
+          accessibilityRole: "adjustable" as const,
+          accessibilityLabel: label,
+          accessibilityValue: { min, max, now: clamp(value) },
+          accessibilityActions: [
+            { name: "increment" as const },
+            { name: "decrement" as const },
+          ],
+          onAccessibilityAction: (event: AccessibilityActionEvent) => {
+            if (disabled) return;
+            const { actionName } = event.nativeEvent;
+            if (actionName === "increment") commit(clamp(value) + keyStep);
+            if (actionName === "decrement") commit(clamp(value) - keyStep);
+          },
+        };
+
+  const thumbLeft = ratio * trackWidth;
 
   const markRatios = useMemo(() => {
     if (!marks || !step || step <= 0 || max <= min) return [];
@@ -170,19 +296,24 @@ const Slider = ({
       )}
 
       <View
+        ref={areaRef}
         style={styles.touchArea}
-        accessibilityRole="adjustable"
-        accessibilityLabel={label}
-        accessibilityValue={{ min, max, now: clamp(value) }}
         accessibilityState={{ disabled }}
-        onStartShouldSetResponder={() => !disabled}
-        onMoveShouldSetResponder={() => !disabled}
+        {...semantics}
+        onLayout={onAreaLayout}
+        onStartShouldSetResponder={shouldStart}
+        // A dragged thumb is not taken over by a ScrollView; a tap is.
+        onResponderTerminationRequest={() => !dragsThumb}
         onResponderGrant={handleGrant}
         onResponderMove={handleMove}
         onResponderRelease={handleRelease}
         onResponderTerminate={handleTerminate}
       >
-        <View ref={trackRef} onLayout={onTrackLayout} style={styles.track}>
+        <View
+          pointerEvents="none"
+          onLayout={onTrackLayout}
+          style={styles.track}
+        >
           <View style={[styles.activeTrack, { width: `${ratio * 100}%` }]} />
           {markRatios.map((r, i) => (
             <View
@@ -202,10 +333,12 @@ const Slider = ({
         </View>
 
         <View
+          pointerEvents="none"
           style={[
             styles.thumb,
             { left: thumbLeft },
             dragging && styles.thumbActive,
+            focused && getFocusRing(theme),
           ]}
         >
           {dragging && showValueLabel && (
@@ -243,10 +376,17 @@ const makeStyles = (theme: Theme) =>
       height: 40,
       justifyContent: "center",
       ...Platform.select({
-        web: { cursor: "pointer", touchAction: "none" as any },
+        web: {
+          cursor: "pointer",
+          touchAction: "none" as any,
+          // The thumb shows its own focus ring.
+          outlineStyle: "none" as any,
+        },
       }),
     },
     track: {
+      // Half a thumb free at each end, so the thumb stays inside the touch area.
+      marginHorizontal: THUMB_SIZE / 2,
       height: TRACK_HEIGHT,
       borderRadius: TRACK_HEIGHT / 2,
       backgroundColor: theme.colors.surfaceContainerHighest,
@@ -274,10 +414,10 @@ const makeStyles = (theme: Theme) =>
       alignItems: "center",
       ...Platform.select({
         web: {
-          boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+          boxShadow: `0 1px 3px ${theme.colors.shadow}4D`,
         },
         ios: {
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: 1 },
           shadowOpacity: 0.3,
           shadowRadius: 3,

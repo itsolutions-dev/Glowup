@@ -22,6 +22,25 @@ const rowStyle = (container: {
       .style,
   );
 
+/** The edge a toast sits at: under a ToastProvider the stack holds it, above the snackbar. */
+const stackStyle = (container: {
+  queryAll: (
+    p: (n: { props: Record<string, any> }) => boolean,
+  ) => { props: Record<string, any>; parent: any }[];
+}) => {
+  let node = container.queryAll(
+    (n) => n.props.accessibilityRole === "alert",
+  )[0] as { props: Record<string, any>; parent: any } | null;
+  while (node) {
+    const style = StyleSheet.flatten(node.props.style) as
+      Record<string, unknown> | undefined;
+    if (style && (style.top !== undefined || style.bottom !== undefined))
+      return style;
+    node = node.parent;
+  }
+  throw new Error("no stack host");
+};
+
 const drawInSafeArea = (ui: React.ReactElement) =>
   render(
     <SafeAreaProvider
@@ -302,7 +321,7 @@ describe("useToast", () => {
     await fireEvent.press(getByLabelText("go"));
     const out = JSON.stringify(toJSON());
     expect(out).toContain(`"borderColor":"${colours.info}"`);
-    expect(rowStyle(container)).toMatchObject({
+    expect(stackStyle(container)).toMatchObject({
       top: 24,
       alignItems: "flex-end",
     });
@@ -320,7 +339,7 @@ describe("useToast", () => {
         </ThemeProvider>,
       );
       await fireEvent.press(getByLabelText("go"));
-      return rowStyle(container);
+      return stackStyle(container);
     };
     expect(await position()).toMatchObject({
       top: 24,

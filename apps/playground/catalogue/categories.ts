@@ -98,7 +98,6 @@ export const CATEGORIES: Category[] = [
       "Snackbar",
       "Banner",
       "Dialog",
-      "ConfirmDialog",
       "AlertDialog",
       "Form",
       "Popover",

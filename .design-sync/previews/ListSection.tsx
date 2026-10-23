@@ -58,3 +58,40 @@ export const SettingsScreen = () => {
     </div>
   );
 };
+
+/** `variant="standard"` rows, a `gap` and `showDividers`: a plain list, like a sidebar's. */
+export const PlainList = () => (
+  <div style={panel}>
+    <ListSection title="Projects" gap="xs" showDividers>
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Roadmap"
+      />
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Design system"
+      />
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Archive"
+      />
+    </ListSection>
+  </div>
+);
+
+/** `gap` spaces the items; `divider` is the one rule after the last. */
+export const GapAndDivider = () => (
+  <div style={panel}>
+    <ListSection title="Contained, gap l" gap="l" divider>
+      <ListItem primaryText="Email digest" />
+      <ListItem primaryText="Mentions" />
+      <ListItem primaryText="Comments" />
+    </ListSection>
+  </div>
+);

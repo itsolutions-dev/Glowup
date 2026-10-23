@@ -11,6 +11,10 @@ import {
 } from "@its/glowup-ui";
 
 const props: Partial<DataGridProps> = {
+  tableTitle: "Invoices",
+  height: 460,
+  rowsPerPage: 5,
+  hover: true,
   density: "normal",
   emptyMessage: "No invoices with this status.",
 };
@@ -81,6 +85,8 @@ const COLUMNS: ColumnDefinition[] = [
 
 export default function DataGridExample() {
   const [status, setStatus] = useState<string | null>(null);
+  // The open invoice, by id: `selected` counts rows, and a sort moves them.
+  const [open, setOpen] = useState<string | null>(null);
   const [sort, setSort] = useState({
     column: "issued",
     direction: "desc" as "asc" | "desc",
@@ -101,14 +107,18 @@ export default function DataGridExample() {
         onChange={setStatus}
       />
       <Typography variant="bodyMedium" color="onSurfaceVariant">
-        {`${rows.length} of ${INVOICES.length} invoices, sorted by ${sort.column}.`}
+        {open
+          ? `${open} is open.`
+          : `${rows.length} of ${INVOICES.length} invoices, sorted by ${sort.column}. Press a row to open it.`}
       </Typography>
       {/* The columns add up to 660: a wider grid would leave an empty strip. */}
-      <Box height={360} style={{ maxWidth: 662 }}>
+      <Box style={{ maxWidth: 662 }}>
         <DataGrid
           {...props}
           data={rows}
           columns={COLUMNS}
+          selected={rows.findIndex((invoice) => invoice.id === open)}
+          onClick={(invoice) => setOpen(invoice.id)}
           sortColumn={sort.column}
           sortDirection={sort.direction}
           onSort={(column, direction) => setSort({ column, direction })}

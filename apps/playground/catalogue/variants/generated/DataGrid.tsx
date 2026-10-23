@@ -135,6 +135,30 @@ export const EmptyState = () => (
   </View>
 );
 
+export const TitleAndPaging = () => (
+  <View style={{ ...frame, height: 420 }}>
+    <DataGrid
+      data={rows}
+      columns={columns}
+      tableTitle="Invoices"
+      rowsPerPage={3}
+      height={400}
+    />
+  </View>
+);
+
+export const HoverSelectedAndClick = () => (
+  <View style={frame}>
+    <DataGrid
+      data={rows}
+      columns={columns}
+      hover
+      selected={1}
+      onClick={() => {}}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Sorted",
@@ -165,5 +189,15 @@ export const variants: Variant[] = [
     name: "EmptyState",
     title: "Empty state",
     render: EmptyState,
+  },
+  {
+    name: "TitleAndPaging",
+    title: "Title and paging",
+    render: TitleAndPaging,
+  },
+  {
+    name: "HoverSelectedAndClick",
+    title: "Hover selected and click",
+    render: HoverSelectedAndClick,
   },
 ];

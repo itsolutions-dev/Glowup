@@ -3,7 +3,7 @@ import {
   useTheme,
   Theme,
   getStateColor,
-  getGlowStyles,
+  getFocusRing,
 } from "../providers/ThemeProvider";
 
 import {
@@ -229,19 +229,20 @@ const Button = ({
           currentBg = getStateColor(stateBase, on, "hover");
         }
 
-        const glow =
+        // Feedback never changes the box: the border is the same idle and
+        // hovered, and the ring is a shadow.
+        const ring =
           (hovered || pressed) && isInteractive
-            ? getGlowStyles(theme, true)
-            : {
-                borderWidth: variant === "outlined" ? 1 : 0,
-                borderColor: border || "transparent",
-              };
+            ? getFocusRing(theme)
+            : undefined;
 
         return [
           styles.buttonContainer,
           {
             backgroundColor: currentBg,
-            ...glow,
+            borderWidth: variant === "outlined" ? 1 : 0,
+            borderColor: border || "transparent",
+            ...ring,
             opacity: isDisabled ? 0.38 : 1,
           },
           dense && styles.dense,

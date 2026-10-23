@@ -1,9 +1,8 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { fireEvent, render, within } from "@testing-library/react-native";
 import {
   Card,
-  ConfirmDialog,
   HelperText,
   Icon,
   IconButton,
@@ -205,7 +204,20 @@ function disabledNodes(node: HostNode | HostNode[] | null): HostNode[] {
   return [...own, ...children.flatMap(disabledNodes)];
 }
 
+// The nearest ancestor that is a responder (a Pressable's host), if any.
+const pressableAncestor = (node: {
+  parent: unknown;
+  props: Record<string, unknown>;
+}) => {
+  let at = node.parent as typeof node | null;
+  while (at && !at.props.onStartShouldSetResponder)
+    at = at.parent as typeof node | null;
+  return at;
+};
+
 describe("ListItem", () => {
+  afterEach(() => jest.restoreAllMocks());
+
   it("does not mark a row without onClick, or its controls, as disabled", async () => {
     const { toJSON, getByRole } = await wrap(
       <ListItem
@@ -307,30 +319,124 @@ describe("ListItem", () => {
     ).not.toBe("#112233");
   });
 
-  it("keeps an action beside the button, never inside it", async () => {
-    const onClick = jest.fn();
-    const onAction = jest.fn();
-    const { getByRole } = await wrap(
+  describe("a row with onClick and an action", () => {
+    const draw = (onClick = jest.fn(), onAction = jest.fn()) =>
+      wrap(
+        <ListItem
+          primaryText="Invoice 12"
+          secondaryText="Due Friday"
+          onClick={onClick}
+          action={
+            <IconButton
+              icon="delete"
+              accessibilityLabel="Remove"
+              onClick={onAction}
+            />
+          }
+        />,
+      );
+
+    it("presses the row once, and the action only its own handler", async () => {
+      const onClick = jest.fn();
+      const onAction = jest.fn();
+      const { getByRole } = await draw(onClick, onAction);
+      await fireEvent.press(getByRole("button", { name: /Invoice 12/ }));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onAction).not.toHaveBeenCalled();
+      await fireEvent.press(getByRole("button", { name: "Remove" }));
+      expect(onAction).toHaveBeenCalledTimes(1);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    // A button inside the row's button is invalid HTML on the web: the action
+    // is a sibling of it, whatever the platform.
+    it.each(["ios", "web"] as const)(
+      "keeps the action out of the row's button on %s",
+      async (os) => {
+        jest.replaceProperty(Platform, "OS", os);
+        const { getByRole, getAllByRole } = await draw();
+        const row = getByRole("button", { name: /Invoice 12/ });
+        expect(within(row).queryByLabelText("Remove")).toBeNull();
+        expect(within(row).queryAllByRole("button")).toEqual([]);
+        expect(getAllByRole("button")).toHaveLength(2);
+      },
+    );
+
+    it("presses the row from a bare decoration in the action", async () => {
+      const onClick = jest.fn();
+      const { getByTestId } = await wrap(
+        <ListItem
+          primaryText="Password"
+          onClick={onClick}
+          action={<Text testID="chevron">chevron</Text>}
+        />,
+      );
+      await fireEvent.press(getByTestId("chevron"));
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the slot a plain, non-accessible wrapper beside the button", async () => {
+      const { getByTestId, getAllByRole } = await wrap(
+        <ListItem
+          primaryText="Password"
+          onClick={() => {}}
+          action={<Text testID="chevron">chevron</Text>}
+        />,
+      );
+      const slot = pressableAncestor(getByTestId("chevron"))!;
+      expect(slot.props.accessible).toBe(false);
+      expect(slot.props.accessibilityRole).toBeUndefined();
+      expect(slot.props.focusable).toBe(false);
+      // The row's button is the only one, and holds no other host.
+      const [row] = getAllByRole("button");
+      expect(within(row).queryByTestId("chevron")).toBeNull();
+    });
+
+    it("on the web, skips a click that comes from a control in the action", async () => {
+      jest.replaceProperty(Platform, "OS", "web");
+      const onClick = jest.fn();
+      const { getByTestId } = await wrap(
+        <ListItem
+          primaryText="Mail"
+          onClick={onClick}
+          action={<Text testID="chevron">chevron</Text>}
+        />,
+      );
+      const click = (control: boolean) => ({
+        target: { closest: () => (control ? {} : null) },
+        currentTarget: { contains: () => true },
+        stopPropagation: jest.fn(),
+      });
+      const fromControl = click(true);
+      await fireEvent.press(getByTestId("chevron"), fromControl);
+      expect(onClick).not.toHaveBeenCalled();
+      expect(fromControl.stopPropagation).toHaveBeenCalledTimes(1);
+      await fireEvent.press(getByTestId("chevron"), click(false));
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("names the row by its texts alone and keeps them findable", async () => {
+      const { getByRole, getByText } = await draw();
+      // The texts are the button's own children (a regression: they were hidden).
+      expect(getByText("Invoice 12")).toBeTruthy();
+      expect(getByText("Due Friday")).toBeTruthy();
+      const row = getByRole("button", { name: /Invoice 12/ });
+      expect(within(row).getByText("Due Friday")).toBeTruthy();
+      expect(() =>
+        getByRole("button", { name: /Invoice 12.*Remove/ }),
+      ).toThrow();
+      expect(within(row).queryByLabelText("Remove")).toBeNull();
+    });
+  });
+
+  it("has no pressable wrapper around the action without onClick", async () => {
+    const { getByTestId } = await wrap(
       <ListItem
-        primaryText="Invoice 12"
-        onClick={onClick}
-        action={
-          <IconButton
-            icon="delete"
-            accessibilityLabel="Remove"
-            onClick={onAction}
-          />
-        }
+        primaryText="Mail"
+        action={<Text testID="chevron">chevron</Text>}
       />,
     );
-    const row = getByRole("button", { name: /Invoice 12/ });
-    // The row's own button holds the texts, not the action's button.
-    expect(within(row).queryByRole("button", { name: "Remove" })).toBeNull();
-    await fireEvent.press(getByRole("button", { name: "Remove" }));
-    expect(onAction).toHaveBeenCalledTimes(1);
-    expect(onClick).not.toHaveBeenCalled();
-    await fireEvent.press(row);
-    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(pressableAncestor(getByTestId("chevron"))).toBeNull();
   });
 
   it("does not press when disabled", async () => {
@@ -484,30 +590,5 @@ describe("Dialog", () => {
 
     expect(getByText("Save")).toBeTruthy();
     expect(queryByText("Close")).toBeNull();
-  });
-});
-
-describe("ConfirmDialog", () => {
-  it("wires confirm and cancel", async () => {
-    const onConfirm = jest.fn();
-    const onCancel = jest.fn();
-    const { getByText } = await wrap(
-      <ConfirmDialog
-        visible
-        title="Eliminare l'intervento?"
-        message="This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        destructive
-        onConfirm={onConfirm}
-        onCancel={onCancel}
-      />,
-    );
-
-    await fireEvent.press(getByText("Delete"));
-    expect(onConfirm).toHaveBeenCalledTimes(1);
-
-    await fireEvent.press(getByText("Cancel"));
-    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });

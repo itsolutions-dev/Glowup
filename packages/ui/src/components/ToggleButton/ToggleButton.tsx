@@ -8,7 +8,7 @@ import {
   StyleProp,
 } from "react-native";
 import Icons from "../Glyph";
-import { useTheme, getGlowStyles } from "../../providers/ThemeProvider";
+import { useTheme, getFocusRing } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 
 export interface ToggleButtonProps {
@@ -81,7 +81,7 @@ const ToggleButton = ({
           borderTopRightRadius: isLast ? 20 : 0,
           borderBottomRightRadius: isLast ? 20 : 0,
         },
-        (hovered || pressed) && !disabled && getGlowStyles(theme, true),
+        (hovered || pressed) && !disabled && getFocusRing(theme),
       ]}
       {...(Platform.OS === "android" &&
         !disabled && {

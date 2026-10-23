@@ -18,7 +18,11 @@ import {
 } from "./DateTimePicker.shared";
 import { useEscapeKey } from "./internal/useEscapeKey";
 import { useWindowWidth } from "./internal/useWindowWidth";
-import { placeBesideAnchor, Placement } from "./internal/popoverPlacement";
+import {
+  placeBesideAnchor,
+  planPopoverHeight,
+  Placement,
+} from "./internal/popoverPlacement";
 
 /** M3 docked-picker width; matches the dialog so the two agree. */
 const SURFACE_WIDTH = 328;
@@ -88,16 +92,20 @@ const PopupPicker = (props: DateTimePickerProps) => {
     const element = triggerRef.current as unknown as HTMLElement | null;
     if (!element?.getBoundingClientRect) return;
     const view = { width: window.innerWidth, height: window.innerHeight };
-    const planned = Math.max(
+    // Planned with a little slack: a hovered button grows by a border and the
+    // surface must not start to scroll for it (see `planPopoverHeight`).
+    const planned = planPopoverHeight(
       openHeight ?? ESTIMATED_HEIGHT,
       props.mode === "datetime" ? DATETIME_HEIGHT : 0,
+      view.height,
+      MARGIN,
     );
     const next = placeBesideAnchor(
       element.getBoundingClientRect(),
       view,
       {
         width: SURFACE_WIDTH,
-        height: Math.min(planned, view.height - MARGIN * 2),
+        height: planned,
       },
       GAP,
       MARGIN,

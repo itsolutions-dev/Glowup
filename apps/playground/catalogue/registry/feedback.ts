@@ -9,7 +9,6 @@ import {
   CircularProgress,
   LinearProgress,
   Dialog,
-  ConfirmDialog,
   Form,
   Popover,
   Collapse,
@@ -41,7 +40,7 @@ const anchorPosition: PropDefinition = {
   options: ANCHOR_POSITIONS,
 };
 
-/** Feedback: 15 catalogue entries. */
+/** Feedback: 14 catalogue entries. */
 export const feedback: Record<string, ComponentMetadata> = {
   Snackbar: {
     name: "Snackbar",
@@ -178,19 +177,6 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
     },
   },
-  ConfirmDialog: {
-    name: "ConfirmDialog",
-    Component: ConfirmDialog,
-    props: {
-      title: { type: "text", default: "", label: "Title" },
-      message: { type: "text", default: "", label: "Message" },
-      confirmText: { type: "text", default: "Confirm", label: "Confirm Text" },
-      cancelText: { type: "text", default: "Cancel", label: "Cancel Text" },
-      destructive: { type: "boolean", default: false, label: "Destructive" },
-      icon: { type: "icon", default: "", label: "Hero Icon" },
-      dismissable: { type: "boolean", default: true, label: "Dismissable" },
-    },
-  },
   AlertDialog: {
     name: "AlertDialog",
     Component: AlertDialog,
@@ -211,6 +197,7 @@ export const feedback: Record<string, ComponentMetadata> = {
       },
       actionText: { type: "text", default: "OK", label: "Action Text" },
       cancelText: { type: "text", default: "", label: "Cancel Text" },
+      icon: { type: "icon", default: "", label: "Hero Icon" },
       destructive: { type: "boolean", default: false, label: "Destructive" },
       loading: { type: "boolean", default: false, label: "Loading" },
       disableBackdropClick: {

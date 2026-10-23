@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 116 componenti.
+Ora: versione 0.11.1, 115 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,9 +11,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 27 | 351 |
-| Aggiornati | 54 | 694 |
-| Tenuti (invariati) | 35 | 211 |
+| Aggiunti | 27 | 353 |
+| Aggiornati | 55 | 712 |
+| Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
 
@@ -63,10 +63,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
 - [ChipGroup](#chipgroup): + onChange, multiple, variant · − onValueChange, mode, multiSelect
 - [CircularProgress](#circularprogress): + label, labelPosition, trackColor
-- [ConfirmDialog](#confirmdialog): + slotStyles
-- [DataGrid](#datagrid): comportamento · + emptyState · ~ density, rowStyle
-- [DatePicker](#datepicker): + fieldVariant, presentation, showToday, variant
-- [DateTimePicker](#datetimepicker): + fieldVariant, presentation, showToday, variant
+- [DataGrid](#datagrid): comportamento · + emptyState, height, hover, onClick, rowsPerPage, selected, tableTitle, width · ~ density, emptyMessage, rowStyle
+- [DatePicker](#datepicker): + fieldVariant, presentation, showOkButton, showToday, variant
+- [DateTimePicker](#datetimepicker): + fieldVariant, presentation, showOkButton, showToday, variant
 - [DrawerItem](#draweritem): + children, defaultExpanded, onClick, onToggle · − onPress
 - [DrawerSection](#drawersection): + collapsible, defaultExpanded, onToggle
 - [FAB](#fab): + onClick, animateFrom, duration, extended, iconMode, testID, variant · ~ feedback, placement, position, size · − onPress
@@ -75,7 +74,8 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [IconButton](#iconbutton): + badge, color, onClick, title, variant · − mode, onPress
 - [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, endAdornment, fullWidth, inputProps, inputRef, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
 - [LinearProgress](#linearprogress): + label, labelPosition, width · ~ height
-- [ListItem](#listitem): comportamento · + primaryText, action, dimmed, disabled, icon, indicatorColor, onClick, primaryTextStyle, secondaryText, secondaryTextStyle, testID, trailingWidth · − children, itemSecondaryTextStyle, itemTextStyle, leading, onPress, secondary, trailing
+- [ListItem](#listitem): comportamento · + primaryText, action, dimmed, disabled, icon, indicatorColor, onClick, primaryTextStyle, secondaryText, secondaryTextStyle, testID, trailingWidth, variant · − children, itemSecondaryTextStyle, itemTextStyle, leading, onPress, secondary, trailing
+- [ListSection](#listsection): + gap, showDividers
 - [Menu](#menu): + onClose, anchorPosition, dividers, onClick, selected · − onDismiss
 - [NavigationRail](#navigationrail): ~ items
 - [Pagination](#pagination): + activePage, onChange, color, pageSelect, size, variant · − onPageChange, page
@@ -84,7 +84,8 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [ProgressButton](#progressbutton): + onClick, variant · − mode, onPress
 - [Rating](#rating): + icon, interval, required
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
-- [Select](#select): comportamento · + onChange, density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable · − onSelect, multiSelect
+- [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange · ~ value · − onSelect, multiSelect, selectedValues, toggleOptions
+- [Slider](#slider): + interaction
 - [Snackbar](#snackbar): comportamento · + onClose, position, severity, variant · ~ action, onDismiss · − type
 - [Stack](#stack): + align, background, borderColor, borderWidth, children, dividers, height, justify, margin, padding, radius, style, width, wrap · ~ spacing
 - [Stat](#stat): + direction, trendColor · − invertTrendColors
@@ -96,15 +97,15 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [TableRow](#tablerow): + hover, onClick, selected, testID
 - [Tabs](#tabs): comportamento · + activeKey, color, fullWidth, height, showBorders, size, testID, variant, width · ~ onChange, tabs, activeTab
 - [ThemeProvider](#themeprovider): + density
-- [TimePicker](#timepicker): + fieldVariant, presentation, showToday, variant
-- [ToastProvider](#toastprovider): + position
+- [TimePicker](#timepicker): + fieldVariant, presentation, showOkButton, showToday, variant
+- [ToastProvider](#toastprovider): + maxVisible, position
 - [Tooltip](#tooltip): + anchorAccessible
 - [Typography](#typography): + align, color, fontSize, nowrap, onClick · ~ variant
 - [VStack](#vstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 
 ## Tenuti
 
-[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSection](#listsection) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Slider](#slider) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
+[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
 
 ## Altre aggiunte (non componenti)
 
@@ -148,6 +149,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | destructive | `boolean` | false |  | Draws the primary action in the error tone (delete, discard). |
 | disableBackdropClick | `boolean` | true |  | Keeps a click on the backdrop from calling `onCancel`: an alert needs an answer. Set `false` to let it dismiss. Defaults to `true`. |
 | disableEscapeKeyDown | `boolean` | true |  | Keeps Escape (web) and Android back from calling `onCancel`. Set `false` to let them dismiss. Defaults to `true`. |
+| icon | `IconSource` |  |  | Hero glyph above the title; takes the place of the `severity` icon. |
 | loading | `boolean` | false |  | The primary action shows a spinner and does nothing, the secondary one is disabled, and the alert stays until `visible` goes down: dismissing it is off while it works. |
 | message | `string` |  |  | What the alert says. With the `children`, it is the dialog's accessible description. |
 | onAction | `() => void` |  |  | Called when the primary action is pressed. |
@@ -357,6 +359,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | defaultValue | `string` | "" |  | The value to start from when uncontrolled. Defaults to `""`. |
 | disabled | `boolean` | false |  | Dims the text and keeps it from opening. |
 | editing | `boolean` |  |  | Controls whether the field is open; pair with `onEditingChange`. |
+| fullWidth | `boolean` | false |  | Fills the width of its container, in display and in edit alike. Left off, the display is as wide as its text and the open field takes exactly that width (at least 120 px), so opening it moves nothing; a textarea keeps the width and grows in height. Defaults to `false`. |
 | label | `string` |  |  | The accessible name of the display button and of the open field. Not drawn. |
 | onCancel | `(previous: string) => void` |  |  | Called with the value the edit started from when it is cancelled (Escape or the close button). |
 | onChange | `(value: string) => void` |  |  | Called with the text on every edit while the field is open. When the edit is cancelled it is called once more with the value the edit started from. |
@@ -980,49 +983,38 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | trackColor | `boolean \| string` |  | nuova | The ring under the indicator. `true` draws it in the indicator's colour at a low opacity, a string draws it in that colour, `false` draws none. Left out, a ring with a `progress` has its usual track (`secondaryContainer`) and a spinner has none. |
 
-### ConfirmDialog
-
-`packages/ui/src/components/Dialog/ConfirmDialog.tsx` — prop nuove: `slotStyles`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onCancel * | `() => void` |  |  |  |
-| onConfirm * | `() => void` |  |  |  |
-| visible * | `boolean` |  |  |  |
-| cancelText | `string` | "Cancel" |  |  |
-| confirmText | `string` | "Confirm" |  |  |
-| destructive | `boolean` | false |  | Renders the confirm action in the error tone (delete, discard). |
-| dismissable | `boolean` | true |  | Whether the backdrop and ESC cancel the dialog. Turn it off for a decision the user must answer explicitly. Defaults to `true`. |
-| icon | `IconSource` |  |  | Hero glyph above the title. |
-| message | `string` |  |  |  |
-| slotStyles | `DialogSlotStyles` |  | nuova | Style overrides for the parts of the dialog, merged after its own styles; `actions` covers the cancel and confirm buttons. |
-| title | `string` |  |  |  |
-
 ### DataGrid
 
-`packages/ui/src/components/DataGrid.tsx` — comportamento: segue `ThemeProvider density`; `columns[]` ha `align` e `renderCell`; prop nuove: `emptyState`; prop cambiate: `density`, `rowStyle`
+`packages/ui/src/components/DataGrid.tsx` — comportamento: segue `ThemeProvider density`; `columns[]` ha `align` e `renderCell`; prop nuove: `emptyState`, `height`, `hover`, `onClick`, `rowsPerPage`, `selected`, `tableTitle`, `width`; prop cambiate: `density`, `emptyMessage`, `rowStyle`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | columns * | `ColumnDefinition[]` |  |  |  |
 | data * | `any[]` |  |  |  |
 | density | `Density` |  | cambiata | Row height; follows `ThemeProvider`'s `density` unless set here. |
-| emptyMessage | `string` |  |  | Shown centered when data is empty and not loading. |
+| emptyMessage | `ReactNode` |  | cambiata | Shown centered when data is empty and not loading. |
 | emptyState | `ReactNode` |  | nuova | Drawn instead of `emptyMessage` when data is empty and not loading: an illustration, a call to action. |
 | headerStyle | `ViewStyle` |  |  |  |
+| height | `DimensionValue` |  | nuova | Height of the grid. The header stays in place and the rows scroll under it (a virtualised list). Without it the grid fills the height of its container, which must then be bounded for the rows to scroll. |
+| hover | `boolean` | false | nuova | Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed. |
 | loading | `boolean` | false |  |  |
+| onClick | `(row: any, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable, with the button role: a cell then should not hold a control of its own. |
 | onColumnReorder | `(newColumns: ColumnDefinition[]) => void` |  |  |  |
 | onEndReached | `() => void` |  |  |  |
 | onEndReachedThreshold | `number` | 0.5 |  |  |
 | onSort | `(columnId: string, direction: "asc" \| "desc") => void` |  |  |  |
+| rowsPerPage | `number` |  | nuova | Rows per page. A number slices `data` into pages and shows a `Pagination` under the grid (hidden while there is no data); the page goes back to the first when `rowsPerPage` or the number of rows changes. Left out, every row is one scrolling list. Not meant to be combined with `onEndReached`: a page is finished by the user, not by scrolling. |
 | rowStyle | `ViewStyle \| ((row: any, index: number) => ViewStyle \| undefined)` |  | cambiata | One style for every row, or a function of the row (to dim or highlight one). |
+| selected | `number \| number[]` |  | nuova | The row index, or indexes, to draw as selected. An index is a position in `data`, not in the page shown, so it follows the order `data` is given in (sort the rows before passing them). The row is marked selected for assistive technology too. |
 | sortColumn | `string` |  |  |  |
 | sortDirection | `"asc" \| "desc"` |  |  |  |
 | style | `ViewStyle` |  |  |  |
+| tableTitle | `string` |  | nuova | A heading drawn above the header row. |
+| width | `DimensionValue` |  | nuova | Width of the grid. Without it the grid fills its container. |
 
 ### DatePicker
 
-`packages/ui/src/components/DatePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+`packages/ui/src/components/DatePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showOkButton`, `showToday`, `variant`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1050,6 +1042,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | required | `boolean` |  |  | Appends an asterisk to the label. |
 | scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
 | selectionMode | `"single"` |  |  |  |
+| showOkButton | `boolean` | true | nuova | Shows the OK button in the popup. Default `true`. Set to `false` and the picker finishes by itself instead of waiting for OK: a time is set and the popup closes once the minute is picked (`mode="datetime"`: after the day, the hour and the minute), and a date range once its second end is. A single date already closes on the tap. It has no effect on `selectionMode="multiple"`, which cannot tell when it is finished, nor on typed entry (`defaultInputType="keyboard"`), which keeps its OK; and a `variant="static"` picker has no popup, so it does nothing there. |
 | showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
 | startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
@@ -1060,7 +1053,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### DateTimePicker
 
-`packages/ui/src/components/DateTimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+`packages/ui/src/components/DateTimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showOkButton`, `showToday`, `variant`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1089,6 +1082,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | required | `boolean` |  |  | Appends an asterisk to the label. |
 | scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
 | selectionMode | `"single"` |  |  |  |
+| showOkButton | `boolean` | true | nuova | Shows the OK button in the popup. Default `true`. Set to `false` and the picker finishes by itself instead of waiting for OK: a time is set and the popup closes once the minute is picked (`mode="datetime"`: after the day, the hour and the minute), and a date range once its second end is. A single date already closes on the tap. It has no effect on `selectionMode="multiple"`, which cannot tell when it is finished, nor on typed entry (`defaultInputType="keyboard"`), which keeps its OK; and a `variant="static"` picker has no popup, so it does nothing there. |
 | showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
 | startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
@@ -1269,7 +1263,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### ListItem
 
-`packages/ui/src/components/List/ListItem.tsx` — comportamento: `primaryText` e `secondaryText` accettano un nodo; solo il testo viene avvolto in `Text`; prop nuove: `primaryText`, `action`, `dimmed`, `disabled`, `icon`, `indicatorColor`, `onClick`, `primaryTextStyle`, `secondaryText`, `secondaryTextStyle`, `testID`, `trailingWidth`; prop tolte: `children`, `itemSecondaryTextStyle`, `itemTextStyle`, `leading`, `onPress`, `secondary`, `trailing`
+`packages/ui/src/components/List/ListItem.tsx` — comportamento: `primaryText` e `secondaryText` accettano un nodo; solo il testo viene avvolto in `Text`; prop nuove: `primaryText`, `action`, `dimmed`, `disabled`, `icon`, `indicatorColor`, `onClick`, `primaryTextStyle`, `secondaryText`, `secondaryTextStyle`, `testID`, `trailingWidth`, `variant`; prop tolte: `children`, `itemSecondaryTextStyle`, `itemTextStyle`, `leading`, `onPress`, `secondary`, `trailing`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1282,12 +1276,26 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | itemContainerStyle | `object` |  |  |  |
 | itemHoveredStyle | `object` |  |  |  |
 | itemPressedStyle | `object` |  |  |  |
-| onClick | `() => void` |  | nuova | Called when the row is pressed. Giving it makes the row a button. With an `action` as well, only the icon and the texts are the button: the action is a control of its own beside it, so a button never sits inside a button. |
+| onClick | `() => void` |  | nuova | Called when the row is pressed. Giving it makes the whole row pressable, the `action` zone included. The `action` is a sibling of the row's button, never inside it: a control in it (an `IconButton`, a Switch) runs its own handler and never this one, while a bare icon, chip or text there presses the row. |
 | primaryTextStyle | `StyleProp<TextStyle>` |  | nuova | Merged after the type of `primaryText`; applies when it is text, a node styles itself. |
 | secondaryText | `React.ReactNode` |  | nuova | Second line below `primaryText`. Text or any node, like `primaryText`. |
 | secondaryTextStyle | `StyleProp<TextStyle>` |  | nuova | Merged after the type of `secondaryText`; applies when it is text, a node styles itself. |
 | testID | `string` |  | nuova |  |
 | trailingWidth | `number` |  | nuova | Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up. |
+| variant | `ListItemVariant` | "contained" | nuova | How the row is drawn. `"contained"` (the default) fills it with the `secondaryContainer` surface; `"outlined"` draws it on no fill with an outline; `"standard"` is transparent with no border, like the rows of a sidebar. The border is the same width in all three and in every state, so hover and press never move the layout. |
+
+### ListSection
+
+`packages/ui/src/components/List/ListSection.tsx` — prop nuove: `gap`, `showDividers`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| children * | `React.ReactNode` |  |  |  |
+| divider | `boolean` | false |  | One rule below the section, after its last item: it closes the group, for a settings screen of stacked groups. `showDividers` is the rules *between* the items, and the two can be used together. |
+| gap | `"xs" \| "s" \| "m" \| "l" \| "xl" \| number` |  | nuova | Space between consecutive items: a spacing token (`"xs"` 4, `"s"` 8, `"m"` 16, `"l"` 24, `"xl"` 32) or a number of pixels. Each `ListItem` already keeps a small margin of its own: this is added to it. |
+| showDividers | `boolean` | false | nuova | A rule between each pair of consecutive items, so `n` items get `n - 1` rules, none before the first or after the last (that one is `divider`). With a `gap`, the rule sits in the middle of it. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| title | `string` |  |  | Group label rendered above the rows as a heading. |
 
 ### Menu
 
@@ -1439,13 +1447,11 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Select
 
-`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `onChange`, `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`; prop tolte: `onSelect`, `multiSelect`
+`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`, `onChange`; prop cambiate: `value`; prop tolte: `onSelect`, `multiSelect`, `selectedValues`, `toggleOptions`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| onChange * | `(value: any) => void` |  | nuova | Called with the picked option's `value`, or with `null` when a `nullable` select is cleared. Not called with `multiple`: see `toggleOptions`. |
 | options * | `Option[]` |  |  |  |
-| value * | `any` |  |  | The `value` of the selected option; `null` for none. Ignored with `multiple`. |
 | defaultOpen | `boolean` | false |  | Mount with the option list already open. Uncontrolled after that. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
@@ -1455,15 +1461,35 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | fullWidth | `boolean` | true | nuova | Stretches the select to its container's width. `false` shrinks it to its content, with a minimum width. Defaults to `true`. |
 | label | `string` |  |  |  |
 | labelPlacement | `"inside" \| "outside"` | "outside" | nuova | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the value. Independent of `variant`; with chips showing it stays above the box. Defaults to `"outside"`. |
-| multiple | `boolean` | false | nuova | Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too. |
+| multiple | `boolean` | false | nuova | Picks several options at once; the list stays open. `value` and `onChange` then carry arrays. |
 | nullable | `boolean` | false | nuova | Lets the user go back to no selection: a clear button shows in the field while an option is selected, and pressing the selected option again deselects it. Both call `onChange(null)`. Ignored with `multiple`, where every option can already be unchecked. Defaults to `false`. |
+| onChange | `(value: any) => void` |  | nuova | Called with the picked option's `value`, or with `null` when a `nullable` select is cleared. With `multiple`: called with the new array of selected `value`s on every toggle (a new array, never the one passed as `value`). |
 | optionStyle | `object` |  |  |  |
 | placeholder | `string` | "Select an option" |  |  |
-| selectedValues | `any[]` | [] |  | With `multiple`: the `value`s of the selected options. |
 | showAsChips | `boolean` | false |  | With `multiple`, shows the selection as removable chips in the field. |
 | style | `object` |  |  |  |
-| toggleOptions | `(value: any) => void` |  |  | With `multiple`: called with the new array of selected `value`s after each toggle. |
+| value | `any` |  | cambiata | The `value` of the selected option, `null` for none. With `multiple`: the array of selected `value`s (defaults to `[]`). |
 | variant | `SelectVariant` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
+
+### Slider
+
+`packages/ui/src/components/Slider.tsx` — prop nuove: `interaction`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onValueChange * | `(value: number) => void` |  |  |  |
+| value * | `number` |  |  |  |
+| disabled | `boolean` |  |  | Blocks the pointer, the keyboard and assistive actions, and dims the slider. |
+| feedback | `boolean` | true |  | Report each step the thumb crosses to `ThemeProvider`'s `onInteractionFeedback` (haptics), as a selection. Only with a `step`: a continuous slider would report every pixel. Defaults to true. |
+| interaction | `SliderInteraction` | "both" | nuova | What a pointer (finger or mouse) may do: `"both"` drags the thumb and jumps to where the track is pressed, `"drag"` only drags the thumb, `"click"` only jumps to the pressed point. The keyboard (arrows, Page Up/Down, Home/End) and assistive actions work in every mode. Defaults to `"both"`. |
+| label | `string` |  |  |  |
+| marks | `boolean` | false |  | Draw a tick at every step (requires step > 0). |
+| max | `number` | 100 |  |  |
+| min | `number` | 0 |  |  |
+| onSlidingComplete | `(value: number) => void` |  |  |  |
+| showValueLabel | `boolean` | false |  |  |
+| step | `number` |  |  |  |
+| style | `StyleProp<ViewStyle>` |  |  |  |
 
 ### Snackbar
 
@@ -1641,7 +1667,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### TimePicker
 
-`packages/ui/src/components/TimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showToday`, `variant`
+`packages/ui/src/components/TimePicker.tsx` — prop nuove: `fieldVariant`, `presentation`, `showOkButton`, `showToday`, `variant`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1668,6 +1694,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | relativeLabels | `DateTimePickerRelativeLabels` |  |  | Overrides the relative day labels, e.g. from i18n: `relativeLabels={{ today: t("TODAY"), yesterday: t("YESTERDAY") }}`. Defaults to the device locale via Intl.RelativeTimeFormat. |
 | required | `boolean` |  |  | Appends an asterisk to the label. |
 | scrollMode | `CalendarScrollMode` |  |  | Month navigation inside the dialog. Default `"endless"`. |
+| showOkButton | `boolean` | true | nuova | Shows the OK button in the popup. Default `true`. Set to `false` and the picker finishes by itself instead of waiting for OK: a time is set and the popup closes once the minute is picked (`mode="datetime"`: after the day, the hour and the minute), and a date range once its second end is. A single date already closes on the tap. It has no effect on `selectionMode="multiple"`, which cannot tell when it is finished, nor on typed entry (`defaultInputType="keyboard"`), which keeps its OK; and a `variant="static"` picker has no popup, so it does nothing there. |
 | showToday | `boolean` |  | nuova | Offers a "Today" button next to the month arrows. Default `true`. Only a single-date calendar has one, and it is disabled while today is outside `validRange` or excluded by `isDateDisabled`. |
 | startYear | `number` |  |  | First year offered by the year grid. Defaults to 100 years back. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
@@ -1678,11 +1705,12 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### ToastProvider
 
-`packages/ui/src/providers/ToastProvider.tsx` — prop nuove: `position`
+`packages/ui/src/providers/ToastProvider.tsx` — prop nuove: `maxVisible`, `position`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
+| maxVisible | `number` | 1 | nuova | How many toasts are on screen together. The others wait in the queue and appear, in order, as a slot frees. Defaults to `1`: one at a time. At a given position they stack with a gap, the newest nearest the edge. |
 | position | `SnackbarPosition` | "bottom-center" | nuova | Where toasts appear unless one asks for another. Defaults to `"bottom-center"`. |
 
 ### Tooltip
@@ -1715,7 +1743,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | fontSize | `number` |  | nuova | Overrides the size of the variant; the line height scales with it. |
 | nowrap | `boolean` | false | nuova | Keeps the text on one line, ending it with an ellipsis when it is cut. |
 | onClick | `TextProps["onPress"]` |  | nuova | Makes the text pressable. |
-| variant | `TypographyName \| TypographyVariant` | "h1" | cambiata | Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline`. The M3 role names (`displayLarge`, `bodyMedium`, …) still work and name the same styles. Defaults to `"h1"`. |
+| variant | `TypographyName \| TypographyVariant` | "body1" | cambiata | Type-scale name: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline`. The M3 role names (`displayLarge`, `bodyMedium`, …) still work and name the same styles. Defaults to `"body1"`. |
 
 ### VStack
 
@@ -1968,17 +1996,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | underline | `"always" \| "hover" \| "none"` | "hover" |  | Underline behaviour. Defaults to `"hover"`. |
 | variant | `keyof Theme["typography"]` | "bodyMedium" |  | M3 typography variant for the label. Defaults to `"bodyMedium"`. |
 
-### ListSection
-
-`packages/ui/src/components/List/ListSection.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactNode` |  |  |  |
-| divider | `boolean` | false |  | Rule below the section, for a settings screen of stacked groups. |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| title | `string` |  |  | Group label rendered above the rows as a heading. |
-
 ### ListSubheader
 
 `packages/ui/src/components/List/ListSubheader.tsx`
@@ -2058,25 +2075,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | variant | `SkeletonVariant` | "rect" |  |  |
 | width | `DimensionValue` |  |  |  |
-
-### Slider
-
-`packages/ui/src/components/Slider.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onValueChange * | `(value: number) => void` |  |  |  |
-| value * | `number` |  |  |  |
-| disabled | `boolean` |  |  |  |
-| feedback | `boolean` | true |  | Report each step the thumb crosses to `ThemeProvider`'s `onInteractionFeedback` (haptics), as a selection. Only with a `step`: a continuous slider would report every pixel. Defaults to true. |
-| label | `string` |  |  |  |
-| marks | `boolean` | false |  | Draw a tick at every step (requires step > 0). |
-| max | `number` | 100 |  |  |
-| min | `number` | 0 |  |  |
-| onSlidingComplete | `(value: number) => void` |  |  |  |
-| showValueLabel | `boolean` | false |  |  |
-| step | `number` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
 
 ### Spacer
 

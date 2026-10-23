@@ -1,11 +1,18 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Link } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   SearchBar,
   ToggleButtonGroup,
   Typography,
+  ViewportProvider,
   useTheme,
   type PressableState,
   type Theme,
@@ -27,14 +34,18 @@ import { usePersistentState } from "../../site/usePersistentState";
 
 const ALL = "All";
 
-/** Height of a card's preview well. Tall enough for a Card, short enough to scan. */
-const PREVIEW_HEIGHT = 132;
+/** Height of a card's preview well: most of the card, as on MUI's component list. */
+const PREVIEW_HEIGHT = 240;
 
 /**
- * Demos are drawn at their real size; shrinking them lets a whole component fit
- * the well instead of being cropped to its top-left corner.
+ * The example is laid out in a box 1 / PREVIEW_SCALE as wide as the well and
+ * drawn at PREVIEW_SCALE from its centre, so it fills the well exactly and
+ * stays readable (a fixed scale on a box of the demo's own size cropped it).
  */
-const PREVIEW_SCALE = 0.78;
+const PREVIEW_SCALE = 0.75;
+
+/** The window the preview believes it is in: a small card is a phone-sized space. */
+const PREVIEW_VIEWPORT = 360;
 
 type LayoutMode = "gallery" | "list";
 
@@ -80,17 +91,18 @@ export default function ComponentsIndex() {
   );
 
   const shown = groups.reduce((total, group) => total + group.items.length, 0);
+  // 3 across on a desktop, 2 on a tablet or a window with the sidebar, 1 on a phone.
   const columns = layout.atLeast("large")
-    ? 4
+    ? 3
     : layout.atLeast("medium")
-      ? 3
-      : 2;
+      ? 2
+      : 1;
 
   return (
     <Page
       eyebrow="Reference"
       title="Components"
-      description={`${TOTAL_COUNT} Material You components, each with a one-line description and its example running. Open one to change its props and code, see the variants and read the generated API reference.`}
+      description={`${TOTAL_COUNT} components, each with one live, editable example. Search by name or by what a component does, filter by category and switch between the gallery and a list, then open one to edit its props and code.`}
     >
       <View style={styles.toolbar}>
         <View style={styles.searchRow}>
@@ -291,9 +303,9 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
             <View
               style={[
                 styles.card,
+                (hovered || focused) && styles.cardActive,
                 (hovered || focused) && {
                   borderColor: theme.colors.primary,
-                  backgroundColor: theme.colors.surfaceContainer,
                 },
               ]}
             >
@@ -301,33 +313,37 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
                   preview must not eat the press or take a tab stop of its own. */}
               <View style={styles.well} pointerEvents="none">
                 <View style={styles.wellInner}>
-                  <DemoErrorBoundary label={name}>
-                    {example ? <example.Component /> : null}
-                  </DemoErrorBoundary>
+                  <ViewportProvider width={PREVIEW_VIEWPORT}>
+                    <DemoErrorBoundary label={name}>
+                      {example ? <example.Component /> : null}
+                    </DemoErrorBoundary>
+                  </ViewportProvider>
                 </View>
               </View>
 
               <View style={styles.cardFooter}>
-                <View style={styles.cardTitleRow}>
-                  <Typography
-                    variant="titleSmall"
-                    style={{ color: theme.colors.onSurface, flex: 1 }}
-                  >
-                    {name}
-                  </Typography>
-                  <Typography
-                    variant="labelSmall"
-                    style={{ color: theme.colors.onSurfaceVariant }}
-                  >
-                    {doc ? `${doc.props.length} props` : `${variants} demos`}
-                  </Typography>
-                </View>
+                <Typography
+                  variant="titleMedium"
+                  style={{ color: theme.colors.onSurface }}
+                >
+                  {name}
+                </Typography>
                 <Typography
                   variant="bodySmall"
-                  numberOfLines={3}
-                  style={{ color: theme.colors.onSurfaceVariant }}
+                  numberOfLines={2}
+                  style={[
+                    styles.cardDescription,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
                 >
                   {description}
+                </Typography>
+                <Typography
+                  variant="labelSmall"
+                  style={{ color: theme.colors.outline }}
+                >
+                  {doc ? `${doc.props.length} props · ` : ""}
+                  {variants} {variants === 1 ? "variant" : "variants"}
                 </Typography>
               </View>
             </View>
@@ -440,31 +456,42 @@ const makeStyles = (theme: Theme) =>
       borderColor: theme.colors.outlineVariant,
       backgroundColor: theme.colors.surface,
       overflow: "hidden",
+      ...(Platform.OS === "web"
+        ? ({
+            transitionProperty: "transform, box-shadow, border-color",
+            transitionDuration: "150ms",
+          } as object)
+        : null),
+    },
+    // Hover and focus: the card lifts a little and takes a shadow.
+    cardActive: {
+      transform: [{ translateY: -3 }],
+      ...(Platform.OS === "web"
+        ? ({ boxShadow: "0 8px 20px rgba(0, 0, 0, 0.18)" } as object)
+        : { elevation: 4 }),
     },
     well: {
       height: PREVIEW_HEIGHT,
-      alignItems: "center",
       justifyContent: "center",
       overflow: "hidden",
       backgroundColor: theme.colors.surfaceContainerLow,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.outlineVariant,
-      padding: theme.spacing.s,
     },
+    // Wider than the well, centred (it overflows both sides equally), then drawn
+    // smaller about its centre: net width is the well's.
     wellInner: {
-      alignItems: "center",
-      justifyContent: "center",
+      width: `${100 / PREVIEW_SCALE}%`,
+      alignSelf: "center",
+      padding: theme.spacing.l,
       transform: [{ scale: PREVIEW_SCALE }],
     },
     cardFooter: {
       gap: theme.spacing.xs,
       paddingHorizontal: theme.spacing.m,
-      paddingVertical: theme.spacing.s,
+      paddingVertical: theme.spacing.m,
     },
-    cardTitleRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: theme.spacing.s,
+    // Two lines are always reserved, so the cards of a row end together.
+    cardDescription: {
+      minHeight: (theme.typography.bodySmall.lineHeight ?? 16) * 2,
     },
 
     list: {

@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
 
@@ -58,6 +58,53 @@ const SIZES = {
   large: { width: 40, height: 22 },
 } as const;
 
+export interface SwitchGeometry {
+  /** The track's inside, where the thumb is positioned (the border is not part of it). */
+  innerWidth: number;
+  innerHeight: number;
+  /** Equal gap between the thumb and the track edge, off and on. */
+  offInset: number;
+  onInset: number;
+  offSize: number;
+  onSize: number;
+  offLeft: number;
+  onLeft: number;
+  offTop: number;
+  onTop: number;
+}
+
+/**
+ * The thumb's size and position for a track, in the track's padding box (an
+ * absolutely placed child is measured from inside the border, so the border
+ * must not be added again). The thumb is a circle centred in the track's
+ * height with the same inset at both ends, off and on, and never wider than
+ * the inside of the track.
+ */
+export const getSwitchGeometry = (
+  width: number,
+  height: number,
+): SwitchGeometry => {
+  const innerWidth = Math.max(0, width - 2 * TRACK_BORDER_WIDTH);
+  const innerHeight = Math.max(0, height - 2 * TRACK_BORDER_WIDTH);
+  const fit = Math.min(innerWidth, innerHeight);
+  const offSize = fit * THUMB_OFF_RATIO;
+  const onSize = fit * THUMB_ON_RATIO;
+  const offInset = (innerHeight - offSize) / 2;
+  const onInset = (innerHeight - onSize) / 2;
+  return {
+    innerWidth,
+    innerHeight,
+    offInset,
+    onInset,
+    offSize,
+    onSize,
+    offLeft: offInset,
+    onLeft: innerWidth - onSize - onInset,
+    offTop: offInset,
+    onTop: onInset,
+  };
+};
+
 const Switch = ({
   value,
   onChange,
@@ -75,52 +122,10 @@ const Switch = ({
   const TRACK_WIDTH = width;
   const TRACK_HEIGHT = height;
 
-  const {
-    thumbOffSize,
-    thumbOnSize,
-    thumbOffOffset,
-    thumbOnOffset,
-    thumbMarginTopOff,
-    thumbMarginTopOn,
-  } = useMemo(() => {
-    const innerTrackHeight = TRACK_HEIGHT - 2 * TRACK_BORDER_WIDTH;
-
-    // Calculate thumb sizes based on inner track height and ratios
-    // Ensure they don't exceed innerTrackHeight
-    const calculatedThumbOffSize = Math.max(
-      0,
-      innerTrackHeight * THUMB_OFF_RATIO,
-    );
-    const calculatedThumbOnSize = Math.max(
-      0,
-      innerTrackHeight * THUMB_ON_RATIO,
-    );
-
-    // Offset for 'off' state: just the track border width
-    const calculatedThumbOffOffset = TRACK_BORDER_WIDTH;
-
-    // Offset for 'on' state: total track width - thumb width (when ON) - border width
-    // Ensure the thumb doesn't go outside the track, considering its own width
-    const calculatedThumbOnOffset = Math.max(
-      calculatedThumbOffOffset, // Cannot be less than off offset
-      TRACK_WIDTH - calculatedThumbOnSize - TRACK_BORDER_WIDTH,
-    );
-
-    // Vertical centering (marginTop)
-    const calculatedThumbMarginTopOff =
-      (TRACK_HEIGHT - calculatedThumbOffSize) / 2;
-    const calculatedThumbMarginTopOn =
-      (TRACK_HEIGHT - calculatedThumbOnSize) / 2;
-
-    return {
-      thumbOffSize: calculatedThumbOffSize,
-      thumbOnSize: calculatedThumbOnSize,
-      thumbOffOffset: calculatedThumbOffOffset,
-      thumbOnOffset: calculatedThumbOnOffset,
-      thumbMarginTopOff: calculatedThumbMarginTopOff,
-      thumbMarginTopOn: calculatedThumbMarginTopOn,
-    };
-  }, [TRACK_WIDTH, TRACK_HEIGHT]);
+  const geometry = useMemo(
+    () => getSwitchGeometry(TRACK_WIDTH, TRACK_HEIGHT),
+    [TRACK_WIDTH, TRACK_HEIGHT],
+  );
 
   const styles = useMemo(
     () => makeStyles(theme, TRACK_WIDTH, TRACK_HEIGHT),
@@ -145,10 +150,8 @@ const Switch = ({
     }).start();
   }, [value, animatedValue]);
 
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [thumbOffOffset, thumbOnOffset], // Use calculated offsets
-  });
+  const range = (off: number, on: number) =>
+    animatedValue.interpolate({ inputRange: [0, 1], outputRange: [off, on] });
 
   const trackColor = animatedValue.interpolate({
     inputRange: [0, 1],
@@ -160,14 +163,10 @@ const Switch = ({
     outputRange: [theme.colors.outline, theme.colors.onPrimary],
   });
 
-  const thumbSize = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [thumbOffSize, thumbOnSize], // Use calculated sizes
-  });
-
+  const thumbSize = range(geometry.offSize, geometry.onSize);
   const thumbBorderRadius = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [thumbOffSize / 2, thumbOnSize / 2], // Half of thumbSize for circle
+    outputRange: [geometry.offSize / 2, geometry.onSize / 2],
   });
 
   return (
@@ -209,7 +208,7 @@ const Switch = ({
           <View
             style={[
               styles.container,
-              hovered && !disabled && getGlowStyles(theme, true),
+              hovered && !disabled && getFocusRing(theme),
             ]}
           >
             <Animated.View
@@ -219,20 +218,12 @@ const Switch = ({
                 style={[
                   styles.thumb,
                   {
-                    transform: [{ translateX }],
+                    left: range(geometry.offLeft, geometry.onLeft),
+                    top: range(geometry.offTop, geometry.onTop),
                     backgroundColor: thumbColor,
                     width: thumbSize,
                     height: thumbSize,
                     borderRadius: thumbBorderRadius,
-                    marginTop: animatedValue.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Use calculated margins
-                    }),
-                    marginBottom: animatedValue.interpolate({
-                      // If you truly need marginBottom for some reason
-                      inputRange: [0, 1],
-                      outputRange: [thumbMarginTopOff, thumbMarginTopOn], // Same as marginTop for centering
-                    }),
                   },
                 ]}
               />

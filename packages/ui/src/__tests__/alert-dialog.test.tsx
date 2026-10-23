@@ -174,6 +174,41 @@ describe("AlertDialog accessibility", () => {
   });
 });
 
+describe("AlertDialog as a confirmation", () => {
+  it("has no close icon: the cancel button is the way out", async () => {
+    const view = await draw(
+      <AlertDialog visible title="Delete?" cancelText="Cancel" />,
+    );
+    expect(view.queryByRole("button", { name: "Close" })).toBeNull();
+    expect(view.getByText("Cancel")).toBeTruthy();
+  });
+
+  it("forwards slotStyles.actions to the dialog", async () => {
+    const view = await draw(
+      <AlertDialog
+        visible
+        title="Delete?"
+        slotStyles={{ actions: { paddingVertical: 47 } }}
+      />,
+    );
+    expect(JSON.stringify(view.toJSON())).toContain('"paddingVertical":47');
+  });
+
+  it("takes a hero icon, which replaces the severity one", async () => {
+    const view = await draw(
+      <AlertDialog
+        visible
+        title="Delete?"
+        severity="error"
+        icon={<Text>hero</Text>}
+      />,
+    );
+    expect(view.getByText("hero")).toBeTruthy();
+    // No glyph of the icon font: the severity icon is not drawn.
+    expect(JSON.stringify(view.toJSON())).not.toContain("material-community");
+  });
+});
+
 describe("AlertDialog dismissal", () => {
   it("ignores the backdrop and Escape/back by default", async () => {
     const onCancel = jest.fn();

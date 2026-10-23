@@ -12,6 +12,13 @@ import { useTheme, Theme, getStateColor } from "../providers/ThemeProvider";
 import Button from "./Button";
 import Icons from "./Glyph";
 import { colorRoleTokens } from "./internal/colorRole";
+import {
+  ALIGN,
+  EDGE_GAP,
+  NO_INSETS,
+  SIDE_GAP,
+  useInSnackbarStack,
+} from "./internal/SnackbarStack";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 /** What the message is about: it drives the colours and the default icon. */
@@ -33,17 +40,7 @@ const SEVERITY_ICONS: Record<SnackbarSeverity, MaterialCommunityIconsGlyphs> = {
   info: "information",
 };
 
-/** The gap kept between the snackbar and the edge of the window. */
-const EDGE_GAP = 24;
-const SIDE_GAP = 16;
 const HIDDEN_OFFSET = 100;
-const NO_INSETS = { top: 0, bottom: 0, left: 0, right: 0 };
-
-const ALIGN = {
-  left: "flex-start",
-  center: "center",
-  right: "flex-end",
-} as const;
 
 export interface SnackbarProps {
   /** Whether the snackbar is on screen. */
@@ -149,6 +146,8 @@ const Snackbar = ({
 }: SnackbarProps) => {
   const { theme } = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
+  // Under a ToastProvider's stack the stack owns the edge; this one is a row in it.
+  const stacked = useInSnackbarStack();
   const [shouldRender, setShouldRender] = React.useState(visible);
   const [vertical, horizontal] = position.split("-") as [
     "top" | "bottom",
@@ -236,10 +235,14 @@ const Snackbar = ({
       pointerEvents="box-none"
       style={[
         styles.container,
-        edge,
+        stacked
+          ? styles.stacked
+          : {
+              ...edge,
+              left: SIDE_GAP + insets.left,
+              right: SIDE_GAP + insets.right,
+            },
         {
-          left: SIDE_GAP + insets.left,
-          right: SIDE_GAP + insets.right,
           alignItems: ALIGN[horizontal],
           opacity: fadeAnim,
           transform: [{ translateY: translateYAnim }],
@@ -308,6 +311,10 @@ const makeStyles = (theme: Theme, colors: SnackbarColors) =>
       position: "absolute",
       zIndex: 1000,
       justifyContent: "center",
+    },
+    stacked: {
+      position: "relative",
+      alignSelf: "stretch",
     },
     content: {
       flexDirection: "row",

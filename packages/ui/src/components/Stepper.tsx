@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import Icons from "./Glyph";
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
 export interface Step {
@@ -70,8 +70,8 @@ const Stepper = ({
               ? theme.colors.primary
               : theme.colors.surface,
           },
-          isActive && getGlowStyles(theme, true),
-          (hovered || pressed) && onClick && getGlowStyles(theme, true),
+          isActive && getFocusRing(theme),
+          (hovered || pressed) && onClick && getFocusRing(theme),
         ]}
       >
         {isCompleted ? (

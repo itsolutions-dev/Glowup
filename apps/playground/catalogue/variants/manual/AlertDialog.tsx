@@ -98,6 +98,30 @@ const Destructive = () => {
   );
 };
 
+const Confirm = () => {
+  const { open, show, hide } = useOverlayDemo();
+
+  return (
+    <View style={demo.panel}>
+      <Button variant="filled" iconName="publish" onClick={show}>
+        Publish 0.1.0
+      </Button>
+      <AlertDialog
+        visible={open}
+        icon="publish"
+        title="Publish 0.1.0?"
+        message="34 components will be pushed to the registry."
+        actionText="Publish"
+        cancelText="Not yet"
+        disableBackdropClick={false}
+        disableEscapeKeyDown={false}
+        onAction={hide}
+        onCancel={hide}
+      />
+    </View>
+  );
+};
+
 const Loading = () => {
   const { open, show, hide } = useOverlayDemo();
   const [loading, setLoading] = useState(false);
@@ -198,6 +222,13 @@ export const variants: Variant[] = [
     description:
       "destructive draws the primary action in the error tone, and cancelText adds the secondary one.",
     render: Destructive,
+  },
+  {
+    name: "Confirm",
+    title: "Confirm",
+    description:
+      "A plain question: icon for a hero glyph, cancelText for the way out, and the two disable flags off so the backdrop and Escape also cancel.",
+    render: Confirm,
   },
   {
     name: "Loading",

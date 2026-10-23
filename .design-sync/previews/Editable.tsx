@@ -65,14 +65,22 @@ export const CustomDisplay = () => (
   </div>
 );
 
-// The open state: `startWithEditView` mounts with the field already open.
+// The open state: `startWithEditView` mounts with the field already open. The
+// default submit mode confirms on blur, so two open fields would close each other
+// as the second takes focus: these stay open with `submitMode="none"`.
 export const EditingText = () => (
   <div style={stack}>
-    <Editable label="Name" defaultValue="Ada Lovelace" startWithEditView />
+    <Editable
+      label="Name"
+      defaultValue="Ada Lovelace"
+      submitMode="none"
+      startWithEditView
+    />
     <Editable
       label="Name"
       defaultValue="Ada Lovelace"
       variant="filled"
+      submitMode="none"
       startWithEditView
     />
   </div>
@@ -85,12 +93,14 @@ export const EditingNumberAndTextarea = () => (
       type="number"
       defaultValue="42.50"
       precision={2}
+      submitMode="none"
       startWithEditView
     />
     <Editable
       label="Bio"
       type="textarea"
       defaultValue="Wrote the first program."
+      submitMode="none"
       startWithEditView
     />
   </div>

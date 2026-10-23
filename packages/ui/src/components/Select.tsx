@@ -33,14 +33,18 @@ export interface SelectProps {
   error?: string;
   disabled?: boolean;
   options: Option[];
-  /** The `value` of the selected option; `null` for none. Ignored with `multiple`. */
-  value: any;
+  /**
+   * The `value` of the selected option, `null` for none. With `multiple`: the
+   * array of selected `value`s (defaults to `[]`).
+   */
+  value?: any;
   /**
    * Called with the picked option's `value`, or with `null` when a
-   * `nullable` select is cleared. Not called with `multiple`: see
-   * `toggleOptions`.
+   * `nullable` select is cleared. With `multiple`: called with the new array
+   * of selected `value`s on every toggle (a new array, never the one passed
+   * as `value`).
    */
-  onChange: (value: any) => void;
+  onChange?: (value: any) => void;
   placeholder?: string;
   /**
    * The look of the box: `"outlined"` is a bordered box on the surface,
@@ -76,14 +80,10 @@ export interface SelectProps {
   disabledOptions?: RegExp | (string | number)[];
   style?: object;
   optionStyle?: object;
-  /** Picks several options at once; the list stays open. Set `selectedValues` and `toggleOptions` too. */
+  /** Picks several options at once; the list stays open. `value` and `onChange` then carry arrays. */
   multiple?: boolean;
   /** With `multiple`, shows the selection as removable chips in the field. */
   showAsChips?: boolean;
-  /** With `multiple`: the `value`s of the selected options. */
-  selectedValues?: any[];
-  /** With `multiple`: called with the new array of selected `value`s after each toggle. */
-  toggleOptions?: (value: any) => void;
   /** Mount with the option list already open. Uncontrolled after that. */
   defaultOpen?: boolean;
   /**
@@ -110,8 +110,6 @@ const Select = ({
   optionStyle,
   multiple = false,
   showAsChips = false,
-  selectedValues = [],
-  toggleOptions,
   defaultOpen = false,
   density,
 }: SelectProps) => {
@@ -131,22 +129,24 @@ const Select = ({
       : // `search` ignores a global/sticky flag's lastIndex, which `test` would not.
         !!disabledOptions && String(option.value).search(disabledOptions) >= 0;
 
+  const selectedValues: any[] = useMemo(
+    () => (multiple && Array.isArray(value) ? value : []),
+    [multiple, value],
+  );
   const selectedOption = useMemo(
-    () => options.find((opt) => opt.value === value),
-    [options, value],
+    () => (multiple ? undefined : options.find((opt) => opt.value === value)),
+    [options, value, multiple],
   );
 
   const internalToggleOption = useCallback(
     (optionValue: any) => {
-      if (!toggleOptions) return;
-      const isAlreadySelected = selectedValues.includes(optionValue);
-      if (isAlreadySelected) {
-        toggleOptions(selectedValues.filter((item) => item !== optionValue));
-      } else {
-        toggleOptions([...selectedValues, optionValue]);
-      }
+      onChange?.(
+        selectedValues.includes(optionValue)
+          ? selectedValues.filter((item) => item !== optionValue)
+          : [...selectedValues, optionValue],
+      );
     },
-    [toggleOptions, selectedValues],
+    [onChange, selectedValues],
   );
 
   const placeholderColor = selectedOption
@@ -287,7 +287,7 @@ const Select = ({
               accessibilityRole="button"
               accessibilityLabel="Clear selection"
               hitSlop={8}
-              onPress={() => onChange(null)}
+              onPress={() => onChange?.(null)}
               style={styles.clearButton}
             >
               <Icons
@@ -362,7 +362,9 @@ const Select = ({
                         // Keep the menu open while toggling multiple options
                         internalToggleOption(option.value);
                       } else {
-                        onChange(nullable && isSelected ? null : option.value);
+                        onChange?.(
+                          nullable && isSelected ? null : option.value,
+                        );
                         setVisible(false);
                       }
                     }}

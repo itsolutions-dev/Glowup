@@ -37,7 +37,7 @@ const GENERIC_DIR = new Set([
   "packages",
   "react",
   // Glowup: structural src dirs that are NOT design-system groups. Without
-  // these, ConfirmDialog lands in `dialog/` while Dialog itself lands in
+  // these, AlertDialog lands in `dialog/` while Dialog itself lands in
   // feedback-overlays; the real grouping comes from the components.md
   // `category` frontmatter, which only applies to an otherwise-generic group.
   "list",

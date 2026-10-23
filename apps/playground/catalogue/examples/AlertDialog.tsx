@@ -18,6 +18,8 @@ const props: Partial<AlertDialogProps> = {
 
 export default function AlertDialogExample() {
   const [open, setOpen] = useState(false);
+  const [asking, setAsking] = useState(false);
+  const [deleted, setDeleted] = useState(false);
   const [status, setStatus] = useState("Last synced 12 minutes ago.");
   const answer = (next: string) => {
     setStatus(next);
@@ -32,19 +34,49 @@ export default function AlertDialogExample() {
           {status}
         </Typography>
       </VStack>
-      <ListItem
-        icon="file-document-outline"
-        primaryText="Quarterly report.docx"
-        secondaryText="Edited by you, 2 changes waiting"
-      />
+      {deleted ? (
+        <Button variant="text" onClick={() => setDeleted(false)}>
+          Restore report
+        </Button>
+      ) : (
+        <ListItem
+          icon="file-document-outline"
+          primaryText="Quarterly report.docx"
+          secondaryText="Edited by you, 2 changes waiting"
+        />
+      )}
       <Button variant="tonal" iconName="sync" onClick={() => setOpen(true)}>
         Sync now
+      </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        iconName="delete-outline"
+        onClick={() => setAsking(true)}
+      >
+        Delete report
       </Button>
       <AlertDialog
         {...props}
         visible={open}
         onAction={() => answer("Still offline. Trying again in a minute.")}
         onCancel={() => answer("Working offline. 2 changes waiting.")}
+      />
+      <AlertDialog
+        visible={asking}
+        icon="delete-outline"
+        title="Delete the report?"
+        message="It is removed for everyone. This cannot be undone."
+        actionText="Delete"
+        cancelText="Keep it"
+        destructive
+        disableBackdropClick={false}
+        disableEscapeKeyDown={false}
+        onAction={() => {
+          setAsking(false);
+          setDeleted(true);
+        }}
+        onCancel={() => setAsking(false)}
       />
     </VStack>
   );

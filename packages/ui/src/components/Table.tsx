@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import Icons from "./Glyph";
 import Pagination from "./Pagination";
-import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 
 // Table: pass `columns` and `data` and it draws the whole table (title, header,
@@ -490,7 +490,7 @@ export const TableHeaderCell = ({
           style={({ hovered, pressed }: PressableState) => [
             styles.thContent,
             contentStyle,
-            (hovered || pressed) && getGlowStyles(theme, true),
+            (hovered || pressed) && getFocusRing(theme),
             (hovered || pressed) && {
               backgroundColor: theme.colors.surfaceContainerHigh,
             },

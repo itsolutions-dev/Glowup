@@ -11,7 +11,7 @@ import {
   TextStyle,
 } from "react-native";
 import Icons from "./Glyph";
-import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useReduceMotion } from "./internal/useReduceMotion";
 import Collapse from "./Collapse";
@@ -112,7 +112,7 @@ const Accordion = ({
         aria-expanded={expanded} // For web platforms
         style={({ hovered }: PressableState) => [
           styles.header,
-          hovered && getGlowStyles(theme, true),
+          hovered && getFocusRing(theme),
         ]}
       >
         <Text

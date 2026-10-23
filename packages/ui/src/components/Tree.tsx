@@ -23,7 +23,7 @@ import Collapse from "./Collapse";
 import Icons from "./Glyph";
 import {
   Theme,
-  getGlowStyles,
+  getFocusRing,
   getStateColor,
   useTheme,
 } from "../providers/ThemeProvider";
@@ -484,7 +484,7 @@ const TreeBranch = React.memo(function Branch({
                     )
                   : "transparent",
           },
-          focused && getGlowStyles(theme, true),
+          focused && getFocusRing(theme),
           rowDisabled && styles.disabled,
         ]}
         {...rowProps}

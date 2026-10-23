@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { View } from "react-native";
 import {
+  AlertDialog,
   Avatar,
   Badge,
   Box,
   Button,
   ChipGroup,
-  ConfirmDialog,
   Divider,
   EmptyState,
   HStack,
@@ -281,12 +281,15 @@ export default function Inbox() {
         list
       )}
 
-      <ConfirmDialog
+      <AlertDialog
         visible={confirmDelete}
         title="Delete this message?"
         message="It will be moved to the bin and removed after 30 days."
-        confirmText="Delete"
-        onConfirm={remove}
+        actionText="Delete"
+        cancelText="Cancel"
+        disableBackdropClick={false}
+        disableEscapeKeyDown={false}
+        onAction={remove}
         onCancel={() => setConfirmDelete(false)}
       />
     </Box>

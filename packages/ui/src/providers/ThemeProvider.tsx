@@ -314,6 +314,39 @@ export const getStateColor = (
   return mix(weight, stateColor, base);
 };
 
+/** The halo only: shadow on web and iOS, elevation on Android. */
+const haloStyles = (glowColor: string, inner: boolean) =>
+  Platform.select({
+    web: {
+      boxShadow: inner
+        ? `0 0 0 1px ${glowColor}, 0 0 0 4px ${glowColor}33`
+        : `0 0 0 4px ${glowColor}33`,
+      transition: "all 0.2s ease-in-out" as any,
+    },
+    ios: {
+      shadowColor: glowColor,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+    },
+    android: {
+      elevation: 4,
+    },
+  }) ?? {};
+
+/**
+ * Hover, press and focus feedback that cannot move anything: no border width,
+ * no padding, no size. For a control that has no border of its own when idle
+ * (a button, a chip, a tab); `getGlowStyles` is for the ones that always do.
+ */
+export const getFocusRing = (theme: Theme, error?: string) =>
+  haloStyles(error ? theme.colors.error : theme.colors.primary, true);
+
+/**
+ * Border colour and halo for a control that always draws a 1px border (a
+ * field). The width is the same idle and active, so focusing never resizes it;
+ * a control without a border uses `getFocusRing` instead.
+ */
 export const getGlowStyles = (
   theme: Theme,
   isActive: boolean,
@@ -330,21 +363,7 @@ export const getGlowStyles = (
 
   return {
     borderColor: glowColor,
-    borderWidth: 1.5,
-    ...Platform.select({
-      web: {
-        boxShadow: `0 0 0 4px ${glowColor}33`,
-        transition: "all 0.2s ease-in-out" as any,
-      },
-      ios: {
-        shadowColor: glowColor,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
+    borderWidth: 1,
+    ...haloStyles(glowColor, false),
   };
 };

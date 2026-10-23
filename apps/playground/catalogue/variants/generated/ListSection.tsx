@@ -64,6 +64,43 @@ export const SettingsScreen = () => {
   );
 };
 
+/** `variant="standard"` rows, a `gap` and `showDividers`: a plain list, like a sidebar's. */
+export const PlainList = () => (
+  <View style={panel}>
+    <ListSection title="Projects" gap="xs" showDividers>
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Roadmap"
+      />
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Design system"
+      />
+      <ListItem
+        variant="standard"
+        onClick={() => {}}
+        icon="folder-outline"
+        primaryText="Archive"
+      />
+    </ListSection>
+  </View>
+);
+
+/** `gap` spaces the items; `divider` is the one rule after the last. */
+export const GapAndDivider = () => (
+  <View style={panel}>
+    <ListSection title="Contained, gap l" gap="l" divider>
+      <ListItem primaryText="Email digest" />
+      <ListItem primaryText="Mentions" />
+      <ListItem primaryText="Comments" />
+    </ListSection>
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Grouped",
@@ -74,5 +111,19 @@ export const variants: Variant[] = [
     name: "SettingsScreen",
     title: "Settings screen",
     render: SettingsScreen,
+  },
+  {
+    name: "PlainList",
+    title: "Plain list",
+    description:
+      '`variant="standard"` rows, a `gap` and `showDividers`: a plain list, like a sidebar\'s.',
+    render: PlainList,
+  },
+  {
+    name: "GapAndDivider",
+    title: "Gap and divider",
+    description:
+      "`gap` spaces the items; `divider` is the one rule after the last.",
+    render: GapAndDivider,
   },
 ];

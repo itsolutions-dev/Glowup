@@ -68,6 +68,10 @@ export const useLayout = (): Layout => {
     hasRail: atLeast("medium"),
     hasSidebar: atLeast("expanded"),
     hasThirdColumn: atLeast("large"),
-    contentMaxWidth: atLeast("large") ? 1040 : 880,
+    contentMaxWidth: atLeast("extraLarge")
+      ? 1360
+      : atLeast("large")
+        ? 1200
+        : 960,
   };
 };

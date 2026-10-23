@@ -42,11 +42,18 @@ const PopupPicker = (props: DateTimePickerProps) => {
  * deferring to whatever picker the OS ships. `variant="static"` draws that
  * surface inline instead of behind a field.
  */
-const DateTimePicker = (props: DateTimePickerProps) =>
-  props.variant === "static" ? (
+const DateTimePicker = ({
+  showOkButton = true,
+  ...rest
+}: DateTimePickerProps) => {
+  // The default is written here so the prop table can read it; the web file
+  // and the surface agree with it.
+  const props = { ...rest, showOkButton } as DateTimePickerProps;
+  return props.variant === "static" ? (
     <StaticPicker {...props} />
   ) : (
     <PopupPicker {...props} />
   );
+};
 
 export default DateTimePicker;

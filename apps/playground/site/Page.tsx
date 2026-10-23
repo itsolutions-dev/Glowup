@@ -1,5 +1,11 @@
 import { useMemo } from "react";
-import { Platform, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 import Head from "expo-router/head";
 import { Typography, useTheme, type Theme } from "@its/glowup-ui";
 import { useLayout } from "./breakpoints";
@@ -153,16 +159,19 @@ export const Section = ({
   title,
   description,
   children,
+  onLayout,
 }: {
   title: string;
   description?: string;
   children: React.ReactNode;
+  /** Where the section sits, for a page that follows the scroll (`useScrollSpy`). */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <View style={styles.section}>
+    <View style={styles.section} onLayout={onLayout}>
       <Typography
         variant="titleLarge"
         style={{ color: theme.colors.onSurface }}

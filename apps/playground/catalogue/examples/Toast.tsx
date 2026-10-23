@@ -50,16 +50,28 @@ const Drafts = () => {
         >
           Delete draft
         </Button>
+        <Button
+          variant="outlined"
+          iconName="layers-outline"
+          onClick={() => {
+            // Three at once: they stack, each on its own timer.
+            toast.info("Syncing 3 drafts", { duration: 6000 });
+            toast.success("Draft 1 synced", { duration: 4000 });
+            toast.warning("Draft 2 has no title", { duration: 5000 });
+          }}
+        >
+          Raise three
+        </Button>
       </HStack>
     </VStack>
   );
 };
 
 // An app mounts the provider once at its root; the example brings its own, so
-// the toasts appear on this stage.
+// the toasts appear on this stage. `maxVisible` lets up to three show together.
 export default function ToastExample() {
   return (
-    <ToastProvider>
+    <ToastProvider maxVisible={3}>
       <Drafts />
     </ToastProvider>
   );

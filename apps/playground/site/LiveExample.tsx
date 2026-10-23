@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -16,6 +17,7 @@ import {
   type TextInputKeyPressEventData,
 } from "react-native";
 import { setStringAsync } from "expo-clipboard";
+import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Button,
   Clipboard,
@@ -25,6 +27,7 @@ import {
   Typography,
   ViewportProvider,
   useTheme,
+  type PressableState,
   type Theme,
 } from "@its/glowup-ui";
 
@@ -42,6 +45,21 @@ import { STAGE_WIDTHS, STAGE_WIDTH_OPTIONS, type StageWidth } from "./stage";
 const COMPILE_DELAY = 250;
 
 const LINE_HEIGHT = 20;
+
+/** How many lines of code the collapsed editor shows. */
+const COLLAPSED_LINES = 8;
+
+/**
+ * The first line that renders the component the page is about (`<Button`, not
+ * `<ButtonProps`), or the top when there is none.
+ */
+const firstRenderLine = (code: string, name: string) => {
+  const opening = new RegExp(`<${name}(?![\\w.])`);
+  return Math.max(
+    0,
+    code.split("\n").findIndex((line) => opening.test(line)),
+  );
+};
 
 interface LiveExampleProps {
   /** The catalogue page's name: the component the example is about. */
@@ -223,6 +241,19 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
   );
 
   const lines = code.split("\n").length;
+
+  // Collapsed, the editor is a short window onto the code that is about the
+  // component the page describes: it opens at the first line that renders it.
+  // Worked out from the live text, since a control adds lines to the literal
+  // above it.
+  const [expanded, setExpanded] = useState(false);
+  const collapsible = lines > COLLAPSED_LINES;
+  const collapsed = collapsible && !expanded;
+  const windowTop = Math.min(
+    firstRenderLine(code, name),
+    Math.max(0, lines - COLLAPSED_LINES),
+  );
+
   const field = (
     <TextInput
       ref={input}
@@ -284,7 +315,9 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
 
       <View style={[styles.below, layout.hasSidebar && styles.belowWide]}>
         {hasControls ? (
-          <View style={styles.controls}>
+          <View
+            style={[styles.controls, layout.hasSidebar && styles.controlsWide]}
+          >
             {bound ? (
               <PropControls
                 meta={meta}
@@ -338,28 +371,70 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
                 />
               </View>
             </View>
-            {Platform.OS === "web" ? (
-              // The highlighted copy gives the box its size and the colours; the
-              // field lies over it with transparent text and keeps the caret,
-              // the selection and the input. Both use the same type, so they
-              // line up.
-              <ScrollView
-                horizontal
-                contentContainerStyle={styles.overlayScroll}
-                keyboardShouldPersistTaps="handled"
+            {/* The same tree open or closed (the field keeps its focus): closed,
+                the clip is a few lines tall and the code is moved up inside
+                it, so the editor stays whole and editable. */}
+            <View style={collapsed ? styles.window : undefined}>
+              <View
+                style={
+                  collapsed
+                    ? { marginTop: -windowTop * LINE_HEIGHT }
+                    : undefined
+                }
               >
-                <View style={styles.overlay}>
-                  <HighlightedCode
-                    code={`${code}\n`}
-                    decorative
-                    style={styles.overlayText}
-                  />
-                  {field}
-                </View>
-              </ScrollView>
-            ) : (
-              field
-            )}
+                {Platform.OS === "web" ? (
+                  // The highlighted copy gives the box its size and the
+                  // colours; the field lies over it with transparent text and
+                  // keeps the caret, the selection and the input. Both use the
+                  // same type, so they line up.
+                  <ScrollView
+                    horizontal
+                    contentContainerStyle={styles.overlayScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    <View style={styles.overlay}>
+                      <HighlightedCode
+                        code={`${code}\n`}
+                        decorative
+                        style={styles.overlayText}
+                      />
+                      {field}
+                    </View>
+                  </ScrollView>
+                ) : (
+                  field
+                )}
+              </View>
+              {collapsed ? <View style={styles.fade} /> : null}
+            </View>
+            {collapsible ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  expanded ? "Collapse code" : "Show full code"
+                }
+                accessibilityState={{ expanded }}
+                onPress={() => setExpanded((open) => !open)}
+                style={({ hovered, focused }: PressableState) => [
+                  styles.toggle,
+                  (hovered || focused) && {
+                    backgroundColor: theme.colors.surfaceContainerHigh,
+                  },
+                ]}
+              >
+                <Icons
+                  name={expanded ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={theme.colors.primary}
+                />
+                <Typography
+                  variant="labelLarge"
+                  style={{ color: theme.colors.primary }}
+                >
+                  {expanded ? "Collapse code" : "Show full code"}
+                </Typography>
+              </Pressable>
+            ) : null}
             {visibleError ? (
               <View style={styles.error} accessible accessibilityRole="alert">
                 <Typography
@@ -409,8 +484,10 @@ const makeStyles = (theme: Theme) =>
     below: { gap: theme.spacing.l },
     belowWide: { flexDirection: "row", alignItems: "flex-start" },
     controls: { flex: 1, minWidth: 0 },
+    // Beside the code the fields keep one width and the code takes the rest.
+    controlsWide: { flexGrow: 0, flexShrink: 0, flexBasis: 288, width: 288 },
     unbound: { gap: theme.spacing.s, alignItems: "flex-start" },
-    editorColumn: { flex: 1.4, minWidth: 0 },
+    editorColumn: { flex: 1, minWidth: 0 },
     editor: {
       borderRadius: theme.shape.medium,
       borderWidth: 1,
@@ -430,6 +507,38 @@ const makeStyles = (theme: Theme) =>
       borderBottomColor: theme.colors.outlineVariant,
     },
     editorActions: { flexDirection: "row", alignItems: "center" },
+    // Half a line more than the window's lines: the next one peeks out under the fade.
+    window: {
+      height: (COLLAPSED_LINES + 0.5) * LINE_HEIGHT + theme.spacing.m,
+      overflow: "hidden",
+    },
+    // A soft fade over the window's last lines: the editor's own colour,
+    // clear at the top. The field under it stays editable.
+    fade: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: LINE_HEIGHT * 3,
+      pointerEvents: "none",
+      ...(Platform.OS === "web"
+        ? ({
+            backgroundImage: `linear-gradient(to bottom, transparent, ${theme.colors.surfaceContainerHighest})`,
+          } as object)
+        : {
+            backgroundColor: theme.colors.surfaceContainerHighest,
+            opacity: 0.7,
+          }),
+    },
+    toggle: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: theme.spacing.xs,
+      paddingVertical: theme.spacing.s,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.outlineVariant,
+    },
     code: {
       fontFamily: CODE_FONT_FAMILY,
       fontSize: 13,

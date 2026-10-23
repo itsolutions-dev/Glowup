@@ -88,9 +88,7 @@ export const MultiSelect = () => (
       multiple
       placeholder="Select channels"
       options={notifications}
-      value={undefined}
-      selectedValues={["email", "push"]}
-      toggleOptions={noop}
+      value={["email", "push"]}
       onChange={noop}
     />
     <Select
@@ -98,9 +96,7 @@ export const MultiSelect = () => (
       multiple
       placeholder="Select channels"
       options={notifications}
-      value={undefined}
-      selectedValues={["email", "push", "slack"]}
-      toggleOptions={noop}
+      value={["email", "push", "slack"]}
       onChange={noop}
     />
   </div>
@@ -114,9 +110,7 @@ export const MultiSelectChips = () => (
       showAsChips
       placeholder="Select countries"
       options={countries}
-      value={undefined}
-      selectedValues={["it", "fr", "es"]}
-      toggleOptions={noop}
+      value={["it", "fr", "es"]}
       onChange={noop}
     />
   </div>

@@ -10,9 +10,13 @@ export type DatePickerProps = DistributiveOmit<DateTimePickerProps, "mode">;
  * `inputEnabled` for typing a date into the field. With `variant="static"` it is
  * the calendar alone, inline in the page.
  */
-const DatePicker = (props: DatePickerProps) => (
+const DatePicker = ({ showOkButton = true, ...props }: DatePickerProps) => (
   // The cast re-attaches the discriminant that `DistributiveOmit` widened.
-  <DateTimePicker {...(props as DateTimePickerProps)} mode="date" />
+  <DateTimePicker
+    {...(props as DateTimePickerProps)}
+    showOkButton={showOkButton}
+    mode="date"
+  />
 );
 
 export default DatePicker;

@@ -10,7 +10,7 @@ import Icons from "./Glyph";
 import {
   useTheme,
   getStateColor,
-  getGlowStyles,
+  getFocusRing,
 } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import CircularProgress from "./Progress/CircularProgress";
@@ -201,7 +201,7 @@ const IconButton = ({
               : background,
         },
         borderColor && { borderWidth: 1, borderColor },
-        focused && getGlowStyles(theme, true),
+        focused && getFocusRing(theme),
         disabled && styles.disabled,
         style,
       ]}

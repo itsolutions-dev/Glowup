@@ -74,7 +74,7 @@ the other inset readers.
 
 - `source-kit.mjs` — adds `list`, `dialog`, `progress`, `tab`, `togglebutton` to
   `GENERIC_DIR`. Those are file-organisation dirs under `src/components/`, not DS groups;
-  without the fork `ConfirmDialog` lands in `dialog/` while `Dialog` itself lands in
+  without the fork `AlertDialog` lands in `dialog/` while `Dialog` itself lands in
   `feedback-overlays/`. Real grouping comes from the `category` frontmatter, and that only
   applies when the src-derived group is generic. (The folder was `Modal/` before the batch 2
   rename: the fork's list has to name the folder as it is today.)
@@ -238,7 +238,7 @@ Learned while authoring; a future sync should not have to rediscover them.
 - **`useTheme()` is exported from the barrel and works inside a preview** against the
   already-mounted provider - `theme.colors` / `.typography` / `.spacing` / `.shape` /
   `.isDark` all read cleanly, so colour-axis cells never need raw hexes.
-- **Portal vs sibling, tested not assumed.** `Dialog`, `ConfirmDialog`, `BottomSheet`,
+- **Portal vs sibling, tested not assumed.** `Dialog`, `AlertDialog`, `BottomSheet`,
   `Popover`, `Menu` and a swipeable `Drawer` all route through react-native-web's `Modal`, which is a real
   `createPortal` into `document.body` - the card's `.ds-single` `translateZ(0)`
   containing block does NOT contain a portal, so each needs `cardMode: single` plus a
@@ -642,3 +642,4 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
   `grep -l useSafeAreaInsets packages/ui/src/components`.
 - Upload: 493 content files + sentinel + anchor, atomic path, 30 deletes (the six removed
   components' `_preview/*.css` never existed remotely).
+- `ConfirmDialog` was fused into `AlertDialog` (its preview and `cardMode` entry are gone); the older sections above that name it are history.

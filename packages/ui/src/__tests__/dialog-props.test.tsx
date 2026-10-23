@@ -5,7 +5,6 @@ import {
   Alert,
   AlertProvider,
   Button,
-  ConfirmDialog,
   Dialog,
   ThemeProvider,
   palettes,
@@ -418,70 +417,6 @@ describe("Dialog slotStyles", () => {
     expect(flat(card(container)).backgroundColor).toBe(
       colours.surfaceContainer,
     );
-  });
-});
-
-describe("ConfirmDialog", () => {
-  it("forwards slotStyles to the dialog", async () => {
-    const { toJSON } = await draw(
-      <ConfirmDialog
-        visible
-        title="Delete?"
-        onConfirm={() => {}}
-        onCancel={() => {}}
-        slotStyles={{ actions: { paddingVertical: 47 } }}
-      />,
-    );
-    expect(JSON.stringify(toJSON())).toContain('"paddingVertical":47');
-  });
-
-  it("has no close icon: Cancel is the way out", async () => {
-    const { queryByRole, getByText } = await draw(
-      <ConfirmDialog
-        visible
-        title="Delete?"
-        cancelText="Cancel"
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />,
-    );
-    expect(queryByRole("button", { name: "Close" })).toBeNull();
-    expect(getByText("Cancel")).toBeTruthy();
-  });
-
-  it("dismissable={false} locks both Android back and the backdrop", async () => {
-    const onCancel = jest.fn();
-    const { container, getByTestId } = await draw(
-      <ConfirmDialog
-        visible
-        title="Delete?"
-        dismissable={false}
-        onConfirm={() => {}}
-        onCancel={onCancel}
-      />,
-    );
-    expect(nativeModal(container).props.onRequestClose).toBeUndefined();
-    await fireEvent.press(
-      getByTestId("dialog-scrim", { includeHiddenElements: true }),
-    );
-    expect(onCancel).not.toHaveBeenCalled();
-  });
-
-  it("cancels on back and on the backdrop by default", async () => {
-    const onCancel = jest.fn();
-    const { container, getByTestId } = await draw(
-      <ConfirmDialog
-        visible
-        title="Delete?"
-        onConfirm={() => {}}
-        onCancel={onCancel}
-      />,
-    );
-    nativeModal(container).props.onRequestClose();
-    await fireEvent.press(
-      getByTestId("dialog-scrim", { includeHiddenElements: true }),
-    );
-    expect(onCancel).toHaveBeenCalledTimes(2);
   });
 });
 

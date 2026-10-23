@@ -39,10 +39,8 @@ export default function SelectExample() {
       <Select
         {...props}
         options={COUNTRIES}
-        value={country}
-        onChange={setCountry}
-        selectedValues={countries}
-        toggleOptions={setCountries}
+        value={props.multiple ? countries : country}
+        onChange={props.multiple ? setCountries : setCountry}
       />
       <VStack spacing="xs">
         {chosen.length === 0 && (

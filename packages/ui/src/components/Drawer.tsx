@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { getGlowStyles, useTheme, Theme } from "../providers/ThemeProvider";
+import { getFocusRing, useTheme, Theme } from "../providers/ThemeProvider";
 import Collapse from "./Collapse";
 import Divider from "./Divider";
 import Icon from "./Icon";
@@ -531,7 +531,7 @@ const makeStyles = (theme: Theme) =>
       paddingEnd: 0,
       gap: 0,
     },
-    focused: getGlowStyles(theme, true),
+    focused: getFocusRing(theme),
     disabled: { opacity: 0.38 },
     footer: {
       paddingHorizontal: ITEM_INSET,

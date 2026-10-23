@@ -2,7 +2,6 @@ import type { Variant } from "../types";
 import { variants as AlertDialog } from "./AlertDialog";
 import { variants as Autocomplete } from "./Autocomplete";
 import { variants as BottomSheet } from "./BottomSheet";
-import { variants as ConfirmDialog } from "./ConfirmDialog";
 import { variants as Dialog } from "./Dialog";
 import { variants as Drawer } from "./Drawer";
 import { variants as FAB } from "./FAB";
@@ -29,7 +28,7 @@ import {
  * screenshot (Tooltip, Autocomplete) — or it has no authored preview at all
  * (Toast, which is an imperative API rather than a component, and the four Card
  * parts, which the Card preview only ever shows assembled) — or it is an
- * overlay whose preview mounts it already open (Dialog, ConfirmDialog,
+ * overlay whose preview mounts it already open (Dialog, AlertDialog,
  * BottomSheet, Popover, Menu). The rewrite handles that last group fine; the
  * result is what a page cannot have, because the overlay portals over the whole
  * document and nothing in a preview closes it. `useOverlayDemo` in ./shared
@@ -43,7 +42,6 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   AlertDialog,
   Autocomplete,
   BottomSheet,
-  ConfirmDialog,
   Dialog,
   Drawer,
   FAB,

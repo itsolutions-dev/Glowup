@@ -72,7 +72,8 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 
 - `useTheme()` → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`. Syncs with OS scheme + manual toggle.
 - `getStateColor(bg, on, state)` → composites a hover/press state-layer color over a base.
-- `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus/hover ring (variant `"error"` for error state).
+- `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus ring for a control that always has a 1px border (a field): same border width idle and active, variant `"error"` for error state.
+- `getFocusRing(theme, error?)` → a hover/press/focus ring that never changes layout (shadow on web and iOS, elevation on Android), for controls with no border of their own (buttons, chips, tabs).
 
 ### 1.6 Palettes
 
@@ -116,7 +117,7 @@ Renders themed text at an M3 scale.
 | Prop     | Type                                         | Default     | Req | Description                                                                                        |
 | -------- | -------------------------------------------- | ----------- | --- | -------------------------------------------------------------------------------------------------- |
 | children | ReactNode                                    | —           | ✓   | Text content                                                                                       |
-| variant  | alias or M3 role name (see 1.3)              | `h1`        |     | Type scale: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline` |
+| variant  | alias or M3 role name (see 1.3)              | `body1`     |     | Type scale: `h1`–`h6`, `subtitle1`, `subtitle2`, `body1`, `body2`, `button`, `caption`, `overline` |
 | color    | theme colour token or any colour string      | `onSurface` |     | `"primary"`, `"onSurfaceVariant"`, `"error"`, … or `"#RRGGBB"`                                     |
 | fontSize | number                                       |             |     | Overrides the variant's size; the line height scales with it                                       |
 | nowrap   | boolean                                      | `false`     |     | One line, ending in an ellipsis when cut                                                           |
@@ -260,6 +261,9 @@ whole section.)
 `primary`, `secondary`, `tertiary`, `error` (the destructive treatment), `success`, `warning`,
 `info` or `neutral`. The last four come from fixed hues kept off the seed.
 
+Hover, press and focus feedback never changes a control's layout box (border, padding, size):
+the border is the same idle and hovered, and the ring is a shadow (`getFocusRing`).
+
 `busy` is `loading` without the spinner: label, icon and full-strength colours stay on
 screen. `underlay` fills the whole surface behind the content, clipped to its shape and
 blind to touches — it is how `ProgressButton` draws its fill.
@@ -318,19 +322,18 @@ A `Button` that carries the progress of the task it started inside its own surfa
 
 Square, icon-only action. `Button` with only an icon comes out pill-shaped and label-padded.
 
-| Prop               | Type                                              | Default    | Req | Description                                          |
-| ------------------ | ------------------------------------------------- | ---------- | --- | ---------------------------------------------------- |
-| icon               | icon                                              | —          | ✓   |                                                      |
-| accessibilityLabel | string                                            | —          | ✓   | Required: an icon carries no accessible name         |
-| onClick            | () => void                                        |            |     |                                                      |
-| variant            | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` |     |                                                      |
-| color              | `ColorRole`                                       |            |     | Same roles as `Button`; omit for the neutral M3 look |
-| title              | string                                            |            |     | Tooltip: hover / focus on web, long press on native  |
-| size               | `"small" \| "medium" \| "large"`                  | `medium`   |     | 32 / 40 / 48                                         |
-| selected           | boolean                                           |            |     | M3 toggle-icon-button state                          |
-| loading            | boolean                                           |            |     | Inline spinner                                       |
-| disabled           | boolean                                           |            |     |                                                      |
-| style              | ViewStyle                                         |            |     |                                                      |
+| Prop               | Type                             | Default  | Req | Description                                          |
+| ------------------ | -------------------------------- | -------- | --- | ---------------------------------------------------- |
+| icon               | icon                             | —        | ✓   |                                                      |
+| accessibilityLabel | string                           | —        | ✓   | Required: an icon carries no accessible name         |
+| onClick            | () => void                       |          |     |                                                      |
+| color              | `ColorRole`                      |          |     | Same roles as `Button`; omit for the neutral M3 look |
+| title              | string                           |          |     | Tooltip: hover / focus on web, long press on native  |
+| size               | `"small" \| "medium" \| "large"` | `medium` |     | 32 / 40 / 48                                         |
+| selected           | boolean                          |          |     | M3 toggle-icon-button state                          |
+| loading            | boolean                          |          |     | Inline spinner                                       |
+| disabled           | boolean                          |          |     |                                                      |
+| style              | ViewStyle                        |          |     |                                                      |
 
 ### Link
 
@@ -355,21 +358,20 @@ A copy trigger: an icon button that copies `value` and shows a check for a momen
 clipboard dependency, so on web it works as is (the browser's clipboard API, with
 `execCommand("copy")` where that is missing) and on native the app passes a `copy` writer.
 
-| Prop        | Type                                              | Default    | Req | Description                                                                                                                                                                                                                                   |
-| ----------- | ------------------------------------------------- | ---------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| value       | string                                            | —          | ✓   | The text a press copies                                                                                                                                                                                                                       |
-| copy        | `ClipboardWriter`                                 |            |     | Writes the text. Web: defaults to `navigator.clipboard.writeText`. Native: no default; pass one, or the trigger is drawn only with an `onCopy` that does the copying, and nothing without either                                              |
-| onCopy      | (value) => void                                   |            |     | Called with `value` after it was copied                                                                                                                                                                                                       |
-| timeout     | number (ms)                                       | `1500`     |     | How long the confirmation (the check, `copied`) shows                                                                                                                                                                                         |
-| variant     | `"standard" \| "filled" \| "tonal" \| "outlined"` | `standard` |     | Container style of the default `IconButton`                                                                                                                                                                                                   |
-| color       | `ColorRole`                                       |            |     | Colour role of the default `IconButton`; the confirmation is always `success`                                                                                                                                                                 |
-| size        | `"small" \| "medium" \| "large"`                  | `large`    |     | Size of the default `IconButton`: `large` is the 48 dp touch target, `small` suits a button beside a value                                                                                                                                    |
-| label       | string                                            | `Copy`     |     | Accessible label of the trigger before the copy                                                                                                                                                                                               |
-| copiedLabel | string                                            | `Copied`   |     | Accessible label after the copy; also what a screen reader is told                                                                                                                                                                            |
-| disabled    | boolean                                           |            |     |                                                                                                                                                                                                                                               |
-| children    | ReactNode \| `({ copied, copy }) => ReactNode`    |            |     | Your own trigger. A node is the content of a pressable (a button inside it would nest buttons: use the function form for that); a function gets `{ copied, copy }`, `copy` copying `value`, and is drawn as returned, the trigger being yours |
-| style       | ViewStyle                                         |            |     | Style of the trigger                                                                                                                                                                                                                          |
-| testID      | string                                            |            |     |                                                                                                                                                                                                                                               |
+| Prop        | Type                                           | Default  | Req | Description                                                                                                                                                                                                                                   |
+| ----------- | ---------------------------------------------- | -------- | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| value       | string                                         | —        | ✓   | The text a press copies                                                                                                                                                                                                                       |
+| copy        | `ClipboardWriter`                              |          |     | Writes the text. Web: defaults to `navigator.clipboard.writeText`. Native: no default; pass one, or the trigger is drawn only with an `onCopy` that does the copying, and nothing without either                                              |
+| onCopy      | (value) => void                                |          |     | Called with `value` after it was copied                                                                                                                                                                                                       |
+| timeout     | number (ms)                                    | `1500`   |     | How long the confirmation (the check, `copied`) shows                                                                                                                                                                                         |
+| color       | `ColorRole`                                    |          |     | Colour role of the default `IconButton`; the confirmation is always `success`                                                                                                                                                                 |
+| size        | `"small" \| "medium" \| "large"`               | `large`  |     | Size of the default `IconButton`: `large` is the 48 dp touch target, `small` suits a button beside a value                                                                                                                                    |
+| label       | string                                         | `Copy`   |     | Accessible label of the trigger before the copy                                                                                                                                                                                               |
+| copiedLabel | string                                         | `Copied` |     | Accessible label after the copy; also what a screen reader is told                                                                                                                                                                            |
+| disabled    | boolean                                        |          |     |                                                                                                                                                                                                                                               |
+| children    | ReactNode \| `({ copied, copy }) => ReactNode` |          |     | Your own trigger. A node is the content of a pressable (a button inside it would nest buttons: use the function form for that); a function gets `{ copied, copy }`, `copy` copying `value`, and is drawn as returned, the trigger being yours |
+| style       | ViewStyle                                      |          |     | Style of the trigger                                                                                                                                                                                                                          |
+| testID      | string                                         |          |     |                                                                                                                                                                                                                                               |
 
 `ClipboardWriter` is `(text: string) => void | Promise<unknown>`: resolve once the text is written,
 throw or reject when it could not be. What it resolves to is ignored, so `setStringAsync` from
@@ -662,32 +664,33 @@ Text that edits in place. It reads as text, with a pencil that shows on hover or
 touch); a click, tap, Enter or Space opens the library's own field, Enter or blur keeps the change and
 Escape drops it.
 
-| Prop              | Type                                           | Default     | Description                                                                                                                           |
-| ----------------- | ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| value             | string                                         |             | The value, as text (for `type="number"` too: `"12.50"`, as `Input` has it). Controlled; pair with `onChange`                          |
-| defaultValue      | string                                         | `""`        | The value to start from when uncontrolled                                                                                             |
-| onChange          | (value) => void                                |             | Called with the text on every edit while the field is open; on a cancel, once more with the value the edit started from               |
-| onSubmit          | (value) => void                                |             | Called with the value when the edit is confirmed (Enter, blur or the check button, per `submitMode`)                                  |
-| onCancel          | (previous) => void                             |             | Called with the value the edit started from when it is cancelled (Escape or the close button)                                         |
-| type              | `"text" \| "textarea" \| "number" \| "select"` | `text`      | The field that opens: an `Input`, a multi-line `Input`, an `Input type="number"` or a `Select`                                        |
-| options           | `Option[]`                                     |             | The choices of `type="select"`; the display shows the label of the selected one                                                       |
-| submitMode        | `"blur" \| "enter" \| "both" \| "none"`        | `both`      | What confirms the edit: focus leaving the field, Enter, either, or (`none`) the check and close buttons. Escape cancels in every mode |
-| showControls      | boolean                                        | `false`     | The check and close buttons whatever the `submitMode`; with them shown, leaving the field no longer confirms                          |
-| placeholder       | string                                         | `Edit`      | Drawn in the muted tone when the value is empty                                                                                       |
-| validate          | (value) => string \| undefined                 |             | Returns the message to show as the field's error, or `undefined`. While there is an error the edit cannot be confirmed                |
-| selectAllOnFocus  | boolean                                        | `false`     | Selects the whole text when the field opens, to type over it                                                                          |
-| startWithEditView | boolean                                        | `false`     | Mounts with the field already open (uncontrolled)                                                                                     |
-| editing           | boolean                                        |             | Controls whether the field is open; pair with `onEditingChange`                                                                       |
-| onEditingChange   | (editing) => void                              |             | Called with the new state when the edit starts, is confirmed or is cancelled                                                          |
-| disabled          | boolean                                        | `false`     | Dims the text and keeps it from opening                                                                                               |
-| readOnly          | boolean                                        | `false`     | Shows the text as plain text, with no way to open it                                                                                  |
-| variant           | `"outlined" \| "filled"`                       | `outlined`  | The look of the open field, as `Input`                                                                                                |
-| size              | `"small" \| "medium" \| "large"`               | `medium`    | The size of the text, the pencil and the open field (`small` is dense)                                                                |
-| textVariant       | typography variant                             | from `size` | The type-scale role of the displayed text                                                                                             |
-| renderDisplay     | (value) => ReactNode                           |             | Draws the displayed value your way (a link, a badge, a formatted amount) instead of as text                                           |
-| label             | string                                         |             | The accessible name of the display button and of the open field; not drawn                                                            |
-| precision         | number                                         |             | For `type="number"`: the decimals the field keeps                                                                                     |
-| testID            | string                                         |             | The open field gets `${testID}-input`, the buttons `${testID}-save` and `${testID}-cancel`                                            |
+| Prop              | Type                                           | Default     | Description                                                                                                                                                                                |
+| ----------------- | ---------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| value             | string                                         |             | The value, as text (for `type="number"` too: `"12.50"`, as `Input` has it). Controlled; pair with `onChange`                                                                               |
+| defaultValue      | string                                         | `""`        | The value to start from when uncontrolled                                                                                                                                                  |
+| onChange          | (value) => void                                |             | Called with the text on every edit while the field is open; on a cancel, once more with the value the edit started from                                                                    |
+| onSubmit          | (value) => void                                |             | Called with the value when the edit is confirmed (Enter, blur or the check button, per `submitMode`)                                                                                       |
+| onCancel          | (previous) => void                             |             | Called with the value the edit started from when it is cancelled (Escape or the close button)                                                                                              |
+| type              | `"text" \| "textarea" \| "number" \| "select"` | `text`      | The field that opens: an `Input`, a multi-line `Input`, an `Input type="number"` or a `Select`                                                                                             |
+| options           | `Option[]`                                     |             | The choices of `type="select"`; the display shows the label of the selected one                                                                                                            |
+| submitMode        | `"blur" \| "enter" \| "both" \| "none"`        | `both`      | What confirms the edit: focus leaving the field, Enter, either, or (`none`) the check and close buttons. Escape cancels in every mode                                                      |
+| showControls      | boolean                                        | `false`     | The check and close buttons whatever the `submitMode`; with them shown, leaving the field no longer confirms                                                                               |
+| placeholder       | string                                         | `Edit`      | Drawn in the muted tone when the value is empty                                                                                                                                            |
+| validate          | (value) => string \| undefined                 |             | Returns the message to show as the field's error, or `undefined`. While there is an error the edit cannot be confirmed                                                                     |
+| selectAllOnFocus  | boolean                                        | `false`     | Selects the whole text when the field opens, to type over it                                                                                                                               |
+| startWithEditView | boolean                                        | `false`     | Mounts with the field already open (uncontrolled)                                                                                                                                          |
+| editing           | boolean                                        |             | Controls whether the field is open; pair with `onEditingChange`                                                                                                                            |
+| onEditingChange   | (editing) => void                              |             | Called with the new state when the edit starts, is confirmed or is cancelled                                                                                                               |
+| disabled          | boolean                                        | `false`     | Dims the text and keeps it from opening                                                                                                                                                    |
+| readOnly          | boolean                                        | `false`     | Shows the text as plain text, with no way to open it                                                                                                                                       |
+| variant           | `"outlined" \| "filled"`                       | `outlined`  | The look of the open field, as `Input`                                                                                                                                                     |
+| size              | `"small" \| "medium" \| "large"`               | `medium`    | The size of the text, the pencil and the open field (`small` is dense)                                                                                                                     |
+| textVariant       | typography variant                             | from `size` | The type-scale role of the displayed text                                                                                                                                                  |
+| renderDisplay     | (value) => ReactNode                           |             | Draws the displayed value your way (a link, a badge, a formatted amount) instead of as text                                                                                                |
+| label             | string                                         |             | The accessible name of the display button and of the open field; not drawn                                                                                                                 |
+| precision         | number                                         |             | For `type="number"`: the decimals the field keeps                                                                                                                                          |
+| fullWidth         | boolean                                        | `false`     | Display and open field fill the container. Off, the open field takes exactly the width the text had (at least 120 px) so opening it moves nothing; a textarea keeps it and grows in height |
+| testID            | string                                         |             | The open field gets `${testID}-input`, the buttons `${testID}-save` and `${testID}-cancel`                                                                                                 |
 
 - `textarea` adds a line on Enter; Ctrl or Cmd + Enter confirms. `select` shows its dropdown already
   open and confirms on the pick; Escape cancels it too.
@@ -714,8 +717,8 @@ Dropdown built on Popover; single or multi select, optional chip display.
 | Prop                | Type                               | Default            | Req | Description                                                                                 |
 | ------------------- | ---------------------------------- | ------------------ | --- | ------------------------------------------------------------------------------------------- |
 | options             | `Option[]`                         | —                  | ✓   | `{ id, label, value, icon? }`                                                               |
-| value               | any                                | —                  | ✓   | Selected value (single); `null` for none                                                    |
-| onChange            | (value) => void                    | —                  | ✓   | The picked `value`; `null` when a `nullable` select is cleared                              |
+| value               | any                                | —                  |     | Selected value, `null` for none; with `multiple`, the array of selected `value`s            |
+| onChange            | (value) => void                    | —                  |     | The picked `value`, `null` when cleared; with `multiple`, the new array on every toggle     |
 | label               | string                             |                    |     |                                                                                             |
 | placeholder         | string                             | `Select an option` |     |                                                                                             |
 | variant             | `"outlined" \| "filled"`           | `outlined`         |     | The look of the box, as `Input`                                                             |
@@ -726,10 +729,8 @@ Dropdown built on Popover; single or multi select, optional chip display.
 | disabledOptions     | `RegExp` \| `(string \| number)[]` |                    |     | Values that stay visible but cannot be picked (a pattern is tested against `String(value)`) |
 | error               | string                             |                    |     |                                                                                             |
 | disabled            | boolean                            |                    |     |                                                                                             |
-| multiple            | boolean                            | `false`            |     |                                                                                             |
+| multiple            | boolean                            | `false`            |     | `value` and `onChange` then carry arrays                                                    |
 | showAsChips         | boolean                            | `false`            |     | Render selection as chips                                                                   |
-| selectedValues      | any[]                              | `[]`               |     | Multi-select value set                                                                      |
-| toggleOptions       | (value) => void                    |                    |     | Multi-select handler                                                                        |
 | style / optionStyle | object                             |                    |     |                                                                                             |
 
 ### Checkbox
@@ -806,21 +807,28 @@ Animated M3 switch.
 | height         | number                                  | from `size` |     | Overrides the track height; the thumb scales with it       |
 | containerStyle | ViewStyle                               |             |     |                                                            |
 
+The thumb is sized and placed from the track (inside its border), so it stays within it at both ends.
+
 ### Slider
 
-| Prop              | Type            | Default | Req | Description                     |
-| ----------------- | --------------- | ------- | --- | ------------------------------- |
-| value             | number          | —       | ✓   |                                 |
-| onValueChange     | (value) => void | —       | ✓   |                                 |
-| onSlidingComplete | (value) => void |         |     |                                 |
-| min               | number          | `0`     |     |                                 |
-| max               | number          | `100`   |     |                                 |
-| step              | number          |         |     | 0/undefined = continuous        |
-| label             | string          |         |     |                                 |
-| showValueLabel    | boolean         |         |     |                                 |
-| marks             | boolean         |         |     | Ticks at each step (needs step) |
-| disabled          | boolean         |         |     |                                 |
-| style             | ViewStyle       |         |     |                                 |
+| Prop              | Type            | Default | Req      | Description                                    |
+| ----------------- | --------------- | ------- | -------- | ---------------------------------------------- |
+| value             | number          | —       | ✓        |                                                |
+| onValueChange     | (value) => void | —       | ✓        |                                                |
+| onSlidingComplete | (value) => void |         |          |                                                |
+| min               | number          | `0`     |          |                                                |
+| max               | number          | `100`   |          |                                                |
+| step              | number          |         |          | 0/undefined = continuous                       |
+| label             | string          |         |          |                                                |
+| showValueLabel    | boolean         |         |          |                                                |
+| marks             | boolean         |         |          | Ticks at each step (needs step)                |
+| interaction       | `"both"         | "drag"  | "click"` | `both`                                         |     | What a pointer may do: drag the thumb, jump to the pressed point, or both |
+| disabled          | boolean         |         |          | Blocks pointer, keyboard and assistive actions |
+| style             | ViewStyle       |         |          |                                                |
+
+On the web the slider is focusable (`role="slider"`, `aria-valuenow/min/max`): arrows step,
+Page Up / Down move ten steps, Home / End go to the ends, whatever `interaction` is. On native
+it is `adjustable` with increment / decrement actions.
 
 ### NumberField (Number stepper)
 
@@ -867,39 +875,40 @@ from `Intl` and memoized per locale; nothing is hardcoded to a language. Relativ
 only public pickers; the calendar and the clock they are built from are not exported on their own,
 `variant="static"` draws them inline.
 
-| Prop                | Type                                       | Default       | Req | Description                                                                                                   |
-| ------------------- | ------------------------------------------ | ------------- | --- | ------------------------------------------------------------------------------------------------------------- |
-| value               | `Date \| null` · `DateRange` · `Date[]`    | —             | ✓   | Shape follows `selectionMode`                                                                                 |
-| onChange            | matching setter                            | —             | ✓   | Single mode is never called with `null`; clearing goes to `onClear`                                           |
-| variant             | `"default" \| "static"`                    | `default`     |     | `static` draws the picker inline: see below                                                                   |
-| presentation        | `"auto" \| "popover" \| "dialog"`          | `auto`        |     | Web only: docked to the field, or a centred dialog. `auto` picks the dialog on a touch device or under 600 px |
-| fieldVariant        | `"outlined" \| "filled"`                   | `outlined`    |     | The look of the field's box, as `variant` on `Input` (`variant` here is default or static)                    |
-| label               | string                                     |               |     | Also labels the typed-entry field inside the dialog                                                           |
-| mode                | `"date" \| "datetime" \| "time"`           | `date`        |     | `datetime` collects the day, then the time                                                                    |
-| selectionMode       | `"single" \| "range" \| "multiple"`        | `single`      |     | Ignored when `mode="time"`                                                                                    |
-| validRange          | `{ startDate?, endDate?, disabledDates? }` |               |     | Inclusive bounds compared at day granularity                                                                  |
-| isDateDisabled      | (date) => boolean                          |               |     | For rules `validRange` cannot express                                                                         |
-| scrollMode          | `"endless" \| "paged"`                     | `endless`     |     | `endless` virtualizes the months in one list                                                                  |
-| inputEnabled        | boolean                                    | `true`        |     | Typed entry in the field (a single calendar date)                                                             |
-| defaultInputType    | `"picker" \| "keyboard"`                   | `picker`      |     | Which surface the dialog opens on; no toggle once it is open                                                  |
-| showToday           | boolean                                    | `true`        |     | "Today" button in the calendar header (single dates only)                                                     |
-| use24HourClock      | boolean                                    | locale's own  |     | `true` forces the 24-hour dial                                                                                |
-| minuteInterval      | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`     | `1`           |     | Granularity the dial snaps to                                                                                 |
-| startYear / endYear | number                                     | ±100 years    |     | Bounds of the year grid and the endless scroller                                                              |
-| placeholder         | string                                     |               |     | Shown while the value is empty                                                                                |
-| clearable           | boolean                                    |               |     | Adds a clear button; needs `onClear`                                                                          |
-| onClear             | () => void                                 |               |     |                                                                                                               |
-| error               | string                                     |               |     | Error text; also recolors the field                                                                           |
-| helperText          | string                                     |               |     | Hidden while `error` is set                                                                                   |
-| required            | boolean                                    |               |     | Appends `*` to the label                                                                                      |
-| locale              | string                                     | device locale |     | Formatting/labelling override                                                                                 |
-| firstDayOfWeek      | 0–6 (0 = Sunday)                           | locale's own  |     |                                                                                                               |
-| labels              | `DateTimePickerLabels`                     | English       |     | Chrome strings (`selectDate`, `confirm`, `back`, …)                                                           |
-| relativeLabels      | `{ today?, yesterday?, tomorrow? }`        | `Intl`        |     |                                                                                                               |
-| defaultOpen         | boolean                                    | `false`       |     | Mount with the picker open                                                                                    |
-| disabled            | boolean                                    |               |     |                                                                                                               |
-| style               | ViewStyle                                  |               |     |                                                                                                               |
-| testID              | string                                     |               |     |                                                                                                               |
+| Prop                | Type                                       | Default       | Req | Description                                                                                                                                                                                                            |
+| ------------------- | ------------------------------------------ | ------------- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| value               | `Date \| null` · `DateRange` · `Date[]`    | —             | ✓   | Shape follows `selectionMode`                                                                                                                                                                                          |
+| onChange            | matching setter                            | —             | ✓   | Single mode is never called with `null`; clearing goes to `onClear`                                                                                                                                                    |
+| variant             | `"default" \| "static"`                    | `default`     |     | `static` draws the picker inline: see below                                                                                                                                                                            |
+| presentation        | `"auto" \| "popover" \| "dialog"`          | `auto`        |     | Web only: docked to the field, or a centred dialog. `auto` picks the dialog on a touch device or under 600 px                                                                                                          |
+| fieldVariant        | `"outlined" \| "filled"`                   | `outlined`    |     | The look of the field's box, as `variant` on `Input` (`variant` here is default or static)                                                                                                                             |
+| label               | string                                     |               |     | Also labels the typed-entry field inside the dialog                                                                                                                                                                    |
+| mode                | `"date" \| "datetime" \| "time"`           | `date`        |     | `datetime` collects the day, then the time                                                                                                                                                                             |
+| selectionMode       | `"single" \| "range" \| "multiple"`        | `single`      |     | Ignored when `mode="time"`                                                                                                                                                                                             |
+| validRange          | `{ startDate?, endDate?, disabledDates? }` |               |     | Inclusive bounds compared at day granularity                                                                                                                                                                           |
+| isDateDisabled      | (date) => boolean                          |               |     | For rules `validRange` cannot express                                                                                                                                                                                  |
+| scrollMode          | `"endless" \| "paged"`                     | `endless`     |     | `endless` virtualizes the months in one list                                                                                                                                                                           |
+| inputEnabled        | boolean                                    | `true`        |     | Typed entry in the field (a single calendar date)                                                                                                                                                                      |
+| defaultInputType    | `"picker" \| "keyboard"`                   | `picker`      |     | Which surface the dialog opens on; no toggle once it is open                                                                                                                                                           |
+| showToday           | boolean                                    | `true`        |     | "Today" button in the calendar header (single dates only)                                                                                                                                                              |
+| showOkButton        | boolean                                    | `true`        |     | Draws OK in the popup. `false`: a time closes and sets after its minute (date-time: day, hour, minute), a range after its second end. No effect on `multiple` (needs OK), typed entry (keeps OK) or `variant="static"` |
+| use24HourClock      | boolean                                    | locale's own  |     | `true` forces the 24-hour dial                                                                                                                                                                                         |
+| minuteInterval      | `1\|2\|3\|4\|5\|6\|10\|12\|15\|20\|30`     | `1`           |     | Granularity the dial snaps to                                                                                                                                                                                          |
+| startYear / endYear | number                                     | ±100 years    |     | Bounds of the year grid and the endless scroller                                                                                                                                                                       |
+| placeholder         | string                                     |               |     | Shown while the value is empty                                                                                                                                                                                         |
+| clearable           | boolean                                    |               |     | Adds a clear button; needs `onClear`                                                                                                                                                                                   |
+| onClear             | () => void                                 |               |     |                                                                                                                                                                                                                        |
+| error               | string                                     |               |     | Error text; also recolors the field                                                                                                                                                                                    |
+| helperText          | string                                     |               |     | Hidden while `error` is set                                                                                                                                                                                            |
+| required            | boolean                                    |               |     | Appends `*` to the label                                                                                                                                                                                               |
+| locale              | string                                     | device locale |     | Formatting/labelling override                                                                                                                                                                                          |
+| firstDayOfWeek      | 0–6 (0 = Sunday)                           | locale's own  |     |                                                                                                                                                                                                                        |
+| labels              | `DateTimePickerLabels`                     | English       |     | Chrome strings (`selectDate`, `confirm`, `back`, …)                                                                                                                                                                    |
+| relativeLabels      | `{ today?, yesterday?, tomorrow? }`        | `Intl`        |     |                                                                                                                                                                                                                        |
+| defaultOpen         | boolean                                    | `false`       |     | Mount with the picker open                                                                                                                                                                                             |
+| disabled            | boolean                                    |               |     |                                                                                                                                                                                                                        |
+| style               | ViewStyle                                  |               |     |                                                                                                                                                                                                                        |
+| testID              | string                                     |               |     |                                                                                                                                                                                                                        |
 
 **Dialog.** There is no Cancel or Next button: dismiss it by tapping outside, with the back
 gesture or with Escape. In single `date` mode a day tap confirms and closes; OK stays for the time
@@ -1377,22 +1386,31 @@ beyond its children. When the OS asks for reduced motion nothing blinks.
 
 ### DataGrid
 
-Virtualized table: sortable columns, reorder, density, loading, empty state. Built on the public `Table` primitives below.
+Virtualized, sortable grid: sortable columns, reorder, density, loading, empty state, and the props `Table` has. Built on the public `Table` primitives below.
 
-| Prop                           | Type                          | Default  | Req | Description                                             |
-| ------------------------------ | ----------------------------- | -------- | --- | ------------------------------------------------------- |
-| data                           | any[]                         | —        | ✓   | Row objects                                             |
-| columns                        | `ColumnDefinition[]`          | —        | ✓   | `{ id, label, width?, sortable?, align?, renderCell? }` |
-| loading                        | boolean                       | `false`  |     |                                                         |
-| density                        | `"normal" \| "dense"`         | `normal` |     |                                                         |
-| sortColumn                     | string                        |          |     |                                                         |
-| sortDirection                  | `"asc" \| "desc"`             |          |     |                                                         |
-| onSort                         | (columnId, direction) => void |          |     |                                                         |
-| onColumnReorder                | (newColumns) => void          |          |     |                                                         |
-| onEndReached                   | () => void                    |          |     | Infinite scroll                                         |
-| onEndReachedThreshold          | number                        |          |     |                                                         |
-| emptyMessage                   | string                        |          |     | Shown when empty & not loading                          |
-| style / rowStyle / headerStyle | ViewStyle                     |          |     |                                                         |
+**DataGrid or Table?** `Table` is for simple data tables, drawn all at once. `DataGrid` is for large sortable grids: a virtualised list with sorting, column reorder, `renderCell` and infinite scroll. They are separate components and share `tableTitle`, `width`, `height`, `rowsPerPage`, `hover`, `selected`, `onClick` and `emptyMessage`; a column may be spelled `alignment` / `fallback` in both.
+
+| Prop                           | Type                          | Default  | Req | Description                                                                                                              |
+| ------------------------------ | ----------------------------- | -------- | --- | ------------------------------------------------------------------------------------------------------------------------ |
+| data                           | any[]                         | —        | ✓   | Row objects                                                                                                              |
+| columns                        | `ColumnDefinition[]`          | —        | ✓   | `{ id, label, width?, sortable?, align? \| alignment?, fallback?, renderCell? }`                                         |
+| tableTitle                     | string                        |          |     | Heading above the header row                                                                                             |
+| width                          | DimensionValue                |          |     | Fills the container by default                                                                                           |
+| height                         | DimensionValue                |          |     | The header stays in place and the rows scroll under it                                                                   |
+| rowsPerPage                    | number                        |          |     | Pages the rows under a `Pagination`; back to page 1 when it or the row count changes. Do not combine with `onEndReached` |
+| hover                          | boolean                       | `false`  |     | Highlights the row under the pointer, on web                                                                             |
+| selected                       | number \| number[]            |          |     | Row indexes in `data` (not in the page shown); they follow the order of `data`                                           |
+| onClick                        | (row, index) => void          |          |     | Makes the rows pressable, with the button role: keep controls of their own out of the cells                              |
+| loading                        | boolean                       | `false`  |     |                                                                                                                          |
+| density                        | `"normal" \| "dense"`         | `normal` |     |                                                                                                                          |
+| sortColumn                     | string                        |          |     |                                                                                                                          |
+| sortDirection                  | `"asc" \| "desc"`             |          |     |                                                                                                                          |
+| onSort                         | (columnId, direction) => void |          |     |                                                                                                                          |
+| onColumnReorder                | (newColumns) => void          |          |     | The order is kept by column id: an inline `columns` array does not undo it                                               |
+| onEndReached                   | () => void                    |          |     | Infinite scroll                                                                                                          |
+| onEndReachedThreshold          | number                        |          |     |                                                                                                                          |
+| emptyMessage                   | ReactNode                     |          |     | Shown when empty & not loading                                                                                           |
+| style / rowStyle / headerStyle | ViewStyle                     |          |     |                                                                                                                          |
 
 ### Table / TableHead / TableRow / TableHeaderCell / TableCell
 
@@ -1448,22 +1466,25 @@ API reference on its page of the docs site (generated from the source).
 ### ListItem
 
 A list row: text, with an optional leading icon, a second line and a trailing slot. With none of
-them it is a centred single-line tile. Giving `onClick` makes the row a button.
+them it is a centred single-line tile. Giving `onClick` makes the whole row one pressable button;
+the `action` is a sibling of the row's button, not inside it. A bare icon, chip or text in the `action` presses
+the row; a control in it (an `IconButton`, a `Switch`) runs its own handler and never the row's.
+The row's accessible name is its texts, not the action's.
 
-| Prop                                                     | Type              | Default | Req | Description                                                                                                             |
-| -------------------------------------------------------- | ----------------- | ------- | --- | ----------------------------------------------------------------------------------------------------------------------- |
-| primaryText                                              | ReactNode         | —       | ✓   | The first line. Text is drawn in the theme's type; any other node as given                                              |
-| secondaryText                                            | ReactNode         |         |     | Second line below `primaryText`, text or any node                                                                       |
-| onClick                                                  | () => void        |         |     | Makes the row a button, with hover/press states. With an `action` as well, only the icon and the texts are the button   |
-| icon                                                     | icon \| ReactNode |         |     | Leading slot: a glyph name, or any node (an `Avatar`, a `Checkbox`)                                                     |
-| action                                                   | ReactNode         |         |     | Trailing slot: a value, a `Switch`, an `IconButton`, a chevron. A control of its own, so `disabled` does not disable it |
-| primaryTextStyle / secondaryTextStyle                    | TextStyle         |         |     | Merged after the type of the text, when it is text                                                                      |
-| indicatorColor                                           | string            |         |     | A coloured bar on the left edge, for a status or a priority                                                             |
-| dimmed                                                   | boolean           | `false` |     | Faded, for a row that is removed or inactive; still pressable                                                           |
-| trailingWidth                                            | number            |         |     | Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up                      |
-| disabled                                                 | boolean           | `false` |     | Fades the row and stops it being pressed                                                                                |
-| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object            |         |     | Style overrides                                                                                                         |
-| testID                                                   | string            |         |     |                                                                                                                         |
+| Prop                                                     | Type              | Default | Req | Description                                                                                                 |
+| -------------------------------------------------------- | ----------------- | ------- | --- | ----------------------------------------------------------------------------------------------------------- |
+| primaryText                                              | ReactNode         | —       | ✓   | The first line. Text is drawn in the theme's type; any other node as given                                  |
+| secondaryText                                            | ReactNode         |         |     | Second line below `primaryText`, text or any node                                                           |
+| onClick                                                  | () => void        |         |     | Makes the whole row a button, with hover/press states. A control in the `action` does not press it          |
+| icon                                                     | icon \| ReactNode |         |     | Leading slot: a glyph name, or any node (an `Avatar`, a `Checkbox`)                                         |
+| action                                                   | ReactNode         |         |     | Trailing slot: a value, a `Switch`, an `IconButton`, a chevron. `disabled` does not disable a control in it |
+| primaryTextStyle / secondaryTextStyle                    | TextStyle         |         |     | Merged after the type of the text, when it is text                                                          |
+| indicatorColor                                           | string            |         |     | A coloured bar on the left edge, for a status or a priority                                                 |
+| dimmed                                                   | boolean           | `false` |     | Faded, for a row that is removed or inactive; still pressable                                               |
+| trailingWidth                                            | number            |         |     | Fixes the width of the `action` slot and right-aligns it, so a column of rows lines its actions up          |
+| disabled                                                 | boolean           | `false` |     | Fades the row and stops it being pressed                                                                    |
+| itemContainerStyle / itemPressedStyle / itemHoveredStyle | object            |         |     | Style overrides                                                                                             |
+| testID                                                   | string            |         |     |                                                                                                             |
 
 ```tsx
 <ListItem
@@ -1483,6 +1504,8 @@ wrapping each group in a `Card` — a sequence of labelled groups, not a pile of
 | --------------- | ---------------------------------------------------------------------------- |
 | `ListSection`   | `children` (required), `title` (heading above the rows), `divider` (`false`) |
 | `ListSubheader` | `children` (required) — a standalone group label, marked as a heading        |
+
+`ListItem` takes `variant` (`"standard" | "outlined" | "contained"`, default `"contained"`, the secondary-container fill it always had): `standard` is transparent with no border, like a sidebar's rows; `outlined` draws an outline. The border is one width in every variant and state, so hover and press never move the layout. `ListSection` also takes `gap` (`"xs" | "s" | "m" | "l" | "xl"` or a number: the space between items) and `showDividers` (a rule between consecutive items, `n - 1` for `n`; `divider` is the one rule after the last item, and both can be used together). `variant="standard"` rows with `gap` and `showDividers` make a plain list, like a sidebar's.
 
 ### Tree
 
@@ -1838,7 +1861,7 @@ is safe in a tree that has not been wrapped.
 `usePortalHost()` reports whether a host is mounted above the caller.
 
 `Tooltip` and `Autocomplete`'s suggestion list are the overlays that use this. Every other
-overlay in the kit — `Dialog`, `ConfirmDialog`, `Popover`, `Menu`, `Select`, `BottomSheet`,
+overlay in the kit — `Dialog`, `AlertDialog`, `Popover`, `Menu`, `Select`, `BottomSheet`,
 a swipeable `Drawer` — goes through a native `Modal`, which is a separate window on native and
 a `createPortal` into `document.body` on web: already stronger isolation. Portal exists for the
 two cases a `Modal` cannot serve — a tooltip must never take touches, and the Autocomplete list
@@ -1903,31 +1926,13 @@ ignores it.
 </Dialog>
 ```
 
-### ConfirmDialog
-
-`Dialog` preset with confirm/cancel actions.
-
-| Prop        | Type               | Default   | Req | Description                                                                             |
-| ----------- | ------------------ | --------- | --- | --------------------------------------------------------------------------------------- |
-| visible     | boolean            | —         | ✓   |                                                                                         |
-| onConfirm   | () => void         | —         | ✓   |                                                                                         |
-| onCancel    | () => void         | —         | ✓   |                                                                                         |
-| title       | string             |           |     |                                                                                         |
-| message     | string             |           |     |                                                                                         |
-| confirmText | string             | `Confirm` |     |                                                                                         |
-| cancelText  | string             | `Cancel`  |     |                                                                                         |
-| destructive | boolean            | `false`   |     | Renders the confirm action in the error tone (delete, discard)                          |
-| icon        | `IconSource`       |           |     | Hero glyph above the title                                                              |
-| dismissable | boolean            | `true`    |     | Whether the backdrop and Escape cancel; turn it off for a decision to answer explicitly |
-| slotStyles  | `DialogSlotStyles` |           |     | As `Dialog`; `actions` covers the cancel and confirm buttons                            |
-
 ### AlertDialog
 
 A dialog that interrupts to say something and wait for an answer: one primary action, optionally a
 secondary. It is a `Dialog` with the `alertdialog` role (the title names it, the message and body
 describe it), no way out but its buttons by default, and, on the web, focus on its first action once it
-opens (the secondary one when there is one, so the least destructive). For a plain two-way question use
-`ConfirmDialog`.
+opens (the secondary one when there is one, so the least destructive). With `cancelText` and
+`destructive` it is also the plain confirmation.
 
 | Prop                 | Type                                          | Default        | Req | Description                                                                                                                                             |
 | -------------------- | --------------------------------------------- | -------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1935,6 +1940,7 @@ opens (the secondary one when there is one, so the least destructive). For a pla
 | title                | string                                        |                |     | The headline; the dialog's accessible name                                                                                                              |
 | message              | string                                        |                |     | What the alert says; with `children`, the dialog's accessible description                                                                               |
 | children             | ReactNode                                     |                |     | More body under the `message`, or in its place: a string or any node                                                                                    |
+| icon                 | `IconSource`                                  |                |     | Hero glyph above the title; replaces the `severity` icon                                                                                                |
 | severity             | `"info" \| "success" \| "warning" \| "error"` |                |     | A status icon above the title, in the colour of the status role. Left out, no icon                                                                      |
 | actionText           | string                                        | `OK`           |     | Label of the primary action                                                                                                                             |
 | onAction             | () => void                                    |                |     | Called when the primary action is pressed                                                                                                               |
@@ -1963,6 +1969,16 @@ can only press the primary action. `onCancel` is the app's answer "no" and shoul
   onCancel={() => setOpen(false)}
 />
 ```
+
+Migrating from `ConfirmDialog` (removed): `title`, `message`, `destructive`, `icon` and `slotStyles` keep their names.
+
+| ConfirmDialog                     | AlertDialog                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------- |
+| `confirmText` (default `Confirm`) | `actionText` (default `OK`)                                                             |
+| `onConfirm`                       | `onAction`                                                                              |
+| `cancelText` (default `Cancel`)   | `cancelText`, no default: pass it, or the alert has no cancel button                    |
+| `dismissable` (default `true`)    | `disableBackdropClick={false}` and `disableEscapeKeyDown={false}` (both default `true`) |
+| `dismissable={false}`             | nothing: it is the default                                                              |
 
 ### Popover
 
@@ -2135,7 +2151,11 @@ survives text reflow without a hardcoded height.
 Imperative toasts from anywhere in the tree — no `visible` state to thread through the screen.
 Mount `ToastProvider` once above the app; the queue is FIFO and renders one `Snackbar` at a time.
 `ToastProvider` takes `position` (default `"bottom-center"`), where toasts appear unless one asks
-for another. `toast.success`, `.error`, `.warning` and `.info` are `show` with the `severity` set.
+for another, and `maxVisible` (default `1`): up to that many toasts show together, stacked with a
+gap (top positions downward, bottom ones upward, the newest nearest the edge), each on its own
+timer, and the rest wait and appear in order as slots free. `useToast()` returns the same object for
+the provider's whole life, so an effect depending on it runs once; `toast.queue` is read when
+accessed and does not re-render. A toast shown with the `id` of one already queued replaces it in its place, and restarts its timer if it is on screen. `toast.success`, `.error`, `.warning` and `.info` are `show` with the `severity` set.
 
 ```tsx
 const toast = useToast();
@@ -2270,20 +2290,19 @@ itself. Props: see the API reference on its page of the docs site (generated fro
 
 Top tab bar with an animated indicator; text-only or icon tabs.
 
-| Prop        | Type                      | Default    | Req | Description                                                                                                            |
-| ----------- | ------------------------- | ---------- | --- | ---------------------------------------------------------------------------------------------------------------------- |
-| tabs        | `string[]` \| `TabItem[]` | —          | ✓   | `{ label, icon?, key?, disabled? }`; give an icon to every tab or to none                                              |
-| activeTab   | number (index)            | `0`        |     | The active tab by position; ignored when `activeKey` is given                                                          |
-| activeKey   | string                    |            |     | The active tab by its `key`, for tabs that come and go                                                                 |
-| onChange    | (index, key?) => void     | —          | ✓   | Called with the pressed tab's position and, when it has one, its `key`                                                 |
-| variant     | `"standard" \| "rounded"` | `standard` |     | An underline under the active tab, or a pill-shaped active tab on a rounded track                                      |
-| showBorders | boolean                   | `false`    |     | Dividers between the tabs and, in `rounded`, an outline around the track                                               |
-| size        | `"sm" \| "md" \| "lg"`    | `md`       |     | The height and the type of the tabs                                                                                    |
-| fullWidth   | boolean                   | `true`     |     | `true` shares the width equally between the tabs; `false` sizes each tab to its label, and the bar scrolls when needed |
-| height      | number \| string          |            |     | Overrides the height of the bar (dp or a percentage)                                                                   |
-| width       | number \| string          |            |     | Overrides the width of the bar (dp or a percentage)                                                                    |
-| color       | `ColorRole`               | `primary`  |     | Colour role of the indicator and of the selected tab                                                                   |
-| testID      | string                    |            |     |                                                                                                                        |
+| Prop        | Type                      | Default   | Req | Description                                                                                                            |
+| ----------- | ------------------------- | --------- | --- | ---------------------------------------------------------------------------------------------------------------------- |
+| tabs        | `string[]` \| `TabItem[]` | —         | ✓   | `{ label, icon?, key?, disabled? }`; give an icon to every tab or to none                                              |
+| activeTab   | number (index)            | `0`       |     | The active tab by position; ignored when `activeKey` is given                                                          |
+| activeKey   | string                    |           |     | The active tab by its `key`, for tabs that come and go                                                                 |
+| onChange    | (index, key?) => void     | —         | ✓   | Called with the pressed tab's position and, when it has one, its `key`                                                 |
+| showBorders | boolean                   | `false`   |     | Dividers between the tabs and, in `rounded`, an outline around the track                                               |
+| size        | `"sm" \| "md" \| "lg"`    | `md`      |     | The height and the type of the tabs                                                                                    |
+| fullWidth   | boolean                   | `true`    |     | `true` shares the width equally between the tabs; `false` sizes each tab to its label, and the bar scrolls when needed |
+| height      | number \| string          |           |     | Overrides the height of the bar (dp or a percentage)                                                                   |
+| width       | number \| string          |           |     | Overrides the width of the bar (dp or a percentage)                                                                    |
+| color       | `ColorRole`               | `primary` |     | Colour role of the indicator and of the selected tab                                                                   |
+| testID      | string                    |           |     |                                                                                                                        |
 
 ### Breadcrumbs
 
@@ -2581,7 +2600,7 @@ start, for an app whose desktop layout begins at 1300.
 **Actions**: Button, ProgressButton, IconButton, Link, Clipboard/useClipboard, Download/useDownload, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
 **Inputs**: Input, PasswordField, Editable, Select, Autocomplete, PinInput, Upload, Form (FormField, useForm, useFormField, useWatch, useFormState), FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
 **Data display**: Avatar, Badge, StatusBadge, Blink, DataGrid, Table, ListItem, ListSection/ListSubheader, Tree, Tooltip, Accordion, Carousel, Stat, CaptionValue, Image, IFrame, CodeBlock/HighlightedCode, QrCode
-**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Dialog, ConfirmDialog, AlertDialog, Popover, HoverCard, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
+**Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Dialog, AlertDialog, Popover, HoverCard, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: AppBar, NavBar, NavigationRail, Drawer/DrawerItem/DrawerSection, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
 
 ---

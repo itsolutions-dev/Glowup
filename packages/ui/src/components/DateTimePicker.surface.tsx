@@ -75,6 +75,12 @@ export interface PickerSurfaceProps {
   endYear?: number;
   /** Offers the calendar's "Today" button (single dates only). Default `true`. */
   showToday?: boolean;
+  /**
+   * Draws OK where one is needed. Default `true`. `false` finishes a time
+   * after its minute and a range after its second end instead; a set of days
+   * and typed entry keep their OK.
+   */
+  showOkButton?: boolean;
   defaultInputType?: PickerInputType;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -104,6 +110,7 @@ const PickerSurface = ({
   startYear,
   endYear,
   showToday = true,
+  showOkButton = true,
   defaultInputType = "picker",
   style,
   testID,
@@ -160,6 +167,14 @@ const PickerSurface = ({
   // and an unordered set of days has no text form.
   const inputType: PickerInputType =
     live || selectionMode === "multiple" ? "picker" : defaultInputType;
+  // Without an OK the surface settles by itself when its last pick is made:
+  // the minute, or a range's second end. A set of days has no last pick, and
+  // typed text needs its OK.
+  const selfFinishing =
+    !live &&
+    !showOkButton &&
+    inputType === "picker" &&
+    selectionMode !== "multiple";
   // Only a single date has a time to go with it; a range or a set stays on the
   // calendar.
   const twoSteps = mode === "datetime" && selectionMode === "single";
@@ -290,7 +305,9 @@ const PickerSurface = ({
 
   const handleRange = (next: DateRange) => {
     setDraftRange(next);
-    if (live) onConfirm({ selectionMode: "range", value: next });
+    if (live || (selfFinishing && next.startDate && next.endDate)) {
+      onConfirm({ selectionMode: "range", value: next });
+    }
   };
 
   const handleDates = (next: Date[]) => {
@@ -347,6 +364,7 @@ const PickerSurface = ({
   // a set, typed text, and a datetime's clock step.
   const showConfirm =
     !live &&
+    !selfFinishing &&
     (inputType === "keyboard" ||
       mode === "time" ||
       selectionMode !== "single" ||
@@ -407,6 +425,7 @@ const PickerSurface = ({
           locale={locale}
           use24HourClock={use24HourClock}
           inputType={inputType}
+          onComplete={selfFinishing ? confirm : undefined}
           labels={labelOverrides}
           testID={testID ? `${testID}-clock` : undefined}
         />

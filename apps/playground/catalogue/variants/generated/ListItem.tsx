@@ -45,6 +45,23 @@ export const SettingsList = () => (
   </View>
 );
 
+/** `standard` is transparent with no border, like a sidebar's rows; `outlined` draws an outline; `contained` (the default) fills the row. */
+export const Variants = () => (
+  <View style={list}>
+    {(["standard", "outlined", "contained"] as const).map((variant) => (
+      <ListItem
+        key={variant}
+        variant={variant}
+        onClick={() => {}}
+        icon="folder-outline"
+        secondaryText={`variant="${variant}"`}
+        action={chevron}
+        primaryText={variant[0].toUpperCase() + variant.slice(1)}
+      />
+    ))}
+  </View>
+);
+
 export const Slots = () => (
   <View style={list}>
     <ListItem
@@ -232,6 +249,13 @@ export const variants: Variant[] = [
     name: "SettingsList",
     title: "Settings list",
     render: SettingsList,
+  },
+  {
+    name: "Variants",
+    title: "Variants",
+    description:
+      "`standard` is transparent with no border, like a sidebar's rows; `outlined` draws an outline; `contained` (the default) fills the row.",
+    render: Variants,
   },
   {
     name: "Slots",

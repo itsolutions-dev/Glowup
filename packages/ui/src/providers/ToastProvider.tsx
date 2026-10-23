@@ -1,16 +1,16 @@
 import React, {
   createContext,
-  useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { View, StyleSheet } from "react-native";
 import Snackbar, {
   type SnackbarPosition,
   type SnackbarSeverity,
   type SnackbarVariant,
 } from "../components/Snackbar";
+import { SnackbarStack } from "../components/internal/SnackbarStack";
 import { MaterialCommunityIconsGlyphs } from "../components/types";
 
 export interface ToastOptions {
@@ -33,14 +33,17 @@ export interface ToastOptions {
    */
   onClose?: () => void;
   /**
-   * Replaces any queued toast carrying the same id instead of appending one.
-   * Use it to keep a repeated event (a retry, a poll) from stacking up.
+   * Replaces any queued toast carrying the same id, in its place, instead of
+   * appending one; a toast already on screen restarts its timer. Use it to
+   * keep a repeated event (a retry, a poll) from stacking up.
    */
   id?: string;
 }
 
 interface QueuedToast extends ToastOptions {
   key: string;
+  /** Bumped each time the toast is (re)queued: replacing by id remounts it and restarts its timer. */
+  generation: number;
 }
 
 interface ToastApi {
@@ -68,8 +71,12 @@ interface ToastApi {
   ) => string;
   /** Dismisses one toast by key, or the whole queue when called bare. */
   hide: (key?: string) => void;
-  /** Keys currently queued, head first. */
-  queue: string[];
+  /**
+   * Keys currently queued, head first, read when you access it. It is not
+   * reactive: `useToast()` returns the same object for the provider's whole
+   * life, so reading it never re-renders a consumer.
+   */
+  readonly queue: string[];
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -88,42 +95,61 @@ export const useToast = () => {
 
 let counter = 0;
 const nextKey = () => `toast-${++counter}`;
+let generations = 0;
 
 export interface ToastProviderProps {
   children: React.ReactNode;
   /** Where toasts appear unless one asks for another. Defaults to `"bottom-center"`. */
   position?: SnackbarPosition;
+  /**
+   * How many toasts are on screen together. The others wait in the queue and
+   * appear, in order, as a slot frees. Defaults to `1`: one at a time. At a
+   * given position they stack with a gap, the newest nearest the edge.
+   */
+  maxVisible?: number;
 }
 
 /**
- * Renders one toast at a time from a FIFO queue, so a burst of events plays
- * back in order instead of overwriting itself.
+ * Renders up to `maxVisible` toasts (one by default) from a FIFO queue, so a
+ * burst of events plays back in order instead of overwriting itself.
  */
 export const ToastProvider = ({
   children,
   position = "bottom-center",
+  maxVisible = 1,
 }: ToastProviderProps) => {
   const [queue, setQueue] = useState<QueuedToast[]>([]);
+  // The queue also lives in a ref, so the API below can stay one object for
+  // the provider's whole life: it changes nothing a consumer renders from.
+  const queueRef = useRef<QueuedToast[]>([]);
 
-  const show = useCallback((options: ToastOptions) => {
-    const key = options.id ?? nextKey();
-    setQueue((current) => {
-      const withoutSameId = options.id
-        ? current.filter((toast) => toast.key !== options.id)
-        : current;
-      return [...withoutSameId, { ...options, key }];
-    });
-    return key;
-  }, []);
-
-  const hide = useCallback((key?: string) => {
-    setQueue((current) =>
-      key === undefined ? [] : current.filter((toast) => toast.key !== key),
-    );
-  }, []);
-
-  const api = useMemo<ToastApi>(
-    () => ({
+  const api = useMemo<ToastApi>(() => {
+    const commit = (next: QueuedToast[]) => {
+      queueRef.current = next;
+      setQueue(next);
+    };
+    const show = (options: ToastOptions) => {
+      const key = options.id ?? nextKey();
+      const toast = { ...options, key, generation: ++generations };
+      const current = queueRef.current;
+      // Same id: it takes the place of the one it replaces, as a new toast.
+      const at = options.id
+        ? current.findIndex((queued) => queued.key === options.id)
+        : -1;
+      commit(
+        at < 0
+          ? [...current, toast]
+          : current.map((queued, index) => (index === at ? toast : queued)),
+      );
+      return key;
+    };
+    const hide = (key?: string) =>
+      commit(
+        key === undefined
+          ? []
+          : queueRef.current.filter((toast) => toast.key !== key),
+      );
+    return {
       show,
       success: (message, options) =>
         show({ ...options, message, severity: "success" }),
@@ -134,48 +160,54 @@ export const ToastProvider = ({
       info: (message, options) =>
         show({ ...options, message, severity: "info" }),
       hide,
-      queue: queue.map((toast) => toast.key),
-    }),
-    [show, hide, queue],
-  );
+      get queue() {
+        return queueRef.current.map((toast) => toast.key);
+      },
+    };
+  }, []);
 
-  const current = queue[0];
+  const visible = queue.slice(0, Math.max(1, Math.floor(maxVisible) || 1));
+  // One stack per position, in the order the toasts were raised.
+  const stacks = new Map<SnackbarPosition, QueuedToast[]>();
+  for (const toast of visible) {
+    const at = toast.position ?? position;
+    stacks.set(at, [...(stacks.get(at) ?? []), toast]);
+  }
 
   return (
     <ToastContext.Provider value={api}>
       {children}
-      {!!current && (
-        // pointerEvents="box-none" keeps the rest of the screen tappable while
-        // a toast is on screen; the toast itself still receives presses.
-        <View style={styles.host} pointerEvents="box-none">
-          <Snackbar
-            // Remounting per toast restarts the enter animation and the timer.
-            key={current.key}
-            visible
-            message={current.message}
-            severity={current.severity}
-            variant={current.variant}
-            position={current.position ?? position}
-            icon={current.icon}
-            duration={current.duration}
-            action={current.action}
-            onDismiss={() => hide(current.key)}
-            onClose={
-              current.onClose &&
-              (() => {
-                hide(current.key);
-                current.onClose?.();
-              })
-            }
-          />
-        </View>
-      )}
+      {[...stacks].map(([at, toasts]) => (
+        <SnackbarStack key={at} position={at}>
+          {/* The newest is nearest the edge: first from a top edge, last from a bottom one. */}
+          {(at.startsWith("top") ? [...toasts].reverse() : toasts).map(
+            (toast) => (
+              <Snackbar
+                // The generation remounts a replaced toast: the enter animation and the timer restart.
+                key={`${toast.key}:${toast.generation}`}
+                visible
+                message={toast.message}
+                severity={toast.severity}
+                variant={toast.variant}
+                position={at}
+                icon={toast.icon}
+                duration={toast.duration}
+                action={toast.action}
+                onDismiss={() => api.hide(toast.key)}
+                onClose={
+                  toast.onClose &&
+                  (() => {
+                    api.hide(toast.key);
+                    toast.onClose?.();
+                  })
+                }
+              />
+            ),
+          )}
+        </SnackbarStack>
+      ))}
     </ToastContext.Provider>
   );
 };
 
 export default ToastProvider;
-
-const styles = StyleSheet.create({
-  host: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0 },
-});

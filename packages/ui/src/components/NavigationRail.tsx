@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { getGlowStyles, useTheme, Theme } from "../providers/ThemeProvider";
+import { getFocusRing, useTheme, Theme } from "../providers/ThemeProvider";
 import Badge from "./Badge";
 import Icon from "./Icon";
 import Typography from "./Typography";
@@ -181,7 +181,7 @@ const makeStyles = (theme: Theme) =>
         },
       }),
     },
-    focused: getGlowStyles(theme, true),
+    focused: getFocusRing(theme),
     disabled: { opacity: 0.38 },
     badge: {
       position: "absolute",

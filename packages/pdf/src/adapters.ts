@@ -30,7 +30,8 @@ const load = async <T>(
   }
 };
 
-const fileSystem = () =>
+// Typed by hand: the inferred type names expo-file-system's internal files, which declarations cannot refer to.
+const fileSystem = (): Promise<typeof import("expo-file-system")> =>
   load(() => import("expo-file-system"), "expo-file-system");
 
 const uniqueName = () =>

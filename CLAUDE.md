@@ -4,16 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-An **npm-workspaces monorepo** with six workspaces:
+An **npm-workspaces monorepo** with seven workspaces:
 
-| Workspace                | Package                     | Role                                                                                                                                   |
-| ------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                                                       |
-| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                                                |
-| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters.                                |
-| `packages/pdf`           | `@its/glowup-pdf`           | PDF viewer on top of the library. Private until its first release (plan: `docs/solaris-native.md`).                                    |
-| `packages/charts`        | `@its/glowup-charts`        | Charts on top of the library (copied d3 source, no dependency). Private until its first release (plan: `docs/charts-package-plan.md`). |
-| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                                                    |
+| Workspace                | Package                     | Role                                                                                                                                                                 |
+| ------------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `packages/ui`            | `@its/glowup-ui`            | The product: a publishable Material You (MD3) component library.                                                                                                     |
+| `packages/notifications` | `@its/glowup-notifications` | Publishable headless push notification layer over `expo-notifications`.                                                                                              |
+| `packages/device`        | `@its/glowup-device`        | Publishable headless device hardware (location, camera, network, biometrics, sensors…) behind adapters.                                                              |
+| `packages/pdf`           | `@its/glowup-pdf`           | PDF viewer on top of the library. Private until its first release (plan: `docs/solaris-native.md`).                                                                  |
+| `packages/charts`        | `@its/glowup-charts`        | Charts on top of the library (copied d3 source, no dependency). Private until its first release (plan: `docs/charts-package-plan.md`).                               |
+| `packages/pivot`         | `@its/glowup-pivot`         | Pivot tables on top of the library (engine copied from AuraPivot). Private until its first release (plan: `docs/superpowers/specs/2026-10-23-pivot-core-design.md`). |
+| `apps/playground`        | `@its/glowup-playground`    | Private Expo presentation app that demos and exercises the library.                                                                                                  |
 
 Plus one directory that is **not** a workspace: `examples/consumer`, an Expo app that installs
 `@its/glowup-ui` and `@its/glowup-device` **from the npm registry** and is the runtime check on
@@ -46,6 +47,7 @@ npm test -w @its/glowup-notifications         # only the notifications package's
 npm test -w @its/glowup-device                # only the device package's tests
 npm test -w @its/glowup-pdf                   # only the PDF package's tests
 npm test -w @its/glowup-charts                # only the charts package's tests
+npm test -w @its/glowup-pivot                 # only the pivot package's tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
@@ -89,21 +91,20 @@ This is the rule that keeps the split real:
 - `apps/playground/tsconfig.json` maps `@its/glowup-ui` to `packages/ui/src/index.ts`,
   `@its/glowup-notifications` to `packages/notifications/src/index.ts`, and
   `@its/glowup-device` plus each of its public subpaths (`/info`, `/location`, `/camera`,
-  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/testing`) to their `src` entry, `@its/glowup-pdf` to `packages/pdf/src/index.ts` and `@its/glowup-charts` to `packages/charts/src/index.ts`, so an edit in any package is picked up live by Metro and
+  `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/testing`) to their `src` entry, `@its/glowup-pdf` to `packages/pdf/src/index.ts` `@its/glowup-charts` to `packages/charts/src/index.ts` and `@its/glowup-pivot` to `packages/pivot/src/index.ts`, so an edit in any package is picked up live by Metro and
   `tsc`. Those are the only mappings; a new device subpath, or a new high-level package, needs its own.
 
 `packages/notifications` is independent of `packages/ui`: neither imports the other (ESLint
 error), so each can ship alone and the app wires them together. `packages/device` follows the
 same rule towards both: it imports neither, and neither imports it.
 
-The **high-level packages** (`packages/pdf` and `packages/charts` today; `packages/pivot` when it
-is created — plan D3) sit on top of the library: each may import `@its/glowup-ui` **by name** and
+The **high-level packages** (`packages/pdf`, `packages/charts` and `packages/pivot` today — plan D3) sit on top of the library: each may import `@its/glowup-ui` **by name** and
 nothing else of ours (not the app, `device`, `notifications` or each other), and nothing below them
 imports them (all ESLint errors, `ADDON_PACKAGES` in `eslint.config.js`). Where one has to appear
 inside a library component, the library offers a slot and the app composes.
 
 Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
-`packages/notifications/CLAUDE.md`, `packages/device/CLAUDE.md`, `packages/pdf/CLAUDE.md`, `packages/charts/CLAUDE.md` and `apps/playground/CLAUDE.md`, which load when you work under those folders.
+`packages/notifications/CLAUDE.md`, `packages/device/CLAUDE.md`, `packages/pdf/CLAUDE.md`, `packages/charts/CLAUDE.md`, `packages/pivot/CLAUDE.md` and `apps/playground/CLAUDE.md`, which load when you work under those folders.
 
 ## Tests
 

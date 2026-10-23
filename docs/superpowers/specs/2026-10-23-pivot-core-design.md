@@ -57,11 +57,11 @@ Avere in `packages/pivot` il **motore del pivot** di AuraPivot 2.6.0, funzionant
 
 **Copia (A3), in `packages/pivot/src/`:**
 
-| Da AuraPivot                              | A                       | Note                                                                                        |
-| ----------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
-| `pivot-core/` (senza `export/`)           | `src/core/`             | Test inclusi, portati a jest.                                                               |
-| `options/`, `localization/`               | `src/options/`, `src/localization/` | Invariati, salvo il test `dictionaries.test.ts` (vedi sotto).                   |
-| `hooks/`, `context/`, `utils/`            | `src/hooks/`, `src/context/`, `src/utils/` | Dipendono solo da React e dal core: già verificato nell'inventario.     |
+| Da AuraPivot                    | A                                          | Note                                                                |
+| ------------------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
+| `pivot-core/` (senza `export/`) | `src/core/`                                | Test inclusi, portati a jest.                                       |
+| `options/`, `localization/`     | `src/options/`, `src/localization/`        | Invariati, salvo il test `dictionaries.test.ts` (vedi sotto).       |
+| `hooks/`, `context/`, `utils/`  | `src/hooks/`, `src/context/`, `src/utils/` | Dipendono solo da React e dal core: già verificato nell'inventario. |
 
 **Differenze volute** (elenco dello spike 0.1, registrate in `docs/pivot-upstream.md`):
 

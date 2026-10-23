@@ -12,6 +12,7 @@
         "../../packages/notifications/src/index.ts"
       ],
       "@its/glowup-charts": ["../../packages/charts/src/index.ts"],
+      "@its/glowup-pivot": ["../../packages/pivot/src/index.ts"],
       "@its/glowup-pdf": ["../../packages/pdf/src/index.ts"],
       "@its/glowup-pdf/testing": ["../../packages/pdf/src/testing/index.ts"],
       "@its/glowup-device": ["../../packages/device/src/index.ts"],

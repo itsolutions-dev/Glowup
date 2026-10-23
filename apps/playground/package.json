@@ -23,6 +23,7 @@
     "@expo-google-fonts/roboto": "^0.4.3",
     "@expo/vector-icons": "^15.1.1",
     "@its/glowup-charts": "*",
+    "@its/glowup-pivot": "*",
     "@its/glowup-device": "*",
     "@its/glowup-notifications": "*",
     "@its/glowup-pdf": "*",

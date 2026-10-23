@@ -18,15 +18,15 @@ const escapeText = (text: string) => text.replace(/[\\()]/g, "\\$&");
 
 export const SAMPLE_PDF_PAGES = PAGES.length;
 
-export const samplePdf = (): Uint8Array => {
+const build = (pages: [title: string, line: string][]): Uint8Array => {
   // 1 catalog, 2 page tree, 3 font, then for each page its object and its content stream.
-  const kids = PAGES.map((_, i) => `${4 + i * 2} 0 R`).join(" ");
+  const kids = pages.map((_, i) => `${4 + i * 2} 0 R`).join(" ");
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
-    `<< /Type /Pages /Kids [${kids}] /Count ${PAGES.length} >>`,
+    `<< /Type /Pages /Kids [${kids}] /Count ${pages.length} >>`,
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
   ];
-  PAGES.forEach(([title, line], i) => {
+  pages.forEach(([title, line], i) => {
     const content = [
       // A blue frame 12 points inside the page's edge: a page drawn at the wrong scale or place shows at once.
       "0 0 1 RG 3 w 12 12 571 818 re S",
@@ -57,3 +57,16 @@ export const samplePdf = (): Uint8Array => {
   // Plain ASCII, so a character is a byte.
   return Uint8Array.from(out, (char) => char.charCodeAt(0));
 };
+
+export const samplePdf = (): Uint8Array => build(PAGES);
+
+export const LONG_PDF_PAGES = 300;
+
+/** The same page design, `LONG_PDF_PAGES` times, to time opening and drawing a long document. */
+export const longPdf = (): Uint8Array =>
+  build(
+    Array.from({ length: LONG_PDF_PAGES }, (_, i) => [
+      `Page ${i + 1}`,
+      `Page ${i + 1} of ${LONG_PDF_PAGES}.`,
+    ]),
+  );

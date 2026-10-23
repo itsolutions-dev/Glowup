@@ -80,8 +80,9 @@ It gets its page, its props table and its URL for free.
   (screen width minus 32, times the pixel ratio): that second drawing is the last thing on the screen, one image pixel to one
   screen pixel, so a screenshot shows how small print (8 and 6 points, black and red, on every page of the sample) comes out of
   the JPEG (`ios-pdf.png`, `android-pdf.png`); it is last so that nothing above it moves. It searches
-  "hello" (pages 1 and 2, rectangles inside the page; PENDING where search is off) and refuses a file that is not a PDF. They
-  log as `NATIVECHECK pdf …` and are drawn on screen like the measurements.
+  "hello" (pages 1 and 2, rectangles inside the page; PENDING where search is off) and refuses a file that is not a PDF. A last row
+  opens a 300-page file (`longPdf`) and draws its last page: it is a measurement (the detail carries the milliseconds), it fails
+  only if the page count is wrong. They log as `NATIVECHECK pdf …` and are drawn on screen like the measurements.
 - **Chart rows**: a `BarChart` in a box that a sibling squeezes (200 → 100 px) must be laid out at its height (160) and
   follow the box down to 100 px (the drawing is absolute inside, so a width taken from it would stop the box shrinking: the
   spike's pitfall). A dense `BarChart` (250 categories) and a `DonutChart` are mounted below for the screenshot; a crash there

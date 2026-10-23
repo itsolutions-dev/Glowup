@@ -34,7 +34,12 @@ import {
 import { BarChart, DonutChart } from "@its/glowup-charts";
 import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
 
-import { SAMPLE_PDF_PAGES, samplePdf } from "../site/samplePdf";
+import {
+  LONG_PDF_PAGES,
+  SAMPLE_PDF_PAGES,
+  longPdf,
+  samplePdf,
+} from "../site/samplePdf";
 
 type Sizes = Record<string, number>;
 type Row = [name: string, ok: boolean | null, detail: string];
@@ -67,6 +72,7 @@ const PDF_OPEN = "pdf opens and reports its pages";
 const PDF_DRAW = "pdf page is drawn at the width asked";
 const PDF_SEARCH = "pdf search finds a known word";
 const PDF_REFUSE = "pdf refuses a file that is not a PDF";
+const PDF_LONG = "pdf opens a 300-page file";
 
 /**
  * The PDF module on the device, on the playground's sample: open it, draw the first page,
@@ -179,6 +185,28 @@ const usePdfChecks = (pageWidth: number) => {
       } finally {
         if (junk) void pdf.files.remove(junk);
       }
+      // A long document: how long opening takes (the module reads every page's size) and drawing the
+      // last page. No limit is asserted, the row is the measurement; it fails only if the count is wrong.
+      let long: string | null = null;
+      try {
+        long = await pdf.files.write(longPdf());
+        const t0 = Date.now();
+        const { pages } = await pdf.native.open(long);
+        const opened = Date.now() - t0;
+        await pdf.native.renderPage(long, LONG_PDF_PAGES - 1, 300);
+        set(
+          PDF_LONG,
+          pages.length === LONG_PDF_PAGES,
+          `${pages.length} pages, open ${opened} ms, last page drawn ${Date.now() - t0 - opened} ms`,
+        );
+      } catch (error) {
+        set(PDF_LONG, false, failure(error));
+      } finally {
+        if (long) {
+          void pdf.native.close(long).catch(() => {});
+          void pdf.files.remove(long);
+        }
+      }
     })();
 
     return () => {
@@ -192,7 +220,7 @@ const usePdfChecks = (pageWidth: number) => {
 
   const checks = useMemo<Row[]>(
     () =>
-      [PDF_OPEN, PDF_DRAW, PDF_SEARCH, PDF_REFUSE].map((name) => [
+      [PDF_OPEN, PDF_DRAW, PDF_SEARCH, PDF_REFUSE, PDF_LONG].map((name) => [
         name,
         ...(rows[name] ?? [null, "not measured yet"]),
       ]),

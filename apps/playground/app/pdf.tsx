@@ -96,7 +96,7 @@ export default function PdfPage() {
           visible
           type="info"
           icon="information-outline"
-          message="On a phone the native module is still to be written: there the viewer says so. On the web it is the browser's viewer, with its search, print and download. A phone's browser shows little of a PDF in a page: use “Open in a new tab”."
+          message="On a phone the viewer draws the pages itself, with page by page search, two-finger zoom, print and save (Android saves to Downloads). On the web it is the browser's viewer, with its own search, print and download. A phone's browser shows little of a PDF in a page: use “Open in a new tab”."
         />
       }
     >

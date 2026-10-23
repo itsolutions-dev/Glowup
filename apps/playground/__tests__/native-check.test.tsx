@@ -65,6 +65,10 @@ describe("native check screen", () => {
         /^PASS pdf page is drawn at the width asked \(600 x 849/,
       ),
     ).toBeTruthy();
+    // The in-memory module reports its own page count, so the row fails here; what matters is that it runs.
+    expect(
+      await findByText(/^(PASS|FAIL) pdf opens a 300-page file/),
+    ).toBeTruthy();
     expect(await findByLabelText("Sample PDF page")).toBeTruthy();
     // The second drawing is at the width the viewer would ask on this screen, not the fixed 600.
     expect(memory.calls.rendered[1]?.width).toBeGreaterThan(600);

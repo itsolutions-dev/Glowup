@@ -205,6 +205,13 @@ prompt, refusal, no library). It mocks
 A camera control whose handler awaits the end of a recording must not return that promise
 to `onClick` (`() => void toggleRecording()`): RTL 14 awaits it and the test deadlocks.
 
+## Dependency pins
+
+`apps/playground` lists `react-native-reanimated`, `react-native-worklets` and
+`react-native-gesture-handler` although it imports none of them. They are **pins**: expo-router
+depends on them, and without a direct dependency npm resolves releases outside the SDK
+(reanimated 4.7 + worklets 0.13, which expo-modules-core rejects). Keep them.
+
 ## Keyboard
 
 `site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op

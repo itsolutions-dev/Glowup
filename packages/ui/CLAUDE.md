@@ -31,12 +31,18 @@
 - **`useId()` must not reach native output.** The playground's "compiles to the same screen" test
   (`examples.test.tsx`) renders an example twice and compares the JSON, and two instances never
   share an id. Ids go on the web only, as in `Tree` (`id={isWeb ? id : undefined}`).
-- **The QR encoder is the library's own** (`internal/qr.ts`): no dependency, and not to be swapped
-  for one. It is held to reference encoders' matrices in `__tests__/__fixtures__/qr-vectors.json`;
+- **The QR encoder is the library's own** (`internal/qr.ts`): no encoder dependency, and not to be
+  swapped for one (it draws with `react-native-svg`, a peer the library already has). It is held to reference encoders' matrices in `__tests__/__fixtures__/qr-vectors.json`;
   "it still scans" is not a test.
 - **`copy`, `save` and `onPick` are adapters because the library depends on no native module.**
   The app brings `expo-clipboard`, `expo-file-system` or a picker; web has a default, and on native
   a trigger is drawn only when the app passed one. Don't import an Expo module to give it a default.
+- **Tests** live in `src/__tests__` (jest-expo). `babel.config.js` exists only for jest (`bob build`
+  has its own config). It needed `lazyImports: true` while the barrel re-exported the drawer
+  navigator, because the eager transform pulled `@react-navigation/drawer` → reanimated →
+  `react-native-worklets` into every test run and its native initialisers throw under jest. Since
+  `0.5.0` removed the navigators, the plain preset works — don't reintroduce a dependency that
+  brings it back.
 
 ## Theme system
 

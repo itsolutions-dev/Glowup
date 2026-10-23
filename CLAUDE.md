@@ -27,21 +27,7 @@ if something reusable is needed, it belongs in `packages/ui`.
 ## Commands
 
 ```bash
-npm install            # all workspaces, from the repo root
-
-npm start              # Expo dev server for the playground (also: npm run playground)
-npm run android        # playground on Android
-npm run ios            # playground on iOS
-npm run web            # playground on Web
-
-npm run lint           # ESLint across the repo (gates CI)
 npm run type-check     # tsc --noEmit in every workspace + the design-sync tsconfig
-npm test               # tests in every workspace
-npm run build          # build the published packages with react-native-builder-bob
-
-npm test -w @its/glowup-ui                    # only the library's component tests
-npm test -w @its/glowup-notifications         # only the notifications package's tests
-npm test -w @its/glowup-device                # only the device package's tests
 npm run validate-package -w @its/glowup-ui    # publint + are-the-types-wrong on the built package
 npm run release                           # changeset publish (CI does this)
 npm run push:test -- <subscription.json>  # send a test Web Push (VAPID pair in .env.vapid.local)
@@ -68,10 +54,6 @@ example.
 - The Expo SDK owns the native versions (`node_modules/expo/bundledNativeModules.json`).
   Upgrade them together, never one by one, and do not follow `npm outdated`'s "latest" for
   them: a lone react-native or reanimated bump builds on no device.
-- `apps/playground` lists `react-native-reanimated`, `react-native-worklets` and
-  `react-native-gesture-handler` although it imports none of them. They are **pins**:
-  expo-router depends on them, and without a direct dependency npm resolves releases outside
-  the SDK (reanimated 4.7 + worklets 0.13, which expo-modules-core rejects). Keep them.
 - Held back on purpose: TypeScript 7 (no JS API; typescript-eslint supports < 6.1), ESLint 10
   (eslint-plugin-import / eslint-plugin-react), Jest 30 (jest-expo depends on 29).
 
@@ -99,15 +81,8 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 
 ## Tests
 
-- Component behaviour is tested **in the library**: `packages/ui/src/__tests__` (jest-expo).
-  `packages/ui/babel.config.js` exists only for jest (`bob build` has its own config). It
-  needed `lazyImports: true` while the barrel re-exported the drawer navigator, because the
-  eager transform pulled `@react-navigation/drawer` → reanimated → `react-native-worklets`
-  into every test run and its native initialisers throw under jest. Since `0.5.0` removed the
-  navigators, the plain preset works — don't reintroduce a dependency that brings it back.
-- The playground tests only the playground: it renders every catalogue entry's demo directly
-  (no router) and pins the catalogue against the registry, the categories and the generated
-  prop tables.
+- Component behaviour is tested **in the library** (`packages/ui/src/__tests__`, jest-expo); the
+  playground tests only the playground. The details are in each workspace's `CLAUDE.md`.
 
 ## Releasing
 
@@ -124,7 +99,7 @@ status, decisions, what was verified on web/iOS/Android, files and commits, open
 step). **One handoff per calendar day**: if today's file already exists, update it (add or edit a
 section; with two people, one section each) and never create a second one for the same day — no
 `-2`, no name suffix. Earlier files that already carry a suffix stay as they are. A later session
-starts from the latest handoff and `docs/solaris-native.md`.
+starts from the latest handoff and `docs/solaris-native.md`. `docs/README.md` maps every document.
 
 ## Code style
 

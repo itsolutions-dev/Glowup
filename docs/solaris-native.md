@@ -293,7 +293,7 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
 
 **Esiti finora (2026-10-15).**
 
-- **0.2 fatto** → `docs/spike-0.2-crm-desktop.md`. Il rendering su react-native-web regge, la densità no: i
+- **0.2 fatto** → (il documento è stato rimosso; l'ultima versione è nel commit `1d5a80f`: `git show 1d5a80f:docs/spike-0.2-crm-desktop.md`). Il rendering su react-native-web regge, la densità no: i
   controlli di form non hanno una prop di densità (campo ≈ 55 px contro righe di griglia da 40 px). Da
   aggiungere al lotto 3A (`size`/`density` su `Input`, `Select`, `Button`). Le interazioni non sono state provate.
 - **0.5 fatto** → `docs/crm-component-matrix.md` (tutti e tre i lotti). Correzioni al piano emerse dalla matrice:
@@ -312,7 +312,7 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
     indicatore di stato (13 file), `Tabs` con chiave, `BottomSheet` con `footer`, `Snackbar` con `info`/`warning`,
     token pubblici `success`/`warning`/`info` nel tema.
   - `Autocomplete`: il valore del CRM è un oggetto scelto distinto dal testo digitato; in Glowup `value` è solo testo.
-- **0.1 fatto su Android e iOS** → `docs/spike-0.1-pivot-core.md`. Il core gira sotto jest senza modificare il sorgente
+- **0.1 fatto su Android e iOS** → (il documento è stato rimosso; l'ultima versione è nel commit `ae45678`: `git show ae45678:docs/spike-0.1-pivot-core.md`). Il core gira sotto jest senza modificare il sorgente
   (150 test su 150 portati da vitest), compila con `hermesc` ed è girato su **Hermes reale in CI**. A 50.000 righe
   `processMatrix` impiega 0,6–1,6 s (3–5 volte V8), a 5.000 meno di 0,4 s. `Intl` differisce tra le piattaforme: su iOS
   manca `formatToParts` (il core ricade in silenzio su `,`/`.`). Modifiche alla copia: esportatore Excel fuori dal core,
@@ -323,12 +323,12 @@ Uscita: D7, D8, D9 passano da _Proposta_ a deciso (o vengono riscritte); la matr
   Babel. Quindi **0.3, 0.6 e la parte Hermes di 0.1 restano non verificate** finché non c'è un altro ambiente: CI su
   runner macOS/Linux (Fase 1), una macchina di un collega o un Mac. Ogni fase dichiara iOS/Android come "non
   verificato" (§2) finché non cambia. Il piano resta valido perché il web è il primo target (Q1).
-- **0.4 fatto per web e bundling** → `docs/spike-0.4-bar-chart.md`. `d3-scale` (solo ESM) si risolve su web, iOS e
+- **0.4 fatto per web e bundling** → (il documento è stato rimosso; l'ultima versione è nel commit `2e4be84`: `git show 2e4be84:docs/spike-0.4-bar-chart.md`). `d3-scale` (solo ESM) si risolve su web, iOS e
   Android e i bundle compilano in bytecode Hermes; larghezza da `onLayout` e tooltip al clic funzionano su web.
   A 10.000 rettangoli il web impiega circa 0,3–0,5 s: per dati densi la Fase 4 deve prevedere una modalità a
   `<Path>` unico. Insidia: l'`Svg` va in posizione assoluta, altrimenti la larghezza misurata blocca il
   contenitore. **Non verificati**: tocco, tempi e rendering su iOS/Android, `d3` sotto jest.
-- **0.3 fatto, web e CI su iOS e Android (2026-10-16)** → `docs/spike-0.3-pdf.md`. `react-native-pdf` funziona con RN 0.86 e nuova
+- **0.3 fatto, web e CI su iOS e Android (2026-10-16)** → (il documento è stato rimosso; l'ultima versione è nel commit `9131f78`: `git show 9131f78:docs/spike-0.3-pdf.md`). `react-native-pdf` funziona con RN 0.86 e nuova
   architettura su iOS e Android: base64 ok e file scaricato con header ok (3 pagine), `pdfjs-dist` ok sul web. **`source.headers`
   di `react-native-pdf` fallisce** su entrambe (iOS `DownloadFailed`, Android "Use of own trust manager but none defined"):
   si scarica con `react-native-blob-util` e si apre il file, come già previsto. Insidia: l'autolinking legge il `package.json`

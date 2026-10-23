@@ -27,3 +27,15 @@ export { localizationEn, localizationIt } from "./localization/dictionaries";
 
 export { optionsToEngine, engineToOptions } from "./options/optionsAdapter";
 export { DEFAULT_OPTIONS } from "./options/optionsSchema";
+
+export { default as PivotGrid } from "./PivotGrid";
+export type { PivotGridProps } from "./grid/props";
+export { usePivotGrid } from "./grid/usePivotGrid";
+export { buildGridModel } from "./grid/model";
+export type {
+  GridModel,
+  GridRow,
+  GridColumn,
+  GridCell,
+  GridModelInput,
+} from "./grid/model";

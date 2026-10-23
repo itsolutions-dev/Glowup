@@ -64,6 +64,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     summary: "Charts drawn with SVG and a copy of d3, with no dependency.",
   },
   {
+    href: "/pivot",
+    label: "Pivot",
+    icon: "table-large",
+    summary: "A pivot table with the engine of AuraPivot, read-only for now.",
+  },
+  {
     href: "/device",
     label: "Device",
     icon: "cellphone-cog",

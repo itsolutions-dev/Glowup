@@ -13,7 +13,14 @@ The wider plan is Phase 7 of `docs/solaris-native.md`. Read the design before ad
   cells (`formatMeasureValue`) and the sorts still use the runtime's locale when none is set, as in the original. Always call `setLocale`.
 - **Numbers and dates do not format the same on iOS and Android** (Hermes' `Intl` differs: `formatToParts` is missing on iOS, the
   date and currency text differs). Tests and comparisons must not assume one text everywhere.
-- **The grid is written inside this package**, not on the library's `DataGrid` (decision of 2026-10-23). That is a later piece.
+- **The grid is written inside this package**, not on the library's `DataGrid` (decision of 2026-10-23). `src/grid/model.ts`
+  (`buildGridModel`) is the pure part: it turns an engine matrix into one header row (a cell per column leaf: `col.caption` already
+  carries the path and the measure), the visible rows and the cell texts, with the rules of AuraPivot's compact grid
+  (`components/PivotTable/PivotTable.tsx` there, not copied): change a rule only to follow AuraPivot, and test it in
+  `src/grid/model.test.ts`. `usePivotGrid` keeps the model of the _latest matrix_ (it never pairs an old matrix with a new slice while
+  a large dataset recomputes). `PivotGrid.web.tsx` is one DOM `div` that scrolls on both axes, with `position: sticky` on the header and
+  the first two columns and only the rows in view mounted (`grid/windowing.ts`, fixed row height): **do not nest a `FlatList`**,
+  `sticky left` would bind to its vertical scroller. The widths follow the container (`gridSizes` in `grid/layout.ts`, measured with `onLayout`): the number columns share what the fixed ones leave, and under 600 px the label column shrinks (about 40% of the width) so the numbers stay in view; a row's cells take its height, never a height of their own, or they hide its bottom border. `PivotGrid.tsx` (iOS and Android app) is only a message until the native piece.
 - **Sits on top of the library.** It may import `@its/glowup-ui`, **by package name only**, and nothing else of ours; nothing below it
   imports it. ESLint enforces it (`ADDON_PACKAGES` in the root `eslint.config.js`).
 - **Private until ready.** `changeset publish` publishes any non-private package whose version is not on npm yet, so this one stays

@@ -219,3 +219,9 @@ drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html
 
 The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
 private repository requires GitHub Enterprise Cloud.
+
+## The pivot page
+
+`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report (`site/samplePivot.ts`:
+sites, four categories under each, a true/false column, a count), and a switch of the engine's locale. Nothing in it comes from a real report.
+Jest runs as a phone, so the page test sees the grid's "not available" message; the web grid is tested in the package.

@@ -1,0 +1,355 @@
+import { useState } from "react";
+import { View } from "react-native";
+import {
+  Box,
+  Card,
+  CardTitle,
+  Chip,
+  DragDropProvider,
+  Draggable,
+  Droppable,
+  ListItem,
+  Typography,
+  VStack,
+  type DragEndEvent,
+  type DragItem,
+} from "@its/glowup-ui";
+
+import { CodeBlock } from "../site/CodeBlock";
+import { Page, Section } from "../site/Page";
+import { PropsTable } from "../site/PropsTable";
+import { docFor } from "../site/propsData";
+
+const USAGE = `import { DragDropProvider, Draggable, Droppable } from "@its/glowup-ui";
+
+<DragDropProvider
+  onDragEnd={({ active, over }) => {
+    if (!over) return; // dropped outside every zone
+    setColumns((columns) => {
+      // over.index leaves the dragged item out: remove it, then insert it there
+      const next = Object.fromEntries(
+        Object.entries(columns).map(([key, ids]) => [
+          key,
+          ids.filter((id) => id !== active.id),
+        ]),
+      );
+      next[over.id].splice(over.index, 0, active.id);
+      return next;
+    });
+  }}
+>
+  {Object.entries(columns).map(([column, ids]) => (
+    <Droppable key={column} id={column}>
+      {ids.map((id) => (
+        <Draggable key={id} id={id}>
+          <Card onClick={() => open(id)}>…</Card>
+        </Draggable>
+      ))}
+    </Droppable>
+  ))}
+</DragDropProvider>`;
+
+type Lists = Record<string, string[]>;
+
+/** Take the item out of every list, then insert it at the drop. */
+const moveItem = (lists: Lists, { active, over }: DragEndEvent): Lists => {
+  if (!over || !(over.id in lists)) return lists;
+  const next: Lists = {};
+  for (const [id, items] of Object.entries(lists)) {
+    next[id] = items.filter((item) => item !== active.id);
+  }
+  next[over.id].splice(over.index, 0, active.id);
+  return next;
+};
+
+const COLUMNS = [
+  { id: "todo", title: "To do" },
+  { id: "doing", title: "In progress" },
+  { id: "done", title: "Done" },
+];
+
+const TASKS: Record<string, { title: string; owner: string }> = {
+  t1: { title: "Draft the release notes", owner: "Marta" },
+  t2: { title: "Fix the login redirect", owner: "Luca" },
+  t3: { title: "Review the pricing page", owner: "Sara" },
+  t4: { title: "Update the onboarding emails", owner: "Marta" },
+  t5: { title: "Ship the dark theme", owner: "Luca" },
+};
+
+/** Cards that are pressable, between three columns. */
+const Board = () => {
+  const [board, setBoard] = useState<Lists>({
+    todo: ["t1", "t2", "t3"],
+    doing: ["t4"],
+    done: ["t5"],
+  });
+  const [opened, setOpened] = useState<string | null>(null);
+
+  return (
+    <DragDropProvider
+      onDragEnd={(event) => setBoard((current) => moveItem(current, event))}
+    >
+      <VStack spacing="m">
+        <Typography variant="bodySmall" color="onSurfaceVariant">
+          {opened
+            ? `Opened “${TASKS[opened].title}”.`
+            : "Drag a card to another column or to another place in its own. Tap one to open it."}
+        </Typography>
+        <Box variant="flex" wrap gap={16} align="flex-start">
+          {COLUMNS.map((column) => (
+            <Droppable
+              key={column.id}
+              id={column.id}
+              style={{ flexGrow: 1, flexBasis: 200 }}
+            >
+              {({ isOver }) => (
+                <Box
+                  background={
+                    isOver ? "surfaceContainerHighest" : "surfaceContainerLow"
+                  }
+                  radius="large"
+                  padding={16}
+                  gap={8}
+                >
+                  <Typography variant="titleSmall">
+                    {`${column.title} · ${board[column.id].length}`}
+                  </Typography>
+                  {board[column.id].map((id) => (
+                    <Draggable key={id} id={id}>
+                      <Card variant="outlined" onClick={() => setOpened(id)}>
+                        <CardTitle
+                          title={TASKS[id].title}
+                          subtitle={TASKS[id].owner}
+                        />
+                      </Card>
+                    </Draggable>
+                  ))}
+                  {board[column.id].length === 0 && (
+                    <Typography variant="bodySmall" color="onSurfaceVariant">
+                      Drop a card here.
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Droppable>
+          ))}
+        </Box>
+      </VStack>
+    </DragDropProvider>
+  );
+};
+
+const STEPS: Record<string, { title: string; detail: string }> = {
+  tests: { title: "Run the test suite", detail: "Unit and end-to-end" },
+  notes: { title: "Write the release notes", detail: "From the changelog" },
+  tag: { title: "Tag the version", detail: "Semver, signed" },
+  deploy: { title: "Deploy to production", detail: "Behind a flag" },
+  announce: { title: "Announce it", detail: "Blog and newsletter" },
+};
+
+/** One list in order, its first row locked in place. */
+const Checklist = () => {
+  const [steps, setSteps] = useState<Lists>({ steps: Object.keys(STEPS) });
+
+  return (
+    <DragDropProvider
+      onDragEnd={(event) => setSteps((current) => moveItem(current, event))}
+    >
+      <View style={{ maxWidth: 480 }}>
+        <Droppable id="steps">
+          {steps.steps.map((id, index) => (
+            <Draggable key={id} id={id} disabled={id === "tests"}>
+              <ListItem
+                icon={id === "tests" ? "lock-outline" : "drag"}
+                primaryText={`${index + 1}. ${STEPS[id].title}`}
+                secondaryText={STEPS[id].detail}
+              />
+            </Draggable>
+          ))}
+        </Droppable>
+      </View>
+    </DragDropProvider>
+  );
+};
+
+const TOOLS = {
+  mail: { label: "Mail", icon: "email-outline" },
+  files: { label: "Files", icon: "folder-outline" },
+  chat: { label: "Chat", icon: "chat-outline" },
+  calendar: { label: "Calendar", icon: "calendar-blank-outline" },
+  notes: { label: "Notes", icon: "note-text-outline" },
+  tasks: { label: "Tasks", icon: "checkbox-marked-outline" },
+} as const;
+
+const LIMIT = 3;
+
+/** A row that takes at most three tools, and the shelf they come from. */
+const Toolbar = () => {
+  const [shelves, setShelves] = useState<Lists>({
+    pinned: ["mail", "files"],
+    more: ["chat", "calendar", "notes", "tasks"],
+  });
+
+  const tool = (id: string) => {
+    const { label, icon } = TOOLS[id as keyof typeof TOOLS];
+    return (
+      <Draggable key={id} id={id}>
+        <Chip label={label} icon={icon} />
+      </Draggable>
+    );
+  };
+
+  return (
+    <DragDropProvider
+      onDragEnd={(event) => setShelves((current) => moveItem(current, event))}
+    >
+      <VStack spacing="m">
+        <Droppable
+          id="pinned"
+          orientation="horizontal"
+          // A full toolbar still takes its own tools, to reorder them.
+          accept={(item) =>
+            shelves.pinned.length < LIMIT || shelves.pinned.includes(item.id)
+          }
+        >
+          {({ isOver }) => (
+            <Box
+              variant="flex"
+              background={isOver ? "primaryContainer" : "surfaceContainerLow"}
+              radius="large"
+              padding={16}
+              gap={8}
+              align="center"
+              style={{ minHeight: 64 }}
+            >
+              {shelves.pinned.map(tool)}
+              {shelves.pinned.length === 0 && (
+                <Typography variant="bodySmall" color="onSurfaceVariant">
+                  Drop a tool here.
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Droppable>
+        <Typography variant="labelLarge" color="onSurfaceVariant">
+          {`More tools · ${shelves.pinned.length} of ${LIMIT} pinned`}
+        </Typography>
+        <Droppable id="more" orientation="horizontal">
+          <Box variant="flex" gap={8}>
+            {shelves.more.map(tool)}
+          </Box>
+        </Droppable>
+      </VStack>
+    </DragDropProvider>
+  );
+};
+
+// Two kinds of item, each zone taking one: the page takes sections, a section
+// takes fields. Without it a field dropped between sections becomes a section.
+type Kind = "section" | "field";
+const takes = (kind: Kind) => (item: DragItem) =>
+  (item.data as { kind?: Kind } | undefined)?.kind === kind;
+
+/** Sections that are draggable and hold their own zone of fields. */
+const Form = () => {
+  const [form, setForm] = useState<Lists>({
+    page: ["Contact", "Shipping"],
+    Contact: ["Name", "Email"],
+    Shipping: ["Address", "City"],
+  });
+
+  return (
+    <DragDropProvider
+      onDragEnd={(event) => setForm((current) => moveItem(current, event))}
+    >
+      <View style={{ maxWidth: 480 }}>
+        <Droppable id="page" accept={takes("section")}>
+          <VStack spacing="s">
+            {form.page.map((section) => (
+              <Draggable key={section} id={section} data={{ kind: "section" }}>
+                <Box
+                  background="surfaceContainerLow"
+                  radius="large"
+                  padding={16}
+                  gap={8}
+                >
+                  <Typography variant="titleSmall">{section}</Typography>
+                  <Droppable id={section} accept={takes("field")}>
+                    <VStack spacing="s" align="flex-start">
+                      {form[section].map((field) => (
+                        <Draggable
+                          key={field}
+                          id={field}
+                          data={{ kind: "field" }}
+                        >
+                          <Chip label={field} icon="form-textbox" />
+                        </Draggable>
+                      ))}
+                    </VStack>
+                  </Droppable>
+                </Box>
+              </Draggable>
+            ))}
+          </VStack>
+        </Droppable>
+      </View>
+    </DragDropProvider>
+  );
+};
+
+const REFERENCE = ["DragDropProvider", "Draggable", "Droppable"];
+
+export default function DragAndDropPage() {
+  return (
+    <Page
+      eyebrow="Library"
+      title="Drag and drop"
+      description="Drag and drop in @its/glowup-ui, on iOS, Android and the web, by touch and by mouse, with no dependency. A touch lifts an item after resting on it for a moment, so a swipe still scrolls; a mouse lifts it as soon as it moves, so a click still clicks."
+    >
+      <Section
+        title="Between lists"
+        description="The cards keep their tap: a press that rests or moves lifts the card instead. The card stays in place, dimmed, while a copy follows the pointer and a line marks where it would land."
+      >
+        <Board />
+      </Section>
+      <Section
+        title="Reorder a list"
+        description="The same drop handler reorders: the index it reports leaves the dragged row out. The first row is disabled, so it cannot be lifted, but rows can still land around it."
+      >
+        <Checklist />
+      </Section>
+      <Section
+        title="Rules for a zone"
+        description="accept decides what a zone takes: this toolbar takes a fourth tool only once one leaves. orientation lays the zone's items along a row."
+      >
+        <Toolbar />
+      </Section>
+      <Section
+        title="Nested zones"
+        description="Sections are draggable and hold their own zone: a field moves between sections, a section moves in the page, and a section never drops into itself. Each item carries its kind in data and each zone accepts one kind, so a field cannot land between sections."
+      >
+        <Form />
+      </Section>
+      <Section
+        title="Use it"
+        description="The provider only reports the drop: keep the lists in your state and move the item in onDragEnd. Mount a Portal.Host at the root, where the copy that follows the pointer is drawn. Inside a ScrollView, pass scrollEnabled={!active} from useDragDrop() so it does not scroll under a held item."
+      >
+        <CodeBlock code={USAGE} title="Board.tsx" />
+      </Section>
+      <Section
+        title="API reference"
+        description="Generated from the library's TypeScript, so it cannot drift from the implementation."
+      >
+        {REFERENCE.map((name) => {
+          const doc = docFor(name);
+          return doc ? (
+            <VStack key={name} spacing="s">
+              <Typography variant="titleMedium">{name}</Typography>
+              <PropsTable doc={doc} />
+            </VStack>
+          ) : null;
+        })}
+      </Section>
+    </Page>
+  );
+}

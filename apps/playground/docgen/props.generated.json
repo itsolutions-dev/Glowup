@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 116,
+  "componentCount": 119,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -9639,6 +9639,181 @@
           "type": "StyleProp<TextStyle>",
           "required": false,
           "description": "Merged after the code type: padding, font size.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "DragDropProvider": {
+      "name": "DragDropProvider",
+      "source": "packages/ui/src/components/DragDrop.tsx",
+      "propsTypeName": "DragDropProviderProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "onDragEnd",
+          "type": "(event: DragEndEvent) => void",
+          "required": true,
+          "description": "An item was let go. Apply the move here; `over` is null outside every zone.",
+          "deprecated": false
+        },
+        {
+          "name": "feedback",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Report a touch that lifts an item to `ThemeProvider`'s\n`onInteractionFeedback` (haptics), as a long press. Defaults to true.",
+          "deprecated": false
+        },
+        {
+          "name": "onDragCancel",
+          "type": "(event: DragStartEvent) => void",
+          "required": false,
+          "description": "The drag was called off: Escape on the web, or the system took the touch.",
+          "deprecated": false
+        },
+        {
+          "name": "onDragStart",
+          "type": "(event: DragStartEvent) => void",
+          "required": false,
+          "description": "An item was lifted: by a resting touch, or a mouse moved while pressed.",
+          "deprecated": false
+        }
+      ]
+    },
+    "Draggable": {
+      "name": "Draggable",
+      "source": "packages/ui/src/components/DragDrop.tsx",
+      "propsTypeName": "DraggableProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "Unique among the provider's draggables; reported as `active.id`.",
+          "deprecated": false
+        },
+        {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "unknown",
+          "required": false,
+          "description": "What the drop handler needs to know about the item; reported as `active.data`.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Cannot be lifted.",
+          "deprecated": false
+        },
+        {
+          "name": "onPress",
+          "type": "() => void",
+          "required": false,
+          "description": "A tap or a click that did not turn into a drag.",
+          "deprecated": false
+        },
+        {
+          "name": "preview",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "What follows the pointer, drawn at the item's size. Defaults to `children`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "Droppable": {
+      "name": "Droppable",
+      "source": "packages/ui/src/components/DragDrop.tsx",
+      "propsTypeName": "DroppableProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "description": "Unique among the provider's droppables; reported as `over.id`.",
+          "deprecated": false
+        },
+        {
+          "name": "accept",
+          "type": "(item: DragItem) => boolean",
+          "required": false,
+          "description": "Whether the zone takes an item. One that does not is ignored, and the\npointer falls through to the zone around it. Every item by default.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode | ((state: DroppableRenderState) => React.ReactNode)",
+          "required": false,
+          "description": "Content, or a function of whether an item is over the zone and where.",
+          "deprecated": false
+        },
+        {
+          "name": "data",
+          "type": "unknown",
+          "required": false,
+          "description": "What the drop handler needs to know about the zone; reported as `over.data`.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Takes nothing.",
+          "deprecated": false
+        },
+        {
+          "name": "orientation",
+          "type": "DropOrientation",
+          "required": false,
+          "default": "\"vertical\"",
+          "description": "The axis its draggables are laid along. Defaults to `\"vertical\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
           "deprecated": false
         },
         {

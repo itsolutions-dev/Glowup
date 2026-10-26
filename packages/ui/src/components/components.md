@@ -2637,6 +2637,42 @@ start, for an app whose desktop layout begins at 1300.
 
 ---
 
+## 8b. Drag and Drop
+
+### DragDropProvider / Draggable / Droppable / useDragDrop
+
+Drag and drop by touch and mouse on iOS, Android and the web, built on the responder system (no
+gesture or animation dependency). The geometry is pure and tested on its own
+(`internal/dragDrop.ts`: the zone under a point, the insertion index, the insertion line).
+
+- **Lifting.** A touch lifts the item after resting 250 ms (moving more than 8 dp first is a
+  swipe, left to the scroll view); a mouse lifts it after moving 4 px. A tap that did not lift calls
+  `onPress`. The item is the handle, pressable content included: every press inside is watched in
+  the capture phase, and a control that took it (a `Card`, a row with `onClick`) is taken over once
+  the press rests or moves; the innermost draggable under the press is the one that lifts.
+- **While dragging.** The item stays in place at 0.4 opacity; a preview (`preview`, else
+  `children`, at the item's size) follows the pointer at the `PortalHost` with a raised shadow,
+  its draggables and zones drawn inert. Zones and items are measured once, when the drag begins.
+  The innermost zone under the pointer that `accept`s the item is the target, never a zone inside
+  the dragged item; a 2 dp primary line marks the insertion point between its draggables. Escape
+  cancels on the web; a touch lift emits `longPress` feedback.
+- **The drop.** `onDragEnd({ active, over })`: `over` is `{ id, data, index }` or `null`;
+  `index` counts the zone's draggables without the dragged one.
+- **Scrolling.** On the web each item cancels its own touch moves once lifted, so the page does
+  not scroll under it. On native, pass `scrollEnabled={!active}` (from `useDragDrop()`) to the
+  `ScrollView` around the zones.
+
+| Component        | Props                                                                                                                            |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| DragDropProvider | `onDragEnd` (required), `onDragStart`, `onDragCancel`, `feedback` (`true`)                                                       |
+| Draggable        | `id` (required), `data`, `preview`, `onPress`, `disabled`, `style`, `accessibilityLabel`                                         |
+| Droppable        | `id` (required), `data`, `accept`, `orientation` (`"vertical"`), `disabled`, `style`, `children` (node or `({ isOver, index })`) |
+
+Not yet: auto-scroll near an edge, a re-measure when a list scrolls under a held item, a
+keyboard way to move an item, a separate drag handle, grids that wrap (one row or column per zone).
+
+---
+
 ## 9. Component Index
 
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
@@ -2646,6 +2682,7 @@ start, for an app whose desktop layout begins at 1300.
 **Data display**: Avatar, Badge, StatusBadge, Blink, DataGrid, Table, ListItem, ListSection/ListSubheader, Tree, Tooltip, Accordion, Carousel, Stat, CaptionValue, Image, IFrame, CodeBlock/HighlightedCode, QrCode
 **Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Dialog, AlertDialog, Popover, HoverCard, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: AppBar, NavBar, NavigationRail, Drawer/DrawerItem/DrawerSection, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper
+**Drag and drop**: DragDropProvider/useDragDrop, Draggable, Droppable
 
 ---
 

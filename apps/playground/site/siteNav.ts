@@ -52,6 +52,12 @@ export const SITE_ROUTES: SiteRoute[] = [
     summary: "Whole screens assembled from the kit.",
   },
   {
+    href: "/drag-and-drop",
+    label: "Drag and drop",
+    icon: "drag-variant",
+    summary: "Lists, boards and nested zones, by touch and mouse, built in.",
+  },
+  {
     href: "/notifications",
     label: "Notifications",
     icon: "bell-outline",

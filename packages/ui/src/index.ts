@@ -128,6 +128,7 @@ export {
   type UseDownloadOptions,
   type UseDownloadResult,
 } from "./components/Download";
+export * from "./components/DragDrop";
 export { default as Editable } from "./components/Editable";
 export type { EditableProps, EditableType } from "./components/Editable";
 export { default as EmptyState } from "./components/EmptyState";

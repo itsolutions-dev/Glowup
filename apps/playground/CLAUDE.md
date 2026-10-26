@@ -316,6 +316,14 @@ drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html
 The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
 private repository requires GitHub Enterprise Cloud.
 
+## The drag and drop page
+
+`app/drag-and-drop.tsx` (/drag-and-drop) demos the library's `DragDropProvider` / `Draggable` / `Droppable`
+as a section of its own, not as catalogue pages: four live boards (columns of pressable cards, a list with a
+locked row, a toolbar whose `accept` caps it at three, sections with nested zones), the usage snippet, and the
+three generated prop tables (`PropsTable` with `docFor`). The page relies on the root `PortalHost` for the
+copy that follows the pointer.
+
 ## The pivot page
 
 `app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report (`site/samplePivot.ts`:

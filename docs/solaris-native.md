@@ -839,7 +839,8 @@ copia locale della libreria in un'app perché adottare il pacchetto costa troppo
 
 ## 10. Aperto per dopo
 
-`/dnd` (trascinamento touch); TimelineChart; `GrantMatrix` e Kanban come componenti; `ScatterChart` e
+~~`/dnd` (trascinamento touch)~~ fatto il 2026-10-26 nel barrel della libreria, senza dipendenze
+(`DragDropProvider`, `Draggable`, `Droppable`: vedi `docs/handoff/2026-10-26.md`); TimelineChart; `GrantMatrix` e Kanban come componenti; `ScatterChart` e
 `AreaRange` (se un'app li usa); zoom/pan nei grafici; annotazioni PDF; export Excel nativo; trascinamento dei
 campi del pivot su touch; supporto a un'app React non-Expo con react-native-web (oggi non verificato);
 cataloghi di etichette per tutte le lingue; generazione di template da MCP (Fase 9).

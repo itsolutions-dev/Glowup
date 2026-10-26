@@ -2341,6 +2341,81 @@ and a close button it holds filters, details or a form on any edge of the window
 M3 Expressive toolbar: `docked` along the bottom edge or `floating` (standard or vibrant,
 horizontal or vertical, with an optional FAB).
 
+### Drag and drop
+
+#### `DragDropProvider` / `Draggable` / `Droppable` / `useDragDrop()`
+
+Drag and drop on iOS, Android and the web, by touch and by mouse, with no dependency: it is built
+on React Native's responder system. A touch lifts an item after resting on it for 250 ms, so a
+swipe still scrolls; a mouse lifts it after moving 4 px, so a click still clicks. The whole item is
+the handle, pressable content included: a `Card` with `onClick` keeps its tap, and a press that
+rests or moves lifts the item instead. While dragging, the item stays in place, dimmed, a preview
+follows the pointer (through the `Portal`, so mount a `Portal.Host`), and a line in the primary
+colour marks where it would land. Escape cancels on the web.
+
+The provider only reports the drop; keep the lists in your state. `over.index` is counted
+without the dragged item: remove it from where it was, then insert it there. Reordering a list
+and moving between lists read the same way.
+
+```tsx
+<DragDropProvider
+  onDragEnd={({ active, over }) => {
+    if (!over) return; // dropped outside every zone
+    setColumns((columns) => {
+      const next = Object.fromEntries(
+        Object.entries(columns).map(([key, ids]) => [
+          key,
+          ids.filter((id) => id !== active.id),
+        ]),
+      );
+      next[over.id].splice(over.index, 0, active.id);
+      return next;
+    });
+  }}
+>
+  {Object.entries(columns).map(([column, ids]) => (
+    <Droppable key={column} id={column}>
+      {ids.map((id) => (
+        <Draggable key={id} id={id}>
+          <Card onClick={() => open(id)}>…</Card>
+        </Draggable>
+      ))}
+    </Droppable>
+  ))}
+</DragDropProvider>
+```
+
+Zones nest: the innermost zone under the pointer that `accept`s the item wins, and a zone inside
+a `Draggable` never takes that draggable (a section cannot be dropped into itself). When zones
+hold different kinds of item, say so: put the kind in each item's `data` and let each zone
+`accept` only its own (`accept={(item) => (item.data as { kind?: string })?.kind === "field"}`), or a field dropped
+between two sections lands in the list of sections. Inside a `ScrollView`, pass
+`scrollEnabled={!active}` (from `useDragDrop()`) so it does not scroll under a held item.
+
+| `DragDropProvider` | Type                               | Default |
+| ------------------ | ---------------------------------- | ------- |
+| onDragEnd          | ({ active, over }) => void (req.)  | —       |
+| onDragStart        | ({ active }) => void               |         |
+| onDragCancel       | ({ active }) => void               |         |
+| feedback           | boolean — touch lift → `longPress` | `true`  |
+
+| `Draggable` | Type                                          | Default    |
+| ----------- | --------------------------------------------- | ---------- |
+| id          | string (required) — `active.id`               | —          |
+| data        | unknown — `active.data`                       |            |
+| preview     | ReactNode — what follows the pointer          | `children` |
+| onPress     | () => void — a tap that did not become a drag |            |
+| disabled    | boolean                                       | `false`    |
+
+| `Droppable` | Type                                                 | Default      |
+| ----------- | ---------------------------------------------------- | ------------ |
+| id          | string (required) — `over.id`                        | —            |
+| data        | unknown — `over.data`                                |              |
+| accept      | (item) => boolean                                    | every item   |
+| orientation | `"vertical" \| "horizontal"` — the axis of its items | `"vertical"` |
+| disabled    | boolean                                              | `false`      |
+| children    | ReactNode or `({ isOver, index }) => ReactNode`      |              |
+
 ### System
 
 ## Live demo

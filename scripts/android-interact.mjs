@@ -23,8 +23,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // the button went out of view.
 adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", "0");
 
+// An emulator given the CI's screen with `wm size 320x640` reports its physical size first: the
+// override is the size taps and swipes are in.
+const wmSize = adb("shell", "wm", "size");
 const [screenW, screenH] = (
-  adb("shell", "wm", "size").match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
+  wmSize.match(/Override size: (\d+)x(\d+)/) ??
+  wmSize.match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
 )
   .slice(1)
   .map(Number);
@@ -39,26 +43,33 @@ const screen = () => {
       xml = "";
     }
   }
-  return [...xml.matchAll(/<node\s[^>]*>/g)].map(([tag]) => {
-    const attr = (name) =>
-      (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) ?? [])[1] ?? "";
-    const [l, t, r, b] = (attr("bounds").match(/\d+/g) ?? [0, 0, 0, 0]).map(
-      Number,
-    );
-    return {
-      l,
-      t,
-      r,
-      b,
-      text: attr("text"),
-      desc: attr("content-desc"),
-      cls: attr("class"),
-      focused: attr("focused") === "true",
-      pkg: attr("package"),
-      x: Math.round((l + r) / 2),
-      y: Math.round((t + b) / 2),
-    };
-  });
+  return (
+    [...xml.matchAll(/<node\s[^>]*>/g)]
+      .map(([tag]) => {
+        const attr = (name) =>
+          (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) ?? [])[1] ?? "";
+        const [l, t, r, b] = (attr("bounds").match(/\d+/g) ?? [0, 0, 0, 0]).map(
+          Number,
+        );
+        return {
+          l,
+          t,
+          r,
+          b,
+          text: attr("text"),
+          desc: attr("content-desc"),
+          cls: attr("class"),
+          focused: attr("focused") === "true",
+          pkg: attr("package"),
+          x: Math.round((l + r) / 2),
+          y: Math.round((t + b) / 2),
+        };
+      })
+      // React Native draws `overflow: hidden` by clipping the canvas, so Android still counts a view
+      // scrolled out of its clip as visible; its accessible bounds come back clamped and upside down
+      // (top below bottom), which can fall inside any box on screen. Such a node is not on screen.
+      .filter((n) => n.r > n.l && n.b > n.t)
+  );
 };
 
 const named = (nodes, label) =>
@@ -72,22 +83,19 @@ const describe = (nodes) =>
     .slice(0, 30)
     .join(" | ");
 
-/** A swipe of `span` of the screen's height (0.4 by default); a short one nudges. */
+/**
+ * A swipe of `span` of the screen's height (0.4 by default); a short one nudges. At a quarter of the
+ * width, not in the middle: on a 320 px screen the middle is over the pivot grid's numbers, which
+ * scroll the grid instead of the page, and the steps that look for a field below it ran out of swipes.
+ * A quarter is over the grid's column of labels, which does not scroll and leaves the drag to the page.
+ */
 const swipe = (direction, span = 0.4) => {
   const [from, to] =
     direction === "down"
       ? [0.5 + span / 2, 0.5 - span / 2]
       : [0.5 - span / 2, 0.5 + span / 2];
-  adb(
-    "shell",
-    "input",
-    "swipe",
-    screenW / 2,
-    screenH * from,
-    screenW / 2,
-    screenH * to,
-    300,
-  );
+  const x = Math.round(screenW / 4);
+  adb("shell", "input", "swipe", x, screenH * from, x, screenH * to, 300);
 };
 
 // Until the title is on screen: the page is long, and a fixed number of swipes stops short of the
@@ -139,8 +147,14 @@ const bring = async (predicate, what) => {
   throw new Error(`${what} would not come into view`);
 };
 
-const tapNode = async (predicate, what) => {
-  const node = await find(predicate);
+/**
+ * Taps a node where it is found. With `centred`, it is brought into the middle first: found on the
+ * last row of pixels, "Open sheet" was tapped at the very bottom of the screen on Android 14, where
+ * the tap does not reach the page. Text fields are not brought: on the emulator the page would not
+ * move while the field above still had the cursor, and the step gave up.
+ */
+const tapNode = async (predicate, what, centred = true) => {
+  const node = centred ? await bring(predicate, what) : await find(predicate);
   if (!node) {
     throw new Error(`${what} not on screen; on screen: ${describe(screen())}`);
   }
@@ -192,7 +206,7 @@ const typeInto = async (label, text, photoName, expectations) => {
   // By label, not by position: the page scrolls, and the first field in view is not always the same.
   const field = (nodes) =>
     nodes.find((n) => n.cls.endsWith("EditText") && n.desc.startsWith(label));
-  await tapNode(field, `the ${label} field`);
+  await tapNode(field, `the ${label} field`, false);
   await sleep(1500);
   for (const char of text) {
     adb("shell", "input", "keyevent", keyCode(char));
@@ -335,8 +349,11 @@ const pivotGrid = () =>
     "the pivot grid",
   );
 
-/** Taps the first arrow with this label inside the pivot grid. */
-const tapArrow = async (label) => {
+/**
+ * Taps the first arrow with this label inside the pivot grid. With `move`, the finger slides that
+ * many pixels before it lifts, as a real one does: `input tap` sends no move at all.
+ */
+const tapArrow = async (label, move = 0) => {
   const box = await pivotGrid();
   const arrow = within(screen(), box, (n) => n.desc === label);
   if (!arrow) {
@@ -345,10 +362,38 @@ const tapArrow = async (label) => {
     );
   }
   console.log(
-    `  tap the ${label} arrow at ${arrow.x},${arrow.y} (grid ${box.l},${box.t} - ${box.r},${box.b})`,
+    `  tap the ${label} arrow at ${arrow.x},${arrow.y}${move ? `, moving ${move} px` : ""} (grid ${box.l},${box.t} - ${box.r},${box.b})`,
   );
-  adb("shell", "input", "tap", arrow.x, arrow.y);
+  if (move) {
+    adb(
+      "shell",
+      "input",
+      "swipe",
+      arrow.x,
+      arrow.y,
+      arrow.x + move,
+      arrow.y + move,
+      120,
+    );
+  } else {
+    adb("shell", "input", "tap", arrow.x, arrow.y);
+  }
   await sleep(700);
+};
+
+/** A drag up the numbers of the grid (the fixed columns take up its left and do not take a drag). */
+const dragGrid = (box) => {
+  const x = Math.round(box.l + (box.r - box.l) * 0.75);
+  adb(
+    "shell",
+    "input",
+    "swipe",
+    x,
+    Math.round(box.b - 20),
+    x,
+    Math.round(box.t + 60),
+    400,
+  );
 };
 
 steps.push(
@@ -375,19 +420,8 @@ steps.push(
           `the header is not on screen; on screen: ${describe(screen())}`,
         );
       }
-      // A drag up the grid: its rows move, its header must not. Only the numbers take a drag (the
-      // fixed columns take up the left of the grid), so it goes in at three quarters of the width.
-      const x = Math.round(box.l + (box.r - box.l) * 0.75);
-      adb(
-        "shell",
-        "input",
-        "swipe",
-        x,
-        Math.round(box.b - 20),
-        x,
-        Math.round(box.t + 60),
-        400,
-      );
+      // A drag up the grid: its rows move, its header must not.
+      dragGrid(box);
       await sleep(900);
       photo("android-pivot-scrolled.png");
       const after = total(screen());
@@ -406,6 +440,29 @@ steps.push(
       await expectText(
         /^pivot=27$/,
         "pivot rows after a tap following the scroll",
+      );
+    },
+  ],
+  [
+    "after a scroll, an arrow answers a tap whose finger moves a little",
+    async () => {
+      // Pressability measures the arrow where the JavaScript side last saw it, before the native
+      // animation moved it: a finger that moved out of that zone used to drop the press.
+      const line = await find((nodes) => hasText(nodes, /^pivot=\d+$/));
+      if (!line) throw new Error("the pivot=<rows> line is not on screen");
+      const rows = Number(line.text.slice("pivot=".length));
+      const box = await pivotGrid();
+      dragGrid(box);
+      await sleep(900);
+      await tapArrow("Collapse", 3);
+      await expectText(
+        new RegExp(`^pivot=${rows - 4}$`),
+        "pivot rows after a moving tap on Collapse",
+      );
+      await tapArrow("Expand", 3);
+      await expectText(
+        new RegExp(`^pivot=${rows}$`),
+        "pivot rows after a moving tap on Expand",
       );
     },
   ],

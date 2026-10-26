@@ -56,6 +56,17 @@ describe("PivotGrid (phone)", () => {
     expect(screen.getByText("23")).toBeTruthy();
   });
 
+  test("a number fills its cell on one line, aligned right", async () => {
+    // Sized to its content, the number was measured a fraction short on Android 15 at density 1
+    // (the CI emulator) and drawn on two lines: 22 showed as "2" over "2" (CI of 2026-10-26).
+    await show(engineFor());
+    const number = await screen.findByText("23");
+    expect(number.props.numberOfLines).toBe(1);
+    const flat = StyleSheet.flatten(number.props.style) as Record<string, any>;
+    expect(flat.alignSelf).toBe("stretch");
+    expect(flat.textAlign).toBe("right");
+  });
+
   test("opens and closes a row, and a column group", async () => {
     await show(engineFor());
     await screen.findByText("y");

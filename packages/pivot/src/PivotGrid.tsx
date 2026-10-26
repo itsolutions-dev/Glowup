@@ -250,8 +250,10 @@ const PivotGrid = ({
                       style={[styles.cell, { width: cellWidth }]}
                     >
                       <Text
+                        numberOfLines={1}
                         style={[
                           text,
+                          styles.number,
                           { color: cell.error ? colors.error : color },
                         ]}
                       >
@@ -298,6 +300,9 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     paddingRight: 12,
   },
+  // The whole width of the cell, not the width of the digits: sized to its content, a number was
+  // measured a fraction short on Android 15 at density 1 and drawn on two lines.
+  number: { alignSelf: "stretch", textAlign: "right" },
 });
 
 export default PivotGrid;

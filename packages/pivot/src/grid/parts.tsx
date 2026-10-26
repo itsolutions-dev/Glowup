@@ -57,6 +57,12 @@ export const ToggleArrow = ({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={item.isExpanded ? collapse : expand}
+      // On the phone the native animation moves the arrows without telling JavaScript, so the zone
+      // Pressability measures at the touch is where the arrow was before the scroll, as far from the
+      // finger as the grid has scrolled. With the default margin the first small move of the finger
+      // counted as leaving the arrow and the press was dropped. A real drag is still not a press:
+      // the scroll view takes the touch and cancels it.
+      pressRetentionOffset={Infinity}
       onPress={() => onToggle(item.nodeKey)}
       style={[styles.arrow, { width: size }]}
     >

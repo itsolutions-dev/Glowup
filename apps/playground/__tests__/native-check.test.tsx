@@ -1,6 +1,6 @@
 import React from "react";
 import { Image } from "react-native";
-import { render } from "@testing-library/react-native";
+import { act, fireEvent, render } from "@testing-library/react-native";
 import { ThemeProvider } from "@its/glowup-ui";
 import { PdfProvider } from "@its/glowup-pdf";
 import { createMemoryPdf } from "@its/glowup-pdf/testing";
@@ -8,34 +8,56 @@ import NativeCheck from "../app/native-check";
 
 const HIT = { x: 0.1, y: 0.1, width: 0.2, height: 0.02 };
 
+// The PDF rows run on the package's in-memory adapters: no native module is needed.
+const mount = async () => {
+  const memory = createMemoryPdf({
+    search: {
+      hello: [
+        { page: 0, rects: [HIT] },
+        { page: 1, rects: [HIT] },
+      ],
+    },
+  });
+  // jest-expo's image loader mock has no promise to give back: answer with the size asked for.
+  jest
+    .spyOn(Image, "getSize")
+    .mockImplementation(((_uri: string, ok?: (w: number, h: number) => void) =>
+      ok?.(600, 849)) as typeof Image.getSize);
+  const view = await render(
+    <ThemeProvider>
+      <PdfProvider adapters={memory.adapters}>
+        <NativeCheck />
+      </PdfProvider>
+    </ThemeProvider>,
+  );
+  return { memory, ...view };
+};
+
 // The screen only runs in the native smoke job, so this just keeps it from
 // breaking unnoticed: it mounts, and shows what the Android script looks for.
 describe("native check screen", () => {
-  it("mounts with its title, its interaction controls and pending measurements", async () => {
-    // The PDF rows run on the package's in-memory adapters: no native module is needed.
-    const memory = createMemoryPdf({
-      search: {
-        hello: [
-          { page: 0, rects: [HIT] },
-          { page: 1, rects: [HIT] },
-        ],
-      },
+  it("reads a layout event before the state update runs, not inside it", async () => {
+    // On the phone React runs a state updater later, during the render, when the native event is already
+    // gone: reading `e.nativeEvent` inside it threw "Cannot read property 'layout' of null" and killed the app
+    // when the screen opened (CI of 2026-10-26, Android 14 and 15).
+    const { getByTestId, getByLabelText, findByText } = await mount();
+    const event = {
+      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 240 } },
+    } as { nativeEvent: unknown };
+    await act(async () => {
+      // An update already waiting, so React cannot compute the next one on the spot.
+      fireEvent.changeText(getByLabelText("Amount"), "5");
+      fireEvent(getByTestId("pivot-box"), "layout", event);
+      event.nativeEvent = null;
     });
-    // jest-expo's image loader mock has no promise to give back: answer with the size asked for.
-    jest
-      .spyOn(Image, "getSize")
-      .mockImplementation(((
-        _uri: string,
-        ok?: (w: number, h: number) => void,
-      ) => ok?.(600, 849)) as typeof Image.getSize);
-    const { getByText, getByLabelText, findByLabelText, findByText } =
-      await render(
-        <ThemeProvider>
-          <PdfProvider adapters={memory.adapters}>
-            <NativeCheck />
-          </PdfProvider>
-        </ThemeProvider>,
-      );
+    expect(
+      await findByText(/^PASS pivot grid is laid out at its height \(240/),
+    ).toBeTruthy();
+  });
+
+  it("mounts with its title, its interaction controls and pending measurements", async () => {
+    const { memory, getByText, getByLabelText, findByLabelText, findByText } =
+      await mount();
     expect(getByText("Native check")).toBeTruthy();
     expect(getByLabelText("Amount")).toBeTruthy();
     expect(getByText("reported=")).toBeTruthy();

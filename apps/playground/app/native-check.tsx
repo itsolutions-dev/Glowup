@@ -449,12 +449,12 @@ export default function NativeCheck() {
             style={{ color: theme.colors.onSurface }}
           >{`pivot=${pivotModel?.rows.length ?? "none"}`}</Text>
           <View
-            onLayout={(e: LayoutChangeEvent) =>
-              setH((prev) => ({
-                ...prev,
-                pivotBox: Math.round(e.nativeEvent.layout.height),
-              }))
-            }
+            testID="pivot-box"
+            onLayout={(e: LayoutChangeEvent) => {
+              // Read it here: React runs the updater later, when the native event is gone.
+              const height = Math.round(e.nativeEvent.layout.height);
+              setH((prev) => ({ ...prev, pivotBox: height }));
+            }}
           >
             <PivotGrid engine={pivotEngine} height={PIVOT_HEIGHT} />
           </View>

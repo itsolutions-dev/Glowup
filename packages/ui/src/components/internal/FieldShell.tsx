@@ -105,7 +105,10 @@ const FieldShell = ({
   const dense = useDensity(density) === "dense";
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, dense, multiline), [theme, dense, multiline]);
+  const styles = useMemo(
+    () => makeStyles(theme, dense, multiline),
+    [theme, dense, multiline],
+  );
   const activeColor = error ? theme.colors.error : theme.colors.primary;
   const labelInside = labelPlacement === "inside";
 

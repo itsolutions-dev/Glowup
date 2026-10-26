@@ -1,6 +1,12 @@
 import React from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
 import { ThemeProvider } from "@its/glowup-ui";
 import { PivotEngine } from "../index";
 import PivotGrid from "../PivotGrid";
@@ -127,6 +133,31 @@ describe("PivotGrid (phone)", () => {
     expect(await screen.findByText("S03124")).toBeTruthy();
     expect(screen.queryByText("S00000")).toBeNull();
   }, 90_000);
+
+  test("with a screen reader on, only the rows in view are mounted", async () => {
+    // The rows kept above and below the view are clipped out of sight but Android still reports them
+    // to TalkBack (React Native clips by drawing), so a reader could land on rows nobody can see.
+    // Replaced and put back by hand: the jest setup already makes it a mock, and restoring a spy on
+    // a mock leaves it with no implementation for the tests after this one.
+    const original = AccessibilityInfo.isScreenReaderEnabled;
+    AccessibilityInfo.isScreenReaderEnabled = () => Promise.resolve(true);
+    try {
+      const many = Array.from({ length: 1000 }, (_, i) => ({
+        site: `S${String(i).padStart(4, "0")}`,
+        cat: "x",
+        flag: "t",
+        n: 1,
+      }));
+      await show(engineFor({ rows: [{ uniqueName: "site" }] }, many), 320);
+      await screen.findByText("S0000");
+      // 320 - 36 px of header leaves 284 px: nine rows of 32 px are in view, the ninth in part.
+      await waitFor(() =>
+        expect(screen.queryAllByTestId(/^pivot-row-/).length).toBe(9),
+      );
+    } finally {
+      AccessibilityInfo.isScreenReaderEnabled = original;
+    }
+  });
 
   test("after a deep scroll, closing the groups still leaves the last rows mounted", async () => {
     const sites = Array.from(

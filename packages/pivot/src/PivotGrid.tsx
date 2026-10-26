@@ -5,8 +5,9 @@
 // vertical one. No JavaScript runs between the finger and the screen. Rows have a fixed height, so the
 // window of mounted rows is plain arithmetic (grid/windowing), updated only when it changes.
 // The web grid (PivotGrid.web.tsx) does the same with CSS.
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   StyleSheet,
   Text,
@@ -39,6 +40,25 @@ const PivotGrid = ({
   const { model, loading, toggle } = usePivotGrid(engine, localization);
   const [width, setWidth] = useState<number | undefined>(undefined);
   const [scrollTop, setScrollTop] = useState(0);
+  // With a screen reader on, no rows are kept above and below the view: clipped out of sight, they
+  // are still reported to TalkBack (React Native clips by drawing), and a reader could land on rows
+  // nobody can see. The spare rows only hide blank space during a fast drag, which a reader does not do.
+  const [reader, setReader] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isScreenReaderEnabled().then((on) => {
+      if (alive) setReader(on);
+    });
+    const subscription = AccessibilityInfo.addEventListener(
+      "screenReaderChanged",
+      setReader,
+    );
+    return () => {
+      alive = false;
+      subscription.remove();
+    };
+  }, []);
+  const overscan = reader ? 0 : undefined;
   const grid = gridStrings(localization);
   const collapse = grid.collapseChildren || "Collapse";
   const expand = grid.expandChildren || "Expand";
@@ -84,6 +104,7 @@ const PivotGrid = ({
             viewportHeight: bodyHeight,
             rowHeight: ROW_HEIGHT,
             count,
+            overscan,
           };
           setScrollTop((current) =>
             sameRange(
@@ -95,7 +116,7 @@ const PivotGrid = ({
           );
         },
       }),
-    [y, bodyHeight, count],
+    [y, bodyHeight, count, overscan],
   );
 
   const onLayout = (event: LayoutChangeEvent) =>
@@ -114,6 +135,7 @@ const PivotGrid = ({
     viewportHeight: bodyHeight,
     rowHeight: ROW_HEIGHT,
     count: model.rows.length,
+    overscan,
   });
   const rows = model.rows.slice(start, end);
 

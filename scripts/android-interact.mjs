@@ -18,6 +18,11 @@ const photo = (file) =>
   );
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// The emulator has a hardware keyboard, so Android can be told not to show the soft one. Tried
+// before: closing it with Enter, Back or a button in the page; the page moves up when it opens and
+// the button went out of view.
+adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", "0");
+
 const [screenW, screenH] = (
   adb("shell", "wm", "size").match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
 )
@@ -41,8 +46,15 @@ const screen = () => {
       Number,
     );
     return {
+      l,
+      t,
+      r,
+      b,
       text: attr("text"),
       desc: attr("content-desc"),
+      cls: attr("class"),
+      focused: attr("focused") === "true",
+      pkg: attr("package"),
       x: Math.round((l + r) / 2),
       y: Math.round((t + b) / 2),
     };
@@ -54,39 +66,103 @@ const named = (nodes, label) =>
 const hasText = (nodes, pattern) =>
   nodes.find((n) => pattern.test(n.text) || pattern.test(n.desc));
 
-/** Looks for something, scrolling down a few times if it is off screen. */
+/** What is on screen, for a failure message: a miss is useless without it. */
+const describe = (nodes) =>
+  [...new Set(nodes.flatMap((n) => [n.text, n.desc]).filter(Boolean))]
+    .slice(0, 30)
+    .join(" | ");
+
+/** A swipe of `span` of the screen's height (0.4 by default); a short one nudges. */
+const swipe = (direction, span = 0.4) => {
+  const [from, to] =
+    direction === "down"
+      ? [0.5 + span / 2, 0.5 - span / 2]
+      : [0.5 - span / 2, 0.5 + span / 2];
+  adb(
+    "shell",
+    "input",
+    "swipe",
+    screenW / 2,
+    screenH * from,
+    screenW / 2,
+    screenH * to,
+    300,
+  );
+};
+
+// Until the title is on screen: the page is long, and a fixed number of swipes stops short of the
+// top once something is added at the end of it (the PDF page did, on Android 14).
+const scrollToTop = async () => {
+  for (let i = 0; i < 24; i += 1) {
+    if (named(screen(), "Native check")) return;
+    swipe("up");
+    await sleep(300);
+  }
+};
+
+/**
+ * Looks for something where it is: on screen now, then further down the page,
+ * then back up. A step can start anywhere, and the page only scrolls one way
+ * per swipe, so looking down alone never finds what a previous step scrolled
+ * past.
+ */
 const find = async (predicate, tries = 6) => {
-  for (let i = 0; i < tries; i += 1) {
-    const hit = predicate(screen());
-    if (hit) return hit;
-    adb(
-      "shell",
-      "input",
-      "swipe",
-      screenW / 2,
-      screenH * 0.7,
-      screenW / 2,
-      screenH * 0.3,
-      300,
-    );
-    await sleep(600);
+  let hit = predicate(screen());
+  if (hit) return hit;
+  for (const direction of ["down", "up"]) {
+    for (let i = 0; i < (direction === "down" ? tries : tries * 2); i += 1) {
+      swipe(direction);
+      await sleep(600);
+      hit = predicate(screen());
+      if (hit) return hit;
+    }
   }
   return null;
 };
 
-const tap = async (label) => {
-  const node = await find((nodes) => named(nodes, label));
-  if (!node) throw new Error(`"${label}" not on screen`);
+/** Finds a node and scrolls until all of it is in the middle of the screen, so a tap inside it lands. */
+const bring = async (predicate, what) => {
+  for (let i = 0; i < 6; i += 1) {
+    const node = await find(predicate);
+    if (!node) {
+      throw new Error(
+        `${what} not on screen; on screen: ${describe(screen())}`,
+      );
+    }
+    // The app bar covers the top 15% (a chart seen only through it was tapped on the bar, not the
+    // chart). A short nudge: a whole swipe overshoots and the node flips between the two edges.
+    if (node.t < screenH * 0.2) swipe("up", 0.15);
+    else if (node.b > screenH * 0.85) swipe("down", 0.15);
+    else return node;
+    await sleep(600);
+  }
+  throw new Error(`${what} would not come into view`);
+};
+
+const tapNode = async (predicate, what) => {
+  const node = await find(predicate);
+  if (!node) {
+    throw new Error(`${what} not on screen; on screen: ${describe(screen())}`);
+  }
+  console.log(
+    `  tap ${what} at ${node.x},${node.y} (screen ${screenW}x${screenH})`,
+  );
   adb("shell", "input", "tap", node.x, node.y);
   await sleep(700);
 };
 
+const tap = (label) => tapNode((nodes) => named(nodes, label), `"${label}"`);
+
 const expectText = async (pattern, what) => {
-  for (let i = 0; i < 6; i += 1) {
+  for (let i = 0; i < 3; i += 1) {
     if (hasText(screen(), pattern)) return;
     await sleep(500);
   }
-  throw new Error(`${what}: ${pattern} not found`);
+  // A state line can sit below the fold: look for it as well.
+  if (await find((nodes) => hasText(nodes, pattern))) return;
+  throw new Error(
+    `${what}: ${pattern} not found; on screen: ${describe(screen())}`,
+  );
 };
 
 const expectGone = async (label, what) => {
@@ -95,18 +171,65 @@ const expectGone = async (label, what) => {
     throw new Error(`${what}: "${label}" still there`);
 };
 
+// Android key codes: 0-9 are 7-16, "," is 55, "." is 56, a-z are 29-54.
+const keyCode = (char) =>
+  char === ","
+    ? 55
+    : char === "."
+      ? 56
+      : /[0-9]/.test(char)
+        ? 7 + Number(char)
+        : 29 + (char.charCodeAt(0) - 97);
+
+/**
+ * Taps the text field with this label, types with key events and checks what the screen then says.
+ * No dump between the tap and the keys (a dump can take the focus off the field). The soft
+ * keyboard is switched off for the whole run (see below), so nothing covers the page and there is
+ * nothing to close: the keys are hardware key events and reach the focused field all the same.
+ */
+const typeInto = async (label, text, photoName, expectations) => {
+  await scrollToTop();
+  // By label, not by position: the page scrolls, and the first field in view is not always the same.
+  const field = (nodes) =>
+    nodes.find((n) => n.cls.endsWith("EditText") && n.desc.startsWith(label));
+  await tapNode(field, `the ${label} field`);
+  await sleep(1500);
+  for (const char of text) {
+    adb("shell", "input", "keyevent", keyCode(char));
+    await sleep(150);
+  }
+  await sleep(700);
+  photo(photoName);
+  for (const [pattern, what] of expectations) await expectText(pattern, what);
+};
+
 const steps = [
   [
+    "a plain text field takes keys (the control for the next two steps)",
+    () =>
+      typeInto("Plain field", "12", "android-plain.png", [
+        [/^plain=12$/, "plain value"],
+      ]),
+  ],
+  [
+    "the library's text Input takes keys",
+    () =>
+      typeInto("Name", "ab", "android-name.png", [[/^name=ab$/, "name value"]]),
+  ],
+  [
+    "the search field the PDF viewer uses takes keys",
+    () =>
+      typeInto("Search the PDF", "hello", "android-search.png", [
+        [/^query=hello$/, "query value"],
+      ]),
+  ],
+  [
     "a decimal comma is typed and reported as a plain number",
-    async () => {
-      await tap("Amount");
-      adb("shell", "input", "text", "12,50");
-      await sleep(700);
-      await expectText(/^reported=12\.50$/, "reported value");
-      await expectText(/^12,50$/, "text shown in the field");
-      adb("shell", "input", "keyevent", "4"); // hide the keyboard
-      await sleep(500);
-    },
+    () =>
+      typeInto("Amount", "12,50", "android-typed.png", [
+        [/^reported=12\.50$/, "reported value"],
+        [/^12,50$/, "text shown in the field"],
+      ]),
   ],
   [
     "the badge on a button counts presses",
@@ -130,6 +253,9 @@ const steps = [
     "a drawer group opens to its sub-items",
     async () => {
       await tap("Reports");
+      // The group animates open: wait longer than its 200 ms, and say what is there.
+      await sleep(1500);
+      console.log(`  after opening: ${describe(screen())}`);
       await expectText(/^Sales$/, "sub-item");
     },
   ],
@@ -146,24 +272,95 @@ const steps = [
   ],
 ];
 
+/** Taps a chart where `at(box)` says and checks the state line its onSelect writes. */
+const tapChart = async (summary, at, photoName, pattern, what) => {
+  // The charts are near the top of the page: look for them from there, not from wherever the last step left it.
+  await scrollToTop();
+  const chart = await bring(
+    (nodes) => nodes.find((n) => n.desc.startsWith(summary)),
+    `the "${summary}" chart`,
+  );
+  const [x, y] = at(chart).map(Math.round);
+  console.log(
+    `  tap the chart at ${x},${y} (box ${chart.l},${chart.t} - ${chart.r},${chart.b})`,
+  );
+  adb("shell", "input", "tap", x, y);
+  await sleep(700);
+  photo(photoName);
+  await expectText(pattern, what);
+};
+
+steps.push(
+  [
+    "a tap on a dense bar chart picks a category",
+    // Inside the plot, a little right of the middle: any category will do, none is not one.
+    () =>
+      tapChart(
+        "Native dense",
+        (c) => [c.l + (c.r - c.l) * 0.55, c.t + (c.b - c.t) * 0.4],
+        "android-chart-bars.png",
+        /^chart=\d+$/,
+        "chart state",
+      ),
+  ],
+  [
+    "a tap on a donut slice picks that part",
+    // Nine o'clock on the ring, which is the "open" part (108 to 288 degrees clockwise from the top).
+    () =>
+      tapChart(
+        "Native parts",
+        // The ring is centred in the box and its middle is about 0.28 of the box's height from the centre.
+        (c) => [(c.l + c.r) / 2 - (c.b - c.t) * 0.28, (c.t + c.b) / 2],
+        "android-chart-donut.png",
+        /^part=open$/,
+        "part state",
+      ),
+  ],
+);
+
+steps.push([
+  "the sample PDF page is on screen, drawn at the viewer's size",
+  async () => {
+    // The page is the last thing on the screen: go to the end, wherever the step before left the page.
+    for (let i = 0; i < 8; i += 1) {
+      swipe("down");
+      await sleep(400);
+    }
+    photo("android-pdf.png");
+    const page = named(screen(), "Sample PDF page");
+    if (!page) {
+      throw new Error(
+        `the page is not on screen; on screen: ${describe(screen())}`,
+      );
+    }
+    console.log(
+      `  the page is ${page.r - page.l} x ${page.b - page.t} px on screen`,
+    );
+  },
+]);
+
 // The screen can take a moment to open after the trigger.
 let ready = false;
-for (let i = 0; i < 40 && !ready; i += 1) {
+for (let i = 0; i < 80 && !ready; i += 1) {
   ready = !!hasText(screen(), /^Native check$/);
   if (!ready) await sleep(1500);
 }
 if (!ready) console.log("FAIL the native check screen did not open");
 
 let failed = 0;
+let index = 0;
 if (ready) {
   // The measurement results sit at the top: photograph them before scrolling.
   await sleep(2000);
   photo("android-check.png");
   for (const [name, run] of steps) {
+    index += 1;
     try {
       await run();
       console.log(`PASS ${name}`);
     } catch (error) {
+      // A failing step is photographed where it stopped, not at the end.
+      photo(`android-step-${index}.png`);
       failed += 1;
       console.log(`FAIL ${name}: ${error.message}`);
     }
@@ -171,5 +368,5 @@ if (ready) {
 }
 photo("android-check-after.png");
 console.log(
-  `${steps.length - failed}/${steps.length} interaction steps passed`,
+  `${ready ? steps.length - failed : 0}/${steps.length} interaction steps passed`,
 );

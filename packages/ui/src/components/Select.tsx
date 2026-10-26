@@ -476,8 +476,9 @@ const makeStyles = (theme: Theme, dense: boolean) =>
       marginBottom: dense ? 12 : 20,
     },
     selectContainer: {
+      // No `height: "100%"`: its parents have no height, and on iOS and Android
+      // it resolved to a tall box that `density` could not shrink.
       minHeight: dense ? 40 : 52,
-      height: "100%",
       borderRadius: 12,
       paddingHorizontal: 16,
       flexDirection: "row",

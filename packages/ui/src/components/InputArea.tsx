@@ -176,6 +176,7 @@ const InputArea = ({
 
   return (
     <FieldShell
+      multiline
       label={label}
       labelPlacement={labelPlacement}
       variant={variant}

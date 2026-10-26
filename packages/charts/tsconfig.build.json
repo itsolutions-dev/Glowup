@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "types": [],
+    // The declarations name the library's package, not its source: with the
+    // mapping inherited from tsconfig.json, tsc would pull packages/ui/src outside
+    // `rootDir`.
+    "paths": {}
+  },
+  "include": ["src"],
+  "exclude": [
+    "**/__tests__",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    // The d3 copy is JavaScript: its types are vendor/d3/index.d.ts, which no
+    // public declaration names, and tsc cannot emit declarations for it.
+    "src/vendor/**/*.js"
+  ]
+}

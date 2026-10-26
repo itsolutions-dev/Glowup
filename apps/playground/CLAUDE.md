@@ -146,7 +146,7 @@ without one of them fails there. It gets its page, its props table and its URL f
 `app/native-check.tsx` (/native-check) is a verification screen for the **native smoke job only**
 (`.github/workflows/native.yml`); nothing links to it. A build made with
 `EXPO_PUBLIC_NATIVE_CHECK_ROUTE=/native-check` opens it a minute after launch (`NativeCheckTrigger` in
-`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has two parts:
+`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has four parts:
 
 - **Measurements**: normal and dense controls and a button with and without a badge are laid out on the
   device and their sizes compared (Δ height 24 / 12 / 20, badge width +12), so it catches what jest cannot.
@@ -154,8 +154,26 @@ without one of them fails there. It gets its page, its props table and its URL f
   `console.log`) and logged as `NATIVECHECK` lines.
 - **Interaction**: a decimal-comma input, a badge button, keyed tabs, a drawer group and a bottom sheet, each
   with a `state=` line. `scripts/android-interact.mjs` drives them on the emulator with `adb` (types,
-  taps, `uiautomator dump`) and prints PASS/FAIL per step. iOS has no equivalent from CI. The screen and
-  the script are kept in step by hand: add a control there when a component gains behaviour a phone must prove.
+  taps, `uiautomator dump`) and prints PASS/FAIL per step. Typing goes through key events, and a failing step leaves
+  `android-step-N.png`. iOS has no equivalent from CI. The screen and the script are kept in step by hand: add a control
+  there when a component gains behaviour a phone must prove.
+- **PDF rows** (`usePdfChecks`): the package's native module on the sample PDF (`site/samplePdf.ts`): opens it (3 pages),
+  draws page 1 at 600 px (its real width is read from the file) and again at the width the viewer would ask on this screen
+  (screen width minus 32, times the pixel ratio): that second drawing is the last thing on the screen, one image pixel to one
+  screen pixel, so a screenshot shows how small print (8 and 6 points, black and red, on every page of the sample) comes out of
+  the JPEG (`ios-pdf.png`, `android-pdf.png`); it is last so that nothing above it moves. It searches
+  "hello" (pages 1 and 2, rectangles inside the page; PENDING where search is off) and refuses a file that is not a PDF. A last row
+  opens a 300-page file (`longPdf`) and draws its last page: it is a measurement (the detail carries the milliseconds), it fails
+  only if the page count is wrong. They log as `NATIVECHECK pdf …` and are drawn on screen like the measurements.
+- **Chart rows**: a `BarChart` in a box that a sibling squeezes (200 → 100 px) must be laid out at its height (160) and
+  follow the box down to 100 px (the drawing is absolute inside, so a width taken from it would stop the box shrinking: the
+  spike's pitfall). A dense `BarChart` (250 categories) and a `DonutChart` are mounted below for the screenshot; a crash there
+  fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
+  Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
+  "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
+  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts and the PDF page, 10 s each (`Platform.OS === "ios"` only:
+  on Android it would fight the script), and `native.yml` takes `ios-seq-NN.png` every 6 s for two minutes: read the ones that show each position (fixed delays from the screen opening drifted off the workflow's clock once). Android leaves
+  `android-chart-bars.png` and `android-chart-donut.png`.
 
 ## The notifications page
 
@@ -297,3 +315,9 @@ drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html
 
 The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
 private repository requires GitHub Enterprise Cloud.
+
+## The pivot page
+
+`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report (`site/samplePivot.ts`:
+sites, four categories under each, a true/false column, a count), and a switch of the engine's locale. Nothing in it comes from a real report.
+Jest runs as a phone, so the page test sees the grid's "not available" message; the web grid is tested in the package.

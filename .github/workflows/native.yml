@@ -15,6 +15,7 @@ on:
     branches: [dev]
     paths:
       - ".github/workflows/native.yml"
+      - "scripts/android-interact.mjs"
       - "apps/playground/**"
       - "packages/**"
       - "package-lock.json"
@@ -112,10 +113,15 @@ jobs:
           UDID="${{ steps.sim.outputs.udid }}"
           # The app opens the route 60 s after launch; the smoke check above took 40 s.
           sleep 45
-          xcrun simctl io "$UDID" screenshot ios-check.png
+          # The screen cycles by itself over its top, the charts and the PDF page, 10 s each, so a
+          # shot every 6 s for two minutes catches each position whatever the runner's speed.
+          for i in $(seq -w 1 20); do
+            xcrun simctl io "$UDID" screenshot "ios-seq-$i.png"
+            sleep 6
+          done
           {
             echo "### iOS native check"
-            echo "Measured on the simulator: read the lines in ios-check.png (the artifact)."
+            echo "Measured on the simulator: read the lines, the charts and the PDF page in ios-seq-*.png (the artifact): the screen cycles top, charts, PDF every 10 s."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Collect crash reports
@@ -131,15 +137,22 @@ jobs:
           name: ios-smoke
           path: |
             ios-shot.png
-            ios-check.png
+            ios-seq-*.png
             ios-app.log
             ios-crashes
             xcodebuild.log
           if-no-files-found: ignore
 
   android:
+    # Two Android versions: 34 (Android 14, where search needs SDK extension 13 and may be off) and
+    # 35 (Android 15, where the system search is in PdfRenderer itself).
+    name: android (API ${{ matrix.api }})
     runs-on: ubuntu-latest
     timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 35]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -187,7 +200,7 @@ jobs:
       - name: Run on an emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: ${{ matrix.api }}
           arch: x86_64
           target: google_apis
           disable-animations: true
@@ -201,12 +214,13 @@ jobs:
             test -s android-pid.txt
             node scripts/android-interact.mjs | tee android-interaction.txt || true
             adb logcat -d -s ReactNativeJS:V | grep -o "NATIVECHECK .*" > android-nativecheck.txt || true
+            adb logcat -d > android-logcat-after.txt || true
 
       - name: Summary
         if: always()
         run: |
           {
-            echo "### Android"
+            echo "### Android API ${{ matrix.api }}"
             echo "App pid after 40 s: \`$(cat android-pid.txt 2>/dev/null || echo 'none')\`"
             echo "Fatal lines in logcat: $(grep -c 'FATAL EXCEPTION' android-logcat.txt 2>/dev/null || echo 0)"
             echo "### Android native check"
@@ -219,13 +233,21 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: android-smoke
+          name: android-smoke-${{ matrix.api }}
           path: |
             android-shot.png
             android-check.png
             android-check-after.png
+            android-step-*.png
+            android-chart-*.png
+            android-pdf.png
+            android-typed.png
+            android-plain.png
+            android-name.png
+            android-search.png
             android-interaction.txt
             android-nativecheck.txt
             android-logcat.txt
+            android-logcat-after.txt
             gradle.log
           if-no-files-found: ignore

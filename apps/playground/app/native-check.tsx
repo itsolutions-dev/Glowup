@@ -8,23 +8,226 @@
 //  - "Interaction" is driven on Android with `adb` (scripts/android-interact.mjs):
 //    it types, taps and reads the `STATE` lines below. iOS has no equivalent from
 //    CI, so there the screen is only measured and photographed.
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View, type LayoutChangeEvent } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Image,
+  PixelRatio,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  useWindowDimensions,
+  View,
+  type LayoutChangeEvent,
+} from "react-native";
 import {
   BottomSheet,
   Button,
   DrawerItem,
   Input,
+  SearchBar,
   Drawer,
   Select,
   Tabs,
   useTheme,
 } from "@its/glowup-ui";
+import { BarChart, DonutChart } from "@its/glowup-charts";
+import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
+
+import {
+  LONG_PDF_PAGES,
+  SAMPLE_PDF_PAGES,
+  longPdf,
+  samplePdf,
+} from "../site/samplePdf";
 
 type Sizes = Record<string, number>;
+type Row = [name: string, ok: boolean | null, detail: string];
 
 const noop = () => {};
 const OPTIONS = [{ id: "1", label: "Uno", value: 1 }];
+
+const CHART_HEIGHT = 160;
+const CHART_SERIES = [{ key: "a" }, { key: "b" }];
+const CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
+  label: `C${i + 1}`,
+  a: 10 + i * 3,
+  b: 20 - i * 2,
+}));
+// 250 categories x 2 series is past the dense threshold: one path per series and one touch layer.
+const CHART_DENSE = Array.from({ length: 250 }, (_, i) => ({
+  label: `${i + 1}`,
+  a: 50 + Math.round(40 * Math.sin(i / 9)),
+  b: 40 + Math.round(30 * Math.cos(i / 7)),
+}));
+const CHART_PARTS = [
+  { id: "won", label: "Won", value: 30 },
+  { id: "open", label: "Open", value: 50 },
+  { id: "lost", label: "Lost", value: 19 },
+  { id: "void", label: "Void", value: 1 },
+];
+
+const PDF_WIDTH = 600;
+const PDF_OPEN = "pdf opens and reports its pages";
+const PDF_DRAW = "pdf page is drawn at the width asked";
+const PDF_SEARCH = "pdf search finds a known word";
+const PDF_REFUSE = "pdf refuses a file that is not a PDF";
+const PDF_LONG = "pdf opens a 300-page file";
+
+/**
+ * The PDF module on the device, on the playground's sample: open it, draw the first page,
+ * search "hello" (on pages 1 and 2), and open something that is not a PDF. The first page is
+ * drawn twice: at 600 pixels, whose real width is read from the file, and again at the width
+ * the viewer would ask on this screen (`pageWidth` points times the pixel ratio), which is
+ * shown last on the screen so a screenshot shows how small print comes out.
+ */
+const usePdfChecks = (pageWidth: number) => {
+  const pdf = usePdfAdapters();
+  const [rows, setRows] = useState<Record<string, [boolean | null, string]>>(
+    {},
+  );
+  const [image, setImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    let uri: string | null = null;
+    const set = (name: string, ok: boolean | null, detail: string) => {
+      if (alive) setRows((prev) => ({ ...prev, [name]: [ok, detail] }));
+    };
+    const failure = (error: unknown) =>
+      `${isPdfError(error) ? `${error.code}: ` : ""}${error instanceof Error ? error.message : String(error)}`;
+
+    void (async () => {
+      try {
+        uri = await pdf.files.write(samplePdf());
+        const { pages } = await pdf.native.open(uri);
+        const first = pages[0];
+        set(
+          PDF_OPEN,
+          pages.length === SAMPLE_PDF_PAGES,
+          `${pages.length} pages, first ${Math.round(first?.width ?? 0)} x ${Math.round(first?.height ?? 0)}`,
+        );
+        const drawn = await pdf.native.renderPage(uri, 0, PDF_WIDTH);
+        // The file's own size, read from its header: the image view's load event reports what the
+        // platform decoded for the box it is shown in, not the pixels written.
+        Image.getSize(
+          drawn,
+          (width, height) =>
+            set(PDF_DRAW, width === PDF_WIDTH, `${width} x ${height} pixels`),
+          (error) => set(PDF_DRAW, false, failure(error)),
+        );
+        pdf.native
+          .renderPage(uri, 0, Math.round(pageWidth * PixelRatio.get()))
+          .then((shown) => {
+            if (alive) setImage(shown);
+          })
+          .catch(() => {});
+      } catch (error) {
+        set(PDF_OPEN, false, failure(error));
+        return;
+      }
+      try {
+        const caps = await pdf.native.capabilities();
+        if (!caps.search) {
+          set(
+            PDF_SEARCH,
+            null,
+            `search is off on this device (${Platform.OS} ${Platform.Version})`,
+          );
+        } else {
+          // One call per page, as the viewer makes them.
+          const file = uri;
+          const hits = (
+            await Promise.all(
+              Array.from({ length: SAMPLE_PDF_PAGES }, (_, page) =>
+                pdf.native.searchPage(file, page, "hello"),
+              ),
+            )
+          ).flat();
+          const found = hits.map((hit) => hit.page).join(",");
+          const inside = hits.every((hit) =>
+            hit.rects.every(
+              (r) =>
+                r.width > 0 &&
+                r.height > 0 &&
+                r.x >= 0 &&
+                r.y >= 0 &&
+                r.x + r.width <= 1.001 &&
+                r.y + r.height <= 1.001,
+            ),
+          );
+          // "hello" on page 1 is the second line, 720 points up a page 842 high: 0.12 to 0.14 from
+          // the top. A rectangle measured from the bottom, or in points, would not land there.
+          const top = hits[0]?.rects[0]?.y ?? -1;
+          const fromTop = top > 0.05 && top < 0.25;
+          set(
+            PDF_SEARCH,
+            found === "0,1" && inside && fromTop,
+            `pages ${found || "none"}, rectangles ${inside ? "inside" : "outside"} the page, first ${fromTop ? "near" : "not near"} the top (y=${top.toFixed(2)})`,
+          );
+        }
+      } catch (error) {
+        set(PDF_SEARCH, false, failure(error));
+      }
+      let junk: string | null = null;
+      try {
+        junk = await pdf.files.write(
+          Uint8Array.from("not a pdf", (c) => c.charCodeAt(0)),
+        );
+        await pdf.native.open(junk);
+        set(PDF_REFUSE, false, "it was opened");
+      } catch (error) {
+        set(
+          PDF_REFUSE,
+          isPdfError(error) && error.code === "format",
+          failure(error),
+        );
+      } finally {
+        if (junk) void pdf.files.remove(junk);
+      }
+      // A long document: how long opening takes (the module reads every page's size) and drawing the
+      // last page. No limit is asserted, the row is the measurement; it fails only if the count is wrong.
+      let long: string | null = null;
+      try {
+        long = await pdf.files.write(longPdf());
+        const t0 = Date.now();
+        const { pages } = await pdf.native.open(long);
+        const opened = Date.now() - t0;
+        await pdf.native.renderPage(long, LONG_PDF_PAGES - 1, 300);
+        set(
+          PDF_LONG,
+          pages.length === LONG_PDF_PAGES,
+          `${pages.length} pages, open ${opened} ms, last page drawn ${Date.now() - t0 - opened} ms`,
+        );
+      } catch (error) {
+        set(PDF_LONG, false, failure(error));
+      } finally {
+        if (long) {
+          void pdf.native.close(long).catch(() => {});
+          void pdf.files.remove(long);
+        }
+      }
+    })();
+
+    return () => {
+      alive = false;
+      if (uri) {
+        void pdf.native.close(uri).catch(() => {});
+        void pdf.files.remove(uri);
+      }
+    };
+  }, [pdf, pageWidth]);
+
+  const checks = useMemo<Row[]>(
+    () =>
+      [PDF_OPEN, PDF_DRAW, PDF_SEARCH, PDF_REFUSE, PDF_LONG].map((name) => [
+        name,
+        ...(rows[name] ?? [null, "not measured yet"]),
+      ]),
+    [rows],
+  );
+  return { checks, image };
+};
 
 /** Reports the height and width of what it wraps, once laid out. */
 const Measured = ({
@@ -51,6 +254,7 @@ const Measured = ({
 
 export default function NativeCheck() {
   const { theme } = useTheme();
+  const pageWidth = useWindowDimensions().width - 32;
   const [h, setH] = useState<Sizes>({});
   const [w, setW] = useState<Sizes>({});
   const onSize = useCallback((id: string, size: { h: number; w: number }) => {
@@ -59,17 +263,55 @@ export default function NativeCheck() {
   }, []);
 
   const [amount, setAmount] = useState("");
+  const [plain, setPlain] = useState("");
+  const [name, setName] = useState("");
+  const [query, setQuery] = useState("");
   const [filters, setFilters] = useState(0);
   const [tab, setTab] = useState("overview");
   const [sheet, setSheet] = useState(false);
+  // The widths the chart box reports: 200 (300 - 100), then a sibling grows and the box must follow to 100.
+  const [chartWidths, setChartWidths] = useState<number[]>([]);
+  const [pick, setPick] = useState<number | null>(null);
+  const [part, setPart] = useState<string | null>(null);
+  // iOS has nothing to scroll the page from CI: it cycles by itself, 10 s each, over the top, the
+  // charts and the PDF page, and native.yml takes a screenshot every few seconds. Fixed delays from
+  // the screen opening drifted away from the workflow's clock (a slow runner took every shot at the PDF).
+  const scroll = useRef<ScrollView>(null);
+  const chartsAt = useRef(0);
+  const pdfAt = useRef(0);
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    const stops = [0, chartsAt, pdfAt];
+    let i = 0;
+    const timer = setInterval(() => {
+      i = (i + 1) % stops.length;
+      const stop = stops[i];
+      scroll.current?.scrollTo({
+        y: typeof stop === "number" ? stop : stop.current,
+        animated: false,
+      });
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Each check compares a difference, not an absolute size: line heights differ
   // between platforms, the padding the props add does not.
-  const checks = useMemo<[name: string, ok: boolean | null, detail: string][]>(
+  const pdf = usePdfChecks(pageWidth);
+  const measured = useMemo<Row[]>(
     () => [
       check("input dense is 24 shorter", h.inputNormal, h.inputDense, 24),
       check("button dense is 12 shorter", h.buttonNormal, h.buttonDense, 12),
       check("select dense is 20 shorter", h.selectNormal, h.selectDense, 20),
+      [
+        "bar chart is laid out at its height",
+        h.chartBox == null ? null : h.chartBox === CHART_HEIGHT,
+        `${h.chartBox}, expected ${CHART_HEIGHT}`,
+      ],
+      [
+        "chart box shrinks with its container",
+        chartWidths.length < 2 ? null : chartWidths.at(-1) === 100,
+        chartWidths.join(" -> "),
+      ],
       [
         "button badge adds width",
         w.badgeOn == null || w.badgeOff == null
@@ -78,7 +320,11 @@ export default function NativeCheck() {
         `${w.badgeOff} -> ${w.badgeOn}`,
       ],
     ],
-    [h, w],
+    [h, w, chartWidths],
+  );
+  const checks = useMemo<Row[]>(
+    () => [...measured, ...pdf.checks],
+    [measured, pdf.checks],
   );
   // One line per check for logcat; on iOS the log carries no console output, so
   // the same lines are drawn on screen below.
@@ -91,126 +337,252 @@ export default function NativeCheck() {
   }, [checks]);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.colors.surface }}
-      contentContainerStyle={{ padding: 16, gap: 12 }}
-    >
-      <Text
-        style={[theme.typography.titleLarge, { color: theme.colors.onSurface }]}
+    <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
+      <ScrollView
+        ref={scroll}
+        // A tap on a field inside a ScrollView that keeps the default ("never") closes the keyboard
+        // as it opens: the Android run showed the hide request 45 ms after the show.
+        keyboardShouldPersistTaps="handled"
+        style={{ flex: 1, backgroundColor: theme.colors.surface }}
+        contentContainerStyle={{ padding: 16, gap: 12 }}
       >
-        Native check
-      </Text>
-
-      <Text style={{ color: theme.colors.onSurfaceVariant }}>Measurements</Text>
-      {checks.map(([name, ok, detail]) => (
         <Text
-          key={name}
-          style={{
-            color:
-              ok == null
-                ? theme.colors.onSurfaceVariant
-                : ok
-                  ? theme.colors.success
-                  : theme.colors.error,
+          style={[
+            theme.typography.titleLarge,
+            { color: theme.colors.onSurface },
+          ]}
+        >
+          Native check
+        </Text>
+
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          Measurements
+        </Text>
+        {checks.map(([name, ok, detail]) => (
+          <Text
+            key={name}
+            style={{
+              color:
+                ok == null
+                  ? theme.colors.onSurfaceVariant
+                  : ok
+                    ? theme.colors.success
+                    : theme.colors.error,
+            }}
+          >
+            {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
+          </Text>
+        ))}
+
+        <View
+          style={{ gap: 12 }}
+          onLayout={(e: LayoutChangeEvent) => {
+            chartsAt.current = e.nativeEvent.layout.y;
           }}
         >
-          {`${ok == null ? "PENDING" : ok ? "PASS" : "FAIL"} ${name} (${detail})`}
+          {/* A chart box that a sibling squeezes: the drawing is absolute inside, so its width must follow the box. */}
+          <View style={{ flexDirection: "row", width: 300 }}>
+            <View style={{ width: chartWidths.length > 0 ? 200 : 100 }} />
+            <View
+              style={{ flex: 1 }}
+              onLayout={(e: LayoutChangeEvent) => {
+                const { width, height } = e.nativeEvent.layout;
+                setH((prev) => ({ ...prev, chartBox: Math.round(height) }));
+                setChartWidths((prev) =>
+                  prev.at(-1) === Math.round(width)
+                    ? prev
+                    : [...prev, Math.round(width)],
+                );
+              }}
+            >
+              <BarChart
+                data={CHART_DATA}
+                series={CHART_SERIES}
+                height={CHART_HEIGHT}
+              />
+            </View>
+          </View>
+          {/* The tap steps of scripts/android-interact.mjs: the chart is found by the start of its summary, and a tap reads back through the state lines. */}
+          <BarChart
+            title="Native dense"
+            data={CHART_DENSE}
+            series={CHART_SERIES}
+            height={120}
+            onSelect={setPick}
+          />
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`chart=${pick ?? "none"}`}</Text>
+          <DonutChart
+            title="Native parts"
+            data={CHART_PARTS}
+            height={160}
+            showPercent
+            onSelect={setPart}
+          />
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`part=${part ?? "none"}`}</Text>
+        </View>
+
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          Interaction
         </Text>
-      ))}
 
-      <Text style={{ color: theme.colors.onSurfaceVariant }}>Interaction</Text>
+        <Input
+          label="Amount"
+          type="number"
+          decimalSeparator=","
+          precision={2}
+          value={amount}
+          onChange={setAmount}
+        />
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`reported=${amount}`}</Text>
 
-      <Input
-        label="Amount"
-        type="number"
-        decimalSeparator=","
-        precision={2}
-        value={amount}
-        onChange={setAmount}
-      />
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`reported=${amount}`}</Text>
+        {/* A control for the Amount field: the library's Input is not involved, so if this one takes
+          keys and Amount does not, the fault is in the Input and not in the emulator. */}
+        <TextInput
+          accessibilityLabel="Plain field"
+          keyboardType="decimal-pad"
+          value={plain}
+          onChangeText={setPlain}
+          style={{
+            borderWidth: 1,
+            borderColor: theme.colors.outline,
+            borderRadius: 4,
+            padding: 8,
+            color: theme.colors.onSurface,
+          }}
+        />
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`plain=${plain}`}</Text>
 
-      <View style={{ flexDirection: "row" }}>
-        <Button
-          variant="outlined"
-          iconName="filter-outline"
-          badge={filters}
-          onClick={() => setFilters((n) => n + 1)}
+        {/* The library's Input with nothing special set: tells a fault of every Input from one of the number type. */}
+        <Input label="Name" value={name} onChange={setName} />
+        <Text style={{ color: theme.colors.onSurface }}>{`name=${name}`}</Text>
+
+        {/* The field of the PDF viewer's search: the same focus ring as Input. */}
+        <SearchBar
+          placeholder="Search the PDF"
+          value={query}
+          onChange={setQuery}
+        />
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`query=${query}`}</Text>
+
+        <View style={{ flexDirection: "row" }}>
+          <Button
+            variant="outlined"
+            iconName="filter-outline"
+            badge={filters}
+            onClick={() => setFilters((n) => n + 1)}
+          >
+            Filters
+          </Button>
+        </View>
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`badge=${filters}`}</Text>
+
+        <Tabs
+          tabs={[
+            { label: "Overview", key: "overview" },
+            { label: "Billing", key: "billing" },
+            { label: "Audit", key: "audit", disabled: true },
+          ]}
+          activeKey={tab}
+          onChange={(_, key) => setTab(key ?? "")}
+        />
+        <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
+
+        {/* A row, so the drawer stretches to this height: its body is `flex: 1`, and in a column
+          of auto height it collapses to nothing on iOS and Android (not on the web). */}
+        <View style={{ height: 280, flexDirection: "row" }}>
+          <Drawer width={280}>
+            <DrawerItem label="Reports" icon="chart-box-outline">
+              <DrawerItem label="Sales" onClick={noop} />
+            </DrawerItem>
+            {/* Open from the start, so it never animates: if "Old" shows and "Sales" does not,
+              it is the opening animation that fails, not the layout. */}
+            <DrawerItem label="Archive" icon="archive-outline" defaultExpanded>
+              <DrawerItem label="Old" onClick={noop} />
+            </DrawerItem>
+          </Drawer>
+        </View>
+
+        <View style={{ flexDirection: "row" }}>
+          <Button variant="tonal" onClick={() => setSheet(true)}>
+            Open sheet
+          </Button>
+        </View>
+        <Text
+          style={{ color: theme.colors.onSurface }}
+        >{`sheet=${sheet ? "open" : "closed"}`}</Text>
+        <BottomSheet
+          visible={sheet}
+          onClose={() => setSheet(false)}
+          title="Filters"
+          showCloseButton
+          actions={<Button onClick={() => setSheet(false)}>Apply</Button>}
         >
-          Filters
-        </Button>
-      </View>
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`badge=${filters}`}</Text>
+          <Text style={{ color: theme.colors.onSurface }}>Sheet content</Text>
+        </BottomSheet>
 
-      <Tabs
-        tabs={[
-          { label: "Overview", key: "overview" },
-          { label: "Billing", key: "billing" },
-          { label: "Audit", key: "audit", disabled: true },
-        ]}
-        activeKey={tab}
-        onChange={(_, key) => setTab(key ?? "")}
-      />
-      <Text style={{ color: theme.colors.onSurface }}>{`tab=${tab}`}</Text>
+        {/* Laid out only to be measured. */}
+        <View style={{ width: 280 }}>
+          <Measured id="inputNormal" onSize={onSize}>
+            <Input label="Normal" value="" onChange={noop} />
+          </Measured>
+          <Measured id="inputDense" onSize={onSize}>
+            <Input label="Dense" density="dense" value="" onChange={noop} />
+          </Measured>
+          <Measured id="buttonNormal" onSize={onSize}>
+            <Button>Normal</Button>
+          </Measured>
+          <Measured id="buttonDense" onSize={onSize}>
+            <Button density="dense">Dense</Button>
+          </Measured>
+          <Measured id="selectNormal" onSize={onSize}>
+            <Select options={OPTIONS} value={1} onChange={noop} />
+          </Measured>
+          <Measured id="selectDense" onSize={onSize}>
+            <Select
+              options={OPTIONS}
+              value={1}
+              onChange={noop}
+              density="dense"
+            />
+          </Measured>
+          <Measured id="badgeOff" onSize={onSize}>
+            <Button>Filters</Button>
+          </Measured>
+          <Measured id="badgeOn" onSize={onSize}>
+            <Button badge={3}>Filters</Button>
+          </Measured>
+        </View>
 
-      <View style={{ height: 200 }}>
-        <Drawer width={280}>
-          <DrawerItem label="Reports" icon="chart-box-outline">
-            <DrawerItem label="Sales" onClick={noop} />
-          </DrawerItem>
-        </Drawer>
-      </View>
-
-      <View style={{ flexDirection: "row" }}>
-        <Button variant="tonal" onClick={() => setSheet(true)}>
-          Open sheet
-        </Button>
-      </View>
-      <Text
-        style={{ color: theme.colors.onSurface }}
-      >{`sheet=${sheet ? "open" : "closed"}`}</Text>
-      <BottomSheet
-        visible={sheet}
-        onClose={() => setSheet(false)}
-        title="Filters"
-        showCloseButton
-        actions={<Button onClick={() => setSheet(false)}>Apply</Button>}
-      >
-        <Text style={{ color: theme.colors.onSurface }}>Sheet content</Text>
-      </BottomSheet>
-
-      {/* Laid out only to be measured. */}
-      <View style={{ width: 280 }}>
-        <Measured id="inputNormal" onSize={onSize}>
-          <Input label="Normal" value="" onChange={noop} />
-        </Measured>
-        <Measured id="inputDense" onSize={onSize}>
-          <Input label="Dense" density="dense" value="" onChange={noop} />
-        </Measured>
-        <Measured id="buttonNormal" onSize={onSize}>
-          <Button>Normal</Button>
-        </Measured>
-        <Measured id="buttonDense" onSize={onSize}>
-          <Button density="dense">Dense</Button>
-        </Measured>
-        <Measured id="selectNormal" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onChange={noop} />
-        </Measured>
-        <Measured id="selectDense" onSize={onSize}>
-          <Select options={OPTIONS} value={1} onChange={noop} density="dense" />
-        </Measured>
-        <Measured id="badgeOff" onSize={onSize}>
-          <Button>Filters</Button>
-        </Measured>
-        <Measured id="badgeOn" onSize={onSize}>
-          <Button badge={3}>Filters</Button>
-        </Measured>
-      </View>
-    </ScrollView>
+        {/* Last, so nothing above it moves: the page as the viewer draws it, one image pixel to one screen pixel. */}
+        {pdf.image ? (
+          <Image
+            source={{ uri: pdf.image }}
+            accessibilityLabel="Sample PDF page"
+            resizeMode="stretch"
+            onLayout={(e: LayoutChangeEvent) => {
+              pdfAt.current = e.nativeEvent.layout.y;
+            }}
+            style={{
+              width: pageWidth,
+              height: Math.round((pageWidth * 842) / 595),
+              backgroundColor: "#fff",
+            }}
+          />
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -226,6 +598,6 @@ function check(
   return [
     name,
     Math.abs(delta - expected) <= 2,
-    `Δ=${delta}, expected ${expected}`,
+    `${normal} -> ${dense}, Δ=${delta}, expected ${expected}`,
   ];
 }

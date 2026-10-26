@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "types": ["jest", "node"],
+    // CI type-checks before it builds, and the library's `lib/` is build output:
+    // read its source instead, as the playground does.
+    "paths": {
+      "@its/glowup-ui": ["../ui/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

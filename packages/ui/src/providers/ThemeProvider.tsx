@@ -333,8 +333,16 @@ export const getStateColor = (
   return mix(weight, stateColor, base);
 };
 
-/** The halo only: shadow on web and iOS, elevation on Android. */
-const haloStyles = (glowColor: string, inner: boolean) =>
+/**
+ * The halo only: shadow on web and iOS, elevation on Android (unless
+ * `androidElevation` is off: a field must not get a new style at focus on
+ * Android, it made the app hide the keyboard right after showing it).
+ */
+const haloStyles = (
+  glowColor: string,
+  inner: boolean,
+  androidElevation = true,
+) =>
   Platform.select({
     web: {
       boxShadow: inner
@@ -348,9 +356,7 @@ const haloStyles = (glowColor: string, inner: boolean) =>
       shadowOpacity: 0.25,
       shadowRadius: 8,
     },
-    android: {
-      elevation: 4,
-    },
+    android: androidElevation ? { elevation: 4 } : undefined,
   }) ?? {};
 
 /**
@@ -383,6 +389,6 @@ export const getGlowStyles = (
   return {
     borderColor: glowColor,
     borderWidth: 1,
-    ...haloStyles(glowColor, false),
+    ...haloStyles(glowColor, false, false),
   };
 };

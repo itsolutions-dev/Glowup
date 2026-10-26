@@ -18,8 +18,14 @@ export const visibleRange = ({
   if (count <= 0 || viewportHeight <= 0 || rowHeight <= 0) {
     return { start: 0, end: 0 };
   }
-  const first = Math.min(count, Math.max(0, Math.floor(scrollTop / rowHeight)));
-  const last = Math.ceil((scrollTop + viewportHeight) / rowHeight);
+  // An offset kept from before the rows shrank (groups closed at the bottom) is held to the new
+  // maximum, so the viewport is still filled until the next scroll event brings the real one.
+  const top = Math.min(
+    Math.max(0, scrollTop),
+    Math.max(0, count * rowHeight - viewportHeight),
+  );
+  const first = Math.floor(top / rowHeight);
+  const last = Math.ceil((top + viewportHeight) / rowHeight);
   return {
     start: Math.max(0, first - overscan),
     end: Math.min(count, last + overscan),

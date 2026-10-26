@@ -24,6 +24,24 @@ describe("visibleRange", () => {
     expect(start).toBeLessThanOrEqual(end);
   });
 
+  test("an offset past the new end (groups closed at the bottom) still fills the viewport", () => {
+    // 61 rows of 10 px in a 100 px viewport: the largest offset is 510, rows 51..60 are in view.
+    expect(
+      visibleRange({
+        ...base,
+        count: 61,
+        scrollTop: 1810,
+        overscan: 0,
+      }),
+    ).toEqual({ start: 51, end: 61 });
+  });
+
+  test("fewer rows than the viewport holds start at the first row", () => {
+    expect(
+      visibleRange({ ...base, count: 3, scrollTop: 500, overscan: 0 }),
+    ).toEqual({ start: 0, end: 3 });
+  });
+
   test("a margin is five rows unless told otherwise", () => {
     expect(visibleRange({ ...base, scrollTop: 500 })).toEqual({
       start: 45,

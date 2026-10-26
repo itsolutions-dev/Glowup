@@ -23,6 +23,15 @@ export const cellLabel = (
     ? `${grid.formulaError || "Formula error"}: ${cell.error}`
     : undefined;
 
+/** The props that make the label above what is announced: without `accessible` VoiceOver reads the "!" inside. */
+export const cellAccess = (
+  cell: { error: string | null },
+  grid: Record<string, string>,
+): { accessible?: true; accessibilityLabel?: string } =>
+  cell.error
+    ? { accessible: true, accessibilityLabel: cellLabel(cell, grid) }
+    : {};
+
 export const messageText = (
   loading: boolean,
   grid: Record<string, string>,

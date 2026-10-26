@@ -164,7 +164,8 @@ describe("PivotGrid (web)", () => {
       });
     try {
       await show(engineFor(ROWS));
-      expect(await screen.findByLabelText(/boom/)).toBeTruthy();
+      // An aria-label on a div with no role is ignored by screen readers: the cell needs one.
+      expect((await screen.findByLabelText(/boom/)).props.role).toBe("img");
     } finally {
       spy.mockRestore();
     }

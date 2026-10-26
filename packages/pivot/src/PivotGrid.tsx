@@ -23,7 +23,7 @@ import {
   gridSizes,
 } from "./grid/layout";
 import { gridStrings, type GridColumn, type GridRow } from "./grid/model";
-import { ToggleArrow, cellLabel, messageText, rowColors } from "./grid/parts";
+import { ToggleArrow, cellAccess, messageText, rowColors } from "./grid/parts";
 import type { PivotGridProps } from "./grid/props";
 import { usePivotGrid } from "./grid/usePivotGrid";
 import { sameRange, visibleRange } from "./grid/windowing";
@@ -246,7 +246,7 @@ const PivotGrid = ({
                     <View
                       key={cell.key}
                       testID={`pivot-cell-${row.key}-${index}`}
-                      accessibilityLabel={cellLabel(cell, grid)}
+                      {...cellAccess(cell, grid)}
                       style={[styles.cell, { width: cellWidth }]}
                     >
                       <Text

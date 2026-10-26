@@ -135,7 +135,10 @@ describe("PivotGrid (phone)", () => {
     await act(async () => {
       sites.forEach((site) => engine.toggleExpanded(`__root__|site:${site}`));
     });
-    expect(screen.queryAllByTestId(/^pivot-row-/).length).toBeGreaterThan(0);
+    // 61 rows left; the viewport (320 - 36 px of header) shows 9 of them, so at least 9 are mounted.
+    expect(
+      screen.queryAllByTestId(/^pivot-row-/).length,
+    ).toBeGreaterThanOrEqual(9);
     expect(await screen.findByText("S59")).toBeTruthy();
   });
 
@@ -194,7 +197,10 @@ describe("PivotGrid (phone)", () => {
       });
     try {
       await show(engineFor());
-      expect(await screen.findByLabelText(/boom/)).toBeTruthy();
+      // `accessible` is what makes VoiceOver read the label instead of the "!" inside.
+      expect((await screen.findByLabelText(/boom/)).props.accessible).toBe(
+        true,
+      );
     } finally {
       spy.mockRestore();
     }

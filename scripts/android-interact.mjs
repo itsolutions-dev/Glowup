@@ -375,8 +375,9 @@ steps.push(
           `the header is not on screen; on screen: ${describe(screen())}`,
         );
       }
-      // A drag up the grid: its rows move, its header must not.
-      const x = Math.round((box.l + box.r) / 2);
+      // A drag up the grid: its rows move, its header must not. Only the numbers take a drag (the
+      // fixed columns take up the left of the grid), so it goes in at three quarters of the width.
+      const x = Math.round(box.l + (box.r - box.l) * 0.75);
       adb(
         "shell",
         "input",

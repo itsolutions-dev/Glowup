@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Link, usePathname } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
+  ScrollArea,
   SearchBar,
   Typography,
   useTheme,
@@ -60,10 +61,9 @@ export const CatalogueSidebar = () => {
         </Typography>
       </View>
 
-      <ScrollView
+      <ScrollArea
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
       >
         {groups.length === 0 ? (
           <Typography
@@ -107,7 +107,7 @@ export const CatalogueSidebar = () => {
             </View>
           ))
         )}
-      </ScrollView>
+      </ScrollArea>
     </View>
   );
 };

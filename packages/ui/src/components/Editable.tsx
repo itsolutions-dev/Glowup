@@ -18,6 +18,7 @@ import { useTheme, getGlowStyles, Theme } from "../providers/ThemeProvider";
 import Glyph from "./Glyph";
 import IconButton from "./IconButton";
 import Input from "./Input";
+import InputArea from "./InputArea";
 import Select, { type Option } from "./Select";
 import Typography, { type TypographyProps } from "./Typography";
 import { useEscapeKey } from "./internal/useEscapeKey";
@@ -50,8 +51,8 @@ export interface EditableProps {
   /** Called with the value the edit started from when it is cancelled (Escape or the close button). */
   onCancel?: (previous: string) => void;
   /**
-   * The field that opens: `"text"` is an `Input`, `"textarea"` a multi-line
-   * `Input` (Enter adds a line; Ctrl or Cmd + Enter confirms), `"number"` an
+   * The field that opens: `"text"` is an `Input`, `"textarea"` an
+   * `InputArea` (Enter adds a line; Ctrl or Cmd + Enter confirms), `"number"` an
    * `Input type="number"` (the value stays plain text) and `"select"` a
    * `Select` that is already open, which confirms on the pick. Defaults to
    * `"text"`.
@@ -340,6 +341,28 @@ const Editable = ({
     );
   }
 
+  // What the text fields (`Input`, `InputArea`) are opened with.
+  const textField = {
+    value,
+    onChange: change,
+    variant,
+    density: sizing.dense ? ("dense" as const) : ("normal" as const),
+    error,
+    style: styles.fieldNoGap,
+    onFocus: () => setSession((s) => s && { ...s, focused: true }),
+    onBlur: blurSubmits ? () => commit() : undefined,
+    inputProps: {
+      // Asked for until the field has focus, once: a later render (the
+      // width it learns from the display) must not take focus back from a
+      // second field that opened meanwhile, and a blur confirms.
+      autoFocus: !session?.focused,
+      selectTextOnFocus: selectAllOnFocus,
+      accessibilityLabel: label,
+      testID: testID ? `${testID}-input` : undefined,
+      onKeyPress,
+    },
+  };
+
   const field =
     type === "select" ? (
       <Select
@@ -357,33 +380,16 @@ const Editable = ({
         style={styles.fieldNoGap}
         defaultOpen
       />
+    ) : type === "textarea" ? (
+      <InputArea rows={3} {...textField} />
     ) : (
       <Input
-        value={value}
-        onChange={change}
         type={type === "number" ? "number" : "text"}
         precision={precision}
-        multiline={type === "textarea"}
-        rows={3}
-        variant={variant}
-        density={sizing.dense ? "dense" : "normal"}
-        error={error}
-        style={styles.fieldNoGap}
-        onFocus={() => setSession((s) => s && { ...s, focused: true })}
-        onBlur={blurSubmits ? () => commit() : undefined}
+        {...textField}
         inputProps={{
-          // Asked for until the field has focus, once: a later render (the
-          // width it learns from the display) must not take focus back from a
-          // second field that opened meanwhile, and a blur confirms.
-          autoFocus: !session?.focused,
-          selectTextOnFocus: selectAllOnFocus,
-          accessibilityLabel: label,
-          testID: testID ? `${testID}-input` : undefined,
-          onKeyPress,
-          onSubmitEditing:
-            type !== "textarea" && enterSubmits
-              ? () => commit(value, true)
-              : undefined,
+          ...textField.inputProps,
+          onSubmitEditing: enterSubmits ? () => commit(value, true) : undefined,
         }}
       />
     );

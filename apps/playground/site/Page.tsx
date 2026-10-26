@@ -1,13 +1,12 @@
 import { useMemo } from "react";
 import {
   Platform,
-  ScrollView,
   StyleSheet,
   View,
   type LayoutChangeEvent,
 } from "react-native";
 import Head from "expo-router/head";
-import { Typography, useTheme, type Theme } from "@its/glowup-ui";
+import { ScrollArea, Typography, useTheme, type Theme } from "@its/glowup-ui";
 import { useLayout } from "./breakpoints";
 import { OG_IMAGE_URL } from "./siteNav";
 
@@ -105,12 +104,13 @@ export const Page = ({
     <>
       <PageHead title={title} description={description} />
       {scroll ? (
-        <ScrollView
+        <ScrollArea
+          style={styles.fill}
           contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
+          testID="page-scroller"
         >
           {body}
-        </ScrollView>
+        </ScrollArea>
       ) : (
         <View style={styles.scroll}>{body}</View>
       )}
@@ -193,6 +193,8 @@ export const Section = ({
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
+    // What a ScrollView does by itself, for the `ScrollArea` view around it.
+    fill: { flexGrow: 1, flexShrink: 1 },
     scroll: {
       flexGrow: 1,
       // The one place the side gutter is defined. `paddingBlock` keeps it from

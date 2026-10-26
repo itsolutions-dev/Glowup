@@ -1,21 +1,14 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback } from "react";
 import {
-  View,
-  Text,
   TextInput,
-  StyleSheet,
-  Platform,
-  StyleProp,
-  ViewStyle,
+  type StyleProp,
   type TextInputProps,
+  type ViewStyle,
 } from "react-native";
-import Icons from "./Glyph";
-import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
+import { useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
-import HelperText from "./HelperText";
-import { useDensity, type Density } from "../providers/Density";
-import { fieldWidth } from "./internal/fieldWidth";
-import { filledField } from "./internal/fieldVariant";
+import { type Density } from "../providers/Density";
+import FieldShell from "./internal/FieldShell";
 
 /** The `TextInput` props an `Input` hands through; its controlled ones (`value`, `onChangeText`, `editable`, `secureTextEntry`) stay with its own props. */
 export type InputTextInputProps = Pick<
@@ -36,6 +29,10 @@ export type InputTextInputProps = Pick<
   | "testID"
 >;
 
+/**
+ * A single-line text or number field. For text that wraps over several lines
+ * use `InputArea`.
+ */
 export interface InputProps {
   label?: string;
   placeholder?: string;
@@ -113,10 +110,6 @@ export interface InputProps {
   inputProps?: InputTextInputProps;
   /** A ref to the underlying `TextInput`, to focus it or select its text. */
   inputRef?: React.Ref<TextInput>;
-  /** Lets the text wrap over several lines; see `rows`. */
-  multiline?: boolean;
-  /** Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4. */
-  rows?: number;
   /**
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 56, 14 px text, less space below.
    */
@@ -156,18 +149,11 @@ const Input = ({
   endAdornment,
   inputProps,
   inputRef,
-  multiline = false,
-  rows = 4,
   density,
   minHeight,
   style,
 }: InputProps) => {
-  const dense = useDensity(density) === "dense";
-  const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, dense), [theme, dense]);
-  const activeColor = error ? theme.colors.error : theme.colors.primary;
-  const labelInside = labelPlacement === "inside";
 
   const handleTextChange = useCallback(
     (text: string) => {
@@ -194,217 +180,63 @@ const Input = ({
     [type, precision, decimalSeparator, allUpperCase, onChange],
   );
 
-  // Focus ring + error border, both driven by the theme's glow helper.
-  const dynamicStyles = useMemo(
-    () => getGlowStyles(theme, isFocused, error),
-    [theme, isFocused, error],
-  );
-
   return (
-    <View style={[styles.wrapper, fieldWidth(fullWidth), style]}>
-      {!!label && !labelInside && (
-        <Text
+    <FieldShell
+      label={label}
+      labelPlacement={labelPlacement}
+      variant={variant}
+      error={error}
+      helperText={helperText}
+      required={required}
+      disabled={disabled}
+      reserveHelperText={reserveHelperText}
+      fullWidth={fullWidth}
+      density={density}
+      minHeight={minHeight}
+      style={style}
+      prefix={prefix}
+      suffix={suffix}
+      leadingIcon={leadingIcon}
+      trailingIcon={trailingIcon}
+      onTrailingIconPress={onTrailingIconPress}
+      endAdornment={endAdornment}
+      onFocus={onFocus}
+      onBlur={onBlur}
+    >
+      {(field) => (
+        <TextInput
+          accessibilityLabel={label}
+          accessibilityState={{ disabled }}
+          // A secret never goes to the accessibility tree as the field's value.
+          accessibilityValue={secureTextEntry ? undefined : { text: value }}
+          accessibilityHint={placeholder}
+          readOnly={readonly}
+          maxLength={maxLength}
           style={[
-            theme.typography.bodySmall,
-            {
-              color: isFocused ? activeColor : theme.colors.onSurfaceVariant,
-              marginBottom: 4,
-              marginLeft: 4,
-            },
+            { flex: 1 },
+            field.style,
+            { textAlign: type === "number" ? "right" : "left" },
           ]}
-        >
-          {required ? `${label} *` : label}
-        </Text>
+          placeholder={placeholder}
+          placeholderTextColor={theme.colors.onSurfaceVariant}
+          autoCapitalize={allUpperCase ? "characters" : undefined}
+          value={
+            type === "number" && decimalSeparator === ","
+              ? value.replace(".", ",")
+              : value
+          }
+          onChangeText={handleTextChange}
+          onFocus={field.onFocus}
+          onBlur={field.onBlur}
+          editable={!disabled}
+          secureTextEntry={secureTextEntry}
+          keyboardType={type === "number" ? "decimal-pad" : "default"}
+          ref={inputRef}
+          {...inputProps}
+        />
       )}
-
-      <View
-        style={[
-          styles.inputContainer,
-          { minHeight: minHeight ?? (dense ? 40 : 56) },
-          dynamicStyles,
-          variant === "filled" && filledField(theme, isFocused, error),
-          disabled && styles.disabled,
-        ]}
-      >
-        {prefix ? (
-          <Text
-            style={[styles.affix, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {prefix}
-          </Text>
-        ) : (
-          leadingIcon && (
-            <View style={styles.iconLeft}>
-              <Icons
-                name={leadingIcon}
-                size={20}
-                color={theme.colors.onSurfaceVariant}
-              />
-            </View>
-          )
-        )}
-
-        <View style={styles.textInputWrapper}>
-          {!!label && labelInside && (
-            <Text
-              style={[
-                theme.typography.labelSmall,
-                {
-                  color: isFocused
-                    ? activeColor
-                    : theme.colors.onSurfaceVariant,
-                },
-              ]}
-            >
-              {required ? `${label} *` : label}
-            </Text>
-          )}
-
-          <TextInput
-            accessibilityLabel={label}
-            accessibilityState={{ disabled }}
-            // A secret never goes to the accessibility tree as the field's value.
-            accessibilityValue={secureTextEntry ? undefined : { text: value }}
-            accessibilityHint={placeholder}
-            multiline={multiline}
-            numberOfLines={multiline ? rows : undefined}
-            readOnly={readonly}
-            maxLength={maxLength}
-            style={[
-              styles.textInput,
-              dense ? theme.typography.bodyMedium : theme.typography.bodyLarge,
-              {
-                color: theme.colors.onSurface,
-                paddingVertical: labelInside ? 2 : dense ? 8 : 12,
-                textAlign: type === "number" ? "right" : "left",
-              },
-            ]}
-            placeholder={placeholder}
-            placeholderTextColor={theme.colors.onSurfaceVariant}
-            autoCapitalize={allUpperCase ? "characters" : undefined}
-            value={
-              type === "number" && decimalSeparator === ","
-                ? value.replace(".", ",")
-                : value
-            }
-            onChangeText={handleTextChange}
-            onFocus={() => {
-              setIsFocused(true);
-              onFocus?.();
-            }}
-            onBlur={() => {
-              setIsFocused(false);
-              onBlur?.();
-            }}
-            editable={!disabled}
-            secureTextEntry={secureTextEntry}
-            keyboardType={type === "number" ? "decimal-pad" : "default"}
-            ref={inputRef}
-            {...inputProps}
-          />
-        </View>
-
-        {suffix ? (
-          <Text
-            style={[styles.affix, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {suffix}
-          </Text>
-        ) : (
-          trailingIcon && (
-            <View style={styles.iconRight}>
-              <Icons
-                name={trailingIcon}
-                size={20}
-                color={
-                  !!error ? theme.colors.error : theme.colors.onSurfaceVariant
-                }
-                onPress={onTrailingIconPress}
-              />
-            </View>
-          )
-        )}
-
-        {!!endAdornment && (
-          <View style={styles.endAdornment}>{endAdornment}</View>
-        )}
-      </View>
-
-      {(!!(error || helperText) || reserveHelperText) && (
-        <HelperText
-          type={error ? "error" : "info"}
-          disabled={disabled}
-          visible={!!(error || helperText)}
-        >
-          {error || helperText || " "}
-        </HelperText>
-      )}
-    </View>
+    </FieldShell>
   );
 };
 
 export default Input;
-
-const makeStyles = (theme: Theme, dense: boolean) =>
-  StyleSheet.create({
-    wrapper: {
-      marginBottom: dense ? 12 : 20,
-    },
-    inputContainer: {
-      minHeight: 52,
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.colors.surface,
-    },
-
-    disabled: {
-      opacity: 0.38,
-      backgroundColor: theme.colors.surfaceVariant,
-    },
-
-    textInput: {
-      flex: 1,
-      paddingVertical: 8,
-      ...Platform.select({
-        // No browser focus ring: the field draws its own.
-        web: { outlineWidth: 0 },
-      }),
-    },
-    textInputWrapper: {
-      flex: 1,
-      paddingVertical: Platform.OS === "ios" && !dense ? 8 : 0, // iOS needs a bit of padding for multiline
-    },
-    iconLeft: {
-      marginRight: 12,
-      borderRightWidth: 1,
-      alignSelf: "stretch",
-      borderColor: theme.colors.outlineVariant,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingRight: 12,
-    },
-    iconRight: {
-      marginLeft: 12,
-      borderLeftWidth: 1,
-      alignSelf: "stretch",
-      borderColor: theme.colors.outlineVariant,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingLeft: 12,
-    },
-    // Hugs the edge: the field's own padding is more than a control needs.
-    endAdornment: {
-      marginLeft: theme.spacing.xs,
-      marginRight: -theme.spacing.s,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    affix: {
-      paddingHorizontal: 4,
-      fontSize: 16,
-      fontWeight: "400",
-      textAlignVertical: "center",
-    },
-  });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Button,
-  Input,
+  InputArea,
   Rating,
   Typography,
   VStack,
@@ -37,12 +37,11 @@ export default function RatingExample() {
           setSent(false);
         }}
       />
-      <Input
+      <InputArea
         label="Tell us more"
         placeholder="Optional"
         value={comment}
         onChange={setComment}
-        multiline
         rows={3}
       />
       <Button

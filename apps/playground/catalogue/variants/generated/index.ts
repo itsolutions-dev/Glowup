@@ -42,6 +42,7 @@ import { variants as IFrame } from "./IFrame";
 import { variants as IconButton } from "./IconButton";
 import { variants as Image } from "./Image";
 import { variants as Input } from "./Input";
+import { variants as InputArea } from "./InputArea";
 import { variants as LinearProgress } from "./LinearProgress";
 import { variants as Link } from "./Link";
 import { variants as ListItem } from "./ListItem";
@@ -129,6 +130,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   IconButton,
   Image,
   Input,
+  InputArea,
   LinearProgress,
   Link,
   ListItem,

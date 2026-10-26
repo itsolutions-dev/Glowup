@@ -178,6 +178,8 @@ export { default as Image } from "./components/Image";
 export * from "./components/Image";
 export { default as Input } from "./components/Input";
 export type { InputProps, InputTextInputProps } from "./components/Input";
+export { default as InputArea } from "./components/InputArea";
+export type { InputAreaProps } from "./components/InputArea";
 export { default as Link } from "./components/Link";
 export * from "./components/Link";
 export { default as ListItem } from "./components/List/ListItem";

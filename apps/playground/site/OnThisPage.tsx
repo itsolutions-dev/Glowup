@@ -42,8 +42,8 @@ export interface PageSection {
 }
 
 /**
- * Scroll spy for a page of sections. Hand `onScroll` and
- * `scrollEventThrottle` to the ScrollView and `track(id)` to each section (and
+ * Scroll spy for a page of sections. Hand `onScroll` to the page's `ScrollArea`
+ * (or ScrollView), its `ref` as `scrollRef`, and `track(id)` to each section (and
  * to the "column" and "row" wrappers around them); it answers which section is
  * current and whether the page has left the top.
  *

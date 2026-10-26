@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 115 componenti.
+Ora: versione 0.11.1, 116 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,8 +11,8 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 27 | 353 |
-| Aggiornati | 55 | 712 |
+| Aggiunti | 28 | 379 |
+| Aggiornati | 55 | 711 |
 | Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
@@ -34,6 +34,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [HighlightedCode](#highlightedcode)
 - [HoverCard](#hovercard)
 - [IFrame](#iframe)
+- [InputArea](#inputarea)
 - [NavBar](#navbar)
 - [NumberField](#numberfield)
 - [PasswordField](#passwordfield)
@@ -72,7 +73,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Grid](#grid): + autoSize, children, container, size, style, wrap · ~ columns, spacing · − minChildWidth
 - [HStack](#hstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 - [IconButton](#iconbutton): + badge, color, onClick, title, variant · − mode, onPress
-- [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, endAdornment, fullWidth, inputProps, inputRef, labelPlacement, reserveHelperText, rows · ~ minHeight · − onChangeText, numberOfLines
+- [Input](#input): comportamento · + onChange, allUpperCase, decimalSeparator, density, endAdornment, fullWidth, inputProps, inputRef, labelPlacement, reserveHelperText · ~ minHeight · − onChangeText, multiline, numberOfLines
 - [LinearProgress](#linearprogress): + label, labelPosition, width · ~ height
 - [ListItem](#listitem): comportamento · + primaryText, action, dimmed, disabled, icon, indicatorColor, onClick, primaryTextStyle, secondaryText, secondaryTextStyle, testID, trailingWidth, variant · − children, itemSecondaryTextStyle, itemTextStyle, leading, onPress, secondary, trailing
 - [ListSection](#listsection): + gap, showDividers
@@ -96,7 +97,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [TableHeaderCell](#tableheadercell): comportamento · + align, flex, onClick · − onPress
 - [TableRow](#tablerow): + hover, onClick, selected, testID
 - [Tabs](#tabs): comportamento · + activeKey, color, fullWidth, height, showBorders, size, testID, variant, width · ~ onChange, tabs, activeTab
-- [ThemeProvider](#themeprovider): + density
+- [ThemeProvider](#themeprovider): + density, themeScrollbars
 - [TimePicker](#timepicker): + fieldVariant, presentation, showOkButton, showToday, variant
 - [ToastProvider](#toastprovider): + maxVisible, position
 - [Tooltip](#tooltip): + anchorAccessible
@@ -377,7 +378,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | submitMode | `"blur" \| "enter" \| "both" \| "none"` | "both" |  | What confirms the edit: `"blur"` (focus leaving the field), `"enter"` (Enter), `"both"`, or `"none"`, which shows check and close buttons to confirm and cancel with. Escape cancels in every mode. Defaults to `"both"`. |
 | testID | `string` |  |  | Root testID. The open field gets `${testID}-input`, the buttons `${testID}-save` and `${testID}-cancel`. |
 | textVariant | `TypographyProps["variant"]` |  |  | The type-scale role of the displayed text, over what `size` picks. |
-| type | `EditableType` | "text" |  | The field that opens: `"text"` is an `Input`, `"textarea"` a multi-line `Input` (Enter adds a line; Ctrl or Cmd + Enter confirms), `"number"` an `Input type="number"` (the value stays plain text) and `"select"` a `Select` that is already open, which confirms on the pick. Defaults to `"text"`. |
+| type | `EditableType` | "text" |  | The field that opens: `"text"` is an `Input`, `"textarea"` an `InputArea` (Enter adds a line; Ctrl or Cmd + Enter confirms), `"number"` an `Input type="number"` (the value stays plain text) and `"select"` a `Select` that is already open, which confirms on the pick. Defaults to `"text"`. |
 | validate | `(value: string) => string \| undefined` |  |  | Checks the value: return the message to show as the field's error, or `undefined` when it is fine. While there is an error the edit cannot be confirmed. |
 | value | `string` |  |  | The value, as text (for `type="number"` too: `"12.50"`, as `Input` has it). Controlled; pair with `onChange`. |
 | variant | `"outlined" \| "filled"` | "outlined" |  | The look of the open field: `"outlined"` or `"filled"`, as in `Input`. Defaults to `"outlined"`. |
@@ -472,6 +473,39 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | style | `StyleProp<ViewStyle>` |  |  | Style of the box the frame fills: radius, border, margin, flex. |
 | testID | `string` |  |  |  |
 | width | `DimensionValue` | "100%" |  | Defaults to the full width of the parent. |
+
+### InputArea
+
+`packages/ui/src/components/InputArea.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(text: string) => void` |  |  | Called with the new text on every edit. |
+| value * | `string` |  |  |  |
+| density | `Density` |  |  | Control density: `"dense"` is 14 px text and less padding, for desktop forms. |
+| disabled | `boolean` |  |  |  |
+| error | `string` |  |  |  |
+| fullWidth | `boolean` | true |  | Stretches the field to its container's width. `false` shrinks it to its content, with a minimum width. Defaults to `true`. |
+| helperText | `string` |  |  | Supporting text below the field; hidden while an error is shown. |
+| inputProps | `InputTextInputProps` |  |  | Hints, focus and key handling for the underlying `TextInput`, as `Input`'s `inputProps`. |
+| inputRef | `React.Ref<TextInput>` |  |  | A ref to the underlying `TextInput`, to focus it or select its text. |
+| label | `string` |  |  |  |
+| labelPlacement | `"inside" \| "outside"` |  |  | Where the label is drawn: `"outside"` above the box, or `"inside"`, small, above the text within it. Independent of `variant`. Defaults to `"outside"`. |
+| leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
+| maxLength | `number` |  |  |  |
+| maxRows | `number` |  |  | Without `rows`: the most lines the field grows to; past that its text scrolls. Without it a field with `minRows` grows without limit. A value under `minRows` is raised to it. |
+| minRows | `number` |  |  | Without `rows`: the field starts this many lines tall and grows with its text (up to `maxRows`, if given). Defaults to 1 when only `maxRows` is given. |
+| onBlur | `() => void` |  |  | Called when the field loses focus. |
+| onFocus | `() => void` |  |  | Called when the field gains focus. |
+| onTrailingIconPress | `() => void` |  |  | Pressing `trailingIcon`. It is a bare, unlabelled icon. |
+| placeholder | `string` |  |  |  |
+| readonly | `boolean` |  |  |  |
+| required | `boolean` |  |  | Marks the label with an asterisk. |
+| reserveHelperText | `boolean` | false |  | Keeps the line under the field even with no helper or error text, so a message appearing does not push the next field down. Default false. |
+| rows | `number` |  |  | Visible lines of a field of fixed height: it is exactly that tall and its text scrolls inside. Wins over `minRows` and `maxRows`. With none of the three given the field is 4 lines. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| trailingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
+| variant | `"outlined" \| "filled"` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box that shows its border only while focused or in error. Defaults to `"outlined"`. |
 
 ### NavBar
 
@@ -1204,7 +1238,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Input
 
-`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `onChange`, `allUpperCase`, `decimalSeparator`, `density`, `endAdornment`, `fullWidth`, `inputProps`, `inputRef`, `labelPlacement`, `reserveHelperText`, `rows`; prop cambiate: `minHeight`; prop tolte: `onChangeText`, `numberOfLines`
+`packages/ui/src/components/Input.tsx` — comportamento: segue `ThemeProvider density`; `decimalSeparator` cambia come si scrive e si vede il numero, non il valore consegnato; prop nuove: `onChange`, `allUpperCase`, `decimalSeparator`, `density`, `endAdornment`, `fullWidth`, `inputProps`, `inputRef`, `labelPlacement`, `reserveHelperText`; prop cambiate: `minHeight`; prop tolte: `onChangeText`, `multiline`, `numberOfLines`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1225,7 +1259,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | leadingIcon | `MaterialCommunityIconsGlyphs` |  |  |  |
 | maxLength | `number` |  |  |  |
 | minHeight | `number` |  | cambiata | Overrides the height `density` gives (56, or 40 when dense). |
-| multiline | `boolean` | false |  | Lets the text wrap over several lines; see `rows`. |
 | onBlur | `() => void` |  |  | Called when the field loses focus. |
 | onFocus | `() => void` |  |  | Called when the field gains focus. |
 | onTrailingIconPress | `() => void` |  |  | Pressing `trailingIcon`. It is a bare, unlabelled icon: for a real control use `endAdornment`. |
@@ -1235,7 +1268,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | readonly | `boolean` |  |  |  |
 | required | `boolean` |  |  | Marks the label with an asterisk. |
 | reserveHelperText | `boolean` | false | nuova | Keeps the line under the field even with no helper or error text, so a message appearing does not push the next field down. Default false. |
-| rows | `number` | 4 | nuova | Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4. |
 | secureTextEntry | `boolean` |  |  |  |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | suffix | `string` |  |  |  |
@@ -1656,7 +1688,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### ThemeProvider
 
-`packages/ui/src/providers/ThemeProvider.tsx` — prop nuove: `density`
+`packages/ui/src/providers/ThemeProvider.tsx` — prop nuove: `density`, `themeScrollbars`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1664,6 +1696,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | density | `Density` |  | nuova | The default `density` of every control inside (`Input`, `Select`, `Button`, `DataGrid`); a control's own `density` prop still wins. A nested provider without one inherits the outer one's. Defaults to `"normal"`. |
 | initialPalette | `ThemePalette` | palettes.baseline |  | The colour set to start on — one of `palettes`, or anything `createPalette` returns. Read once, on mount: call `setPalette` from `useTheme()` to change it afterwards. |
 | onInteractionFeedback | `InteractionFeedbackHandler` |  |  | Called when the user presses, toggles or selects through one of the library's controls: wire it to haptics (`@its/glowup-device/haptics`'s `hapticFeedback`) or anything else. A control opts out with `feedback={false}`. Without it a nested provider inherits the outer one's. |
+| themeScrollbars | `boolean` | true | nuova | On the web, draws the browser's own scrollbars from the theme (a thin thumb in the `outline` colour, no arrows) and sets `color-scheme` to the theme's mode, so a textarea's or a list's scrollbar is not a light box in a dark page. One rule on the document, rewritten when the theme changes; a `ScrollArea` still hides its native bar. Pass `false` to leave the browser's scrollbars alone. Defaults to `true`; does nothing on iOS and Android. |
 
 ### TimePicker
 

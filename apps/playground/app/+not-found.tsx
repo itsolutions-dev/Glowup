@@ -1,6 +1,6 @@
-import { ScrollView, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { router } from "expo-router";
-import { EmptyState } from "@its/glowup-ui";
+import { EmptyState, ScrollArea } from "@its/glowup-ui";
 import { PageHead } from "../site/Page";
 
 /**
@@ -10,7 +10,7 @@ import { PageHead } from "../site/Page";
  */
 export default function NotFound() {
   return (
-    <ScrollView contentContainerStyle={styles.page}>
+    <ScrollArea style={styles.fill} contentContainerStyle={styles.page}>
       <PageHead
         title="Page not found"
         description="This page does not exist on the Glowup documentation site."
@@ -25,10 +25,12 @@ export default function NotFound() {
           onPress: () => router.replace("/"),
         }}
       />
-    </ScrollView>
+    </ScrollArea>
   );
 }
 
 const styles = StyleSheet.create({
+  // What a ScrollView does by itself, for the `ScrollArea` view around it.
+  fill: { flexGrow: 1, flexShrink: 1 },
   page: { flexGrow: 1, justifyContent: "center", padding: 24 },
 });

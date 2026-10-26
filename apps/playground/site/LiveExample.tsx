@@ -9,7 +9,6 @@ import {
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -23,6 +22,7 @@ import {
   Clipboard,
   CODE_FONT_FAMILY,
   HighlightedCode,
+  ScrollArea,
   ToggleButtonGroup,
   Typography,
   ViewportProvider,
@@ -387,8 +387,8 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
                   // colours; the field lies over it with transparent text and
                   // keeps the caret, the selection and the input. Both use the
                   // same type, so they line up.
-                  <ScrollView
-                    horizontal
+                  <ScrollArea
+                    orientation="horizontal"
                     contentContainerStyle={styles.overlayScroll}
                     keyboardShouldPersistTaps="handled"
                   >
@@ -400,7 +400,7 @@ export const LiveExample = ({ name, example, meta }: LiveExampleProps) => {
                       />
                       {field}
                     </View>
-                  </ScrollView>
+                  </ScrollArea>
                 ) : (
                   field
                 )}

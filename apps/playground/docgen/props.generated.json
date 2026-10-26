@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 115,
+  "componentCount": 116,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -3655,7 +3655,7 @@
           "type": "EditableType",
           "required": false,
           "default": "\"text\"",
-          "description": "The field that opens: `\"text\"` is an `Input`, `\"textarea\"` a multi-line\n`Input` (Enter adds a line; Ctrl or Cmd + Enter confirms), `\"number\"` an\n`Input type=\"number\"` (the value stays plain text) and `\"select\"` a\n`Select` that is already open, which confirms on the pick. Defaults to\n`\"text\"`.",
+          "description": "The field that opens: `\"text\"` is an `Input`, `\"textarea\"` an\n`InputArea` (Enter adds a line; Ctrl or Cmd + Enter confirms), `\"number\"` an\n`Input type=\"number\"` (the value stays plain text) and `\"select\"` a\n`Select` that is already open, which confirms on the pick. Defaults to\n`\"text\"`.",
           "deprecated": false
         },
         {
@@ -4682,6 +4682,7 @@
       "source": "packages/ui/src/components/Input.tsx",
       "propsTypeName": "InputProps",
       "extends": [],
+      "description": "A single-line text or number field. For text that wraps over several lines\nuse `InputArea`.",
       "props": [
         {
           "name": "onChange",
@@ -4808,14 +4809,6 @@
           "deprecated": false
         },
         {
-          "name": "multiline",
-          "type": "boolean",
-          "required": false,
-          "default": "false",
-          "description": "Lets the text wrap over several lines; see `rows`.",
-          "deprecated": false
-        },
-        {
           "name": "onBlur",
           "type": "() => void",
           "required": false,
@@ -4876,14 +4869,6 @@
           "deprecated": false
         },
         {
-          "name": "rows",
-          "type": "number",
-          "required": false,
-          "default": "4",
-          "description": "Visible lines of a `multiline` field. Ignored otherwise. Defaults to 4.",
-          "deprecated": false
-        },
-        {
           "name": "secureTextEntry",
           "type": "boolean",
           "required": false,
@@ -4924,6 +4909,197 @@
           "required": false,
           "default": "\"outlined\"",
           "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box (like `PinInput`'s) that shows its border only\nwhile focused or in error. Where the label sits is `labelPlacement`'s\nbusiness, not the variant's. Defaults to `\"outlined\"`.",
+          "values": [
+            "outlined",
+            "filled"
+          ],
+          "deprecated": false
+        }
+      ]
+    },
+    "InputArea": {
+      "name": "InputArea",
+      "source": "packages/ui/src/components/InputArea.tsx",
+      "propsTypeName": "InputAreaProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(text: string) => void",
+          "required": true,
+          "description": "Called with the new text on every edit.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "density",
+          "type": "Density",
+          "required": false,
+          "description": "Control density: `\"dense\"` is 14 px text and less padding, for desktop forms.",
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "error",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "fullWidth",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Stretches the field to its container's width. `false` shrinks it to its\ncontent, with a minimum width. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
+          "name": "helperText",
+          "type": "string",
+          "required": false,
+          "description": "Supporting text below the field; hidden while an error is shown.",
+          "deprecated": false
+        },
+        {
+          "name": "inputProps",
+          "type": "InputTextInputProps",
+          "required": false,
+          "description": "Hints, focus and key handling for the underlying `TextInput`, as `Input`'s `inputProps`.",
+          "deprecated": false
+        },
+        {
+          "name": "inputRef",
+          "type": "React.Ref<TextInput>",
+          "required": false,
+          "description": "A ref to the underlying `TextInput`, to focus it or select its text.",
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelPlacement",
+          "type": "\"inside\" | \"outside\"",
+          "required": false,
+          "description": "Where the label is drawn: `\"outside\"` above the box, or `\"inside\"`, small,\nabove the text within it. Independent of `variant`. Defaults to `\"outside\"`.",
+          "values": [
+            "inside",
+            "outside"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "leadingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxLength",
+          "type": "number",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxRows",
+          "type": "number",
+          "required": false,
+          "description": "Without `rows`: the most lines the field grows to; past that its text\nscrolls. Without it a field with `minRows` grows without limit. A value\nunder `minRows` is raised to it.",
+          "deprecated": false
+        },
+        {
+          "name": "minRows",
+          "type": "number",
+          "required": false,
+          "description": "Without `rows`: the field starts this many lines tall and grows with its\ntext (up to `maxRows`, if given). Defaults to 1 when only `maxRows` is\ngiven.",
+          "deprecated": false
+        },
+        {
+          "name": "onBlur",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the field loses focus.",
+          "deprecated": false
+        },
+        {
+          "name": "onFocus",
+          "type": "() => void",
+          "required": false,
+          "description": "Called when the field gains focus.",
+          "deprecated": false
+        },
+        {
+          "name": "onTrailingIconPress",
+          "type": "() => void",
+          "required": false,
+          "description": "Pressing `trailingIcon`. It is a bare, unlabelled icon.",
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "readonly",
+          "type": "boolean",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "required": false,
+          "description": "Marks the label with an asterisk.",
+          "deprecated": false
+        },
+        {
+          "name": "reserveHelperText",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps the line under the field even with no helper or error text, so a\nmessage appearing does not push the next field down. Default false.",
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "required": false,
+          "description": "Visible lines of a field of fixed height: it is exactly that tall and its\ntext scrolls inside. Wins over `minRows` and `maxRows`. With none of the\nthree given the field is 4 lines.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "trailingIcon",
+          "type": "MaterialCommunityIconsGlyphs",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"outlined\" | \"filled\"",
+          "required": false,
+          "default": "\"outlined\"",
+          "description": "The look of the box: `\"outlined\"` is a bordered box on the surface,\n`\"filled\"` a tinted box that shows its border only while focused or in\nerror. Defaults to `\"outlined\"`.",
           "values": [
             "outlined",
             "filled"
@@ -5689,7 +5865,7 @@
       "source": "packages/ui/src/components/PasswordField.tsx",
       "propsTypeName": "PasswordFieldProps",
       "extends": [
-        "Omit<\n  InputProps,\n  | \"secureTextEntry\"\n  | \"type\"\n  | \"precision\"\n  | \"decimalSeparator\"\n  | \"allUpperCase\"\n  | \"multiline\"\n  | \"rows\"\n  | \"trailingIcon\"\n  | \"onTrailingIconPress\"\n  | \"endAdornment\"\n>"
+        "Omit<\n  InputProps,\n  | \"secureTextEntry\"\n  | \"type\"\n  | \"precision\"\n  | \"decimalSeparator\"\n  | \"allUpperCase\"\n  | \"trailingIcon\"\n  | \"onTrailingIconPress\"\n  | \"endAdornment\"\n>"
       ],
       "props": [
         {
@@ -9355,6 +9531,14 @@
           "type": "InteractionFeedbackHandler",
           "required": false,
           "description": "Called when the user presses, toggles or selects through one of the\nlibrary's controls: wire it to haptics (`@its/glowup-device/haptics`'s\n`hapticFeedback`) or anything else. A control opts out with\n`feedback={false}`. Without it a nested provider inherits the outer one's.",
+          "deprecated": false
+        },
+        {
+          "name": "themeScrollbars",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "On the web, draws the browser's own scrollbars from the theme (a thin thumb\nin the `outline` colour, no arrows) and sets `color-scheme` to the theme's\nmode, so a textarea's or a list's scrollbar is not a light box in a dark\npage. One rule on the document, rewritten when the theme changes; a\n`ScrollArea` still hides its native bar. Pass `false` to leave the browser's\nscrollbars alone. Defaults to `true`; does nothing on iOS and Android.",
           "deprecated": false
         }
       ]

@@ -186,26 +186,6 @@ describe("Input fullWidth", () => {
   });
 });
 
-describe("Input rows", () => {
-  const lines = async (props: Props) =>
-    (
-      await render(
-        <ThemeProvider>
-          <Input label="Campo" value="" onChange={() => {}} {...props} />
-        </ThemeProvider>,
-      )
-    ).getByLabelText("Campo").props.numberOfLines;
-
-  it("sizes a multiline field: 4 lines by default, or as many as asked", async () => {
-    expect(await lines({ multiline: true })).toBe(4);
-    expect(await lines({ multiline: true, rows: 7 })).toBe(7);
-  });
-
-  it("is ignored on a single-line field", async () => {
-    expect(await lines({ rows: 7 })).toBeUndefined();
-  });
-});
-
 describe("Input focus callbacks", () => {
   it("reports focus and blur", async () => {
     const onFocus = jest.fn();

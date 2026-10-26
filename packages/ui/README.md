@@ -221,6 +221,9 @@ Exported from the library alongside the components:
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
 - **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
+- **`themeScrollbars`** (a `ThemeProvider` prop, default `true`) — on the web the browser's own scrollbars
+  (a textarea's, a menu's list) are drawn from the theme: a thin `outline`-coloured thumb, no arrows, and
+  `color-scheme` follows light and dark, so they are not a white box in a dark page. `ScrollArea` is unchanged.
 - **`onInteractionFeedback`** (a `ThemeProvider` prop) + **`useInteractionFeedback()`** — see
   [Interaction feedback](#interaction-feedback-haptics).
 - **`getStateColor(bg, on, state)`** — composites a hover/press state-layer color over a base.
@@ -826,7 +829,7 @@ with `multiple`); `variant` is the look of the chips, `outlined` by default.
 
 #### `Input`
 
-Text field (outlined or filled) with affixes, icons, multiline and number mode.
+Single-line text field (outlined or filled) with affixes, icons and number mode. Multi-line text is `InputArea`.
 
 | Prop                       | Type                                                                                                                                        | Default    |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -850,17 +853,51 @@ Text field (outlined or filled) with affixes, icons, multiline and number mode.
 | disabled / readonly        | boolean                                                                                                                                     |            |
 | secureTextEntry            | boolean (hides the text; `PasswordField` adds the reveal button)                                                                            |            |
 | maxLength                  | number                                                                                                                                      |            |
-| multiline                  | boolean                                                                                                                                     | `false`    |
-| rows                       | number (visible lines of a `multiline` field)                                                                                               | `4`        |
 | minHeight                  | number                                                                                                                                      | `56`       |
 | onFocus / onBlur           | () => void                                                                                                                                  |            |
+
+#### `InputArea`
+
+Multi-line text field: `Input`'s box, label, helper and error, for text that wraps over several lines.
+`rows` fixes the height; `minRows` and `maxRows` let it grow with its text.
+
+| Prop                       | Type                                                                         | Default    |
+| -------------------------- | ---------------------------------------------------------------------------- | ---------- |
+| value                      | string (required)                                                            | —          |
+| onChange                   | (text) => void (required)                                                    | —          |
+| label / placeholder        | string                                                                       |            |
+| rows                       | number (fixed height of exactly that many lines; the text scrolls inside)    | 4 lines    |
+| minRows                    | number (without `rows`: starts this tall and grows)                          | 1          |
+| maxRows                    | number (without `rows`: grows up to this, then scrolls; raised to `minRows`) | unbounded  |
+| variant                    | `"outlined" \| "filled"`                                                     | `outlined` |
+| labelPlacement             | `"inside" \| "outside"`                                                      | `outside`  |
+| fullWidth                  | boolean (`false` shrinks the field to its content)                           | `true`     |
+| density                    | `"normal" \| "dense"`                                                        | `normal`   |
+| leadingIcon / trailingIcon | icon                                                                         |            |
+| onTrailingIconPress        | () => void                                                                   |            |
+| inputProps / inputRef      | `InputTextInputProps` / `Ref<TextInput>`, as `Input`                         |            |
+| error / helperText         | string (the helper is hidden while an error shows)                           |            |
+| reserveHelperText          | boolean (keeps the line under the field)                                     | `false`    |
+| required                   | boolean (asterisk on label)                                                  |            |
+| disabled / readonly        | boolean                                                                      |            |
+| maxLength                  | number                                                                       |            |
+| onFocus / onBlur           | () => void                                                                   |            |
+
+`rows` wins over `minRows` / `maxRows`. With none of the three the field is 4 lines, fixed. Growing is
+measured from the text itself (`onContentSizeChange` on a phone, the textarea's own height on the web), so
+the field shrinks again when text is deleted; only its height ever changes, never its width.
+
+```tsx
+<InputArea label="Message" rows={4} value={text} onChange={setText} />
+<InputArea label="Comment" minRows={2} maxRows={8} value={text} onChange={setText} />
+```
 
 #### `PasswordField`
 
 An `Input` for passwords: the text is hidden, with a labelled eye button to reveal it, the autofill
 and keyboard hints a password manager needs, and an optional strength meter. The typed text is
 never put into an accessibility prop, hidden or revealed. Takes every `Input` prop except
-`secureTextEntry`, `type`, `precision`, `decimalSeparator`, `allUpperCase`, `multiline`, `rows`,
+`secureTextEntry`, `type`, `precision`, `decimalSeparator`, `allUpperCase`,
 `trailingIcon`, `onTrailingIconPress` and `endAdornment` (the eye button sits there).
 
 | Prop                      | Type                                                                                                                         | Default                           |

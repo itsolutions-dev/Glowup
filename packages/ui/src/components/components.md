@@ -100,6 +100,10 @@ The token set above is the **baseline** palette. `ThemeProvider` renders one `Th
 - `<ThemeProvider initialPalette={palettes.teal}>` picks one on mount;
   `useTheme().setPalette(palette)` switches it live, `useTheme().palette` reads it.
   `Object.values(palettes)` lists each set once — build a picker from it.
+- `<ThemeProvider themeScrollbars={false}>` — by default, on the web, the browser's own scrollbars are drawn from
+  the theme (a thin `outline`-coloured thumb on a transparent track, `color-scheme` set to light or dark). It
+  writes one `<style>` in the document head and rewrites it when the theme changes; `ScrollArea` hides its own
+  native bar and is not affected. `false` leaves the browser's scrollbars alone. It does nothing on iOS and Android.
 
 ### 1.7 Shared type
 
@@ -575,7 +579,7 @@ default). Props: see the API reference on its page of the docs site (generated f
 
 ### Input
 
-Text field, outlined or filled; supports affixes, icons, multiline, number mode.
+Single-line text field, outlined or filled; supports affixes, icons, number mode. Multi-line text is `InputArea`.
 
 | Prop                       | Type                     | Default    | Req | Description                                                                                             |
 | -------------------------- | ------------------------ | ---------- | --- | ------------------------------------------------------------------------------------------------------- |
@@ -601,8 +605,6 @@ Text field, outlined or filled; supports affixes, icons, multiline, number mode.
 | readonly                   | boolean                  |            |     |                                                                                                         |
 | secureTextEntry            | boolean                  |            |     | Password mode: hides the text, and keeps it out of `accessibilityValue`                                 |
 | maxLength                  | number                   |            |     |                                                                                                         |
-| multiline                  | boolean                  | `false`    |     |                                                                                                         |
-| rows                       | number                   | `4`        |     | Visible lines of a `multiline` field                                                                    |
 | minHeight                  | number                   | `56`       |     |                                                                                                         |
 | onFocus / onBlur           | () => void               |            |     |                                                                                                         |
 | style                      | ViewStyle                |            |     |                                                                                                         |
@@ -615,12 +617,54 @@ Text field, outlined or filled; supports affixes, icons, multiline, number mode.
 and `testID`; the props `Input` controls itself (`value`, `editable`, `secureTextEntry`) stay with its
 own.
 
+### InputArea
+
+Multi-line text field: `Input`'s box, label, helper and error, for text that wraps over several lines. `rows` gives
+it a fixed height; `minRows` and `maxRows` let it grow with its text.
+
+| Prop                       | Type                     | Default    | Req | Description                                                                                         |
+| -------------------------- | ------------------------ | ---------- | --- | --------------------------------------------------------------------------------------------------- |
+| value                      | string                   | —          | ✓   |                                                                                                     |
+| onChange                   | (text) => void           | —          | ✓   |                                                                                                     |
+| label                      | string                   |            |     |                                                                                                     |
+| placeholder                | string                   |            |     |                                                                                                     |
+| rows                       | number                   | 4 lines    |     | Fixed height of exactly that many lines; the text scrolls inside. Wins over `minRows` / `maxRows`   |
+| minRows                    | number                   | 1          |     | Without `rows`: starts this many lines tall and grows with its text                                 |
+| maxRows                    | number                   | unbounded  |     | Without `rows`: the most lines it grows to, then the text scrolls. Raised to `minRows` when smaller |
+| variant                    | `"outlined" \| "filled"` | `outlined` |     | The look of the box, as `Input`                                                                     |
+| labelPlacement             | `"inside" \| "outside"`  | `outside`  |     | As `Input`                                                                                          |
+| fullWidth                  | boolean                  | `true`     |     | `false` shrinks the field to its content                                                            |
+| density                    | `"normal" \| "dense"`    | `normal`   |     | 14 px text and less padding when dense                                                              |
+| leadingIcon / trailingIcon | icon                     |            |     |                                                                                                     |
+| onTrailingIconPress        | () => void               |            |     | A bare, unlabelled icon                                                                             |
+| inputProps                 | `InputTextInputProps`    |            |     | `TextInput` hints and handlers, as `Input`                                                          |
+| inputRef                   | `Ref<TextInput>`         |            |     | A ref to the underlying `TextInput`                                                                 |
+| error                      | string                   |            |     | Error message + error styling                                                                       |
+| helperText                 | string                   |            |     | Hidden while error shown                                                                            |
+| reserveHelperText          | boolean                  | `false`    |     | Keeps the line under the field                                                                      |
+| required                   | boolean                  |            |     | Asterisk on label                                                                                   |
+| disabled / readonly        | boolean                  |            |     |                                                                                                     |
+| maxLength                  | number                   |            |     |                                                                                                     |
+| onFocus / onBlur           | () => void               |            |     |                                                                                                     |
+| style                      | ViewStyle                |            |     |                                                                                                     |
+
+**Rows.** `rows` given: exactly that tall, whatever the text. `minRows` and `maxRows`: it starts at `minRows` and
+grows up to `maxRows`, then scrolls. `minRows` alone grows without limit; `maxRows` alone starts at one line. None
+of the three: 4 lines, fixed. The height follows the text and shrinks when text is deleted; only the height
+changes, never the width. It is measured with `onContentSizeChange` on a phone and from the textarea itself on the
+web.
+
+```tsx
+<InputArea label="Message" rows={4} value={text} onChange={setText} />
+<InputArea label="Comment" minRows={2} maxRows={8} value={text} onChange={setText} />
+```
+
 ### PasswordField
 
 An `Input` for a password: the text is hidden, a labelled eye button at the end of the field shows and
 hides it, the autofill and keyboard hints a password manager needs are set, and a strength meter is
 optional. It takes every `Input` prop except the ones it sets itself (`secureTextEntry`, `type`,
-`precision`, `decimalSeparator`, `allUpperCase`, `multiline`, `rows`, `trailingIcon`,
+`precision`, `decimalSeparator`, `allUpperCase`, `trailingIcon`,
 `onTrailingIconPress`, `endAdornment`).
 
 | Prop            | Type                                   | Default                                           | Description                                                                                                                                         |
@@ -671,7 +715,7 @@ Escape drops it.
 | onChange          | (value) => void                                |             | Called with the text on every edit while the field is open; on a cancel, once more with the value the edit started from                                                                    |
 | onSubmit          | (value) => void                                |             | Called with the value when the edit is confirmed (Enter, blur or the check button, per `submitMode`)                                                                                       |
 | onCancel          | (previous) => void                             |             | Called with the value the edit started from when it is cancelled (Escape or the close button)                                                                                              |
-| type              | `"text" \| "textarea" \| "number" \| "select"` | `text`      | The field that opens: an `Input`, a multi-line `Input`, an `Input type="number"` or a `Select`                                                                                             |
+| type              | `"text" \| "textarea" \| "number" \| "select"` | `text`      | The field that opens: an `Input`, an `InputArea`, an `Input type="number"` or a `Select`                                                                                                   |
 | options           | `Option[]`                                     |             | The choices of `type="select"`; the display shows the label of the selected one                                                                                                            |
 | submitMode        | `"blur" \| "enter" \| "both" \| "none"`        | `both`      | What confirms the edit: focus leaving the field, Enter, either, or (`none`) the check and close buttons. Escape cancels in every mode                                                      |
 | showControls      | boolean                                        | `false`     | The check and close buttons whatever the `submitMode`; with them shown, leaving the field no longer confirms                                                                               |
@@ -2598,7 +2642,7 @@ start, for an app whose desktop layout begins at 1300.
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
 **Layout**: Box, Center, Stack/HStack/VStack, Spacer, Grid, AspectRatio, AbsoluteCenter, Break, ScrollArea, Visible/useBreakpointValue
 **Actions**: Button, ProgressButton, IconButton, Link, Clipboard/useClipboard, Download/useDownload, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
-**Inputs**: Input, PasswordField, Editable, Select, Autocomplete, PinInput, Upload, Form (FormField, useForm, useFormField, useWatch, useFormState), FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
+**Inputs**: Input, InputArea, PasswordField, Editable, Select, Autocomplete, PinInput, Upload, Form (FormField, useForm, useFormField, useWatch, useFormState), FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
 **Data display**: Avatar, Badge, StatusBadge, Blink, DataGrid, Table, ListItem, ListSection/ListSubheader, Tree, Tooltip, Accordion, Carousel, Stat, CaptionValue, Image, IFrame, CodeBlock/HighlightedCode, QrCode
 **Feedback & overlays**: Snackbar, ToastProvider/useToast, Banner, Dialog, AlertDialog, Popover, HoverCard, BottomSheet, Menu, Portal/Portal.Host, Skeleton, CircularProgress, LinearProgress, EmptyState, Collapse
 **Navigation**: AppBar, NavBar, NavigationRail, Drawer/DrawerItem/DrawerSection, Toolbar, Tabs, Breadcrumbs, Pagination, Stepper

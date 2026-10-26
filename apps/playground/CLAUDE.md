@@ -246,6 +246,13 @@ large / extraLarge) and `useLayout()` is the only way to ask about width. Do not
 layout that still believed it was on a phone. `useLayout()` reads the window through
 `site/useWindowSize.ts`, never `useWindowDimensions()` directly (see Hydration).
 
+The site's scroll containers (`Page`, the component page, the navigation column, the catalogue
+sidebar, the command palette, the code editor) are the library's `ScrollArea`, so every scrollbar is
+the themed one, not the browser's white track with arrows; use it for any new page-level scroller.
+A `ScrollArea` is a `View` around the `ScrollView`: give it `style={{ flexGrow: 1, flexShrink: 1 }}`
+(what a bare ScrollView does on web) where the ScrollView was a flex child, and `ref` still reaches the ScrollView.
+`FlatList`s (the icon grid) keep their own scroller.
+
 ## Hydration
 
 Every page is prerendered in Node and hydrated in the browser, and the first client render has

@@ -1,16 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   Input,
+  ScrollArea,
   Typography,
   useTheme,
   type MaterialCommunityIconsGlyphs,
@@ -30,6 +24,8 @@ interface Entry {
 }
 
 const MAX_RESULTS = 40;
+/** The height at which the results start to scroll. */
+const LIST_MAX_HEIGHT = 360;
 
 /**
  * Everything the palette can reach: the site's sections and every component.
@@ -155,7 +151,10 @@ export const CommandPalette = ({ onDismiss }: { onDismiss: () => void }) => {
             Nothing matches “{query}”.
           </Typography>
         ) : (
-          <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
+          <ScrollArea
+            maxHeight={LIST_MAX_HEIGHT}
+            keyboardShouldPersistTaps="handled"
+          >
             {results.map((entry, index) => {
               const active = index === activeIndex;
               return (
@@ -204,7 +203,7 @@ export const CommandPalette = ({ onDismiss }: { onDismiss: () => void }) => {
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </ScrollArea>
         )}
 
         <View style={styles.footer}>
@@ -265,7 +264,6 @@ const makeStyles = (theme: Theme) =>
     panelWide: { maxWidth: 560, marginTop: 96 },
     panelCompact: { maxWidth: 560, marginTop: 24 },
     field: { padding: theme.spacing.m, paddingBottom: theme.spacing.s },
-    list: { maxHeight: 360 },
     row: {
       flexDirection: "row",
       alignItems: "center",

@@ -109,8 +109,13 @@ export interface ScrollAreaProps extends Omit<
 
 const NO_METRICS: AxisMetrics = { scroll: 0, viewport: 0, content: 0 };
 
-/** The browser's own scrollbar, hidden inline: the library ships no global CSS. */
+/**
+ * The browser's own scrollbar, hidden inline. (`ThemeProvider` styles the
+ * browser's scrollbars everywhere else; the mark below keeps its rules off these.)
+ */
 const WEB_HIDE_BAR = { scrollbarWidth: "none" } as ViewStyle;
+/** `data-glowup-scroll-area`: what `ThemeProvider`'s scrollbar rule skips. */
+const WEB_AREA_MARK = { dataSet: { glowupScrollArea: "" } } as object;
 /** The scrollbar is not text, and a touch on it drags it rather than panning the page. */
 const WEB_NO_GESTURE = {
   userSelect: "none",
@@ -584,6 +589,7 @@ const ScrollArea = ({
     scrollEventThrottle: 16,
   };
   const viewportStyle: StyleProp<ViewStyle> = web ? WEB_HIDE_BAR : undefined;
+  const areaMark = web ? WEB_AREA_MARK : undefined;
   const viewportId = testID ? `${testID}-viewport` : undefined;
 
   const content =
@@ -591,6 +597,7 @@ const ScrollArea = ({
       <ScrollView
         {...scrollViewProps}
         {...common}
+        {...areaMark}
         {...handlers.vertical}
         ref={verticalRef}
         testID={viewportId}
@@ -599,6 +606,7 @@ const ScrollArea = ({
         <ScrollView
           horizontal
           {...common}
+          {...areaMark}
           {...handlers.horizontal}
           ref={horizontalRef}
           testID={viewportId ? `${viewportId}-x` : undefined}
@@ -612,6 +620,7 @@ const ScrollArea = ({
       <ScrollView
         {...scrollViewProps}
         {...common}
+        {...areaMark}
         {...handlers[primary]}
         horizontal={orientation === "horizontal"}
         ref={primary === "vertical" ? verticalRef : horizontalRef}

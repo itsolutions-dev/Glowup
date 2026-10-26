@@ -66,8 +66,6 @@ export interface PasswordFieldProps extends Omit<
   | "precision"
   | "decimalSeparator"
   | "allUpperCase"
-  | "multiline"
-  | "rows"
   | "trailingIcon"
   | "onTrailingIconPress"
   | "endAdornment"

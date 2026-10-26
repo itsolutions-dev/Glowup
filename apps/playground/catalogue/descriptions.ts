@@ -50,7 +50,9 @@ export const DESCRIPTIONS: Record<string, string> = {
 
   // Inputs
   Input:
-    "A text field with a label, helper and error text, icons, prefixes and number formatting.",
+    "A single-line text field with a label, helper and error text, icons, prefixes and number formatting.",
+  InputArea:
+    "A multi-line text field that keeps a fixed height or grows with its text, up to a limit you set.",
   PasswordField:
     "A password field with a show and hide button, autofill hints and an optional strength meter.",
   Select: "A dropdown to choose one or several options from a list.",

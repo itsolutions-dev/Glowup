@@ -46,6 +46,12 @@ describe("the components gallery", () => {
     ).toBeTruthy();
   });
 
+  it("scrolls in the library's ScrollArea, so the scrollbar is the themed one", async () => {
+    await draw();
+    // ScrollArea names its scroll view `${testID}-viewport`.
+    expect(screen.getByTestId("page-scroller-viewport")).toBeTruthy();
+  });
+
   it("clamps a card's description to two lines, in the gallery and in the list", async () => {
     await draw();
     const description = descriptionOf("Switch", CATEGORY_OF.Switch);

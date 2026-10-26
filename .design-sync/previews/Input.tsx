@@ -96,22 +96,6 @@ export const ValidationStates = () => (
   </div>
 );
 
-export const Multiline = () => (
-  <div style={stack}>
-    <Input
-      label="Delivery notes"
-      placeholder="Anything the courier should know?"
-      multiline
-      rows={4}
-      maxLength={280}
-      value={
-        "Ring the bell twice — the intercom is broken.\nIf nobody answers, leave it with the concierge."
-      }
-      onChange={noop}
-    />
-  </div>
-);
-
 export const DecimalComma = () => (
   <div style={stack}>
     <Input

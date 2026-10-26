@@ -20,6 +20,7 @@ import {
   PasswordField,
   Editable,
   Upload,
+  InputArea,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
@@ -260,14 +261,6 @@ const INPUT_PROPS: ComponentMetadata["props"] = {
     ],
   },
   fullWidth: { type: "boolean", default: true, label: "Full width" },
-  multiline: { type: "boolean", default: false, label: "Multiline" },
-  rows: {
-    type: "number",
-    default: 4,
-    label: "Rows",
-    // Only a multiline field has lines to count.
-    appliesWhen: (values) => !!values.multiline,
-  },
   required: { type: "boolean", default: false, label: "Required" },
   disabled: { type: "boolean", default: false, label: "Disabled" },
   readonly: { type: "boolean", default: false, label: "Read only" },
@@ -288,13 +281,56 @@ const INPUT_PROPS: ComponentMetadata["props"] = {
 const pick = (source: ComponentMetadata["props"], keys: string[]) =>
   Object.fromEntries(keys.map((key) => [key, source[key]]));
 
-/** Inputs: 22 catalogue entries. */
+/** Inputs: 23 catalogue entries. */
 export const inputs: Record<string, ComponentMetadata> = {
   Input: {
     name: "Input",
     Component: Input,
     props: {
       ...INPUT_PROPS,
+    },
+  },
+  InputArea: {
+    name: "InputArea",
+    Component: InputArea,
+    props: {
+      ...pick(INPUT_PROPS, [
+        "label",
+        "placeholder",
+        "helperText",
+        "error",
+        "leadingIcon",
+        "trailingIcon",
+        "maxLength",
+        "variant",
+        "labelPlacement",
+        "density",
+        "fullWidth",
+        "required",
+        "disabled",
+        "readonly",
+        "reserveHelperText",
+      ]),
+      // Unset, like the component's own default: 4 lines while none of the
+      // three is given.
+      rows: {
+        type: "number",
+        default: undefined,
+        label: "Rows (fixed height)",
+      },
+      minRows: {
+        type: "number",
+        default: undefined,
+        label: "Min rows",
+        // `rows` fixes the height, so it wins over the two that let it grow.
+        appliesWhen: (values) => values.rows === undefined,
+      },
+      maxRows: {
+        type: "number",
+        default: undefined,
+        label: "Max rows",
+        appliesWhen: (values) => values.rows === undefined,
+      },
     },
   },
   PasswordField: {

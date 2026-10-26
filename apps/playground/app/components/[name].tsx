@@ -3,9 +3,9 @@ import {
   Linking,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
+  type ScrollView,
 } from "react-native";
 import { Link, router, useLocalSearchParams } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -13,6 +13,7 @@ import {
   Divider,
   EmptyState,
   FAB,
+  ScrollArea,
   Typography,
   useTheme,
   type PressableState,
@@ -69,7 +70,11 @@ export default function ComponentPage() {
 
   if (!name || !meta) {
     return (
-      <ScrollView contentContainerStyle={styles.missing}>
+      <ScrollArea
+        style={styles.fill}
+        contentContainerStyle={styles.missing}
+        testID="page-scroller"
+      >
         <PageHead
           title="Component not found"
           description="This component is not in the Glowup catalogue."
@@ -84,7 +89,7 @@ export default function ComponentPage() {
             onPress: () => router.replace("/components"),
           }}
         />
-      </ScrollView>
+      </ScrollArea>
     );
   }
 
@@ -135,12 +140,12 @@ const ComponentView = ({
 
   return (
     <View style={styles.screen}>
-      <ScrollView
+      <ScrollArea
         ref={scrollRef}
         onScroll={spy.onScroll}
-        scrollEventThrottle={50}
+        style={styles.fill}
         contentContainerStyle={styles.page}
-        showsVerticalScrollIndicator={false}
+        testID="page-scroller"
       >
         <PageHead title={name} description={description} />
 
@@ -273,7 +278,7 @@ const ComponentView = ({
             {next ? <PagerLink name={next} direction="next" /> : null}
           </View>
         </View>
-      </ScrollView>
+      </ScrollArea>
 
       {spy.scrolled ? (
         <FAB icon="arrow-up" label="Back to top" onClick={spy.scrollToTop} />
@@ -360,6 +365,8 @@ const makeStyles = (theme: Theme) =>
       padding: theme.spacing.l,
     },
     screen: { flex: 1 },
+    // What a ScrollView does by itself, for the `ScrollArea` view around it.
+    fill: { flexGrow: 1, flexShrink: 1 },
     column: { width: "100%", gap: theme.spacing.xl },
     // The content and, on a wide window, the links; both inside the column's
     // `contentMaxWidth`, so the links take their room from the content.

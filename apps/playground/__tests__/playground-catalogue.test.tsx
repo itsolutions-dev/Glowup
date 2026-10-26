@@ -106,6 +106,7 @@ const CATALOGUE = [
   "Download",
   // Inputs
   "Input",
+  "InputArea",
   "PasswordField",
   "Select",
   "Checkbox",
@@ -316,6 +317,7 @@ describe("Playground catalogue", () => {
     // Every field in the kit hides its helper text while an error shows.
     ...[
       "Input",
+      "InputArea",
       "PasswordField",
       "Autocomplete",
       "PinInput",
@@ -381,12 +383,12 @@ describe("Playground catalogue", () => {
       ],
     })),
 
-    // Only a multiline field has lines to count.
+    // `rows` fixes the height, and wins over the two that let it grow.
     {
-      component: "Input",
-      off: { multiline: false },
-      on: { multiline: true },
-      props: ["rows"],
+      component: "InputArea",
+      off: { rows: 6 },
+      on: { rows: undefined },
+      props: ["minRows", "maxRows"],
     },
     // Decimals and the separator belong to a number field.
     {
@@ -614,7 +616,6 @@ describe("Playground catalogue", () => {
     const HIDDEN_AT_REST = [
       "DateTimePicker.minuteInterval", // Mode → Time / Date & Time
       "DateTimePicker.use24HourClock", // Mode → Time / Date & Time
-      "Input.rows", // Multiline → on
       "Input.decimalSeparator", // Type → Number
       "Input.precision", // Type → Number
       "Select.showAsChips", // Multiple → on

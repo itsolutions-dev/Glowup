@@ -72,6 +72,12 @@ and D1–D17 in full). When a pending item is answered, move it up.
   "On this page" list with the active section and a back-to-top button; the gallery cards show a large preview and
   two lines of description.
 
+**Applied on 2026-10-26**
+
+- `Input` is single-line; multi-line text is its own component, `InputArea`. `rows` is a fixed height with a
+  scrollbar and wins over the rest; `minRows` / `maxRows` make it grow with its text (no `maxRows`: without limit;
+  no `minRows`: from one line); nothing given is 4 fixed lines. `InputArea` has no prefix, suffix or uncontrolled mode.
+
 **Documentation site** (playground)
 
 - A component page is **one** example bound to its props: the Properties panel reads and writes a

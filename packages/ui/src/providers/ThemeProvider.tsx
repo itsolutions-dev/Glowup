@@ -19,6 +19,7 @@ import {
 } from "./InteractionFeedback";
 import { palettes, type ThemePalette } from "./palettes";
 import { DensityContext, type Density } from "./Density";
+import { applyWebScrollbars } from "./webScrollbars";
 
 /**
  * The design tokens exactly as `theme.json` declares them.
@@ -204,6 +205,7 @@ export const ThemeProvider = ({
   initialPalette = palettes.baseline,
   onInteractionFeedback,
   density,
+  themeScrollbars = true,
 }: {
   children: React.ReactNode;
   /**
@@ -225,6 +227,15 @@ export const ThemeProvider = ({
    * without one inherits the outer one's. Defaults to `"normal"`.
    */
   density?: Density;
+  /**
+   * On the web, draws the browser's own scrollbars from the theme (a thin thumb
+   * in the `outline` colour, no arrows) and sets `color-scheme` to the theme's
+   * mode, so a textarea's or a list's scrollbar is not a light box in a dark
+   * page. One rule on the document, rewritten when the theme changes; a
+   * `ScrollArea` still hides its native bar. Pass `false` to leave the browser's
+   * scrollbars alone. Defaults to `true`; does nothing on iOS and Android.
+   */
+  themeScrollbars?: boolean;
 }) => {
   const systemScheme = useSyncExternalStore(
     subscribeToScheme,
@@ -253,6 +264,14 @@ export const ThemeProvider = ({
     }),
     [palette, mode],
   );
+
+  useEffect(() => {
+    if (!themeScrollbars) return undefined;
+    return applyWebScrollbars({
+      thumb: theme.colors.outline,
+      dark: theme.isDark,
+    });
+  }, [themeScrollbars, theme]);
 
   const value = useMemo(
     () => ({ theme, toggleTheme, palette, setPalette }),

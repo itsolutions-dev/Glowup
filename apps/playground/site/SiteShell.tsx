@@ -4,7 +4,6 @@ import {
   Linking,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -14,6 +13,7 @@ import { Link, router, usePathname } from "expo-router";
 import Icons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   IconButton,
+  ScrollArea,
   Typography,
   useTheme,
   type PressableState,
@@ -301,9 +301,9 @@ const NavSurface = ({
       // on `accessibilityRole`, whose union is the native set.
       role={Platform.OS === "web" ? "navigation" : undefined}
     >
-      <ScrollView
+      <ScrollArea
+        style={styles.navFill}
         contentContainerStyle={styles.navScroll}
-        showsVerticalScrollIndicator={false}
       >
         {showLabels && (
           <Typography
@@ -410,7 +410,7 @@ const NavSurface = ({
             </Link>
           );
         })}
-      </ScrollView>
+      </ScrollArea>
 
       <NavFooter showLabels={showLabels} />
     </View>
@@ -570,6 +570,8 @@ const makeStyles = (theme: Theme) =>
       borderRightWidth: 1,
       borderRightColor: theme.colors.outlineVariant,
     },
+    // What a ScrollView does by itself, for the `ScrollArea` view around it.
+    navFill: { flexGrow: 1, flexShrink: 1 },
     navScroll: { paddingVertical: theme.spacing.m, gap: theme.spacing.xs },
     navHeading: {
       textTransform: "uppercase",

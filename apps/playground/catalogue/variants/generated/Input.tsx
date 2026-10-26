@@ -100,22 +100,6 @@ export const ValidationStates = () => (
   </View>
 );
 
-export const Multiline = () => (
-  <View style={stack}>
-    <Input
-      label="Delivery notes"
-      placeholder="Anything the courier should know?"
-      multiline
-      rows={4}
-      maxLength={280}
-      value={
-        "Ring the bell twice — the intercom is broken.\nIf nobody answers, leave it with the concierge."
-      }
-      onChange={noop}
-    />
-  </View>
-);
-
 export const DecimalComma = () => (
   <View style={stack}>
     <Input
@@ -174,11 +158,6 @@ export const variants: Variant[] = [
     name: "ValidationStates",
     title: "Validation states",
     render: ValidationStates,
-  },
-  {
-    name: "Multiline",
-    title: "Multiline",
-    render: Multiline,
   },
   {
     name: "DecimalComma",

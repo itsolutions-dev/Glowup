@@ -43,6 +43,7 @@ export const CATEGORIES: Category[] = [
     icon: "form-textbox",
     items: [
       "Input",
+      "InputArea",
       "PasswordField",
       "Select",
       "Checkbox",

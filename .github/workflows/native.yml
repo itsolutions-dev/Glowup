@@ -209,7 +209,9 @@ jobs:
             adb shell monkey -p ${{ env.GLOWUP_CI_APP_ID }} -c android.intent.category.LAUNCHER 1
             sleep 40
             adb exec-out screencap -p > android-shot.png
-            adb logcat -d > android-logcat.txt
+            # On API 35 this dump has been cut off mid-line twice (24 KB, 372 KB) and the failed line ended
+            # the script: carry on, and say whether adb still sees the emulator.
+            adb logcat -d > android-logcat.txt || { echo "logcat dump failed ($?)"; adb devices; }
             adb shell pidof ${{ env.GLOWUP_CI_APP_ID }} | tee android-pid.txt
             test -s android-pid.txt
             node scripts/android-interact.mjs | tee android-interaction.txt || true

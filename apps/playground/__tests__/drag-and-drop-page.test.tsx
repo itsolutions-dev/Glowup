@@ -25,6 +25,8 @@ describe("the drag and drop page", () => {
       "Reorder a list",
       "Rules for a zone",
       "Nested zones",
+      "Drop anywhere on a grid",
+      "Scroll while dragging",
       "Use it",
       "API reference",
     ]) {

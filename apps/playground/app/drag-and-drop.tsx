@@ -8,11 +8,18 @@ import {
   DragDropProvider,
   Draggable,
   Droppable,
+  GridLayout,
   ListItem,
+  Paper,
+  ScrollArea,
   Typography,
   VStack,
+  useDragScroll,
+  useDragState,
+  useTheme,
   type DragEndEvent,
   type DragItem,
+  type DropTarget,
 } from "@its/glowup-ui";
 
 import { CodeBlock } from "../site/CodeBlock";
@@ -297,6 +304,174 @@ const Form = () => {
   );
 };
 
+const GRID_COLUMNS = 12;
+const ROW = 48;
+const GAP = 16;
+/** The board's height in rows: its cells are drawn down to here while a note moves. */
+const BOARD_ROWS = 5;
+
+interface Note {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+const NOTES: Note[] = [
+  { id: "supplier", title: "Call the supplier", x: 0, y: 0, w: 4, h: 2 },
+  { id: "venue", title: "Book the venue", x: 5, y: 0, w: 3, h: 2 },
+  { id: "badges", title: "Print the badges", x: 9, y: 1, w: 3, h: 2 },
+  { id: "invites", title: "Send the invites", x: 2, y: 3, w: 4, h: 2 },
+];
+
+const overlaps = (a: Note, b: Note) =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/** The cell under the top-left corner of the note's preview, inside the board. */
+const snap = ({ rect, zone }: DropTarget, note: Note): Note => ({
+  ...note,
+  x: Math.min(
+    Math.max(0, Math.round(rect.x / ((zone.width + GAP) / GRID_COLUMNS))),
+    GRID_COLUMNS - note.w,
+  ),
+  y: Math.min(
+    Math.max(0, Math.round(rect.y / (ROW + GAP))),
+    BOARD_ROWS - note.h,
+  ),
+});
+
+const CELLS = Array.from({ length: GRID_COLUMNS * BOARD_ROWS }, (_, i) => ({
+  id: `cell-${i}`,
+  x: i % GRID_COLUMNS,
+  y: Math.floor(i / GRID_COLUMNS),
+  w: 1,
+  h: 1,
+}));
+
+/** Inside the provider: the landing place follows the drag through useDragState. */
+const PinboardGrid = ({ notes }: { notes: Note[] }) => {
+  const { theme } = useTheme();
+  const activeId = useDragState((s) => s.active?.id ?? null);
+  // A string, so the board redraws when the cell changes, not on every move.
+  const cell = useDragState((s) => {
+    const note = notes.find((n) => n.id === s.active?.id);
+    if (s.over?.id !== "board" || !note) return null;
+    const { x, y } = snap(s.over, note);
+    return `${x},${y}`;
+  });
+  const note = notes.find((n) => n.id === activeId);
+  const [x, y] = cell?.split(",").map(Number) ?? [];
+  const landing = note && cell ? { ...note, id: "landing", x, y } : null;
+  const free =
+    !!landing && notes.every((n) => n.id === note?.id || !overlaps(n, landing));
+
+  return (
+    <Droppable
+      id="board"
+      indicator={false}
+      style={{ height: BOARD_ROWS * (ROW + GAP) - GAP }}
+    >
+      <GridLayout
+        stackBelow="compact"
+        layout={[...(landing ? [...CELLS, landing] : []), ...notes]}
+      >
+        {landing &&
+          CELLS.map((c) => (
+            <View
+              key={c.id}
+              style={{
+                flexGrow: 1,
+                borderRadius: theme.shape.small,
+                backgroundColor: theme.colors.surfaceContainerHigh,
+              }}
+            />
+          ))}
+        {landing && (
+          <View
+            key="landing"
+            style={{
+              flexGrow: 1,
+              borderRadius: theme.shape.medium,
+              borderWidth: 2,
+              borderStyle: "dashed",
+              borderColor: free ? theme.colors.primary : theme.colors.error,
+              backgroundColor: free
+                ? theme.colors.primaryContainer
+                : theme.colors.errorContainer,
+            }}
+          />
+        )}
+        {notes.map((n) => (
+          <Draggable key={n.id} id={n.id} style={{ flexGrow: 1 }}>
+            <Paper style={{ flexGrow: 1 }}>
+              <Typography variant="titleSmall">{n.title}</Typography>
+            </Paper>
+          </Draggable>
+        ))}
+      </GridLayout>
+    </Droppable>
+  );
+};
+
+/** Notes placed by position: the drop's rect, snapped to a cell. */
+const Pinboard = () => {
+  const [notes, setNotes] = useState(NOTES);
+
+  return (
+    <DragDropProvider
+      onDragEnd={({ active, over }) => {
+        if (over?.id !== "board") return;
+        setNotes((current) => {
+          const note = current.find((n) => n.id === active.id);
+          if (!note) return current;
+          const landing = snap(over, note);
+          // A place another note takes refuses the drop.
+          if (current.some((n) => n.id !== note.id && overlaps(n, landing))) {
+            return current;
+          }
+          return current.map((n) => (n.id === note.id ? landing : n));
+        });
+      }}
+    >
+      <PinboardGrid notes={notes} />
+    </DragDropProvider>
+  );
+};
+
+const ROW_LABELS = Array.from({ length: 30 }, (_, i) => `Row ${i + 1}`);
+
+/** Inside the provider: useDragScroll needs it. */
+const ScrollingRows = ({ rows }: { rows: string[] }) => {
+  const scroll = useDragScroll();
+
+  return (
+    <ScrollArea {...scroll} height={320} style={{ maxWidth: 480 }}>
+      <Droppable id="rows">
+        {rows.map((row) => (
+          <Draggable key={row} id={row}>
+            <ListItem icon="drag" primaryText={row} />
+          </Draggable>
+        ))}
+      </Droppable>
+    </ScrollArea>
+  );
+};
+
+/** A list longer than its box, reordered while it scrolls by itself. */
+const LongList = () => {
+  const [rows, setRows] = useState<Lists>({ rows: ROW_LABELS });
+
+  return (
+    <DragDropProvider
+      onDragEnd={(event) => setRows((current) => moveItem(current, event))}
+    >
+      <ScrollingRows rows={rows.rows} />
+    </DragDropProvider>
+  );
+};
+
 const REFERENCE = ["DragDropProvider", "Draggable", "Droppable"];
 
 export default function DragAndDropPage() {
@@ -331,8 +506,20 @@ export default function DragAndDropPage() {
         <Form />
       </Section>
       <Section
+        title="Drop anywhere on a grid"
+        description="over.rect says where the dragged note's preview is inside the board; its corner snapped to the nearest cell is where the note lands. The cells show only while a note moves, and a place another note takes refuses the drop. The board is a GridLayout, and the zone has its insertion line turned off (indicator={false})."
+      >
+        <Pinboard />
+      </Section>
+      <Section
+        title="Scroll while dragging"
+        description="A list in a ScrollArea spread with useDragScroll(): it does not scroll under a held row, it scrolls by itself when the row nears its top or bottom edge, and the drop lands where the row is released."
+      >
+        <LongList />
+      </Section>
+      <Section
         title="Use it"
-        description="The provider only reports the drop: keep the lists in your state and move the item in onDragEnd. Mount a Portal.Host at the root, where the copy that follows the pointer is drawn. Inside a ScrollView, pass scrollEnabled={!active} from useDragDrop() so it does not scroll under a held item."
+        description="The provider only reports the drop: keep the lists in your state and move the item in onDragEnd. Mount a Portal.Host at the root, where the copy that follows the pointer is drawn. Spread useDragScroll() on the ScrollView or ScrollArea that holds the zones, so it does not scroll under a held item and scrolls by itself near its edges."
       >
         <CodeBlock code={USAGE} title="Board.tsx" />
       </Section>

@@ -15,15 +15,16 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 
 ## Plans and roadmap
 
-| Document                                                                                                       | What it is                                                                                                            |
-| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [`library-roadmap.md`](library-roadmap.md)                                                                     | What the library still needs: verified bugs, API gaps, missing components, in priority order.                         |
-| [`decisions.md`](decisions.md)                                                                                 | Decisions already taken ("do not re-propose") and the ones waiting for a yes or no.                                   |
-| [`solaris-native.md`](solaris-native.md)                                                                       | Phases 0–9 of the Solaris UI plan: native readiness, charts, PDF, pivot, pilot screens. Italian.                      |
-| [`work-split.md`](work-split.md)                                                                               | Who does what between the two people on the plan, and where the two streams meet. Italian.                            |
-| [`crm-component-matrix.md`](crm-component-matrix.md)                                                           | The CRM families mapped onto Glowup components: the Phase 3 work list, with a "done" column. Italian.                 |
-| [`device-package-plan.md`](device-package-plan.md)                                                             | Design and phases of `@its/glowup-device`. Linked from the published package's README, so it stays here.              |
-| [`superpowers/specs/2026-10-26-layout-editor-design.md`](superpowers/specs/2026-10-26-layout-editor-design.md) | The layout editor: canvas on a grid, palette, nesting, props panel, JSON and code export. Decisions taken; to review. |
+| Document                                                                                                                     | What it is                                                                                               |
+| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| [`library-roadmap.md`](library-roadmap.md)                                                                                   | What the library still needs: verified bugs, API gaps, missing components, in priority order.            |
+| [`decisions.md`](decisions.md)                                                                                               | Decisions already taken ("do not re-propose") and the ones waiting for a yes or no.                      |
+| [`solaris-native.md`](solaris-native.md)                                                                                     | Phases 0–9 of the Solaris UI plan: native readiness, charts, PDF, pivot, pilot screens. Italian.         |
+| [`work-split.md`](work-split.md)                                                                                             | Who does what between the two people on the plan, and where the two streams meet. Italian.               |
+| [`crm-component-matrix.md`](crm-component-matrix.md)                                                                         | The CRM families mapped onto Glowup components: the Phase 3 work list, with a "done" column. Italian.    |
+| [`device-package-plan.md`](device-package-plan.md)                                                                           | Design and phases of `@its/glowup-device`. Linked from the published package's README, so it stays here. |
+| [`superpowers/specs/2026-10-26-layout-editor-design.md`](superpowers/specs/2026-10-26-layout-editor-design.md)               | The layout editor: canvas on a grid, palette, nesting, props panel, JSON and code export. Approved.      |
+| [`superpowers/plans/2026-10-27-layout-editor-1-foundations.md`](superpowers/plans/2026-10-27-layout-editor-1-foundations.md) | Plan 1 of 3 for the layout editor: drag and drop additions and `GridLayout` in the library.              |
 
 ## Reference
 

@@ -1,7 +1,7 @@
 # Layout editor — design
 
-Status: **decisions taken, to review** (2026-10-26). The four open questions were answered the same day
-(§16); everything marked _(my call)_ is a default the builder may revisit. Builds on the drag and drop
+Status: **approved** (2026-10-27). Five questions answered (§16), the fifth raised by a builder's review;
+everything marked _(my call)_ is a default the builder may revisit. Builds on the drag and drop
 system that landed that day (`packages/ui/src/components/DragDrop.tsx`, the `/drag-and-drop` page).
 
 ## 1. Purpose
@@ -109,6 +109,7 @@ On a desktop browser:
       "type": "Paper",
       "props": { "elevation": 1 },
       "layout": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "columns": 6,
       "children": [
         {
           "id": "n2",
@@ -153,9 +154,18 @@ On a desktop browser:
   content of a component whose children are a label (Typography, Button…).
 - `id`s are unique in the document, short and stable (`n` + counter); they become `key`s in the code.
 - `format` + `version` let an import refuse what it does not know and migrate older versions.
+- A **TabbedPanel** (§8) has `tabs` instead of `children`: one entry per tab, each a label and a grid —
+  `"tabs": [{ "label": "Prodotto", "columns": 6, "children": [ … ] }, { "label": "Dati aggiuntivi", … }]`,
+  the panel's `columns` following its `w` like any grid container.
 - Grid defaults _(my call)_: 12 columns, row 48 dp, gap 16 dp — close to the screenshot's cells and on the
   spacing tokens. Every grid in a document, nested ones included, uses the same row height and gap, so rows
   line up across containers.
+- A grid container stores its own `columns` _(my call, from the review)_: **as many as the page columns it
+  spans** — the Paper above is `w: 6`, so its grid has 6 columns — so its cells line up with the page's and
+  stay as wide. (Twelve columns inside every container would leave a half-width Paper with columns of about
+  7 dp, and a 3-column Card with gaps wider than itself.) Its `columns` follows its `w` when it is resized,
+  and it cannot be made narrower than its children reach. A grid container inside a flow container (no
+  `w`) gets the columns that fit its width at the page's column width when it is placed there.
 
 ## 8. The component manifest
 
@@ -178,7 +188,11 @@ reason, fails).
 First classification _(my call, to refine with the manifest test)_:
 
 - **grid** containers — surfaces, whose content you arrange freely: Box, Paper, Card, CardContent,
-  ScrollArea, Collapse, TabContent, Accordion (its content).
+  ScrollArea.
+- **tabs** — one entry, **TabbedPanel**, an editor composite (§16 Q5): tab labels and one grid per tab,
+  exported as the library's `Tabs` + `TabContent`. Its props panel shows the `Tabs` registry entry
+  (variant, color, size, fullWidth, showBorders). The bare `Tabs` and `TabContent` are not in the palette;
+  Collapse and Accordion are left out until they get the same treatment.
 - **flow** containers — components whose job is an order, so a grid inside would contradict their own
   props (`spacing`, `direction`): Stack, VStack, HStack, CardActions, Toolbar, ListSection, FormControl.
   _(My call within §16 Q3: the answer was "a grid inside containers", and these are the exception; making
@@ -210,7 +224,8 @@ The system built today reports _which zone_ and _which index_. A grid also needs
    things move while you drag (pushed items, a container growing), so a zone you aim at may have moved: a
    zone or item whose `onLayout` fires during a drag must be measured again.
 4. **Auto-scroll.** A canvas taller than the window must scroll when the pointer nears its top or bottom
-   edge: the provider takes the scroll view's ref (`scrollRef`) and scrolls it, re-measuring as it goes.
+   edge: a hook, `useDragScroll()`, spread on that scroll view, scrolls it and keeps the zones measured as
+   it goes, and locks it while an item is held (so no app has to pass `scrollEnabled={!active}` by hand).
 5. **Palette items** dropped as new nodes (`data: { kind: "new", type }`) already work; listed to keep the
    case in the tests.
 
@@ -235,14 +250,20 @@ responder system in the editor (`ResizeHandle`), sharing the grid maths of §11.
 </GridLayout>
 ```
 
-- Measures its own width (`onLayout`, never the window: it must reflow on the stage's 360 / 720 widths and
-  prerender at width 0 like the templates), derives the column width, and places each child absolutely at
-  its cell, gaps included. Its own height is the bottom of the lowest item.
-- Nests: a `GridLayout` inside a container lays out on the container's content width with the same row
-  height and gap.
+- Places each child absolutely at its cell, gaps included, with percentages plus dp margins (left and right)
+  and dp from the rows (top, height): it never measures its width, so it prerenders at width 0 like the
+  templates and reflows on the stage's 360 / 720 widths by itself. Its own height is the bottom of the
+  lowest item.
+- **An item is as tall as its rows**; content taller than that (an error under an Input, text that wraps
+  when the column narrows, an Accordion opened at run time, a DataGrid's rows) **scrolls inside the item**,
+  as the cards of the CRM screenshot do _(my call, from the review)_. Nothing moves at run time, so what
+  the editor shows is what ships.
+- Nests: a `GridLayout` inside a container lays out on the container's content width (inside its padding)
+  with its own `columns` (§7) and the document's row height and gap.
 - Below `stackBelow` (a window size class, `medium` default, read with the library's `useBreakpoint`), the
-  children stack full width in reading order (`y`, then `x`), each at its own height, separated by the gap;
-  empty rows between items collapse. Nested grids stack the same way.
+  children stack full width in reading order (`y`, then `x`), separated by the gap; empty rows between items
+  collapse. Stacked, an item takes **its content's height** (a fixed height made for a wide column would
+  cut or pad the same content at full width). Nested grids stack the same way.
 - The editor renders the canvas with it, and the exported code uses it: what you see is the component that
   ships.
 - Its own catalogue page, example and gallery, like every component.
@@ -290,9 +311,12 @@ accepts it, as the drag and drop core already decides):
 4. **Collisions push down, nothing else moves** (§16 Q3: leave gaps). An item the target would overlap moves
    down just below it, keeping its column; whatever that one now overlaps moves the same way, and so on.
    Nothing moves up to fill a hole.
-5. A **container grows** to hold its grid: when a child lands or is resized below the container's last row,
-   the container's `h` increases to fit, which may push down items under the container in its own grid, up
-   to the page.
+5. A **container grows** to hold its content while you edit: its `h` becomes the smallest number of rows
+   whose height holds its measured content plus its own chrome (padding, a Card's title) — for a grid
+   container, its inner grid; for a flow container, its stacked children. Rows do not map 1:1 between a
+   container and its inner grid (the padding takes room), so the engine works from the measured height,
+   not from row counts. Growing may push down items under the container in its own grid, up to the page.
+   Leaves never grow: their content scrolls inside them (§10).
 6. Release: the layout with the item at the target becomes the document (one undo step). Escape or a
    cancelled gesture restores the layout from before the drag.
 
@@ -308,9 +332,9 @@ apply live as in §11.3. Touch targets are at least 24 dp (`hitSlop`), the visib
 
 ### 11.5 Containers
 
-- A **grid** container's content box (inside its padding) is a grid of the document's 12 columns: a child's
-  `x`/`w` are in those columns, so shrinking the container keeps the children's proportions. The container
-  grows to fit its children (§11.3.5) and cannot be resized smaller than they need.
+- A **grid** container's content box (inside its padding) is a grid of its own `columns` (§7): as many as
+  the page columns it spans, so its cells line up with the page's. Widening it adds columns; it cannot be
+  narrowed past its rightmost child, nor made shorter than its content (§11.3.5).
 - A **flow** container keeps its children in order in its `direction`; dropping into it shows the drag and
   drop system's insertion line and inserts at that index.
 - Moving a node from one grid to another keeps its `w`/`h` (cut to the columns); moving it into a flow
@@ -318,6 +342,11 @@ apply live as in §11.3. Touch targets are at least 24 dp (`hitSlop`), the visib
 - A container never takes its own ancestor (the drag and drop core already refuses a zone inside the
   dragged item) nor a type outside its `accepts`.
 - An empty container shows a dashed placeholder ("Drop components here") on the canvas only.
+- A **TabbedPanel** draws its tab bar for real; on the canvas the bar is live (the one exception to §11.1's
+  inert rendering, through its own edit-layer buttons over the tabs) so a tap switches the panel being
+  edited. Only the shown panel's grid is a drop zone; its height is the tallest panel's, so switching tabs
+  never moves the page. Hovering a tab while dragging switches to it after half a second, to drop into
+  another panel.
 
 ### 11.6 Delete and duplicate
 
@@ -327,8 +356,9 @@ new ids: on a grid, at the first free cell below the original; in a flow contain
 ## 12. Starters
 
 New layouts start blank or from a **starter**: a JSON file in `editor/starters/`, opened like a saved
-layout. First three _(my call)_: "Pagina di dettaglio" (the screenshot's shape: data cards, a tabbed panel,
-an action card), a form in sections, a dashboard with stats and a table. Each starter is a test case for the
+layout. First three _(my call)_: "Pagina di dettaglio" (the screenshot's shape: data cards, a tabbed panel
+as a TabbedPanel — and an action card), a form in sections, a dashboard with stats and a table.
+Each starter is a test case for the
 export (§15).
 
 ## 13. Panels
@@ -345,6 +375,8 @@ export (§15).
 - **Layout**: `x`, `y`, `w`, `h` for a node on a grid (number fields, same rules as dragging); for a flow
   container, its direction and spacing.
 - Props that take nodes or functions are listed as "set in code" and are not editable.
+- A **TabbedPanel** adds a **Tabs** section: the labels as a list (add, rename, remove, reorder); removing a
+  tab with content asks first.
 
 **Layers** (left panel, second tab): the document as a library `Tree` (type + first words of its text);
 selecting a row selects the node; "Move into…" picks a container from a list (the node lands at its first
@@ -376,6 +408,9 @@ entry is a `Draggable` whose preview is the component at its default size.
   and inside each grid container, children with `key`, flow containers with their children in order.
 - Props equal to the component's default are left out; strings in quotes, other values in braces; objects
   and arrays printed as literals.
+- A **TabbedPanel** becomes `const [detailsTab, setDetailsTab] = useState(0)`, a `Tabs` with
+  `tabs={["Prodotto", "Dati aggiuntivi"]} activeTab={detailsTab} onChange={setDetailsTab}`, and a
+  `TabContent activeTab={detailsTab}` holding one `GridLayout` per tab.
 - **Controlled components** (manifest `controlled`): a `useState` per instance, named from its label
   (`const [email, setEmail] = useState("")`), wired to the value and change props, so the export runs as is.
 - Handlers are not invented: a header comment lists what is left to wire ("Button 'Save': onClick").
@@ -395,6 +430,13 @@ entry is a `Draggable` whose preview is the component at its default size.
    (§8, my call within this answer).
 4. **Phone: as much as is practical** — decided in §17.
 
+5. **Tabs: a composite "tabbed panel"** (2026-10-27, raised by the builder's review). `TabContent` shows the
+   panel at `activeTab`, which must come from state shared with a separate `Tabs`; the document has no way
+   to link two nodes. So the palette offers one **TabbedPanel** node: the tab labels plus one grid per tab
+   (§7, §8), a tab switcher on the canvas to edit each panel (§11.5), exported as `Tabs` + `TabContent`
+   with the shared state generated (§15). Collapse and Accordion get the same treatment later (§4);
+   until then they are not in the palette.
+
 ## 17. Responsive editor
 
 How much editing a width allows _(my call, §16 Q4)_. The limit is the cell: at 12 columns with 16 dp gaps, a
@@ -402,9 +444,11 @@ How much editing a width allows _(my call, §16 Q4)_. The limit is the cell: at 
 resizing need a canvas of at least 600 dp (about 30 dp per column), which tablets and **phones held
 sideways** have.
 
-- **≥ expanded (840 dp)**: three columns, palette/layers 280 dp, canvas, properties 320 dp; toolbar on top.
-  Everything works.
-- **medium (600–839 dp)** — tablets, phones held sideways: canvas full width; palette, layers and properties
+- The editor page takes the whole window: the site's navigation collapses to its menu button there
+  _(from the review: at 1440 dp the site's drawer plus both panels would leave the canvas about 600 dp)_.
+- **Three columns** (palette/layers 280 dp, canvas, properties 320 dp, toolbar on top) only while the
+  canvas keeps at least 720 dp, that is from about 1320 dp of window. Everything works.
+- **600 dp up to that** — tablets, phones held sideways, smaller windows: canvas full width; palette, layers and properties
   open one at a time as a side sheet; a drag that starts in the sheet closes it so the canvas is reachable.
   Everything works, by touch (long press to lift).
 - **compact (< 600 dp)** — phones held upright: the canvas shows the phone arrangement (stacked, as the
@@ -414,7 +458,7 @@ sideways** have.
   "Turn the phone sideways to move and resize". No drag and no handles on the grid.
 - A **Desktop / Tablet / Phone** switch sets the canvas width (full, 720, 360) whatever the window, like the
   component pages' stage; at Phone the canvas shows the stacked arrangement and follows the compact rules.
-- On native, the canvas's `ScrollView` takes `scrollEnabled={!active}`; drags start with a long press, as
+- The canvas's scroll view uses `useDragScroll()` (§9.4): locked while an item is held, scrolling near its edges; drags start with a long press, as
   everywhere in the drag and drop system.
 
 ## 18. Performance budget
@@ -428,17 +472,17 @@ sideways** have.
 
 Each phase ends with its tests green, a browser check and a handoff entry.
 
-| #   | Phase                                                                         | Size | Ends with                                                                  |
-| --- | ----------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------- |
-| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll           |
-| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page   |
-| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test             |
-| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser          |
-| 4   | Palette, flow containers, moving between grids and containers                 | M    | page tests; browser                                                        |
-| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                   |
-| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                           |
-| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas    |
-| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device |
+| #   | Phase                                                                         | Size | Ends with                                                                                     |
+| --- | ----------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
+| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll. **Done 2026-10-27**         |
+| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page. **Done 2026-10-27** |
+| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test                                |
+| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser                             |
+| 4   | Palette, flow containers, TabbedPanel, moving between grids and containers    | M    | page tests; browser                                                                           |
+| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                                      |
+| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                                              |
+| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas                       |
+| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device                    |
 
 Phases 0 and 1 are library work with changesets; 2–8 are the playground.
 
@@ -465,7 +509,7 @@ Phases 0 and 1 are library work with changesets; 2–8 are the playground.
 | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | The edit layer drifts from the rendered nodes (nested grids, text reflow)       | Rects from each wrapper's `onLayout`, recomputed on every layout change; a test with three nested grids |
 | A push-down or a growing container cascades through several grids during a drag | Pure engine with tests on chains; the drag re-measures (§9.3); target only recomputed per cell          |
-| Native scroll views take the touch during a drag                                | `scrollEnabled={!active}` on the canvas; checked on devices in phase 8                                  |
+| Native scroll views take the touch during a drag                                | `useDragScroll()` locks the canvas's scroll view; checked on devices in phase 8                         |
 | Export fidelity: controlled inputs, required data props                         | Manifest `controlled` and `defaultProps`; the fidelity test on every starter                            |
 | A component the manifest misclassifies (a container marked leaf, grid vs flow)  | The manifest test lists every catalogued component; reviewed once by hand                               |
 | Scope growth: per-size layouts, inline editing, run-time rendering              | Listed as non-goals; each one a separate project                                                        |

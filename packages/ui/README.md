@@ -444,6 +444,46 @@ rendered. `HStack` and `VStack` lock the axis. Takes every `Box` prop except `va
 </Grid>
 ```
 
+#### `GridLayout`
+
+Places its children on a grid of cells from layout data, as a dashboard or a detail page does: each
+child, matched by its `key`, takes the columns (`x`, `w`) and rows (`y`, `h`) of its entry in
+`layout`, and cells left empty stay empty. An item is as tall as its rows; content taller than that
+scrolls inside it. Below `stackBelow` the children stack full width in reading order (rows top to
+bottom, then left to right), each at its content's height. Placement needs no measured width, so the
+grid prerenders and follows its container by itself; a `GridLayout` inside an item with as many
+`columns` as the item spans lines its cells up with the outer grid's.
+
+| Prop       | Type                                            | Default    |
+| ---------- | ----------------------------------------------- | ---------- |
+| layout     | `{ id, x, y, w, h }[]` (required; `id` = `key`) | —          |
+| columns    | number                                          | `12`       |
+| rowHeight  | number (dp)                                     | `48`       |
+| gap        | number (dp, between columns and rows)           | `16`       |
+| stackBelow | size class (`compact` … `extraLarge`)           | `"medium"` |
+
+`clampGridItem`, `gridLayoutHeight` and `gridReadingOrder` are exported for code that edits layouts.
+
+```tsx
+<GridLayout
+  layout={[
+    { id: "details", x: 0, y: 0, w: 6, h: 4 },
+    { id: "contact", x: 6, y: 0, w: 6, h: 2 },
+    { id: "notes", x: 0, y: 5, w: 12, h: 2 }, // row 4 stays empty
+  ]}
+>
+  <Paper key="details" style={{ flexGrow: 1 }}>
+    …
+  </Paper>
+  <Paper key="contact" style={{ flexGrow: 1 }}>
+    …
+  </Paper>
+  <Paper key="notes" style={{ flexGrow: 1 }}>
+    …
+  </Paper>
+</GridLayout>
+```
+
 #### `Center`
 
 A `Box` that centres its children on both axes. Takes every `Box` prop except `variant` (`width`,
@@ -2389,8 +2429,19 @@ Zones nest: the innermost zone under the pointer that `accept`s the item wins, a
 a `Draggable` never takes that draggable (a section cannot be dropped into itself). When zones
 hold different kinds of item, say so: put the kind in each item's `data` and let each zone
 `accept` only its own (`accept={(item) => (item.data as { kind?: string })?.kind === "field"}`), or a field dropped
-between two sections lands in the list of sections. Inside a `ScrollView`, pass
-`scrollEnabled={!active}` (from `useDragDrop()`) so it does not scroll under a held item.
+between two sections lands in the list of sections.
+
+Spread `useDragScroll()` on the `ScrollView` or `ScrollArea` that holds the zones
+(`<ScrollArea {...useDragScroll()}>`; a plain `ScrollView` also needs `scrollEventThrottle={16}`):
+it does not scroll under a held item, scrolls by itself when the pointer nears its top or bottom
+edge, and keeps the zones measured as it scrolls. Zones that move during a drag (a container that
+grows) are measured again too.
+
+For a zone that places by position, a grid for instance, `over.rect` is where the dragged item's
+preview is relative to the zone's top-left corner, and `over.zone` the zone's size; snap the corner
+to a cell and turn the list's line off with `indicator={false}`. `useDragState(select)` reads the
+drag in progress and re-renders only when what `select` returns changes, so a landing place can
+follow the pointer cell by cell (return a primitive, or the same object while nothing changed).
 
 | `DragDropProvider` | Type                               | Default |
 | ------------------ | ---------------------------------- | ------- |
@@ -2414,6 +2465,7 @@ between two sections lands in the list of sections. Inside a `ScrollView`, pass
 | accept      | (item) => boolean                                    | every item   |
 | orientation | `"vertical" \| "horizontal"` — the axis of its items | `"vertical"` |
 | disabled    | boolean                                              | `false`      |
+| indicator   | boolean — draw the insertion line                    | `true`       |
 | children    | ReactNode or `({ isOver, index }) => ReactNode`      |              |
 
 ### System

@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { act, fireEvent, render } from "@testing-library/react-native";
 import {
   DragDropProvider,
@@ -7,6 +7,8 @@ import {
   Droppable,
   PortalHost,
   ThemeProvider,
+  useDragScroll,
+  useDragState,
   type DragEndEvent,
 } from "..";
 
@@ -23,19 +25,27 @@ const RECTS: Record<string, [number, number, number, number]> = {
   bin: [400, 0, 100, 100],
   outer: [0, 180, 300, 60],
   nested: [0, 190, 300, 40],
+  scroller: [0, 0, 300, 200],
 };
+// Tests that move a zone mid-drag change RECTS; each test starts from these.
+const ORIGINAL = { ...RECTS };
 
 beforeEach(() => {
   jest.useFakeTimers();
-  jest
-    .spyOn(View.prototype as any, "measureInWindow")
-    .mockImplementation(function (this: any, cb: any) {
-      cb(...(RECTS[this.props?.testID] ?? [0, 0, 0, 0]));
-    });
+  // The mocked ScrollView's own measureInWindow never answers: give it RECTS too.
+  for (const component of [View, ScrollView]) {
+    jest
+      .spyOn(component.prototype as any, "measureInWindow")
+      .mockImplementation(function (this: any, cb: any) {
+        cb(...(RECTS[this.props?.testID] ?? [0, 0, 0, 0]));
+      });
+  }
 });
 afterEach(() => {
   jest.useRealTimers();
   jest.restoreAllMocks();
+  for (const key of Object.keys(RECTS)) delete RECTS[key];
+  Object.assign(RECTS, ORIGINAL);
 });
 
 const at = (x: number, y: number) => ({ nativeEvent: { pageX: x, pageY: y } });
@@ -45,6 +55,8 @@ const setup = async (
     acceptInner?: boolean;
     onPress?: () => void;
     feedback?: jest.Mock;
+    /** Rendered last inside the provider: probes and scrollers. */
+    extra?: React.ReactNode;
   } = {},
 ) => {
   const onDragEnd = jest.fn<void, [DragEndEvent]>();
@@ -80,6 +92,7 @@ const setup = async (
               <Text>nested</Text>
             </Draggable>
           </Draggable>
+          {props.extra}
         </DragDropProvider>
       </PortalHost>
     </ThemeProvider>,
@@ -119,7 +132,7 @@ describe("Drag and drop", () => {
     await fireEvent(b, "responderRelease", at(20, 5));
     expect(onDragEnd).toHaveBeenCalledWith({
       active: { id: "b", data: { label: "b" } },
-      over: { id: "list", data: undefined, index: 0 },
+      over: expect.objectContaining({ id: "list", data: undefined, index: 0 }),
     });
   });
 
@@ -276,6 +289,183 @@ describe("Drag and drop", () => {
     const { view } = await setup({ feedback });
     await drag(view.getByTestId("a"), [20, 20]);
     expect(feedback).toHaveBeenCalledWith("longPress");
+  });
+
+  it("reports where the item's preview is in the zone", async () => {
+    const { view, onDragEnd } = await setup();
+    const b = view.getByTestId("b"); // window rect 0,48 300×40
+    await drag(b, [20, 60], [420, 30]); // moved by +400, -30
+    await fireEvent(b, "responderRelease", at(420, 30));
+    expect(onDragEnd.mock.calls[0][0].over).toMatchObject({
+      id: "bin", // window rect 400,0 100×100
+      rect: { x: 0, y: 18, width: 300, height: 40 },
+      zone: { width: 100, height: 100 },
+    });
+  });
+
+  it("re-renders a selector only when its value changes", async () => {
+    let renders = 0;
+    const Probe = () => {
+      renders++;
+      const over = useDragState((s) => s.over?.id ?? "none");
+      return <Text testID="probe">{over}</Text>;
+    };
+    const { view } = await setup({ extra: <Probe /> });
+    const a = view.getByTestId("a");
+    await drag(a, [20, 20], [20, 22]);
+    expect(view.getByTestId("probe").props.children).toBe("list");
+    const inList = renders;
+    await fireEvent(a, "responderMove", at(21, 24));
+    await fireEvent(a, "responderMove", at(22, 26));
+    expect(renders).toBe(inList);
+    await fireEvent(a, "responderMove", at(450, 50));
+    expect(view.getByTestId("probe").props.children).toBe("bin");
+    expect(renders).toBe(inList + 1);
+  });
+
+  it("measures again when a zone moves during the drag", async () => {
+    const { view, onDragEnd } = await setup();
+    const a = view.getByTestId("a");
+    await drag(a, [20, 20], [450, 50]);
+    RECTS.bin = [400, 600, 100, 100]; // pushed down by something that grew
+    await fireEvent(view.getByTestId("bin"), "layout", {
+      nativeEvent: { layout: { x: 400, y: 600, width: 100, height: 100 } },
+    });
+    await act(async () => {});
+    await fireEvent(a, "responderMove", at(450, 650));
+    await fireEvent(a, "responderRelease", at(450, 650));
+    expect(onDragEnd.mock.calls[0][0].over?.id).toBe("bin");
+  });
+
+  it("forgets a zone that unmounts during the drag", async () => {
+    const onDragEnd = jest.fn();
+    const Board = ({ withBin }: { withBin: boolean }) => (
+      <ThemeProvider>
+        <PortalHost>
+          <DragDropProvider onDragEnd={onDragEnd}>
+            <Droppable id="list" testID="list">
+              <Draggable id="a" testID="a">
+                <Text>a</Text>
+              </Draggable>
+            </Droppable>
+            {withBin && <Droppable id="bin" testID="bin" />}
+          </DragDropProvider>
+        </PortalHost>
+      </ThemeProvider>
+    );
+    const view = await render(<Board withBin />);
+    const a = view.getByTestId("a");
+    await drag(a, [20, 20], [450, 50]);
+    await view.rerender(<Board withBin={false} />);
+    await fireEvent(view.getByTestId("list"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 136 } },
+    });
+    await act(async () => {});
+    await fireEvent(a, "responderMove", at(451, 50));
+    await fireEvent(a, "responderRelease", at(451, 50));
+    expect(onDragEnd.mock.calls[0][0].over).toBeNull();
+  });
+
+  describe("useDragScroll", () => {
+    const Scroller = () => {
+      const scroll = useDragScroll();
+      return (
+        <ScrollView testID="scroller" scrollEventThrottle={16} {...scroll} />
+      );
+    };
+    const scrolled = (y: number) => ({
+      nativeEvent: {
+        contentOffset: { x: 0, y },
+        contentSize: { width: 300, height: 400 },
+        layoutMeasurement: { width: 300, height: 200 },
+      },
+    });
+
+    it("locks its scroll view while an item is held", async () => {
+      const { view } = await setup({ extra: <Scroller /> });
+      const a = view.getByTestId("a");
+      expect(view.getByTestId("scroller").props.scrollEnabled).toBe(true);
+      await drag(a, [20, 20], [20, 22]);
+      expect(view.getByTestId("scroller").props.scrollEnabled).toBe(false);
+      await fireEvent(a, "responderRelease", at(20, 22));
+      expect(view.getByTestId("scroller").props.scrollEnabled).toBe(true);
+    });
+
+    it("scrolls near the bottom edge and stops at the end", async () => {
+      // Already a jest.fn in the mock: spyOn returns it, calls and all.
+      const scrollTo = jest.spyOn(ScrollView.prototype as any, "scrollTo");
+      scrollTo.mockClear();
+      const { view } = await setup({ extra: <Scroller /> });
+      await fireEvent(view.getByTestId("scroller"), "scroll", scrolled(0));
+      const a = view.getByTestId("a");
+      await drag(a, [20, 20], [20, 195]); // 5 dp from the bottom: 14 per tick
+      await act(async () => {
+        jest.advanceTimersByTime(16 * 3);
+      });
+      expect(scrollTo.mock.calls.map(([to]: any) => to.y)).toEqual([
+        14, 28, 42,
+      ]);
+      await fireEvent(view.getByTestId("scroller"), "scroll", scrolled(195));
+      scrollTo.mockClear();
+      await act(async () => {
+        jest.advanceTimersByTime(16 * 3);
+      });
+      // Content 400 − viewport 200: the last offset, then nothing more.
+      expect(scrollTo.mock.calls.map(([to]: any) => to.y)).toEqual([200]);
+    });
+
+    it("scrolls a list that has not been scrolled yet", async () => {
+      // No scroll event before the drag: the sizes come from layout and content.
+      // Already a jest.fn in the mock: spyOn returns it, calls and all.
+      const scrollTo = jest.spyOn(ScrollView.prototype as any, "scrollTo");
+      scrollTo.mockClear();
+      const { view } = await setup({ extra: <Scroller /> });
+      const scroller = view.getByTestId("scroller");
+      await fireEvent(scroller, "layout", {
+        nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 200 } },
+      });
+      await fireEvent(scroller, "contentSizeChange", 300, 400);
+      await drag(view.getByTestId("a"), [20, 20], [20, 195]);
+      await act(async () => {
+        jest.advanceTimersByTime(16 * 3);
+      });
+      expect(scrollTo.mock.calls.map(([to]: any) => to.y)).toEqual([
+        14, 28, 42,
+      ]);
+    });
+
+    it("keeps zones current while it scrolls", async () => {
+      const { view, onDragEnd } = await setup({ extra: <Scroller /> });
+      const a = view.getByTestId("a");
+      await drag(a, [20, 20], [450, 50]);
+      RECTS.bin = [400, 300, 100, 100]; // the content scrolled
+      await fireEvent(view.getByTestId("scroller"), "scroll", scrolled(60));
+      await act(async () => {});
+      await fireEvent(a, "responderMove", at(450, 350));
+      await fireEvent(a, "responderRelease", at(450, 350));
+      expect(onDragEnd.mock.calls[0][0].over?.id).toBe("bin");
+    });
+  });
+
+  it("draws no line in a zone with indicator off", async () => {
+    const view = await render(
+      <ThemeProvider>
+        <PortalHost>
+          <DragDropProvider onDragEnd={jest.fn()}>
+            <Droppable id="list" testID="list" indicator={false}>
+              {["a", "b"].map((id) => (
+                <Draggable key={id} id={id} testID={id}>
+                  <Text>{id}</Text>
+                </Draggable>
+              ))}
+            </Droppable>
+          </DragDropProvider>
+        </PortalHost>
+      </ThemeProvider>,
+    );
+    await drag(view.getByTestId("a"), [20, 20], [20, 80]);
+    // The two draggables, and no line after them.
+    expect(view.getByTestId("list").children).toHaveLength(2);
   });
 
   it("needs a provider", async () => {

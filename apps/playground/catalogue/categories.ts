@@ -140,6 +140,7 @@ export const CATEGORIES: Category[] = [
       "Break",
       "Stack",
       "Grid",
+      "GridLayout",
       "AspectRatio",
       "Spacer",
       "Visible",

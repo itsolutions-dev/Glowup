@@ -5,6 +5,7 @@ import {
   Break,
   Center,
   Grid,
+  GridLayout,
   ScrollArea,
   Spacer,
   Stack,
@@ -21,7 +22,7 @@ const SPACING_OPTIONS = [
   { label: "xl", value: "xl" },
 ];
 
-/** The window size classes `Visible` reads, smallest first. */
+/** The window size classes `Visible` and `GridLayout` read, smallest first. */
 const SIZE_CLASS_OPTIONS = [
   { label: "compact", value: "compact" },
   { label: "medium", value: "medium" },
@@ -242,6 +243,21 @@ export const layout: Record<string, ComponentMetadata> = {
           { label: "Grow", value: "grow" },
           { label: "Per breakpoint (12 / 6)", value: { xs: 12, md: 6 } },
         ],
+      },
+    },
+  },
+  GridLayout: {
+    name: "GridLayout",
+    Component: GridLayout,
+    props: {
+      columns: { type: "number", default: 12, label: "Columns" },
+      rowHeight: { type: "number", default: 48, label: "Row Height" },
+      gap: { type: "number", default: 16, label: "Gap" },
+      stackBelow: {
+        type: "select",
+        default: "medium",
+        label: "Stack Below",
+        options: SIZE_CLASS_OPTIONS,
       },
     },
   },

@@ -1,8 +1,24 @@
 import {
+  autoScrollStep,
   indicatorAt,
   insertionIndex,
   zoneAt,
 } from "../components/internal/dragDrop";
+
+describe("autoScrollStep", () => {
+  const rect = { x: 0, y: 100, width: 300, height: 400 }; // edges at 100 and 500
+  it.each([
+    [{ x: 10, y: 300 }, 0], // middle
+    [{ x: 10, y: 100 }, -16], // on the top edge
+    [{ x: 10, y: 124 }, -8], // half way into the top band
+    [{ x: 10, y: 40 }, -16], // above the area
+    [{ x: 10, y: 476 }, 8], // half way into the bottom band
+    [{ x: 10, y: 560 }, 16], // below the area
+    [{ x: 400, y: 490 }, 0], // beside the area
+  ])("at %o scrolls %d", (point, step) => {
+    expect(autoScrollStep(point, rect)).toBe(step);
+  });
+});
 
 // Three 40-high rows stacked with an 8 gap: 0..40, 48..88, 96..136.
 const ROWS = [0, 48, 96].map((y) => ({ x: 10, y, width: 200, height: 40 }));

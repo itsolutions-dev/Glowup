@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -10,7 +11,11 @@ import React, {
 import {
   Animated,
   GestureResponderEvent,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
+  ScrollView,
   StyleProp,
   StyleSheet,
   View,
@@ -30,6 +35,7 @@ import {
   INDICATOR,
   Point,
   Rect,
+  autoScrollStep,
   indicatorAt,
   insertionIndex,
   zoneAt,
@@ -43,6 +49,14 @@ export interface DragItem {
   data?: unknown;
 }
 
+/** A box in dp. */
+export interface DragRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 /** Where it would land: a `Droppable`'s `id` and `data`, and the position in it. */
 export interface DropTarget {
   id: string;
@@ -53,6 +67,19 @@ export interface DropTarget {
    * and moving between lists read it the same way.
    */
   index: number;
+  /**
+   * Where the dragged item's preview is, relative to the zone's top-left
+   * corner: what a zone that places by position (a grid) snaps.
+   */
+  rect: DragRect;
+  /** The zone's own size. */
+  zone: { width: number; height: number };
+}
+
+/** The drag in progress, as `useDragState` reads it. */
+export interface DragSnapshot {
+  active: DragItem | null;
+  over: DropTarget | null;
 }
 
 export interface DragStartEvent {
@@ -104,6 +131,16 @@ interface ZoneEntry {
 interface ItemEntry {
   ref: React.RefObject<View | null>;
   zone: string | null;
+}
+
+/** A scroll view spread with `useDragScroll`, as its last scroll event left it. */
+interface Scroller {
+  ref: React.RefObject<ScrollView | null>;
+  offset: number;
+  content: number;
+  viewport: number;
+  /** Where it is in the window, measured when the drag began. */
+  rect: Rect | null;
 }
 
 /** A zone that takes the item being dragged, measured when the drag began. */
@@ -168,12 +205,71 @@ const createManager = () => {
 
   const locate = (point: Point): DropTarget | null => {
     const target = zoneAt(targets, point);
-    if (!target) return null;
+    const own = state.rect;
+    if (!target || !own) return null;
     return {
       id: target.id,
       data: target.entry.data,
       index: insertionIndex(target.items, point, target.entry.orientation),
+      rect: {
+        x: own.x + point.x - grab.x - target.rect.x,
+        y: own.y + point.y - grab.y - target.rect.y,
+        width: own.width,
+        height: own.height,
+      },
+      zone: { width: target.rect.width, height: target.rect.height },
     };
+  };
+
+  const scrollers = new Set<Scroller>();
+  let autoScroll: {
+    scroller: Scroller;
+    step: number;
+    timer: ReturnType<typeof setInterval>;
+  } | null = null;
+
+  const stopAutoScroll = () => {
+    if (!autoScroll) return;
+    clearInterval(autoScroll.timer);
+    autoScroll = null;
+  };
+
+  // Near a scroll view's top or bottom edge, scroll it every 16 ms until the
+  // pointer leaves the edge, the content ends or the drag does.
+  const scrollNear = (point: Point) => {
+    for (const scroller of scrollers) {
+      const step = scroller.rect ? autoScrollStep(point, scroller.rect) : 0;
+      if (step === 0) continue;
+      if (autoScroll?.scroller === scroller) {
+        autoScroll.step = step;
+        return;
+      }
+      stopAutoScroll();
+      const run = {
+        scroller,
+        step,
+        timer: setInterval(() => {
+          const end = Math.max(0, scroller.content - scroller.viewport);
+          const next = Math.min(end, Math.max(0, scroller.offset + run.step));
+          if (next === scroller.offset) return stopAutoScroll();
+          scroller.offset = next;
+          scroller.ref.current?.scrollTo({ y: next, animated: false });
+        }, 16),
+      };
+      autoScroll = run;
+      return;
+    }
+    stopAutoScroll();
+  };
+
+  // Measured on their own: a scroll view that never reports its place must not
+  // hold up the zones.
+  const measureScrollers = () => {
+    for (const scroller of scrollers) {
+      measure(scroller.ref.current as unknown as View).then((rect) => {
+        scroller.rect = rect;
+      });
+    }
   };
 
   const move = (point: Point) => {
@@ -181,13 +277,53 @@ const createManager = () => {
     if (!state.active) return;
     pan.setValue({ x: point.x - grab.x, y: point.y - grab.y });
     const over = locate(point);
-    if (over?.id !== state.over?.id || over?.index !== state.over?.index) {
-      set({ over });
-    }
+    // Over a zone, its rect follows the pointer on every move.
+    if (over || state.over) set({ over });
+    scrollNear(point);
   };
 
-  // ponytail: zones are measured once, when the drag begins. A list that
-  // scrolls under a held item (mouse wheel, auto-scroll) needs a re-measure.
+  // Measures every zone and item, and keeps the zones that take `item` as the
+  // targets. Resolves with the items' rects, or null when the drag it was
+  // measuring for has ended. A zone or item that unmounted is not measured.
+  const measureAll = (item: DragItem, current: number) => {
+    const zoneRects = Promise.all(
+      [...zones].map(([id, entry]) =>
+        measure(entry.ref.current).then((rect) => ({ id, entry, rect })),
+      ),
+    );
+    const itemRects = Promise.all(
+      [...items].map(([id, entry]) =>
+        measure(entry.ref.current).then((rect) => ({ id, entry, rect })),
+      ),
+    );
+    return Promise.all([zoneRects, itemRects]).then(
+      ([measuredZones, measured]) => {
+        if (current !== generation || !state.active) return null;
+        targets = measuredZones.flatMap(({ id, entry, rect }) =>
+          rect &&
+          !entry.disabled &&
+          !entry.within.includes(item.id) &&
+          (entry.accept?.(item) ?? true)
+            ? [
+                {
+                  id,
+                  rect,
+                  depth: entry.depth,
+                  entry,
+                  items: measured.flatMap((m) =>
+                    m.rect && m.entry.zone === id && m.id !== item.id
+                      ? [m.rect]
+                      : [],
+                  ),
+                },
+              ]
+            : [],
+        );
+        return measured;
+      },
+    );
+  };
+
   const start = (
     item: DragItem,
     node: React.ReactNode,
@@ -202,41 +338,35 @@ const createManager = () => {
     if (touch) handlers.emit("longPress");
     handlers.onDragStart?.({ active: item });
 
-    const current = ++generation;
-    const zoneRects = Promise.all(
-      [...zones].map(([id, entry]) =>
-        measure(entry.ref.current).then((rect) => ({ id, entry, rect })),
-      ),
-    );
-    const itemRects = Promise.all(
-      [...items].map(([id, entry]) =>
-        measure(entry.ref.current).then((rect) => ({ id, entry, rect })),
-      ),
-    );
-    Promise.all([zoneRects, itemRects]).then(([measuredZones, measured]) => {
-      if (current !== generation || !state.active) return;
-      targets = measuredZones.flatMap(({ id, entry, rect }) =>
-        rect &&
-        !entry.disabled &&
-        !entry.within.includes(item.id) &&
-        (entry.accept?.(item) ?? true)
-          ? [
-              {
-                id,
-                rect,
-                depth: entry.depth,
-                entry,
-                items: measured.flatMap((m) =>
-                  m.rect && m.entry.zone === id && m.id !== item.id
-                    ? [m.rect]
-                    : [],
-                ),
-              },
-            ]
-          : [],
-      );
+    measureScrollers();
+    measureAll(item, ++generation).then((measured) => {
+      if (!measured) return;
       set({ rect: measured.find((m) => m.id === item.id)?.rect ?? null });
       move(last);
+    });
+  };
+
+  // Something moved during the drag (a list scrolled, a container grew): the
+  // zones are measured again. The item's own rect is left alone, so its
+  // preview keeps following the pointer from where it was grabbed. Calls that
+  // arrive while a pass is in flight make one more pass after it.
+  let measuring = false;
+  let again = false;
+  const relayout = () => {
+    const { active } = state;
+    if (!active) return;
+    if (measuring) {
+      again = true;
+      return;
+    }
+    measuring = true;
+    measureAll({ id: active.id, data: active.data }, generation).then(() => {
+      measuring = false;
+      move(last);
+      if (again) {
+        again = false;
+        relayout();
+      }
     });
   };
 
@@ -245,6 +375,7 @@ const createManager = () => {
     if (!active) return;
     generation++;
     targets = [];
+    stopAutoScroll();
     set(IDLE);
     const item = { id: active.id, data: active.data };
     if (dropped) handlers.onDragEnd({ active: item, over });
@@ -267,6 +398,14 @@ const createManager = () => {
     pan,
     start,
     move,
+    relayout,
+    addScroller: (scroller: Scroller) => {
+      scrollers.add(scroller);
+      return () => {
+        scrollers.delete(scroller);
+        if (autoScroll?.scroller === scroller) stopAutoScroll();
+      };
+    },
     end: () => finish(true),
     cancel: () => finish(false),
     indicator: (id: string, index: number) => {
@@ -382,6 +521,77 @@ export const DragDropProvider = ({
 export const useDragDrop = (): { active: DragItem | null } => {
   const manager = useManager("useDragDrop");
   return { active: useDragSlice(manager, (s) => s.active) };
+};
+
+/**
+ * A value read from the drag in progress under the nearest
+ * `DragDropProvider`: the caller re-renders only when it changes, not on every
+ * move. `select` must return a primitive, or the same object while nothing
+ * changed (a new object each time would re-render on every call).
+ */
+export const useDragState = <T,>(select: (state: DragSnapshot) => T): T =>
+  useDragSlice(useManager("useDragState"), (s) =>
+    select({ active: s.active, over: s.over }),
+  );
+
+export interface DragScrollProps {
+  ref: React.RefObject<ScrollView | null>;
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /** The visible height, before anything has scrolled. */
+  onLayout: (event: LayoutChangeEvent) => void;
+  /** The content's height, before anything has scrolled. */
+  onContentSizeChange: (width: number, height: number) => void;
+  scrollEnabled: boolean;
+}
+
+/**
+ * Props for the `ScrollView` (or `ScrollArea`) that holds drop zones, under
+ * the nearest `DragDropProvider`: `<ScrollArea {...useDragScroll()}>`. While
+ * an item is held the view does not scroll under the finger; it scrolls by
+ * itself when the pointer nears its top or bottom edge, and the zones in it
+ * are measured again as it scrolls, so a drop lands where it is released. A
+ * plain `ScrollView` also needs `scrollEventThrottle={16}`. Vertical only.
+ */
+export const useDragScroll = (): DragScrollProps => {
+  const manager = useManager("useDragScroll");
+  const ref = useRef<ScrollView>(null);
+  const scroller = useRef<Scroller>({
+    ref,
+    offset: 0,
+    content: 0,
+    viewport: 0,
+    rect: null,
+  });
+  useEffect(() => manager.addScroller(scroller.current), [manager]);
+  const dragging = useDragSlice(manager, (s) => s.active !== null);
+
+  const onScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      scroller.current.offset = contentOffset.y;
+      scroller.current.content = contentSize.height;
+      scroller.current.viewport = layoutMeasurement.height;
+      manager.relayout();
+    },
+    [manager],
+  );
+  // A list nobody has scrolled yet has sent no scroll event: its sizes come
+  // from these two, or auto-scroll would think there is nothing to scroll.
+  const onLayout = useCallback((event: LayoutChangeEvent) => {
+    scroller.current.viewport = event.nativeEvent.layout.height;
+  }, []);
+  const onContentSizeChange = useCallback((_width: number, height: number) => {
+    scroller.current.content = height;
+  }, []);
+
+  return {
+    ref,
+    onScroll,
+    onLayout,
+    onContentSizeChange,
+    scrollEnabled: !dragging,
+  };
 };
 
 // Rendered at the PortalHost, outside the provider: the manager comes as a prop.
@@ -644,6 +854,7 @@ const LiveDraggable = ({
       <View
         ref={ref}
         collapsable={false}
+        onLayout={manager.relayout}
         testID={testID}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={onPress ? "button" : undefined}
@@ -693,6 +904,12 @@ export interface DroppableProps {
   orientation?: DropOrientation;
   /** Takes nothing. */
   disabled?: boolean;
+  /**
+   * Draw the insertion line among the zone's draggables. Turn it off for a
+   * zone that places by position (a grid) and shows its own landing place.
+   * Defaults to true.
+   */
+  indicator?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
   /** Content, or a function of whether an item is over the zone and where. */
@@ -709,6 +926,7 @@ export interface DroppableProps {
 export const Droppable = ({
   orientation = "vertical",
   disabled = false,
+  indicator = true,
   ...props
 }: DroppableProps) =>
   useContext(PreviewContext) ? (
@@ -718,7 +936,12 @@ export const Droppable = ({
         : props.children}
     </View>
   ) : (
-    <LiveDroppable {...props} orientation={orientation} disabled={disabled} />
+    <LiveDroppable
+      {...props}
+      orientation={orientation}
+      disabled={disabled}
+      indicator={indicator}
+    />
   );
 
 const LiveDroppable = ({
@@ -727,6 +950,7 @@ const LiveDroppable = ({
   accept,
   orientation,
   disabled,
+  indicator,
   style,
   testID,
   children,
@@ -761,11 +985,17 @@ const LiveDroppable = ({
     () => ({ zone: id, depth: scope.depth + 1, within: scope.within }),
     [id, scope],
   );
-  const line = index >= 0 ? manager.indicator(id, index) : null;
+  const line = indicator && index >= 0 ? manager.indicator(id, index) : null;
 
   return (
     <ScopeContext.Provider value={inner}>
-      <View ref={ref} collapsable={false} testID={testID} style={style}>
+      <View
+        ref={ref}
+        collapsable={false}
+        testID={testID}
+        style={style}
+        onLayout={manager.relayout}
+      >
         {typeof children === "function"
           ? children({ isOver: index >= 0, index })
           : children}

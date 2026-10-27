@@ -5,6 +5,7 @@ import { variants as BottomSheet } from "./BottomSheet";
 import { variants as Dialog } from "./Dialog";
 import { variants as Drawer } from "./Drawer";
 import { variants as FAB } from "./FAB";
+import { variants as GridLayout } from "./GridLayout";
 import { variants as HoverCard } from "./HoverCard";
 import { variants as Icon } from "./Icon";
 import { variants as Menu } from "./Menu";
@@ -45,6 +46,7 @@ export const MANUAL_VARIANTS: Record<string, Variant[]> = {
   Dialog,
   Drawer,
   FAB,
+  GridLayout,
   HoverCard,
   Icon,
   Menu,

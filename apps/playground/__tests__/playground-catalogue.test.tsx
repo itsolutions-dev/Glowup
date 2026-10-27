@@ -183,6 +183,7 @@ const CATALOGUE = [
   "Break",
   "Stack",
   "Grid",
+  "GridLayout",
   "AspectRatio",
   "Spacer",
   "Visible",

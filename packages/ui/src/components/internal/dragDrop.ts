@@ -19,6 +19,31 @@ export type DropOrientation = "vertical" | "horizontal";
 /** Thickness of the insertion line, in dp. */
 export const INDICATOR = 2;
 
+/** How near a scroll area's top or bottom edge, in dp, the pointer starts it scrolling. */
+export const AUTO_SCROLL_EDGE = 48;
+/** The fastest auto-scroll, in dp per 16 ms tick. */
+export const AUTO_SCROLL_MAX = 16;
+
+/**
+ * How far a scroll area scrolls in one tick while the pointer is at `point`:
+ * negative near or above its top edge, positive near or below its bottom
+ * edge, faster the nearer the edge; 0 elsewhere and beside the area.
+ */
+export const autoScrollStep = (point: Point, rect: Rect): number => {
+  if (point.x < rect.x || point.x >= rect.x + rect.width) return 0;
+  const speed = (distance: number) =>
+    Math.round(
+      AUTO_SCROLL_MAX *
+        (1 -
+          Math.min(Math.max(distance, 0), AUTO_SCROLL_EDGE) / AUTO_SCROLL_EDGE),
+    );
+  const top = point.y - rect.y;
+  const bottom = rect.y + rect.height - point.y;
+  if (top < AUTO_SCROLL_EDGE) return -speed(top);
+  if (bottom < AUTO_SCROLL_EDGE) return speed(bottom);
+  return 0;
+};
+
 export const contains = (rect: Rect, point: Point) =>
   point.x >= rect.x &&
   point.x < rect.x + rect.width &&

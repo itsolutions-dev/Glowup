@@ -2492,6 +2492,50 @@ nor inside one is a plain `View`.
 </Grid>
 ```
 
+### GridLayout
+
+Places its children on a grid of cells from layout data, as a dashboard or a detail page does: each
+child, matched by its `key`, takes the columns (`x`, `w`) and rows (`y`, `h`) its entry in `layout`
+names. Cells left empty stay empty. An item is as tall as its rows (`h × rowHeight + (h − 1) × gap`);
+content taller than that scrolls inside it. Below `stackBelow` the children stack full width in
+reading order (rows top to bottom, then left to right), each at its content's height.
+
+Placement needs no measured width: each item's left and right edges are percentages of the grid's
+width plus a dp margin, and its top and height are dp from the rows. The grid prerenders at width 0
+and follows its container by itself. A `GridLayout` inside an item lays out on that item's width;
+with as many `columns` as the item spans, its cells line up with the outer grid's. A child with no
+entry in `layout`, or an entry with no child, renders nothing; out-of-range entries are clamped
+into the grid.
+
+| Prop       | Type               | Default    | Description                                              |
+| ---------- | ------------------ | ---------- | -------------------------------------------------------- |
+| layout     | `GridLayoutItem[]` | (required) | `{ id, x, y, w, h }` per child, `id` = the child's `key` |
+| columns    | number             | `12`       | Columns the width is divided into                        |
+| rowHeight  | number             | `48`       | Height of one row, in dp                                 |
+| gap        | number             | `16`       | Space between columns and between rows, in dp            |
+| stackBelow | `SizeClass`        | `"medium"` | Below this window size class, the children stack         |
+| style      | ViewStyle          |            |                                                          |
+
+Helpers, for code that edits layouts: `clampGridItem(item, columns)` (whole cells, inside the
+columns), `gridLayoutHeight(layout, rowHeight, gap)` (the bottom of the lowest item) and
+`gridReadingOrder(layout)` (the stacking order).
+
+```tsx
+<GridLayout
+  layout={[
+    { id: "details", x: 0, y: 0, w: 6, h: 4 },
+    { id: "notes", x: 0, y: 5, w: 12, h: 2 },
+  ]}
+>
+  <Paper key="details" style={{ flexGrow: 1 }}>
+    …
+  </Paper>
+  <Paper key="notes" style={{ flexGrow: 1 }}>
+    …
+  </Paper>
+</GridLayout>
+```
+
 ### AspectRatio
 
 | Prop  | Type             | Default | Description                        |
@@ -2659,24 +2703,32 @@ gesture or animation dependency). The geometry is pure and tested on its own
 - **The drop.** `onDragEnd({ active, over })`: `over` is `{ id, data, index }` or `null`;
   `index` counts the zone's draggables without the dragged one.
 - **Scrolling.** On the web each item cancels its own touch moves once lifted, so the page does
-  not scroll under it. On native, pass `scrollEnabled={!active}` (from `useDragDrop()`) to the
-  `ScrollView` around the zones.
+  not scroll under it. `useDragScroll()`, spread on the `ScrollView`/`ScrollArea` around the zones,
+  locks it while an item is held, scrolls it by itself within 48 dp of its top or bottom edge (up to
+  16 dp per 16 ms, faster nearer the edge, stopping at the end of the content) and re-measures the
+  zones as it scrolls. A zone or item whose layout changes during a drag is re-measured too
+  (coalesced to one pass at a time); the dragged item's own preview keeps its grab point.
+- **Position.** `over.rect` is the dragged item's preview relative to the zone's top-left corner
+  and `over.zone` the zone's size: what a zone that places by position (a grid) snaps.
+  `indicator={false}` turns the insertion line off for such a zone. `useDragState(select)` reads
+  `{ active, over }` and re-renders only when `select`'s result changes.
 
-| Component        | Props                                                                                                                            |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| DragDropProvider | `onDragEnd` (required), `onDragStart`, `onDragCancel`, `feedback` (`true`)                                                       |
-| Draggable        | `id` (required), `data`, `preview`, `onPress`, `disabled`, `style`, `accessibilityLabel`                                         |
-| Droppable        | `id` (required), `data`, `accept`, `orientation` (`"vertical"`), `disabled`, `style`, `children` (node or `({ isOver, index })`) |
+| Component        | Props                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| DragDropProvider | `onDragEnd` (required), `onDragStart`, `onDragCancel`, `feedback` (`true`)                                                                             |
+| Draggable        | `id` (required), `data`, `preview`, `onPress`, `disabled`, `style`, `accessibilityLabel`                                                               |
+| Droppable        | `id` (required), `data`, `accept`, `orientation` (`"vertical"`), `disabled`, `indicator` (`true`), `style`, `children` (node or `({ isOver, index })`) |
+| Hooks            | `useDragDrop()` → `{ active }`, `useDragState(select)`, `useDragScroll()` → props for the scroll view                                                  |
 
-Not yet: auto-scroll near an edge, a re-measure when a list scrolls under a held item, a
-keyboard way to move an item, a separate drag handle, grids that wrap (one row or column per zone).
+Not yet: horizontal auto-scroll, a keyboard way to move an item, a separate drag handle, an
+insertion index for lists that wrap (one row or column per zone; a grid places by `over.rect`).
 
 ---
 
 ## 9. Component Index
 
 **Foundations**: Typography, Divider, Paper, Card, Card.Title/Content/Cover/Actions, Icon, TouchableRipple
-**Layout**: Box, Center, Stack/HStack/VStack, Spacer, Grid, AspectRatio, AbsoluteCenter, Break, ScrollArea, Visible/useBreakpointValue
+**Layout**: Box, Center, Stack/HStack/VStack, Spacer, Grid, GridLayout, AspectRatio, AbsoluteCenter, Break, ScrollArea, Visible/useBreakpointValue
 **Actions**: Button, ProgressButton, IconButton, Link, Clipboard/useClipboard, Download/useDownload, FAB, SpeedDial, ToggleButton, ToggleButtonGroup, ButtonGroup, SplitButton, Chip, ChipGroup
 **Inputs**: Input, InputArea, PasswordField, Editable, Select, Autocomplete, PinInput, Upload, Form (FormField, useForm, useFormField, useWatch, useFormState), FormControl, HelperText, Checkbox, CheckboxGroup, RadioButton/RadioGroup, Switch, Slider, NumberField, SearchBar, DateTimePicker/DatePicker/TimePicker, Rating
 **Data display**: Avatar, Badge, StatusBadge, Blink, DataGrid, Table, ListItem, ListSection/ListSubheader, Tree, Tooltip, Accordion, Carousel, Stat, CaptionValue, Image, IFrame, CodeBlock/HighlightedCode, QrCode

@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 119,
+  "componentCount": 120,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -4145,6 +4145,72 @@
           "required": false,
           "default": "true",
           "description": "Whether a container moves items that do not fit onto the next row.",
+          "deprecated": false
+        }
+      ]
+    },
+    "GridLayout": {
+      "name": "GridLayout",
+      "source": "packages/ui/src/components/Layout/GridLayout.tsx",
+      "propsTypeName": "GridLayoutProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "layout",
+          "type": "GridLayoutItem[]",
+          "required": true,
+          "description": "Where each child sits, matched to the child by `key` = `id`.",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "columns",
+          "type": "number",
+          "required": false,
+          "default": "12",
+          "description": "How many columns the width is divided into. Defaults to 12.",
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": false,
+          "default": "16",
+          "description": "Space between columns and between rows, in dp. Defaults to 16.",
+          "deprecated": false
+        },
+        {
+          "name": "rowHeight",
+          "type": "number",
+          "required": false,
+          "default": "48",
+          "description": "Height of one row, in dp. Defaults to 48.",
+          "deprecated": false
+        },
+        {
+          "name": "stackBelow",
+          "type": "SizeClass",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "Below this window size class the children stack in reading order (rows\ntop to bottom, then left to right), each at its content's height.\nDefaults to `\"medium\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Also gives each item's wrapper `${testID}-${id}`.",
           "deprecated": false
         }
       ]
@@ -9800,6 +9866,14 @@
           "required": false,
           "default": "false",
           "description": "Takes nothing.",
+          "deprecated": false
+        },
+        {
+          "name": "indicator",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Draw the insertion line among the zone's draggables. Turn it off for a\nzone that places by position (a grid) and shows its own landing place.\nDefaults to true.",
           "deprecated": false
         },
         {

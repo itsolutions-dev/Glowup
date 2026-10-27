@@ -165,6 +165,8 @@ export const DESCRIPTIONS: Record<string, string> = {
   Box: "The basic layout block: padding, margin, background, radius and flex presets.",
   Stack: "Lays children out in a row or a column with spacing and dividers.",
   Grid: "A 12-column responsive grid, with container and item sizes per breakpoint.",
+  GridLayout:
+    "Places its children on a grid of cells from layout data, with gaps, and stacks them on phones.",
   AspectRatio: "Keeps its child at a fixed width-to-height ratio.",
   Spacer: "Fixed or flexible empty space between elements.",
   Center:

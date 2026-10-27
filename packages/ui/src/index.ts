@@ -165,6 +165,8 @@ export { default as FormControl } from "./components/FormControl";
 export * from "./components/FormControl";
 export { default as Grid } from "./components/Layout/Grid";
 export * from "./components/Layout/Grid";
+export { default as GridLayout } from "./components/Layout/GridLayout";
+export * from "./components/Layout/GridLayout";
 export { default as HelperText } from "./components/HelperText";
 export * from "./components/HelperText";
 export { default as HoverCard } from "./components/HoverCard";

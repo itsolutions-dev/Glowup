@@ -79,6 +79,11 @@ describe("native check screen", () => {
     expect(
       getByText(/^PENDING chart box shrinks with its container/),
     ).toBeTruthy();
+    // The outcome marks of the bar chart are measured on the phone only.
+    expect(
+      getByText(/^PENDING outcome marks sit over their bars, in order/),
+    ).toBeTruthy();
+    expect(getByText("outcomes=pending")).toBeTruthy();
 
     expect(
       await findByText(/^PASS pdf opens and reports its pages \(3 pages/),

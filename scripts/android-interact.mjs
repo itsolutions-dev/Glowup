@@ -330,6 +330,20 @@ steps.push(
         "part state",
       ),
   ],
+  [
+    "a bar chart draws its outcome marks over the right bars",
+    // Nothing to tap: the screen measures the marks itself and writes `outcomes=ok`; the photo shows them.
+    async () => {
+      await scrollToTop();
+      await bring(
+        (nodes) => nodes.find((n) => n.desc.startsWith("Native outcomes")),
+        'the "Native outcomes" chart',
+      );
+      await sleep(700);
+      photo("android-chart-outcomes.png");
+      await expectText(/^outcomes=ok$/, "outcome state");
+    },
+  ],
 );
 
 /** The first node inside a box (the grid's) that passes the test. */

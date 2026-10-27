@@ -19,6 +19,7 @@ import {
   ROW_HEIGHT,
   gridSizes,
 } from "./grid/layout";
+import PivotFrame from "./grid/PivotFrame";
 import { gridStrings, type GridColumn, type GridRow } from "./grid/model";
 import { ToggleArrow, cellAccess, messageText, rowColors } from "./grid/parts";
 import type { PivotGridProps } from "./grid/props";
@@ -29,7 +30,7 @@ import { visibleRange } from "./grid/windowing";
 const sticky = (top: number | undefined, left: number | undefined, z: number) =>
   ({ position: "sticky", top, left, zIndex: z }) as unknown as ViewStyle;
 
-const PivotGrid = ({
+const Grid = ({
   engine,
   localization,
   height = DEFAULT_HEIGHT,
@@ -213,5 +214,8 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
 });
+
+const PivotGrid = ({ toolbar = false, ...props }: PivotGridProps) =>
+  toolbar ? <PivotFrame Grid={Grid} {...props} /> : <Grid {...props} />;
 
 export default PivotGrid;

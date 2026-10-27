@@ -78,6 +78,15 @@ and D1–D17 in full). When a pending item is answered, move it up.
   scrollbar and wins over the rest; `minRows` / `maxRows` make it grow with its text (no `maxRows`: without limit;
   no `minRows`: from one line); nothing given is 4 fixed lines. `InputArea` has no prefix, suffix or uncontrolled mode.
 
+**Pivot, 2026-10-27**
+
+- For now the pivot is a table that shows the data and exports it, like the CRM's WaveActivitiesReport table: a
+  toolbar with Export to Excel, Fullscreen and Reset (`<PivotGrid toolbar />`). The field panel, formats,
+  calculated fields, drill-through and saved configurations stay out until they are needed.
+- The export is always an .xlsx, on iOS and Android too, written by the package itself (a stored zip and one
+  sheet in TypeScript): no `exceljs`, no SheetJS, no CSV. On the phone it goes through the share sheet
+  (`expo-file-system` + `expo-sharing`, optional peers).
+
 **Documentation site** (playground)
 
 - A component page is **one** example bound to its props: the Properties panel reads and writes a

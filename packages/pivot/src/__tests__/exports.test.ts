@@ -14,6 +14,11 @@ describe("the public API", () => {
     "optionsToEngine",
     "engineToOptions",
     "DEFAULT_OPTIONS",
+    "gridToXlsx",
+    "saveXlsx",
+    "xlsxName",
+    "XLSX_MIME",
+    "PivotExportError",
   ])("exports %s", (name) => {
     expect((pivot as Record<string, unknown>)[name]).toBeDefined();
   });

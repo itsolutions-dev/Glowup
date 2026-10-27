@@ -42,7 +42,7 @@ describe("native check screen", () => {
     // when the screen opened (CI of 2026-10-26, Android 14 and 15).
     const { getByTestId, getByLabelText, findByText } = await mount();
     const event = {
-      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 240 } },
+      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 288 } },
     } as { nativeEvent: unknown };
     await act(async () => {
       // An update already waiting, so React cannot compute the next one on the spot.
@@ -51,8 +51,13 @@ describe("native check screen", () => {
       event.nativeEvent = null;
     });
     expect(
-      await findByText(/^PASS pivot grid is laid out at its height \(240/),
+      await findByText(/^PASS pivot grid is laid out at its height \(288/),
     ).toBeTruthy();
+  });
+
+  it("shows the pivot toolbar the Android script taps", async () => {
+    const { getByLabelText } = await mount();
+    expect(getByLabelText("Export to Excel")).toBeTruthy();
   });
 
   it("mounts with its title, its interaction controls and pending measurements", async () => {

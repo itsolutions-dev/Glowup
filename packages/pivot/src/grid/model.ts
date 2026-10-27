@@ -29,6 +29,8 @@ export interface GridCell {
   text: string;
   value: number | null;
   error: string | null;
+  /** The text shows the value as a percentage (`45%` for 0.45): an export formats the number alike. */
+  percent?: boolean;
 }
 
 export interface GridRow {
@@ -176,6 +178,7 @@ export const buildGridModel = ({
           cell.formattedValue,
       value: cell?.value ?? null,
       error: cell?.error || null,
+      percent: !!values?.percentage,
     };
   };
 

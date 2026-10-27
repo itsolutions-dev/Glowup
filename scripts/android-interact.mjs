@@ -483,6 +483,36 @@ steps.push(
 );
 
 steps.push([
+  "Export to Excel hands an .xlsx to Android's share sheet",
+  async () => {
+    await tapNode(
+      (nodes) => named(nodes, "Export to Excel"),
+      'the pivot\'s "Export to Excel" button',
+    );
+    // The chooser is the system's, not the app's: package `android` up to Android 13,
+    // `com.android.intentresolver` from 14; some versions show the file's name.
+    let sheet = null;
+    for (let i = 0; i < 8 && !sheet; i += 1) {
+      await sleep(1000);
+      const nodes = screen();
+      sheet =
+        nodes.find(
+          (n) => n.pkg === "android" || n.pkg === "com.android.intentresolver",
+        ) ?? hasText(nodes, /pivot(-sample)?\.xlsx/);
+    }
+    photo("android-pivot-export.png");
+    if (!sheet) {
+      throw new Error(
+        `no share sheet after the tap; on screen: ${describe(screen())}`,
+      );
+    }
+    // Only with the sheet open: a Back on the screen itself would leave it.
+    adb("shell", "input", "keyevent", "KEYCODE_BACK");
+    await sleep(1000);
+  },
+]);
+
+steps.push([
   "the sample PDF page is on screen, drawn at the viewer's size",
   async () => {
     // The page is the last thing on the screen: go to the end, wherever the step before left the page.

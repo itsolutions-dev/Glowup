@@ -26,6 +26,9 @@ describe("the pivot page", () => {
     // Jest runs as a phone, so this is the phone grid; the web grid is tested in the package.
     expect(screen.getByLabelText("Pivot grid")).toBeTruthy();
     expect(screen.getByText("Harbour")).toBeTruthy();
+    expect(screen.getByLabelText("Export to Excel")).toBeTruthy();
+    expect(screen.getByLabelText("Fullscreen")).toBeTruthy();
+    expect(screen.getByLabelText("Reset")).toBeTruthy();
   });
 });
 

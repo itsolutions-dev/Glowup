@@ -6,6 +6,10 @@ export interface PivotGridProps {
   engine: PivotEngine;
   /** Captions of the grid (`grid` section); English when absent. */
   localization?: LocalizationDictionary;
-  /** Height of the scrolling area in pixels. */
+  /** Height of the scrolling area in pixels (with `toolbar`, of the toolbar and the grid together). */
   height?: number;
+  /** A toolbar above the grid: Export to Excel (.xlsx on web, iOS and Android), Fullscreen and Reset. */
+  toolbar?: boolean;
+  /** Name of the exported file; `.xlsx` is added when missing. Defaults to `pivot.xlsx`. */
+  fileName?: string;
 }

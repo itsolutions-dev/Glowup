@@ -23,6 +23,7 @@ import {
   ROW_HEIGHT,
   gridSizes,
 } from "./grid/layout";
+import PivotFrame from "./grid/PivotFrame";
 import { gridStrings, type GridColumn, type GridRow } from "./grid/model";
 import { ToggleArrow, cellAccess, messageText, rowColors } from "./grid/parts";
 import type { PivotGridProps } from "./grid/props";
@@ -31,7 +32,7 @@ import { sameRange, visibleRange } from "./grid/windowing";
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
 
-const PivotGrid = ({
+const Grid = ({
   engine,
   localization,
   height = DEFAULT_HEIGHT,
@@ -326,5 +327,8 @@ const styles = StyleSheet.create({
   // measured a fraction short on Android 15 at density 1 and drawn on two lines.
   number: { alignSelf: "stretch", textAlign: "right" },
 });
+
+const PivotGrid = ({ toolbar = false, ...props }: PivotGridProps) =>
+  toolbar ? <PivotFrame Grid={Grid} {...props} /> : <Grid {...props} />;
 
 export default PivotGrid;

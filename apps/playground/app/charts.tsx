@@ -293,91 +293,79 @@ const PartsDemo = () => {
   );
 };
 
-// Calls per branch: what came in (all calls, and the distinct callers among them), and what was done with each caller.
-const BRANCHES: ChartDatum[] = [
-  ["Capriate", 1, 1, 1, 0, 0, 0],
-  ["Cologno M.", 2, 2, 1, 0, 0, 1],
-  ["Corsico", 3, 2, 0, 0, 0, 2],
-  ["Cremona", 2, 1, 0, 0, 0, 1],
-  ["Lodi", 1, 1, 0, 0, 0, 1],
-  ["Milano", 0, 0, 0, 0, 0, 0],
-  ["Padova", 3, 3, 1, 0, 2, 0],
-  ["S.G. Milanese", 1, 1, 1, 0, 0, 0],
-  ["Seriate", 2, 2, 0, 1, 0, 1],
-  ["Treviglio", 8, 5, 0, 1, 1, 3],
-].map(([label, calls, callers, answered, recalled, noAnswer, open]) => ({
+// A sprint per team: points planned and committed (one column, overlapping), and how the committed ones ended (stacked).
+const SPRINT: ChartDatum[] = [
+  ["Design", 8, 6, 6, 0, 0],
+  ["Mobile", 13, 10, 7, 2, 1],
+  ["Web", 12, 12, 9, 3, 0],
+  ["Backend", 20, 15, 15, 0, 0],
+  ["Data", 5, 3, 2, 1, 0],
+  ["Platform", 0, 0, 0, 0, 0],
+  ["QA", 6, 6, 4, 0, 2],
+  ["Support", 4, 4, 4, 0, 0],
+].map(([label, planned, committed, done, review, blocked]) => ({
   label: label as string,
-  calls,
-  callers,
-  answered,
-  recalled,
-  noAnswer,
-  open,
+  planned,
+  committed,
+  done,
+  review,
+  blocked,
 }));
 
 /** Two columns per category, one overlapping and one stacked, a target and an outcome mark per category. */
-const BranchDemo = () => {
+const ColumnsDemo = () => {
   const { theme } = useTheme();
   const c = theme.colors;
   return (
-    <Tile wide title="Calls received by branch">
+    <Tile wide title="Sprint points by team">
       <BarChart
-        testID="demo-branches"
+        testID="demo-columns"
         height={280}
-        data={BRANCHES}
+        data={SPRINT}
         series={[
           {
-            key: "calls",
-            label: "Calls",
-            column: "in",
+            key: "planned",
+            label: "Planned",
+            column: "plan",
             color: c.primaryContainer,
           },
-          { key: "callers", label: "Callers", column: "in", color: c.primary },
           {
-            key: "answered",
-            label: "Answered back",
-            column: "out",
-            color: c.success,
+            key: "committed",
+            label: "Committed",
+            column: "plan",
+            color: c.primary,
           },
+          { key: "done", label: "Done", column: "result", color: c.success },
           {
-            key: "recalled",
-            label: "Recalled",
-            column: "out",
+            key: "review",
+            label: "In review",
+            column: "result",
             color: c.secondary,
           },
           {
-            key: "noAnswer",
-            label: "Recalled, no answer",
-            column: "out",
-            color: c.warning,
+            key: "blocked",
+            label: "Blocked",
+            column: "result",
+            color: c.error,
           },
-          { key: "open", label: "Not handled", column: "out", color: c.error },
         ]}
-        columnMode={{ in: "overlap" }}
-        // Every caller should be handled: the target of a branch is its number of callers.
-        target={(d) => (d.callers ? Number(d.callers) : null)}
-        marker={(d, { target }) =>
+        columnMode={{ plan: "overlap" }}
+        // The target of a team is what it committed to.
+        target={(d) => (d.committed ? Number(d.committed) : null)}
+        marker={(d, { totals, target }) =>
           !target
             ? null
-            : d.open
-              ? { icon: "close", color: c.error, label: "Callers not handled" }
-              : d.noAnswer
-                ? {
-                    icon: "check",
-                    color: c.warning,
-                    label: "Recalled, some did not answer",
-                  }
-                : {
-                    icon: "check",
-                    color: c.success,
-                    label: "Every caller handled",
-                  }
+            : d.blocked
+              ? { icon: "close", color: c.error, label: "Work blocked" }
+              : totals.result < target || d.review
+                ? { icon: "check", color: c.warning, label: "Not finished yet" }
+                : { icon: "check", color: c.success, label: "Commitment met" }
         }
-        // Fewer than two calls: too few to judge the branch.
-        dimmed={(d) => Number(d.calls) < 2}
+        // Fewer than five points: too small a commitment to judge.
+        dimmed={(d) => Number(d.committed) < 5}
         legend
         table
-        title="Calls received by branch"
+        title="Sprint points by team"
       />
     </Tile>
   );
@@ -501,7 +489,7 @@ export default function ChartsPage() {
         title="Columns, targets and outcomes"
         description="Series that share a column make one bar of the category: stacked, or overlapping from zero with the longest behind. A target per category draws a short line across it, an outcome mark sits past its longest bar, and a category can be dimmed. Target and outcome are read in the tooltip, the table and the text for a screen reader."
       >
-        <BranchDemo />
+        <ColumnsDemo />
       </Section>
       <Section
         title="Thousands of points"

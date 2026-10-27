@@ -85,7 +85,8 @@ const CHART_PARTS = [
   { id: "void", label: "Void", value: 1 },
 ];
 
-const PIVOT_HEIGHT = 240;
+// The toolbar (48) and a grid of 240, as before the toolbar: the Android script's drags assume that grid.
+const PIVOT_HEIGHT = 288;
 
 const PDF_WIDTH = 600;
 const PDF_OPEN = "pdf opens and reports its pages";
@@ -538,7 +539,12 @@ export default function NativeCheck() {
               setH((prev) => ({ ...prev, pivotBox: height }));
             }}
           >
-            <PivotGrid engine={pivotEngine} height={PIVOT_HEIGHT} />
+            <PivotGrid
+              engine={pivotEngine}
+              height={PIVOT_HEIGHT}
+              toolbar
+              fileName="pivot-sample"
+            />
           </View>
         </View>
 

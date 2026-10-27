@@ -13,17 +13,55 @@ import { ChartFrame } from "./ChartFrame";
 import { ChartTooltip, type TooltipRow } from "./ChartTooltip";
 import { DENSE_BARS, DenseHit } from "./DenseHit";
 import { aggregate } from "./core/aggregate";
-import { stackValues } from "./core/paths";
+import { Icon, type IconSource } from "@its/glowup-ui";
+import {
+  barColumns,
+  columnSpans,
+  columnTotal,
+  type ColumnMode,
+} from "./core/columns";
 import { bandScale, valueScale } from "./core/scales";
+import type { ChartNote } from "./core/summary";
+import type { ChartDatum } from "./core/types";
 import { num, useChartBase, type ChartCommonProps } from "./hooks/useChartBase";
 
+/** An outcome mark for a category: an icon (a MaterialCommunityIcons name, or any source `Icon` takes), its colour, and what it says. */
+export type BarMarker = { icon: IconSource; color: string; label: string };
+
+/** Size of an outcome mark, in dp. */
+const MARKER = 20;
+
 export type BarChartProps = ChartCommonProps & {
-  /** Pile the series up in one bar per category instead of side by side. */
+  /** Pile the series up in one bar per category instead of side by side. Wins over the series' `column`. */
   stacked?: boolean;
+  /**
+   * How the series of a column (series with the same `column`) share its bar: `"stack"` piles them up, `"overlap"` starts each
+   * from zero with the longest behind. One mode for every column, or one per column id. Default `"stack"`.
+   */
+  columnMode?: ColumnMode | Record<string, ColumnMode>;
   /** Bars run left to right, one row per category (long labels read better). */
   horizontal?: boolean;
-  /** A reference line at this value. */
-  target?: number;
+  /**
+   * A number: a reference line across the chart at that value. A function: a short line across each category at the value it
+   * returns for that category (none for null), also in the tooltip, the table and the text for a screen reader; not drawn when dense.
+   */
+  target?:
+    number | ((datum: ChartDatum, index: number) => number | null | undefined);
+  /**
+   * An outcome icon past the longest bar of a category, or null for none. `totals` has one entry per column of all the series, shown or not (its `column`
+   * id, the series key for a series without one, `"all"` when `stacked`): the sum when stacked, the highest when overlapping.
+   * `label` is read in the tooltip, the table and the text for a screen reader. Not drawn when dense.
+   */
+  marker?: (
+    datum: ChartDatum,
+    info: {
+      index: number;
+      totals: Record<string, number>;
+      target: number | null;
+    },
+  ) => BarMarker | null;
+  /** Categories drawn in the theme's outline colour, faded (below a minimum, say); their values still read as they are. Not when dense. */
+  dimmed?: (datum: ChartDatum, index: number) => boolean;
   /**
    * One path per series and one touch layer instead of a node and a Pressable per bar, for thousands of bars. A bar can no longer be
    * dimmed on its own: a band behind the active category marks it. Past about one bar per two pixels the bars are drawn as the mean of
@@ -36,15 +74,54 @@ export type BarChartProps = ChartCommonProps & {
 const BarChart = (props: BarChartProps) => {
   const {
     data,
+    series,
     height = 240,
     stacked = false,
+    columnMode,
     horizontal = false,
     target,
     dense,
     loading,
     emptyLabel = "No data",
+    marker,
+    dimmed,
     testID,
   } = props;
+  // A number is one line across the chart; a function gives each category its own.
+  const line = typeof target === "number" ? target : undefined;
+  const targets = data.map((d, i) =>
+    typeof target === "function" ? num(target(d, i)) : null,
+  );
+  // The bars of a category: one column per `column` id of the series still shown.
+  const columnsOf = (shown: string[]) =>
+    barColumns(
+      shown.map((k) => ({
+        key: k,
+        column: series.find((s) => s.key === k)?.column,
+      })),
+      { stacked, columnMode },
+    );
+  // The totals come from every series, not the ones the legend left on: hiding a series is a view, not a verdict.
+  const allColumns = columnsOf(series.map((s) => s.key));
+  const markers = data.map((d, i) =>
+    marker
+      ? marker(d, {
+          index: i,
+          totals: Object.fromEntries(
+            allColumns.map((c) => [c.id, columnTotal(d, c)]),
+          ),
+          target: targets[i],
+        })
+      : null,
+  );
+  const notes: ChartNote[] = [
+    ...(typeof target === "function"
+      ? [{ name: "Target", values: targets }]
+      : []),
+    ...(marker
+      ? [{ name: "Status", values: markers.map((m) => m?.label) }]
+      : []),
+  ];
   const {
     theme,
     seriesColors,
@@ -59,8 +136,41 @@ const BarChart = (props: BarChartProps) => {
     setHovered,
     toggle,
     belowNode,
-  } = useChartBase(props);
-  const stacks = stacked ? stackValues(data, keys) : null;
+  } = useChartBase(props, notes);
+  const columns = columnsOf(keys);
+  const colOf = keys.map((k) => columns.findIndex((c) => c.keys.includes(k)));
+  const rowOf = keys.map((k, s) => columns[colOf[s]].keys.indexOf(k));
+  const spans = columns.map((c) => columnSpans(data, c));
+  // Span of one bar along the value axis, as [low, high] values.
+  const spanOf = (i: number, s: number) => spans[colOf[s]][rowOf[s]][i];
+  const lengthOf = (i: number, s: number) => {
+    const span = spanOf(i, s);
+    return span ? span[1] - span[0] : 0;
+  };
+  // Drawing order in a category: column by column, and in an overlapping column the longest first, so the shorter stay in front.
+  // Drawing order: column by column, and in an overlapping column the longest first, so the shorter stay in front.
+  const orderBy = (length: (s: number) => number) =>
+    keys
+      .map((_, s) => s)
+      .sort(
+        (a, b) =>
+          colOf[a] - colOf[b] ||
+          (columns[colOf[a]].mode === "overlap" ? length(b) - length(a) : 0),
+      );
+  const drawOrder = (i: number) => orderBy((s) => lengthOf(i, s));
+  // A dense chart draws one path per series: the longest overall goes first.
+  const denseOrder = orderBy((s) =>
+    data.reduce((sum, d) => sum + Math.abs(num(d[keys[s]]) ?? 0), 0),
+  );
+  // Past a few hundred bars one native node per bar is too much: each
+  // series is then a single path of rectangles, and the active category is
+  // marked by a band behind the bars (no bar can be dimmed on its own).
+  const isDense = dense ?? data.length * keys.length > DENSE_BARS;
+  // What is drawn per category; dense charts leave it out.
+  const drawnTargets = isDense ? [] : targets;
+  const drawnMarkers = isDense ? [] : markers;
+  const faded = data.map((d, i) => !isDense && !!dimmed?.(d, i));
+  const markerRoom = drawnMarkers.some(Boolean) ? MARKER + 4 : 0;
 
   const frame = (
     <ChartFrame
@@ -72,10 +182,14 @@ const BarChart = (props: BarChartProps) => {
       testID={testID}
     >
       {({ width }) => {
-        const values = stacks
-          ? stacks.flatMap((s) => s.flatMap((p) => [p.start, p.end]))
-          : data.flatMap((d) => keys.map((k) => num(d[k])));
-        const allValues = target != null ? [...values, target] : values;
+        const values = spans.flatMap((c) =>
+          c.flatMap((row) => row.flatMap((span) => span ?? [])),
+        );
+        const allValues = [
+          ...values,
+          ...(line != null ? [line] : []),
+          ...drawnTargets.filter((t): t is number => t !== null),
+        ];
         const below = fontSize + 14;
 
         // Room for the labels on the left: the values of a vertical chart, the
@@ -101,9 +215,13 @@ const BarChart = (props: BarChartProps) => {
         }
         const plot: Plot = {
           left,
-          top: 12,
-          width: Math.max(0, width - left - (horizontal ? 16 : 8)),
-          height: Math.max(0, height - 12 - below),
+          // Room for the outcome marks past the longest bar: above, or on the right of a horizontal chart.
+          top: 12 + (horizontal ? 0 : markerRoom),
+          width: Math.max(0, width - left - (horizontal ? 16 + markerRoom : 8)),
+          height: Math.max(
+            0,
+            height - 12 - below - (horizontal ? 0 : markerRoom),
+          ),
         };
         const v = valueScale({
           values: allValues,
@@ -119,8 +237,8 @@ const BarChart = (props: BarChartProps) => {
         const crossStart = (i: number) =>
           (horizontal ? plot.top : plot.left) + band.start(i);
         const crossMid = (i: number) => crossStart(i) + band.width / 2;
-        const thickness = stacked ? band.width : band.width / keys.length;
-        const inset = stacked || keys.length === 1 ? 0 : 1;
+        const thickness = band.width / columns.length;
+        const inset = columns.length === 1 ? 0 : 1;
 
         const stride = horizontal
           ? Math.max(1, Math.ceil((fontSize + 6) / band.step))
@@ -134,16 +252,6 @@ const BarChart = (props: BarChartProps) => {
           }))
           .filter((_, i) => i % stride === 0);
 
-        // Span of one bar along the value axis, as [low, high] values.
-        const spanOf = (i: number, s: number): [number, number] | null => {
-          if (stacks) {
-            const p = stacks[s][i];
-            return [Math.min(p.start, p.end), Math.max(p.start, p.end)];
-          }
-          const x = num(data[i][keys[s]]);
-          return x === null ? null : [Math.min(x, 0), Math.max(x, 0)];
-        };
-
         // Where one bar is, or null when it has no length (no value, or zero).
         const barRect = (i: number, s: number) => {
           const span = spanOf(i, s);
@@ -153,56 +261,54 @@ const BarChart = (props: BarChartProps) => {
           const start = Math.min(a, b);
           const length = Math.abs(a - b);
           if (length <= 0) return null;
-          const cross = crossStart(i) + (stacked ? 0 : s * thickness) + inset;
+          const cross = crossStart(i) + colOf[s] * thickness + inset;
           const size = Math.max(0, thickness - 2 * inset);
           return horizontal
             ? { x: start, y: cross, width: length, height: size }
             : { x: cross, y: start, width: size, height: length };
         };
 
-        // Past a few hundred bars one native node per bar is too much: each
-        // series is then a single path of rectangles, and the active category is
-        // marked by a band behind the bars (no bar can be dimmed on its own).
-        const isDense = dense ?? data.length * keys.length > DENSE_BARS;
         const folded = isDense
           ? aggregate(
               data,
               keys,
               Math.floor(
-                (horizontal ? plot.height : plot.width) /
-                  (2 * (stacked ? 1 : keys.length)),
+                (horizontal ? plot.height : plot.width) / (2 * columns.length),
               ),
             )
           : null;
-        const foldedStacks =
-          folded && stacked ? stackValues(folded.mean, keys) : null;
+        // A faint peak up to the highest only where a series starts from zero: not inside a pile.
+        const peaked = columns.map(
+          (c) => c.mode === "overlap" || c.keys.length === 1,
+        );
+        const foldedSpans = folded
+          ? columns.map((c) => columnSpans(folded.mean, c))
+          : null;
+        const peakSpans = folded
+          ? columns.map((c, n) =>
+              peaked[n]
+                ? columnSpans(folded.max, { ...c, mode: "overlap" })
+                : null,
+            )
+          : null;
         // The same bar as barRect, for a run of categories folded into one: the mean, or (peak) the highest.
         const foldedRect = (c: number, s: number, peak: boolean) => {
-          if (!folded) return null;
-          let low: number;
-          let high: number;
-          if (foldedStacks) {
-            const p = foldedStacks[s][c];
-            low = Math.min(p.start, p.end);
-            high = Math.max(p.start, p.end);
-          } else {
-            const x = num((peak ? folded.max : folded.mean)[c][keys[s]]);
-            if (x === null) return null;
-            low = Math.min(x, 0);
-            high = Math.max(x, 0);
-          }
-          const a = v.at(low);
-          const b = v.at(high);
+          if (!folded || !foldedSpans || !peakSpans) return null;
+          const span = (peak ? peakSpans : foldedSpans)[colOf[s]]?.[rowOf[s]][
+            c
+          ];
+          if (!span) return null;
+          const a = v.at(span[0]);
+          const b = v.at(span[1]);
           const start = Math.min(a, b);
           const length = Math.abs(a - b);
           if (length <= 0) return null;
           const run = folded.runs[c];
-          const size =
-            ((run.to - run.from) * band.step) / (stacked ? 1 : keys.length);
+          const size = ((run.to - run.from) * band.step) / columns.length;
           const cross =
             crossStart(run.from) -
             (band.step - band.width) / 2 +
-            (stacked ? 0 : s * size);
+            colOf[s] * size;
           return horizontal
             ? { x: start, y: cross, width: length, height: size }
             : { x: cross, y: start, width: size, height: length };
@@ -219,12 +325,13 @@ const BarChart = (props: BarChartProps) => {
           return d;
         };
         const bars = isDense
-          ? keys.map((k, s) => {
+          ? denseOrder.map((s) => {
+              const k = keys[s];
               const main = folded
                 ? pathOf(folded.runs.length, (c) => foldedRect(c, s, false))
                 : pathOf(data.length, (i) => barRect(i, s));
               const peak =
-                folded && !stacked
+                folded && peaked[colOf[s]]
                   ? pathOf(folded.runs.length, (c) => foldedRect(c, s, true))
                   : "";
               return main === "" ? null : (
@@ -246,7 +353,8 @@ const BarChart = (props: BarChartProps) => {
               );
             })
           : data.flatMap((_, i) =>
-              keys.map((k, s) => {
+              drawOrder(i).map((s) => {
+                const k = keys[s];
                 const r = barRect(i, s);
                 return r ? (
                   <Rect
@@ -254,8 +362,11 @@ const BarChart = (props: BarChartProps) => {
                     testID={testID ? `${testID}-bar-${i}-${k}` : undefined}
                     {...r}
                     rx={2}
-                    fill={seriesColors[s]}
-                    opacity={active === null || active === i ? 1 : 0.45}
+                    fill={faded[i] ? theme.colors.outline : seriesColors[s]}
+                    opacity={
+                      (active === null || active === i ? 1 : 0.45) *
+                      (faded[i] ? 0.5 : 1)
+                    }
                   />
                 ) : null;
               }),
@@ -280,6 +391,16 @@ const BarChart = (props: BarChartProps) => {
             />
           ) : null;
 
+        // How far a category reaches along the value axis, in pixels: its longest bar, or its target line.
+        const farOf = (i: number) => {
+          const ends = keys
+            .map((_, s) => v.at(spanOf(i, s)?.[1] ?? 0))
+            .concat(v.at(0));
+          const t = drawnTargets[i];
+          if (t != null) ends.push(v.at(t));
+          return horizontal ? Math.max(...ends) : Math.min(...ends);
+        };
+
         const tooltip = (() => {
           if (active === null || active >= data.length) return null;
           const d = data[active];
@@ -288,14 +409,19 @@ const BarChart = (props: BarChartProps) => {
             name: names[s],
             value: format(num(d[k])),
           }));
-          const ends = keys
-            .map((_, s) => spanOf(active, s))
-            .map((span) => v.at(span ? span[1] : 0))
-            .concat(v.at(0));
+          const t = targets[active];
+          if (t !== null)
+            rows.push({
+              color: theme.colors.tertiary,
+              name: "Target",
+              value: format(t),
+            });
+          const m = markers[active];
+          if (m) rows.push({ color: m.color, value: m.label });
           return (
             <ChartTooltip
-              x={horizontal ? Math.max(...ends) : crossMid(active)}
-              y={horizontal ? crossStart(active) : Math.min(...ends)}
+              x={horizontal ? farOf(active) : crossMid(active)}
+              y={horizontal ? crossStart(active) : farOf(active)}
               containerWidth={width}
               title={d.label}
               rows={rows}
@@ -304,10 +430,10 @@ const BarChart = (props: BarChartProps) => {
           );
         })();
 
-        const targetAt = target != null ? v.at(target) : 0;
+        const targetAt = line != null ? v.at(line) : 0;
         const targetFlips =
-          target != null &&
-          targetAt + 4 + labelWidth(format(target), fontSize) > width;
+          line != null &&
+          targetAt + 4 + labelWidth(format(line), fontSize) > width;
         const textStyle = {
           fontSize,
           fontFamily: theme.typography.labelSmall.fontFamily,
@@ -336,7 +462,26 @@ const BarChart = (props: BarChartProps) => {
                 {activeBand}
                 {bars}
               </G>
-              {target != null && (
+              {drawnTargets.map((t, i) => {
+                if (t === null) return null;
+                const at = v.at(t);
+                const from = crossStart(i);
+                const to = from + band.width;
+                return (
+                  <Line
+                    key={i}
+                    testID={testID ? `${testID}-target-${i}` : undefined}
+                    x1={horizontal ? at : from}
+                    x2={horizontal ? at : to}
+                    y1={horizontal ? from : at}
+                    y2={horizontal ? to : at}
+                    stroke={theme.colors.tertiary}
+                    strokeWidth={1.5}
+                    strokeDasharray="6 4"
+                  />
+                );
+              })}
+              {line != null && (
                 <G>
                   <Line
                     x1={horizontal ? targetAt : plot.left}
@@ -355,7 +500,7 @@ const BarChart = (props: BarChartProps) => {
                       y={plot.top + fontSize}
                       textAnchor={targetFlips ? "end" : "start"}
                     >
-                      {format(target)}
+                      {format(line)}
                     </SvgText>
                   ) : (
                     <SvgText
@@ -364,7 +509,7 @@ const BarChart = (props: BarChartProps) => {
                       y={targetAt - 4}
                       textAnchor="end"
                     >
-                      {format(target)}
+                      {format(line)}
                     </SvgText>
                   )}
                 </G>
@@ -414,6 +559,28 @@ const BarChart = (props: BarChartProps) => {
                 );
               })
             )}
+            {drawnMarkers.map((m, i) => {
+              if (!m) return null;
+              const far = farOf(i);
+              // Never wider than its category: a chart with many categories would pile them up.
+              const size = Math.min(MARKER, band.step);
+              return (
+                <View
+                  key={`marker-${i}`}
+                  testID={testID ? `${testID}-marker-${i}` : undefined}
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    width: size,
+                    height: size,
+                    left: horizontal ? far + 4 : crossMid(i) - size / 2,
+                    top: horizontal ? crossMid(i) - size / 2 : far - 4 - size,
+                  }}
+                >
+                  <Icon source={m.icon} size={size} color={m.color} />
+                </View>
+              );
+            })}
             {tooltip}
           </>
         );

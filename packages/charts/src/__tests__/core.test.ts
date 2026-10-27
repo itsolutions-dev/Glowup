@@ -1,5 +1,6 @@
 import { makeValueFormatter } from "../core/format";
 import { aggregate } from "../core/aggregate";
+import { barColumns, columnSpans, columnTotal } from "../core/columns";
 import {
   readableOn,
   resolveSeriesColors,
@@ -298,6 +299,17 @@ describe("summary", () => {
     );
   });
 
+  it("adds a note per category after the series, skipping empty ones, only while each category is read", () => {
+    const series = [{ name: "North", values: [1, 2, null] }];
+    const notes = [{ name: "Status", values: ["ok", "", "no"] }];
+    expect(describeChart({ labels, series, format, notes })).toBe(
+      "1 series, 3 categories. North: Jan 1, Feb 2, Mar –. Status: Jan ok, Mar no.",
+    );
+    expect(
+      describeChart({ labels, series, format, notes, maxListed: 2 }),
+    ).not.toContain("Status");
+  });
+
   it("sums up many points by lowest, highest and last", () => {
     const many = Array.from({ length: 20 }, (_, i) => `L${i}`);
     const values = many.map((_, i) => (i === 5 ? -3 : i === 9 ? 50 : 10));
@@ -447,5 +459,73 @@ describe("readableOn", () => {
   it("gives the first colour when one cannot be read", () => {
     expect(readableOn("currentColor", "#fff", "#000")).toBe("#fff");
     expect(readableOn("#000", "white", "#000")).toBe("white");
+  });
+});
+
+describe("columns", () => {
+  const s = [
+    { key: "a", column: "x" },
+    { key: "b", column: "x" },
+    { key: "c" },
+  ];
+
+  it("groups series by column in order, a series without one alone", () => {
+    expect(barColumns(s, {})).toEqual([
+      { id: "x", keys: ["a", "b"], mode: "stack" },
+      { id: "c", keys: ["c"], mode: "stack" },
+    ]);
+    expect(barColumns([], {})).toEqual([]);
+  });
+
+  it("stacked puts every series in one stacked column", () => {
+    expect(barColumns(s, { stacked: true, columnMode: "overlap" })).toEqual([
+      { id: "all", keys: ["a", "b", "c"], mode: "stack" },
+    ]);
+  });
+
+  it("takes the mode for all columns or per column", () => {
+    expect(barColumns(s, { columnMode: "overlap" }).map((c) => c.mode)).toEqual(
+      ["overlap", "overlap"],
+    );
+    expect(
+      barColumns(s, { columnMode: { x: "overlap" } }).map((c) => c.mode),
+    ).toEqual(["overlap", "stack"]);
+  });
+
+  it("overlap spans start at zero, negatives go below, missing is null", () => {
+    const col = { id: "x", keys: ["a", "b"], mode: "overlap" as const };
+    expect(
+      columnSpans(
+        [
+          { label: "p", a: 3, b: -2 },
+          { label: "q", a: null, b: 1 },
+        ],
+        col,
+      ),
+    ).toEqual([
+      [[0, 3], null],
+      [
+        [-2, 0],
+        [0, 1],
+      ],
+    ]);
+  });
+
+  it("stack spans pile up", () => {
+    const col = { id: "x", keys: ["a", "b"], mode: "stack" as const };
+    expect(columnSpans([{ label: "p", a: 3, b: 2 }], col)).toEqual([
+      [[0, 3]],
+      [[3, 5]],
+    ]);
+  });
+
+  it("a column total is the sum when stacked and the highest when overlapping", () => {
+    const d = { label: "p", a: 3, b: 2 };
+    const both = ["a", "b"];
+    expect(columnTotal(d, { id: "x", keys: both, mode: "stack" })).toBe(5);
+    expect(columnTotal(d, { id: "x", keys: both, mode: "overlap" })).toBe(3);
+    expect(
+      columnTotal({ label: "p" }, { id: "x", keys: ["a"], mode: "stack" }),
+    ).toBe(0);
   });
 });

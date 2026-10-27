@@ -10,6 +10,27 @@ type Describe = {
   format: (value: number | null | undefined) => string;
   /** Up to this many categories are read out one by one; beyond it only the extremes and the last. Default 12. */
   maxListed?: number;
+  /** Texts per category read after the series (a target, a verdict); only while every category is read one by one. */
+  notes?: ChartNote[];
+};
+
+/**
+ * A value per category that is not a series (a target, a verdict): one more table column, one more sentence for a screen reader.
+ * Numbers are formatted like the series; null, undefined or "" is none.
+ */
+export type ChartNote = {
+  name: string;
+  values: (string | number | null | undefined)[];
+};
+
+/** The text of a note in one category, "" for none. */
+export const noteText = (
+  note: ChartNote,
+  i: number,
+  format: (value: number | null | undefined) => string,
+) => {
+  const v = note.values[i];
+  return typeof v === "number" ? format(v) : (v ?? "");
 };
 
 const isNum = (v: number | null | undefined): v is number =>
@@ -25,6 +46,7 @@ export const describeChart = ({
   series,
   format,
   maxListed = 12,
+  notes = [],
 }: Describe): string => {
   if (!labels.length || !series.length)
     return title ? `${title}. No data.` : "No data.";
@@ -44,7 +66,19 @@ export const describeChart = ({
     const last = known[known.length - 1];
     return `${s.name}: lowest ${format(lo.v)} at ${labels[lo.i]}, highest ${format(hi.v)} at ${labels[hi.i]}, last ${format(last.v)} at ${labels[last.i]}.`;
   });
-  return [head, ...parts].join(" ");
+  const noted =
+    labels.length <= maxListed
+      ? notes.flatMap((n) => {
+          const said = labels
+            .map((l, i) => {
+              const text = noteText(n, i, format);
+              return text ? `${l} ${text}` : "";
+            })
+            .filter(Boolean);
+          return said.length ? [`${n.name}: ${said.join(", ")}.`] : [];
+        })
+      : [];
+  return [head, ...parts, ...noted].join(" ");
 };
 
 /** The same data as rows, for a "table" mode of the chart: a header row, then one row per category. */

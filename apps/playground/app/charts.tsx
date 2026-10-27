@@ -293,6 +293,96 @@ const PartsDemo = () => {
   );
 };
 
+// Calls per branch: what came in (all calls, and the distinct callers among them), and what was done with each caller.
+const BRANCHES: ChartDatum[] = [
+  ["Capriate", 1, 1, 1, 0, 0, 0],
+  ["Cologno M.", 2, 2, 1, 0, 0, 1],
+  ["Corsico", 3, 2, 0, 0, 0, 2],
+  ["Cremona", 2, 1, 0, 0, 0, 1],
+  ["Lodi", 1, 1, 0, 0, 0, 1],
+  ["Milano", 0, 0, 0, 0, 0, 0],
+  ["Padova", 3, 3, 1, 0, 2, 0],
+  ["S.G. Milanese", 1, 1, 1, 0, 0, 0],
+  ["Seriate", 2, 2, 0, 1, 0, 1],
+  ["Treviglio", 8, 5, 0, 1, 1, 3],
+].map(([label, calls, callers, answered, recalled, noAnswer, open]) => ({
+  label: label as string,
+  calls,
+  callers,
+  answered,
+  recalled,
+  noAnswer,
+  open,
+}));
+
+/** Two columns per category, one overlapping and one stacked, a target and an outcome mark per category. */
+const BranchDemo = () => {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  return (
+    <Tile wide title="Calls received by branch">
+      <BarChart
+        testID="demo-branches"
+        height={280}
+        data={BRANCHES}
+        series={[
+          {
+            key: "calls",
+            label: "Calls",
+            column: "in",
+            color: c.primaryContainer,
+          },
+          { key: "callers", label: "Callers", column: "in", color: c.primary },
+          {
+            key: "answered",
+            label: "Answered back",
+            column: "out",
+            color: c.success,
+          },
+          {
+            key: "recalled",
+            label: "Recalled",
+            column: "out",
+            color: c.secondary,
+          },
+          {
+            key: "noAnswer",
+            label: "Recalled, no answer",
+            column: "out",
+            color: c.warning,
+          },
+          { key: "open", label: "Not handled", column: "out", color: c.error },
+        ]}
+        columnMode={{ in: "overlap" }}
+        // Every caller should be handled: the target of a branch is its number of callers.
+        target={(d) => (d.callers ? Number(d.callers) : null)}
+        marker={(d, { target }) =>
+          !target
+            ? null
+            : d.open
+              ? { icon: "close", color: c.error, label: "Callers not handled" }
+              : d.noAnswer
+                ? {
+                    icon: "check",
+                    color: c.warning,
+                    label: "Recalled, some did not answer",
+                  }
+                : {
+                    icon: "check",
+                    color: c.success,
+                    label: "Every caller handled",
+                  }
+        }
+        // Fewer than two calls: too few to judge the branch.
+        dimmed={(d) => Number(d.calls) < 2}
+        legend
+        table
+        title="Calls received by branch"
+      />
+    </Tile>
+  );
+};
+
 // A trend, twelve swells over the range and noise: what a long series looks like, and what the dense mode folds.
 const manyPoints = (n: number): ChartDatum[] =>
   Array.from({ length: n }, (_, i) => ({
@@ -406,6 +496,12 @@ export default function ChartsPage() {
         description="A donut or a pie, a gauge (a donut with a total bigger than its part), a single stacked bar and sparklines. Tap or point at a slice to read it."
       >
         <PartsDemo />
+      </Section>
+      <Section
+        title="Columns, targets and outcomes"
+        description="Series that share a column make one bar of the category: stacked, or overlapping from zero with the longest behind. A target per category draws a short line across it, an outcome mark sits past its longest bar, and a category can be dimmed. Target and outcome are read in the tooltip, the table and the text for a screen reader."
+      >
+        <BranchDemo />
       </Section>
       <Section
         title="Thousands of points"

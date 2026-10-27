@@ -92,4 +92,16 @@ describe("the charts page", () => {
     expect(screen.getByTestId("demo-many-dense-value")).toBeTruthy();
     expect(screen.queryAllByTestId(/^demo-many-bar-/)).toHaveLength(0);
   });
+
+  it("draws two columns per branch with an outcome mark and a target", async () => {
+    await open();
+    await fireEvent(screen.getByTestId("demo-branches"), "layout", {
+      nativeEvent: { layout: { width: 900, height: 280, x: 0, y: 0 } },
+    });
+    expect(
+      screen.queryAllByTestId(/^demo-branches-bar-/).length,
+    ).toBeGreaterThan(10);
+    expect(screen.queryAllByTestId(/^demo-branches-marker-/).length).toBe(9);
+    expect(screen.getByTestId("demo-branches-target-0")).toBeTruthy();
+  });
 });

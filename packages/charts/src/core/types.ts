@@ -9,6 +9,8 @@ export type ChartSeries = {
   key: string;
   label?: string;
   color?: string;
+  /** `BarChart` only: series with the same column share one bar of the category; without it a series is a bar of its own. */
+  column?: string;
 };
 
 export type CurveName = "linear" | "monotone" | "natural" | "step";

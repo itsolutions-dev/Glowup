@@ -5,7 +5,7 @@ import { ChartTable } from "../ChartTable";
 import { below } from "./below";
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
-import { describeChart } from "../core/summary";
+import { describeChart, noteText, type ChartNote } from "../core/summary";
 import type { ChartDatum, ChartSeries } from "../core/types";
 
 /** The props every chart over categories shares. */
@@ -41,21 +41,25 @@ export const num = (v: ChartDatum[string]): number | null =>
  * formatting, the text for a screen reader, which category is active (hovered,
  * else the one last tapped) and which series the legend has switched off.
  * `keys`, `names` and `seriesColors` are those of the series still shown.
+ * `notes` are values per category (a target, a verdict) added to the table and the text for a screen reader.
  */
-export const useChartBase = ({
-  data,
-  series,
-  colors,
-  legend,
-  table,
-  loading,
-  title,
-  locale,
-  numberFormat,
-  formatValue,
-  onSelect,
-  testID,
-}: ChartCommonProps) => {
+export const useChartBase = (
+  {
+    data,
+    series,
+    colors,
+    legend,
+    table,
+    loading,
+    title,
+    locale,
+    numberFormat,
+    formatValue,
+    onSelect,
+    testID,
+  }: ChartCommonProps,
+  notes: ChartNote[] = [],
+) => {
   const { theme } = useTheme();
   const [selected, setSelected] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -85,6 +89,7 @@ export const useChartBase = ({
       values: data.map((d) => num(d[s.key])),
     })),
     format,
+    notes,
   });
   const toggle = (index: number) => {
     const next = selected === index ? null : index;
@@ -110,10 +115,15 @@ export const useChartBase = ({
   const tableNode: ReactElement | null =
     table && !loading && data.length > 0 && shown.length > 0
       ? createElement(ChartTable, {
-          header: ["", ...shown.map(({ s }) => s.label ?? s.key)],
-          rows: data.map((d) => [
+          header: [
+            "",
+            ...shown.map(({ s }) => s.label ?? s.key),
+            ...notes.map((n) => n.name),
+          ],
+          rows: data.map((d, i) => [
             d.label,
             ...shown.map(({ s }) => format(num(d[s.key]))),
+            ...notes.map((n) => noteText(n, i, format) || "–"),
           ]),
           activeRow: hovered ?? selected,
           onRowPress: toggle,

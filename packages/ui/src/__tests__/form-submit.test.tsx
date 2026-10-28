@@ -1,7 +1,7 @@
 import React from "react";
 import { Platform, Text, View } from "react-native";
 import { act, cleanup, fireEvent, render } from "@testing-library/react-native";
-import { Button, Form, ThemeProvider } from "..";
+import { Button, Form, ProgressButton, ThemeProvider } from "..";
 
 const draw = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -13,6 +13,17 @@ describe("Form on iOS and Android", () => {
       <Form onSubmit={onSubmit}>
         <Text>Field</Text>
         <Button type="submit">Save</Button>
+      </Form>,
+    );
+    await fireEvent.press(getByText("Save"));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("a ProgressButton with type submit submits the form", async () => {
+    const onSubmit = jest.fn();
+    const { getByText } = await draw(
+      <Form onSubmit={onSubmit}>
+        <ProgressButton type="submit">Save</ProgressButton>
       </Form>,
     );
     await fireEvent.press(getByText("Save"));
@@ -220,6 +231,54 @@ describe("Form on the web", () => {
     });
     expect(preventDefault).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  // Enter goes through the hidden native button, which knows nothing of the
+  // Glowup buttons: it submitted a form whose only submit button was disabled,
+  // and a disabled form.
+  const pressEnter = async () => {
+    const preventDefault = jest.fn();
+    await act(async () => {
+      listeners.get("submit")?.({ preventDefault });
+    });
+    return preventDefault;
+  };
+
+  it("Enter does not submit while every submit button is disabled", async () => {
+    const onSubmit = jest.fn();
+    const { rerender } = await draw(
+      <Form onSubmit={onSubmit}>
+        <Button type="submit" disabled>
+          Save
+        </Button>
+      </Form>,
+    );
+    expect(await pressEnter()).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+
+    await rerender(
+      <ThemeProvider>
+        <Form onSubmit={onSubmit}>
+          <Button type="submit" disabled>
+            Save
+          </Button>
+          <Button type="submit">Save and close</Button>
+        </Form>
+      </ThemeProvider>,
+    );
+    await pressEnter();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("Enter does not submit a disabled form", async () => {
+    const onSubmit = jest.fn();
+    await draw(
+      <Form onSubmit={onSubmit} disabled>
+        <Text>Field</Text>
+      </Form>,
+    );
+    expect(await pressEnter()).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("stops listening when it unmounts", async () => {

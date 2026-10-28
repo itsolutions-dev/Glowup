@@ -12,7 +12,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
 | Aggiunti | 28 | 379 |
-| Aggiornati | 55 | 711 |
+| Aggiornati | 55 | 712 |
 | Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
@@ -82,7 +82,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Pagination](#pagination): + activePage, onChange, color, pageSelect, size, variant · − onPageChange, page
 - [PinInput](#pininput): + onChange, variant · − onChangeText
 - [Popover](#popover): + anchorPosition
-- [ProgressButton](#progressbutton): + onClick, variant · − mode, onPress
+- [ProgressButton](#progressbutton): + onClick, type, variant · − mode, onPress
 - [Rating](#rating): + icon, interval, required
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
 - [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange · ~ value · − onSelect, multiSelect, selectedValues, toggleOptions
@@ -528,9 +528,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | value * | `number` |  |  |  |
 | disabled | `boolean` |  |  |  |
 | label | `string` |  |  |  |
-| max | `number` | 100 |  |  |
-| min | `number` | 0 |  |  |
-| step | `number` | 1 |  |  |
+| max | `number` | Infinity |  | No upper limit when unset. |
+| min | `number` | -Infinity |  | No lower limit when unset. |
+| step | `number` | 1 |  | How much the buttons add or take away. A fraction (`0.5`) is fine. |
 
 ### PasswordField
 
@@ -1416,7 +1416,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### ProgressButton
 
-`packages/ui/src/components/ProgressButton.tsx` — prop nuove: `onClick`, `variant`; prop tolte: `mode`, `onPress`
+`packages/ui/src/components/ProgressButton.tsx` — prop nuove: `onClick`, `type`, `variant`; prop tolte: `mode`, `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1442,6 +1442,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | successLabel | `string` | "Done" |  | Label once the task succeeded. |
 | testID | `string` |  |  |  |
 | trackColor | `string` |  |  | Colour behind the bar, and behind the fill on outlined and text. |
+| type | `"button" \| "submit"` |  | nuova | `"submit"` submits the enclosing `Form` when pressed, after `onClick`, as on `Button`. |
 | variant | `ButtonVariant` | "filled" | nuova |  |
 
 ### Rating

@@ -439,7 +439,7 @@ const Select = ({
                           </View>
                         </View>
                       )}
-                      {!multiple && isSelected && !!option.value && (
+                      {!multiple && isSelected && option.value != null && (
                         <Icons
                           name="check"
                           size={18}

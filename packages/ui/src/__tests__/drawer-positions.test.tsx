@@ -306,19 +306,24 @@ describe("Drawer swipeable", () => {
     ).toBe("Close drawer");
   });
 
-  it("closes on Escape while open (web): registers onClose with the key hook", async () => {
+  // react-native-web's Modal closes the topmost modal on Escape through
+  // `onRequestClose`; a key listener of the drawer's own closed it twice, and
+  // every other open overlay with it.
+  it("leaves Escape to the Modal: back and Escape go through onRequestClose", async () => {
     const hook = useEscapeKey as jest.Mock;
     hook.mockClear();
     const onClose = jest.fn();
-    await render(swipeable(true, { onClose }));
-    const [active, handler] = hook.mock.calls.at(-1);
-    expect(active).toBe(true);
-    handler();
+    const { container } = await render(swipeable(true, { onClose }));
+    expect(hook).not.toHaveBeenCalled();
+    const modal = (
+      container as unknown as {
+        queryAll: (p: (n: { type: string }) => boolean) => {
+          props: { onRequestClose: () => void };
+        }[];
+      }
+    ).queryAll((n) => n.type === "Modal")[0];
+    await act(async () => modal.props.onRequestClose());
     expect(onClose).toHaveBeenCalledTimes(1);
-
-    hook.mockClear();
-    await render(swipeable(false, { onClose }));
-    expect(hook.mock.calls.at(-1)[0]).toBe(false);
   });
 
   it("a static drawer listens for no key", async () => {

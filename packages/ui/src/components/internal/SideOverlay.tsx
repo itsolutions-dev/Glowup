@@ -14,7 +14,6 @@ import { rgba } from "polished";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { useReduceMotion } from "./useReduceMotion";
-import { useEscapeKey } from "./useEscapeKey";
 import { useWindowWidth } from "./useWindowWidth";
 
 /** The window edge an overlay panel is attached to. */
@@ -126,9 +125,6 @@ const SideOverlay = ({
     // `mounted` is read, not a trigger: the run starts when `visible` changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, progress, reduceMotion]);
-
-  // react-native's onRequestClose covers Android back, not Escape on web.
-  useEscapeKey(visible, dismiss);
 
   // What the drag handlers read: they outlive the render that made them.
   const live = useRef({ extent, dismiss, duration });
@@ -246,6 +242,8 @@ const SideOverlay = ({
       visible={mounted}
       transparent
       animationType="none"
+      // Android back and, on the web, Escape: react-native-web's Modal calls it
+      // for the topmost modal only, so no key listener of our own.
       onRequestClose={dismiss}
     >
       <View style={styles.root} testID={testID}>

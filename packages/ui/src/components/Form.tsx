@@ -83,6 +83,8 @@ interface FormContextValue {
   submit: () => void;
   store: FormStore;
   disabled: boolean;
+  /** Each `Button type="submit"` inside, and whether it is disabled. */
+  submitButtons: Map<object, boolean>;
 }
 
 const FormContext = createContext<FormContextValue | null>(null);
@@ -95,6 +97,23 @@ export const useFormSubmit = () => useContext(FormContext)?.submit;
 
 /** Internal: the `disabled` of the `Form` around the caller. `Button` reads it for `type="submit"`. */
 export const useFormDisabled = () => useContext(FormContext)?.disabled ?? false;
+
+/**
+ * Internal: a `Button type="submit"` tells its `Form` whether it is disabled,
+ * so Enter on the web (which goes through the hidden native button) does not
+ * submit while every submit button is disabled.
+ */
+export const useRegisterSubmitButton = (active: boolean, disabled: boolean) => {
+  const buttons = useContext(FormContext)?.submitButtons;
+  const [key] = useState(() => ({}));
+  useEffect(() => {
+    if (!active || !buttons) return;
+    buttons.set(key, disabled);
+    return () => {
+      buttons.delete(key);
+    };
+  }, [active, buttons, key, disabled]);
+};
 
 /**
  * Re-renders when `read(store)` returns something else, and only then: the
@@ -346,6 +365,11 @@ const Form = ({
   testID,
 }: FormProps) => {
   const ref = useRef<View>(null);
+  const [submitButtons] = useState(() => new Map<object, boolean>());
+  const disabledRef = useRef(disabled);
+  useEffect(() => {
+    disabledRef.current = disabled;
+  });
   const own = useForm(initialValues);
   const store = (form ?? own) as FormStore;
 
@@ -384,15 +408,18 @@ const Form = ({
     }
     const onDomSubmit = (event: Event) => {
       event.preventDefault();
+      const buttons = [...submitButtons.values()];
+      if (disabledRef.current) return;
+      if (buttons.length > 0 && buttons.every((off) => off)) return;
       void store.submit();
     };
     node.addEventListener("submit", onDomSubmit);
     return () => node.removeEventListener("submit", onDomSubmit);
-  }, [store]);
+  }, [store, submitButtons]);
 
   const context = useMemo(
-    () => ({ submit, store, disabled }),
-    [submit, store, disabled],
+    () => ({ submit, store, disabled, submitButtons }),
+    [submit, store, disabled, submitButtons],
   );
 
   return (

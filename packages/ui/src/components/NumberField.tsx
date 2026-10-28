@@ -18,19 +18,25 @@ export interface NumberFieldProps {
   label?: string;
   value: number;
   onChange: (val: number) => void;
+  /** How much the buttons add or take away. A fraction (`0.5`) is fine. */
   step?: number;
+  /** No lower limit when unset. */
   min?: number;
+  /** No upper limit when unset. */
   max?: number;
   disabled?: boolean;
 }
+
+/** Decimal places of a number as written, so `0.1 + 0.2` can come back as `0.3`. */
+const decimals = (n: number) => (String(n).split(".")[1] ?? "").length;
 
 const NumberField = ({
   label,
   value,
   onChange,
   step = 1,
-  min = 0,
-  max = 100,
+  min: lowest,
+  max: highest,
   disabled,
 }: NumberFieldProps) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -38,6 +44,8 @@ const NumberField = ({
   const [prevValue, setPrevValue] = useState(value);
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const min = lowest ?? -Infinity;
+  const max = highest ?? Infinity;
 
   // Keep the editable text in sync with external value changes
   // (render-time adjustment instead of an effect)
@@ -47,19 +55,28 @@ const NumberField = ({
   }
 
   const commitText = useCallback(() => {
-    const num = parseInt(text, 10);
-    const clamped = isNaN(num) ? min : Math.min(max, Math.max(min, num));
-    setText(String(clamped));
-    if (clamped !== value) onChange(clamped);
+    // A decimal comma counts as a point: "1,75" is 1.75.
+    const num = parseFloat(text.replace(",", "."));
+    const next = isNaN(num) ? value : Math.min(max, Math.max(min, num));
+    setText(String(next));
+    if (next !== value) onChange(next);
   }, [text, min, max, value, onChange]);
 
+  const stepped = useCallback(
+    (delta: number) =>
+      Number(
+        (value + delta).toFixed(Math.max(decimals(value), decimals(step))),
+      ),
+    [value, step],
+  );
+
   const handleIncrement = useCallback(() => {
-    if (value + step <= max) onChange(value + step);
-  }, [value, step, max, onChange]);
+    if (value + step <= max) onChange(stepped(step));
+  }, [value, step, max, onChange, stepped]);
 
   const handleDecrement = useCallback(() => {
-    if (value - step >= min) onChange(value - step);
-  }, [value, step, min, onChange]);
+    if (value - step >= min) onChange(stepped(-step));
+  }, [value, step, min, onChange, stepped]);
 
   return (
     <View style={[styles.wrapper, disabled && { opacity: 0.38 }]}>
@@ -110,11 +127,11 @@ const NumberField = ({
             accessibilityLabel={label}
             accessibilityState={{ disabled }}
             accessibilityValue={{ text: String(value) }}
-            keyboardType="numeric"
+            keyboardType="decimal-pad"
             value={text}
             onChangeText={(txt) => {
               // Allow intermediate states like "" or "-" while typing
-              if (/^-?\d*$/.test(txt)) setText(txt);
+              if (/^-?\d*([.,]\d*)?$/.test(txt)) setText(txt);
             }}
             onFocus={() => setIsFocused(true)}
             onBlur={() => {

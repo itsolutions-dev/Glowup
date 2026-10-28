@@ -44,6 +44,11 @@ export interface TableColumn {
   width?: number;
 }
 
+const rowKey = (row: Record<string, unknown>, index: number) =>
+  typeof row.id === "string" || typeof row.id === "number"
+    ? `id:${row.id}`
+    : index;
+
 /** A row of a data driven `Table`: its cells by column `id`. Text and numbers are drawn in the theme's type, any other node as given. */
 export type TableRowData = Record<string, string | number | ReactNode>;
 
@@ -201,7 +206,9 @@ const DataTable = ({
         const index = start + offset;
         return (
           <TableRow
-            key={index}
+            // By id when the row has one, so its local state follows it through a
+            // sort or a filter; by position otherwise.
+            key={rowKey(row, index)}
             hover={hover}
             selected={selectedRows.has(index)}
             onClick={onClick ? () => onClick(row, index) : undefined}

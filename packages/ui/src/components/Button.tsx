@@ -22,7 +22,12 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
-import { useFormDisabled, useFormSubmit, useFormSubmitting } from "./Form";
+import {
+  useFormDisabled,
+  useFormSubmit,
+  useFormSubmitting,
+  useRegisterSubmitButton,
+} from "./Form";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -174,6 +179,7 @@ const Button = ({
   const formDisabled = useFormDisabled();
   const isLoading = loading || (type === "submit" && submitting);
   const isDisabled = disabled || (type === "submit" && formDisabled);
+  useRegisterSubmitButton(type === "submit", disabled);
   const dense = useDensity(density) === "dense";
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);

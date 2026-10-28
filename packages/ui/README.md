@@ -1048,16 +1048,16 @@ native it is `adjustable` with increment and decrement actions.
 
 #### `NumberField` — number stepper
 
-Numeric field with +/- steppers. (Distinct from the progress spinners below.)
+Numeric field with +/- steppers. Takes decimals, typed with a point or a comma. (Distinct from the progress spinners below.)
 
-| Prop      | Type                     | Default     |
-| --------- | ------------------------ | ----------- |
-| value     | number (required)        | —           |
-| onChange  | (val) => void (required) | —           |
-| label     | string                   |             |
-| step      | number                   | `1`         |
-| min / max | number                   | `0` / `100` |
-| disabled  | boolean                  |             |
+| Prop      | Type                        | Default  |
+| --------- | --------------------------- | -------- |
+| value     | number (required)           | —        |
+| onChange  | (val) => void (required)    | —        |
+| label     | string                      |          |
+| step      | number (a fraction is fine) | `1`      |
+| min / max | number                      | no limit |
+| disabled  | boolean                     |          |
 
 #### `SearchBar`
 

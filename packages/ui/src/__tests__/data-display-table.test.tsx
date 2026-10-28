@@ -23,6 +23,35 @@ const rows = [
 ];
 
 describe("Table (data driven)", () => {
+  // Rows were keyed by position: sorted or filtered by the app, a row's local
+  // state (a field being typed in, a toggle) stayed at the position and so
+  // moved to another record. A row with an `id` keeps it, as in DataGrid.
+  it("keeps a row's local state with its id when the order changes", async () => {
+    let mounts = 0;
+    const Draft = () => {
+      const [mount] = React.useState(() => ++mounts);
+      return <Text>{`draft ${mount}`}</Text>;
+    };
+    const data = [
+      { id: "a", name: "Ada", draft: <Draft /> },
+      { id: "b", name: "Grace", draft: <Draft /> },
+    ];
+    const cols = [
+      { id: "name", label: "Name" },
+      { id: "draft", label: "Draft" },
+    ];
+    const view = await draw(<Table columns={cols} data={data} />);
+    const order = () =>
+      view.getAllByText(/^(Ada|Grace|draft \d)$/).map((n) => n.props.children);
+    expect(order()).toEqual(["Ada", "draft 1", "Grace", "draft 2"]);
+    await view.rerender(
+      <ThemeProvider>
+        <Table columns={cols} data={[...data].reverse()} />
+      </ThemeProvider>,
+    );
+    expect(order()).toEqual(["Grace", "draft 2", "Ada", "draft 1"]);
+  });
+
   it("draws the title, the header and a cell for every column of every row", async () => {
     const { getByText, getAllByText } = await draw(
       <Table tableTitle="Customers" columns={columns} data={rows} />,

@@ -6638,6 +6638,17 @@
           "deprecated": false
         },
         {
+          "name": "type",
+          "type": "\"button\" | \"submit\"",
+          "required": false,
+          "description": "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, as on `Button`.",
+          "values": [
+            "button",
+            "submit"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "variant",
           "type": "ButtonVariant",
           "required": false,
@@ -7615,14 +7626,14 @@
           "name": "max",
           "type": "number",
           "required": false,
-          "default": "100",
+          "description": "No upper limit when unset.",
           "deprecated": false
         },
         {
           "name": "min",
           "type": "number",
           "required": false,
-          "default": "0",
+          "description": "No lower limit when unset.",
           "deprecated": false
         },
         {
@@ -7630,6 +7641,7 @@
           "type": "number",
           "required": false,
           "default": "1",
+          "description": "How much the buttons add or take away. A fraction (`0.5`) is fine.",
           "deprecated": false
         }
       ]

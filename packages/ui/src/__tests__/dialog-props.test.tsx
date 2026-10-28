@@ -238,20 +238,27 @@ describe("Dialog dismissal", () => {
         listeners.get("keydown")?.({ key: "Escape", preventDefault() {} });
       });
 
-    it("closes the dialog", async () => {
+    // react-native-web's Modal already closes on Escape, through
+    // `onRequestClose` and for the topmost modal only. A listener of the
+    // dialog's own called `onClose` a second time, and closed every dialog of
+    // a stack at once.
+    it("leaves Escape to the Modal: no key listener of its own", async () => {
       const onClose = jest.fn();
-      await draw(
+      const open = await draw(
         <Dialog visible onClose={onClose}>
           Body
         </Dialog>,
       );
+      expect(listeners.has("keydown")).toBe(false);
       await escape();
+      expect(onClose).not.toHaveBeenCalled();
+      nativeModal(open.container).props.onRequestClose();
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it("does not listen at all with disableEscapeKeyDown", async () => {
       const onClose = jest.fn();
-      await draw(
+      const locked = await draw(
         <Dialog visible onClose={onClose} disableEscapeKeyDown>
           Body
         </Dialog>,
@@ -259,6 +266,9 @@ describe("Dialog dismissal", () => {
       expect(listeners.has("keydown")).toBe(false);
       await escape();
       expect(onClose).not.toHaveBeenCalled();
+      expect(
+        nativeModal(locked.container).props.onRequestClose,
+      ).toBeUndefined();
     });
 
     it("does not listen while the dialog is closed", async () => {
@@ -446,6 +456,57 @@ describe("Alert on the web", () => {
     await fireEvent.press(getByText("Delete"));
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(queryByText("Delete file")).toBeNull();
+  });
+
+  // A second Alert replaced the first: its buttons never ran.
+  it("queues a second alert behind the first", async () => {
+    const onDelete = jest.fn();
+    const { getByText, queryByText } = await draw(
+      <AlertProvider>
+        <Text>App</Text>
+      </AlertProvider>,
+    );
+    await act(async () => {
+      Alert("Delete file", undefined, [{ text: "Delete", onPress: onDelete }]);
+      Alert("Connection lost");
+    });
+    expect(getByText("Delete file")).toBeTruthy();
+    expect(queryByText("Connection lost")).toBeNull();
+    await fireEvent.press(getByText("Delete"));
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(getByText("Connection lost")).toBeTruthy();
+    await fireEvent.press(getByText("OK"));
+    expect(queryByText("Connection lost")).toBeNull();
+  });
+
+  // Escape (the Modal's onRequestClose) closed it without the cancel button's
+  // onPress: whoever waited on the answer never heard one.
+  it("runs the cancel button when closed by Escape", async () => {
+    const onCancel = jest.fn();
+    const { container, queryByText } = await draw(
+      <AlertProvider>
+        <Text>App</Text>
+      </AlertProvider>,
+    );
+    await act(async () => {
+      Alert("Discard changes?", undefined, [
+        { text: "Keep", style: "cancel", onPress: onCancel },
+        { text: "Discard", style: "destructive" },
+      ]);
+    });
+    await act(async () => nativeModal(container).props.onRequestClose());
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(queryByText("Discard changes?")).toBeNull();
+  });
+
+  it("shows an alert raised before the provider mounted", async () => {
+    Alert("Started offline");
+    const { getByText } = await draw(
+      <AlertProvider>
+        <Text>App</Text>
+      </AlertProvider>,
+    );
+    expect(getByText("Started offline")).toBeTruthy();
   });
 
   it("falls back to a single OK", async () => {

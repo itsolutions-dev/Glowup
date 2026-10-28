@@ -42,6 +42,29 @@ describe("Select", () => {
     expect(onChange).toHaveBeenCalledWith(2);
   });
 
+  // The tick was drawn only for a truthy value, so a selected 0, "" or false
+  // looked unselected. Icons are glyphs of the icon font: count them.
+  it.each([0, "", false])(
+    "ticks the selected option of value %p",
+    async (v) => {
+      const glyphs = async (value: unknown) => {
+        const view = await draw({
+          options: [
+            { id: "a", label: "Falsy", value: v },
+            { id: "b", label: "Other", value: "other" },
+          ],
+          value,
+          defaultOpen: true,
+        });
+        const count =
+          JSON.stringify(view.toJSON()).split("material-community").length - 1;
+        await view.unmount();
+        return count;
+      };
+      expect(await glyphs(v)).toBe((await glyphs("none")) + 1);
+    },
+  );
+
   describe("nullable", () => {
     it("clears from a button in the field while an option is selected", async () => {
       const onChange = jest.fn();
@@ -479,6 +502,67 @@ describe("NumberField", () => {
     await fireEvent.press(getByLabelText("Decrement Qty"));
     expect(onChange).toHaveBeenLastCalledWith(3);
   });
+
+  const typeIn = async (
+    getByLabelText: (label: string) => Parameters<typeof fireEvent>[0],
+    text: string,
+  ) => {
+    const input = getByLabelText("Qty");
+    await fireEvent.changeText(input, text);
+    await fireEvent(input, "blur");
+  };
+
+  // Without min and max it used to clamp to 0..100 in silence: a price of 250
+  // came back as 100, and no negative number could be entered.
+  it("has no hidden range: without min and max any number is kept", async () => {
+    const onChange = jest.fn();
+    const { getByLabelText } = await wrap(
+      <NumberField label="Qty" value={5} onChange={onChange} />,
+    );
+    await typeIn(getByLabelText, "250");
+    expect(onChange).toHaveBeenLastCalledWith(250);
+    await typeIn(getByLabelText, "-3");
+    expect(onChange).toHaveBeenLastCalledWith(-3);
+  });
+
+  it("still clamps to the min and max it is given", async () => {
+    const onChange = jest.fn();
+    const { getByLabelText } = await wrap(
+      <NumberField
+        label="Qty"
+        value={5}
+        min={1}
+        max={10}
+        onChange={onChange}
+      />,
+    );
+    await typeIn(getByLabelText, "250");
+    expect(onChange).toHaveBeenLastCalledWith(10);
+  });
+
+  it("takes decimals, typed with a point or a comma, and steps by a fraction", async () => {
+    const onChange = jest.fn();
+    const { getByLabelText } = await wrap(
+      <NumberField label="Qty" value={0.1} step={0.2} onChange={onChange} />,
+    );
+    await typeIn(getByLabelText, "2.5");
+    expect(onChange).toHaveBeenLastCalledWith(2.5);
+    await typeIn(getByLabelText, "1,75");
+    expect(onChange).toHaveBeenLastCalledWith(1.75);
+    // 0.1 + 0.2 is 0.30000000000000004 in floating point.
+    await fireEvent.press(getByLabelText("Increment Qty"));
+    expect(onChange).toHaveBeenLastCalledWith(0.3);
+  });
+
+  it("puts the value back when the text is not a number", async () => {
+    const onChange = jest.fn();
+    const { getByLabelText } = await wrap(
+      <NumberField label="Qty" value={5} onChange={onChange} />,
+    );
+    await typeIn(getByLabelText, "-");
+    expect(onChange).not.toHaveBeenCalled();
+    expect(getByLabelText("Qty").props.value).toBe("5");
+  });
 });
 
 describe("SearchBar", () => {
@@ -620,6 +704,36 @@ describe("PinInput", () => {
     );
     await fireEvent.changeText(getByLabelText("Code 3/4"), "3");
     expect(onChange).toHaveBeenLastCalledWith("123");
+  });
+
+  // A later cell typed first pads the code with spaces ("   4"): that is as
+  // long as the code but not complete, and onComplete fired with the blanks.
+  it("completes only when every cell holds a character", async () => {
+    const onComplete = jest.fn();
+    const Controlled = () => {
+      const [code, setCode] = React.useState("");
+      return (
+        <PinInput
+          length={4}
+          label="Code"
+          value={code}
+          onChange={setCode}
+          onComplete={onComplete}
+        />
+      );
+    };
+    const { getByLabelText } = await wrap(<Controlled />);
+    await fireEvent.changeText(getByLabelText("Code 4/4"), "4");
+    expect(onComplete).not.toHaveBeenCalled();
+    for (const [cell, digit] of [
+      [1, "1"],
+      [2, "2"],
+      [3, "3"],
+    ] as const) {
+      await fireEvent.changeText(getByLabelText(`Code ${cell}/4`), digit);
+    }
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    expect(onComplete).toHaveBeenCalledWith("1234");
   });
 
   it("is outlined by default: bordered cells on the surface", async () => {

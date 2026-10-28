@@ -59,6 +59,8 @@ export interface ProgressButtonProps {
   variant?: ButtonVariant;
   /** Fires in every status but `loading`, where the button is busy. */
   onClick?: () => void;
+  /** `"submit"` submits the enclosing `Form` when pressed, after `onClick`, as on `Button`. */
+  type?: "button" | "submit";
   disabled?: boolean;
   fullWidth?: boolean;
   /**
@@ -127,6 +129,7 @@ const ProgressButton = ({
   indicator = "fill",
   variant = "filled",
   onClick,
+  type,
   disabled = false,
   fullWidth = false,
   successDuration = 2000,
@@ -310,6 +313,7 @@ const ProgressButton = ({
         disabled={disabled}
         fullWidth={fullWidth}
         onClick={onClick}
+        type={type}
         underlay={underlay}
         style={StyleSheet.flatten(style)}
         labelStyle={labelStyle}

@@ -54,6 +54,13 @@ const PATTERNS: Record<NonNullable<PinInputProps["type"]>, RegExp> = {
  * one field. Typing advances, Backspace retreats, and pasting a whole code
  * into any cell fills the row.
  */
+/**
+ * A later cell typed first pads the code with spaces: as long as the code, but
+ * not complete until every cell holds a character.
+ */
+const isComplete = (code: string, length: number) =>
+  code.length >= length && !code.slice(0, length).includes(" ");
+
 const PinInput = ({
   length = 6,
   value,
@@ -82,9 +89,9 @@ const PinInput = ({
   const characters = value.slice(0, length).split("");
 
   // Report completion once, on the transition into a full code.
-  const wasComplete = useRef(value.length >= length);
+  const wasComplete = useRef(isComplete(value, length));
   useEffect(() => {
-    const complete = value.length >= length;
+    const complete = isComplete(value, length);
     if (complete && !wasComplete.current) onComplete?.(value);
     wasComplete.current = complete;
   }, [value, length, onComplete]);

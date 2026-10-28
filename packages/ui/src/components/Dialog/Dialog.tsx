@@ -20,7 +20,6 @@ import Form from "../Form";
 import Icon, { IconSource } from "../Icon";
 import IconButton from "../IconButton";
 import Title from "../Typography";
-import { useEscapeKey } from "../internal/useEscapeKey";
 import type { MaterialCommunityIconsGlyphs } from "../types";
 
 /** Maximum dialog widths: the dialog is 85% of the window, up to this many px. */
@@ -243,10 +242,10 @@ function Dialog({
   // uses the insets, and a plain dialog must keep working without one.
   const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
 
-  // react-native's `onRequestClose` covers Android back but not the web ESC
-  // key, so the platform's own dismiss gesture has to be wired up by hand.
+  // `onRequestClose` is Android back and, on the web, Escape: react-native-web's
+  // Modal calls it for the topmost modal only. A key listener of our own would
+  // call `onClose` twice and close every dialog of a stack at once.
   const onEscape = disableEscapeKeyDown ? undefined : onClose;
-  useEscapeKey(visible && !!onEscape, () => onEscape?.());
 
   const closable = !!onClose && closeIcon !== false;
   const closeControl = (style?: StyleProp<ViewStyle>) =>

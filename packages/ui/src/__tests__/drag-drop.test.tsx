@@ -356,12 +356,8 @@ describe("Drag and drop", () => {
     const view = await render(<Board withBin />);
     const a = view.getByTestId("a");
     await drag(a, [20, 20], [450, 50]);
+    // Nothing else fires onLayout: the unmount alone must retire the zone.
     await view.rerender(<Board withBin={false} />);
-    await fireEvent(view.getByTestId("list"), "layout", {
-      nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 136 } },
-    });
-    await act(async () => {});
-    await fireEvent(a, "responderMove", at(451, 50));
     await fireEvent(a, "responderRelease", at(451, 50));
     expect(onDragEnd.mock.calls[0][0].over).toBeNull();
   });
@@ -431,6 +427,44 @@ describe("Drag and drop", () => {
       });
       expect(scrollTo.mock.calls.map(([to]: any) => to.y)).toEqual([
         14, 28, 42,
+      ]);
+    });
+
+    it("scrolls only the scroll view the pointer is in", async () => {
+      RECTS.upper = [0, 0, 300, 200];
+      RECTS.lower = [0, 300, 300, 200];
+      const scrollTo = jest.spyOn(ScrollView.prototype as any, "scrollTo");
+      scrollTo.mockClear();
+      const Named = ({ id }: { id: string }) => {
+        const scroll = useDragScroll();
+        return <ScrollView testID={id} scrollEventThrottle={16} {...scroll} />;
+      };
+      const { view } = await setup({
+        extra: (
+          <>
+            <Named id="upper" />
+            <Named id="lower" />
+          </>
+        ),
+      });
+      for (const id of ["upper", "lower"]) {
+        await fireEvent(view.getByTestId(id), "scroll", scrolled(0));
+      }
+      const a = view.getByTestId("a");
+      // In the middle of the lower one: nothing scrolls, the upper one included.
+      await drag(a, [20, 20], [20, 400]);
+      await act(async () => {
+        jest.advanceTimersByTime(16 * 3);
+      });
+      expect(scrollTo).not.toHaveBeenCalled();
+      // Near the lower one's bottom edge: the lower one, and only it.
+      await fireEvent(a, "responderMove", at(20, 495));
+      await act(async () => {
+        jest.advanceTimersByTime(16 * 2);
+      });
+      expect(scrollTo.mock.contexts.map((c: any) => c.props.testID)).toEqual([
+        "lower",
+        "lower",
       ]);
     });
 

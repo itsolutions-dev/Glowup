@@ -25,6 +25,7 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | [`device-package-plan.md`](device-package-plan.md)                                                                           | Design and phases of `@its/glowup-device`. Linked from the published package's README, so it stays here. |
 | [`superpowers/specs/2026-10-26-layout-editor-design.md`](superpowers/specs/2026-10-26-layout-editor-design.md)               | The layout editor: canvas on a grid, palette, nesting, props panel, JSON and code export. Approved.      |
 | [`superpowers/plans/2026-10-27-layout-editor-1-foundations.md`](superpowers/plans/2026-10-27-layout-editor-1-foundations.md) | Plan 1 of 3 for the layout editor: drag and drop additions and `GridLayout` in the library.              |
+| [`superpowers/plans/2026-10-28-layout-editor-2-core.md`](superpowers/plans/2026-10-28-layout-editor-2-core.md)               | Plan 2 of 3: the editor's pure core (document, grid maths, manifest, forms, operations, undo).           |
 
 ## Reference
 

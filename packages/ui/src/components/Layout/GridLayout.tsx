@@ -51,8 +51,9 @@ export interface GridLayoutProps {
  *
  * Placement needs no measured width (percentages plus dp margins), so the grid
  * prerenders and follows its container's width by itself. A `GridLayout`
- * inside an item lays out on that item's width: give it as many `columns` as
- * the item spans and its cells line up with the outer grid's.
+ * inside an item lays out on that item's width: with as many `columns` as the
+ * item spans, its cells are about as wide as the outer grid's (exactly, in an
+ * item with no padding; padding narrows them).
  */
 const GridLayout = ({
   layout,
@@ -100,8 +101,13 @@ const GridLayout = ({
             testID={itemID(item.id)}
             style={[styles.item, itemPlacement(item, columns, rowHeight, gap)]}
           >
+            {/* Like the library's other nested scrollers: no bounce, or iOS
+                gives every vertical pan to the item and the page stops
+                scrolling; a tap with the keyboard up reaches its control. */}
             <ScrollView
               nestedScrollEnabled
+              bounces={false}
+              keyboardShouldPersistTaps="handled"
               contentContainerStyle={styles.content}
             >
               {byId.get(item.id)}

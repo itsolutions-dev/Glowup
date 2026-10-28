@@ -451,8 +451,9 @@ child, matched by its `key`, takes the columns (`x`, `w`) and rows (`y`, `h`) of
 `layout`, and cells left empty stay empty. An item is as tall as its rows; content taller than that
 scrolls inside it. Below `stackBelow` the children stack full width in reading order (rows top to
 bottom, then left to right), each at its content's height. Placement needs no measured width, so the
-grid prerenders and follows its container by itself; a `GridLayout` inside an item with as many
-`columns` as the item spans lines its cells up with the outer grid's.
+grid prerenders and follows its container by itself. A `GridLayout` inside an item with as many
+`columns` as the item spans has cells about as wide as the outer grid's: exactly, in an item with no
+padding; padding narrows them.
 
 | Prop       | Type                                            | Default    |
 | ---------- | ----------------------------------------------- | ---------- |
@@ -2434,8 +2435,10 @@ between two sections lands in the list of sections.
 Spread `useDragScroll()` on the `ScrollView` or `ScrollArea` that holds the zones
 (`<ScrollArea {...useDragScroll()}>`; a plain `ScrollView` also needs `scrollEventThrottle={16}`):
 it does not scroll under a held item, scrolls by itself when the pointer nears its top or bottom
-edge, and keeps the zones measured as it scrolls. Zones that move during a drag (a container that
-grows) are measured again too.
+edge, and keeps the zones measured as it scrolls. A zone or item that lays out anew during a drag
+(a container that grows) is measured again too, and one that unmounts stops being a target. A
+scroll of a parent that is not spread with `useDragScroll` (the page itself) is not noticed: put
+the zones in a `useDragScroll` view.
 
 For a zone that places by position, a grid for instance, `over.rect` is where the dragged item's
 preview is relative to the zone's top-left corner, and `over.zone` the zone's size; snap the corner

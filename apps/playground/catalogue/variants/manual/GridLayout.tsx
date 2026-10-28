@@ -57,7 +57,7 @@ export const variants: Variant[] = [
     name: "Nested",
     title: "Nested",
     description:
-      "A grid inside a card, with as many columns as the card spans, so its cells line up with the page's.",
+      "A grid inside a card, with as many columns as the card spans: its cells are about as wide as the page's, a little narrower for the card's padding.",
     render: Nested,
   },
 ];

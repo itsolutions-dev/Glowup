@@ -154,6 +154,7 @@ On a desktop browser:
   content of a component whose children are a label (Typography, Button…).
 - `id`s are unique in the document, short and stable (`n` + counter); they become `key`s in the code.
 - `format` + `version` let an import refuse what it does not know and migrate older versions.
+- A field inside a Form has `"field": { "name": "email", "rules": [{ "required": true }, { "type": "email" }] }` (§11.7).
 - A **TabbedPanel** (§8) has `tabs` instead of `children`: one entry per tab, each a label and a grid —
   `"tabs": [{ "label": "Prodotto", "columns": 6, "children": [ … ] }, { "label": "Dati aggiuntivi", … }]`,
   the panel's `columns` following its `w` like any grid container.
@@ -183,6 +184,8 @@ reason, fails).
 | `defaultSize`  | `w`, `h` when placed on a grid (Input 4×2, Button 3×1, Paper 6×4, DataGrid 12×6)                                        |
 | `minSize`      | the smallest `w`, `h` a resize may reach                                                                                |
 | `controlled`   | the value/change pair the export turns into state (`{ value: "value", onChange: "onChangeText", initial: "" }`)         |
+| `field`        | for a field component: how `FormField` connects it (`{ valueProp, trigger, initial }`), §11.7                           |
+| `form`         | `true` for the Form container, §11.7                                                                                    |
 | `palette`      | group and icon (the catalogue's categories and their icons)                                                             |
 
 First classification _(my call, to refine with the manifest test)_:
@@ -353,6 +356,28 @@ apply live as in §11.3. Touch targets are at least 24 dp (`hitSlop`), the visib
 Delete removes the node and its children (the space it took stays empty). Duplicate copies the subtree with
 new ids: on a grid, at the first free cell below the original; in a flow container, right after it.
 
+### 11.7 Forms
+
+Added 2026-10-28 (§16 Q6). A layout can hold real forms, built on the library's `Form` and `FormField`:
+
+- The palette has a **Form**: a grid container (its own grid, like a Paper) with the `Form` registry entry's
+  props (`validateOn`, `disabled`). A Form never holds another Form, at any depth.
+- A **field component** (the manifest's `field`: Input, InputArea, PasswordField, NumberField, Select,
+  Autocomplete, Checkbox, CheckboxGroup, RadioGroup, Switch, Slider, Rating, PinInput, the date and time
+  pickers) placed anywhere inside a Form is **bound** to it: it gets a field name, unique in that Form,
+  taken from its `label` (`"Email address"` → `emailAddress`) or else its type and a number (`input2`), and
+  a list of **rules**. Moved to another Form it keeps its name unless taken there (then `email2`); moved
+  out of every Form it loses the binding (one undo brings it back). Duplicated, the copy gets a new name.
+- **Rules** are the JSON-safe part of the library's `FormRule`: `required`, `min`, `max`, `minLength`,
+  `maxLength`, `pattern` (the regular expression's source, as text), `type` (`email`, `url`, `number`)
+  and `message`. Custom validators stay in code.
+- The canvas shows a bound field's name in its selection label (`Input · email`); the properties panel has
+  a **Field** section (name, rules) for a bound field. A Button inside a Form offers `type: "submit"`.
+- The export (§15) turns a Form into `<Form initialValues onSubmit>` with each bound field as
+  `<FormField name rules>{(field) => <Input {...field} … />}</FormField>`; a field inside a Form gets no
+  `useState` (the Form holds its value), and `onSubmit` is left to wire. The Preview runs the real
+  validation.
+
 ## 12. Starters
 
 New layouts start blank or from a **starter**: a JSON file in `editor/starters/`, opened like a saved
@@ -436,6 +461,9 @@ entry is a `Draggable` whose preview is the component at its default size.
    (§7, §8), a tab switcher on the canvas to edit each panel (§11.5), exported as `Tabs` + `TabContent`
    with the shared state generated (§15). Collapse and Accordion get the same treatment later (§4);
    until then they are not in the palette.
+6. **Forms** (2026-10-28, asked as "form compatibility"; the shape is my reading of it). A Form container
+   in the palette; field components inside it bound by name, with JSON-safe rules; exported as `Form` +
+   `FormField` (§11.7).
 
 ## 17. Responsive editor
 
@@ -472,17 +500,17 @@ sideways** have.
 
 Each phase ends with its tests green, a browser check and a handoff entry.
 
-| #   | Phase                                                                         | Size | Ends with                                                                                     |
-| --- | ----------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
-| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll. **Done 2026-10-27**         |
-| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page. **Done 2026-10-27** |
-| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test                                |
-| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser                             |
-| 4   | Palette, flow containers, TabbedPanel, moving between grids and containers    | M    | page tests; browser                                                                           |
-| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                                      |
-| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                                              |
-| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas                       |
-| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device                    |
+| #   | Phase                                                                         | Size | Ends with                                                                                               |
+| --- | ----------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
+| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll. **Done 2026-10-27**                   |
+| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page. **Done 2026-10-27**           |
+| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test. **Done 2026-10-28**, with forms (§11.7) |
+| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser                                       |
+| 4   | Palette, flow containers, TabbedPanel, moving between grids and containers    | M    | page tests; browser                                                                                     |
+| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                                                |
+| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                                                        |
+| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas                                 |
+| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device                              |
 
 Phases 0 and 1 are library work with changesets; 2–8 are the playground.
 

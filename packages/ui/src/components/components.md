@@ -2503,7 +2503,8 @@ reading order (rows top to bottom, then left to right), each at its content's he
 Placement needs no measured width: each item's left and right edges are percentages of the grid's
 width plus a dp margin, and its top and height are dp from the rows. The grid prerenders at width 0
 and follows its container by itself. A `GridLayout` inside an item lays out on that item's width;
-with as many `columns` as the item spans, its cells line up with the outer grid's. A child with no
+with as many `columns` as the item spans, its cells are about as wide as the outer grid's (exactly,
+in an item with no padding; padding narrows them). A child with no
 entry in `layout`, or an entry with no child, renders nothing; out-of-range entries are clamped
 into the grid.
 
@@ -2696,7 +2697,8 @@ gesture or animation dependency). The geometry is pure and tested on its own
   the press rests or moves; the innermost draggable under the press is the one that lifts.
 - **While dragging.** The item stays in place at 0.4 opacity; a preview (`preview`, else
   `children`, at the item's size) follows the pointer at the `PortalHost` with a raised shadow,
-  its draggables and zones drawn inert. Zones and items are measured once, when the drag begins.
+  its draggables and zones drawn inert. Zones and items are measured when the drag begins, and
+  again when one of them lays out anew, unmounts, or scrolls with a `useDragScroll` view.
   The innermost zone under the pointer that `accept`s the item is the target, never a zone inside
   the dragged item; a 2 dp primary line marks the insertion point between its draggables. Escape
   cancels on the web; a touch lift emits `longPress` feedback.

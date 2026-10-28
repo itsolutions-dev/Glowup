@@ -366,6 +366,14 @@ const PinboardGrid = ({ notes }: { notes: Note[] }) => {
   const landing = note && cell ? { ...note, id: "landing", x, y } : null;
   const free =
     !!landing && notes.every((n) => n.id === note?.id || !overlaps(n, landing));
+  // While it is over a free place, the dragged note itself is drawn there
+  // (dimmed, on the placeholder), not left behind where it was picked up.
+  const placed =
+    landing && free
+      ? notes.map((n) =>
+          n.id === note?.id ? { ...n, x: landing.x, y: landing.y } : n,
+        )
+      : notes;
 
   return (
     <Droppable
@@ -375,7 +383,7 @@ const PinboardGrid = ({ notes }: { notes: Note[] }) => {
     >
       <GridLayout
         stackBelow="compact"
-        layout={[...(landing ? [...CELLS, landing] : []), ...notes]}
+        layout={[...(landing ? [...CELLS, landing] : []), ...placed]}
       >
         {landing &&
           CELLS.map((c) => (

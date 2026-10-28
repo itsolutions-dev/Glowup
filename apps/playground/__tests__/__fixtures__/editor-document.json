@@ -1,0 +1,54 @@
+{
+  "format": "glowup-layout",
+  "version": 1,
+  "name": "Fixture",
+  "grid": { "columns": 12, "rowHeight": 48, "gap": 16 },
+  "items": [
+    {
+      "id": "n1",
+      "type": "Paper",
+      "props": {},
+      "layout": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "columns": 6,
+      "children": [
+        {
+          "id": "n2",
+          "type": "Typography",
+          "props": {},
+          "text": "Hi",
+          "layout": { "x": 0, "y": 0, "w": 6, "h": 1 }
+        }
+      ]
+    },
+    {
+      "id": "n3",
+      "type": "TabbedPanel",
+      "props": {},
+      "layout": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "tabs": [
+        {
+          "label": "A",
+          "columns": 6,
+          "children": [
+            {
+              "id": "n4",
+              "type": "Input",
+              "props": { "label": "Name" },
+              "layout": { "x": 0, "y": 0, "w": 4, "h": 2 }
+            }
+          ]
+        },
+        { "label": "B", "columns": 6, "children": [] }
+      ]
+    },
+    {
+      "id": "n5",
+      "type": "VStack",
+      "props": {},
+      "layout": { "x": 0, "y": 4, "w": 4, "h": 3 },
+      "children": [
+        { "id": "n6", "type": "Button", "props": {}, "text": "Save" }
+      ]
+    }
+  ]
+}

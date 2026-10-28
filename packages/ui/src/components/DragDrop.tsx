@@ -36,6 +36,7 @@ import {
   Point,
   Rect,
   autoScrollStep,
+  contains,
   indicatorAt,
   insertionIndex,
   zoneAt,
@@ -234,32 +235,57 @@ const createManager = () => {
     autoScroll = null;
   };
 
+  // The scroll view to move: the one the pointer is in (the smallest, if they
+  // nest), scrolling near its own edges; outside every one, the nearest one
+  // above or below, toward the pointer.
+  const scrollerAt = (point: Point) => {
+    let inside: { scroller: Scroller; area: number } | null = null;
+    let beside: { scroller: Scroller; distance: number } | null = null;
+    for (const scroller of scrollers) {
+      const rect = scroller.rect;
+      if (
+        !rect ||
+        (autoScrollStep(point, rect) === 0 && !contains(rect, point))
+      ) {
+        continue;
+      }
+      if (contains(rect, point)) {
+        const area = rect.width * rect.height;
+        if (!inside || area < inside.area) inside = { scroller, area };
+      } else {
+        const distance =
+          point.y < rect.y ? rect.y - point.y : point.y - rect.y - rect.height;
+        if (!beside || distance < beside.distance) {
+          beside = { scroller, distance };
+        }
+      }
+    }
+    return (inside ?? beside)?.scroller ?? null;
+  };
+
   // Near a scroll view's top or bottom edge, scroll it every 16 ms until the
   // pointer leaves the edge, the content ends or the drag does.
   const scrollNear = (point: Point) => {
-    for (const scroller of scrollers) {
-      const step = scroller.rect ? autoScrollStep(point, scroller.rect) : 0;
-      if (step === 0) continue;
-      if (autoScroll?.scroller === scroller) {
-        autoScroll.step = step;
-        return;
-      }
-      stopAutoScroll();
-      const run = {
-        scroller,
-        step,
-        timer: setInterval(() => {
-          const end = Math.max(0, scroller.content - scroller.viewport);
-          const next = Math.min(end, Math.max(0, scroller.offset + run.step));
-          if (next === scroller.offset) return stopAutoScroll();
-          scroller.offset = next;
-          scroller.ref.current?.scrollTo({ y: next, animated: false });
-        }, 16),
-      };
-      autoScroll = run;
+    const scroller = scrollerAt(point);
+    const step = scroller?.rect ? autoScrollStep(point, scroller.rect) : 0;
+    if (!scroller || step === 0) return stopAutoScroll();
+    if (autoScroll?.scroller === scroller) {
+      autoScroll.step = step;
       return;
     }
     stopAutoScroll();
+    const run = {
+      scroller,
+      step,
+      timer: setInterval(() => {
+        const end = Math.max(0, scroller.content - scroller.viewport);
+        const next = Math.min(end, Math.max(0, scroller.offset + run.step));
+        if (next === scroller.offset) return stopAutoScroll();
+        scroller.offset = next;
+        scroller.ref.current?.scrollTo({ y: next, animated: false });
+      }, 16),
+    };
+    autoScroll = run;
   };
 
   // Measured on their own: a scroll view that never reports its place must not
@@ -399,6 +425,20 @@ const createManager = () => {
     start,
     move,
     relayout,
+    // A zone that unmounts mid-drag stops being a target at once (nothing
+    // else may lay out to trigger a re-measure); a pass then re-measures the
+    // rest, the items that sat in it included.
+    removeZone: (id: string) => {
+      zones.delete(id);
+      if (!state.active) return;
+      targets = targets.filter((target) => target.id !== id);
+      move(last);
+      relayout();
+    },
+    removeItem: (id: string) => {
+      items.delete(id);
+      relayout();
+    },
     addScroller: (scroller: Scroller) => {
       scrollers.add(scroller);
       return () => {
@@ -485,9 +525,10 @@ export interface DragDropProviderProps {
  * The provider only reports the drop: keep the lists in your state and
  * move the item in `onDragEnd`.
  *
- * Inside a `ScrollView`, pass `scrollEnabled={!active}` (from `useDragDrop`)
- * so it does not scroll under a held item. The preview is drawn through a
- * `Portal`, so it is not clipped when a `PortalHost` wraps the app.
+ * Spread `useDragScroll()` on the `ScrollView` or `ScrollArea` that holds
+ * the zones, so it does not scroll under a held item and scrolls by itself
+ * near its edges. The preview is drawn through a `Portal`, so it is not
+ * clipped when a `PortalHost` wraps the app.
  */
 export const DragDropProvider = ({
   children,
@@ -701,7 +742,7 @@ const LiveDraggable = ({
   useEffect(() => {
     manager.items.set(id, { ref, zone: scope.zone });
     return () => {
-      manager.items.delete(id);
+      manager.removeItem(id);
     };
   }, [manager, id, scope.zone]);
 
@@ -976,7 +1017,7 @@ const LiveDroppable = ({
   });
   useEffect(
     () => () => {
-      manager.zones.delete(id);
+      manager.removeZone(id);
     },
     [manager, id],
   );

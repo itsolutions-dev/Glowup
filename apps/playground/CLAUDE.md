@@ -316,11 +316,25 @@ drop `_expo/`, where the bundle lives) and copies `+not-found.html` to `404.html
 The repository must have Pages enabled with **GitHub Actions** as the source; Pages on a
 private repository requires GitHub Enterprise Cloud.
 
+## The layout editor's core
+
+`editor/` holds the layout editor's model (spec: `docs/superpowers/specs/2026-10-26-layout-editor-design.md`),
+plain TypeScript with no React, React Native or `@its/glowup-ui` import: `document.ts` (the JSON tree, its
+queries and `updateNode`), `engine.ts` (grid maths: snap, push down, first free cell), `manifest.ts` (what each
+palette component is, holds and starts with, and how a Form binds it), `check.ts` (`checkDocument`: every broken
+invariant as a message), `forms.ts` (field names and rules), `operations.ts` (every edit) and `history.ts`
+(undo/redo). **Operations never mutate their input** and return the same document when they refuse; the tests
+deep-freeze the input and run `checkDocument` after every operation. `__tests__/editor-manifest.test.ts` holds
+the manifest to the generated prop tables and every catalogued component to an entry or a reason in `LEFT_OUT`:
+a component added to the catalogue fails it until it gets one or the other. The shared fixture is JSON
+(`__tests__/__fixtures__/editor-document.json`), because jest runs every `.ts` under `__tests__`.
+
 ## The drag and drop page
 
 `app/drag-and-drop.tsx` (/drag-and-drop) demos the library's `DragDropProvider` / `Draggable` / `Droppable`
-as a section of its own, not as catalogue pages: four live boards (columns of pressable cards, a list with a
-locked row, a toolbar whose `accept` caps it at three, sections with nested zones), the usage snippet, and the
+as a section of its own, not as catalogue pages: six live boards (columns of pressable cards, a list with a
+locked row, a toolbar whose `accept` caps it at three, sections with nested zones, notes placed on a
+`GridLayout` by `over.rect`, a long list in a `useDragScroll` `ScrollArea`), the usage snippet, and the
 three generated prop tables (`PropsTable` with `docFor`). The page relies on the root `PortalHost` for the
 copy that follows the pointer.
 

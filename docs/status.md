@@ -22,13 +22,13 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators                 | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 25%  | `██▌░░░░░░░` | jest ×3, verification matrix, DataGrid 1.4, a11y, safe area | –   | –        | –       |
 | Phase 2: theme tokens and hooks           | 75%  | `███████▌░░` | 2B-c: chart palette and brand gradient (B0, B2)             | yes | partly   | partly  |
-| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4, rename batch 3 with the field contract              | yes | partly   | partly  |
+| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                      | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | final colours, native timings, release                      | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
 | Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
 | Phase 8: CRM pilot screens                | 0%   | `░░░░░░░░░░` | everything (A8)                                             | –   | –        | –       |
-| Library hardening (`library-roadmap.md`)  | 15%  | `█▌░░░░░░░░` | ~35 defects, 9 high                                         | –   | –        | –       |
+| Library hardening (`library-roadmap.md`)  | 45%  | `████▌░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
 | **Overall (phases 0–8, weighted)**        | 57%  | `█████▋░░░░` |                                                             |     |          |         |
 
@@ -96,8 +96,6 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Left:**
   - B3: `ToggleButtonGroup` with typed values, and `Stepper` as dots or a bar.
   - B4: `DayTimeline`, day markers (now on `DatePicker variant="static"`), `Skeleton` presets.
-  - Rename batch 3 (the field family still on `onPress`, `mode`, `onValueChange`, `multiSelect`) together with
-    the one field contract (`library-roadmap.md` §3).
   - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
     `rowActions`, `sections`, `%` widths; `Select` string options, `reserveHelperSpace`, `renderOption`;
     `Input` `type` phone/email; `StatusBadge` `info`/`neutral`; `Stat` `valueTone`; `Dialog` `overline`,
@@ -168,24 +166,36 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Left:** sign-in with 2FA, contacts list with filters, customer detail with outcome, report (charts and pivot),
   built only with the library. Depends on 3A, `DataGrid` 1.4 and part of `composite-ui`.
 
-### Library hardening (`library-roadmap.md`), 15%
+### Library hardening (`library-roadmap.md`), 45%
+
+Basis: 7 + 11 fixed of about 42 defects (the 7 of 23/10 plus the 35 the review found).
 
 - **Done (23/10 afternoon):** 7 items. Hover and focus no longer shift the box, `Tabs` hover, `Slider`, the
   `Switch` thumb, the picker popover scrollbar, `useToast` identity and `maxVisible`, `DataGrid` column order.
-- **Left:** about 35 defects, found by reading and **never run**. The 9 high ones:
-  - Escape fires `onClose` twice.
-  - Toasts appear under open overlays.
+- **Done (28/10), the ones that broke an app:** 11, each in a failing jest test first; the web ones also driven in
+  Chromium (and Escape seen failing there on the old code). Escape closing every stacked dialog, twice; the picker
+  portal in a static render; `NumberField`'s hidden 0..100 range and integer-only input; `Select` tick for falsy
+  values; `PinInput` completing with blanks; `ProgressButton type="submit"`; Enter submitting a disabled form;
+  `Table` rows keyed by index; `Alert()` lost before the provider, overwritten by a second one, Escape skipping
+  cancel. Changeset `app-blocking-fixes.md` (minor: `NumberField` no longer clamps to 0..100 by default).
+- **Left:** about 24 defects, found by reading and **never run**. The 6 high ones, all but the first about
+  accessibility:
+  - Toasts appear under open overlays (needs Toast v2: on iOS and Android a dialog is a separate native window).
   - The current `Pagination` page is disabled.
   - ARIA state never reaches the DOM.
-  - `NumberField` is integer only.
   - `SpeedDial`/`FAB` accessible names.
   - Buttons nested in a pressable `Card`.
   - iOS never announces `Snackbar`/`Banner`.
-  - The picker portal is created during render (static export).
+  - Not high, but app-facing: `Input` never submits a form on native Enter; a picker inside a `Dialog` closes
+    the dialog with it on Escape.
 
   Then §2 (second tier) and §4 (what to build: `useConfirm`, theme mode, `AppShell`, Toast v2, motion…).
 
 ## Do not redo: already settled or already fixed
+
+- **No rename batch 3, no "one field contract"** (Alice, 28/10). The field family keeps `onPress`, `mode`,
+  `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
+  propose renaming them again.
 
 Check here before starting something that feels familiar.
 
@@ -245,7 +255,9 @@ Check here before starting something that feels familiar.
 
 ## Road to done
 
-Agreed on 2026-10-28. **The CRM pilot screens decide what gets built next**: the plan put `composite-ui`
+Agreed on 2026-10-28, and reordered the same day: **publishing comes after the library is fixed** (Stage 5), since
+nobody needs the packages in the CRM before then and `release.yml` cannot publish from `dev` anyway. **The CRM
+pilot screens decide what gets built next**: the plan put `composite-ui`
 (Phase 5) before the pilot screens (Phase 8), this order flips it, so a composite is built when a pilot screen
 needs it. Tick a box when it is done **and** its verification is noted in the handoff.
 
@@ -265,20 +277,16 @@ exist. Work that serves none of these waits (see "Deferred" below).
 - [ ] **Alice, not blocking:** say yes to deleting `backup/dev-before-rebase` and `backup/dev-before-ui-integration`
       (checked 28/10: everything in them is in `dev`).
 
-### Stage 1: freeze the API, make the packages installable (in parallel)
+### Stage 1: freeze the API
 
-- [ ] **Gabriele:** rename batch 3 with the one field contract (`library-roadmap.md` §3). Breaking, so before
-      the CRM adopts more of the current names.
+- [x] ~~Rename batch 3 and the one field contract~~: **dropped by Alice (28/10)**. The current names stay; see
+      "Do not redo".
 - [ ] **Gabriele:** the chart palette type and values (B0, B2); then swap the default in `charts/core/palette.ts`.
-- [ ] **Alice:** the release pipeline for `pdf`, `charts`, `pivot` (A9): trusted publishers, `release.yml`,
-      `ci.yml`, changesets, `examples/consumer` installing them from the registry. 0.x while the API settles.
 
-### Stage 2: harden the library while the CRM starts using it (in parallel)
+### Stage 2: harden the library (in parallel with Stage 3)
 
-- [ ] **Gabriele:** the 9 high items of `library-roadmap.md` §1, one test per fix.
-- [ ] **Alice:** `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport. It doubles as the parity test
-      against a real report.
-- [ ] **Alice:** the CRM's four bar charts with `column`, `target`, `marker`, `dimmed` (Inbound first).
+- [x] **Alice:** the bugs that break an app (`library-roadmap.md` §1 and §2), each reproduced in a test first
+      (28/10: 11 fixed). Accessibility-only items wait; toasts under dialogs wait for Toast v2.
 
 ### Stage 3: the pilot screens, cheapest first
 
@@ -301,7 +309,34 @@ what these screens use.
 - [ ] Readable errors without a `SafeAreaProvider` (1.12).
 - [ ] A VoiceOver and TalkBack pass on the pilot screens' components (1.10).
 
-### Stage 5: one real phone, then 1.0
+### Stage 5: publish, then the CRM uses the packages
+
+The branch decision can be taken any time before this; the rest waits until the pilot screens have settled the API.
+
+- [ ] **Alice:** the release pipeline for `pdf`, `charts`, `pivot` (A9): trusted publishers, `release.yml`,
+      `ci.yml`, changesets, `examples/consumer` installing them from the registry. 0.x while the API settles.
+- [ ] **Alice + Adriano + Gabriele: which branch publishes** (28/10). `release.yml` publishes from `master` only, and
+      `dev` and `master` have split (140 and 105 commits). `@its/glowup-ui@0.12.0` on npm is `master`'s, without
+      `dev`'s library work, and `pdf`, `charts`, `pivot` are built against `dev`'s `ui`. Options: `dev` into
+      `master` through a PR (the one published line 1.0 needs); a `next` pre-release from `dev`; or postpone.
+      Nothing can be published until this is decided.
+- Before the first publish of `pdf`, `charts`, `pivot` (checked 28/10; `publint` and `attw` are clean on all three):
+  - [x] `pdf` no longer packs `android/build/` (213 files of local Gradle output); `pivot` no longer packs the
+        test helper `export/__fixtures__`.
+  - [x] A `LICENSE` in each of the three (MIT, IT Solutions S.r.l., the text of AuraPivot's, whose engine `pivot`
+        copies). `ui`, `notifications` and `device` still have none: tell their owners.
+  - [ ] The `@its/glowup-ui` peer range (now `>=0.11`): set it to the `ui` version they are built against, once the
+        branch question is settled.
+  - [ ] READMEs as npm pages: drop "Not published yet", add install (with the optional peers) and a usage example
+        (`pdf` and `pivot` have none); links into `docs/` do not work on npmjs.com.
+  - [ ] `private: false`, a first changeset for each, `release.yml`'s comment, and `examples/consumer` plus
+        `consumer-smoke.yml` installing the three.
+
+- [ ] **Alice:** `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport. It doubles as the parity test
+      against a real report.
+- [ ] **Alice:** the CRM's four bar charts with `column`, `target`, `marker`, `dimmed` (Inbound first).
+
+### Stage 6: one real phone, then 1.0
 
 - [ ] An `arm64` build from CI on one real Android phone, through the pilot screens. iPhone only if an Apple
       Developer account becomes available.
@@ -320,7 +355,6 @@ the rename to Solaris UI; the `library-roadmap.md` §4 items no screen needs.
   - Rounded icon glyphs.
   - `QrCode` fixed colours.
   - `Autocomplete` aligned to `Select`.
-  - When rename batch 3 happens.
 - Which Android versions do the CRM's users have? Do they open PDFs in the app or in a phone browser?
 - Charts (27/10, to confirm): the "Status" header in the table, and `BarMarker.icon` as an `IconSource`.
 - Testing on a real phone. Android needs an `arm64` build in CI; iPhone needs an Apple Developer account and an EAS

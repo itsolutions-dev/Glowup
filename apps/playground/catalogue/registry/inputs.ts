@@ -571,8 +571,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: NumberField,
     props: {
       label: { type: "text", default: "", label: "Label" },
-      min: { type: "number", label: "Min" },
-      max: { type: "number", label: "Max" },
+      min: { type: "number", default: undefined, label: "Min" },
+      max: { type: "number", default: undefined, label: "Max" },
       step: { type: "number", default: 1, label: "Step" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },

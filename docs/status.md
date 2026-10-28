@@ -21,7 +21,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | ----------------------------------------- | ---- | ------------ | ----------------------------------------------------------- | --- | -------- | ------- |
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators                 | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 25%  | `██▌░░░░░░░` | jest ×3, verification matrix, DataGrid 1.4, a11y, safe area | –   | –        | –       |
-| Phase 2: theme tokens and hooks           | 75%  | `███████▌░░` | 2B-c: chart palette and brand gradient (B0, B2)             | yes | partly   | partly  |
+| Phase 2: theme tokens and hooks           | 90%  | `█████████░` | the brand gradient, when a pilot screen needs it            | yes | partly   | partly  |
 | Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                      | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | final colours, native timings, release                      | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
@@ -69,12 +69,17 @@ done, and 1.10 and 1.11 are partly done.
   - 1.12 safe area: `AppBar`, `Toolbar`, `FAB`, `SpeedDial` throw without a provider.
   - 1.13 the 1.0 criteria and the adoption guide.
 
-### Phase 2: theme tokens and hooks, 75%
+### Phase 2: theme tokens and hooks, 90%
 
 - **Done:** 2A hooks (`useDebouncedValue`, `useDebouncedCallback`, breakpoints), 2B-a/b status roles (`success`,
   `warning`, `info`, `neutral`), `toneFrom` (16/10).
-- **Left:** 2B-c, the chart palette type and values and the brand gradient (B0, B2, the colleague's). Charts use
-  theme roles until then, and only `core/palette.ts` changes when it lands.
+  - 2B-c, the chart palette (B0, B2; 28/10): `theme.charts` with `categorical` (8), `sequential` and `diverging`,
+    light and dark, fixed under every brand palette; validated with the `dataviz` skill's script against the light
+    and dark surfaces and containers of every built-in palette (all hard checks pass; aqua, yellow, magenta below
+    3:1 on light, so labels or a table view are required, which the charts have). The charts take
+    `categorical` in order; checked on the web Charts page in light and dark.
+- **Left:** the brand gradient (`gradients.brand`, `brandDisabled`, CRM `#1D5A9D → #61B340`), built when a pilot
+  screen draws one.
 
 ### Phase 3: specialised props, 55%
 
@@ -281,7 +286,8 @@ exist. Work that serves none of these waits (see "Deferred" below).
 
 - [x] ~~Rename batch 3 and the one field contract~~: **dropped by Alice (28/10)**. The current names stay; see
       "Do not redo".
-- [ ] **Gabriele:** the chart palette type and values (B0, B2); then swap the default in `charts/core/palette.ts`.
+- [x] The chart palette type and values (B0, B2) and the charts' default (28/10). The brand gradient waits for a
+      pilot screen that draws it.
 
 ### Stage 2: harden the library (in parallel with Stage 3)
 

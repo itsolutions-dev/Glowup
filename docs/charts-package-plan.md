@@ -71,10 +71,9 @@ nascondere una serie) e la facciata `Chart` con `type`.
   si restringe più).
 - **Tooltip** al tocco e al passaggio del mouse su web; per `onSelect` e il tooltip si usa il componente `Tooltip` di `ui`
   dove basta, altrimenti un piccolo livello nostro.
-- **Colori solo dai token.** Oggi la palette dei grafici **non esiste** in `theme.colors` (contratto B0, di `ui`, del
-  collega). Finché non c'è: le serie prendono i colori da una lista di ruoli esistenti (`primary`, `secondary`, `tertiary`
-  e i loro contenitori) e ogni grafico accetta `colors` per sostituirla. Quando B0 arriva, si cambia solo il valore di
-  default. **Nessun colore scritto a mano nel pacchetto.**
+- **Colori solo dai token.** La palette dei grafici è `theme.charts` (B0 e B2 fatti il 28/10: `categorical`, `sequential`,
+  `diverging`, chiaro e scuro, validati con lo script della skill `dataviz`); le serie prendono `categorical` in ordine e
+  ogni grafico accetta `colors` per sostituirla. **Nessun colore scritto a mano nel pacchetto.**
 - **Numeri e date** con `Intl` (`formatValue`, `locale` espliciti, mai il locale del telefono per default nascosto).
 - **Stati** `loading` (`Skeleton` di `ui`) e `empty`; animazione d'ingresso spenta con `useReduceMotion` (già esportato da `ui`).
 - **Accessibilità:** `accessibilityLabel` con un riassunto testuale e una modalità "tabella" per lo screen reader (fatta il 2026-10-21: prop `table`, componente `ChartTable`, una riga è un bottone che sceglie la categoria).

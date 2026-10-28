@@ -26,7 +26,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | final colours, native timings, release                      | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
-| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | CI at 16/16, use in the CRM, parity test                    | yes | yes      | yes     |
+| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
 | Phase 8: CRM pilot screens                | 0%   | `░░░░░░░░░░` | everything (A8)                                             | –   | –        | –       |
 | Library hardening (`library-roadmap.md`)  | 15%  | `█▌░░░░░░░░` | ~35 defects, 9 high                                         | –   | –        | –       |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
@@ -78,9 +78,9 @@ done, and 1.10 and 1.11 are partly done.
 
 ### Phase 3: specialised props, 55%
 
-Basis: the matrix's lots 3A, 3B and 3C, plus the three rename batches. The **"Fatto" column of
-`crm-component-matrix.md` has never been filled in**, so this one is the roughest estimate here. Filling that
-column is the cheapest way to make it exact.
+Basis: the "Fatto" column of `crm-component-matrix.md` (filled in 28/10 from the props types) and the three
+rename batches. Of the matrix's 30 rows that propose something, 11 are done, 8 partly and 11 not (50%, a
+partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 
 - **Done:**
   - 3A first pieces (16/10): `density` and `DensityProvider`, `ListItem` slots, `Input` `decimalSeparator`,
@@ -98,6 +98,10 @@ column is the cheapest way to make it exact.
   - B4: `DayTimeline`, day markers (now on `DatePicker variant="static"`), `Skeleton` presets.
   - Rename batch 3 (the field family still on `onPress`, `mode`, `onValueChange`, `multiSelect`) together with
     the one field contract (`library-roadmap.md` §3).
+  - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
+    `rowActions`, `sections`, `%` widths; `Select` string options, `reserveHelperSpace`, `renderOption`;
+    `Input` `type` phone/email; `StatusBadge` `info`/`neutral`; `Stat` `valueTone`; `Dialog` `overline`,
+    `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.
 
 ### Phase 4: charts, 90%
 
@@ -148,14 +152,14 @@ column is the cheapest way to make it exact.
     review. CI green: 14/14 on Android, 12/12 on iPhone.
   - Toolbar (27/10): our own `.xlsx` export on web, iOS and Android, fullscreen, reset. Export proven on
     Android's share sheet in CI.
+  - Script fix (28/10): the toolbar had moved a text field onto the Android script's swipes; CI back to 16/16 on
+    Android 14 and 15, every native check PASS (PDF search PENDING on 14, as designed), iPhone all PASS.
 - **Left (decided scope):**
-  1. **A CI run at 16/16** on Android 14 and 15 with the script fix of 28/10 (the toolbar had moved a text field
-     onto the swipes' starting point; 16/16 on the local emulator, 13/16 there without the fix).
-  2. Open `pivot-sample.xlsx` in real Excel or LibreOffice.
-  3. Use `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport.
-  4. A parity test against a real CRM report, plus 50k rows on the web and 5k on native (the phase's exit
+  1. Open `pivot-sample.xlsx` in real Excel (Google Sheets reads it right, 28/10: sheet name, styles, numbers).
+  2. Use `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport.
+  3. A parity test against a real CRM report, plus 50k rows on the web and 5k on native (the phase's exit
      criteria).
-  5. The minors deferred by the 27/10 review.
+  4. The minors deferred by the 27/10 review.
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 
@@ -251,14 +255,15 @@ exist. Work that serves none of these waits (see "Deferred" below).
 
 ### Stage 0: close what is already diagnosed (Alice, 1–2 days)
 
-- [ ] Android script regression (Phase 7, item 1): fixed and 16/16 on the local emulator (28/10); **left: a CI
-      run at 16/16** on Android 14 and 15. Nothing after this can be trusted on a red CI.
+- [x] Android script regression: fixed, 16/16 in CI on Android 14 and 15 (run on `4075ab5`, 28/10).
 - [x] A `.catch` on each optional `import()` in `packages/pdf/src/adapters.ts`, with a test like the pivot's
       `optionalPeers.test.ts`.
-- [ ] Open `pivot-sample.xlsx` in Excel or LibreOffice.
-- [ ] Tell Gabriele about the `Collapse.tsx` change and its changeset.
-- [ ] Fill in the "Fatto" column of `crm-component-matrix.md` (it makes the Phase 3 percentage exact).
-- [ ] Delete `backup/dev-before-rebase` and `backup/dev-before-ui-integration`.
+- [ ] **Alice, not blocking:** open `pivot-sample.xlsx` in Excel when a machine with it is at hand. Google Sheets
+      done (28/10); Excel is stricter (the repair prompt). Export it from `/pivot` on the web.
+- [x] Tell Gabriele about the `Collapse.tsx` change and its changeset (28/10).
+- [x] Fill in the "Fatto" column of `crm-component-matrix.md` (28/10): Phase 3 stays at 55%, now counted.
+- [ ] **Alice, not blocking:** say yes to deleting `backup/dev-before-rebase` and `backup/dev-before-ui-integration`
+      (checked 28/10: everything in them is in `dev`).
 
 ### Stage 1: freeze the API, make the packages installable (in parallel)
 

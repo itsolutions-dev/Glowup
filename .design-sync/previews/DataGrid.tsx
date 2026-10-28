@@ -46,7 +46,11 @@ const rows = [
   },
 ];
 
-const frame: React.CSSProperties = { width: 560, height: 320, display: "flex" };
+// The grid fills its container but does not stretch its columns, so each frame
+// is exactly as wide as the columns sum (+2 for the border). With no height
+// the grid is as tall as its rows.
+const frame: React.CSSProperties = { width: 532, display: "flex" };
+const crmFrame: React.CSSProperties = { width: 422, display: "flex" };
 
 export const Sorted = () => (
   <div style={frame}>
@@ -105,7 +109,7 @@ const crmRows = [
 ];
 
 export const CellsAndAlignment = () => (
-  <div style={frame}>
+  <div style={crmFrame}>
     <DataGrid
       data={crmRows}
       columns={crmColumns}
@@ -117,7 +121,7 @@ export const CellsAndAlignment = () => (
 );
 
 export const EmptyState = () => (
-  <div style={frame}>
+  <div style={crmFrame}>
     <DataGrid
       data={[]}
       columns={crmColumns}
@@ -131,13 +135,13 @@ export const EmptyState = () => (
 );
 
 export const TitleAndPaging = () => (
-  <div style={{ ...frame, height: 420 }}>
+  <div style={frame}>
     <DataGrid
       data={rows}
       columns={columns}
       tableTitle="Invoices"
       rowsPerPage={3}
-      height={400}
+      height={316}
     />
   </div>
 );

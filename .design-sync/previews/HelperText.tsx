@@ -1,5 +1,5 @@
 import React from "react";
-import { HelperText, Input, Typography, Checkbox } from "@its/glowup-ui";
+import { Checkbox, HelperText, Input } from "@its/glowup-ui";
 
 const field: React.CSSProperties = {
   width: 340,
@@ -22,12 +22,10 @@ export const Types = () => (
 );
 
 // The reason it is a component: every input in the kit renders one, so the
-// gutter, colour role and alert glyph stay identical across a form.
+// gutter, colour role and alert glyph stay identical across a form. A control
+// with no message prop of its own (Checkbox, Switch, Slider) takes one below it.
 export const UnderAControl = () => (
   <div style={{ ...field, gap: 8 }}>
-    <Typography variant="labelMedium">
-      Controls without their own error prop borrow it
-    </Typography>
     <Checkbox
       label="I accept the terms"
       checked={false}
@@ -57,12 +55,19 @@ export const AlongsideInput = () => (
   </div>
 );
 
+// `visible={false}` fades the text out but keeps its line, so the rows below
+// never jump when it comes and goes: both rows here are the same height.
 export const Hidden = () => (
-  <div style={{ ...field, gap: 8 }}>
-    <Typography variant="labelMedium">
-      visible=false fades out but keeps its space, so the field never jumps
-    </Typography>
-    <HelperText visible={false}>Hidden text</HelperText>
-    <HelperText>Visible text</HelperText>
+  <div style={field}>
+    <Checkbox
+      label="Renew my plan automatically"
+      checked={false}
+      onValueChange={() => {}}
+    />
+    <HelperText padding="none" visible={false}>
+      Renews on 3 Jun 2024
+    </HelperText>
+    <Checkbox label="Email me the invoice" checked onValueChange={() => {}} />
+    <HelperText padding="none">Sent to marta@itsol.it</HelperText>
   </div>
 );

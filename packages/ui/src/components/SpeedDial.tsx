@@ -120,25 +120,13 @@ const SpeedDial = ({
           })}
         </View>
 
-        <Animated.View
-          style={{
-            transform: [
-              {
-                rotate: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: ["0deg", "45deg"],
-                }),
-              },
-            ],
-          }}
-        >
-          <FAB
-            icon={mainIcon}
-            onClick={toggle}
-            size="medium"
-            placement="inline"
-          />
-        </Animated.View>
+        {/* Open, the trigger becomes the close button (the M3 FAB menu). */}
+        <FAB
+          icon={open ? "close" : mainIcon}
+          onClick={toggle}
+          size="medium"
+          placement="inline"
+        />
       </View>
     </View>
   );

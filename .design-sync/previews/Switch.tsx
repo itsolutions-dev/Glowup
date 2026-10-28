@@ -58,19 +58,18 @@ export const OnOffDisabled = () => (
   </div>
 );
 
+/** `size` picks a preset track; `width` / `height` override it, as the settings rows above do. */
 export const Sizes = () => (
   <div style={stack}>
-    <div style={row}>
-      <Typography variant="bodyMedium">Compact — 32 × 18 (default)</Typography>
-      <Switch value onChange={noop} />
-    </div>
-    <div style={row}>
-      <Typography variant="bodyMedium">Standard — 48 × 28</Typography>
-      <Switch value width={48} height={28} onChange={noop} />
-    </div>
-    <div style={row}>
-      <Typography variant="bodyMedium">Large — 64 × 36</Typography>
-      <Switch value width={64} height={36} onChange={noop} />
-    </div>
+    <Switch size="small" label="Small — 24 × 14" value onChange={noop} />
+    <Switch label="Medium — 32 × 18 (default)" value onChange={noop} />
+    <Switch size="large" label="Large — 40 × 22" value onChange={noop} />
+    <Switch
+      label="Custom — width 48, height 28"
+      width={48}
+      height={28}
+      value
+      onChange={noop}
+    />
   </div>
 );

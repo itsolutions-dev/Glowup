@@ -179,9 +179,18 @@ export const Dividers = () => (
   </div>
 );
 
-// The anchor sits low in the card so the menu has room above it.
+// The anchor sits low and at the end of the card so the menu has room above
+// it and its right edge can line up with the anchor's (horizontal: "right";
+// near the left edge the placement clamps to the window margin instead).
 export const AnchorPosition = () => (
-  <div style={{ ...host, justifyContent: "flex-end", height: 320 }}>
+  <div
+    style={{
+      ...host,
+      alignItems: "flex-end",
+      justifyContent: "flex-end",
+      height: 320,
+    }}
+  >
     <Menu
       visible
       onClose={() => {}}

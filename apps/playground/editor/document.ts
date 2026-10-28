@@ -30,6 +30,8 @@ export interface FieldRule {
 export interface FieldBinding {
   name: string;
   rules: FieldRule[];
+  /** Made from the label (or the type): it follows the label until set by hand. */
+  auto?: boolean;
 }
 
 export interface TabPanel {

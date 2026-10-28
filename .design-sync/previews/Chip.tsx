@@ -15,11 +15,30 @@ const stack: React.CSSProperties = {
   width: 380,
 };
 
+const MODES = ["filled", "tonal", "outlined"] as const;
+
+// Without a `color`, filled and tonal share the secondary container at rest;
+// they part on selection (filled turns tertiary), so both states are shown.
 export const Modes = () => (
-  <div style={row}>
-    <Chip label="React Native" variant="filled" onClick={() => {}} />
-    <Chip label="Expo" variant="tonal" onClick={() => {}} />
-    <Chip label="Material You" variant="outlined" onClick={() => {}} />
+  <div style={stack}>
+    {[false, true].map((selected) => (
+      <div key={String(selected)} style={stack}>
+        <Typography variant="labelMedium">
+          {selected ? "Selected" : "Idle"}
+        </Typography>
+        <div style={row}>
+          {MODES.map((mode) => (
+            <Chip
+              key={mode}
+              label={mode[0].toUpperCase() + mode.slice(1)}
+              variant={mode}
+              selected={selected}
+              onClick={() => {}}
+            />
+          ))}
+        </div>
+      </div>
+    ))}
   </div>
 );
 
@@ -72,38 +91,25 @@ export const Removable = () => (
   </div>
 );
 
+// 24 / 32 / 40px: the icon, the close glyph and the padding scale with it.
 export const Sizes = () => (
   <div style={stack}>
-    <div style={row}>
-      <Chip
-        label="Medium"
-        variant="filled"
-        icon="tag-outline"
-        onClick={() => {}}
-      />
-      <Chip label="Medium tonal" variant="tonal" onClick={() => {}} />
-    </div>
-    <div style={row}>
-      <Chip
-        label="Small"
-        size="small"
-        variant="filled"
-        icon="tag-outline"
-        onClick={() => {}}
-      />
-      <Chip
-        label="Small tonal"
-        size="small"
-        variant="tonal"
-        onClick={() => {}}
-      />
-      <Chip
-        label="Small outlined"
-        size="small"
-        variant="outlined"
-        onClick={() => {}}
-      />
-    </div>
+    {(["small", "medium", "large"] as const).map((size) => (
+      <div key={size} style={row}>
+        <Chip
+          label={size[0].toUpperCase() + size.slice(1)}
+          size={size}
+          icon="tag-outline"
+          onClick={() => {}}
+        />
+        <Chip
+          label="Design"
+          size={size}
+          variant="outlined"
+          onClose={() => {}}
+        />
+      </div>
+    ))}
   </div>
 );
 

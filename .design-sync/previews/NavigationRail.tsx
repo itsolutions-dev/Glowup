@@ -2,6 +2,8 @@ import React from "react";
 import { FAB, IconButton, NavigationRail } from "@its/glowup-ui";
 
 const frame: React.CSSProperties = { height: 400, display: "flex" };
+// The header (menu + FAB) adds ~120px above the four destinations.
+const tall: React.CSSProperties = { height: 480, display: "flex" };
 
 const ITEMS = [
   { id: "home", label: "Home", icon: "home-outline" as const },
@@ -22,7 +24,7 @@ export const Default = () => (
 );
 
 export const WithFab = () => (
-  <div style={frame}>
+  <div style={tall}>
     <NavigationRail
       items={ITEMS}
       activeId="home"

@@ -94,14 +94,15 @@ export const Contained = () => (
 export const CustomIcon = () => (
   <div style={panel}>
     <Accordion title="Advanced options" icon="cog-outline">
-      Hidden until expanded.
+      Webhooks, API keys and data export.
     </Accordion>
     <Accordion
       title="Billing"
       icon={<StatusBadge label="New" type="success" />}
       expanded
     >
-      The icon slot takes any node, a badge here.
+      Invoices are issued on the 1st of each month and charged to the card on
+      file.
     </Accordion>
   </div>
 );

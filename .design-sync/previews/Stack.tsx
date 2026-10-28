@@ -22,6 +22,7 @@ export const Direction = () => (
     <Stack
       direction="horizontal"
       spacing="s"
+      align="center"
       padding={8}
       background="surfaceContainerLow"
       radius="medium"

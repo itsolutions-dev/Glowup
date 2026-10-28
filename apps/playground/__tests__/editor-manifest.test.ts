@@ -100,3 +100,12 @@ describe("the component manifest", () => {
     }
   });
 });
+
+describe("the component manifest's pictures", () => {
+  it("are PNG, which Image decodes on every platform (not SVG)", () => {
+    for (const type of ["Image", "CardCover"]) {
+      const { uri } = MANIFEST[type].defaultProps.source as { uri: string };
+      expect(uri).toMatch(/^data:image\/png;base64,/);
+    }
+  });
+});

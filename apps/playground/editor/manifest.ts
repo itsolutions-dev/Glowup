@@ -52,13 +52,13 @@ const field = (valueProp: string, trigger: string, initial: unknown) => ({
   controlled: { value: valueProp, onChange: trigger, initial },
 });
 
-/** A grey 16:9 picture, so an image renders without a network fetch. */
+/**
+ * One grey pixel (the outline tone), stretched by the image: renders without a
+ * network fetch, and as a PNG on every platform (Image on iOS and Android
+ * does not decode SVG).
+ */
 const PLACEHOLDER = {
-  uri:
-    "data:image/svg+xml;charset=utf-8," +
-    encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect width="320" height="180" fill="#CAC4D0"/></svg>',
-    ),
+  uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGM4deQCAAS6Al/EENGiAAAAAElFTkSuQmCC",
 };
 
 const CHOICES = [

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   I18nManager,
+  Platform,
   type DimensionValue,
 } from "react-native";
 import { getLuminance } from "polished";
@@ -113,7 +114,10 @@ const LinearProgress = ({
           toValue: 1,
           duration: indeterminateDuration,
           easing: Easing.linear,
-          useNativeDriver: true,
+          // On the web a looped timing on the native driver plays once:
+          // react-native-web's loop takes the native path, then falls back to
+          // a JS timing that ignores the iteration count.
+          useNativeDriver: Platform.OS !== "web",
         }),
       );
       animation.start();

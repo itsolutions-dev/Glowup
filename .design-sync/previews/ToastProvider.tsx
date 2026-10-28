@@ -28,9 +28,16 @@ const Raise = ({
   return <>{children}</>;
 };
 
-const stage = (run: (t: Toast) => void, caption: string) => (
+// A top-anchored toast would sit on the caption, so its stage puts the
+// caption at the bottom instead.
+const stage = (
+  run: (t: Toast) => void,
+  caption: string,
+  justify: "flex-start" | "flex-end" = "flex-start",
+) => (
   <VStack
     spacing="s"
+    justify={justify}
     padding={16}
     background="surfaceContainerLow"
     radius="large"
@@ -75,6 +82,7 @@ export const Outlined = () =>
         duration: 0,
       }),
     "toast.info(message, { variant, position })",
+    "flex-end",
   );
 
 export const Closable = () =>

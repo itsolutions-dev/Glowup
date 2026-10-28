@@ -512,7 +512,7 @@ FAB that expands a stack of labeled actions.
 | Prop     | Type                | Default        | Req | Description                    |
 | -------- | ------------------- | -------------- | --- | ------------------------------ |
 | actions  | `SpeedDialAction[]` | —              | ✓   | `{ id, label, icon, onPress }` |
-| mainIcon | icon                | —              | ✓   | Rotates 45° when open          |
+| mainIcon | icon                | —              | ✓   | Becomes a close icon when open |
 | position | same as FAB         | `bottom-right` |     |                                |
 
 ### ToggleButton

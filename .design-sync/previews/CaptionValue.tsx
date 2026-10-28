@@ -1,5 +1,5 @@
 import React from "react";
-import { CaptionValue, StatusBadge } from "@its/glowup-ui";
+import { CaptionValue, StatusBadge, useTheme } from "@its/glowup-ui";
 
 const box: React.CSSProperties = {
   display: "flex",
@@ -101,26 +101,50 @@ export const CutValue = () => (
 );
 
 /** `width`, `height`, `flex` and `padding` size the pair; `gap` spaces the caption from the value and `textAlign` aligns the text. */
-export const Sizing = () => (
-  <div style={{ ...box, width: 360 }}>
-    <CaptionValue
-      caption="Padded"
-      value="12 px around"
-      padding={12}
-      style={{ backgroundColor: "#E8DEF8" }}
-    />
-    <CaptionValue
-      caption="Fixed box"
-      value="Centred in 160 × 72"
-      width={160}
-      height={72}
-      textAlign="center"
-      style={{ backgroundColor: "#D7E3FF", justifyContent: "center" }}
-    />
-    <div style={{ display: "flex", flexDirection: "row", gap: 12 }}>
-      <CaptionValue caption="Flex 1" value="Takes the rest" flex={1} />
-      <CaptionValue caption="Flex 2" value="Twice as much" flex={2} />
+export const Sizing = () => {
+  const { theme } = useTheme();
+  const tile = {
+    backgroundColor: theme.colors.surfaceContainerHigh,
+    borderRadius: theme.shape.medium,
+    justifyContent: "center" as const,
+  };
+  return (
+    <div style={{ ...box, width: 360 }}>
+      <CaptionValue
+        caption="Balance"
+        value="€4,812.20"
+        padding={12}
+        style={{
+          backgroundColor: theme.colors.secondaryContainer,
+          borderRadius: theme.shape.medium,
+        }}
+      />
+      <div style={{ display: "flex", flexDirection: "row", gap: 12 }}>
+        {[
+          ["Orders", "128"],
+          ["Returns", "6"],
+          ["Rating", "4.7"],
+        ].map(([caption, value]) => (
+          <CaptionValue
+            key={caption}
+            caption={caption}
+            value={value}
+            width={112}
+            height={72}
+            textAlign="center"
+            style={tile}
+          />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "row", gap: 12 }}>
+        <CaptionValue caption="Customer" value="Northwind Ltd" flex={2} />
+        <CaptionValue caption="Country" value="Italy" flex={1} />
+      </div>
+      <CaptionValue
+        caption="Delivery window"
+        value="Mon–Fri, 9:00–18:00"
+        gap={8}
+      />
     </div>
-    <CaptionValue caption="Gap" value="16 px apart" gap={16} />
-  </div>
-);
+  );
+};

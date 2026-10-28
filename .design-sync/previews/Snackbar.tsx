@@ -1,5 +1,5 @@
 import React from "react";
-import { Snackbar, Typography, Card } from "@its/glowup-ui";
+import { Snackbar, Typography, Card, useTheme } from "@its/glowup-ui";
 
 // Snackbar is NOT a portal — it is an absolutely-positioned sibling
 // (bottom: 24, left/right: 16). A plain <div> is position: static, so it needs
@@ -163,55 +163,41 @@ export const Outlined = () => (
   </div>
 );
 
-export const Positions = () => (
-  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-    <div style={frame(96)}>
-      <Snackbar
-        visible
-        duration={0}
-        position="top-left"
-        message="Top left."
-        onDismiss={() => {}}
-      />
+// The snackbar is width 100% up to maxWidth 600, so left/center/right only
+// separate in a container wider than 632px; each tinted frame stands in for a
+// screen so the edge it docks to is visible.
+export const Positions = () => {
+  const { theme } = useTheme();
+  const screen: React.CSSProperties = {
+    ...frame(120),
+    width: 720,
+    borderRadius: 12,
+    background: theme.colors.surfaceContainerLow,
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {(
+        [
+          ["top-left", "Top left."],
+          ["top-center", "Top center."],
+          ["top-right", "Top right."],
+          ["bottom-left", "Bottom left."],
+          ["bottom-right", "Bottom right."],
+        ] as const
+      ).map(([position, message]) => (
+        <div key={position} style={screen}>
+          <Snackbar
+            visible
+            duration={0}
+            position={position}
+            message={message}
+            onDismiss={() => {}}
+          />
+        </div>
+      ))}
     </div>
-    <div style={frame(96)}>
-      <Snackbar
-        visible
-        duration={0}
-        position="top-center"
-        message="Top center."
-        onDismiss={() => {}}
-      />
-    </div>
-    <div style={frame(96)}>
-      <Snackbar
-        visible
-        duration={0}
-        position="top-right"
-        message="Top right."
-        onDismiss={() => {}}
-      />
-    </div>
-    <div style={frame(96)}>
-      <Snackbar
-        visible
-        duration={0}
-        position="bottom-left"
-        message="Bottom left."
-        onDismiss={() => {}}
-      />
-    </div>
-    <div style={frame(96)}>
-      <Snackbar
-        visible
-        duration={0}
-        position="bottom-right"
-        message="Bottom right."
-        onDismiss={() => {}}
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 // onClose adds the close button and keeps the snackbar up until it is used.
 export const Closable = () => (

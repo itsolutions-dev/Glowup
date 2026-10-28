@@ -130,7 +130,7 @@ export const ControlledCheckboxes = () => {
         onSelectedChange={setSelected}
       />
       <Typography variant="bodySmall">
-        {selected.join(", ") || "none"}
+        {`Checked: ${selected.join(", ") || "nothing"}`}
       </Typography>
     </div>
   );

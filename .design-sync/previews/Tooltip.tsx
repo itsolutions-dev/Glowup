@@ -1,10 +1,12 @@
 import React from "react";
-import { Tooltip, Button, Typography } from "@its/glowup-ui";
+import { Tooltip, Button, IconButton, Typography } from "@its/glowup-ui";
 
 /**
  * Tooltip has no controlled `visible` prop — it opens on real hover (web) or
- * long-press (native). To capture the open state statically we fire the same
- * pointerenter the browser would, on the Pressable anchor the Tooltip renders.
+ * long-press (native). To capture the open state statically we fire the
+ * `pointerover` a mouse would, at the anchor View the Tooltip renders: React
+ * turns it into the `onPointerEnter` the Tooltip listens to, and the default
+ * 500 ms `enterDelay` then opens the tip.
  */
 const Hovered = ({ children }: { children: React.ReactNode }) => {
   const hostRef = React.useRef<HTMLDivElement | null>(null);
@@ -12,7 +14,7 @@ const Hovered = ({ children }: { children: React.ReactNode }) => {
     const anchor = hostRef.current?.firstElementChild
       ?.firstElementChild as HTMLElement | null;
     anchor?.dispatchEvent(
-      new PointerEvent("pointerenter", { pointerType: "mouse" }),
+      new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }),
     );
   }, []);
   return (
@@ -31,20 +33,38 @@ const cell: React.CSSProperties = {
   padding: "30px 40px 20px",
 };
 
+/** `position` puts the tip on any side of its anchor. On an icon-only `IconButton`, its own `title` prop draws this same tooltip. */
 export const Positions = () => (
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", width: 400 }}>
     <div style={cell}>
       <Hovered>
         <Tooltip content="Duplicate" position="top">
-          <Button variant="tonal" iconName="content-copy" onClick={() => {}} />
+          <IconButton
+            variant="tonal"
+            icon="content-copy"
+            accessibilityLabel="Duplicate"
+            onClick={() => {}}
+          />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">top</Typography>
     </div>
-    <div style={cell}>
+    {/* The label goes above here, so the tip below the button does not cover it. */}
+    <div
+      style={{
+        ...cell,
+        flexDirection: "column-reverse",
+        padding: "20px 40px 30px",
+      }}
+    >
       <Hovered>
         <Tooltip content="Share" position="bottom">
-          <Button variant="tonal" iconName="share-variant" onClick={() => {}} />
+          <IconButton
+            variant="tonal"
+            icon="share-variant"
+            accessibilityLabel="Share"
+            onClick={() => {}}
+          />
         </Tooltip>
       </Hovered>
       <Typography variant="labelSmall">bottom</Typography>
@@ -52,9 +72,10 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Rename" position="left">
-          <Button
+          <IconButton
             variant="tonal"
-            iconName="pencil-outline"
+            icon="pencil-outline"
+            accessibilityLabel="Rename"
             onClick={() => {}}
           />
         </Tooltip>
@@ -64,9 +85,10 @@ export const Positions = () => (
     <div style={cell}>
       <Hovered>
         <Tooltip content="Delete" position="right">
-          <Button
+          <IconButton
             variant="tonal"
-            iconName="delete-outline"
+            icon="delete-outline"
+            accessibilityLabel="Delete"
             onClick={() => {}}
           />
         </Tooltip>
@@ -89,23 +111,30 @@ export const ToolbarHints = () => (
   >
     <Hovered>
       <Tooltip content="Download" position="bottom">
-        <Button variant="outlined" iconName="download" onClick={() => {}} />
+        <IconButton
+          variant="outlined"
+          icon="download"
+          accessibilityLabel="Download"
+          onClick={() => {}}
+        />
       </Tooltip>
     </Hovered>
     <Hovered>
       <Tooltip content="Archive" position="bottom">
-        <Button
+        <IconButton
           variant="outlined"
-          iconName="archive-outline"
+          icon="archive-outline"
+          accessibilityLabel="Archive"
           onClick={() => {}}
         />
       </Tooltip>
     </Hovered>
     <Hovered>
       <Tooltip content="Print" position="bottom">
-        <Button
+        <IconButton
           variant="outlined"
-          iconName="printer-outline"
+          icon="printer-outline"
+          accessibilityLabel="Print"
           onClick={() => {}}
         />
       </Tooltip>
@@ -113,6 +142,7 @@ export const ToolbarHints = () => (
   </div>
 );
 
+/** `disabled` keeps the tip closed while the anchor stays as it is: both buttons are hovered here. */
 export const DisabledHint = () => (
   <div
     style={{

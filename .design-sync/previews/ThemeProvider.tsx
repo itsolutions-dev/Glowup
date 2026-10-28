@@ -283,13 +283,19 @@ export const WrapsTheApp = () => (
           <Button variant="filled" onClick={() => {}}>
             Renew
           </Button>
-          <Chip
-            label="Annual"
-            variant="tonal"
-            size="small"
-            onClick={() => {}}
-          />
-          <StatusBadge label="Active" type="success" />
+          {/* Chip and StatusBadge pin themselves with alignSelf: flex-start;
+              a plain div lets the row centre them. */}
+          <div>
+            <Chip
+              label="Annual"
+              variant="tonal"
+              size="small"
+              onClick={() => {}}
+            />
+          </div>
+          <div>
+            <StatusBadge label="Active" type="success" />
+          </div>
         </div>
       </Paper>
     </ThemeProvider>
@@ -340,14 +346,28 @@ const PalettePicker = () => {
         ))}
       </div>
       <Paper outline style={{ padding: 16 }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <Button variant="filled" onClick={() => {}}>
             Filled
           </Button>
           <Button variant="tonal" onClick={() => {}}>
             Tonal
           </Button>
-          <Chip label="Selected" variant="tonal" selected onClick={() => {}} />
+          <div>
+            <Chip
+              label="Selected"
+              variant="tonal"
+              selected
+              onClick={() => {}}
+            />
+          </div>
           <ProgressButton status="loading" progress={0.6}>
             Loading
           </ProgressButton>

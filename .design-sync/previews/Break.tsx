@@ -30,10 +30,13 @@ export const Edges = () => (
     radius="medium"
     gap={16}
     width={360}
+    style={{ overflow: "hidden" }}
   >
-    <Break inlineStart="m">
+    <Break inlineStart="m" blockStart={16}>
       <Box background="secondaryContainer" padding={8}>
-        <Typography variant="labelMedium">inlineStart=&quot;m&quot;</Typography>
+        <Typography variant="labelMedium">
+          inlineStart=&quot;m&quot; blockStart=&#123;16&#125;
+        </Typography>
       </Box>
     </Break>
     <Break inlineEnd="m">
@@ -41,10 +44,10 @@ export const Edges = () => (
         <Typography variant="labelMedium">inlineEnd=&quot;m&quot;</Typography>
       </Box>
     </Break>
-    <Break blockStart={16} blockEnd={16}>
+    <Break blockEnd={16}>
       <Box background="primaryContainer" padding={8}>
         <Typography variant="labelMedium">
-          blockStart / blockEnd=&#123;16&#125; into the padding above and below
+          blockEnd=&#123;16&#125; into the padding below
         </Typography>
       </Box>
     </Break>

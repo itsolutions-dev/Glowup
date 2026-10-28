@@ -97,6 +97,18 @@ describe("Stepper layout", () => {
     expect(style(getByText("Shipping")).maxWidth).toBeUndefined();
   });
 
+  // A step row is as tall as its circle and the line down to the next step; a
+  // label centred in all of that sat below its circle.
+  it("column keeps each label beside its circle", async () => {
+    const { toJSON } = await draw({ direction: "column" });
+    const tree = toJSON() as unknown as {
+      children: { children: { props: { style?: unknown } }[] }[];
+    };
+    for (const step of tree.children) {
+      expect(style(step.children[1]).alignSelf).toBe("flex-start");
+    }
+  });
+
   it("column wraps a long label instead of cutting it", async () => {
     const { getByText } = await draw({
       direction: "column",

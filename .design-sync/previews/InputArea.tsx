@@ -36,9 +36,7 @@ export const FixedRows = () => (
     <InputArea
       label="Two rows"
       rows={2}
-      value={
-        "Ring the bell twice.\nThe intercom is broken.\nLeave it with the concierge."
-      }
+      value={"Ring the bell twice.\nThe intercom is broken."}
       onChange={noop}
     />
     <InputArea

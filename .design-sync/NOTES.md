@@ -109,6 +109,8 @@ because the script wipes that directory on every run.
   not to because their compositions leave measurable content behind.
 - esbuild `direct-eval` warning on `eval("require")("node:crypto")` inside the prebundled
   entry (expo-modules-core's uuid path). Harmless in a browser; the code path isn't taken.
+- `[DOCS_UNMAPPED] ViewportProvider` and its floor card: a context wrapper with nothing to
+  draw, so it has no `components.md` section and no preview, on purpose (2026-10-28).
 
 ## Install
 
@@ -155,12 +157,12 @@ clock, so the _shipped_ cards were never affected — this is a grading-fidelity
 
 ## Capture environment
 
-- The capture browser's `navigator.language` is **it-IT**, which `DateTimePicker` reads
-  through `getDeviceLocale()` - date fields format as `3 giu 2024` and relative days come
-  out `Ieri / Oggi / Domani`. Since the Material 3 rebuild it also drives the **typed-entry
-  field order** (`DD/MM/YYYY`, and `22/11/2026` parses as 22 November) and the **12h vs 24h
-  clock face** (it-IT is 24-hour, so the AM/PM switch is absent unless a story passes
-  `locale="en-US"`). Deterministic, so it is fine, but don't mistake any of it for a bug.
+- The capture browser's locale drives `DateTimePicker` through `getDeviceLocale()`. It was
+  **it-IT** until 2026-09 (`3 giu 2024`, `Ieri / Oggi / Domani`); on 2026-10-28 the captures
+  came out **en-GB-style** (`3 Jun 2024`, `Today, 15 May 2024`, `DD/MM/YYYY`, 24-hour face),
+  with the machine's browser build. It drives the typed-entry field order and the 12h vs
+  24h clock face (a story that wants the AM/PM switch passes `locale="en-US"`). Check
+  `navigator.language` in the capture browser rather than trusting this line.
 - **Flag emoji do not render**: headless Chromium has no flag-emoji font, so
   `LanguageSelector`'s four flags fall back to their regional-indicator letter pairs
   (`US`, `ES`, `IT`, `FR`). Legible and not misleading; fixing it would mean shipping an
@@ -206,10 +208,8 @@ Learned while authoring; a future sync should not have to rediscover them.
   as `inline-flex`. Any wrapping div needs `display: flex; flexDirection: column`. Direct
   children of a DS `View` are fine.
 - **`Typography` does not inherit `text-align` from a div**; set it on the Typography.
-- **`Divider` always renders line + content-gap + line**, even with no children, and
-  `contentSpacing` defaults to 16 — so a bare `<Divider />` shows a 32px break in the
-  middle. Use `<Divider contentSpacing={0} />` for a plain rule. `inset` applies per-line
-  and therefore _widens_ that gap; only combine it with a labelled Divider.
+- **A bare `<Divider />` is a plain rule** (since 2026-10; it used to split into line +
+  32px gap + line, and older previews still pass `contentSpacing={0}`, which is harmless).
 - **`Divider orientation="vertical"` sets `flex: 1`**, which in a flex row grows it
   horizontally. Wrap: `<div style={{ width: 1, alignSelf: "stretch", display: "flex" }}>`.
 - **`FAB` is unconditionally `position: absolute`** and needs a positioned, sized ancestor
@@ -218,11 +218,19 @@ Learned while authoring; a future sync should not have to rediscover them.
 - **`Badge` takes no children and is `position: absolute` with no offsets** — compose it
   inside a relative anchor and pass `style={{ top, right }}`. `IconBadge` is
   self-contained by contrast.
-- **`Tooltip` has no controlled `visible` prop** — it opens on real hover only. The
-  Tooltip preview mounts a small wrapper that dispatches a genuine
-  `PointerEvent("pointerenter", { pointerType: "mouse" })` at the anchor, which is what
-  RNW's `useHover` listens for; that drives the component's own state rather than faking
-  a visual. Delete the wrapper if a `visible`/`defaultVisible` prop ever lands.
+- **`Tooltip` has no controlled `visible` prop** — it opens on real hover only. Its web
+  anchor listens through React's `onPointerEnter`, which React builds from a **bubbling
+  `pointerover`**, so the Tooltip and Portal previews dispatch
+  `new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" })` at the anchor
+  (a native `pointerenter` opens nothing: every Tooltip cell came out empty until
+  2026-10-28). Pressable hover (RNW `useHover`, e.g. `TableRow`'s `hover`) still answers a
+  native `pointerenter` on the element. Delete the wrappers if a `visible` prop lands.
+- **`HoverCard` has `defaultOpen`**; no event needed. Without a `PortalHost` it opens
+  through RNW's `Modal`, so its card is `cardMode: single` with a viewport.
+- **A drag can be captured.** The `DragDropProvider` / `Draggable` / `Droppable` previews
+  hold a real drag with a `Held` helper: a `mousedown` and two `mousemove`s dispatched on the
+  item (found by `testID` → `data-testid`), never released. `at` presses below the item's
+  centre so the floating copy sits above the insertion line instead of covering it.
 - **`TabContent` has `flex: 1`** and collapses without a wrapper of explicit height.
 - **`Carousel`**: don't pass `height` — the page wrapper doesn't stretch its child, so the
   slide floats at the top and the dots get pushed away. Put `minHeight` on the slide.
@@ -259,8 +267,7 @@ Learned while authoring; a future sync should not have to rediscover them.
   (`<Paper elevation={0} outline>`).
 - **`CircularProgress` is a spinner until it gets a `progress`** (0-1), which makes it a
   determinate ring over a track. `NumberField` is a _number stepper_, not a loading spinner.
-- **`Select` renders `label` only for `variant="outlined"`**; the filled closed field is
-  intentionally label-less.
+- `Select` draws its `label` on both variants now (it used to be outlined only).
 - `Select`, `Spinner` and `DateTimePicker` each carry their own `marginBottom: 20` - don't
   add `gap` to a column of them. `Select`, `SearchBar`, `DateTimePicker`, `LinearProgress`
   and `EmptyState` are all `width: 100%` and need a width-constrained parent.
@@ -568,8 +575,107 @@ fallback icon is a perfectly healthy render, so it takes an eyeball on the sheet
 `data:image/svg+xml;charset=utf-8,`. Any new preview that inlines an SVG must use
 `charset=utf-8`; a placeholder glyph where a picture belongs is the tell.
 
+## Re-sync 2026-10-28 — full re-verify
+
+The project's anchor predated a month of library work: 83 components changed, 32 added, 14
+removed (84 remote paths to delete). No grades existed on this machine, so every authored
+preview was re-graded: 114 components, 566 cells, by six parallel batches plus the eight new
+previews authored here (`GridLayout`, `DragDropProvider`, `Draggable`, `Droppable`,
+`FormField`, `AlertDialog`, `HoverCard`, `HighlightedCode`). `ViewportProvider` stays on the
+floor card. 25 cards that overflowed the grid got `cardMode: column`.
+
+Pipeline changes:
+
+- `.ds-sync/` was absent and was staged fresh from skill build 2.1.310; the capture-clock
+  patch was re-applied (both edits marked `GLOWUP PATCH`). Both forks still differ from
+  upstream only by their intended edits.
+- Only `chromium-1223` is cached now: install **`playwright@1.60.0`** (it pins 1223) with
+  `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`. esbuild runs without its blocked postinstall (the
+  `@esbuild/win32-x64` binary installs as an optional dep).
+- The fork link on Windows: `cmd //c "mklink /J .design-sync\\node_modules .ds-sync\\node_modules"`.
+- `make-web-barrel.mjs` now strips types with esbuild's TypeScript transform: the barrel
+  gained inline `type` specifiers (`export { useDensity, type Density }`), which the old
+  line-based stripper left in, and `node --check` rejected the barrel.
+- `split-docs.mjs` strips `8b.`-style section numbers too (the drag-and-drop group had
+  come out as `8b-drag-and-drop`).
+
+Library fixes made because grading found them (changeset `web-loops-and-layout-fixes`):
+looped timings on the native driver play once on the web (indeterminate `LinearProgress`,
+the `CircularProgress` spinner, so `Button`/`ProgressButton` loading); `SpeedDial` turned
+its whole button into a diamond (now a close icon while open); a column `Stepper`'s labels
+sat below their circles; `Tooltip`'s wrapper pinned itself to the start (named `Avatar`s
+ignored centring, a `CaptionValue` cut value overflowed).
+
+Library bugs found and **not** fixed (each worked around or left as is in the previews):
+
+- `Chip` draws its label in `primary` whatever the `color`: a filled chip with a `color`
+  role has unreadable text (`toneFrom` chips too). Don't preview filled coloured chips.
+- `Chip` and `StatusBadge` pin `alignSelf: "flex-start"` (StatusBadge has no `style`), so
+  they float above the centre of a centred row; previews wrap them in a plain `<div>`.
+- `internal/FieldShell.tsx` hides the web focus ring with `outlineWidth: 0`, which Chrome
+  ignores: every focused Input/InputArea/Editable shows a black ring. Fix is
+  `outlineStyle: "none"`; the `Editable` preview blurs its open fields (`OpenAtRest`) meanwhile.
+- `FormControl disabled` dims its children but no control reads its context, so the
+  control stays live and needs its own `disabled`, which dims it twice (~14%).
+- `BottomSheet`: no top padding with `showHandle={false}`, no bottom padding above the
+  actions divider. `Button iconName` with no label draws a 12px glyph (use `IconButton`).
+- Doc drift: `DateTimePicker`'s `placeholder` is not shown by a typed `date` field (it shows
+  the mask; pass `inputEnabled={false}` for relative days); `QrCode`'s `onError` says
+  "drawn empty", it draws a `qrcode-remove` glyph.
+
+Preview craft learned this run:
+
+- `HStack`/`VStack`/`Stack` default to `spacing="s"`: a card that labels a measured gap
+  passes `spacing={0}`. A `width: 100%` control in a flex-row div does not shrink (RNW
+  Views are `flexShrink: 0`); lay several side by side with a CSS grid of fixed columns.
+- `cardMode: single` viewports crop silently, text-only cells included (AlertProvider's
+  560x420). Fixed-height frames clip drawers and rails; `Drawer` top/bottom scroll content
+  past `height` out of sight with no visible cut.
+- A portalled Tooltip measures in window coordinates: a `PortalHost` inside the inset
+  `.ds-single` card double-counts the card's offset; the Portal preview's `AtWindowOrigin`
+  wrapper moves the host back to (0,0).
+- `DataGrid` and `Table` never stretch their columns: size the frame to the column sum + 2
+  and leave the height out. A bare `ListSection` in a row-flex div shrinks to its content.
+- `Image resizeMode="center"` equals `contain` for an SVG without `width`/`height`
+  attributes (RNW reads 300x150); give inline SVGs intrinsic sizes.
+- `Snackbar` is `width: 100%` up to 600: its left/centre/right positions only show in a
+  frame wider than 632px. Menu/Popover `horizontal: "right"` needs an anchor away from the
+  left edge (it clamps to the 16px margin).
+- `Blink`'s interval and opacity, like `Skeleton`'s duration, can't be shown as a still:
+  the capture phase of a loop is not deterministic.
+- `GridLayout` previews pass `stackBelow="compact"` (never stack): a card's iframe can be
+  narrower than a desktop window, and the grid reads the window's size class.
+- Parallel batches share the session scratchpad: give helper files unique names. Playwright
+  MCP run from the repo root leaves `.playwright-mcp/` behind (not gitignored).
+
+### Upload 2026-10-28: content written, **not anchored**
+
+All 582 content files were written (sentinel first), then the 84 deletes for the 14 removed
+components were refused: `403 permission_denied — bulk delete requires project ownership
+when called without a turn fence; this project is owned by another user`. The project belongs
+to Adriano Buscema; an editor can write but not delete, even one path at a time. Per the
+upload rule the run stopped there: **no sentinel re-arm and no new `_ds_sync.json`**, so the
+project still carries the 2026-09-29 anchor and the next sync re-verifies and re-uploads.
+
+Still in the project, stale: `AnimatedFAB`, `Calendar`, `ClockDial`, `ClockPicker`,
+`ConfirmDialog`, `DatePickerInput`, `DateRangePicker`, `Modal`, `NavigationBar`,
+`NavigationDrawer`, `SideSheet`, `Spinner`, `Toggle`, `TopAppBar` (their
+`components/<group>/<Name>/` folders and `_preview/<Name>.js`). None exists in the new
+bundle, so their cards render empty and a design built on them fails. To finish: the owner
+deletes those (or runs the sync), then re-arm `_ds_needs_recompile` and write
+`ds-bundle/_ds_sync.json` last; or rebuild and run the driver again, which recomputes the
+same deletes from the old anchor.
+
+**Before the next sync into this project, check who owns it**: deletes need the owner.
+
 ## Re-sync risks
 
+- **The drag cards depend on react-native-web's responder events.** `Held` dispatches
+  mouse events; if `DragDrop.tsx` moves to pointer events, the three drag-and-drop cards
+  silently fall back to the resting board (a healthy render). Eyeball their `WhileDragging`
+  cells on every sync.
+- **Hover-driven cards break silently when an event changes** (the Tooltip `pointerenter` →
+  `pointerover` regression rendered empty cells that the render check passed).
 - **`conventions.md` goes stale silently.** It is prose in a committed file; nothing in the
   pipeline checks it, and a component sweep (the layout primitives, the picker rebuild) can
   falsify a whole paragraph without a single warn line firing. Re-run the grep validation

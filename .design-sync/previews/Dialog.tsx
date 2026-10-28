@@ -78,9 +78,24 @@ export const Widths = () => (
   <div style={backdrop}>
     <Typography variant="headlineSmall">Components</Typography>
     <Typography variant="bodyMedium">34 results</Typography>
-    <Dialog visible width="xs" title="Clear filters?" onClose={() => {}}>
-      The xs width caps the card at 360 px; sm is 480, md (the default) 560 and
-      lg 800.
+    {/* width="xs" caps the card at 360 px; sm is 480, md (default) 560, lg 800. */}
+    <Dialog
+      visible
+      width="xs"
+      title="Clear filters?"
+      onClose={() => {}}
+      actions={
+        <>
+          <Button variant="text" onClick={() => {}}>
+            Cancel
+          </Button>
+          <Button variant="filled" onClick={() => {}}>
+            Clear
+          </Button>
+        </>
+      }
+    >
+      The three filters on this list will be removed.
     </Dialog>
   </div>
 );
@@ -123,8 +138,10 @@ export const CloseIcon = () => (
       closeText="Got it"
       onClose={() => {}}
     >
-      With the close icon hidden and no actions, the dialog falls back to a text
-      button labelled by closeText.
+      {/* No close icon and no actions: the dialog falls back to one text
+      button labelled by closeText. */}
+      Chip gained a compact size, and DataGrid now keeps its header pinned while
+      the body scrolls.
     </Dialog>
   </div>
 );
@@ -152,11 +169,21 @@ export const MustAnswer = () => (
         </>
       }
     >
-      Neither a click outside nor Escape closes this dialog: only one of its
-      buttons does.
+      {/* disableBackdropClick + disableEscapeKeyDown: only a button closes it. */}
+      You will be signed out on all 3 devices, including this one. Drafts not
+      yet synced on the others are lost.
     </Dialog>
   </div>
 );
+
+const TERMS = [
+  "By using the component library you accept these terms on behalf of your organisation.",
+  "Components may be used in any product your organisation builds or maintains.",
+  "You may not redistribute the library outside your organisation.",
+  "Feedback you send may be used to improve the library without obligation.",
+  "Releases follow semantic versioning; breaking changes ship only in majors.",
+  "Either party may end this agreement with 30 days' written notice.",
+];
 
 export const FixedHeight = () => (
   <div style={backdrop}>
@@ -173,11 +200,11 @@ export const FixedHeight = () => (
         </Button>
       }
     >
+      {/* height fixes the card at 280 px; the body scrolls inside it. */}
       <div style={lines}>
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-          <Typography key={n} variant="bodyMedium">
-            {n}. height fixes the card at 280 px; the body scrolls inside it
-            once the content is taller.
+        {TERMS.map((clause, i) => (
+          <Typography key={clause} variant="bodyMedium">
+            {i + 1}. {clause}
           </Typography>
         ))}
       </div>

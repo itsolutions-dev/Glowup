@@ -11,7 +11,9 @@ const frame: React.CSSProperties = {
 const tsx = `import { Button } from "@its/glowup-ui";
 
 // A primary action
-export default function Save({ onSave }: { onSave: () => void }) {
+type SaveProps = { onSave: () => void };
+
+export function Save({ onSave }: SaveProps) {
   return (
     <Button variant="filled" onClick={onSave}>
       Save changes
@@ -61,7 +63,7 @@ export const HighlightedLines = () => (
       code={tsx}
       title="Save.tsx"
       showLineNumbers
-      highlightLines={[4, 5, 6, 7]}
+      highlightLines={[7, 8, 9, 10]}
     />
   </div>
 );
@@ -70,7 +72,11 @@ export const Languages = () => (
   <div style={frame}>
     <CodeBlock code={json} language="json" title="package.json" />
     <CodeBlock code={bash} language="bash" title="Terminal" />
-    <CodeBlock code="plain text, nothing coloured" language="text" />
+    <CodeBlock
+      code="Build finished in 4.2 s with 3 warnings"
+      language="text"
+      title="Output"
+    />
   </div>
 );
 
@@ -85,7 +91,7 @@ export const ScrollOrWrap = () => (
 /** `maxHeight` caps the body, which then scrolls. */
 export const MaxHeight = () => (
   <div style={frame}>
-    <CodeBlock code={tsx} title="Save.tsx" showLineNumbers maxHeight={120} />
+    <CodeBlock code={tsx} title="Save.tsx" showLineNumbers maxHeight={132} />
   </div>
 );
 

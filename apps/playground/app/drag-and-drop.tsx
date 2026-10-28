@@ -2,13 +2,18 @@ import { useState } from "react";
 import { View } from "react-native";
 import {
   Box,
+  Button,
   Card,
   CardTitle,
   Chip,
   DragDropProvider,
   Draggable,
   Droppable,
+  Form,
+  FormField,
   GridLayout,
+  HelperText,
+  Input,
   ListItem,
   Paper,
   ScrollArea,
@@ -20,6 +25,7 @@ import {
   type DragEndEvent,
   type DragItem,
   type DropTarget,
+  type FormValues,
 } from "@its/glowup-ui";
 
 import { CodeBlock } from "../site/CodeBlock";
@@ -258,7 +264,7 @@ const takes = (kind: Kind) => (item: DragItem) =>
   (item.data as { kind?: Kind } | undefined)?.kind === kind;
 
 /** Sections that are draggable and hold their own zone of fields. */
-const Form = () => {
+const NestedSections = () => {
   const [form, setForm] = useState<Lists>({
     page: ["Contact", "Shipping"],
     Contact: ["Name", "Email"],
@@ -480,6 +486,86 @@ const LongList = () => {
   );
 };
 
+const PRIORITIES: Record<string, string> = {
+  price: "Price",
+  speed: "Delivery speed",
+  quality: "Build quality",
+  support: "Support",
+};
+
+/**
+ * A form control whose value is an order: the ids, first to last. Dropping a
+ * row reports the new order through `onChange`, as any field does.
+ */
+const RankedList = ({
+  value,
+  onChange,
+  label,
+  error,
+}: {
+  value: string[];
+  onChange: (order: string[]) => void;
+  label?: string;
+  error?: string;
+}) => (
+  <DragDropProvider
+    onDragEnd={({ active, over }) => {
+      if (!over) return;
+      const order = value.filter((id) => id !== active.id);
+      order.splice(over.index, 0, active.id);
+      onChange(order);
+    }}
+  >
+    <VStack spacing="xs">
+      {label ? <Typography variant="labelLarge">{label}</Typography> : null}
+      <Droppable id="ranking">
+        {value.map((id, index) => (
+          <Draggable key={id} id={id}>
+            <ListItem
+              icon="drag"
+              primaryText={`${index + 1}. ${PRIORITIES[id]}`}
+            />
+          </Draggable>
+        ))}
+      </Droppable>
+      {error ? <HelperText type="error">{error}</HelperText> : null}
+    </VStack>
+  </DragDropProvider>
+);
+
+/** A name and a ranking, sent together. */
+const RankingForm = () => {
+  const [sent, setSent] = useState<FormValues | null>(null);
+
+  return (
+    <Form
+      initialValues={{ name: "", priorities: Object.keys(PRIORITIES) }}
+      onSubmit={setSent}
+    >
+      <VStack spacing="m" style={{ maxWidth: 480 }}>
+        <FormField name="name" label="Your name" rules={[{ required: true }]}>
+          {(field) => <Input {...field} />}
+        </FormField>
+        <FormField name="priorities" label="What matters most? Drag to rank">
+          {(field) => <RankedList {...field} />}
+        </FormField>
+        <View style={{ alignSelf: "flex-start" }}>
+          <Button type="submit" iconName="send-outline">
+            Send ranking
+          </Button>
+        </View>
+        {sent ? (
+          <Typography variant="bodyMedium">
+            {`Sent: ${sent.name} ranked ${(sent.priorities as string[])
+              .map((id) => PRIORITIES[id])
+              .join(", ")}.`}
+          </Typography>
+        ) : null}
+      </VStack>
+    </Form>
+  );
+};
+
 const REFERENCE = ["DragDropProvider", "Draggable", "Droppable"];
 
 export default function DragAndDropPage() {
@@ -511,7 +597,7 @@ export default function DragAndDropPage() {
         title="Nested zones"
         description="Sections are draggable and hold their own zone: a field moves between sections, a section moves in the page, and a section never drops into itself. Each item carries its kind in data and each zone accepts one kind, so a field cannot land between sections."
       >
-        <Form />
+        <NestedSections />
       </Section>
       <Section
         title="Drop anywhere on a grid"
@@ -524,6 +610,12 @@ export default function DragAndDropPage() {
         description="A list in a ScrollArea spread with useDragScroll(): it does not scroll under a held row, it scrolls by itself when the row nears its top or bottom edge, and the drop lands where the row is released."
       >
         <LongList />
+      </Section>
+      <Section
+        title="Inside a form"
+        description="A FormField whose control is a reorderable list: the order is the field's value, so dropping a row reports it through onChange like any input, and the form sends it with the rest. Rank the rows, enter a name, then send."
+      >
+        <RankingForm />
       </Section>
       <Section
         title="Use it"

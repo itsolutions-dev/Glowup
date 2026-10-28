@@ -6,6 +6,7 @@ import {
   findNode,
   updateNode,
   walk,
+  type FieldBinding,
   type FieldRule,
   type LayoutDocument,
   type LayoutNode,
@@ -42,60 +43,120 @@ export const formOf = (doc: LayoutDocument, id: NodeId): NodeId | null =>
     (ancestor) => entryFor(findNode(doc, ancestor)?.type ?? "")?.form,
   ) ?? null;
 
-/** A name for a newly bound field: from its label, else its type and a number. */
+/** An automatic name's stem: the label in camel case, else the type ("input"). */
+const stemOf = (node: LayoutNode) => {
+  const fromLabel = camelName(String(node.props.label ?? ""));
+  return fromLabel
+    ? { stem: fromLabel, first: "" }
+    : { stem: node.type[0].toLowerCase() + node.type.slice(1), first: "1" };
+};
+
+/** The stem, then the stem numbered from 2 (or from 1 for a type stem), until free. */
 const freshName = (node: LayoutNode, taken: Set<string>) => {
-  const base = camelName(String(node.props.label ?? ""));
-  if (base) {
-    if (!taken.has(base)) return base;
-    let n = 2;
-    while (taken.has(`${base}${n}`)) n++;
-    return `${base}${n}`;
-  }
-  const type = node.type[0].toLowerCase() + node.type.slice(1);
-  let n = 1;
-  while (taken.has(`${type}${n}`)) n++;
-  return `${type}${n}`;
+  const { stem, first } = stemOf(node);
+  if (first === "" && !taken.has(stem)) return stem;
+  let n = first === "" ? 2 : 1;
+  while (taken.has(`${stem}${n}`)) n++;
+  return `${stem}${n}`;
+};
+
+/** Whether an automatic name still comes from the node's label (or type). */
+const fitsStem = (node: LayoutNode, name: string) => {
+  const { stem, first } = stemOf(node);
+  return (
+    (first === "" && name === stem) || new RegExp(`^${stem}\\d+$`).test(name)
+  );
 };
 
 /**
- * Binds every field component inside a Form and unbinds every one outside,
- * in walk order: a field keeps its name while it is free in its Form,
- * otherwise it gets a fresh one. The same document when nothing changes.
+ * Binds every field component inside a Form and unbinds every one outside.
+ * Within a Form, names already there win over arrivals: first the names set
+ * by hand, then the automatic names that still match their label, then the
+ * `newcomers` (nodes just inserted, moved or copied) and anything unbound —
+ * these keep their name by the same rules while it is free, otherwise they
+ * get a fresh, automatic one. Walk order breaks ties. The same document when
+ * nothing changes.
  */
-export const normalizeFields = (doc: LayoutDocument): LayoutDocument => {
-  const names = new Map<NodeId, Set<string>>();
+export const normalizeFields = (
+  doc: LayoutDocument,
+  newcomers: ReadonlySet<NodeId> = new Set(),
+): LayoutDocument => {
+  // The fields of each Form, in walk order.
+  const fieldsOf = new Map<NodeId, LayoutNode[]>();
+  const collect = (nodes: LayoutNode[], form: NodeId | null) => {
+    for (const node of nodes) {
+      const entry = entryFor(node.type);
+      if (entry?.field && form) fieldsOf.get(form)?.push(node);
+      if (entry?.form) fieldsOf.set(node.id, []);
+      const inner = entry?.form ? node.id : form;
+      if (node.children) collect(node.children, inner);
+      node.tabs?.forEach((panel) => collect(panel.children, inner));
+    }
+  };
+  collect(doc.items, null);
 
-  const visit = (nodes: LayoutNode[], form: NodeId | null): LayoutNode[] => {
+  // Each bound field's binding, decided in priority order.
+  const binding = new Map<NodeId, { name: string; auto: boolean }>();
+  for (const fields of fieldsOf.values()) {
+    const taken = new Set<string>();
+    const settle = (node: LayoutNode, name: string, auto: boolean) => {
+      taken.add(name);
+      binding.set(node.id, { name, auto });
+    };
+    const usable = (name: string | undefined): name is string =>
+      !!name && IDENTIFIER.test(name) && !taken.has(name);
+    const resident = fields.filter((n) => n.field && !newcomers.has(n.id));
+    for (const node of resident) {
+      if (!node.field?.auto && usable(node.field?.name)) {
+        settle(node, node.field.name, false);
+      }
+    }
+    for (const node of resident) {
+      const name = node.field?.name;
+      if (node.field?.auto && usable(name) && fitsStem(node, name)) {
+        settle(node, name, true);
+      }
+    }
+    for (const node of fields) {
+      if (binding.has(node.id)) continue;
+      const name = node.field?.name;
+      const auto = !!node.field?.auto;
+      if (usable(name) && (!auto || fitsStem(node, name))) {
+        settle(node, name, auto);
+      } else settle(node, freshName(node, taken), true);
+    }
+  }
+
+  // Apply: bind what was decided, unbind every other field.
+  const apply = (nodes: LayoutNode[]): LayoutNode[] => {
     let changed = false;
     const out = nodes.map((node) => {
-      const entry = entryFor(node.type);
       let next = node;
-      if (entry?.field && form) {
-        const taken = names.get(form) as Set<string>;
-        const current = node.field?.name;
-        const name =
-          current && IDENTIFIER.test(current) && !taken.has(current)
-            ? current
-            : freshName(node, taken);
-        taken.add(name);
-        if (current !== name) {
-          next = { ...node, field: { name, rules: node.field?.rules ?? [] } };
+      const decided = binding.get(node.id);
+      if (decided) {
+        const { name, auto } = decided;
+        if (node.field?.name !== name || !!node.field?.auto !== auto) {
+          next = {
+            ...node,
+            field: {
+              name,
+              rules: node.field?.rules ?? [],
+              ...(auto ? { auto: true } : {}),
+            },
+          };
         }
       } else if (node.field) {
         const { field: _unbound, ...rest } = node;
         next = rest;
       }
-
-      if (entry?.form) names.set(node.id, new Set());
-      const inner = entry?.form ? node.id : form;
       if (next.children) {
-        const children = visit(next.children, inner);
+        const children = apply(next.children);
         if (children !== next.children) next = { ...next, children };
       }
       if (next.tabs) {
         let tabsChanged = false;
         const tabs = next.tabs.map((panel) => {
-          const children = visit(panel.children, inner);
+          const children = apply(panel.children);
           if (children === panel.children) return panel;
           tabsChanged = true;
           return { ...panel, children };
@@ -108,7 +169,7 @@ export const normalizeFields = (doc: LayoutDocument): LayoutDocument => {
     return changed ? out : nodes;
   };
 
-  const items = visit(doc.items, null);
+  const items = apply(doc.items);
   return items === doc.items ? doc : { ...doc, items };
 };
 
@@ -131,6 +192,7 @@ export const fieldNameProblem = (
   return taken ? "Already used in this form" : null;
 };
 
+/** Names a field by hand: from now on it no longer follows its label. */
 export const setFieldName = (
   doc: LayoutDocument,
   id: NodeId,
@@ -138,10 +200,11 @@ export const setFieldName = (
 ): LayoutDocument =>
   fieldNameProblem(doc, id, name)
     ? doc
-    : updateNode(doc, id, (node) => ({
-        ...node,
-        field: { name, rules: node.field?.rules ?? [] },
-      }));
+    : updateNode(doc, id, (node) =>
+        node.field?.name === name && !node.field.auto
+          ? node
+          : { ...node, field: { name, rules: node.field?.rules ?? [] } },
+      );
 
 /** Replaces a bound field's rules; the same document for an unbound node. */
 export const setFieldRules = (
@@ -152,6 +215,6 @@ export const setFieldRules = (
   findNode(doc, id)?.field
     ? updateNode(doc, id, (node) => ({
         ...node,
-        field: { name: node.field?.name ?? "", rules },
+        field: { ...(node.field as FieldBinding), rules },
       }))
     : doc;

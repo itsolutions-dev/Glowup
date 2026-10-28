@@ -93,17 +93,36 @@ export const SelectedAndPressable = () => {
   );
 };
 
-/** `hover` alone only highlights: the row stays a plain row, not a control. */
-export const HoverOnly = () => (
-  <div style={fit}>
-    <Table>
-      <Header />
-      {PEOPLE.map(([name, role]) => (
-        <TableRow key={name} hover style={{ height: 48 }}>
-          <TableCell width={200}>{name}</TableCell>
-          <TableCell width={200}>{role}</TableCell>
-        </TableRow>
-      ))}
-    </Table>
-  </div>
-);
+/**
+ * `hover` alone only highlights the row under the pointer: the row stays a plain
+ * row, not a control. The third row is hovered for the capture (a real
+ * `pointerenter` on it, which is what react-native-web's hover listens to).
+ */
+export const HoverOnly = () => {
+  const hostRef = React.useRef<HTMLDivElement | null>(null);
+  React.useEffect(() => {
+    hostRef.current
+      ?.querySelector('[data-testid="hovered-row"]')
+      ?.dispatchEvent(
+        new PointerEvent("pointerenter", { pointerType: "mouse" }),
+      );
+  }, []);
+  return (
+    <div ref={hostRef} style={fit}>
+      <Table>
+        <Header />
+        {PEOPLE.map(([name, role], index) => (
+          <TableRow
+            key={name}
+            hover
+            testID={index === 2 ? "hovered-row" : undefined}
+            style={{ height: 48 }}
+          >
+            <TableCell width={200}>{name}</TableCell>
+            <TableCell width={200}>{role}</TableCell>
+          </TableRow>
+        ))}
+      </Table>
+    </div>
+  );
+};

@@ -8,6 +8,12 @@ import {
 } from "@its/glowup-ui";
 
 const panel: React.CSSProperties = { width: 380, display: "flex" };
+// A bare ListSection (no Paper around it) needs a column parent to stretch to its width.
+const bare: React.CSSProperties = {
+  width: 380,
+  display: "flex",
+  flexDirection: "column",
+};
 
 export const Grouped = () => (
   <div style={panel}>
@@ -61,7 +67,7 @@ export const SettingsScreen = () => {
 
 /** `variant="standard"` rows, a `gap` and `showDividers`: a plain list, like a sidebar's. */
 export const PlainList = () => (
-  <div style={panel}>
+  <div style={bare}>
     <ListSection title="Projects" gap="xs" showDividers>
       <ListItem
         variant="standard"
@@ -87,8 +93,8 @@ export const PlainList = () => (
 
 /** `gap` spaces the items; `divider` is the one rule after the last. */
 export const GapAndDivider = () => (
-  <div style={panel}>
-    <ListSection title="Contained, gap l" gap="l" divider>
+  <div style={bare}>
+    <ListSection title="Notify me about" gap="l" divider>
       <ListItem primaryText="Email digest" />
       <ListItem primaryText="Mentions" />
       <ListItem primaryText="Comments" />

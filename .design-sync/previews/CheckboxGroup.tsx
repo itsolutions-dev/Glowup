@@ -43,8 +43,16 @@ export const Direction = () => (
   </div>
 );
 
+/** Side by side: stacked, the three groups overrun the card's height. */
 export const States = () => (
-  <div style={stack}>
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(3, 260px)",
+      columnGap: 32,
+      alignItems: "start",
+    }}
+  >
     <CheckboxGroup
       label="Channels"
       options={[

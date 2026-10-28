@@ -122,7 +122,7 @@ export const LongValue = () => (
   />
 );
 
-/** A value that does not fit in any code draws an empty box (and calls `onError`). */
+/** A value that does not fit in any code draws a crossed-out code glyph in place of the modules, and calls `onError`. */
 export const TooLong = () => (
   <QrCode value={"x".repeat(3000)} size={140} onError={() => {}} />
 );

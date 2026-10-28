@@ -8,13 +8,13 @@ import {
   Divider,
 } from "@its/glowup-ui";
 
-// AlertProviderWrapper renders no markup at all — it is the binding that points
-// the module-level Alert() singleton at the nearest AlertProvider. So the only
-// honest visual is the consequence: with it mounted, Alert() puts the
-// provider's dialog on screen; without it, the call only logs a warning.
+// AlertProviderWrapper is deprecated: AlertProvider now binds the module-level
+// Alert() singleton by itself, and the wrapper renders its children unchanged.
+// The honest visuals are therefore "a tree that still carries it keeps working"
+// and "what to write instead".
 //
-// Its own effect runs AFTER its children's, so the demo call is queued on a
-// timer instead of being fired straight from a child effect.
+// AlertProvider's binding effect runs AFTER its children's, so the demo call is
+// queued on a timer instead of being fired straight from a child effect.
 
 const stack: React.CSSProperties = {
   display: "flex",
@@ -36,7 +36,7 @@ const RaiseOnMount = () => {
         Alert(
           "Session expiring",
           "You will be signed out in 2 minutes unless you continue working.",
-          [{ text: "Sign out" }, { text: "Stay signed in" }],
+          [{ text: "Sign out", style: "cancel" }, { text: "Stay signed in" }],
         ),
       0,
     );
@@ -52,50 +52,71 @@ export const BindsTheSingleton = () => (
       <div style={stack}>
         <Paper outline style={{ padding: 16 }}>
           <div style={lines}>
-            <Typography variant="titleSmall">Component library</Typography>
+            <Typography variant="titleSmall">Legacy app shell</Typography>
             <Typography variant="bodySmall">
-              A plain screen that imports nothing but Alert.
+              Still wrapped in AlertProviderWrapper; Alert() works unchanged.
             </Typography>
           </div>
         </Paper>
-        <Typography variant="bodySmall">
-          Alert() was called from a child that has no provider reference of its
-          own. The wrapper is what made that resolve.
-        </Typography>
       </div>
     </AlertProviderWrapper>
   </AlertProvider>
 );
 
-export const WrapOrder = () => (
-  <div style={stack}>
-    <div style={lines}>
-      <Typography variant="titleMedium">Where it goes</Typography>
-      <Typography variant="bodySmall">
-        Directly inside AlertProvider, above the app. It renders a fragment, so
-        it adds no layout of its own.
-      </Typography>
-    </div>
+// Side by side: the card is a 560x420 single-mode viewport (it shares the
+// AlertProvider dialog override), so stacked code blocks would be cropped.
+const Code = ({ title, rows }: { title: string; rows: string[] }) => (
+  <div style={{ ...lines, flex: 1, gap: 4 }}>
+    <Typography variant="labelMedium">{title}</Typography>
     <Paper outline style={{ padding: 12 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <Typography variant="labelSmall">&lt;ThemeProvider&gt;</Typography>
-        <Typography variant="labelSmall">{"  <AlertProvider>"}</Typography>
-        <Typography variant="labelSmall">
-          {"    <AlertProviderWrapper>"}
-        </Typography>
-        <Typography variant="labelSmall">{"      <App />"}</Typography>
-        <Typography variant="labelSmall">
-          {"    </AlertProviderWrapper>"}
-        </Typography>
-        <Typography variant="labelSmall">{"  </AlertProvider>"}</Typography>
-        <Typography variant="labelSmall">&lt;/ThemeProvider&gt;</Typography>
+      <div style={lines}>
+        {rows.map((row) => (
+          <Typography key={row} variant="labelSmall">
+            {row}
+          </Typography>
+        ))}
       </div>
     </Paper>
+  </div>
+);
+
+export const WrapOrder = () => (
+  <div style={{ ...stack, width: 480 }}>
+    <div style={lines}>
+      <Typography variant="titleMedium">Deprecated — drop it</Typography>
+      <Typography variant="bodySmall">
+        AlertProvider binds Alert() by itself. The wrapper now renders its
+        children unchanged and will be removed in a later release.
+      </Typography>
+    </div>
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+      <Code
+        title="Before"
+        rows={[
+          "<ThemeProvider>",
+          "  <AlertProvider>",
+          "    <AlertProviderWrapper>",
+          "      <App />",
+          "    </AlertProviderWrapper>",
+          "  </AlertProvider>",
+          "</ThemeProvider>",
+        ]}
+      />
+      <Code
+        title="After"
+        rows={[
+          "<ThemeProvider>",
+          "  <AlertProvider>",
+          "    <App />",
+          "  </AlertProvider>",
+          "</ThemeProvider>",
+        ]}
+      />
+    </div>
     <Divider contentSpacing={0} />
     <Typography variant="bodySmall">
-      Omit it and every Alert() call is a no-op that warns &ldquo;AlertProvider
-      is not initialized.&rdquo; — the provider still renders, nothing ever asks
-      it to show anything.
+      Nothing else changes: Alert(title, message?, buttons?) is called the same
+      way from anywhere below AlertProvider.
     </Typography>
   </div>
 );

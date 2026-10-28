@@ -15,7 +15,7 @@ import {
   type NodeId,
   type Slot,
 } from "./document";
-import { extent, pushDown, rowsFor } from "./engine";
+import { extent, firstFreeCell, pushDown, rowsFor } from "./engine";
 import { normalizeFields } from "./forms";
 import { acceptsChild, entryFor, MANIFEST } from "./manifest";
 
@@ -70,6 +70,17 @@ const subtree = (node: LayoutNode): LayoutNode[] => [
   ...(node.tabs ?? []).flatMap((panel) => panel.children.flatMap(subtree)),
 ];
 
+const idsOf = (node: LayoutNode) => new Set(subtree(node).map((n) => n.id));
+
+const layoutsOf = (nodes: LayoutNode[]): GridPlacement[] =>
+  nodes.flatMap((n) => (n.layout ? [n.layout] : []));
+
+/** One string per slot, to compare two. */
+const slotKey = (slot: Slot) =>
+  slot.kind === "page"
+    ? "page"
+    : `${slot.kind}:${slot.parent}:${slot.kind === "tab" ? slot.tab : ""}`;
+
 /** Inside a Form: the slot's parent is a Form or sits in one. */
 const insideForm = (doc: LayoutDocument, slot: Slot): boolean => {
   let current: Slot | null = slot;
@@ -84,12 +95,9 @@ const insideForm = (doc: LayoutDocument, slot: Slot): boolean => {
 /** How wide a container's own grids reach: it cannot be narrower. */
 const contentColumns = (node: LayoutNode): number =>
   Math.max(
-    extent((node.children ?? []).flatMap((c) => (c.layout ? [c.layout] : [])))
-      .columns,
+    extent(layoutsOf(node.children ?? [])).columns,
     ...(node.tabs ?? []).map(
-      (panel) =>
-        extent(panel.children.flatMap((c) => (c.layout ? [c.layout] : [])))
-          .columns,
+      (panel) => extent(layoutsOf(panel.children)).columns,
     ),
     0,
   );
@@ -139,14 +147,19 @@ const withWidth = (node: LayoutNode, layout: GridPlacement): LayoutNode => {
   };
 };
 
-/** The slot's nodes with `node` at `layout`, the rest pushed down below it. */
+/**
+ * The slot's nodes with `node` at `layout` (where it was in the list, or at
+ * the end when new), the rest pushed down below it.
+ */
 const placeIn = (
   nodes: LayoutNode[],
   node: LayoutNode,
   layout: GridPlacement,
 ): LayoutNode[] => {
   const placed = withWidth(node, layout);
-  const list = [...nodes.filter((n) => n.id !== node.id), placed];
+  const list = nodes.some((n) => n.id === node.id)
+    ? nodes.map((n) => (n.id === node.id ? placed : n))
+    : [...nodes, placed];
   const moved = pushDown(
     list.map((n) => ({ id: n.id, ...(n.layout as GridPlacement) })),
     node.id,
@@ -158,7 +171,7 @@ const placeIn = (
   );
 };
 
-/** A layout for `size` at `cell`, cut to the columns. */
+/** A layout for `size` at `cell`, on whole cells, cut to the columns. */
 const fit = (
   cell: { x: number; y: number },
   size: { w: number; h: number },
@@ -166,8 +179,8 @@ const fit = (
 ): GridPlacement => {
   const w = Math.min(size.w, columns);
   return {
-    x: Math.min(Math.max(0, cell.x), columns - w),
-    y: Math.max(0, cell.y),
+    x: Math.min(Math.max(0, Math.round(cell.x)), columns - w),
+    y: Math.max(0, Math.round(cell.y)),
     w,
     h: size.h,
   };
@@ -196,7 +209,7 @@ const create = (doc: LayoutDocument, type: string): LayoutNode => {
   return node;
 };
 
-/** Puts `node` (without a slot yet) at `dest` in `doc`. */
+/** Puts `node` (without a slot yet) at `dest` in `doc`; a grid sent an index uses its first free cell. */
 const put = (
   doc: LayoutDocument,
   node: LayoutNode,
@@ -205,11 +218,15 @@ const put = (
 ): LayoutDocument => {
   const nodes = slotNodes(doc, dest.slot);
   const columns = slotColumns(doc, dest.slot);
-  if (columns !== null && "cell" in dest) {
+  if (columns !== null) {
+    const cell =
+      "cell" in dest
+        ? dest.cell
+        : firstFreeCell(layoutsOf(nodes), size, columns);
     return setSlotNodes(
       doc,
       dest.slot,
-      placeIn(nodes, node, fit(dest.cell, size, columns)),
+      placeIn(nodes, node, fit(cell, size, columns)),
     );
   }
   const { layout: _dropped, ...flowNode } = node;
@@ -227,7 +244,7 @@ export const insertNode = (
   if (!canPlace(doc, type, dest.slot)) return { doc, id: "" };
   const node = create(doc, type);
   const out = put(doc, node, dest, MANIFEST[type].defaultSize);
-  return { doc: normalizeFields(out), id: node.id };
+  return { doc: normalizeFields(out, new Set([node.id])), id: node.id };
 };
 
 const without = (doc: LayoutDocument, id: NodeId): LayoutDocument => {
@@ -247,8 +264,15 @@ export const moveNode = (
 ): LayoutDocument => {
   const node = findNode(doc, id);
   if (!node || !canPlace(doc, node.type, dest.slot, id)) return doc;
-  const size = node.layout ?? MANIFEST[node.type].defaultSize;
-  return normalizeFields(put(without(doc, id), node, dest, size));
+  const from = slotOf(doc, id) as Slot;
+  if (node.layout && "cell" in dest && slotKey(from) === slotKey(dest.slot)) {
+    const { w, h } = node.layout;
+    return placeNode(doc, id, { ...dest.cell, w, h });
+  }
+  // Out of a flow, a container comes back no narrower than its children reach.
+  const { w, h } = MANIFEST[node.type].defaultSize;
+  const size = node.layout ?? { w: Math.max(w, contentColumns(node)), h };
+  return normalizeFields(put(without(doc, id), node, dest, size), idsOf(node));
 };
 
 export const removeNode = (doc: LayoutDocument, id: NodeId): LayoutDocument =>
@@ -284,39 +308,58 @@ export const duplicateNode = (
   const nodes = slotNodes(doc, slot);
   let out: LayoutDocument;
   if (node.layout) {
-    const { x, y, w, h } = node.layout;
-    out = setSlotNodes(doc, slot, placeIn(nodes, copy, { x, y: y + h, w, h }));
+    // The first free cell from the row under the original: nothing is pushed.
+    const { y, h } = node.layout;
+    const columns = slotColumns(doc, slot) as number;
+    const cell = firstFreeCell(layoutsOf(nodes), node.layout, columns, y + h);
+    out = setSlotNodes(
+      doc,
+      slot,
+      placeIn(nodes, copy, { ...node.layout, ...cell }),
+    );
   } else {
     const index = nodes.findIndex((n) => n.id === id) + 1;
     out = put(doc, copy, { slot, index }, MANIFEST[node.type].defaultSize);
   }
-  return { doc: normalizeFields(out), id: copy.id };
+  return { doc: normalizeFields(out, idsOf(copy)), id: copy.id };
 };
 
-/** Merges props; a key set to undefined is removed. */
+/** Merges props; a key set to undefined is removed. A field follows a new label. */
 export const setProps = (
   doc: LayoutDocument,
   id: NodeId,
   props: Record<string, unknown>,
-): LayoutDocument =>
-  updateNode(doc, id, (node) => {
+): LayoutDocument => {
+  const out = updateNode(doc, id, (node) => {
     const merged: Record<string, unknown> = { ...node.props, ...props };
     for (const [key, value] of Object.entries(props)) {
       if (value === undefined) delete merged[key];
     }
-    return { ...node, props: merged };
+    return JSON.stringify(merged) === JSON.stringify(node.props)
+      ? node
+      : { ...node, props: merged };
   });
+  return out === doc ? doc : normalizeFields(out);
+};
 
+/** A text component's label; refused on any other kind. */
 export const setText = (
   doc: LayoutDocument,
   id: NodeId,
   text: string,
-): LayoutDocument => updateNode(doc, id, (node) => ({ ...node, text }));
+): LayoutDocument =>
+  updateNode(doc, id, (node) =>
+    entryFor(node.type)?.kind !== "text" || node.text === text
+      ? node
+      : { ...node, text },
+  );
 
 /**
  * Moves or resizes a node within its own grid: whole cells, inside the
  * columns, no smaller than the manifest's `minSize`, a container no narrower
- * than its children reach. What it now covers is pushed down.
+ * than its children reach. A placement that keeps the right (or bottom) edge
+ * is a resize from the left (or top): that edge stays put. What it now covers
+ * is pushed down. Refuses numbers that are not finite.
  */
 export const placeNode = (
   doc: LayoutDocument,
@@ -327,15 +370,38 @@ export const placeNode = (
   const slot = slotOf(doc, id);
   const columns = slot ? slotColumns(doc, slot) : null;
   const entry = entryFor(node?.type ?? "");
-  if (!node?.layout || !slot || columns === null || !entry) return doc;
+  const old = node?.layout;
+  if (!old || !slot || columns === null || !entry) return doc;
+  const values = [placement.x, placement.y, placement.w, placement.h];
+  if (!values.every(Number.isFinite)) return doc;
+  let [x, y, w, h] = values.map(Math.round);
   const minW = Math.max(entry.minSize.w, contentColumns(node));
-  const w = Math.min(Math.max(Math.round(placement.w), minW), columns);
-  const h = Math.max(Math.round(placement.h), entry.minSize.h);
+  const right = old.x + old.w;
+  if (x + w === right) {
+    w = Math.max(right - Math.max(0, x), minW);
+    x = right - w;
+  }
+  const bottom = old.y + old.h;
+  if (y + h === bottom) {
+    h = Math.max(bottom - Math.max(0, y), entry.minSize.h);
+    y = bottom - h;
+  }
   const layout = fit(
-    { x: Math.round(placement.x), y: Math.round(placement.y) },
-    { w, h },
+    { x, y },
+    {
+      w: Math.min(Math.max(w, minW), columns),
+      h: Math.max(h, entry.minSize.h),
+    },
     columns,
   );
+  if (
+    layout.x === old.x &&
+    layout.y === old.y &&
+    layout.w === old.w &&
+    layout.h === old.h
+  ) {
+    return doc;
+  }
   return setSlotNodes(doc, slot, placeIn(slotNodes(doc, slot), node, layout));
 };
 
@@ -347,7 +413,7 @@ export const growToFit = (
 ): LayoutDocument => {
   const node = findNode(doc, id);
   const slot = slotOf(doc, id);
-  if (!node?.layout || !slot) return doc;
+  if (!node?.layout || !slot || !Number.isFinite(contentHeight)) return doc;
   const rows = rowsFor(contentHeight, doc.grid.rowHeight, doc.grid.gap);
   if (rows <= node.layout.h) return doc;
   return setSlotNodes(
@@ -393,7 +459,7 @@ export const renameTab = (
   label: string,
 ): LayoutDocument =>
   withTabs(doc, id, (tabs) =>
-    tabs[tab]
+    tabs[tab] && tabs[tab].label !== label
       ? tabs.map((panel, i) => (i === tab ? { ...panel, label } : panel))
       : null,
   );
@@ -415,7 +481,7 @@ export const moveTab = (
   to: number,
 ): LayoutDocument =>
   withTabs(doc, id, (tabs) => {
-    if (!tabs[from] || to < 0 || to >= tabs.length) return null;
+    if (from === to || !tabs[from] || to < 0 || to >= tabs.length) return null;
     const next = [...tabs];
     const [panel] = next.splice(from, 1);
     next.splice(to, 0, panel);

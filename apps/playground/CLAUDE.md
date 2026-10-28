@@ -332,9 +332,10 @@ a component added to the catalogue fails it until it gets one or the other. The 
 ## The drag and drop page
 
 `app/drag-and-drop.tsx` (/drag-and-drop) demos the library's `DragDropProvider` / `Draggable` / `Droppable`
-as a section of its own, not as catalogue pages: six live boards (columns of pressable cards, a list with a
+as a section of its own, not as catalogue pages: seven live boards (columns of pressable cards, a list with a
 locked row, a toolbar whose `accept` caps it at three, sections with nested zones, notes placed on a
-`GridLayout` by `over.rect`, a long list in a `useDragScroll` `ScrollArea`), the usage snippet, and the
+`GridLayout` by `over.rect`, a long list in a `useDragScroll` `ScrollArea`, and a `Form` whose `FormField`
+control is a reorderable list, its order submitted as the field's value), the usage snippet, and the
 three generated prop tables (`PropsTable` with `docFor`). The page relies on the root `PortalHost` for the
 copy that follows the pointer.
 

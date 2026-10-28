@@ -6,6 +6,7 @@ import {
   StatusBadge,
   Switch,
   Typography,
+  useTheme,
 } from "@its/glowup-ui";
 
 const list: React.CSSProperties = {
@@ -58,22 +59,20 @@ export const Variants = () => (
   </div>
 );
 
+/** Every slot is optional: a leading `icon`, a `secondaryText` line, a trailing `action`, in any mix. */
 export const Slots = () => (
   <div style={list}>
     <ListItem
       icon={<Icon source="folder-multiple-outline" size={24} />}
-      primaryText="leading only"
+      primaryText="Shared drive"
     />
-    <ListItem action={chevron} primaryText="trailing only" />
-    <ListItem
-      secondaryText="the second line sits under the primary one"
-      primaryText="secondary only"
-    />
+    <ListItem action={chevron} primaryText="Storage" />
+    <ListItem secondaryText="Today at 09:42" primaryText="Last sync" />
     <ListItem
       icon={<Icon source="chart-box" size={24} />}
-      secondaryText="all three slots filled"
+      secondaryText="Generated on 1 Oct"
       action={chevron}
-      primaryText="leading + secondary + trailing"
+      primaryText="Monthly report"
     />
   </div>
 );
@@ -98,16 +97,17 @@ export const GlyphNames = () => (
 export const WithAvatars = () => (
   <div style={list}>
     {[
-      { name: "Ada Lovelace", role: "Engineering lead" },
-      { name: "Grace Hopper", role: "Platform architect" },
-      { name: "Katherine Johnson", role: "Data science" },
+      { name: "Ada Lovelace", role: "Engineering lead", access: "Owner" },
+      { name: "Grace Hopper", role: "Platform architect", access: "Admin" },
+      { name: "Katherine Johnson", role: "Data science", access: "Member" },
     ].map((m) => (
       <ListItem
         key={m.name}
+        variant="standard"
         onClick={() => {}}
         icon={<Avatar name={m.name} size={40} />}
         secondaryText={m.role}
-        action={<Typography variant="labelLarge">Owner</Typography>}
+        action={<Typography variant="labelLarge">{m.access}</Typography>}
         primaryText={m.name}
       />
     ))}
@@ -122,14 +122,14 @@ export const PressableWithAction = () => {
       <ListItem
         onClick={() => {}}
         icon="bell-outline"
-        secondaryText="Press the row for its settings"
+        secondaryText="Push, email and SMS"
         action={<Switch value={on} onChange={setOn} />}
         primaryText="Notifications"
       />
       <ListItem
         onClick={() => {}}
         icon="cog-outline"
-        secondaryText="The whole row is the button"
+        secondaryText="Language, theme and density"
         action={chevron}
         primaryText="Preferences"
       />
@@ -142,46 +142,49 @@ export const DisabledAndDimmed = () => (
   <div style={list}>
     <ListItem
       onClick={() => {}}
-      icon="cloud-outline"
-      secondaryText="Available on the Pro plan"
-      primaryText="Cloud backup"
+      icon="backup-restore"
+      secondaryText="Last run 2 hours ago"
+      primaryText="Local backup"
     />
     <ListItem
       disabled
       onClick={() => {}}
       icon="cloud-off-outline"
-      secondaryText="Disabled: it cannot be pressed"
+      secondaryText="Available on the Pro plan"
       primaryText="Cloud backup"
     />
     <ListItem
       dimmed
       onClick={() => {}}
       icon="archive-outline"
-      secondaryText="Dimmed: faded, still pressable"
+      secondaryText="Archived on 3 Oct"
       primaryText="Archived project"
     />
   </div>
 );
 
 /** `primaryTextStyle` and `secondaryTextStyle` are merged after the row's own type, for a text `primaryText` or `secondaryText`. */
-export const TextStyles = () => (
-  <div style={list}>
-    <ListItem
-      icon="alert-circle-outline"
-      secondaryText="Renews on 14 Nov"
-      secondaryTextStyle={{ color: "#B00020" }}
-      primaryTextStyle={{ fontWeight: "700" }}
-      primaryText="Payment failed"
-    />
-    <ListItem
-      icon="check-circle-outline"
-      secondaryText="All systems operational"
-      secondaryTextStyle={{ fontStyle: "italic" }}
-      primaryTextStyle={{ color: "#1B5E20" }}
-      primaryText="Status"
-    />
-  </div>
-);
+export const TextStyles = () => {
+  const { theme } = useTheme();
+  return (
+    <div style={list}>
+      <ListItem
+        icon="alert-circle-outline"
+        secondaryText="Retrying on 14 Nov"
+        secondaryTextStyle={{ color: theme.colors.error }}
+        primaryTextStyle={{ fontWeight: "700" }}
+        primaryText="Payment failed"
+      />
+      <ListItem
+        icon="check-circle-outline"
+        secondaryText="All systems operational"
+        secondaryTextStyle={{ fontStyle: "italic" }}
+        primaryTextStyle={{ color: theme.colors.success }}
+        primaryText="Status"
+      />
+    </div>
+  );
+};
 
 export const CustomSurface = () => (
   <div style={list}>

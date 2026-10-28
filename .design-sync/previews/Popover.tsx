@@ -6,12 +6,12 @@ import { Popover, Button, Typography, Avatar, Divider } from "@its/glowup-ui";
 // coordinates. It fills the capture viewport, not the card, so it needs
 // cfg.overrides { cardMode: "single", viewport: "480x420" }.
 //
-// Without `matchAnchorWidth` the card is 200px wide (Popover seeds its own
-// width with a 200 fallback before measuring, so the measurement never grows
-// past it) — compose short labels for the default width.
+// Without `matchAnchorWidth` the card sizes to its content (capped by the
+// window minus a 16px margin). Anchors keep their intrinsic width.
 const host: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
+  alignItems: "flex-start",
   width: 320,
 };
 
@@ -44,13 +44,20 @@ export const AccountCard = () => (
         <Divider contentSpacing={0} />
         <Button
           variant="text"
+          density="dense"
           fullWidth
           iconName="cog-outline"
           onClick={() => {}}
         >
           Settings
         </Button>
-        <Button variant="text" fullWidth iconName="logout" onClick={() => {}}>
+        <Button
+          variant="text"
+          density="dense"
+          fullWidth
+          iconName="logout"
+          onClick={() => {}}
+        >
           Sign out
         </Button>
       </div>
@@ -58,8 +65,9 @@ export const AccountCard = () => (
   </div>
 );
 
+// A full-width select-style trigger; the card takes exactly its width.
 export const MatchAnchorWidth = () => (
-  <div style={host}>
+  <div style={{ ...host, alignItems: "stretch" }}>
     <Popover
       visible
       matchAnchorWidth
@@ -77,18 +85,22 @@ export const MatchAnchorWidth = () => (
       }
     >
       <div style={{ display: "flex", flexDirection: "column", padding: 8 }}>
-        <Button variant="text" fullWidth onClick={() => {}}>
-          Buttons &amp; actions
-        </Button>
-        <Button variant="text" fullWidth onClick={() => {}}>
-          Inputs &amp; forms
-        </Button>
-        <Button variant="text" fullWidth onClick={() => {}}>
-          Feedback &amp; overlays
-        </Button>
-        <Button variant="text" fullWidth onClick={() => {}}>
-          Navigation
-        </Button>
+        {[
+          "Buttons & actions",
+          "Inputs & forms",
+          "Feedback & overlays",
+          "Navigation",
+        ].map((group) => (
+          <Button
+            key={group}
+            variant="text"
+            density="dense"
+            fullWidth
+            onClick={() => {}}
+          >
+            {group}
+          </Button>
+        ))}
       </div>
     </Popover>
   </div>
@@ -119,9 +131,18 @@ export const HelpBubble = () => (
   </div>
 );
 
-// The anchor sits low in the card so the popover has room above it.
+// The anchor sits low and centred in the card so the popover has room above
+// it. anchorPosition puts the card over its anchor; near an edge it flips or
+// slides to stay on screen.
 export const AboveAnchor = () => (
-  <div style={{ ...host, justifyContent: "flex-end", height: 320 }}>
+  <div
+    style={{
+      ...host,
+      alignItems: "center",
+      justifyContent: "flex-end",
+      height: 320,
+    }}
+  >
     <Popover
       visible
       onDismiss={() => {}}
@@ -137,10 +158,9 @@ export const AboveAnchor = () => (
       }
     >
       <div style={pad}>
-        <Typography variant="titleSmall">Above, centred</Typography>
+        <Typography variant="titleSmall">Keyboard shortcut</Typography>
         <Typography variant="bodySmall">
-          anchorPosition puts the card over its anchor; near an edge it flips or
-          slides to stay on screen.
+          Press / anywhere to jump straight to search.
         </Typography>
       </div>
     </Popover>

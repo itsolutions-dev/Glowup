@@ -47,10 +47,10 @@ export const WithIcons = () => (
       onTrailingIconPress={noop}
     />
     <Input
-      label="Net total"
+      label="Monthly rent"
       type="number"
       prefix="€"
-      suffix="EUR"
+      suffix="/ month"
       precision={2}
       value="1240.50"
       onChange={noop}
@@ -58,10 +58,6 @@ export const WithIcons = () => (
   </div>
 );
 
-// NOTE: `disabled` and `readonly` are deliberately not previewed. Input maps them
-// to `editable` / `readOnly` only (see packages/ui/src/components/Input.tsx) with no
-// visual treatment, so a disabled field is pixel-identical to an enabled one — a cell
-// for it would teach a design agent a state the component does not actually render.
 export const ValidationStates = () => (
   <div style={stack}>
     <Input
@@ -91,6 +87,13 @@ export const ValidationStates = () => (
       maxLength={3}
       helperText="Max 250 per workspace."
       value="24"
+      onChange={noop}
+    />
+    <Input
+      label="Customer ID"
+      disabled
+      helperText="Assigned when the account is created."
+      value="C-10482"
       onChange={noop}
     />
   </div>
@@ -135,6 +138,6 @@ export const UpperCaseAndReservedHelper = () => (
       value="AB123C"
       onChange={noop}
     />
-    <Input label="Next field" value="" onChange={noop} />
+    <Input label="Province" allUpperCase value="RM" onChange={noop} />
   </div>
 );

@@ -68,8 +68,21 @@ export const CustomDisplay = () => (
 // The open state: `startWithEditView` mounts with the field already open. The
 // default submit mode confirms on blur, so two open fields would close each other
 // as the second takes focus: these stay open with `submitMode="none"`.
+// An open field also takes focus, and on web the focused `Input` draws the
+// browser focus ring inside its outline; these cells show the field at rest.
+const OpenAtRest = ({ children }: { children: React.ReactNode }) => {
+  React.useEffect(() => {
+    const id = setTimeout(
+      () => (document.activeElement as HTMLElement | null)?.blur(),
+      50,
+    );
+    return () => clearTimeout(id);
+  }, []);
+  return <div style={stack}>{children}</div>;
+};
+
 export const EditingText = () => (
-  <div style={stack}>
+  <OpenAtRest>
     <Editable
       label="Name"
       defaultValue="Ada Lovelace"
@@ -83,11 +96,11 @@ export const EditingText = () => (
       submitMode="none"
       startWithEditView
     />
-  </div>
+  </OpenAtRest>
 );
 
 export const EditingNumberAndTextarea = () => (
-  <div style={stack}>
+  <OpenAtRest>
     <Editable
       label="Rate"
       type="number"
@@ -103,11 +116,11 @@ export const EditingNumberAndTextarea = () => (
       submitMode="none"
       startWithEditView
     />
-  </div>
+  </OpenAtRest>
 );
 
 export const WithButtons = () => (
-  <div style={stack}>
+  <OpenAtRest>
     <Editable
       label="Name"
       defaultValue="Ada Lovelace"
@@ -121,7 +134,7 @@ export const WithButtons = () => (
       showControls
       startWithEditView
     />
-  </div>
+  </OpenAtRest>
 );
 
 // The validation error is not previewed: `validate` shows its message only once

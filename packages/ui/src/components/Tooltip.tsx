@@ -292,13 +292,19 @@ const Tooltip = ({
   return (
     <View style={styles.wrapper}>
       {Platform.OS === "web" ? (
-        <View ref={anchorRef} onLayout={onAnchorLayout} {...webAnchorProps}>
+        <View
+          ref={anchorRef}
+          onLayout={onAnchorLayout}
+          style={styles.anchor}
+          {...webAnchorProps}
+        >
           {children}
         </View>
       ) : (
         <Pressable
           ref={anchorRef}
           onLayout={onAnchorLayout}
+          style={styles.anchor}
           accessible={anchorAccessible}
           accessibilityLabel={
             anchorAccessible
@@ -328,10 +334,17 @@ export default Tooltip;
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
+    // Hugs the anchor through its own alignItems, not alignSelf, so a parent
+    // that centres its children centres the anchor too; never wider than the
+    // parent, so a cut text stays cut.
     wrapper: {
-      alignSelf: "flex-start",
+      alignItems: "flex-start",
+      maxWidth: "100%",
       position: "relative",
     },
+    // A text cut to one line is its whole line wide at min-content: capped,
+    // the anchor stops at the wrapper and the text cuts.
+    anchor: { maxWidth: "100%" },
     tooltip: {
       position: "absolute",
       backgroundColor: theme.colors.inverseSurface,

@@ -1,7 +1,6 @@
 import React from "react";
 import {
   AlertProvider,
-  AlertProviderWrapper,
   Alert,
   Typography,
   Paper,
@@ -14,9 +13,10 @@ import {
 // the card can honestly show is the dialog it puts on screen, so these cells
 // mount the real provider stack and raise a real alert at mount.
 //
-// The Alert() singleton is bound by AlertProviderWrapper, whose effect runs
-// AFTER its children's — so the call is queued on a timer rather than fired
-// straight from the child effect.
+// AlertProvider binds the Alert() singleton itself (AlertProviderWrapper is a
+// deprecated pass-through), but in an effect that runs AFTER its children's —
+// so the call is queued on a timer rather than fired straight from the child
+// effect.
 
 const stack: React.CSSProperties = {
   display: "flex",
@@ -56,51 +56,43 @@ const RaiseOnMount = ({
 
 export const HostedDialog = () => (
   <AlertProvider>
-    <AlertProviderWrapper>
-      <RaiseOnMount
-        title="Discard draft?"
-        message="The invoice for Northwind Ltd has unsaved changes. Discarding cannot be undone."
-        buttons={[
-          { text: "Keep editing", style: "cancel" },
-          { text: "Discard", style: "destructive" },
-        ]}
-      />
-      <div style={stack}>
-        <Paper outline style={{ padding: 16 }}>
-          <div style={lines}>
-            <Typography variant="titleSmall">Invoice INV-2026-0184</Typography>
-            <Typography variant="bodySmall">
-              Northwind Ltd · €4,280 · draft
-            </Typography>
-          </div>
-        </Paper>
-        <Typography variant="bodySmall">
-          The dialog above is the provider&apos;s own web Dialog — scrim, title
-          rule and one Button per entry in the buttons array.
-        </Typography>
-      </div>
-    </AlertProviderWrapper>
+    <RaiseOnMount
+      title="Discard draft?"
+      message="The invoice for Northwind Ltd has unsaved changes. Discarding cannot be undone."
+      buttons={[
+        { text: "Keep editing", style: "cancel" },
+        { text: "Discard", style: "destructive" },
+      ]}
+    />
+    <div style={stack}>
+      <Paper outline style={{ padding: 16 }}>
+        <div style={lines}>
+          <Typography variant="titleSmall">Invoice INV-2026-0184</Typography>
+          <Typography variant="bodySmall">
+            Northwind Ltd · €4,280 · draft
+          </Typography>
+        </div>
+      </Paper>
+    </div>
   </AlertProvider>
 );
 
 export const DefaultOkButton = () => (
   <AlertProvider>
-    <AlertProviderWrapper>
-      <RaiseOnMount
-        title="Export ready"
-        message="component-audit-March-2026.xlsx has been added to your downloads."
-      />
-      <div style={stack}>
-        <Paper outline style={{ padding: 16 }}>
-          <div style={lines}>
-            <Typography variant="titleSmall">Reports</Typography>
-            <Typography variant="bodySmall">
-              Called with no buttons array, the provider supplies a single OK.
-            </Typography>
-          </div>
-        </Paper>
-      </div>
-    </AlertProviderWrapper>
+    <RaiseOnMount
+      title="Export ready"
+      message="component-audit-March-2026.xlsx has been added to your downloads."
+    />
+    <div style={stack}>
+      <Paper outline style={{ padding: 16 }}>
+        <div style={lines}>
+          <Typography variant="titleSmall">Reports</Typography>
+          <Typography variant="bodySmall">
+            Called with no buttons array, the provider supplies a single OK.
+          </Typography>
+        </div>
+      </Paper>
+    </div>
   </AlertProvider>
 );
 
@@ -119,7 +111,11 @@ export const TheApi = () => (
           Alert(title, message?, buttons?)
         </Typography>
         <Typography variant="labelSmall">
-          buttons: {"{ text, onPress? }[]"} — defaults to a single OK
+          buttons: {"{ text, style?, onPress? }[]"} — defaults to a single OK
+        </Typography>
+        <Typography variant="labelSmall">
+          style: &quot;cancel&quot; is a text button, &quot;destructive&quot; an
+          error-coloured one
         </Typography>
       </div>
     </Paper>
@@ -129,8 +125,8 @@ export const TheApi = () => (
       iconName="alert-outline"
       onClick={() =>
         Alert("Delete workspace?", "All 42 projects will be removed.", [
-          { text: "Cancel" },
-          { text: "Delete" },
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete", style: "destructive" },
         ])
       }
     >

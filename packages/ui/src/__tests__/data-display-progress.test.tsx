@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text } from "react-native";
+import { Animated, Platform, StyleSheet, Text } from "react-native";
 import { render } from "@testing-library/react-native";
 import {
   CircularProgress,
@@ -221,4 +221,38 @@ describe("LinearProgress label and width", () => {
       "Progress: 40%",
     );
   });
+});
+
+// react-native-web's Animated.loop reads the raw `useNativeDriver` flag, takes its
+// native loop and falls back to a JS timing that ignores the iteration count: a
+// looped timing on the native driver plays once on the web and stops (a spinner
+// turns once, an indeterminate bar sweeps once and leaves an empty track).
+describe("looping progress", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  const loops = [
+    ["an indeterminate bar", <LinearProgress key="bar" indeterminate />],
+    ["a spinner", <CircularProgress key="spinner" />],
+  ] as const;
+
+  it.each(loops)("%s loops on the JS driver on the web", async (_, ui) => {
+    jest.replaceProperty(Platform, "OS", "web");
+    const timing = jest.spyOn(Animated, "timing");
+    await draw(ui);
+    expect(timing).toHaveBeenCalled();
+    for (const [, config] of timing.mock.calls) {
+      expect(config.useNativeDriver).toBe(false);
+    }
+  });
+
+  it.each(loops)(
+    "%s keeps the native driver on iOS and Android",
+    async (_, ui) => {
+      const timing = jest.spyOn(Animated, "timing");
+      await draw(ui);
+      expect(
+        timing.mock.calls.map(([, config]) => config.useNativeDriver),
+      ).toContain(true);
+    },
+  );
 });

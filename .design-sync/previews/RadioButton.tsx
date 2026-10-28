@@ -23,21 +23,20 @@ export const Selection = () => (
 );
 
 export const DisabledAndError = () => (
-  <div style={stack}>
-    <RadioButton label="Bank transfer" selected disabled onPress={noop} />
-    <RadioButton
-      label="Cash on delivery (unavailable)"
-      selected={false}
-      disabled
-      onPress={noop}
-    />
-    <RadioButton
-      label="Pick a payment method"
-      selected={false}
-      error
-      onPress={noop}
-    />
-    <RadioButton label="Credit card" selected error onPress={noop} />
+  <div style={{ ...stack, gap: 16 }}>
+    <div style={stack}>
+      <RadioButton label="Bank transfer" selected disabled onPress={noop} />
+      <RadioButton
+        label="Cash on delivery (unavailable)"
+        selected={false}
+        disabled
+        onPress={noop}
+      />
+    </div>
+    <div style={stack}>
+      <RadioButton label="Credit card" selected={false} error onPress={noop} />
+      <RadioButton label="PayPal" selected={false} error onPress={noop} />
+    </div>
   </div>
 );
 

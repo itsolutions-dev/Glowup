@@ -51,7 +51,7 @@ export const Circular = () => (
 
 /** `size` is 32, 40 (default) or 48 px: `"sm"`, `"md"`, `"lg"`. */
 export const Sizes = () => (
-  <div style={{ ...wrap, flexDirection: "column", gap: 12 }}>
+  <div style={{ ...wrap, width: 520, flexDirection: "column", gap: 12 }}>
     {(["sm", "md", "lg"] as const).map((size) => (
       <Pagination
         key={size}
@@ -95,7 +95,7 @@ export const PageSelect = () => {
 };
 
 export const Controlled = () => {
-  const [page, setPage] = React.useState(1);
+  const [page, setPage] = React.useState(5);
   return (
     <div style={wrap}>
       <Pagination

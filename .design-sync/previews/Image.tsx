@@ -1,19 +1,23 @@
 import React from "react";
 import { HStack, Image, Typography, VStack } from "@its/glowup-ui";
 
-// Drawn inline so the capture needs no network.
-const svg = (a: string, b: string) => ({
+// Drawn inline so the capture needs no network. `size` gives the picture an
+// intrinsic width and height, which `resizeMode="center"` draws it at.
+const svg = (a: string, b: string, size = "") => ({
   uri:
     "data:image/svg+xml;charset=utf-8," +
     encodeURIComponent(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"' +
+        size +
+        ">" +
         '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
         '<stop offset="0" stop-color="' +
         a +
         '"/><stop offset="1" stop-color="' +
         b +
         '"/></linearGradient></defs>' +
-        '<rect width="320" height="180" fill="url(#g)"/></svg>',
+        '<rect width="320" height="180" fill="url(#g)"/>' +
+        '<circle cx="200" cy="64" r="28" fill="#FFFFFF" fill-opacity="0.7"/></svg>',
     ),
 });
 
@@ -36,12 +40,17 @@ export const Ratios = () => (
   </HStack>
 );
 
+// An 80 x 45 picture in a 140 x 100 box: cover crops it to fill, contain fits
+// it whole, center keeps it at its own size.
+const SMALL = svg("#6750A4", "#EADDFF", ' width="80" height="45"');
+
+/** `resizeMode` fits the picture to the box: `cover` fills and crops, `contain` shows it whole, `center` keeps its own size (shrunk only when larger than the box). */
 export const ResizeModes = () => (
   <HStack spacing="m" wrap width={480} align="flex-start">
     {(["cover", "contain", "center"] as const).map((mode) => (
       <VStack key={mode} spacing="xs">
         <Image
-          source={svg("#6750A4", "#EADDFF")}
+          source={SMALL}
           alt={"resizeMode " + mode}
           width={140}
           height={100}

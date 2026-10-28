@@ -62,3 +62,12 @@ export const InvoiceList = () => (
     ))}
   </div>
 );
+
+/** `toneFrom` tints the badge from a `#RRGGBB` colour, or from any text (the same text always gets the same tint), instead of from `type`. */
+export const ToneFrom = () => (
+  <div style={row}>
+    <StatusBadge label="Logistics" toneFrom="Logistics" icon="truck-outline" />
+    <StatusBadge label="Finance" toneFrom="Finance" icon="cash-multiple" />
+    <StatusBadge label="Brand" toneFrom="#00629E" icon="palette-outline" />
+  </div>
+);

@@ -233,7 +233,9 @@ const Spinner = ({
         toValue: 1,
         duration,
         easing: Easing.linear,
-        useNativeDriver: true,
+        // A looped timing on the native driver plays once on the web (see
+        // LinearProgress), so the spinner would stop after one turn.
+        useNativeDriver: Platform.OS !== "web",
       }),
     );
     animation.start();

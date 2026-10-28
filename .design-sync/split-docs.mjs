@@ -37,7 +37,8 @@ const flush = () => {
 };
 
 for (const line of lines) {
-  const h2 = /^##\s+(?:\d+\.\s*)?(.+?)\s*$/.exec(line);
+  // "## 8. Layout" and "## 8b. Drag and Drop" both lose their number.
+  const h2 = /^##\s+(?:\d+[a-z]?\.\s*)?(.+?)\s*$/.exec(line);
   if (h2 && !line.startsWith("###")) {
     flush();
     const title = h2[1];

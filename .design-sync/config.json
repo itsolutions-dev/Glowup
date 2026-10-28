@@ -27,8 +27,15 @@
     "dts.mjs": "allowlist the all-caps component name FAB (ALL-CAPS-means-constant rule would drop it)"
   },
   "overrides": {
+    "AbsoluteCenter": {
+      "cardMode": "column"
+    },
     "Accordion": {
       "cardMode": "column"
+    },
+    "AlertDialog": {
+      "cardMode": "single",
+      "viewport": "560x440"
     },
     "AlertProvider": {
       "cardMode": "single",
@@ -52,6 +59,9 @@
     "Banner": {
       "cardMode": "column"
     },
+    "Blink": {
+      "cardMode": "column"
+    },
     "BottomSheet": {
       "cardMode": "single",
       "viewport": "420x620"
@@ -62,10 +72,19 @@
     "Breadcrumbs": {
       "cardMode": "column"
     },
+    "Break": {
+      "cardMode": "column"
+    },
+    "CaptionValue": {
+      "cardMode": "column"
+    },
     "Card": {
       "cardMode": "column"
     },
     "Carousel": {
+      "cardMode": "column"
+    },
+    "Center": {
       "cardMode": "column"
     },
     "Checkbox": {
@@ -77,7 +96,16 @@
     "Chip": {
       "cardMode": "column"
     },
+    "ChipGroup": {
+      "cardMode": "column"
+    },
     "CircularProgress": {
+      "cardMode": "column"
+    },
+    "Clipboard": {
+      "cardMode": "column"
+    },
+    "CodeBlock": {
       "cardMode": "column"
     },
     "Collapse": {
@@ -100,20 +128,57 @@
     "Divider": {
       "cardMode": "column"
     },
+    "DragDropProvider": {
+      "cardMode": "column"
+    },
+    "Draggable": {
+      "cardMode": "column"
+    },
+    "Drawer": {
+      "cardMode": "column"
+    },
+    "DrawerItem": {
+      "cardMode": "column"
+    },
+    "DrawerSection": {
+      "cardMode": "column"
+    },
+    "Droppable": {
+      "cardMode": "column"
+    },
+    "Editable": {
+      "cardMode": "column"
+    },
     "EmptyState": {
       "cardMode": "column"
     },
     "FAB": {
       "cardMode": "column"
     },
+    "Form": {
+      "cardMode": "column"
+    },
     "FormControl": {
+      "cardMode": "column"
+    },
+    "FormField": {
       "cardMode": "column"
     },
     "Grid": {
       "cardMode": "column"
     },
+    "GridLayout": {
+      "cardMode": "column"
+    },
     "HelperText": {
       "cardMode": "column"
+    },
+    "HighlightedCode": {
+      "cardMode": "column"
+    },
+    "HoverCard": {
+      "cardMode": "single",
+      "viewport": "520x340"
     },
     "HStack": {
       "cardMode": "column"
@@ -124,7 +189,13 @@
     "IconButton": {
       "cardMode": "column"
     },
+    "IFrame": {
+      "cardMode": "column"
+    },
     "Image": {
+      "cardMode": "column"
+    },
+    "InputArea": {
       "cardMode": "column"
     },
     "LinearProgress": {
@@ -181,6 +252,9 @@
     "Rating": {
       "cardMode": "column"
     },
+    "ScrollArea": {
+      "cardMode": "column"
+    },
     "SearchBar": {
       "cardMode": "column"
     },
@@ -202,6 +276,9 @@
     "SpeedDial": {
       "cardMode": "column"
     },
+    "SplitButton": {
+      "cardMode": "column"
+    },
     "Stack": {
       "cardMode": "column"
     },
@@ -217,6 +294,18 @@
     "TabContent": {
       "cardMode": "column"
     },
+    "Table": {
+      "cardMode": "column"
+    },
+    "TableCell": {
+      "cardMode": "column"
+    },
+    "TableHeaderCell": {
+      "cardMode": "column"
+    },
+    "TableRow": {
+      "cardMode": "column"
+    },
     "Tabs": {
       "cardMode": "column"
     },
@@ -229,10 +318,22 @@
     "ToastProvider": {
       "cardMode": "column"
     },
+    "Toolbar": {
+      "cardMode": "column"
+    },
     "Tooltip": {
       "cardMode": "column"
     },
     "TouchableRipple": {
+      "cardMode": "column"
+    },
+    "Tree": {
+      "cardMode": "column"
+    },
+    "Upload": {
+      "cardMode": "column"
+    },
+    "Visible": {
       "cardMode": "column"
     },
     "VStack": {

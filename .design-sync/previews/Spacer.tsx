@@ -42,6 +42,7 @@ export const FixedSize = () => (
 
 export const HorizontalAxis = () => (
   <HStack
+    spacing={0}
     align="center"
     padding={16}
     background="surfaceContainerLow"
@@ -54,9 +55,10 @@ export const HorizontalAxis = () => (
   </HStack>
 );
 
-/** `size` is a spacing token or a number of px. */
+/** `size` is a spacing token or a number of px. `spacing={0}` on the row so the gap is the Spacer alone. */
 export const PixelSize = () => (
   <HStack
+    spacing={0}
     align="center"
     padding={16}
     background="surfaceContainerLow"

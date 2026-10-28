@@ -14,7 +14,7 @@ const band = (ratio: number, label: string) => (
 );
 
 export const Ratios = () => (
-  <HStack spacing="m" wrap width={480} align="flex-start">
+  <HStack spacing="m" wrap width={600} align="flex-start">
     {band(16 / 9, "16:9")}
     {band(4 / 3, "4:3")}
     {band(1, "1:1")}

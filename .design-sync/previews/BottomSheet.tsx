@@ -115,6 +115,7 @@ export const ActionSheet = () => (
           variant="text"
           fullWidth
           iconName="delete-outline"
+          color="error"
           onClick={() => {}}
         >
           Delete
@@ -124,10 +125,14 @@ export const ActionSheet = () => (
   </div>
 );
 
+// Without the handle the sheet has no top inset of its own (header and
+// content both start flush with the rounded edge), so the content brings its
+// own top padding and section label instead of the `title` prop.
 export const NoHandle = () => (
   <div style={behind}>
-    <BottomSheet visible showHandle={false} title="Sort by" onClose={() => {}}>
-      <div style={column}>
+    <BottomSheet visible showHandle={false} onClose={() => {}}>
+      <div style={{ ...column, paddingTop: 24 }}>
+        <Typography variant="titleMedium">Sort by</Typography>
         <Chip
           label="Recently updated"
           variant="tonal"
@@ -186,10 +191,12 @@ export const WithActions = () => (
         </>
       }
     >
-      <Typography variant="bodyMedium">
-        Anyone with the link sees this component page. The actions stay fixed
-        below the content, which scrolls on its own.
-      </Typography>
+      <div style={{ ...column, paddingBottom: 16 }}>
+        <Typography variant="bodyMedium">
+          Anyone with the link sees this component page. The actions stay fixed
+          below the content, which scrolls on its own.
+        </Typography>
+      </div>
     </BottomSheet>
   </div>
 );

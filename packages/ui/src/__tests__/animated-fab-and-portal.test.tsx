@@ -2,7 +2,14 @@ import React from "react";
 import { Text, View } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { FAB, Autocomplete, Portal, ThemeProvider, Tooltip } from "../index";
+import {
+  FAB,
+  Autocomplete,
+  Portal,
+  SpeedDial,
+  ThemeProvider,
+  Tooltip,
+} from "../index";
 
 // SafeAreaProvider is part of the kit's provider contract — FAB, AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.
 const Providers = ({ children }: { children: React.ReactNode }) => (
@@ -213,5 +220,29 @@ describe("overlays already isolated by a native Modal", () => {
     await fireEvent(getByLabelText("Dettagli"), "longPress");
     // Rendered at the host, so it is not a descendant of the clipped View.
     expect(getByText("Dettagli")).toBeTruthy();
+  });
+});
+
+describe("SpeedDial trigger", () => {
+  const actions = [
+    { id: 1, icon: "pencil" as const, label: "Edit", onPress: () => {} },
+  ];
+
+  // The trigger is a rounded square: turning the whole button 45° drew a diamond.
+  it("shows a close icon while open, and never turns the button", async () => {
+    const { getByLabelText, queryByLabelText, toJSON } = await wrap(
+      <SpeedDial mainIcon="plus" actions={actions} />,
+    );
+    expect(queryByLabelText("close FAB")).toBeNull();
+    await fireEvent.press(getByLabelText("plus FAB"));
+    expect(getByLabelText("close FAB")).toBeTruthy();
+    expect(JSON.stringify(toJSON())).not.toContain("deg");
+  });
+
+  it("opens on the close icon with defaultOpen", async () => {
+    const { getByLabelText } = await wrap(
+      <SpeedDial mainIcon="plus" actions={actions} defaultOpen />,
+    );
+    expect(getByLabelText("close FAB")).toBeTruthy();
   });
 });

@@ -10,8 +10,10 @@ export const Spacing = () => (
   </HStack>
 );
 
+// Icon avatars: a named Avatar sits in a Tooltip anchor that pins itself to
+// the top (alignSelf: flex-start), so it would ignore `align`.
 export const Alignment = () => (
-  <HStack spacing="l" width={480} wrap>
+  <HStack spacing="m" width={520} wrap>
     {(["flex-start", "center", "flex-end"] as const).map((align) => (
       <HStack
         key={align}
@@ -22,8 +24,8 @@ export const Alignment = () => (
         radius="medium"
         height={96}
       >
-        <Avatar name="Ada Lovelace" size={28} />
-        <Avatar name="Grace Hopper" size={44} />
+        <Avatar icon="account" size={28} />
+        <Avatar icon="account-group" size={44} />
         <Typography variant="labelSmall">{align}</Typography>
       </HStack>
     ))}

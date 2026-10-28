@@ -10,6 +10,7 @@
 // Run from the repo root, then .ds-sync/prebuild-web-entry.mjs.
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { transformSync } from "esbuild";
 
 const OUT = ".design-sync/web-barrel.mjs";
 const DROP = /Navigation\/(DrawerContent|DrawerNavigation|StackNavigation)/;
@@ -19,42 +20,19 @@ const EXTRA =
   "\n// --- web-only additions (see make-web-barrel.mjs) ---\n" +
   'export { SafeAreaProvider } from "react-native-safe-area-context";\n';
 
-// Types do not exist at run time, so `export type` statements have no place in
-// a runtime barrel. They cannot be dropped line by line, though: the picker
-// types are re-exported as a multi-line block, and removing only its opening
-// line left the member list and the closing `} from "…";` behind. The barrel
-// then failed to parse at that point — while this script still exited 0.
-const stripTypeExports = (lines) => {
-  const kept = [];
-  let insideBlock = false;
-
-  for (const line of lines) {
-    if (insideBlock) {
-      // The statement ends at the line carrying its terminator.
-      if (line.includes(";")) insideBlock = false;
-      continue;
-    }
-    if (/^export\s+type\b/.test(line)) {
-      // `export type { X } from "y";` closes on its own line; the block form
-      // does not, so keep consuming until the terminator shows up.
-      if (!line.includes(";")) insideBlock = true;
-      continue;
-    }
-    kept.push(line);
-  }
-
-  if (insideBlock) {
-    console.error(
-      "unterminated `export type` block in packages/ui/src/index.ts",
-    );
-    process.exit(1);
-  }
-
-  return kept;
-};
-
-const lines = readFileSync("packages/ui/src/index.ts", "utf8").split(/\r?\n/);
-const body = stripTypeExports(lines.filter((l) => !DROP.test(l)))
+// Types do not exist at run time, so they have no place in a runtime barrel.
+// The barrel re-exports them both as `export type { … }` blocks and as inline
+// `type X` specifiers inside value exports; esbuild's TypeScript transform
+// strips both (line-based stripping missed the inline form and the multi-line
+// blocks). esbuild resolves through .design-sync/node_modules, like the forks.
+const source = readFileSync("packages/ui/src/index.ts", "utf8")
+  .split(/\r?\n/)
+  .filter((l) => !DROP.test(l))
+  .join("\n");
+const lines = transformSync(source, { loader: "ts", format: "esm" }).code.split(
+  "\n",
+);
+const body = lines
   .map((l) =>
     l.replace(
       '"./components/DateTimePicker"',

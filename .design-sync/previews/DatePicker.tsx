@@ -24,12 +24,8 @@ const nextWeek = new Date(2024, 4, 22);
 export const Basic = () => (
   <div style={stack}>
     <DatePicker label="Invoice date" value={later} onChange={noop} />
-    <DatePicker
-      label="Invoice date"
-      value={null}
-      placeholder="Not set"
-      onChange={noop}
-    />
+    {/* Empty, the typed-entry field shows the locale's date mask. */}
+    <DatePicker label="Invoice date" value={null} onChange={noop} />
   </div>
 );
 

@@ -214,7 +214,10 @@ const makeStyles = (theme: Theme) =>
       minHeight: theme.spacing.l,
       marginVertical: theme.spacing.xs,
     },
+    // Pinned to the top: the row is as tall as the circle and its line, and a
+    // label centred in all of that would sit below its circle.
     columnLabel: {
+      alignSelf: "flex-start",
       justifyContent: "center",
       minHeight: CIRCLE,
       marginStart: theme.spacing.m,

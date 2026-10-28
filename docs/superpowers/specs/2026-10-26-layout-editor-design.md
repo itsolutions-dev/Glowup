@@ -366,8 +366,10 @@ Added 2026-10-28 (§16 Q6). A layout can hold real forms, built on the library's
   Autocomplete, Checkbox, CheckboxGroup, RadioGroup, Switch, Slider, Rating, PinInput, the date and time
   pickers) placed anywhere inside a Form is **bound** to it: it gets a field name, unique in that Form,
   taken from its `label` (`"Email address"` → `emailAddress`) or else its type and a number (`input2`), and
-  a list of **rules**. Moved to another Form it keeps its name unless taken there (then `email2`); moved
-  out of every Form it loses the binding (one undo brings it back). Duplicated, the copy gets a new name.
+  a list of **rules**. A name made from the label (`"auto": true` in the JSON) follows the label when it
+  changes; a name typed by hand stays. Moved to another Form it keeps its name unless taken there (then
+  `email2`): the fields already in a Form keep theirs, whatever comes first in reading order; moved out of
+  every Form it loses the binding (one undo brings it back). Duplicated, the copy gets a new name.
 - **Rules** are the JSON-safe part of the library's `FormRule`: `required`, `min`, `max`, `minLength`,
   `maxLength`, `pattern` (the regular expression's source, as text), `type` (`email`, `url`, `number`)
   and `message`. Custom validators stay in code.

@@ -47,6 +47,10 @@ export const checkDocument = (doc: LayoutDocument): string[] => {
         if (!layout) {
           problems.push(`${node.id}: needs a layout on a grid`);
         } else if (
+          ![layout.x, layout.y, layout.w, layout.h].every(Number.isInteger)
+        ) {
+          problems.push(`${node.id}: not on whole cells`);
+        } else if (
           layout.x < 0 ||
           layout.y < 0 ||
           layout.w < 1 ||

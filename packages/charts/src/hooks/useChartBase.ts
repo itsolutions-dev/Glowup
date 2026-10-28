@@ -67,7 +67,7 @@ export const useChartBase = (
   // Colours follow the position in the whole list, so switching a series off does not recolour the others.
   const allColors = resolveSeriesColors(
     series,
-    colors ?? themeSeriesColors(theme.colors),
+    colors ?? themeSeriesColors(theme),
   );
   const shown = series
     .map((s, i) => ({ s, color: allColors[i] }))

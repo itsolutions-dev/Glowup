@@ -106,6 +106,24 @@ export interface ThemeShapeTokens {
   extraLarge: number;
 }
 
+/**
+ * Colours for data, apart from the UI roles: fixed like the status roles (a
+ * brand palette does not change them), each set validated for colour-blind
+ * separation and against the light and the dark surfaces.
+ */
+export interface ThemeChartTokens {
+  /**
+   * One colour per series, in this order and never cycled: the order is what
+   * keeps neighbours apart for colour-blind readers. Past eight series, fold
+   * the rest into "Other" or split the chart.
+   */
+  categorical: string[];
+  /** One hue, light to dark, for a magnitude (a heatmap, a choropleth). */
+  sequential: string[];
+  /** Two poles and a grey middle, for values above and below a reference. */
+  diverging: { negative: string; neutral: string; positive: string };
+}
+
 /** Material 3 type scale roles carried by the theme. */
 export type TypographyVariant =
   | "displayLarge"
@@ -129,6 +147,8 @@ export interface Theme {
   typography: { [key in TypographyVariant]: TextStyle };
   spacing: ThemeSpacingTokens;
   shape: ThemeShapeTokens;
+  /** The chart palette of the current scheme. */
+  charts: ThemeChartTokens;
   isDark: boolean;
 }
 
@@ -147,6 +167,8 @@ type _ThemeTokensInSync = AllTrue<
     Exact<ThemeColorTokens, typeof themeConfig.colors.dark>,
     Exact<ThemeSpacingTokens, typeof themeConfig.spacing>,
     Exact<ThemeShapeTokens, typeof themeConfig.shape>,
+    Exact<ThemeChartTokens, typeof themeConfig.charts.light>,
+    Exact<ThemeChartTokens, typeof themeConfig.charts.dark>,
     Exact<TypographyVariant, keyof typeof themeConfig.typography>,
   ]
 >;
@@ -167,6 +189,7 @@ const ThemeContext = createContext<ThemeContextType>({
 
     spacing: themeConfig.spacing,
     shape: themeConfig.shape,
+    charts: themeConfig.charts.dark,
     isDark: true,
   },
   toggleTheme: () => {},
@@ -260,6 +283,8 @@ export const ThemeProvider = ({
       typography: mergeTypography(palette.typography),
       spacing: themeConfig.spacing,
       shape: themeConfig.shape,
+      charts:
+        mode === "dark" ? themeConfig.charts.dark : themeConfig.charts.light,
       isDark: mode === "dark",
     }),
     [palette, mode],

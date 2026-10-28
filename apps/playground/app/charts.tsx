@@ -469,7 +469,7 @@ export default function ChartsPage() {
           visible
           type="info"
           icon="information-outline"
-          message="Checked in a browser; on a phone it has run only in unit tests so far. Series colours are provisional: they come from the theme's roles until the library has a chart palette."
+          message="Checked in a browser, and on the iPhone simulator and the Android emulators in CI. Series colours come from the theme's chart palette (theme.charts), in order."
         />
       }
     >

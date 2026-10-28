@@ -228,5 +228,71 @@
         "medium": 12,
         "large": 16,
         "extraLarge": 28
+    },
+    "charts": {
+        "light": {
+            "categorical": [
+                "#2a78d6",
+                "#eb6834",
+                "#1baf7a",
+                "#eda100",
+                "#e87ba4",
+                "#008300",
+                "#6250d6",
+                "#e34948"
+            ],
+            "sequential": [
+                "#cde2fb",
+                "#b7d3f6",
+                "#9ec5f4",
+                "#86b6ef",
+                "#6da7ec",
+                "#5598e7",
+                "#3987e5",
+                "#2a78d6",
+                "#256abf",
+                "#1c5cab",
+                "#184f95",
+                "#104281",
+                "#0d366b"
+            ],
+            "diverging": {
+                "negative": "#e34948",
+                "neutral": "#f0efec",
+                "positive": "#2a78d6"
+            }
+        },
+        "dark": {
+            "categorical": [
+                "#3987e5",
+                "#d95926",
+                "#199e70",
+                "#c98500",
+                "#d55181",
+                "#008300",
+                "#9085e9",
+                "#e66767"
+            ],
+            "sequential": [
+                "#cde2fb",
+                "#b7d3f6",
+                "#9ec5f4",
+                "#86b6ef",
+                "#6da7ec",
+                "#5598e7",
+                "#3987e5",
+                "#2a78d6",
+                "#256abf",
+                "#1c5cab",
+                "#184f95",
+                "#104281",
+                "#0d366b"
+            ],
+            "diverging": {
+                "negative": "#e66767",
+                "neutral": "#383835",
+                "positive": "#3987e5"
+            }
+        }
     }
 }

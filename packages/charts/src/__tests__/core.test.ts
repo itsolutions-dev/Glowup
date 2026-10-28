@@ -272,14 +272,10 @@ describe("palette", () => {
     expect(colors).toEqual(["red", "#123456", "red"]);
   });
 
-  it("themeSeriesColors reads roles of the theme only", () => {
-    const roles = new Proxy(
-      {},
-      { get: (_, name) => `role:${String(name)}` },
-    ) as never;
-    const list = themeSeriesColors(roles);
-    expect(list[0]).toBe("role:primary");
-    expect(list.every((c) => c.startsWith("role:"))).toBe(true);
+  it("themeSeriesColors is the theme's categorical chart palette, in order", () => {
+    const categorical = ["#111111", "#222222"];
+    const theme = { charts: { categorical } } as never;
+    expect(themeSeriesColors(theme)).toBe(categorical);
   });
 });
 

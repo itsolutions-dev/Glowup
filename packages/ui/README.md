@@ -172,6 +172,12 @@ const { theme, toggleTheme } = useTheme();
 Helpers `getStateColor()` and `getGlowStyles()` are also exported for building custom
 theme-reactive components.
 
+`theme.charts` is the palette for data, kept apart from the UI roles and the same under every brand palette:
+`categorical` (eight series colours, in an order that keeps neighbours apart for colour-blind readers: use them in
+order, never cycled), `sequential` (one hue, light to dark) and `diverging` (`negative`, `neutral`, `positive`).
+Light and dark are each their own validated steps. Three light colours sit below 3:1 on the surface, so a chart
+that uses them also needs labels or a table view.
+
 ## Library layout
 
 `src` is the library source — the code published as `@its/glowup-ui`.
@@ -196,7 +202,7 @@ src/
 ├── hooks/             # useBreakpoint (and useBreakpointValue), useDebounce
 └── providers/         # theme + alert infrastructure
     ├── ThemeProvider.tsx   # Material You theme, useTheme(), getStateColor(), getGlowStyles()
-    ├── theme.json          # all color / typography / spacing / shape tokens (source of truth)
+    ├── theme.json          # all color / typography / spacing / shape / chart tokens (source of truth)
     ├── AlertProvider.tsx   # cross-platform Alert() (native Alert.alert / web Dialog)
     └── ToastProvider.tsx   # imperative queued toasts via useToast()
 ```

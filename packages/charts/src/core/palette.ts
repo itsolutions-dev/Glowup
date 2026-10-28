@@ -2,19 +2,11 @@ import type { Theme } from "@its/glowup-ui";
 import type { ChartSeries } from "./types";
 
 /**
- * Colours for series, taken from the theme's roles. Provisional: the library has
- * no chart palette yet (B0 in docs/work-split.md); when it does, only this list
- * changes. The order puts the most distinct roles first.
+ * Colours for series: the theme's categorical chart palette, in its order (the
+ * order keeps neighbours apart for colour-blind readers).
  */
-export const themeSeriesColors = (colors: Theme["colors"]): string[] => [
-  colors.primary,
-  colors.tertiary,
-  colors.secondary,
-  colors.primaryContainer,
-  colors.tertiaryContainer,
-  colors.secondaryContainer,
-  colors.outline,
-];
+export const themeSeriesColors = (theme: Theme): string[] =>
+  theme.charts.categorical;
 
 /** One colour per series: its own `color`, else the list in turn (it repeats when the series outnumber it). */
 export const resolveSeriesColors = (

@@ -1,7 +1,7 @@
 # Documentation map
 
 Where things live, what each document is for, and when to read it. If you are starting a session, read
-the three under **Start here** and nothing else until you need it.
+the four under **Start here** and nothing else until you need it.
 
 Language: the roadmap and handoffs are in Italian, everything else is in English.
 
@@ -10,6 +10,7 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | Document                                 | What it is                                                                                              |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | [`../CLAUDE.md`](../CLAUDE.md)           | Rules for working in the repo: commands, the library/app boundary, tests, releasing, handoffs.          |
+| [`status.md`](status.md)                 | Done / left per workstream with percentages, and the "do not redo" list. Read before starting work.     |
 | [`handoff/`](handoff)                    | One file per working day: what was done, what was verified, open questions, next step. Read the newest. |
 | [`solaris-native.md`](solaris-native.md) | The master plan (decisions D1–D17, phases 0–9, rules, risks). Italian.                                  |
 

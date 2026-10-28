@@ -276,6 +276,10 @@ disponibili (così il CRM guida le prop invece di indovinarle). Il pivot (7) è 
 nativo, quindi dipende dalla griglia migliorata (1.4/3A). La fase 9 resta ferma finché 5 non ha almeno 6
 compositi stabili.
 
+**Ordine aggiornato (2026-10-28):** le schermate pilota (8) guidano la Fase 5, non la seguono: un composito si fa
+quando una schermata pilota lo chiede. Le tappe fino all'1.0 e cosa resta rinviato sono in `docs/status.md`
+(«Road to done»), che vale su questo paragrafo.
+
 ### Fase 0 — Spike e fondamenta
 
 Obiettivo: trasformare le proposte più rischiose in fatti, **prima** di costruire.

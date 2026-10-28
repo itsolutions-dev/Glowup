@@ -116,7 +116,8 @@ status, decisions, what was verified on web/iOS/Android, files and commits, open
 step). **One handoff per calendar day**: if today's file already exists, update it (add or edit a
 section; with two people, one section each) and never create a second one for the same day — no
 `-2`, no name suffix. Earlier files that already carry a suffix stay as they are. A later session
-starts from the latest handoff and `docs/solaris-native.md`. `docs/README.md` maps every document.
+starts from `docs/status.md`, the latest handoff and `docs/solaris-native.md`, and updates
+`docs/status.md` (percentages, done / left, "do not redo") with the handoff. `docs/README.md` maps every document.
 
 ## Code style
 

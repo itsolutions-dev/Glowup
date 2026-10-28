@@ -88,22 +88,45 @@ const describe = (nodes) =>
  * width, not in the middle: on a 320 px screen the middle is over the pivot grid's numbers, which
  * scroll the grid instead of the page, and the steps that look for a field below it ran out of swipes.
  * A quarter is over the grid's column of labels, which does not scroll and leaves the drag to the page.
+ *
+ * Never from a text field: it keeps the drag, focused or not (seen on the emulator), the page does not
+ * move, and every later step looking past it ran out of swipes (the pivot's toolbar put Amount on the
+ * starting point). `nodes` is the screen as the caller last read it; without, it is read here.
  */
-const swipe = (direction, span = 0.4) => {
+const swipe = (direction, span = 0.4, nodes = screen()) => {
   const [from, to] =
     direction === "down"
       ? [0.5 + span / 2, 0.5 - span / 2]
       : [0.5 - span / 2, 0.5 + span / 2];
   const x = Math.round(screenW / 4);
-  adb("shell", "input", "swipe", x, screenH * from, x, screenH * to, 300);
+  let [y0, y1] = [screenH * from, screenH * to];
+  const fieldAt = (y) =>
+    nodes.find(
+      (n) =>
+        n.cls.endsWith("EditText") &&
+        n.l <= x &&
+        x <= n.r &&
+        n.t <= y &&
+        y <= n.b,
+    );
+  const field = fieldAt(y0);
+  if (field) {
+    // Just below it, or just above when below is the bottom edge or another field; the same length of swipe.
+    const below = field.b + 8;
+    const start =
+      below <= screenH * 0.85 && !fieldAt(below) ? below : field.t - 8;
+    [y0, y1] = [start, start + (y1 - y0)];
+  }
+  adb("shell", "input", "swipe", x, y0, x, y1, 300);
 };
 
 // Until the title is on screen: the page is long, and a fixed number of swipes stops short of the
 // top once something is added at the end of it (the PDF page did, on Android 14).
 const scrollToTop = async () => {
   for (let i = 0; i < 24; i += 1) {
-    if (named(screen(), "Native check")) return;
-    swipe("up");
+    const nodes = screen();
+    if (named(nodes, "Native check")) return;
+    swipe("up", 0.4, nodes);
     await sleep(300);
   }
 };
@@ -115,13 +138,15 @@ const scrollToTop = async () => {
  * past.
  */
 const find = async (predicate, tries = 6) => {
-  let hit = predicate(screen());
+  let nodes = screen();
+  let hit = predicate(nodes);
   if (hit) return hit;
   for (const direction of ["down", "up"]) {
     for (let i = 0; i < (direction === "down" ? tries : tries * 2); i += 1) {
-      swipe(direction);
+      swipe(direction, 0.4, nodes);
       await sleep(600);
-      hit = predicate(screen());
+      nodes = screen();
+      hit = predicate(nodes);
       if (hit) return hit;
     }
   }

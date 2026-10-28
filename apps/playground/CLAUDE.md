@@ -156,7 +156,9 @@ without one of them fails there. It gets its page, its props table and its URL f
   with a `state=` line. `scripts/android-interact.mjs` drives them on the emulator with `adb` (types,
   taps, `uiautomator dump`) and prints PASS/FAIL per step. Typing goes through key events, and a failing step leaves
   `android-step-N.png`. iOS has no equivalent from CI. The screen and the script are kept in step by hand: add a control
-  there when a component gains behaviour a phone must prove.
+  there when a component gains behaviour a phone must prove. A drag that starts on a text field (focused or not) does not
+  scroll the page, so the script's `swipe` starts beside any field under its starting point: adding height above the
+  `Interaction` fields once put one there and stranded every later step (2026-10-28).
 - **PDF rows** (`usePdfChecks`): the package's native module on the sample PDF (`site/samplePdf.ts`): opens it (3 pages),
   draws page 1 at 600 px (its real width is read from the file) and again at the width the viewer would ask on this screen
   (screen width minus 32, times the pixel ratio): that second drawing is the last thing on the screen, one image pixel to one

@@ -186,7 +186,8 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 
 ### Library hardening (`library-roadmap.md`), 45%
 
-Basis: 7 + 11 fixed of about 42 defects (the 7 of 23/10 plus the 35 the review found).
+Basis: 7 + 11 + 3 fixed of about 45 defects (the 7 of 23/10, the 35 the review found, the 3 the sign-in pilot
+found on 29/10).
 
 - **Done (23/10 afternoon):** 7 items. Hover and focus no longer shift the box, `Tabs` hover, `Slider`, the
   `Switch` thumb, the picker popover scrollbar, `useToast` identity and `maxVisible`, `DataGrid` column order.
@@ -330,9 +331,9 @@ what these screens use.
       stage does not stall.
 - [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above), page deleted after
       the CI on `2de68fb`.
-- [x] Sign-in with 2FA: built 29/10 as a temporary page (`apps/playground/app/pilot-2fa.tsx`, not committed), three
-      bugs fixed (Phase 8 above). No `OtpVerify` composite needed: `PinInput` + `Button` + `Banner` do it. Delete the
-      page after the next iPhone CI.
+- [x] Sign-in with 2FA: built 29/10 as a temporary page, three bugs fixed (Phase 8 above), page deleted after the CI
+      on `51b873f` (green; field heights unchanged on iPhone). No `OtpVerify` composite needed: `PinInput` +
+      `Button` + `Banner` do it.
 - [ ] Contacts list with filters: forces `DataGrid` 1.4, virtualised lists (1.5), `ListPage` and `AppShell`.
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).
 

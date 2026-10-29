@@ -27,10 +27,10 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
 | Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
-| Phase 8: CRM pilot screens                | 30%  | `███░░░░░░░` | contacts list, customer detail                              | yes | –        | partly  |
-| Library hardening (`library-roadmap.md`)  | 45%  | `████▌░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
+| Phase 8: CRM pilot screens                | 45%  | `████▌░░░░░` | customer detail                                             | yes | –        | partly  |
+| Library hardening (`library-roadmap.md`)  | 50%  | `█████░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | 61%  | `██████░░░░` |                                                             |     |          |         |
+| **Overall (phases 0–8, weighted)**        | 63%  | `██████░░░░` |                                                             |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -61,7 +61,9 @@ done, and 1.10 and 1.11 are partly done.
   - 1.2 `expo export -p ios` / `-p android` in `examples/consumer` (only `-p web` today).
   - 1.3 / A7 `docs/native-verification.md`, the component × platform matrix. The file does not exist.
   - 1.4 `DataGrid` without the `FlatList` inside a horizontal `ScrollView` (B5). The pivot avoided it by writing
-    its own grid.
+    its own grid. The contacts pilot (29/10) found it **working** on the Android emulator: it loads more as it
+    scrolls down and scrolls sideways with the header lined up. What is left is speed: every rendered row
+    re-renders on a sort or a search (0.2 s per sort in the production web build).
   - 1.5 virtualised long lists in `Select`, `Menu`, `Autocomplete`. None uses `FlatList` yet.
   - 1.6 keyboard avoidance in `Dialog`, `BottomSheet`, `Drawer`, `Autocomplete`. Not done.
   - 1.7 date pickers on a real Hermes; 1.8 animations; 1.9 RTL.
@@ -170,7 +172,7 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 
-### Phase 8: CRM pilot screens, 30%
+### Phase 8: CRM pilot screens, 45%
 
 - **Done (29/10):** the report (CRM `WaveActivitiesReport`) as a temporary page on invented data, on the web and
   the local Android emulator. Its gaps, fixed in `ui` without changing anything that exists: `Card selected`,
@@ -182,12 +184,19 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   emulator. Three bugs found and fixed in `ui` (see Library hardening). Not gaps: `Input` takes `autoComplete` and
   `autoCapitalize` through `inputProps`; each step needs its own `Form` (one reused keeps its first
   `initialValues`); the CRM's reCAPTCHA is a third-party widget, the app's.
-- **Left:** contacts list with filters, customer detail with outcome, built only with the library. Depends on 3A, `DataGrid` 1.4 and part of `composite-ui`.
+- **Done (29/10):** the contacts list (CRM `AllCustomers` → `PageWrapper`) as a temporary page: 2,000 invented
+  contacts loaded 50 at a time, `DataGrid` with custom cells on wide screens and `ListItem` cards on a phone, search,
+  a filters dialog with a count badge, a sort menu, stats tabs, a "New customer" FAB with a form; on the web and
+  the Android emulator. Four `DataGrid`/`Table` fixes (Library hardening). Found, not fixed: tab labels cut off on
+  Android with room to spare; no range slider (the CRM's distance filter is from–to); no Excel export for a list;
+  `DataGrid` re-rendering every row on a sort. Not gaps: on a phone the list must be the only vertical scroller (React
+  Native warns otherwise); the labelled FAB is `variant="extended"`. Screenshots in `docs/pilots/2026-10-29/`.
+- **Left:** customer detail with outcome, built only with the library.
 
-### Library hardening (`library-roadmap.md`), 45%
+### Library hardening (`library-roadmap.md`), 50%
 
-Basis: 7 + 11 + 3 fixed of about 45 defects (the 7 of 23/10, the 35 the review found, the 3 the sign-in pilot
-found on 29/10).
+Basis: 7 + 11 + 3 + 4 fixed of about 49 defects (the 7 of 23/10, the 35 the review found, the 3 of the sign-in pilot
+and the 4 of the contacts pilot, 29/10).
 
 - **Done (23/10 afternoon):** 7 items. Hover and focus no longer shift the box, `Tabs` hover, `Slider`, the
   `Switch` thumb, the picker popover scrollbar, `useToast` identity and `maxVisible`, `DataGrid` column order.
@@ -202,6 +211,11 @@ found on 29/10).
   field its form starts without; a second, black browser focus ring inside `Input`, `PasswordField` and `PinInput`
   on keyboard focus (`outlineWidth: 0` is ignored by Chrome; now `outlineStyle: "none"`); `PinInput` overflowing a
   phone-wide card (cells now narrow to fit). Changeset `sign-in-field-fixes.md` (patch).
+- **Done (29/10), found by the contacts pilot:** 4 in `DataGrid` (and `Table`'s header), each in a failing test
+  first. Rows have a minimum height, not a fixed one (a name with a chip under it spilled out); columns without a
+  `width` share the free width, never under 150 (an empty band was left on the right); the list's scrollbar is
+  hidden as in `Table` (on the web it made the header and the rows drift apart); an unsorted sortable column shows an
+  up-and-down icon, not a faint arrow. Changeset `data-grid-rows-and-width.md` (patch).
 - **Left:** about 24 defects, found by reading and **never run**. The 6 high ones, all but the first about
   accessibility:
   - Toasts appear under open overlays (needs Toast v2: on iOS and Android a dialog is a separate native window).
@@ -334,7 +348,8 @@ what these screens use.
 - [x] Sign-in with 2FA: built 29/10 as a temporary page, three bugs fixed (Phase 8 above), page deleted after the CI
       on `51b873f` (green; field heights unchanged on iPhone). No `OtpVerify` composite needed: `PinInput` +
       `Button` + `Banner` do it.
-- [ ] Contacts list with filters: forces `DataGrid` 1.4, virtualised lists (1.5), `ListPage` and `AppShell`.
+- [x] Contacts list with filters: built 29/10 as a temporary page, four `DataGrid` fixes (Phase 8 above). No
+      `ListPage` or `AppShell` needed for it. Delete the page after the next CI.
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).
 
 ### Stage 4: the minimum of Phase 1 for a 1.0

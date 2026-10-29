@@ -143,6 +143,11 @@ const DataGrid = ({
     const byId = new Map(columns.map((c) => [c.id, c]));
     return order.flatMap((id) => byId.get(id) ?? []);
   }, [columns, order]);
+  // The grid is never narrower than its columns: past that it scrolls sideways.
+  const minWidth = orderedColumns.reduce(
+    (sum, column) => sum + (column.width ?? FLEX_MIN),
+    0,
+  );
 
   const paged = typeof rowsPerPage === "number" && rowsPerPage > 0;
   const perPage = paged ? Math.floor(rowsPerPage) || 1 : 0;
@@ -195,7 +200,8 @@ const DataGrid = ({
         {orderedColumns.map((column, index) => (
           <TableHeaderCell
             key={column.id}
-            width={column.width}
+            width={column.width ?? FLEX_MIN}
+            flex={column.width === undefined}
             align={column.align ?? column.alignment}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
@@ -237,13 +243,15 @@ const DataGrid = ({
         onClick={onClick ? () => onClick(item, index) : undefined}
         style={[
           typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
-          { height: density === "dense" ? 40 : 56 },
+          // A minimum: a cell of two lines (a name and a chip) grows its row instead of spilling out.
+          { minHeight: density === "dense" ? 40 : 56 },
         ]}
       >
         {orderedColumns.map((column, colIndex) => (
           <TableCell
             key={`${item.id || index}-${column.id}`}
-            width={column.width}
+            width={column.width ?? FLEX_MIN}
+            flex={column.width === undefined}
             align={column.align ?? column.alignment}
             style={[
               colIndex === orderedColumns.length - 1
@@ -301,12 +309,19 @@ const DataGrid = ({
           </Text>
         </View>
       )}
-      <ScrollView horizontal bounces={false}>
-        <View>
+      <ScrollView
+        horizontal
+        bounces={false}
+        contentContainerStyle={styles.fill}
+      >
+        <View style={[styles.fill, { minWidth }]}>
           {renderHeader()}
           <FlatList
             // A new page starts at the top.
             key={current}
+            // No scrollbar, as in Table: on the web it takes width from the rows and not from the header above
+            // them, and the columns would not line up.
+            showsVerticalScrollIndicator={false}
             data={rows}
             renderItem={renderRow}
             keyExtractor={(item, index) =>
@@ -358,7 +373,12 @@ const DataGrid = ({
   );
 };
 
+// What a column without a width gets at least: the width every column had before they shared the free width.
+const FLEX_MIN = 150;
+
 const styles = StyleSheet.create({
+  // The columns span the grid when they fit, and scroll sideways when they do not.
+  fill: { flexGrow: 1 },
   // The grid fills its container, so the FlatList inside it can scroll.
   grid: { flex: 1 },
   title: {

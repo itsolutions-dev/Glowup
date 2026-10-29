@@ -1,6 +1,7 @@
 import React from "react";
 import { Text } from "react-native";
 import { render } from "@testing-library/react-native";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { DataGrid, ThemeProvider } from "..";
 
 const rows = [
@@ -27,6 +28,64 @@ describe("DataGrid cells", () => {
     expect(out).toContain("€ 80");
     expect(renderCell).toHaveBeenCalledWith(1200, rows[0], 0);
     expect(renderCell).toHaveBeenCalledWith(80, rows[1], 1);
+  });
+
+  // A two-line cell (a name and a chip under it) spilled out of a row fixed at 56: rows start at 56 and grow.
+  it("gives a row a minimum height, not a fixed one", async () => {
+    for (const [density, rowHeight] of [
+      ["normal", 56],
+      ["dense", 40],
+    ] as const) {
+      const out = await json(
+        <DataGrid
+          data={rows}
+          density={density}
+          columns={[{ id: "name", label: "Name" }]}
+        />,
+      );
+      expect(out).toContain(`"minHeight":${rowHeight}`);
+      expect(out).not.toContain(`"height":${rowHeight}`);
+    }
+  });
+
+  // A grid narrower than its box left an empty band on the right: columns without a width now share the free
+  // width, as Table's do, never narrower than the 150 they had.
+  it("lets columns without a width share the free width, never under 150", async () => {
+    const out = await json(
+      <DataGrid
+        data={rows}
+        columns={[
+          { id: "name", label: "Name" },
+          { id: "total", label: "Total", width: 90 },
+        ]}
+      />,
+    );
+    expect(out).toContain(`"flex":1,"minWidth":150`);
+    expect(out).toContain(`"width":90`);
+    expect(out).toContain(`"minWidth":240`);
+  });
+
+  // The list's scrollbar took width from the rows and not from the header above them: the columns drifted.
+  it("hides the list's scrollbar, so the header and the rows line up", async () => {
+    const out = await json(
+      <DataGrid data={rows} columns={[{ id: "name", label: "Name" }]} />,
+    );
+    expect(out).toContain(`"showsVerticalScrollIndicator":false`);
+  });
+
+  // An unsorted sortable column showed a faint arrow (half-transparent outline colour), easy to miss.
+  it("marks a sortable column before it is sorted", async () => {
+    const glyph = String.fromCodePoint(
+      Number(MaterialCommunityIcons.glyphMap["unfold-more-horizontal"]),
+    );
+    const out = await json(
+      <DataGrid
+        data={rows}
+        columns={[{ id: "name", label: "Name", sortable: true }]}
+      />,
+    );
+    expect(out).toContain(glyph);
+    expect(out).not.toContain(`"opacity":0.5`);
   });
 
   it("aligns the header and the cells of a column", async () => {

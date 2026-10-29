@@ -470,11 +470,11 @@ export const TableHeaderCell = ({
               color={theme.colors.primary}
             />
           ) : (
+            // Sortable, not sorted yet: visible at a glance, not only once pressed.
             <Icons
-              name="chevron-up"
+              name="unfold-more-horizontal"
               size={18}
-              color={theme.colors.outlineVariant}
-              style={{ opacity: 0.5 }}
+              color={theme.colors.onSurfaceVariant}
             />
           )}
         </View>

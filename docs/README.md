@@ -12,6 +12,7 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | [`../CLAUDE.md`](../CLAUDE.md)           | Rules for working in the repo: commands, the library/app boundary, tests, releasing, handoffs.          |
 | [`status.md`](status.md)                 | Done / left per workstream with percentages, and the "do not redo" list. Read before starting work.     |
 | [`handoff/`](handoff)                    | One file per working day: what was done, what was verified, open questions, next step. Read the newest. |
+| [`pilots/`](pilots)                      | Screenshots of the temporary CRM pilot screens (web, phone, Android), one folder per day and screen.    |
 | [`solaris-native.md`](solaris-native.md) | The master plan (decisions D1–D17, phases 0–9, rules, risks). Italian.                                  |
 
 ## Plans and roadmap

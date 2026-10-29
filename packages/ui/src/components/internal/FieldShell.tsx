@@ -71,7 +71,7 @@ export const fieldText = (
   const style: TextStyle = {
     ...typography,
     // No browser focus ring: the field draws its own.
-    ...Platform.select<TextStyle>({ web: { outlineWidth: 0 } }),
+    ...Platform.select<TextStyle>({ web: { outlineStyle: "none" as any } }),
     color: theme.colors.onSurface,
     paddingVertical,
   };

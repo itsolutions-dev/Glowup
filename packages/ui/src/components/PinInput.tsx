@@ -181,7 +181,10 @@ const PinInput = ({
                 styles.cell,
                 theme.typography.titleLarge,
                 {
+                  // Narrower when the row has no room (a phone, inside a card), never wider.
                   width: cellSize,
+                  flexShrink: 1,
+                  minWidth: 0,
                   height: cellSize,
                   color: theme.colors.onSurface,
                 },
@@ -224,7 +227,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: theme.shape.medium,
       backgroundColor: theme.colors.surface,
       // Suppress the browser focus ring; getGlowStyles draws the M3 one.
-      ...Platform.select({ web: { outlineWidth: 0 } }),
+      ...Platform.select({ web: { outlineStyle: "none" as any } }),
     },
     cellFilled: { backgroundColor: theme.colors.surfaceContainerHighest },
     cellFilledIdle: { borderColor: "transparent" },

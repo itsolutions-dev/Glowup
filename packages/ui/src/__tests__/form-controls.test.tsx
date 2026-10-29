@@ -716,6 +716,20 @@ describe("PinInput", () => {
   const cells = (view: { toJSON: () => unknown }) =>
     (json(view).match(/"borderColor":"transparent"/g) ?? []).length;
 
+  // Six 48 px cells need 328 px: on a phone, inside a card, the row overflowed and pushed the page sideways.
+  it("lets its cells narrow to fit the row, never wider than cellSize", async () => {
+    const { getByLabelText } = await wrap(
+      <PinInput length={6} label="Code" value="" onChange={() => {}} />,
+    );
+    const cell = StyleSheet.flatten(getByLabelText("Code 1/6").props.style);
+    expect(cell).toMatchObject({
+      width: 48,
+      height: 48,
+      flexShrink: 1,
+      minWidth: 0,
+    });
+  });
+
   it("reports the whole code through onChange", async () => {
     const onChange = jest.fn();
     const { getByLabelText } = await wrap(

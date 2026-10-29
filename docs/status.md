@@ -27,10 +27,10 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
 | Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
-| Phase 8: CRM pilot screens                | 15%  | `█▌░░░░░░░░` | sign-in 2FA, contacts list, customer detail                 | yes | –        | partly  |
+| Phase 8: CRM pilot screens                | 30%  | `███░░░░░░░` | contacts list, customer detail                              | yes | –        | partly  |
 | Library hardening (`library-roadmap.md`)  | 45%  | `████▌░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | 60%  | `██████░░░░` |                                                             |     |          |         |
+| **Overall (phases 0–8, weighted)**        | 61%  | `██████░░░░` |                                                             |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -170,15 +170,19 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 
-### Phase 8: CRM pilot screens, 15%
+### Phase 8: CRM pilot screens, 30%
 
 - **Done (29/10):** the report (CRM `WaveActivitiesReport`) as a temporary page on invented data, on the web and
   the local Android emulator. Its gaps, fixed in `ui` without changing anything that exists: `Card selected`,
   `Select` options without `id`, `Tooltip` with a node as content, `gradientStyle`. Not gaps: the narrow `Table`
   scrolls sideways by design; an `IconButton` on a coloured bar takes `variant="tonal"`; the month filter is a
   `Select` of 12 months, as in the CRM.
-- **Left:** sign-in with 2FA, contacts list with filters, customer detail with outcome, report (charts and pivot),
-  built only with the library. Depends on 3A, `DataGrid` 1.4 and part of `composite-ui`.
+- **Done (29/10):** sign-in with 2FA (CRM `Login`, `FirstLogin`, `Verify2FA`, `Setup2FA`) as a temporary page:
+  login, expired password, 6-digit code, 2FA setup with QR code, on the web (1440 and 390 px) and the local Android
+  emulator. Three bugs found and fixed in `ui` (see Library hardening). Not gaps: `Input` takes `autoComplete` and
+  `autoCapitalize` through `inputProps`; each step needs its own `Form` (one reused keeps its first
+  `initialValues`); the CRM's reCAPTCHA is a third-party widget, the app's.
+- **Left:** contacts list with filters, customer detail with outcome, built only with the library. Depends on 3A, `DataGrid` 1.4 and part of `composite-ui`.
 
 ### Library hardening (`library-roadmap.md`), 45%
 
@@ -192,6 +196,11 @@ Basis: 7 + 11 fixed of about 42 defects (the 7 of 23/10 plus the 35 the review f
   values; `PinInput` completing with blanks; `ProgressButton type="submit"`; Enter submitting a disabled form;
   `Table` rows keyed by index; `Alert()` lost before the provider, overwritten by a second one, Escape skipping
   cancel. Changeset `app-blocking-fixes.md` (minor: `NumberField` no longer clamps to 0..100 by default).
+- **Done (29/10), found by the sign-in pilot:** 3, each in a failing test first (the focus ring in Chromium, since
+  jest takes the native branch). `PasswordField showStrength` crashing on the `undefined` a `FormField` hands a
+  field its form starts without; a second, black browser focus ring inside `Input`, `PasswordField` and `PinInput`
+  on keyboard focus (`outlineWidth: 0` is ignored by Chrome; now `outlineStyle: "none"`); `PinInput` overflowing a
+  phone-wide card (cells now narrow to fit). Changeset `sign-in-field-fixes.md` (patch).
 - **Left:** about 24 defects, found by reading and **never run**. The 6 high ones, all but the first about
   accessibility:
   - Toasts appear under open overlays (needs Toast v2: on iOS and Android a dialog is a separate native window).
@@ -321,7 +330,9 @@ what these screens use.
       stage does not stall.
 - [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above), page deleted after
       the CI on `2de68fb`.
-- [ ] Sign-in with 2FA: the `SignIn` template exists; needs `OtpVerify`.
+- [x] Sign-in with 2FA: built 29/10 as a temporary page (`apps/playground/app/pilot-2fa.tsx`, not committed), three
+      bugs fixed (Phase 8 above). No `OtpVerify` composite needed: `PinInput` + `Button` + `Banner` do it. Delete the
+      page after the next iPhone CI.
 - [ ] Contacts list with filters: forces `DataGrid` 1.4, virtualised lists (1.5), `ListPage` and `AppShell`.
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).
 

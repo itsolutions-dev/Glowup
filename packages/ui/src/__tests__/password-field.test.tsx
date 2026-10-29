@@ -1,7 +1,14 @@
 import React, { createRef } from "react";
 import { Text, TextInput } from "react-native";
 import { fireEvent, render } from "@testing-library/react-native";
-import { Input, PasswordField, ThemeProvider, passwordStrength } from "..";
+import {
+  Form,
+  FormField,
+  Input,
+  PasswordField,
+  ThemeProvider,
+  passwordStrength,
+} from "..";
 
 const draw = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -178,6 +185,22 @@ describe("PasswordField strength meter", () => {
       {...extra}
     />
   );
+
+  // A FormField hands `undefined` to a field the form's initialValues leave out; the meter threw.
+  it("takes no value in a form, as an empty one", async () => {
+    const view = await draw(
+      <Form>
+        <FormField name="newPassword" label="New password">
+          {(field) => <PasswordField {...field} showStrength />}
+        </FormField>
+      </Form>,
+    );
+    await fireEvent.changeText(
+      view.getByLabelText("New password"),
+      "Sunrise-2026!",
+    );
+    expect(view.getByLabelText(/^Password strength/)).toBeTruthy();
+  });
 
   it("is not drawn without showStrength", async () => {
     const view = await draw(

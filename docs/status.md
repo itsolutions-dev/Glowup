@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-10-29** (afternoon), `dev` at the commit that carries this file. Built from the handoffs of 19–29 October, `solaris-native.md`,
+As of **2026-10-29** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19–29 October, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -349,7 +349,7 @@ what these screens use.
       on `51b873f` (green; field heights unchanged on iPhone). No `OtpVerify` composite needed: `PinInput` +
       `Button` + `Banner` do it.
 - [x] Contacts list with filters: built 29/10 as a temporary page, four `DataGrid` fixes (Phase 8 above). No
-      `ListPage` or `AppShell` needed for it. Delete the page after the next CI.
+      `ListPage` or `AppShell` needed for it. Page deleted after the CI on `a830808` (green).
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).
 
 ### Stage 4: the minimum of Phase 1 for a 1.0

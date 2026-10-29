@@ -21,7 +21,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | ----------------------------------------- | ---- | ------------ | ----------------------------------------------------------- | --- | -------- | ------- |
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators                 | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 25%  | `██▌░░░░░░░` | jest ×3, verification matrix, DataGrid 1.4, a11y, safe area | –   | –        | –       |
-| Phase 2: theme tokens and hooks           | 100% | `██████████` | the gradient on iPhone (next CI)                            | yes | partly   | yes     |
+| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                                     | yes | yes      | yes     |
 | Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                      | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release               | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
@@ -82,8 +82,8 @@ done, and 1.10 and 1.11 are partly done.
   - The brand gradient (29/10), asked for by the report pilot: `gradientStyle(from, to, angle?)`, no theme token and
     no package. React Native 0.86 draws it itself on iOS and Android (`experimental_backgroundImage`), CSS on the web;
     the start colour is the fallback. Brand = `primary` into `tertiary`: the `databeasy` palette gives the CRM's
-    `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes.
-- **Left:** the gradient on iPhone (a bar at the end of `/native-check`, next CI run).
+    `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes, and on iPhone in CI (`2de68fb`: the bar at
+    the end of `/native-check`).
 
 ### Phase 3: specialised props, 55%
 
@@ -319,8 +319,8 @@ what these screens use.
 
 - [ ] **Ask the CRM side now** for real report definitions and anonymised data for the screens, so this
       stage does not stall.
-- [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above). Delete the page
-      (`apps/playground/app/pilot-report.tsx`) once the iPhone CI is read.
+- [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above), page deleted after
+      the CI on `2de68fb`.
 - [ ] Sign-in with 2FA: the `SignIn` template exists; needs `OtpVerify`.
 - [ ] Contacts list with filters: forces `DataGrid` 1.4, virtualised lists (1.5), `ListPage` and `AppShell`.
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).

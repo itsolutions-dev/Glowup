@@ -24,6 +24,8 @@ export interface CardProps {
   variant?: "elevated" | "filled" | "outlined" | "glow";
   onClick?: () => void;
   accessibilityLabel?: string;
+  /** Draws the card as the chosen one of a set (a primary border) and says so to screen readers. */
+  selected?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -33,9 +35,21 @@ const CardBase = ({
   onClick,
   style,
   accessibilityLabel,
+  selected,
 }: CardProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // The border takes its width from the padding, so selecting moves nothing.
+  const selectedStyle = useMemo(() => {
+    if (!selected) return undefined;
+    const border =
+      StyleSheet.flatten<ViewStyle>(styles[variant]).borderWidth ?? 0;
+    return {
+      borderWidth: 2,
+      borderColor: theme.colors.primary,
+      padding: theme.spacing.m + border - 2,
+    };
+  }, [selected, styles, variant, theme]);
 
   return (
     <Pressable
@@ -43,6 +57,13 @@ const CardBase = ({
       disabled={!onClick}
       accessibilityRole={onClick ? "button" : undefined}
       accessibilityLabel={accessibilityLabel}
+      // A button that stays chosen: aria-pressed on the web (aria-selected is
+      // not valid there), the selected state on iOS and Android.
+      {...((selected === undefined
+        ? null
+        : Platform.OS === "web"
+          ? { "aria-pressed": selected }
+          : { "aria-selected": selected }) as object)}
       style={({ hovered, pressed }: PressableState) => [
         styles.base,
         styles[variant],
@@ -53,6 +74,7 @@ const CardBase = ({
         hovered && styles.hovered,
         pressed && styles.pressed,
         onClick && Platform.OS === "web" && { cursor: "pointer" },
+        selectedStyle,
         style,
       ]}
     >

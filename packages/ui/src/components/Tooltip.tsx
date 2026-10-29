@@ -20,8 +20,12 @@ import Button from "./Button";
 import { useEscapeKey } from "./internal/useEscapeKey";
 
 export interface TooltipProps {
-  /** The tip's text; the body text of a rich tooltip. */
-  content: string;
+  /**
+   * The tip's text; the body of a rich tooltip, which can also be laid out (a
+   * small sum, a list). A node never names the anchor: give the rich tooltip a
+   * `title` for that.
+   */
+  content: React.ReactNode;
   /**
    * `"plain"` is the one-line label for an icon-only control. `"rich"` adds a
    * `title` and an `action`, for context a label cannot carry. Defaults to
@@ -256,9 +260,13 @@ const Tooltip = ({
           {title}
         </Text>
       )}
-      <Text style={[theme.typography.bodyMedium, styles.richText]}>
-        {content}
-      </Text>
+      {typeof content === "string" ? (
+        <Text style={[theme.typography.bodyMedium, styles.richText]}>
+          {content}
+        </Text>
+      ) : (
+        content
+      )}
       {action && (
         <View style={styles.richActions}>
           <Button
@@ -302,9 +310,9 @@ const Tooltip = ({
           accessible={anchorAccessible}
           accessibilityLabel={
             anchorAccessible
-              ? title
-                ? `${title}. ${content}`
-                : content
+              ? [title, typeof content === "string" ? content : undefined]
+                  .filter(Boolean)
+                  .join(". ") || undefined
               : undefined
           }
           onLongPress={handleLongPress}

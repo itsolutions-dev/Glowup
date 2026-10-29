@@ -30,6 +30,7 @@ import {
   Drawer,
   Select,
   Tabs,
+  gradientStyle,
   useTheme,
   type IconRenderProps,
 } from "@its/glowup-ui";
@@ -704,6 +705,14 @@ export default function NativeCheck() {
             }}
           />
         ) : null}
+        {/* After the PDF page, so nothing measured moves: the brand gradient (primary into tertiary), drawn by React Native itself, read in the screenshots. */}
+        <View
+          accessibilityLabel="Brand gradient"
+          style={[
+            { height: 48, borderRadius: 12 },
+            gradientStyle(theme.colors.primary, theme.colors.tertiary),
+          ]}
+        />
       </ScrollView>
     </View>
   );

@@ -20,11 +20,14 @@ import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
 
 export interface Option {
-  id: string;
+  /** The row's key. Defaults to the value as a string. */
+  id?: string;
   label: string;
   value: any;
   icon?: MaterialCommunityIconsGlyphs;
 }
+
+const optionKey = (option: Option) => option.id ?? String(option.value);
 
 type SelectVariant = "outlined" | "filled";
 
@@ -160,7 +163,7 @@ const Select = ({
         .map((opt) => (
           <Chip
             label={opt.label}
-            key={opt.id}
+            key={optionKey(opt)}
             onClose={() => internalToggleOption(opt.value)}
           />
         ));
@@ -353,7 +356,7 @@ const Select = ({
                   : value === option.value;
                 return (
                   <Pressable
-                    key={option.id}
+                    key={optionKey(option)}
                     // Not `disabled`: a disabled Pressable lets the touch through to
                     // the popover's backdrop, which would close the list.
                     onPress={() => {

@@ -12,7 +12,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
 | Aggiunti | 28 | 379 |
-| Aggiornati | 55 | 712 |
+| Aggiornati | 55 | 713 |
 | Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
@@ -58,7 +58,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton · − onDismiss
 - [Box](#box): + background, children, margin, padding, style, variant · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Button](#button): comportamento · + badge, color, density, onClick, type, variant · ~ iconPosition · − mode, onPress, tone
-- [Card](#card): + onClick · − onPress
+- [Card](#card): + onClick, selected · − onPress
 - [CardTitle](#cardtitle): + endIcon, startIcon · − left, right
 - [Center](#center): + align, background, children, direction, justify, margin, padding, style · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
@@ -100,7 +100,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [ThemeProvider](#themeprovider): + density, themeScrollbars
 - [TimePicker](#timepicker): + fieldVariant, presentation, showOkButton, showToday, variant
 - [ToastProvider](#toastprovider): + maxVisible, position
-- [Tooltip](#tooltip): + anchorAccessible
+- [Tooltip](#tooltip): + anchorAccessible · ~ content
 - [Typography](#typography): + align, color, fontSize, nowrap, onClick · ~ variant
 - [VStack](#vstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 
@@ -528,8 +528,8 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | value * | `number` |  |  |  |
 | disabled | `boolean` |  |  |  |
 | label | `string` |  |  |  |
-| max | `number` | Infinity |  | No upper limit when unset. |
-| min | `number` | -Infinity |  | No lower limit when unset. |
+| max | `number` |  |  | No upper limit when unset. |
+| min | `number` |  |  | No lower limit when unset. |
 | step | `number` | 1 |  | How much the buttons add or take away. A fraction (`0.5`) is fine. |
 
 ### PasswordField
@@ -915,13 +915,14 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Card
 
-`packages/ui/src/components/Card.tsx` — prop nuove: `onClick`; prop tolte: `onPress`
+`packages/ui/src/components/Card.tsx` — prop nuove: `onClick`, `selected`; prop tolte: `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
 | accessibilityLabel | `string` |  |  |  |
 | onClick | `() => void` |  | nuova |  |
+| selected | `boolean` |  | nuova | Draws the card as the chosen one of a set (a primary border) and says so to screen readers. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | variant | `"elevated" \| "filled" \| "outlined" \| "glow"` | "filled" |  |  |
 
@@ -1749,12 +1750,12 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Tooltip
 
-`packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`
+`packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`; prop cambiate: `content`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
-| content * | `string` |  |  | The tip's text; the body text of a rich tooltip. |
+| content * | `React.ReactNode` |  | cambiata | The tip's text; the body of a rich tooltip, which can also be laid out (a small sum, a list). A node never names the anchor: give the rich tooltip a `title` for that. |
 | action | `{ label: string; onPress: () => void }` |  |  | Rich only: a text button. A rich tooltip with an action stays open while the pointer is over it (web) and until the action is taken or the anchor is long-pressed again (native). |
 | anchorAccessible | `boolean` | true | nuova | Native only. Whether the anchor is one accessibility element named by `content`. Turn it off when the child is a control with a name of its own (an `IconButton`): behind an accessible wrapper a screen reader never reaches the control, only the wrapper, which does nothing when activated. The long press still shows the tip. Defaults to `true`. |
 | disabled | `boolean` |  |  |  |

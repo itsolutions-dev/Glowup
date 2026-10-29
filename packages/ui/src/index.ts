@@ -3,6 +3,7 @@
 
 // --- Theme system ---
 export * from "./providers/ThemeProvider";
+export * from "./providers/gradient";
 export {
   useInteractionFeedback,
   type InteractionFeedbackHandler,

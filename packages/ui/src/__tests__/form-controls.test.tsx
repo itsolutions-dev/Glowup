@@ -35,6 +35,25 @@ describe("Select", () => {
       />,
     );
 
+  it("takes options without an id, keyed by their value", async () => {
+    const onChange = jest.fn();
+    const error = jest.spyOn(console, "error").mockImplementation(() => {});
+    const { getByLabelText } = await draw({
+      onChange,
+      defaultOpen: true,
+      options: [
+        { label: "Uno", value: 1 },
+        { label: "Due", value: 2 },
+      ],
+    });
+    await fireEvent.press(getByLabelText("Due"));
+    expect(onChange).toHaveBeenCalledWith(2);
+    expect(error.mock.calls.flat().join(" ")).not.toMatch(
+      /same key|unique "key"/,
+    );
+    error.mockRestore();
+  });
+
   it("reports the picked value through onChange", async () => {
     const onChange = jest.fn();
     const { getByLabelText } = await draw({ onChange, defaultOpen: true });

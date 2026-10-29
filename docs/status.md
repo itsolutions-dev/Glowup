@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-10-28**, `dev` at `60513a9`. Built from the handoffs of 19–28 October, `solaris-native.md`,
+As of **2026-10-29** (afternoon), `dev` at the commit that carries this file. Built from the handoffs of 19–29 October, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -21,16 +21,16 @@ change as the handoff**, so the next session starts from here and not from re-re
 | ----------------------------------------- | ---- | ------------ | ----------------------------------------------------------- | --- | -------- | ------- |
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators                 | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 25%  | `██▌░░░░░░░` | jest ×3, verification matrix, DataGrid 1.4, a11y, safe area | –   | –        | –       |
-| Phase 2: theme tokens and hooks           | 90%  | `█████████░` | the brand gradient, when a pilot screen needs it            | yes | partly   | partly  |
+| Phase 2: theme tokens and hooks           | 100% | `██████████` | the gradient on iPhone (next CI)                            | yes | partly   | yes     |
 | Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                      | yes | partly   | partly  |
-| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | final colours, native timings, release                      | yes | yes      | yes     |
+| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release               | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
 | Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
-| Phase 8: CRM pilot screens                | 0%   | `░░░░░░░░░░` | everything (A8)                                             | –   | –        | –       |
+| Phase 8: CRM pilot screens                | 15%  | `█▌░░░░░░░░` | sign-in 2FA, contacts list, customer detail                 | yes | –        | partly  |
 | Library hardening (`library-roadmap.md`)  | 45%  | `████▌░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | 57%  | `█████▋░░░░` |                                                             |     |          |         |
+| **Overall (phases 0–8, weighted)**        | 60%  | `██████░░░░` |                                                             |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -69,7 +69,7 @@ done, and 1.10 and 1.11 are partly done.
   - 1.12 safe area: `AppBar`, `Toolbar`, `FAB`, `SpeedDial` throw without a provider.
   - 1.13 the 1.0 criteria and the adoption guide.
 
-### Phase 2: theme tokens and hooks, 90%
+### Phase 2: theme tokens and hooks, 100%
 
 - **Done:** 2A hooks (`useDebouncedValue`, `useDebouncedCallback`, breakpoints), 2B-a/b status roles (`success`,
   `warning`, `info`, `neutral`), `toneFrom` (16/10).
@@ -77,9 +77,13 @@ done, and 1.10 and 1.11 are partly done.
     light and dark, fixed under every brand palette; validated with the `dataviz` skill's script against the light
     and dark surfaces and containers of every built-in palette (all hard checks pass; aqua, yellow, magenta below
     3:1 on light, so labels or a table view are required, which the charts have). The charts take
-    `categorical` in order; checked on the web Charts page in light and dark.
-- **Left:** the brand gradient (`gradients.brand`, `brandDisabled`, CRM `#1D5A9D → #61B340`), built when a pilot
-  screen draws one.
+    `categorical` in order; checked on the web Charts page in light and dark, and in `/native-check` on iPhone
+    and Android 14 and 15 (CI on `596dfb5`, 29/10).
+  - The brand gradient (29/10), asked for by the report pilot: `gradientStyle(from, to, angle?)`, no theme token and
+    no package. React Native 0.86 draws it itself on iOS and Android (`experimental_backgroundImage`), CSS on the web;
+    the start colour is the fallback. Brand = `primary` into `tertiary`: the `databeasy` palette gives the CRM's
+    `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes.
+- **Left:** the gradient on iPhone (a bar at the end of `/native-check`, next CI run).
 
 ### Phase 3: specialised props, 55%
 
@@ -114,12 +118,12 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   - Dense mode (10,000 bars: 8.2 s → 74 ms on the web), table mode for screen readers, donut labels outside the
     ring.
   - In `/native-check`, green on all three devices.
+  - The theme's chart palette (28/10), seen on iPhone and Android 14 and 15 in CI (29/10).
   - 27/10: bar `column`/`columnMode`, a target per category, an outcome `marker`, `dimmed`. Proven in CI
     (Android 15/15, iPhone 13/13).
 - **Left:**
   - Rebuild the CRM's four bar charts with the new props, starting with Inbound.
   - Horizontal scrolling (`minTickWidth` in the CRM).
-  - Final colours (waits on B0).
   - Dense-mode timings on native.
   - The minors deferred by the 27/10 review.
   - Changeset and trusted publisher when the package leaves `private`.
@@ -166,8 +170,13 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 
-### Phase 8: CRM pilot screens, 0%
+### Phase 8: CRM pilot screens, 15%
 
+- **Done (29/10):** the report (CRM `WaveActivitiesReport`) as a temporary page on invented data, on the web and
+  the local Android emulator. Its gaps, fixed in `ui` without changing anything that exists: `Card selected`,
+  `Select` options without `id`, `Tooltip` with a node as content, `gradientStyle`. Not gaps: the narrow `Table`
+  scrolls sideways by design; an `IconButton` on a coloured bar takes `variant="tonal"`; the month filter is a
+  `Select` of 12 months, as in the CRM.
 - **Left:** sign-in with 2FA, contacts list with filters, customer detail with outcome, report (charts and pivot),
   built only with the library. Depends on 3A, `DataGrid` 1.4 and part of `composite-ui`.
 
@@ -201,6 +210,15 @@ Basis: 7 + 11 fixed of about 42 defects (the 7 of 23/10 plus the 35 the review f
 - **No rename batch 3, no "one field contract"** (Alice, 28/10). The field family keeps `onPress`, `mode`,
   `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
   propose renaming them again.
+
+- **`packages/ui` is not Alice's** (29/10): change it only for a necessary fix that leaves every existing use looking
+  and behaving the same; anything else is a request for its owner (Gabriele, on `origin/templatesEditor`).
+- **No merge or rebase of any branch without Alice's OK** (29/10). On 29/10 no other branch had a `ui` change that
+  `dev` lacks, except Gabriele's `DragDrop`/`GridLayout` work and Adriano's audit on `master` (left out on 16/10).
+- **The pilot screens are temporary** (29/10): built to find gaps, then deleted. Rebuilding the CRM is not Alice's
+  job.
+- **A narrow `Table` scrolls sideways**; it is not cut off (checked on Android, 29/10). Phones show no scrollbar
+  until you scroll.
 
 Check here before starting something that feels familiar.
 
@@ -301,7 +319,8 @@ what these screens use.
 
 - [ ] **Ask the CRM side now** for real report definitions and anonymised data for the screens, so this
       stage does not stall.
-- [ ] Report (charts and pivot): almost ready today.
+- [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above). Delete the page
+      (`apps/playground/app/pilot-report.tsx`) once the iPhone CI is read.
 - [ ] Sign-in with 2FA: the `SignIn` template exists; needs `OtpVerify`.
 - [ ] Contacts list with filters: forces `DataGrid` 1.4, virtualised lists (1.5), `ListPage` and `AppShell`.
 - [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).

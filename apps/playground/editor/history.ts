@@ -62,3 +62,10 @@ export const redo = (history: History): History => {
     lastKey: null,
   };
 };
+
+/**
+ * Folds `doc` into the present step: a consequence of the last edit (a
+ * container growing to hold what was dropped in it) undoes with that edit.
+ */
+export const amend = (history: History, doc: LayoutDocument): History =>
+  doc === history.present ? history : { ...history, present: doc };

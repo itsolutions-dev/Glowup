@@ -76,7 +76,7 @@ const layoutsOf = (nodes: LayoutNode[]): GridPlacement[] =>
   nodes.flatMap((n) => (n.layout ? [n.layout] : []));
 
 /** One string per slot, to compare two. */
-const slotKey = (slot: Slot) =>
+export const slotKey = (slot: Slot) =>
   slot.kind === "page"
     ? "page"
     : `${slot.kind}:${slot.parent}:${slot.kind === "tab" ? slot.tab : ""}`;
@@ -186,7 +186,8 @@ const fit = (
   };
 };
 
-const create = (doc: LayoutDocument, type: string): LayoutNode => {
+/** A new node of `type`, with its manifest defaults and the document's next id; no slot yet. */
+export const createNode = (doc: LayoutDocument, type: string): LayoutNode => {
   const entry = MANIFEST[type];
   const node: LayoutNode = {
     id: newId(doc),
@@ -242,7 +243,7 @@ export const insertNode = (
   dest: Destination,
 ): { doc: LayoutDocument; id: NodeId } => {
   if (!canPlace(doc, type, dest.slot)) return { doc, id: "" };
-  const node = create(doc, type);
+  const node = createNode(doc, type);
   const out = put(doc, node, dest, MANIFEST[type].defaultSize);
   return { doc: normalizeFields(out, new Set([node.id])), id: node.id };
 };
@@ -265,9 +266,19 @@ export const moveNode = (
   const node = findNode(doc, id);
   if (!node || !canPlace(doc, node.type, dest.slot, id)) return doc;
   const from = slotOf(doc, id) as Slot;
-  if (node.layout && "cell" in dest && slotKey(from) === slotKey(dest.slot)) {
-    const { w, h } = node.layout;
-    return placeNode(doc, id, { ...dest.cell, w, h });
+  if (slotKey(from) === slotKey(dest.slot)) {
+    if (node.layout && "cell" in dest) {
+      const { w, h } = node.layout;
+      return placeNode(doc, id, { ...dest.cell, w, h });
+    }
+    // By index to where it already is: on that grid, or at its own place in that flow.
+    if (
+      "index" in dest &&
+      (slotColumns(doc, from) !== null ||
+        slotNodes(doc, from).findIndex((n) => n.id === id) === dest.index)
+    ) {
+      return doc;
+    }
   }
   // Out of a flow, a container comes back no narrower than its children reach.
   const { w, h } = MANIFEST[node.type].defaultSize;
@@ -380,6 +391,9 @@ export const placeNode = (
   if (x + w === right) {
     w = Math.max(right - Math.max(0, x), minW);
     x = right - w;
+  } else if (x === old.x) {
+    // A handle on the right past the last column: the left edge stays put.
+    w = Math.min(w, columns - x);
   }
   const bottom = old.y + old.h;
   if (y + h === bottom) {

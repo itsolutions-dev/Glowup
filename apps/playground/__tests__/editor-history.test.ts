@@ -1,6 +1,7 @@
 import { emptyDocument } from "../editor/document";
 import {
   HISTORY_LIMIT,
+  amend,
   commit,
   createHistory,
   redo,
@@ -52,5 +53,20 @@ describe("undo and redo", () => {
   it("ignores a commit of the present document", () => {
     const h = createHistory(d0);
     expect(commit(h, d0)).toBe(h);
+  });
+});
+
+describe("amend", () => {
+  it("replaces the present without a new step", () => {
+    const h = commit(createHistory(d0), d1);
+    const amended = amend(h, d2);
+    expect(amended.present).toBe(d2);
+    expect(amended.past).toHaveLength(h.past.length);
+    expect(undo(amended).present).toBe(d0);
+  });
+
+  it("returns the same history for the same document", () => {
+    const h = commit(createHistory(d0), d1);
+    expect(amend(h, h.present)).toBe(h);
   });
 });

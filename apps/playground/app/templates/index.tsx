@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import {
+  Button,
   Grid,
   Icon,
   Typography,
@@ -58,6 +59,16 @@ export default function Templates() {
       title="Templates"
       description="Whole screens built only from Glowup components and theme tokens. Each one is a single file you can read, copy and paste: open a template to see it live beside the JSX that builds it."
     >
+      {/* `Button` listens to `onClick`, which a `Link asChild` never sets. */}
+      <Button
+        variant="tonal"
+        iconName="view-grid-plus-outline"
+        style={{ alignSelf: "flex-start" }}
+        onClick={() => router.push("/templates/editor" as never)}
+      >
+        New layout
+      </Button>
+
       <Grid container autoSize={{ xs: 12, sm: 6, lg: 3 }} spacing="l">
         {TEMPLATES.map((template) => (
           <TemplateCard key={template.slug} template={template} />

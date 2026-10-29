@@ -502,17 +502,17 @@ sideways** have.
 
 Each phase ends with its tests green, a browser check and a handoff entry.
 
-| #   | Phase                                                                         | Size | Ends with                                                                                               |
-| --- | ----------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------- |
-| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll. **Done 2026-10-27**                   |
-| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page. **Done 2026-10-27**           |
-| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test. **Done 2026-10-28**, with forms (§11.7) |
-| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser                                       |
-| 4   | Palette, flow containers, TabbedPanel, moving between grids and containers    | M    | page tests; browser                                                                                     |
-| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                                                |
-| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                                                        |
-| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas                                 |
-| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device                              |
+| #   | Phase                                                                         | Size | Ends with                                                                                                                                                         |
+| --- | ----------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0   | Drag and drop extensions (§9)                                                 | M    | library tests; `/drag-and-drop` demo of position and auto-scroll. **Done 2026-10-27**                                                                             |
+| 1   | `GridLayout` (§10), nested and stacking                                       | M    | library tests (placement, gaps, nesting, stacking, prerender at 0); page. **Done 2026-10-27**                                                                     |
+| 2   | Document, manifest, engine, history (pure)                                    | M    | unit tests of every operation and grid function; manifest test. **Done 2026-10-28**, with forms (§11.7)                                                           |
+| 3   | Canvas: render, edit layer, select, move with landing preview, resize, nested | L    | page tests; desktop mouse and phone-sideways touch in the browser. **Done 2026-10-29, except the §18 budget** (150 nodes, production: 60–130 ms per cell crossed) |
+| 4   | Palette, flow containers, TabbedPanel, moving between grids and containers    | M    | page tests; browser. **Done 2026-10-29**                                                                                                                          |
+| 5   | Properties and Layers panels                                                  | M    | page tests (edit a prop, see the canvas change, undo it)                                                                                                          |
+| 6   | Persistence, JSON import/export, starters                                     | S    | import validation tests; the three starters open                                                                                                                  |
+| 7   | Code export and preview                                                       | M    | every starter exports, compiles and renders the same tree as the canvas                                                                                           |
+| 8   | Responsive editor (§17), keyboard, iOS and Android pass                       | M    | browser at 1440 / 720 / 360; manual run on an iPhone and an Android device                                                                                        |
 
 Phases 0 and 1 are library work with changesets; 2–8 are the playground.
 

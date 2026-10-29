@@ -329,6 +329,28 @@ the manifest to the generated prop tables and every catalogued component to an e
 a component added to the catalogue fails it until it gets one or the other. The shared fixture is JSON
 (`__tests__/__fixtures__/editor-document.json`), because jest runs every `.ts` under `__tests__`.
 
+**The canvas** (`/templates/editor`, `app/templates/editor.tsx`) lives in `editor/canvas/`, the only part of `editor/`
+that renders. Two trees over one document: `RenderTree` draws the real components on `GridLayout`s, inert
+(`pointerEvents="none"`), and measures what cannot be computed — a container's inner grid (`inner:<id>`), a flow child
+(`child:<id>`), each node's content height (a grid, flow or tabs container grows to it, amending the present undo step) —
+into one store (`rects.ts`); `EditLayer` mirrors the document with transparent boxes placed by `boxPlacement`
+(GridLayout's arithmetic: a GridLayout item is a scroller and would clip the selection chrome), each a `Draggable`, the
+page and every grid container a `Droppable`. While a node is dragged or resized the render tree draws a **draft**
+(`moveNode`/`placeNode` on the target) and the edit layer draws that grid's cells; the edit layer itself stays on the
+committed document, or its zones would move under the pointer and the dragged box would unmount. Release commits one
+undo step. Tests mock `measureInWindow` by `testID` and fire `onLayout` by hand (`__tests__/editor-canvas.test.tsx`);
+the starter is `editor/starters/detail.json`.
+
+A drop is a `DropPlan` (`canvasMath.ts`): a source (a node, or a new component from the palette) and a
+destination read from the zone's data — `grid` places by cell, `flow` (a stack or list: a `Droppable` with the
+insertion line, its children's boxes inside it, a refusing one left out so the drop falls through) by the drag
+system's index, `tab` (a TabbedPanel's tab, laid over the bar the render tree measures as `bar:<id>`) on that
+panel's first free cell; `applyPlan` makes both the draft and the drop. Which panel of a TabbedPanel is shown is
+editor state (`editor.tabs`, `showTab`), never document: a tap on a tab, a tab hovered for 500 ms while dragging,
+or a drop on it switches it (a tap also selects the TabbedPanel), and the panel is as tall as the tallest one so the page never moves. The edit layer keeps every panel's zone mounted (`<id>:<tab>`, the hidden ones `display: "none"` and disabled): a node dragged out of a panel keeps its box while a hovered tab shows another, since an unmounted active `Draggable` cancels the drag. The palette
+(`Palette.tsx`, the Canvas's `palette` slot, inside its `DragDropProvider`) lists the manifest by group with search;
+a tap adds into the selected container when it takes the type, else on the page (`addTarget`).
+
 ## The drag and drop page
 
 `app/drag-and-drop.tsx` (/drag-and-drop) demos the library's `DragDropProvider` / `Draggable` / `Droppable`

@@ -5,6 +5,7 @@ import { setFieldName } from "../editor/forms";
 import {
   addTab,
   canPlace,
+  createNode,
   duplicateNode,
   growToFit,
   insertNode,
@@ -365,5 +366,35 @@ describe("the editing operations, after the review", () => {
     const broken = structuredClone(fixture) as LayoutDocument;
     broken.items[0].layout = { x: 0, y: 0.5, w: 6, h: 4 };
     expect(checkDocument(broken)).toContain("n1: not on whole cells");
+  });
+});
+
+describe("the editing operations, for the palette and the stacks", () => {
+  it("makes a new node of a type, as the palette adds it", () => {
+    expect(createNode(doc, "Paper")).toEqual({
+      id: "n7",
+      type: "Paper",
+      props: {},
+      columns: 6,
+      children: [],
+    });
+  });
+
+  it("returns the same document for a node sent by index to the grid it is on", () => {
+    expect(
+      moveNode(doc, "n4", {
+        slot: { kind: "tab", parent: "n3", tab: 0 },
+        index: 0,
+      }),
+    ).toBe(doc);
+  });
+
+  it("returns the same document for a flow child moved to its own place", () => {
+    expect(
+      moveNode(doc, "n6", {
+        slot: { kind: "children", parent: "n5" },
+        index: 0,
+      }),
+    ).toBe(doc);
   });
 });

@@ -1,0 +1,342 @@
+{
+  "format": "glowup-layout",
+  "version": 1,
+  "name": "Pagina di dettaglio",
+  "grid": {
+    "columns": 12,
+    "rowHeight": 48,
+    "gap": 16
+  },
+  "items": [
+    {
+      "id": "n1",
+      "type": "Paper",
+      "props": {},
+      "columns": 6,
+      "children": [
+        {
+          "id": "n2",
+          "type": "Typography",
+          "props": {
+            "variant": "titleMedium"
+          },
+          "text": "Anagrafica",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          }
+        },
+        {
+          "id": "n3",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Codice fiscale",
+          "layout": {
+            "x": 0,
+            "y": 1,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n4",
+          "type": "Typography",
+          "props": {},
+          "text": "RSSMRA80A01H501U",
+          "layout": {
+            "x": 2,
+            "y": 1,
+            "w": 4,
+            "h": 1
+          }
+        },
+        {
+          "id": "n5",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Ragione sociale",
+          "layout": {
+            "x": 0,
+            "y": 2,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n6",
+          "type": "Typography",
+          "props": {},
+          "text": "Rossi Srl",
+          "layout": {
+            "x": 2,
+            "y": 2,
+            "w": 4,
+            "h": 1
+          }
+        },
+        {
+          "id": "n7",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Telefono",
+          "layout": {
+            "x": 0,
+            "y": 3,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n8",
+          "type": "Typography",
+          "props": {},
+          "text": "+39 06 1234 5678",
+          "layout": {
+            "x": 2,
+            "y": 3,
+            "w": 4,
+            "h": 1
+          }
+        }
+      ],
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": "n9",
+      "type": "Paper",
+      "props": {},
+      "columns": 6,
+      "children": [
+        {
+          "id": "n10",
+          "type": "Typography",
+          "props": {
+            "variant": "titleMedium"
+          },
+          "text": "Sede",
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 1
+          }
+        },
+        {
+          "id": "n11",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Indirizzo",
+          "layout": {
+            "x": 0,
+            "y": 1,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n12",
+          "type": "Typography",
+          "props": {},
+          "text": "Via Roma 1, 00100 Roma",
+          "layout": {
+            "x": 2,
+            "y": 1,
+            "w": 4,
+            "h": 1
+          }
+        },
+        {
+          "id": "n13",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Stato",
+          "layout": {
+            "x": 0,
+            "y": 2,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n14",
+          "type": "Typography",
+          "props": {},
+          "text": "Attivo",
+          "layout": {
+            "x": 2,
+            "y": 2,
+            "w": 4,
+            "h": 1
+          }
+        },
+        {
+          "id": "n15",
+          "type": "Typography",
+          "props": {
+            "variant": "labelMedium",
+            "color": "onSurfaceVariant"
+          },
+          "text": "Cliente dal",
+          "layout": {
+            "x": 0,
+            "y": 3,
+            "w": 2,
+            "h": 1
+          }
+        },
+        {
+          "id": "n16",
+          "type": "Typography",
+          "props": {},
+          "text": "2021",
+          "layout": {
+            "x": 2,
+            "y": 3,
+            "w": 4,
+            "h": 1
+          }
+        }
+      ],
+      "layout": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": "n17",
+      "type": "TabbedPanel",
+      "props": {},
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 5
+      },
+      "tabs": [
+        {
+          "label": "Prodotto",
+          "columns": 8,
+          "children": [
+            {
+              "id": "n18",
+              "type": "Input",
+              "props": {
+                "label": "Nome"
+              },
+              "layout": {
+                "x": 0,
+                "y": 0,
+                "w": 4,
+                "h": 2
+              }
+            },
+            {
+              "id": "n19",
+              "type": "Input",
+              "props": {
+                "label": "Codice"
+              },
+              "layout": {
+                "x": 4,
+                "y": 0,
+                "w": 4,
+                "h": 2
+              }
+            },
+            {
+              "id": "n20",
+              "type": "Input",
+              "props": {
+                "label": "Prezzo"
+              },
+              "layout": {
+                "x": 0,
+                "y": 2,
+                "w": 4,
+                "h": 2
+              }
+            }
+          ]
+        },
+        {
+          "label": "Dati aggiuntivi",
+          "columns": 8,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "n21",
+      "type": "Card",
+      "props": {},
+      "columns": 4,
+      "layout": {
+        "x": 8,
+        "y": 4,
+        "w": 4,
+        "h": 5
+      },
+      "children": [
+        {
+          "id": "n22",
+          "type": "VStack",
+          "props": {},
+          "layout": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 4
+          },
+          "children": [
+            {
+              "id": "n23",
+              "type": "Button",
+              "props": {},
+              "text": "Modifica"
+            },
+            {
+              "id": "n24",
+              "type": "Button",
+              "props": {
+                "variant": "tonal"
+              },
+              "text": "Duplica"
+            },
+            {
+              "id": "n25",
+              "type": "Button",
+              "props": {
+                "variant": "outlined"
+              },
+              "text": "Elimina"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

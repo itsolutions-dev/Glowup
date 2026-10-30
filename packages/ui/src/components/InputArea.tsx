@@ -198,7 +198,7 @@ const InputArea = ({
         <TextInput
           accessibilityLabel={label}
           accessibilityState={{ disabled }}
-          accessibilityValue={{ text: value }}
+          {...field.labelledBy}
           accessibilityHint={placeholder}
           multiline
           numberOfLines={fixed ? lines : undefined}

@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { fireEvent, render } from "@testing-library/react-native";
 import { Pagination, ThemeProvider, useTheme, type Theme } from "..";
 
@@ -34,6 +34,32 @@ describe("Pagination", () => {
     expect(onChange).toHaveBeenLastCalledWith(3);
     await fireEvent.press(getByRole("button", { name: "Previous page" }));
     expect(onChange).toHaveBeenLastCalledWith(1);
+  });
+
+  it("keeps the current page focusable: selected, not disabled, and a press is a no-op", async () => {
+    const onChange = jest.fn();
+    const { getByRole, getByLabelText } = await draw(
+      <Pagination activePage={2} totalPages={5} onChange={onChange} />,
+    );
+    const current = getByRole("button", { name: "Page 2" });
+    expect(current.props.accessibilityState?.disabled).toBeFalsy();
+    await fireEvent.press(current);
+    expect(onChange).not.toHaveBeenCalled();
+    // A pager is navigation, not a menubar of menu items.
+    expect(getByLabelText("Pagination").props.role).toBe("navigation");
+  });
+
+  it("marks the current page aria-current on the web", async () => {
+    jest.replaceProperty(Platform, "OS", "web");
+    const { getByRole } = await draw(
+      <Pagination activePage={2} totalPages={5} onChange={() => {}} />,
+    );
+    expect(getByRole("button", { name: "Page 2" }).props["aria-current"]).toBe(
+      "page",
+    );
+    expect(
+      getByRole("button", { name: "Page 3" }).props["aria-current"],
+    ).toBeUndefined();
   });
 
   it("disables the arrows at the ends, and everything with disabled", async () => {

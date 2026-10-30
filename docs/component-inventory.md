@@ -406,9 +406,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactElement \| ((field: FormFieldChildProps) => React.ReactNode)` |  |  | The one control to connect, which receives the value, the trigger, `onBlur`, `error`, `required` and `disabled` as props. Or a function that gets those props and returns the control, for a control whose required props (`Input` needs `value` and `onChange`) you would otherwise have to write out: `{(field) => <Input label="Email" {...field} />}`. |
+| children * | `\| React.ReactElement \| ((field: FormFieldChildProps<V, T, C>) => React.ReactNode)` |  |  | The one control to connect, which receives the value, the trigger, `onBlur`, `error`, `required` and `disabled` as props. Or a function that gets those props and returns the control, for a control whose required props (`Input` needs `value` and `onChange`) you would otherwise have to write out: `{(field) => <Input label="Email" {...field} />}`. |
 | name * | `string` |  |  | The field's name in the form's values: `"email"`, `"address.city"`, `"items[0].qty"` (dots and brackets both nest). |
-| control | `boolean` | false |  | For a child that draws no label, helper or error text of its own (`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a `FormControl` that does, and passes it `error` as a boolean (and no `required`, `label` or `helperText`: `FormControl` draws those). Defaults to `false`. |
+| control | `C` | false as C |  | For a child that draws no label, helper or error text of its own (`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a `FormControl` that does, and passes it `error` as a boolean (and no `required`, `label` or `helperText`: `FormControl` draws those). Defaults to `false`. |
 | dependencies | `string[]` |  |  | Names of other fields this one's rules read (`"password"` for a "confirm password"): it is validated again when one changes, once it has been touched or edited, or shows an error. |
 | disabled | `boolean` | false |  | Disables this field (the child's `disabled`); the form's `disabled` does it for all. |
 | getValueFromEvent | `(...args: any[]) => unknown` |  |  | Turns what the trigger is called with into the value to store. By default the first argument, or, when that is a DOM event, its `target.value` (`target.checked` for `valuePropName="checked"`). |
@@ -417,9 +417,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | label | `string` |  |  | Label, passed to the child as its `label` (`Input`, `Select`... draw it). With `control`, drawn above the child by `FormControl` instead. |
 | normalize | `(value: any, previous: any, values: FormValues) => unknown` |  |  | Turns the reported value into the stored one: `(value, previous, allValues) => stored`. Trim, uppercase, format. |
 | rules | `FormRule[]` |  |  | What the value must satisfy, checked in order; the first failure is the field's `error`. |
-| trigger | `string` | "onChange" |  | The child's callback that reports a new value. `"onValueChange"` for a `Checkbox` or a `Slider`. Defaults to `"onChange"`. |
+| trigger | `T` | "onChange" as T |  | The child's callback that reports a new value. `"onValueChange"` for a `Checkbox` or a `Slider`. Defaults to `"onChange"`. |
 | validateOn | `FormValidateOn` |  |  | Overrides the form's `validateOn` for this field: a `Checkbox` has no blur, so `"change"` suits it. |
-| valuePropName | `string` | "value" |  | The child's prop that takes the value. `"checked"` for a `Checkbox`. Defaults to `"value"`. |
+| valuePropName | `V` | "value" as V |  | The child's prop that takes the value. `"checked"` for a `Checkbox`. Defaults to `"value"`. |
 
 ### HighlightedCode
 

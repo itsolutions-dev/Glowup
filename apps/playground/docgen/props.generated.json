@@ -3925,7 +3925,7 @@
       "props": [
         {
           "name": "children",
-          "type": "React.ReactElement | ((field: FormFieldChildProps) => React.ReactNode)",
+          "type": "| React.ReactElement | ((field: FormFieldChildProps<V, T, C>) => React.ReactNode)",
           "required": true,
           "description": "The one control to connect, which receives the value, the trigger,\n`onBlur`, `error`, `required` and `disabled` as props. Or a function\nthat gets those props and returns the control, for a control whose\nrequired props (`Input` needs `value` and `onChange`) you would otherwise\nhave to write out: `{(field) => <Input label=\"Email\" {...field} />}`.",
           "deprecated": false
@@ -3939,9 +3939,9 @@
         },
         {
           "name": "control",
-          "type": "boolean",
+          "type": "C",
           "required": false,
-          "default": "false",
+          "default": "false as C",
           "description": "For a child that draws no label, helper or error text of its own\n(`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a\n`FormControl` that does, and passes it `error` as a boolean (and no\n`required`, `label` or `helperText`: `FormControl` draws those). Defaults\nto `false`.",
           "deprecated": false
         },
@@ -4004,9 +4004,9 @@
         },
         {
           "name": "trigger",
-          "type": "string",
+          "type": "T",
           "required": false,
-          "default": "\"onChange\"",
+          "default": "\"onChange\" as T",
           "description": "The child's callback that reports a new value. `\"onValueChange\"` for a\n`Checkbox` or a `Slider`. Defaults to `\"onChange\"`.",
           "deprecated": false
         },
@@ -4019,9 +4019,9 @@
         },
         {
           "name": "valuePropName",
-          "type": "string",
+          "type": "V",
           "required": false,
-          "default": "\"value\"",
+          "default": "\"value\" as V",
           "description": "The child's prop that takes the value. `\"checked\"` for a `Checkbox`.\nDefaults to `\"value\"`.",
           "deprecated": false
         }

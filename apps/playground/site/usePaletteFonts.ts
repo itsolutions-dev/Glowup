@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { loadAsync } from "expo-font";
+import { Platform } from "react-native";
+import { loadAsync, useFonts } from "expo-font";
 import { Geist_400Regular } from "@expo-google-fonts/geist/400Regular";
 import { Geist_500Medium } from "@expo-google-fonts/geist/500Medium";
 import { Geist_600SemiBold } from "@expo-google-fonts/geist/600SemiBold";
@@ -22,6 +23,19 @@ const FONTS: Record<string, Record<string, number>> = {
  * Databeasy or inXpire never downloads Roboto or Geist. Until the files arrive the
  * text renders in the system font, then swaps; `loadAsync` is idempotent.
  */
+const ALL_FONTS = Object.assign({}, ...Object.values(FONTS));
+
+/**
+ * iOS and Android only: whether every palette's font is registered. Until it
+ * is, the app renders nothing. Android measures a label once, with the
+ * stand-in font if its own has not arrived, and keeps that width when the
+ * real font swaps in: medium-weight labels came out cut ("Sav", "Dai…").
+ * The files ship with the app, so this is a moment, not a download. The web
+ * keeps loading lazily: a browser measures the text again when a font arrives.
+ */
+export const useNativeFontsReady = () =>
+  useFonts(Platform.OS === "web" ? {} : ALL_FONTS)[0] || Platform.OS === "web";
+
 export const usePaletteFonts = () => {
   const { palette } = useTheme();
 

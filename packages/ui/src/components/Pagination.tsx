@@ -145,7 +145,8 @@ const Pagination = ({
   return (
     <View
       style={[styles.container, disabled && { opacity: 0.38 }]}
-      accessibilityRole="menubar"
+      role="navigation"
+      accessibilityLabel="Pagination"
     >
       {showFirstLast && renderArrow("page-first", 1, activePage <= 1)}
       {renderArrow("chevron-left", activePage - 1, activePage <= 1)}
@@ -169,14 +170,19 @@ const Pagination = ({
         }
 
         const active = entry === activePage;
+        // The current page stays focusable (a disabled one is announced as
+        // unavailable and skipped by Tab); pressing it just does nothing.
         return (
           <Pressable
             key={entry}
-            onPress={() => onChange(entry)}
-            disabled={disabled || active}
+            onPress={active ? undefined : () => onChange(entry)}
+            disabled={disabled}
             accessibilityRole="button"
             accessibilityLabel={`Page ${entry}`}
             accessibilityState={{ selected: active }}
+            {...((active && Platform.OS === "web"
+              ? { "aria-current": "page" }
+              : null) as object)}
             style={styles.item}
           >
             {({ hovered, pressed }: PressableState) => (

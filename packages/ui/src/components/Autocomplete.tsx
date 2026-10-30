@@ -26,6 +26,7 @@ import HelperText from "./HelperText";
 import Portal, { usePortalHost } from "./Portal";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
+import { swallowEscapeKeyUp } from "./internal/useEscapeKey";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface AutocompleteOption {
@@ -388,6 +389,7 @@ const Autocomplete = ({
         }
         case "Escape":
           event.preventDefault();
+          swallowEscapeKeyUp();
           return setSuppressed(true);
         default:
           return;

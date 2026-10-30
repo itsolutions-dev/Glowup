@@ -9,6 +9,7 @@ import { useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
 import { type Density } from "../providers/Density";
 import FieldShell from "./internal/FieldShell";
+import { useFormReturnKey } from "./Form";
 
 /** The `TextInput` props an `Input` hands through; its controlled ones (`value`, `onChangeText`, `editable`, `secureTextEntry`) stay with its own props. */
 export type InputTextInputProps = Pick<
@@ -154,6 +155,10 @@ const Input = ({
   style,
 }: InputProps) => {
   const { theme } = useTheme();
+  // The return key submits the form around it, as Enter does on the web,
+  // unless the app handles it (moving to the next field, say).
+  const formReturnKey = useFormReturnKey();
+  const onSubmitEditing = inputProps?.onSubmitEditing ?? formReturnKey;
 
   const handleTextChange = useCallback(
     (text: string) => {
@@ -207,8 +212,9 @@ const Input = ({
         <TextInput
           accessibilityLabel={label}
           accessibilityState={{ disabled }}
-          // A secret never goes to the accessibility tree as the field's value.
-          accessibilityValue={secureTextEntry ? undefined : { text: value }}
+          // No accessibilityValue: the edit box exposes its own text, and on
+          // Android the value made an empty field "Username, ".
+          {...field.labelledBy}
           accessibilityHint={placeholder}
           readOnly={readonly}
           maxLength={maxLength}
@@ -233,6 +239,7 @@ const Input = ({
           keyboardType={type === "number" ? "decimal-pad" : "default"}
           ref={inputRef}
           {...inputProps}
+          onSubmitEditing={onSubmitEditing}
         />
       )}
     </FieldShell>

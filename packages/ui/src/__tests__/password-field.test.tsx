@@ -260,13 +260,13 @@ describe("Input endAdornment and inputProps", () => {
     expect(plain.queryByText("unit")).toBeNull();
   });
 
-  it("leaves the value out of accessibilityValue for a secure field only", async () => {
+  it("never puts the value in accessibilityValue: the edit box exposes its own text", async () => {
     const open = await draw(
       <Input label="Open" value="visible" onChange={() => {}} />,
     );
-    expect(open.getByLabelText("Open").props.accessibilityValue).toEqual({
-      text: "visible",
-    });
+    expect(open.getByLabelText("Open").props.accessibilityValue).toBe(
+      undefined,
+    );
     const secure = await draw(
       <Input
         label="Secure"

@@ -13,6 +13,7 @@ import {
 import Icons from "./Glyph";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { useFieldLabel } from "./internal/fieldLabel";
 
 export interface NumberFieldProps {
   label?: string;
@@ -43,6 +44,7 @@ const NumberField = ({
   const [text, setText] = useState(String(value));
   const [prevValue, setPrevValue] = useState(value);
   const { theme } = useTheme();
+  const tie = useFieldLabel();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const min = lowest ?? -Infinity;
   const max = highest ?? Infinity;
@@ -82,6 +84,7 @@ const NumberField = ({
     <View style={[styles.wrapper, disabled && { opacity: 0.38 }]}>
       {!!label && (
         <Text
+          {...tie.label}
           style={[
             theme.typography.labelMedium,
             styles.staticLabel,
@@ -126,7 +129,7 @@ const NumberField = ({
           <TextInput
             accessibilityLabel={label}
             accessibilityState={{ disabled }}
-            accessibilityValue={{ text: String(value) }}
+            {...(label ? tie.input : null)}
             keyboardType="decimal-pad"
             value={text}
             onChangeText={(txt) => {

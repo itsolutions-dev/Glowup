@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useMemo, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Pressable,
   StyleSheet,
@@ -204,6 +205,13 @@ const Snackbar = ({
       });
     }
   }, [visible, hiddenOffset, fadeAnim, translateYAnim]);
+
+  // iOS has no live region: VoiceOver hears the message only when told.
+  useEffect(() => {
+    if (visible && message && Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [visible, message]);
 
   // A snackbar with a close button waits for it; the others time out.
   useEffect(() => {

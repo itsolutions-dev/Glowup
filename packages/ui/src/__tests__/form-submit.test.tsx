@@ -1,7 +1,7 @@
 import React from "react";
 import { Platform, Text, View } from "react-native";
 import { act, cleanup, fireEvent, render } from "@testing-library/react-native";
-import { Button, Form, ProgressButton, ThemeProvider } from "..";
+import { Button, Form, Input, ProgressButton, ThemeProvider } from "..";
 
 const draw = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -127,6 +127,57 @@ describe("Form on iOS and Android", () => {
       </Form>,
     );
     await fireEvent.press(getByText("Save"));
+  });
+
+  it("the keyboard's return key in an Input submits, as Enter does on the web", async () => {
+    const onSubmit = jest.fn();
+    const { getByLabelText } = await draw(
+      <Form onSubmit={onSubmit}>
+        <Input label="Email" value="a@b.it" onChange={() => {}} />
+        <Button type="submit">Save</Button>
+      </Form>,
+    );
+    await fireEvent(getByLabelText("Email"), "submitEditing");
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("the return key leaves the form alone when the app handles it", async () => {
+    const onSubmit = jest.fn();
+    const next = jest.fn();
+    const { getByLabelText } = await draw(
+      <Form onSubmit={onSubmit}>
+        <Input
+          label="Email"
+          value=""
+          onChange={() => {}}
+          inputProps={{ returnKeyType: "next", onSubmitEditing: next }}
+        />
+      </Form>,
+    );
+    await fireEvent(getByLabelText("Email"), "submitEditing");
+    expect(next).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("the return key does not submit while every submit button is disabled, or the form is", async () => {
+    const onSubmit = jest.fn();
+    const field = <Input label="Email" value="" onChange={() => {}} />;
+    const off = await draw(
+      <Form onSubmit={onSubmit}>
+        {field}
+        <Button type="submit" disabled>
+          Save
+        </Button>
+      </Form>,
+    );
+    await fireEvent(off.getByLabelText("Email"), "submitEditing");
+    const locked = await draw(
+      <Form onSubmit={onSubmit} disabled>
+        {field}
+      </Form>,
+    );
+    await fireEvent(locked.getByLabelText("Email"), "submitEditing");
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it("renders a plain View: no form role, no hidden web button", async () => {

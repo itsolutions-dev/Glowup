@@ -94,7 +94,10 @@ The token set above is the **baseline** palette. `ThemeProvider` renders one `Th
   default scale) and `iconSet: "eva"` (Eva Icons in place of Material wherever the library has
   an equivalent). `databeasy` is Roboto + Material, `inxpire` is Geist + Eva. The library only names
   the font files (`Roboto_500Medium`, `Geist_600SemiBold`, …): the app loads them with
-  `expo-font`, e.g. from `@expo-google-fonts/roboto` and `@expo-google-fonts/geist`.
+  `expo-font`, e.g. from `@expo-google-fonts/roboto` and `@expo-google-fonts/geist`. On iOS and
+  Android, load them **before the first render** (`useFonts`, rendering nothing until it is
+  done): Android measures a label once, with the stand-in font if the real one has not
+  arrived, and keeps that width, so medium-weight labels come out cut ("Sav", "Dai…").
 - `createPalette(seed, { id?, name?, chroma? })` — the same derivation for a brand colour.
   Error stays the fixed Material red whatever the seed.
 - `<ThemeProvider initialPalette={palettes.teal}>` picks one on mount;

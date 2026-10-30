@@ -21,7 +21,9 @@ export interface ThemePalette {
    * Type-scale overrides, merged per variant over the theme's defaults — a
    * brand's font and the sizes it sets differently. The library only names the
    * font: the app loads it (expo-font), under exactly the `fontFamily` given
-   * here. Leave it out and the palette uses the default scale.
+   * here, and on iOS and Android before the first render (Android keeps the
+   * width it measured with the stand-in font: labels come out cut). Leave it
+   * out and the palette uses the default scale.
    */
   typography?: Partial<Theme["typography"]>;
   /**

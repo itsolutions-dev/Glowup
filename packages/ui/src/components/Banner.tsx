@@ -1,5 +1,12 @@
-import React, { useMemo } from "react";
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import React, { useEffect, useMemo, useRef } from "react";
+import {
+  AccessibilityInfo,
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Button from "./Button";
@@ -46,14 +53,31 @@ const Banner = ({
     [theme, type],
   );
 
+  // iOS has no live region: VoiceOver hears a banner only when told. As with
+  // Android's live region, one already up when the screen opens is not read out.
+  const mounted = useRef(false);
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    if (visible && message && Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [visible, message]);
+
   if (!visible) return null;
 
   const iconName = icon ?? DEFAULT_ICONS[type];
+  // On the web an alert interrupts the moment it is inserted, even one drawn
+  // with the page; a banner waits its turn.
+  const isWeb = Platform.OS === "web";
 
   return (
     <View
       style={styles.container}
-      accessibilityRole="alert"
+      role={isWeb ? "status" : undefined}
+      accessibilityRole={isWeb ? undefined : "alert"}
       accessibilityLiveRegion="polite"
     >
       <View style={styles.messageRow}>

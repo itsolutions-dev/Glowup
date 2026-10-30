@@ -23,6 +23,7 @@ import Icons from "./Glyph";
 import Button from "./Button";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { swallowEscapeKeyUp } from "./internal/useEscapeKey";
 import {
   CalendarScrollMode,
   DateRange,
@@ -450,6 +451,7 @@ const Calendar = ({
         case "Escape":
           if (onRequestClose) {
             handled();
+            swallowEscapeKeyUp();
             onRequestClose();
           }
           return;

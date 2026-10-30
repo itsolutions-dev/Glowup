@@ -5517,6 +5517,14 @@
           "deprecated": false
         },
         {
+          "name": "safeArea",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pads the bottom safe-area inset, so the bar clears the phone's gesture bar\nor home indicator, as `AppBar` does at the top. Defaults to `true`.",
+          "deprecated": false
+        },
+        {
           "name": "showLabels",
           "type": "\"always\" | \"selected\"",
           "required": false,

@@ -11,7 +11,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 28 | 379 |
+| Aggiunti | 28 | 380 |
 | Aggiornati | 55 | 714 |
 | Tenuti (invariati) | 33 | 195 |
 
@@ -516,6 +516,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | activeId * | `string` |  |  | `id` of the current destination. |
 | items * | `NavBarItem[]` |  |  | Destinations, three to five per M3. |
 | onClick * | `(id: string) => void` |  |  | Called with the `id` of the pressed destination. |
+| safeArea | `boolean` | true |  | Pads the bottom safe-area inset, so the bar clears the phone's gesture bar or home indicator, as `AppBar` does at the top. Defaults to `true`. |
 | showLabels | `"always" \| "selected"` | "always" |  | "always" shows every label, "selected" only the active one. |
 
 ### NumberField

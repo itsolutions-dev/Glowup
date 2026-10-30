@@ -14,6 +14,7 @@ import { rgba } from "polished";
 import { useInsets } from "./useInsets";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { ToastLayer } from "./ToastLayer";
+import KeyboardFrame from "./KeyboardFrame";
 import { useReduceMotion } from "./useReduceMotion";
 import { useWindowWidth } from "./useWindowWidth";
 
@@ -247,42 +248,44 @@ const SideOverlay = ({
       // for the topmost modal only, so no key listener of our own.
       onRequestClose={dismiss}
     >
-      <View style={styles.root} testID={testID}>
-        <Animated.View style={[styles.scrim, { opacity: progress }]}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={dismiss}
-            accessibilityRole="button"
-            accessibilityLabel={scrimLabel}
-            testID={testID ? `${testID}-scrim` : undefined}
-          />
-        </Animated.View>
-        <Animated.View
-          accessibilityViewIsModal
-          onLayout={onLayout}
-          testID={testID ? `${testID}-panel` : undefined}
-          {...(swipeable && horizontal ? pan.panHandlers : null)}
-          style={[
-            styles.panel,
-            horizontal && styles.panelSwipeX,
-            innerEdge,
-            placement,
-            {
-              transform: [
-                horizontal
-                  ? { translateX: translate }
-                  : { translateY: translate },
-              ],
-            },
-            panelStyle,
-          ]}
-        >
-          {position === "bottom" && handle}
-          {children}
-          {position === "top" && handle}
-        </Animated.View>
-        <ToastLayer active={visible} />
-      </View>
+      <KeyboardFrame>
+        <View style={styles.root} testID={testID}>
+          <Animated.View style={[styles.scrim, { opacity: progress }]}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={dismiss}
+              accessibilityRole="button"
+              accessibilityLabel={scrimLabel}
+              testID={testID ? `${testID}-scrim` : undefined}
+            />
+          </Animated.View>
+          <Animated.View
+            accessibilityViewIsModal
+            onLayout={onLayout}
+            testID={testID ? `${testID}-panel` : undefined}
+            {...(swipeable && horizontal ? pan.panHandlers : null)}
+            style={[
+              styles.panel,
+              horizontal && styles.panelSwipeX,
+              innerEdge,
+              placement,
+              {
+                transform: [
+                  horizontal
+                    ? { translateX: translate }
+                    : { translateY: translate },
+                ],
+              },
+              panelStyle,
+            ]}
+          >
+            {position === "bottom" && handle}
+            {children}
+            {position === "top" && handle}
+          </Animated.View>
+          <ToastLayer active={visible} />
+        </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 };

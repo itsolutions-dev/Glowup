@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { useInsets } from "./internal/useInsets";
 import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
@@ -25,6 +26,11 @@ export interface NavBarProps {
   onClick: (id: string) => void;
   /** "always" shows every label, "selected" only the active one. */
   showLabels?: "always" | "selected";
+  /**
+   * Pads the bottom safe-area inset, so the bar clears the phone's gesture bar
+   * or home indicator, as `AppBar` does at the top. Defaults to `true`.
+   */
+  safeArea?: boolean;
 }
 
 /**
@@ -38,12 +44,20 @@ const NavBar = ({
   activeId,
   onClick,
   showLabels = "always",
+  safeArea = true,
 }: NavBarProps) => {
   const { theme } = useTheme();
+  const insets = useInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   return (
-    <View style={styles.container} accessibilityRole="tablist">
+    <View
+      style={[
+        styles.container,
+        safeArea && { paddingBottom: 12 + insets.bottom },
+      ]}
+      accessibilityRole="tablist"
+    >
       {items.map((item) => {
         const active = item.id === activeId;
         const iconName = activeGlyph(item.icon, active);

@@ -19,6 +19,7 @@ import {
 import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { ToastLayer } from "./internal/ToastLayer";
+import KeyboardFrame from "./internal/KeyboardFrame";
 import Typography from "./Typography";
 import IconButton from "./IconButton";
 import Divider from "./Divider";
@@ -152,77 +153,79 @@ const BottomSheet = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={styles.root} testID={testID}>
-        <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={dismissOnScrimTap ? onClose : undefined}
-            accessibilityLabel="Close bottom sheet"
-          />
-        </Animated.View>
+      <KeyboardFrame>
+        <View style={styles.root} testID={testID}>
+          <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={dismissOnScrimTap ? onClose : undefined}
+              accessibilityLabel="Close bottom sheet"
+            />
+          </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              maxHeight: window.height * maxHeightRatio,
-              transform: [{ translateY }],
-            },
-          ]}
-          accessibilityViewIsModal
-        >
-          {showHandle && (
-            <View
-              style={styles.handleArea}
-              onStartShouldSetResponder={() => true}
-              onMoveShouldSetResponder={() => true}
-              onResponderGrant={handleDragStart}
-              onResponderMove={handleDragMove}
-              onResponderRelease={handleDragEnd}
-              onResponderTerminate={handleDragEnd}
-            >
-              <View style={styles.handle} />
-            </View>
-          )}
-
-          {(!!title || showCloseButton) && (
-            <View style={styles.header}>
-              <Typography
-                variant="titleLarge"
-                accessibilityRole="header"
-                numberOfLines={1}
-                style={[styles.title, showCloseButton && styles.titleStart]}
-              >
-                {title ?? ""}
-              </Typography>
-              {showCloseButton && (
-                <IconButton
-                  icon="close"
-                  accessibilityLabel="Close"
-                  onClick={onClose}
-                />
-              )}
-            </View>
-          )}
-
-          {/* Scrolls on its own, so a tall sheet keeps its actions in view. */}
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                maxHeight: window.height * maxHeightRatio,
+                transform: [{ translateY }],
+              },
+            ]}
+            accessibilityViewIsModal
           >
-            {children}
-          </ScrollView>
+            {showHandle && (
+              <View
+                style={styles.handleArea}
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={handleDragStart}
+                onResponderMove={handleDragMove}
+                onResponderRelease={handleDragEnd}
+                onResponderTerminate={handleDragEnd}
+              >
+                <View style={styles.handle} />
+              </View>
+            )}
 
-          {actions != null && (
-            <>
-              <Divider />
-              <View style={styles.actions}>{actions}</View>
-            </>
-          )}
-        </Animated.View>
-        <ToastLayer active={visible} />
-      </View>
+            {(!!title || showCloseButton) && (
+              <View style={styles.header}>
+                <Typography
+                  variant="titleLarge"
+                  accessibilityRole="header"
+                  numberOfLines={1}
+                  style={[styles.title, showCloseButton && styles.titleStart]}
+                >
+                  {title ?? ""}
+                </Typography>
+                {showCloseButton && (
+                  <IconButton
+                    icon="close"
+                    accessibilityLabel="Close"
+                    onClick={onClose}
+                  />
+                )}
+              </View>
+            )}
+
+            {/* Scrolls on its own, so a tall sheet keeps its actions in view. */}
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+            >
+              {children}
+            </ScrollView>
+
+            {actions != null && (
+              <>
+                <Divider />
+                <View style={styles.actions}>{actions}</View>
+              </>
+            )}
+          </Animated.View>
+          <ToastLayer active={visible} />
+        </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 };

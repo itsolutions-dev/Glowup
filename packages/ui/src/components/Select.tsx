@@ -14,6 +14,7 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import Popover from "./Popover";
 import Checkbox from "./Checkbox";
 import Chip from "./Chip";
+import HelperText from "./HelperText";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
@@ -459,16 +460,8 @@ const Select = ({
           )}
         </View>
       </Popover>
-      {!!error && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            { color: theme.colors.error, marginTop: 4, marginLeft: 16 },
-          ]}
-        >
-          {error}
-        </Text>
-      )}
+      {/* The same error line as the other fields: glyph, gutter, announced. */}
+      {!!error && <HelperText type="error">{error}</HelperText>}
     </View>
   );
 };

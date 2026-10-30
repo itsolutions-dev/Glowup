@@ -16,6 +16,15 @@ describe("parseDateInput", () => {
     expect(parseDateInput("11/22/2023", "en-US")).toEqual(day(2023, 11, 22));
   });
 
+  it("reads digits typed without separators, in the locale's order", () => {
+    expect(parseDateInput("05112026", "it-IT")).toEqual(day(2026, 11, 5));
+    expect(parseDateInput("051126", "it-IT")).toEqual(day(2026, 11, 5));
+    expect(parseDateInput("11052026", "en-US")).toEqual(day(2026, 11, 5));
+    // Still being typed, or not a date.
+    expect(parseDateInput("0511202", "it-IT")).toBeNull();
+    expect(parseDateInput("31022026", "it-IT")).toBeNull();
+  });
+
   it("rejects dates that do not exist instead of rolling them over", () => {
     expect(parseDateInput("31/02/2023", "it-IT")).toBeNull();
     expect(parseDateInput("29/02/2023", "it-IT")).toBeNull();

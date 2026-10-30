@@ -100,6 +100,7 @@ const ToggleButton = ({
           style={[
             theme.typography.labelLarge,
             {
+              flexShrink: 1,
               color: active
                 ? theme.colors.onSecondaryContainer
                 : theme.colors.onSurface,
@@ -123,6 +124,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 16,
+    // Narrower than its labels, the group shrinks its segments and their
+    // labels end in an ellipsis rather than running off the screen.
+    flexShrink: 1,
     ...Platform.select({
       web: { cursor: "pointer", transition: "all 0.2s" },
     }),

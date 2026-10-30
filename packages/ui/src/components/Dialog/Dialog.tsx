@@ -15,6 +15,7 @@ import { rgba } from "polished";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
 import { ToastLayer } from "../internal/ToastLayer";
+import KeyboardFrame from "../internal/KeyboardFrame";
 
 import Button from "../Button";
 import Form from "../Form";
@@ -298,29 +299,31 @@ function Dialog({
         visible={visible}
         onRequestClose={onEscape}
       >
-        <View
-          testID={testID}
-          accessibilityViewIsModal
-          {...roleProps}
-          style={[
-            styles.fullScreen,
-            { paddingTop: insets.top, paddingBottom: insets.bottom },
-            slotStyles?.container,
-          ]}
-        >
-          {form ? (
-            <Form
-              onSubmit={onSubmit}
-              style={styles.fullScreenForm}
-              testID={`${testID}-form`}
-            >
-              {screen}
-            </Form>
-          ) : (
-            screen
-          )}
-          <ToastLayer active={visible} />
-        </View>
+        <KeyboardFrame>
+          <View
+            testID={testID}
+            accessibilityViewIsModal
+            {...roleProps}
+            style={[
+              styles.fullScreen,
+              { paddingTop: insets.top, paddingBottom: insets.bottom },
+              slotStyles?.container,
+            ]}
+          >
+            {form ? (
+              <Form
+                onSubmit={onSubmit}
+                style={styles.fullScreenForm}
+                testID={`${testID}-form`}
+              >
+                {screen}
+              </Form>
+            ) : (
+              screen
+            )}
+            <ToastLayer active={visible} />
+          </View>
+        </KeyboardFrame>
       </NativeModal>
     );
   }
@@ -365,85 +368,91 @@ function Dialog({
       onRequestClose={onEscape}
       onShow={initialFocus === "actions" ? focusActions : undefined}
     >
-      <View testID={testID} style={styles.overlay}>
-        {/*
+      <KeyboardFrame>
+        <View testID={testID} style={styles.overlay}>
+          {/*
           The scrim is a sibling *behind* the dialog, not its parent: as a
           parent it would need a no-op press handler on the dialog to stop the
           dismiss from firing through it. Hidden from assistive tech, which
           should reach the dialog, not a full-screen button.
         */}
-        <Pressable
-          testID={`${testID}-scrim`}
-          style={[StyleSheet.absoluteFill, styles.scrim, slotStyles?.backdrop]}
-          onPress={disableBackdropClick ? undefined : onClose}
-          importantForAccessibility="no"
-          accessibilityElementsHidden
-        />
+          <Pressable
+            testID={`${testID}-scrim`}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.scrim,
+              slotStyles?.backdrop,
+            ]}
+            onPress={disableBackdropClick ? undefined : onClose}
+            importantForAccessibility="no"
+            accessibilityElementsHidden
+          />
 
-        <View
-          accessibilityViewIsModal
-          {...roleProps}
-          style={[
-            styles.modalContent,
-            { maxWidth: MAX_WIDTHS[width] },
-            height != null && { height },
-            getGlowStyles(theme, true),
-            slotStyles?.container,
-          ]}
-        >
-          {(!!icon || !!title || closable) && (
-            <View
-              style={[
-                styles.header,
-                closable && styles.headerClosable,
-                slotStyles?.header,
-              ]}
-            >
-              {closeControl(styles.closeCorner)}
+          <View
+            accessibilityViewIsModal
+            {...roleProps}
+            style={[
+              styles.modalContent,
+              { maxWidth: MAX_WIDTHS[width] },
+              height != null && { height },
+              getGlowStyles(theme, true),
+              slotStyles?.container,
+            ]}
+          >
+            {(!!icon || !!title || closable) && (
+              <View
+                style={[
+                  styles.header,
+                  closable && styles.headerClosable,
+                  slotStyles?.header,
+                ]}
+              >
+                {closeControl(styles.closeCorner)}
 
-              {!!icon && (
-                <View style={styles.iconRow}>
-                  <Icon
-                    source={icon}
-                    size={24}
-                    color={theme.colors.secondary}
-                  />
-                </View>
-              )}
+                {!!icon && (
+                  <View style={styles.iconRow}>
+                    <Icon
+                      source={icon}
+                      size={24}
+                      color={theme.colors.secondary}
+                    />
+                  </View>
+                )}
 
-              {!!title && (
-                <View style={styles.modalTitleContainer}>
-                  <Title
-                    variant="headlineMedium"
-                    accessibilityRole="header"
-                    {...titleProps}
-                    style={[
-                      styles.modalTitleText,
-                      closable && styles.titleInset,
-                      slotStyles?.title,
-                    ]}
-                  >
-                    {title}
-                  </Title>
-                </View>
-              )}
-            </View>
-          )}
+                {!!title && (
+                  <View style={styles.modalTitleContainer}>
+                    <Title
+                      variant="headlineMedium"
+                      accessibilityRole="header"
+                      {...titleProps}
+                      style={[
+                        styles.modalTitleText,
+                        closable && styles.titleInset,
+                        slotStyles?.title,
+                      ]}
+                    >
+                      {title}
+                    </Title>
+                  </View>
+                )}
+              </View>
+            )}
 
-          {form ? (
-            <Form
-              onSubmit={onSubmit}
-              style={[styles.form, height != null && styles.formFill]}
-              testID={`${testID}-form`}
-            >
-              {main}
-            </Form>
-          ) : (
-            main
-          )}
+            {form ? (
+              <Form
+                onSubmit={onSubmit}
+                style={[styles.form, height != null && styles.formFill]}
+                testID={`${testID}-form`}
+              >
+                {main}
+              </Form>
+            ) : (
+              main
+            )}
+          </View>
+          <ToastLayer active={visible} />
         </View>
-        <ToastLayer active={visible} />
-      </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 }

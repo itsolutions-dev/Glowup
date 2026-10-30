@@ -87,6 +87,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 8,
+    // Never wider than its container: the segments shrink instead.
+    maxWidth: "100%",
   },
   fullWidth: {
     alignSelf: "stretch",

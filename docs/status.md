@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-10-29** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19–29 October, `solaris-native.md`,
+As of **2026-10-30** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19–30 October, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -17,20 +17,20 @@ change as the handoff**, so the next session starts from here and not from re-re
 
 ## At a glance
 
-| Workstream                                | Done | Progress     | Main thing left                                             | Web | iOS (CI) | Android |
-| ----------------------------------------- | ---- | ------------ | ----------------------------------------------------------- | --- | -------- | ------- |
-| Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators                 | yes | yes      | yes     |
-| Phase 1: native readiness, web, stability | 25%  | `██▌░░░░░░░` | jest ×3, verification matrix, DataGrid 1.4, a11y, safe area | –   | –        | –       |
-| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                                     | yes | yes      | yes     |
-| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                      | yes | partly   | partly  |
-| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release               | yes | yes      | yes     |
-| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                             | –   | –        | –       |
-| Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                          | yes | yes      | yes     |
-| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                                 | yes | yes      | yes     |
-| Phase 8: CRM pilot screens                | 45%  | `████▌░░░░░` | customer detail                                             | yes | –        | partly  |
-| Library hardening (`library-roadmap.md`)  | 50%  | `█████░░░░░` | ~24 defects, 6 high (mostly accessibility)                  | –   | –        | –       |
-| Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`                | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | 63%  | `██████░░░░` |                                                             |     |          |         |
+| Workstream                                | Done | Progress     | Main thing left                                         | Web | iOS (CI) | Android |
+| ----------------------------------------- | ---- | ------------ | ------------------------------------------------------- | --- | -------- | ------- |
+| Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators             | yes | yes      | yes     |
+| Phase 1: native readiness, web, stability | 40%  | `████░░░░░░` | jest ×3, verification matrix, 1.5 lists, VoiceOver pass | –   | –        | partly  |
+| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                                 | yes | yes      | yes     |
+| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                  | yes | partly   | partly  |
+| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release           | yes | yes      | yes     |
+| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                         | –   | –        | –       |
+| Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                      | yes | yes      | yes     |
+| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                             | yes | yes      | yes     |
+| Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)           | yes | –        | yes     |
+| Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2          | yes | –        | partly  |
+| Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`            | –   | –        | –       |
+| **Overall (phases 0–8, weighted)**        | ~70% | `███████░░░` |                                                         |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -43,10 +43,10 @@ layers of the plan (grid, field panel, calculated fields and drill-through, expo
 - **Left:** 0.6 (run the playground on an iOS simulator and an Android emulator and list what breaks). Partly
   covered by the native CI, which runs `/native-check`, not every page.
 
-### Phase 1: native readiness, web, stability, 25%
+### Phase 1: native readiness, web, stability, 40%
 
-Basis: of the 13 items of the phase, none is fully closed; the native CI (in the phase's "what to add" list) is
-done, and 1.10 and 1.11 are partly done.
+Basis: of the 13 items of the phase, 1.6 and 1.12 are closed (30/10), 1.4, 1.10 and 1.11 partly; the native CI
+(in the phase's "what to add" list) is done.
 
 - **Done:**
   - Native CI: `native.yml` on iPhone and Android 14 and 15, `/native-check` (measurements, charts, PDF, pivot),
@@ -55,20 +55,26 @@ done, and 1.10 and 1.11 are partly done.
   - Native fixes found by that CI: `Select` height, `Input` iOS padding, focus ring `elevation` (20/10),
     `Collapse` that did not open on native (26/10, `0ede135`).
   - Web: hover and focus no longer shift the layout (23/10); the theme's scrollbars on web (26/10).
-  - Screen readers: TalkBack tried for real only on the pivot grid (26/10).
+  - Screen readers: TalkBack tried for real on the pivot grid (26/10) and on text fields (30/10: a filled field
+    was read without its label; fixed with `accessibilityLabelledBy`, heard on the emulator).
+  - 1.6 keyboard avoidance (30/10): `Dialog`, `BottomSheet` and side sheets give up the keyboard's room inside
+    their `Modal` (`internal/KeyboardFrame`); seen on the Android emulator with a full-screen dialog.
+  - 1.12 safe area (30/10): nothing throws without a `SafeAreaProvider` (`internal/useInsets`); `NavBar` pads the
+    bottom inset.
+  - Android labels cut ("Sav", "Dai…", 30/10): the app must register brand fonts before the first render; the
+    playground does, and the library docs say so.
 - **Left:**
   - 1.1 jest on three platforms (B1). `packages/ui` still has one `jest-expo` preset.
   - 1.2 `expo export -p ios` / `-p android` in `examples/consumer` (only `-p web` today).
   - 1.3 / A7 `docs/native-verification.md`, the component × platform matrix. The file does not exist.
   - 1.4 `DataGrid` without the `FlatList` inside a horizontal `ScrollView` (B5). The pivot avoided it by writing
     its own grid. The contacts pilot (29/10) found it **working** on the Android emulator: it loads more as it
-    scrolls down and scrolls sideways with the header lined up. What is left is speed: every rendered row
-    re-renders on a sort or a search (0.2 s per sort in the production web build).
+    scrolls down and scrolls sideways with the header lined up. Rows are memoised since 30/10: a re-render with
+    the same rows draws no cell; a sort still redraws the rows that moved. Not re-measured in the browser.
   - 1.5 virtualised long lists in `Select`, `Menu`, `Autocomplete`. None uses `FlatList` yet.
-  - 1.6 keyboard avoidance in `Dialog`, `BottomSheet`, `Drawer`, `Autocomplete`. Not done.
+  - 1.6 for `Autocomplete`'s suggestion list (the overlays are done).
   - 1.7 date pickers on a real Hermes; 1.8 animations; 1.9 RTL.
   - 1.10 a VoiceOver and TalkBack pass on the 3A components.
-  - 1.12 safe area: `AppBar`, `Toolbar`, `FAB`, `SpeedDial` throw without a provider.
   - 1.13 the 1.0 criteria and the adoption guide.
 
 ### Phase 2: theme tokens and hooks, 100%
@@ -191,12 +197,20 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   Android with room to spare; no range slider (the CRM's distance filter is from–to); no Excel export for a list;
   `DataGrid` re-rendering every row on a sort. Not gaps: on a phone the list must be the only vertical scroller (React
   Native warns otherwise); the labelled FAB is `variant="extended"`. Screenshots in `docs/pilots/2026-10-29/`.
-- **Left:** customer detail with outcome, built only with the library.
+- **Done (30/10):** customer detail with outcome (CRM `CustomerSectionPage`, the outcome flow, `OutcomeDialog`, the
+  mobile page and `OutcomeScreen`) as a temporary page: three columns on the web, bottom tabs on a phone, the
+  whole outcome flow (Risposto/Non risposto, tiles, recall/appointment form, summary, toast), the history with
+  filters and the outcome dialog, the phone popover, the two-step edit dialog with the unsaved-changes guard. On
+  the web (1440 and 390 px) and the Android emulator. Five fixes in `ui` (keyboard in modals, `NavBar` inset,
+  digits-only dates, `Select` error, `ToggleButtonGroup` width). No `DetailPage` or `FormDialog` composite was
+  needed: `Card`, `CaptionValue`, `Dialog` with `Form` and `Stepper` did it. Screenshots in
+  `docs/pilots/2026-10-30/`; page deleted.
+- **Left:** nothing for Phase 8. The four screens on iPhone and a real phone belong to Stage 6.
 
-### Library hardening (`library-roadmap.md`), 50%
+### Library hardening (`library-roadmap.md`), 90%
 
-Basis: 7 + 11 + 3 + 4 fixed of about 49 defects (the 7 of 23/10, the 35 the review found, the 3 of the sign-in pilot
-and the 4 of the contacts pilot, 29/10).
+Basis: every item of the roadmap's §1 and §2 is fixed (30/10), plus what the pilots found; what is left are the
+limits listed at the end of §1–2 there. §3 (API) and §4 (builds) are not hardening.
 
 - **Done (23/10 afternoon):** 7 items. Hover and focus no longer shift the box, `Tabs` hover, `Slider`, the
   `Switch` thumb, the picker popover scrollbar, `useToast` identity and `maxVisible`, `DataGrid` column order.
@@ -216,18 +230,12 @@ and the 4 of the contacts pilot, 29/10).
   `width` share the free width, never under 150 (an empty band was left on the right); the list's scrollbar is
   hidden as in `Table` (on the web it made the header and the rows drift apart); an unsorted sortable column shows an
   up-and-down icon, not a faint arrow. Changeset `data-grid-rows-and-width.md` (patch).
-- **Left:** about 24 defects, found by reading and **never run**. The 6 high ones, all but the first about
-  accessibility:
-  - Toasts appear under open overlays (needs Toast v2: on iOS and Android a dialog is a separate native window).
-  - The current `Pagination` page is disabled.
-  - ARIA state never reaches the DOM.
-  - `SpeedDial`/`FAB` accessible names.
-  - Buttons nested in a pressable `Card`.
-  - iOS never announces `Snackbar`/`Banner`.
-  - Not high, but app-facing: `Input` never submits a form on native Enter; a picker inside a `Dialog` closes
-    the dialog with it on Escape.
-
-  Then §2 (second tier) and §4 (what to build: `useConfirm`, theme mode, `AppShell`, Toast v2, motion…).
+- **Done (30/10):** all of §1 and §2, in seven commits (`28f3855`, `2d20efa`, `07c26cf`, `513d86a`, `70ee95d`,
+  `6cbdb05`), each defect reproduced in a failing test first; the details are in `library-roadmap.md` §1–2 and
+  the handoff of 30/10.
+- **Left:** the limits at the end of `library-roadmap.md` §1–2 (a `FAB` without `label`; VoiceOver and a toast
+  over a dialog; the calendar's Escape not driven in a browser; a `DataGrid` sort; Tab into a disabled
+  `FormControl`). Then §4 (what to build: `useConfirm`, theme mode, `AppShell`, the rest of Toast v2, motion…).
 
 ## Do not redo: already settled or already fixed
 
@@ -235,8 +243,8 @@ and the 4 of the contacts pilot, 29/10).
   `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
   propose renaming them again.
 
-- **`packages/ui` is not Alice's** (29/10): change it only for a necessary fix that leaves every existing use looking
-  and behaving the same; anything else is a request for its owner (Gabriele, on `origin/templatesEditor`).
+- **`packages/ui` fixes are ours** (30/10, green light): bugs found in `ui` are fixed here, test first, with a
+  changeset. No messages or reports to colleagues: the work is shippable code.
 - **No merge or rebase of any branch without Alice's OK** (29/10). On 29/10 no other branch had a `ui` change that
   `dev` lacks, except Gabriele's `DragDrop`/`GridLayout` work and Adriano's audit on `master` (left out on 16/10).
 - **The pilot screens are temporary** (29/10): built to find gaps, then deleted. Rebuilding the CRM is not Alice's
@@ -334,7 +342,8 @@ exist. Work that serves none of these waits (see "Deferred" below).
 ### Stage 2: harden the library (in parallel with Stage 3)
 
 - [x] **Alice:** the bugs that break an app (`library-roadmap.md` §1 and §2), each reproduced in a test first
-      (28/10: 11 fixed). Accessibility-only items wait; toasts under dialogs wait for Toast v2.
+      (28/10: 11 fixed).
+- [x] The rest of §1 and §2, accessibility included, and toasts above dialogs (30/10).
 
 ### Stage 3: the pilot screens, cheapest first
 
@@ -350,7 +359,8 @@ what these screens use.
       `Button` + `Banner` do it.
 - [x] Contacts list with filters: built 29/10 as a temporary page, four `DataGrid` fixes (Phase 8 above). No
       `ListPage` or `AppShell` needed for it. Page deleted after the CI on `a830808` (green).
-- [ ] Customer detail with outcome: forces `DetailPage`, `FormDialog`, keyboard avoidance (1.6).
+- [x] Customer detail with outcome: built 30/10 as a temporary page, five fixes (Phase 8 above); keyboard
+      avoidance (1.6) found and fixed; no `DetailPage` or `FormDialog` needed. Page deleted.
 
 ### Stage 4: the minimum of Phase 1 for a 1.0
 
@@ -358,7 +368,7 @@ what these screens use.
       components.
 - [ ] jest on three platforms in `packages/ui` (B1).
 - [ ] `expo export -p ios` and `-p android` in `examples/consumer` (1.2).
-- [ ] Readable errors without a `SafeAreaProvider` (1.12).
+- [x] No `SafeAreaProvider` needed (1.12, 30/10): the insets are zero without one.
 - [ ] A VoiceOver and TalkBack pass on the pilot screens' components (1.10).
 
 ### Stage 5: publish, then the CRM uses the packages

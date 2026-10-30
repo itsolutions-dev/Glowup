@@ -74,7 +74,9 @@ export const DrawerItem = ({
   const level = useContext(LevelContext);
   const collapsed = useContext(CollapsedContext);
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const isGroup = React.Children.toArray(children).length > 0;
+  // Collapsed, the children are hidden: a group is a plain item then, with no
+  // open state to flip or announce.
+  const isGroup = !collapsed && React.Children.toArray(children).length > 0;
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const content = selected
     ? theme.colors.onSecondaryContainer

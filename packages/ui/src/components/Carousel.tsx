@@ -84,6 +84,12 @@ const Carousel = ({
     [containerWidth, pages.length, onIndexChange],
   );
 
+  // A rotation or a resize changes the page width, not the scroll offset:
+  // without this the carousel is left between two pages.
+  useEffect(() => {
+    goToIndex(activeIndexRef.current, false);
+  }, [containerWidth, goToIndex]);
+
   useEffect(() => {
     if (!autoPlayInterval || autoPlayInterval <= 0 || pages.length < 2) return;
     const timer = setInterval(() => {

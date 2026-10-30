@@ -16,6 +16,7 @@ import {
   useWindowDimensions,
   GestureResponderEvent,
 } from "react-native";
+import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Typography from "./Typography";
 import IconButton from "./IconButton";
@@ -236,7 +237,7 @@ const makeStyles = (theme: Theme) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: rgba(theme.colors.scrim, 0.5),
     },
     sheet: {
       backgroundColor: theme.colors.surfaceContainerLow,
@@ -248,10 +249,10 @@ const makeStyles = (theme: Theme) =>
       maxWidth: 640,
       ...Platform.select({
         web: {
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
+          boxShadow: `0 -4px 20px ${rgba(theme.colors.shadow, 0.15)}`,
         },
         ios: {
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.15,
           shadowRadius: 20,

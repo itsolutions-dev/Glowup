@@ -63,10 +63,10 @@ const Avatar = ({
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const statusColor = useMemo(() => {
-    if (status === "online") return "#4CAF50";
-    if (status === "busy") return theme.colors.error || "#F44336";
-    if (status === "away") return "#FFB300";
-    if (status === "offline") return theme.colors.outline || "#9E9E9E";
+    if (status === "online") return theme.colors.success;
+    if (status === "busy") return theme.colors.error;
+    if (status === "away") return theme.colors.warning;
+    if (status === "offline") return theme.colors.outline;
     return null;
   }, [status, theme.colors]);
 

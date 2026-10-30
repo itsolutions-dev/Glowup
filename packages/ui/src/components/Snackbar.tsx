@@ -228,6 +228,10 @@ const Snackbar = ({
 
   if (!shouldRender) return null;
 
+  // The close button: `onClose`'s, or `onDismiss`'s when no timer and no
+  // action would ever dismiss the snackbar (it stayed up for good).
+  const close = onClose ?? (duration <= 0 && !action ? onDismiss : undefined);
+
   const iconName = icon ?? (severity ? SEVERITY_ICONS[severity] : undefined);
   const edge =
     vertical === "top"
@@ -289,11 +293,11 @@ const Snackbar = ({
           </Button>
         )}
 
-        {onClose && (
+        {close && (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close"
-            onPress={onClose}
+            onPress={close}
             style={({ hovered, pressed }: PressableState) => [
               styles.closeButton,
               (pressed || hovered) && {

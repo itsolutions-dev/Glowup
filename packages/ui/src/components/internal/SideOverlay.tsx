@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import type { LayoutChangeEvent, StyleProp, ViewStyle } from "react-native";
 import { rgba } from "polished";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./useInsets";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { useReduceMotion } from "./useReduceMotion";
 import { useWindowWidth } from "./useWindowWidth";
@@ -88,7 +88,7 @@ const SideOverlay = ({
   const windowWidth = useWindowWidth();
   const window = useWindowDimensions();
   const reduceMotion = useReduceMotion();
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const horizontal = position === "left" || position === "right";
   // Zero is what a prerendered page reports before it hydrates.
   const panelWidth = windowWidth > 0 ? Math.min(width, windowWidth) : width;

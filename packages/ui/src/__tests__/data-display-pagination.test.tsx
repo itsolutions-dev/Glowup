@@ -49,6 +49,31 @@ describe("Pagination", () => {
     expect(getByLabelText("Pagination").props.role).toBe("navigation");
   });
 
+  it.each([1, 2])(
+    "keeps the same number of slots on every page (siblingCount %i), so the row never jumps",
+    async (siblingCount) => {
+      const counts = new Set<number>();
+      for (let page = 1; page <= 20; page++) {
+        const view = await draw(
+          <Pagination
+            activePage={page}
+            totalPages={20}
+            siblingCount={siblingCount}
+            onChange={() => {}}
+          />,
+        );
+        const pages = view.getAllByRole("button", { name: /^Page \d+$/ });
+        const gaps = view.queryAllByText("…");
+        counts.add(pages.length + gaps.length);
+        // The first, the last and the current page are always there.
+        for (const n of [1, page, 20])
+          expect(view.getByRole("button", { name: `Page ${n}` })).toBeTruthy();
+        await view.unmount();
+      }
+      expect([...counts]).toEqual([siblingCount * 2 + 5]);
+    },
+  );
+
   it("marks the current page aria-current on the web", async () => {
     jest.replaceProperty(Platform, "OS", "web");
     const { getByRole } = await draw(

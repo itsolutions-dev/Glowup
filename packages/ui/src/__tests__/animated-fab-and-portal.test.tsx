@@ -4,7 +4,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { FAB, Autocomplete, Portal, ThemeProvider, Tooltip } from "../index";
 
-// SafeAreaProvider is part of the kit's provider contract — FAB, AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.
+// SafeAreaProvider, as an app mounts it: FAB, AppBar and SpeedDial read its insets (without one they are zero).
 const Providers = ({ children }: { children: React.ReactNode }) => (
   <SafeAreaProvider
     initialMetrics={{

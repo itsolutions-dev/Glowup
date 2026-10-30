@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Paper from "./Paper";
 
@@ -53,7 +53,7 @@ const Toolbar = ({
 }: ToolbarProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const a11y = {
     role: "toolbar" as const,
     accessibilityLabel,

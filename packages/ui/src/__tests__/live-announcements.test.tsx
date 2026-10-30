@@ -1,6 +1,6 @@
 import React from "react";
 import { AccessibilityInfo, Platform } from "react-native";
-import { render } from "@testing-library/react-native";
+import { fireEvent, render } from "@testing-library/react-native";
 import { Banner, Snackbar, ThemeProvider } from "..";
 
 // iOS has no live regions: what Android reads from accessibilityLiveRegion,
@@ -44,6 +44,34 @@ describe("Snackbar announcements", () => {
       expect(announce).not.toHaveBeenCalled();
     },
   );
+});
+
+describe("Snackbar that never times out", () => {
+  it("gets a close button when nothing else could dismiss it", async () => {
+    const onDismiss = jest.fn();
+    const view = await draw(
+      <Snackbar visible message="Offline" duration={0} onDismiss={onDismiss} />,
+    );
+    await fireEvent.press(view.getByRole("button", { name: "Close" }));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the old look while a timer or an action can dismiss it", async () => {
+    const timed = await draw(
+      <Snackbar visible message="Saved" onDismiss={() => {}} />,
+    );
+    expect(timed.queryByRole("button", { name: "Close" })).toBeNull();
+    const withAction = await draw(
+      <Snackbar
+        visible
+        message="Deleted"
+        duration={0}
+        onDismiss={() => {}}
+        action={{ label: "Undo", onClick: () => {} }}
+      />,
+    );
+    expect(withAction.queryByRole("button", { name: "Close" })).toBeNull();
+  });
 });
 
 describe("Banner announcements", () => {

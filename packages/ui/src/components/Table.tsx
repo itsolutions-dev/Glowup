@@ -9,6 +9,7 @@ import {
   ViewStyle,
   TextStyle,
   DimensionValue,
+  Platform,
 } from "react-native";
 import Icons from "./Glyph";
 import Pagination from "./Pagination";
@@ -376,10 +377,7 @@ export const TableRow = ({
       <View
         role="row"
         testID={testID}
-        {...a11yState(
-          onClick ? "button" : "row",
-          selected ? { selected } : undefined,
-        )}
+        {...a11yState("row", selected ? { selected } : undefined)}
         style={[base, style]}
       >
         {children}
@@ -387,16 +385,20 @@ export const TableRow = ({
     );
   }
 
+  // On the web a clickable row stays a row (focusable, Enter presses it): a
+  // button may not hold the buttons in its cells. iOS and Android have no
+  // rows, so there it is a button.
+  const role = onClick && Platform.OS !== "web" ? "button" : "row";
   return (
     <Pressable
-      role={onClick ? "button" : "row"}
+      role={role}
       onPress={onClick}
       testID={testID}
       // A row that only highlights is not a control: no tab stop, and no
       // grouping of the controls in its cells into one element.
       focusable={!!onClick}
       accessible={!!onClick}
-      {...a11yState(onClick ? "button" : "row", { selected })}
+      {...a11yState(role, { selected })}
       style={({ hovered, pressed }: PressableState) => [
         base,
         !selected &&
@@ -485,9 +487,19 @@ export const TableHeaderCell = ({
       )}
     </>
   );
+  const name = typeof children === "string" ? children : "column";
   return (
     <View
       role="columnheader"
+      {...((sortable
+        ? {
+            "aria-sort": sortDirection
+              ? sortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none",
+          }
+        : null) as object)}
       style={[
         styles.th,
         cellSize(width, flex),
@@ -498,6 +510,8 @@ export const TableHeaderCell = ({
       {interactive ? (
         <Pressable
           onPress={onClick}
+          accessibilityRole="button"
+          accessibilityLabel={`Sort by ${name}`}
           style={({ hovered, pressed }: PressableState) => [
             styles.thContent,
             contentStyle,
@@ -516,7 +530,12 @@ export const TableHeaderCell = ({
 
       <View style={styles.reorderContainer}>
         {onMoveLeft && (
-          <Pressable onPress={onMoveLeft} style={styles.reorderButton}>
+          <Pressable
+            onPress={onMoveLeft}
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${name} left`}
+            style={styles.reorderButton}
+          >
             <Icons
               name="chevron-left"
               size={14}
@@ -525,7 +544,12 @@ export const TableHeaderCell = ({
           </Pressable>
         )}
         {onMoveRight && (
-          <Pressable onPress={onMoveRight} style={styles.reorderButton}>
+          <Pressable
+            onPress={onMoveRight}
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${name} right`}
+            style={styles.reorderButton}
+          >
             <Icons
               name="chevron-right"
               size={14}

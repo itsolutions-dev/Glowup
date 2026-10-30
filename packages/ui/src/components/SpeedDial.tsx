@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
@@ -35,7 +35,7 @@ const SpeedDial = ({
   // disabled, which takes them out of the web tab order. Not before, or they
   // would turn grey while still shrinking away.
   const [settledClosed, setSettledClosed] = useState(!defaultOpen);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
 
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);

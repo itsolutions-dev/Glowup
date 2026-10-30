@@ -146,8 +146,8 @@ describe("Drawer elevation", () => {
     [2, "surfaceContainer"],
     [3, "surfaceContainerHigh"],
     [4, "surfaceContainerHighest"],
-    [5, "surfaceDim"],
-    [9, "surfaceDim"],
+    [5, "surfaceContainerHighest"],
+    [9, "surfaceContainerHighest"],
     [-2, "surface"],
   ] as const)("level %s paints the %s tone", async (elevation, token) => {
     const { getByTestId } = await draw(

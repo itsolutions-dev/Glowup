@@ -57,7 +57,7 @@ const StatusBadge = ({
     <View
       style={[styles.statusContainer, { backgroundColor: bg }]}
       accessibilityRole="text"
-      accessibilityLabel={`${type}: ${label}`}
+      accessibilityLabel={label}
     >
       <Icons name={(icon || ICONS[type]) as any} size={14} color={on} />
       <Text style={[styles.statusText, { color: on }]}>{label}</Text>

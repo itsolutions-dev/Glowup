@@ -5177,7 +5177,7 @@
           "name": "showExternalIcon",
           "type": "boolean",
           "required": false,
-          "description": "Appends an external-link icon. Defaults to `true` when `href` is remote.",
+          "description": "Appends an external-link icon. Defaults to `true` when `href` is an `http` or `https` address.",
           "deprecated": false
         },
         {

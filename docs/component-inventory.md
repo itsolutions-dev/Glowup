@@ -2024,7 +2024,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | externalIcon | `MaterialCommunityIconsGlyphs` | "open-in-new" |  |  |
 | href | `string` |  |  | Opened with `Linking.openURL`. Ignored when `onPress` is given, and when its scheme is not in `allowedSchemes` — then the link does nothing. |
 | onPress | `() => void` |  |  |  |
-| showExternalIcon | `boolean` |  |  | Appends an external-link icon. Defaults to `true` when `href` is remote. |
+| showExternalIcon | `boolean` |  |  | Appends an external-link icon. Defaults to `true` when `href` is an `http` or `https` address. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 | textStyle | `StyleProp<TextStyle>` |  |  |  |

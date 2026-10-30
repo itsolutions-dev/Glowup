@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 import Icons from "./Glyph";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { useStateLayer } from "./TouchableRipple";
@@ -124,7 +124,7 @@ const StaticFab = ({
 }: FABProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const stateLayer = useStateLayer(
     theme.colors.primaryContainer,
     theme.colors.onPrimaryContainer,
@@ -203,7 +203,7 @@ const AnimatedFab = ({
 }: FABProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const stateLayer = useStateLayer(
     theme.colors.primaryContainer,
     theme.colors.onPrimaryContainer,

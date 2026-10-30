@@ -182,15 +182,17 @@ interface ThemeContextType {
   setPalette: (palette: ThemePalette) => void;
 }
 
+// Outside a provider: the theme a provider gives with no OS preference, so a
+// component looks the same with or without one (it used to be dark).
 const ThemeContext = createContext<ThemeContextType>({
   theme: {
-    colors: themeConfig.colors.dark,
+    colors: palettes.baseline.light,
     typography: themeConfig.typography as any,
 
     spacing: themeConfig.spacing,
     shape: themeConfig.shape,
-    charts: themeConfig.charts.dark,
-    isDark: true,
+    charts: themeConfig.charts.light,
+    isDark: false,
   },
   toggleTheme: () => {},
   palette: palettes.baseline,

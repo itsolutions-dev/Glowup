@@ -90,6 +90,7 @@ const Collapse = ({
 
   const shouldRenderChildren =
     open || mounted || keepMounted || collapsedHeight > 0;
+  const hidden = !open && collapsedHeight === 0;
 
   return (
     <Animated.View
@@ -109,10 +110,11 @@ const Collapse = ({
         animateOpacity && { opacity: progress },
         style,
       ]}
-      // Hide collapsed content from assistive tech and from tab order on web.
-      accessibilityElementsHidden={!open}
-      importantForAccessibility={open ? "auto" : "no-hide-descendants"}
-      {...(Platform.OS === "web" ? { "aria-hidden": !open } : null)}
+      // Hide collapsed content from assistive tech, unless a teaser of it
+      // (`collapsedHeight`) is still on screen.
+      accessibilityElementsHidden={hidden}
+      importantForAccessibility={hidden ? "no-hide-descendants" : "auto"}
+      {...(Platform.OS === "web" ? { "aria-hidden": hidden } : null)}
     >
       <View onLayout={handleLayout}>
         {shouldRenderChildren ? children : null}

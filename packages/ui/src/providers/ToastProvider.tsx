@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useMemo,
   useRef,
@@ -11,6 +12,7 @@ import Snackbar, {
   type SnackbarVariant,
 } from "../components/Snackbar";
 import { SnackbarStack } from "../components/internal/SnackbarStack";
+import { ToastLayersContext } from "../components/internal/ToastLayer";
 import { MaterialCommunityIconsGlyphs } from "../components/types";
 
 export interface ToastOptions {
@@ -93,6 +95,42 @@ export const useToast = () => {
   return context;
 };
 
+/** The toasts on screen, one stack per position. */
+const ToastViewport = ({
+  stacks,
+  hide,
+}: {
+  stacks: [SnackbarPosition, QueuedToast[]][];
+  hide: (key: string) => void;
+}) =>
+  stacks.map(([at, toasts]) => (
+    <SnackbarStack key={at} position={at}>
+      {/* The newest is nearest the edge: first from a top edge, last from a bottom one. */}
+      {(at.startsWith("top") ? [...toasts].reverse() : toasts).map((toast) => (
+        <Snackbar
+          // The generation remounts a replaced toast: the enter animation and the timer restart.
+          key={`${toast.key}:${toast.generation}`}
+          visible
+          message={toast.message}
+          severity={toast.severity}
+          variant={toast.variant}
+          position={at}
+          icon={toast.icon}
+          duration={toast.duration}
+          action={toast.action}
+          onDismiss={() => hide(toast.key)}
+          onClose={
+            toast.onClose &&
+            (() => {
+              hide(toast.key);
+              toast.onClose?.();
+            })
+          }
+        />
+      ))}
+    </SnackbarStack>
+  ));
+
 let counter = 0;
 const nextKey = () => `toast-${++counter}`;
 let generations = 0;
@@ -174,38 +212,23 @@ export const ToastProvider = ({
     stacks.set(at, [...(stacks.get(at) ?? []), toast]);
   }
 
+  const viewport = <ToastViewport stacks={[...stacks]} hide={api.hide} />;
+
+  // The open overlays, oldest first: the last one is on top and draws the
+  // toasts; with none open the root does.
+  const [overlays, setOverlays] = useState<string[]>([]);
+  const open = useCallback((id: string) => {
+    setOverlays((current) => [...current, id]);
+    return () => setOverlays((current) => current.filter((o) => o !== id));
+  }, []);
+  const top = overlays.length > 0 ? overlays[overlays.length - 1] : null;
+
   return (
     <ToastContext.Provider value={api}>
-      {children}
-      {[...stacks].map(([at, toasts]) => (
-        <SnackbarStack key={at} position={at}>
-          {/* The newest is nearest the edge: first from a top edge, last from a bottom one. */}
-          {(at.startsWith("top") ? [...toasts].reverse() : toasts).map(
-            (toast) => (
-              <Snackbar
-                // The generation remounts a replaced toast: the enter animation and the timer restart.
-                key={`${toast.key}:${toast.generation}`}
-                visible
-                message={toast.message}
-                severity={toast.severity}
-                variant={toast.variant}
-                position={at}
-                icon={toast.icon}
-                duration={toast.duration}
-                action={toast.action}
-                onDismiss={() => api.hide(toast.key)}
-                onClose={
-                  toast.onClose &&
-                  (() => {
-                    api.hide(toast.key);
-                    toast.onClose?.();
-                  })
-                }
-              />
-            ),
-          )}
-        </SnackbarStack>
-      ))}
+      <ToastLayersContext.Provider value={{ viewport, top, open }}>
+        {children}
+        {top === null && viewport}
+      </ToastLayersContext.Provider>
     </ToastContext.Provider>
   );
 };

@@ -12,7 +12,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
 | Aggiunti | 28 | 379 |
-| Aggiornati | 55 | 713 |
+| Aggiornati | 55 | 714 |
 | Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
@@ -55,7 +55,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Avatar](#avatar): + onClick · ~ size · − onPress
 - [Badge](#badge): + color, position
 - [Banner](#banner): comportamento
-- [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton · − onDismiss
+- [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton, testID · − onDismiss
 - [Box](#box): + background, children, margin, padding, style, variant · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Button](#button): comportamento · + badge, color, density, onClick, type, variant · ~ iconPosition · − mode, onPress, tone
 - [Card](#card): + onClick, selected · − onPress
@@ -848,7 +848,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### BottomSheet
 
-`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `onClose`, `actions`, `showCloseButton`; prop tolte: `onDismiss`
+`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `onClose`, `actions`, `showCloseButton`, `testID`; prop tolte: `onDismiss`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -860,6 +860,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | maxHeightRatio | `number` | 0.85 |  | Max sheet height as a fraction of the window height. |
 | showCloseButton | `boolean` | false | nuova | Adds a close button at the end of the title row. Defaults to `false`. |
 | showHandle | `boolean` | true |  |  |
+| testID | `string` |  | nuova |  |
 | title | `string` |  |  |  |
 
 ### Box

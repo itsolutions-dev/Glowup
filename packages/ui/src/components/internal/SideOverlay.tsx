@@ -13,6 +13,7 @@ import type { LayoutChangeEvent, StyleProp, ViewStyle } from "react-native";
 import { rgba } from "polished";
 import { useInsets } from "./useInsets";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
+import { ToastLayer } from "./ToastLayer";
 import { useReduceMotion } from "./useReduceMotion";
 import { useWindowWidth } from "./useWindowWidth";
 
@@ -280,6 +281,7 @@ const SideOverlay = ({
           {children}
           {position === "top" && handle}
         </Animated.View>
+        <ToastLayer active={visible} />
       </View>
     </NativeModal>
   );

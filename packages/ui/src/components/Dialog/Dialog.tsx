@@ -14,6 +14,7 @@ import {
 import { rgba } from "polished";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
+import { ToastLayer } from "../internal/ToastLayer";
 
 import Button from "../Button";
 import Form from "../Form";
@@ -318,6 +319,7 @@ function Dialog({
           ) : (
             screen
           )}
+          <ToastLayer active={visible} />
         </View>
       </NativeModal>
     );
@@ -440,6 +442,7 @@ function Dialog({
             main
           )}
         </View>
+        <ToastLayer active={visible} />
       </View>
     </NativeModal>
   );

@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { ToastLayer } from "./internal/ToastLayer";
 import Typography from "./Typography";
 import IconButton from "./IconButton";
 import Divider from "./Divider";
@@ -40,6 +41,7 @@ export interface BottomSheetProps {
   dismissOnScrimTap?: boolean;
   /** Max sheet height as a fraction of the window height. */
   maxHeightRatio?: number;
+  testID?: string;
 }
 
 const DISMISS_THRESHOLD = 120;
@@ -54,6 +56,7 @@ const BottomSheet = ({
   showHandle = true,
   dismissOnScrimTap = true,
   maxHeightRatio = 0.85,
+  testID,
 }: BottomSheetProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -149,7 +152,7 @@ const BottomSheet = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={styles.root}>
+      <View style={styles.root} testID={testID}>
         <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
           <Pressable
             style={StyleSheet.absoluteFill}
@@ -218,6 +221,7 @@ const BottomSheet = ({
             </>
           )}
         </Animated.View>
+        <ToastLayer active={visible} />
       </View>
     </NativeModal>
   );

@@ -14,6 +14,7 @@ import Icons from "./Glyph";
 import { useTheme, Theme, getGlowStyles } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import { useFieldLabel } from "./internal/fieldLabel";
+import { a11yState } from "./internal/a11yState";
 
 export interface NumberFieldProps {
   label?: string;
@@ -128,7 +129,7 @@ const NumberField = ({
         <View style={styles.inputWrapper}>
           <TextInput
             accessibilityLabel={label}
-            accessibilityState={{ disabled }}
+            {...a11yState("textbox", { disabled })}
             {...(label ? tie.input : null)}
             keyboardType="decimal-pad"
             value={text}

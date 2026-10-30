@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface BreadcrumbItem {
   id: string;
@@ -41,7 +42,11 @@ const Breadcrumbs = ({
   }, [items, maxItems]);
 
   return (
-    <View style={styles.container} accessibilityRole="menubar">
+    <View
+      style={styles.container}
+      role="navigation"
+      accessibilityLabel="Breadcrumbs"
+    >
       {visibleItems.map((item, index) => {
         const isLast = index === visibleItems.length - 1;
         const isEllipsis = item.id === ELLIPSIS_ID;
@@ -54,7 +59,9 @@ const Breadcrumbs = ({
               disabled={!pressable}
               accessibilityRole={pressable ? "link" : "text"}
               accessibilityLabel={item.label}
-              accessibilityState={isLast ? { selected: true } : undefined}
+              // The last item is where the user is ("link" maps selected to
+              // aria-current="page"), pressable or not.
+              {...a11yState("link", isLast ? { selected: true } : undefined)}
               style={[styles.item, pressable && styles.itemPressable]}
             >
               {({ hovered }: PressableState) => (

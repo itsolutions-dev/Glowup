@@ -11,6 +11,7 @@ import {
 import Icons from "./Glyph";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface LinkProps {
   children: string;
@@ -102,7 +103,7 @@ const Link = ({
     <Pressable
       accessibilityRole="link"
       accessibilityLabel={accessibilityLabel ?? children}
-      accessibilityState={{ disabled: !!disabled }}
+      {...a11yState("link", { disabled: !!disabled })}
       disabled={disabled || !handlePress}
       onPress={handlePress}
       testID={testID}

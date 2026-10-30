@@ -14,6 +14,7 @@ import Popover from "./Popover";
 import Divider from "./Divider";
 import type { AnchorPosition } from "./internal/anchorPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface MenuItem {
   id: string;
@@ -110,15 +111,19 @@ const Menu = ({
                   // Not `disabled`: a disabled Pressable lets the touch through
                   // to the popover's backdrop, which would close the menu.
                   onPress={() => !item.disabled && handleItemPress(item)}
-                  aria-disabled={item.disabled}
                   accessibilityLabel={item.label}
+                  // A menu with a selection is a group of radio items on the web.
                   accessibilityRole={
-                    (Platform.OS === "web" ? "menuitem" : "button") as any
+                    (Platform.OS === "web"
+                      ? selected
+                        ? "menuitemradio"
+                        : "menuitem"
+                      : "button") as any
                   }
-                  accessibilityState={{
+                  {...a11yState(selected ? "menuitemradio" : "menuitem", {
                     disabled: item.disabled,
                     selected: selected ? isSelected : undefined,
-                  }}
+                  })}
                   style={({ hovered, pressed }: PressableState) => [
                     styles.item,
                     item.disabled && { opacity: 0.38 },

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Pressable,
   StyleProp,
@@ -51,35 +51,67 @@ const CardBase = ({
     };
   }, [selected, styles, variant, theme]);
 
-  return (
-    <Pressable
-      onPress={onClick}
-      disabled={!onClick}
-      accessibilityRole={onClick ? "button" : undefined}
-      accessibilityLabel={accessibilityLabel}
-      // A button that stays chosen: aria-pressed on the web (aria-selected is
-      // not valid there), the selected state on iOS and Android.
-      {...((selected === undefined
-        ? null
-        : Platform.OS === "web"
-          ? { "aria-pressed": selected }
-          : { "aria-selected": selected }) as object)}
-      style={({ hovered, pressed }: PressableState) => [
-        styles.base,
-        styles[variant],
-        (hovered || pressed) &&
-          !(styles[variant] as any).boxShadow &&
-          getFocusRing(theme),
+  // A pressable card with Card.Actions is an action area plus an actions row,
+  // as in M3: the actions are not nested in the card's button (invalid on the
+  // web, and merged into one element on iOS, out of VoiceOver's reach).
+  const parts = React.Children.toArray(children);
+  const actions = onClick
+    ? parts.filter((c) => React.isValidElement(c) && c.type === CardActions)
+    : [];
+  const [state, setState] = useState({ hovered: false, pressed: false });
 
-        hovered && styles.hovered,
-        pressed && styles.pressed,
-        onClick && Platform.OS === "web" && { cursor: "pointer" },
-        selectedStyle,
-        style,
-      ]}
-    >
-      <View style={styles.content}>{children}</View>
-    </Pressable>
+  const frame = ({ hovered, pressed }: PressableState) => [
+    styles.base,
+    styles[variant],
+    (hovered || pressed) &&
+      !(styles[variant] as any).boxShadow &&
+      getFocusRing(theme),
+
+    hovered && styles.hovered,
+    pressed && styles.pressed,
+    onClick && Platform.OS === "web" && { cursor: "pointer" },
+    selectedStyle,
+    style,
+  ];
+  const buttonProps = {
+    onPress: onClick,
+    disabled: !onClick,
+    accessibilityRole: onClick ? ("button" as const) : undefined,
+    accessibilityLabel,
+    // A button that stays chosen: aria-pressed on the web (aria-selected is
+    // not valid there), the selected state on iOS and Android.
+    ...((selected === undefined
+      ? null
+      : Platform.OS === "web"
+        ? { "aria-pressed": selected }
+        : { "aria-selected": selected }) as object),
+  };
+
+  if (actions.length === 0) {
+    return (
+      <Pressable {...buttonProps} style={frame}>
+        <View style={styles.content}>{children}</View>
+      </Pressable>
+    );
+  }
+
+  // The frame shows the area's hover and press, as the whole card did.
+  const track = (patch: Partial<typeof state>) => () =>
+    setState((s) => ({ ...s, ...patch }));
+  return (
+    <View style={frame(state)}>
+      <Pressable
+        {...buttonProps}
+        onHoverIn={track({ hovered: true })}
+        onHoverOut={track({ hovered: false })}
+        onPressIn={track({ pressed: true })}
+        onPressOut={track({ pressed: false })}
+        style={styles.content}
+      >
+        {parts.filter((c) => !actions.includes(c))}
+      </Pressable>
+      {actions}
+    </View>
   );
 };
 

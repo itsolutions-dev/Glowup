@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import HelperText from "./HelperText";
+import { a11yState } from "./internal/a11yState";
 
 export interface PinInputProps {
   /** Number of cells. Defaults to 6. */
@@ -176,7 +177,7 @@ const PinInput = ({
               // for paste and SMS autofill to work.
               selectTextOnFocus
               accessibilityLabel={`${label ?? "Code"} ${index + 1}/${length}`}
-              accessibilityState={{ disabled: !!disabled }}
+              {...a11yState("textbox", { disabled: !!disabled })}
               style={[
                 styles.cell,
                 theme.typography.titleLarge,

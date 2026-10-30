@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { a11yState } from "./internal/a11yState";
 
 export interface CarouselProps {
   children: React.ReactNode;
@@ -164,7 +165,7 @@ const Carousel = ({
               onPress={() => goToIndex(index)}
               accessibilityRole="button"
               accessibilityLabel={`Go to slide ${index + 1}`}
-              accessibilityState={{ selected: index === activeIndex }}
+              {...a11yState("button", { selected: index === activeIndex })}
               style={styles.dotPressable}
             >
               <View

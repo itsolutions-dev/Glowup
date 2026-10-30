@@ -8,6 +8,7 @@ import TouchableRipple from "./TouchableRipple";
 import Typography from "./Typography";
 import type { MaterialCommunityIconsGlyphs } from "./types";
 import { isSelected, selectionRoles, toggleIn } from "./internal/selection";
+import { a11yState } from "./internal/a11yState";
 
 // M3 Expressive button group: heights per size, 2dp between connected
 // buttons, whose inner corners are small while the outer ones stay round.
@@ -115,10 +116,10 @@ const ButtonGroup = ({
             rippleColor={colors.on}
             accessibilityRole={roles.item}
             accessibilityLabel={option.accessibilityLabel ?? option.label}
-            accessibilityState={{
+            {...a11yState(roles.item, {
               checked: selected,
               disabled: !!option.disabled,
-            }}
+            })}
             // TouchableRipple paints the hover/focus/press state layer.
             style={[
               styles.button,

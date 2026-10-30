@@ -13,6 +13,7 @@ import {
 import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface SwitchProps {
   value: boolean;
@@ -193,9 +194,7 @@ const Switch = ({
       ]}
       accessibilityLabel={label}
       accessibilityRole="switch"
-      accessibilityState={{ checked: value, disabled }}
-      aria-checked={value}
-      aria-disabled={disabled}
+      {...a11yState("switch", { checked: value, disabled })}
       {...(Platform.OS === "android" && {
         android_ripple: {
           color: disabled ? "transparent" : theme.colors.primary,

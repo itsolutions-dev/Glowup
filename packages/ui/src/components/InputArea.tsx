@@ -15,6 +15,7 @@ import { useDensity, type Density } from "../providers/Density";
 import type { InputTextInputProps } from "./Input";
 import type { MaterialCommunityIconsGlyphs } from "./types";
 import FieldShell, { fieldText } from "./internal/FieldShell";
+import { a11yState } from "./internal/a11yState";
 
 export interface InputAreaProps {
   label?: string;
@@ -197,7 +198,7 @@ const InputArea = ({
       {(field) => (
         <TextInput
           accessibilityLabel={label}
-          accessibilityState={{ disabled }}
+          {...a11yState("textbox", { disabled })}
           {...field.labelledBy}
           accessibilityHint={placeholder}
           multiline

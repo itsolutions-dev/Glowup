@@ -4,6 +4,7 @@ import Icons from "./Glyph";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface CheckboxProps {
   label?: string;
@@ -70,10 +71,10 @@ const Checkbox = ({
       }}
       accessibilityLabel={label}
       accessibilityRole="checkbox"
-      accessibilityState={{
+      {...a11yState("checkbox", {
         checked: indeterminate ? "mixed" : checked,
         disabled,
-      }}
+      })}
       disabled={disabled}
       style={[styles.wrapper, { opacity: disabled ? 0.38 : 1 }]}
     >

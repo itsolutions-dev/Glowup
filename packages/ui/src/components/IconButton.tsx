@@ -18,6 +18,7 @@ import Badge from "./Badge";
 import Tooltip from "./Tooltip";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
 export type IconButtonSize = "small" | "medium" | "large";
@@ -172,12 +173,11 @@ const IconButton = ({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{
-        disabled: !!disabled,
-        busy: !!loading,
-        selected,
-      }}
-      accessibilityValue={badge ? { text: String(badge) } : undefined}
+      {...a11yState(
+        "button",
+        { disabled: !!disabled, busy: !!loading, selected },
+        badge ? { text: String(badge) } : undefined,
+      )}
       disabled={!isInteractive}
       onPress={
         isInteractive && onClick

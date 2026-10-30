@@ -10,6 +10,7 @@ import { MaterialCommunityIconsGlyphs } from "./types";
 import { type Density } from "../providers/Density";
 import FieldShell from "./internal/FieldShell";
 import { useFormReturnKey } from "./Form";
+import { a11yState } from "./internal/a11yState";
 
 /** The `TextInput` props an `Input` hands through; its controlled ones (`value`, `onChangeText`, `editable`, `secureTextEntry`) stay with its own props. */
 export type InputTextInputProps = Pick<
@@ -211,7 +212,7 @@ const Input = ({
       {(field) => (
         <TextInput
           accessibilityLabel={label}
-          accessibilityState={{ disabled }}
+          {...a11yState("textbox", { disabled })}
           // No accessibilityValue: the edit box exposes its own text, and on
           // Android the value made an empty field "Username, ".
           {...field.labelledBy}

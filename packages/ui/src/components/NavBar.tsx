@@ -5,6 +5,7 @@ import { useTheme, Theme } from "../providers/ThemeProvider";
 import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
+import { a11yState } from "./internal/a11yState";
 
 export interface NavBarItem {
   id: string;
@@ -55,7 +56,7 @@ const NavBar = ({
             disabled={item.disabled}
             accessibilityRole="tab"
             accessibilityLabel={item.label}
-            accessibilityState={{ selected: active, disabled: item.disabled }}
+            {...a11yState("tab", { selected: active, disabled: item.disabled })}
             style={[styles.item, item.disabled && { opacity: 0.38 }]}
           >
             {({ hovered, pressed }: PressableState) => (

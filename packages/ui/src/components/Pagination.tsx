@@ -14,6 +14,7 @@ import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export type PaginationSize = "sm" | "md" | "lg";
 export type PaginationVariant = "rounded" | "circular";
@@ -314,7 +315,7 @@ const PageSelect = ({
         disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel="Select page"
-        accessibilityState={{ expanded: open, disabled: !!disabled }}
+        {...a11yState("button", { expanded: open, disabled: !!disabled })}
         style={({ hovered, pressed }: PressableState) => [
           styles.select,
           { height, borderRadius },
@@ -388,7 +389,7 @@ const PageSelect = ({
                   key={page}
                   accessibilityRole="menuitem"
                   accessibilityLabel={`Page ${page}`}
-                  accessibilityState={{ selected: page === activePage }}
+                  {...a11yState("menuitem", { selected: page === activePage })}
                   onPress={() => pick(page)}
                   style={({ hovered, pressed }: PressableState) => [
                     styles.option,

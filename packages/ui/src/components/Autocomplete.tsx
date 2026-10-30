@@ -27,6 +27,7 @@ import Portal, { usePortalHost } from "./Portal";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
 import { swallowEscapeKeyUp } from "./internal/useEscapeKey";
+import { a11yState } from "./internal/a11yState";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 
 export interface AutocompleteOption {
@@ -477,10 +478,10 @@ const Autocomplete = ({
                 autoCorrect={false}
                 autoCapitalize="none"
                 accessibilityLabel={label}
-                accessibilityState={{
+                {...a11yState("combobox", {
                   disabled: !!disabled,
                   expanded: listVisible,
-                }}
+                })}
                 style={[
                   styles.input,
                   multiple && styles.inputMultiple,
@@ -559,10 +560,10 @@ const Autocomplete = ({
                       <Pressable
                         key={option.id}
                         accessibilityRole="menuitem"
-                        accessibilityState={{
+                        {...a11yState("menuitem", {
                           selected: index === highlighted,
                           ...(multiple && { checked: isChosen }),
-                        }}
+                        })}
                         onPress={() => commit(option)}
                         onHoverIn={() => setHighlighted(index)}
                         style={({ hovered, pressed }: PressableState) => [

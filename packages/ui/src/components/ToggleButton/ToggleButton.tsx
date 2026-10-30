@@ -10,6 +10,7 @@ import {
 import Icons from "../Glyph";
 import { useTheme, getFocusRing } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
+import { a11yState } from "../internal/a11yState";
 
 export interface ToggleButtonProps {
   icon?: MaterialCommunityIconsGlyphs;
@@ -59,7 +60,11 @@ const ToggleButton = ({
         label || (icon ? `${icon} toggle button` : "Toggle Button")
       }
       accessibilityRole={accessibilityRole}
-      accessibilityState={{ selected: active, checked: active, disabled }}
+      {...a11yState(accessibilityRole, {
+        selected: active,
+        checked: active,
+        disabled,
+      })}
       style={({ hovered, pressed }: PressableState) => [
         styles.button,
         grow && styles.grow,

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface Step {
   label: string;
@@ -61,7 +62,7 @@ const Stepper = ({
         disabled={!onClick}
         accessibilityRole="button"
         accessibilityLabel={`Step ${index + 1}: ${label}`}
-        accessibilityState={{ selected: isActive, disabled: !onClick }}
+        {...a11yState("button", { selected: isActive, disabled: !onClick })}
         style={({ hovered, pressed }: PressableState) => [
           styles.stepCircle,
           {

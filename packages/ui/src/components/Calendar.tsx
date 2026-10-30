@@ -51,6 +51,7 @@ import {
   toggleMultipleSelection,
   useLabels,
 } from "./DateTimePicker.shared";
+import { a11yState } from "./internal/a11yState";
 
 /**
  * Internal: the month grid of `DatePicker` and `DateTimePicker`, which render it
@@ -532,7 +533,7 @@ const Calendar = ({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={dayLabelFormat.format(day)}
-            accessibilityState={{ selected, disabled }}
+            {...a11yState("button", { selected, disabled })}
             disabled={disabled}
             onPress={() => select(day)}
             // Only while a range is open: any other hover would re-render the
@@ -647,7 +648,7 @@ const Calendar = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={labels.selectYear}
-        accessibilityState={{ expanded: view === "years" }}
+        {...a11yState("button", { expanded: view === "years" })}
         onPress={() => {
           setYearPageStart(visibleMonth.getFullYear() - 6);
           setView(view === "years" ? "days" : "years");
@@ -677,7 +678,9 @@ const Calendar = ({
           accessibilityLabel={
             view === "years" ? labels.previousYears : labels.previousMonth
           }
-          accessibilityState={{ disabled: view === "days" && !canStepBack }}
+          {...a11yState("button", {
+            disabled: view === "days" && !canStepBack,
+          })}
           disabled={view === "days" && !canStepBack}
           onPress={() =>
             view === "years"
@@ -711,7 +714,9 @@ const Calendar = ({
           accessibilityLabel={
             view === "years" ? labels.nextYears : labels.nextMonth
           }
-          accessibilityState={{ disabled: view === "days" && !canStepForward }}
+          {...a11yState("button", {
+            disabled: view === "days" && !canStepForward,
+          })}
           disabled={view === "days" && !canStepForward}
           onPress={() =>
             view === "years"
@@ -785,7 +790,7 @@ const Calendar = ({
             <Pressable
               key={year}
               accessibilityRole="button"
-              accessibilityState={{ selected: active, disabled }}
+              {...a11yState("button", { selected: active, disabled })}
               disabled={disabled}
               onPress={() => {
                 goToMonth(new Date(year, visibleMonth.getMonth(), 1));

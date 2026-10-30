@@ -8,6 +8,7 @@ import Menu, { type MenuItem } from "./Menu";
 import TouchableRipple from "./TouchableRipple";
 import Typography from "./Typography";
 import type { MaterialCommunityIconsGlyphs } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 // M3 Expressive split button (small): 40dp tall, 2dp between the halves,
 // 4dp inner corners, a 48dp-wide trailing half.
@@ -70,7 +71,7 @@ const SplitButton = ({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={menuAccessibilityLabel}
-      accessibilityState={{ expanded: open, disabled }}
+      {...a11yState("button", { expanded: open, disabled })}
       testID={testID ? `${testID}-menu` : undefined}
       style={[
         styles.half,

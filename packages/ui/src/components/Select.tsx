@@ -18,6 +18,7 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
+import { a11yState } from "./internal/a11yState";
 
 export interface Option {
   /** The row's key. Defaults to the value as a string. */
@@ -243,8 +244,9 @@ const Select = ({
   const Anchor = (
     <Pressable
       accessibilityLabel={selectedOption?.label || label || placeholder}
-      accessibilityRole={(Platform.OS === "web" ? "listbox" : "none") as any}
-      accessibilityState={{ expanded: visible, disabled }}
+      // A combobox that opens a listbox: the trigger is not the list itself.
+      accessibilityRole={(Platform.OS === "web" ? "combobox" : "none") as any}
+      {...a11yState("combobox", { expanded: visible, disabled })}
       disabled={disabled}
       onPress={() => setVisible(true)}
       style={[
@@ -376,10 +378,10 @@ const Select = ({
                     accessibilityRole={
                       (Platform.OS === "web" ? "option" : "none") as any
                     }
-                    accessibilityState={{
+                    {...a11yState("option", {
                       selected: isSelected,
                       disabled: optionDisabled,
-                    }}
+                    })}
                     style={({ hovered, pressed }: PressableState) => [
                       styles.optionItem,
                       multiple && { paddingVertical: 0 },

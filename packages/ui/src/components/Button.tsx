@@ -28,6 +28,7 @@ import {
   useFormSubmitting,
   useRegisterSubmitButton,
 } from "./Form";
+import { a11yState } from "./internal/a11yState";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -204,10 +205,11 @@ const Button = ({
       }
       accessibilityHint={accessibilityHint}
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled, busy: isLoading || busy }}
-      accessibilityValue={badge ? { text: String(badge) } : undefined}
-      // react-native-web does not map accessibilityState.busy to the DOM.
-      aria-busy={isLoading || busy}
+      {...a11yState(
+        "button",
+        { disabled: isDisabled, busy: isLoading || busy },
+        badge ? { text: String(badge) } : undefined,
+      )}
       testID={testID}
       // A no-op rather than undefined while busy: the Pressable stays enabled,
       // and an undefined handler leaves the press free to be answered by

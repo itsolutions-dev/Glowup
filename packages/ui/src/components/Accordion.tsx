@@ -15,6 +15,7 @@ import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useReduceMotion } from "./internal/useReduceMotion";
 import Collapse from "./Collapse";
+import { a11yState } from "./internal/a11yState";
 
 export interface AccordionProps {
   title: string;
@@ -108,8 +109,7 @@ const Accordion = ({
         onPress={toggleExpand}
         accessibilityRole="button"
         accessibilityLabel={title}
-        accessibilityState={{ expanded: expanded }} // For native platforms
-        aria-expanded={expanded} // For web platforms
+        {...a11yState("button", { expanded })}
         style={({ hovered }: PressableState) => [
           styles.header,
           hovered && getFocusRing(theme),

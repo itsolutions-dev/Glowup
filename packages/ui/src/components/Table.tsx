@@ -14,6 +14,7 @@ import Icons from "./Glyph";
 import Pagination from "./Pagination";
 import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 // Table: pass `columns` and `data` and it draws the whole table (title, header,
 // rows, empty state, paging). Pass the primitives below as `children` instead
@@ -375,7 +376,10 @@ export const TableRow = ({
       <View
         role="row"
         testID={testID}
-        accessibilityState={selected ? { selected } : undefined}
+        {...a11yState(
+          onClick ? "button" : "row",
+          selected ? { selected } : undefined,
+        )}
         style={[base, style]}
       >
         {children}
@@ -392,7 +396,7 @@ export const TableRow = ({
       // grouping of the controls in its cells into one element.
       focusable={!!onClick}
       accessible={!!onClick}
-      accessibilityState={{ selected }}
+      {...a11yState(onClick ? "button" : "row", { selected })}
       style={({ hovered, pressed }: PressableState) => [
         base,
         !selected &&

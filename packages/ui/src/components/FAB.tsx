@@ -16,6 +16,7 @@ import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { useStateLayer } from "./TouchableRipple";
 import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export type FABSize = "small" | "medium" | "large";
 
@@ -138,7 +139,7 @@ const StaticFab = ({
       accessibilityLabel={label || `${icon} FAB`}
       accessibilityRole="button"
       disabled={disabled}
-      accessibilityState={{ disabled }}
+      {...a11yState("button", { disabled })}
       onPress={() => {
         emitFeedback("press");
         onClick();
@@ -305,7 +306,7 @@ const AnimatedFab = ({
         testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label || `${icon} FAB`}
-        accessibilityState={{ disabled, expanded: extended }}
+        {...a11yState("button", { disabled, expanded: extended })}
         disabled={disabled}
         onPress={() => {
           emitFeedback("press");

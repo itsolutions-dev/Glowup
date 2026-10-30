@@ -46,6 +46,11 @@ export interface ColumnDefinition {
 
 export interface DataGridProps {
   data: any[];
+  /**
+   * The columns, in order. Keep the array stable (`useMemo`), and `onClick`
+   * too (`useCallback`): a row is drawn again only when something it shows
+   * changes, which a new array every render defeats.
+   */
   columns: ColumnDefinition[];
   /** A heading drawn above the header row. */
   tableTitle?: string;
@@ -76,8 +81,9 @@ export interface DataGridProps {
   selected?: number | number[];
   /**
    * Called with the row and its index in `data` when a row is pressed. Giving it
-   * makes the rows pressable, with the button role: a cell then should not hold
-   * a control of its own.
+   * makes the rows pressable: a button on iOS and Android, where a cell then
+   * should not hold a control of its own (the row is read as one element); a
+   * focusable row on the web, which Enter presses.
    */
   onClick?: (row: any, index: number) => void;
   loading?: boolean;
@@ -227,50 +233,22 @@ const DataGrid = ({
     </TableHead>
   );
 
-  const renderRow = ({ item, index: offset }: { item: any; index: number }) => {
-    // The index in `data`, not in the page.
-    const index = start + offset;
-    // The stripe is drawn on the cells, not the row: a row's own background
-    // (selected, hovered, `rowStyle`) would otherwise be painted over by it.
-    const stripe =
-      offset % 2 === 1
-        ? { backgroundColor: theme.colors.surfaceVariant + "20" }
-        : undefined;
-    return (
-      <TableRow
-        hover={hover}
-        selected={selectedRows.has(index)}
-        onClick={onClick ? () => onClick(item, index) : undefined}
-        style={[
-          typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
-          // A minimum: a cell of two lines (a name and a chip) grows its row instead of spilling out.
-          { minHeight: density === "dense" ? 40 : 56 },
-        ]}
-      >
-        {orderedColumns.map((column, colIndex) => (
-          <TableCell
-            key={`${item.id || index}-${column.id}`}
-            width={column.width ?? FLEX_MIN}
-            flex={column.width === undefined}
-            align={column.align ?? column.alignment}
-            style={[
-              colIndex === orderedColumns.length - 1
-                ? { borderRightWidth: 0 }
-                : {},
-              { paddingVertical: density === "dense" ? 4 : 12 },
-              stripe,
-            ]}
-          >
-            {column.renderCell
-              ? column.renderCell(item[column.id], item, index)
-              : isEmptyCell(item[column.id])
-                ? column.fallback
-                : item[column.id]}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  };
+  const stripeColor = theme.colors.surfaceVariant + "20";
+  const renderRow = ({ item, index: offset }: { item: any; index: number }) => (
+    <DataGridRow
+      item={item}
+      // The index in `data`, not in the page.
+      index={start + offset}
+      striped={offset % 2 === 1}
+      stripeColor={stripeColor}
+      selected={selectedRows.has(start + offset)}
+      columns={orderedColumns}
+      dense={density === "dense"}
+      hover={hover}
+      onClick={onClick}
+      rowStyle={rowStyle}
+    />
+  );
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -375,6 +353,75 @@ const DataGrid = ({
 
 // What a column without a width gets at least: the width every column had before they shared the free width.
 const FLEX_MIN = 150;
+
+interface DataGridRowProps {
+  item: any;
+  index: number;
+  striped: boolean;
+  stripeColor: string;
+  selected: boolean;
+  columns: ColumnDefinition[];
+  dense: boolean;
+  hover?: boolean;
+  onClick?: DataGridProps["onClick"];
+  rowStyle?: DataGridProps["rowStyle"];
+}
+
+/**
+ * One row, drawn again only when one of its props changes: a screen that
+ * re-renders around the grid (a keystroke in a search box, a counter) no
+ * longer redraws every row with the same data. It skips only while `columns`,
+ * `onClick` and a function `rowStyle` keep their identity (`useMemo`,
+ * `useCallback` in the app); a sort still redraws the rows that moved.
+ */
+const DataGridRow = React.memo(function DataGridRow({
+  item,
+  index,
+  striped,
+  stripeColor,
+  selected,
+  columns,
+  dense,
+  hover,
+  onClick,
+  rowStyle,
+}: DataGridRowProps) {
+  return (
+    <TableRow
+      hover={hover}
+      selected={selected}
+      onClick={onClick ? () => onClick(item, index) : undefined}
+      style={[
+        typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
+        // A minimum: a cell of two lines (a name and a chip) grows its row instead of spilling out.
+        { minHeight: dense ? 40 : 56 },
+      ]}
+    >
+      {columns.map((column, colIndex) => (
+        <TableCell
+          key={`${item.id || index}-${column.id}`}
+          width={column.width ?? FLEX_MIN}
+          flex={column.width === undefined}
+          align={column.align ?? column.alignment}
+          style={[
+            colIndex === columns.length - 1 ? { borderRightWidth: 0 } : {},
+            { paddingVertical: dense ? 4 : 12 },
+            // The stripe is drawn on the cells, not the row: a row's own
+            // background (selected, hovered, `rowStyle`) would otherwise be
+            // painted over by it.
+            striped && { backgroundColor: stripeColor },
+          ]}
+        >
+          {column.renderCell
+            ? column.renderCell(item[column.id], item, index)
+            : isEmptyCell(item[column.id])
+              ? column.fallback
+              : item[column.id]}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+});
 
 const styles = StyleSheet.create({
   // The columns span the grid when they fit, and scroll sideways when they do not.

@@ -1025,7 +1025,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| columns * | `ColumnDefinition[]` |  |  |  |
+| columns * | `ColumnDefinition[]` |  |  | The columns, in order. Keep the array stable (`useMemo`), and `onClick` too (`useCallback`): a row is drawn again only when something it shows changes, which a new array every render defeats. |
 | data * | `any[]` |  |  |  |
 | density | `Density` |  | cambiata | Row height; follows `ThemeProvider`'s `density` unless set here. |
 | emptyMessage | `ReactNode` |  | cambiata | Shown centered when data is empty and not loading. |
@@ -1034,7 +1034,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | height | `DimensionValue` |  | nuova | Height of the grid. The header stays in place and the rows scroll under it (a virtualised list). Without it the grid fills the height of its container, which must then be bounded for the rows to scroll. |
 | hover | `boolean` | false | nuova | Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed. |
 | loading | `boolean` | false |  |  |
-| onClick | `(row: any, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable, with the button role: a cell then should not hold a control of its own. |
+| onClick | `(row: any, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable: a button on iOS and Android, where a cell then should not hold a control of its own (the row is read as one element); a focusable row on the web, which Enter presses. |
 | onColumnReorder | `(newColumns: ColumnDefinition[]) => void` |  |  |  |
 | onEndReached | `() => void` |  |  |  |
 | onEndReachedThreshold | `number` | 0.5 |  |  |

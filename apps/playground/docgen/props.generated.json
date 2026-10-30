@@ -2392,6 +2392,7 @@
           "name": "columns",
           "type": "ColumnDefinition[]",
           "required": true,
+          "description": "The columns, in order. Keep the array stable (`useMemo`), and `onClick`\ntoo (`useCallback`): a row is drawn again only when something it shows\nchanges, which a new array every render defeats.",
           "deprecated": false
         },
         {
@@ -2453,7 +2454,7 @@
           "name": "onClick",
           "type": "(row: any, index: number) => void",
           "required": false,
-          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable, with the button role: a cell then should not hold\na control of its own.",
+          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable: a button on iOS and Android, where a cell then\nshould not hold a control of its own (the row is read as one element); a\nfocusable row on the web, which Enter presses.",
           "deprecated": false
         },
         {

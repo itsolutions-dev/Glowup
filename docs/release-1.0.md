@@ -1,12 +1,15 @@
 # Glowup 1.0: criteria, policies, adoption guide (draft)
 
-**Status: draft of 2026-11-02, for Alice to decide.** Item 1.13 of `solaris-native.md` (decisions D15 and D16, both
+**Status: draft of 2026-11-02, to be decided by whoever owns the releases** (not Alice: the publishing of the
+packages and their policies are not hers to set, 2/11). Item 1.13 of `solaris-native.md` (decisions D15 and D16, both
 still "Proposta" there). Nothing here is in force until the decisions below are taken; then §2–§4 move into the
 packages' READMEs and `CLAUDE.md`, and §5 becomes the getting-started page.
 
 ## Decisions to take
 
-Each has a recommendation; the rest of the document is written as if it were accepted.
+Open questions for the owners of the releases, each with the recommendation of the draft; the rest of the document
+is written as if it were accepted. Decision D (the branch) was already listed in `status.md` for Alice, Adriano and
+Gabriele together.
 
 | #   | Question                                                                                                           | Recommendation                                                                                                                                                                                    | Why                                                                                                                                                                                                               |
 | --- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

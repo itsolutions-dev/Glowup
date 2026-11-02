@@ -450,7 +450,9 @@ npm's 0.12.0 (`master`'s), or the next minor bump collides with it.
 
 - [ ] An `arm64` build from CI on one real Android phone, through the pilot screens. iPhone only if an Apple
       Developer account becomes available.
-- [ ] The 1.0 criteria, deprecation and Expo support policy, adoption guide (1.13); release.
+- [ ] The 1.0 criteria, deprecation and Expo support policy, adoption guide (1.13); release. **Drafted 2/11 in
+      `docs/release-1.0.md`**, with six decisions for Alice (which packages, which Expo SDKs, deprecation length,
+      which branch, real phones, B3/B4); in force once decided.
 
 ### After publishing: the CRM (Alice, 2026-11-02)
 

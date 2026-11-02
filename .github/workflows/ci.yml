@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    # dev too: the library's work lands there long before master (2/11).
+    branches: [master, dev]
   pull_request:
 
 permissions:

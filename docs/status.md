@@ -444,6 +444,12 @@ configurations; `ScatterChart`, `AreaRange`, `TimelineChart`; chart horizontal s
 work without a seen defect (1.8); rounded icon glyphs; the PDF inside a phone browser and its "visible region";
 the rename to Solaris UI; the `library-roadmap.md` §4 items no screen needs.
 
+**Expo SDK 58 (note, 2/11; left out for now by Alice).** SDK 58 is out (15/10: React Native 0.88.1, React 19.3,
+Reanimated 4.7.1, react-native-svg 15.16); the repo is on 57 (0.86.3, 19.2.3, 4.5.1, 15.15.4). Our peer ranges
+accept 58's versions, so an SDK 58 app installs the packages, but nothing has been run on it. To know: a branch that
+moves the repo to 58 (all native versions together), the tests and the native CI. It belongs with the 1.0 rules'
+Expo support policy (57, 58 or both); the App Store's Expo Go already runs only 58.
+
 ## Open questions
 
 - From `decisions.md`, each with a default:

@@ -8,7 +8,7 @@
     "start": "expo start",
     "web": "expo start --web",
     "type-check": "tsc --noEmit",
-    "smoke": "npm run type-check && expo export -p web"
+    "smoke": "npm run type-check && expo export -p web && expo export -p ios && expo export -p android"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

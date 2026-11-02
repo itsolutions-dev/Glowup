@@ -102,3 +102,12 @@ jobs:
 
       - name: Bundle for web
         run: npx expo export -p web
+
+      # The same bundle Metro makes for an iOS and an Android build: the
+      # react-native entry of each package, the platform files (.ios / .android
+      # / .native) and the config plugin. No Mac and no simulator needed.
+      - name: Bundle for iOS
+        run: npx expo export -p ios
+
+      - name: Bundle for Android
+        run: npx expo export -p android

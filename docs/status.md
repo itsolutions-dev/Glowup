@@ -382,7 +382,15 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       web test was seen failing with the code it guards broken.
 - [ ] **Open, for the TalkBack pass:** a required field's name on Android is its label view, "Email \*"; iOS
       says "Email" and nothing about "required". Hear what TalkBack says ("Email star"?) before changing it.
-- [ ] `expo export -p ios` and `-p android` in `examples/consumer` (1.2). **Claude, here** (bundling needs no Mac).
+- [x] `expo export -p ios` and `-p android` in `examples/consumer` (1.2, 2/11): added to `consumer-smoke.yml` and the
+      app's `smoke` script. Run locally on a copy of the app without `device` (see below): `@its/glowup-ui@0.12.0`
+      from npm type-checks and bundles for web (510 modules), iOS (850) and Android (848).
+- [ ] **Found 2/11: `@its/glowup-device` and `@its/glowup-notifications` are not on npm** (404 without a login;
+      only `ui` 0.12.0 is). The Release of 22/10 on `master` (`956a46b`, PR #108) failed in "publish": `ui`
+      0.12.0 went out, `device` 0.12.0 did not. Consumer smoke has failed since ("`@its/glowup-device@0.12.0`
+      never became resolvable": 22/10, 26/10, 2/11), unnoticed because it runs on `master` only. Likely cause: no
+      trusted publisher for those packages on npmjs.com (each needs its own, see `release.yml`). Belongs to the
+      Stage 5 release work; until then the smoke job cannot install.
 - [x] No `SafeAreaProvider` needed (1.12, 30/10): the insets are zero without one.
 - [ ] TalkBack pass on the pilot screens' components (1.10). **Claude, on the local emulator.**
 - [ ] VoiceOver pass on the same components (1.10). **Needs an iPhone or a Mac**, see "iPhone" below.

@@ -6,6 +6,13 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../providers/ThemeProvider";
 import { EVA_FOR_MDI, EVA_PATHS } from "../providers/evaIcons";
 
+const HIDDEN = {
+  accessible: false,
+  importantForAccessibility: "no-hide-descendants",
+  accessibilityElementsHidden: true,
+  "aria-hidden": true,
+} as const;
+
 /**
  * The library's icon glyph: a MaterialCommunityIcons glyph, unless the active
  * palette asks for the Eva set (`palette.iconSet === "eva"`) and has an Eva
@@ -23,11 +30,18 @@ const Glyph = (props: ComponentProps<typeof MaterialCommunityIcons>) => {
       ? EVA_PATHS[EVA_FOR_MDI[props.name as string]]
       : undefined;
 
-  if (!eva) return <MaterialCommunityIcons {...props} />;
+  // An icon is decoration, named by the control around it. A glyph is a
+  // character of the icon font, and a pressable row is named by the text
+  // inside it, so TalkBack read "󰈦, Roadmap 2027.pdf" with a box for the icon.
+  // Hidden from every screen reader, unless the caller names the icon itself.
+  const hidden = props.accessibilityLabel ? null : HIDDEN;
+
+  if (!eva) return <MaterialCommunityIcons {...hidden} {...props} />;
 
   const { size = 12, color = "black", style, testID } = props;
   return (
     <Svg
+      {...hidden}
       testID={testID}
       width={size}
       height={size}

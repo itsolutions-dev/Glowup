@@ -40,17 +40,35 @@ export const SettingsScreen = () => {
             in the middle of itself, so the group ended in line + gap + line. */}
         <ListSection title="Notifications" divider>
           <ListItem
-            action={<Switch value={digest} onChange={setDigest} />}
+            action={
+              <Switch
+                accessibilityLabel="Email digest"
+                value={digest}
+                onChange={setDigest}
+              />
+            }
             primaryText="Email digest"
           />
           <ListItem
-            action={<Switch value={mentions} onChange={setMentions} />}
+            action={
+              <Switch
+                accessibilityLabel="Mentions"
+                value={mentions}
+                onChange={setMentions}
+              />
+            }
             primaryText="Mentions"
           />
         </ListSection>
         <ListSection title="Advanced">
           <ListItem
-            action={<Switch value={beta} onChange={setBeta} />}
+            action={
+              <Switch
+                accessibilityLabel="Experimental features"
+                value={beta}
+                onChange={setBeta}
+              />
+            }
             primaryText="Experimental features"
           />
         </ListSection>

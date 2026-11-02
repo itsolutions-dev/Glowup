@@ -23,6 +23,13 @@ export interface SwitchProps {
   /** Text next to the switch. Pressing it toggles the switch too. */
   label?: string;
   /**
+   * The name screen readers give the switch, for one drawn without `label`:
+   * in a `ListItem`'s `action`, say, beside the words that describe it.
+   * Without it such a switch is only "Switch, on". Replaces `label` when both
+   * are given.
+   */
+  accessibilityLabel?: string;
+  /**
    * Where the label sits relative to the switch: `"start"` and `"end"` are
    * the left and right in a left-to-right layout, `"top"` and `"bottom"`
    * stack them. Defaults to `"end"`.
@@ -111,6 +118,7 @@ const Switch = ({
   onChange,
   disabled = false,
   label,
+  accessibilityLabel,
   labelPlacement = "end",
   size = "medium",
   containerStyle = {},
@@ -192,7 +200,7 @@ const Switch = ({
         containerStyle,
         disabled && styles.disabled,
       ]}
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityRole="switch"
       {...a11yState("switch", { checked: value, disabled })}
       {...(Platform.OS === "android" && {

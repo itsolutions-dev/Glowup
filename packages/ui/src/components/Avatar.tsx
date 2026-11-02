@@ -84,7 +84,8 @@ const Avatar = ({
     <View style={{ width: size, height: size }}>
       <Pressable
         onPress={onClick}
-        disabled={!onClick}
+        // Without onClick it is a picture: `disabled` would make TalkBack say
+        // "Image. disabled", as if a control were switched off.
         accessibilityRole={onClick ? "button" : "image"}
         accessibilityLabel={name ? `${name} Avatar` : "User Avatar"}
         style={({ hovered, pressed }: PressableState) => [

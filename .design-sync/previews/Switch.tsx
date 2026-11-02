@@ -22,15 +22,33 @@ export const SettingsList = () => (
   <div style={stack}>
     <div style={row}>
       <Typography variant="bodyLarge">Email notifications</Typography>
-      <Switch value width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Email notifications"
+        value
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyLarge">Push notifications</Typography>
-      <Switch value={false} width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Push notifications"
+        value={false}
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyLarge">Weekly summary</Typography>
-      <Switch value width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Weekly summary"
+        value
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
   </div>
 );
@@ -39,21 +57,47 @@ export const OnOffDisabled = () => (
   <div style={stack}>
     <div style={row}>
       <Typography variant="bodyLarge">Dark theme</Typography>
-      <Switch value width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Dark theme"
+        value
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyLarge">Reduced motion</Typography>
-      <Switch value={false} width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Reduced motion"
+        value={false}
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyLarge">Audit logging (enforced)</Typography>
-      <Switch value disabled width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Audit logging (enforced)"
+        value
+        disabled
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyLarge">
         Beta features (Enterprise only)
       </Typography>
-      <Switch value={false} disabled width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Beta features (Enterprise only)"
+        value={false}
+        disabled
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
   </div>
 );
@@ -62,15 +106,31 @@ export const Sizes = () => (
   <div style={stack}>
     <div style={row}>
       <Typography variant="bodyMedium">Compact — 32 × 18 (default)</Typography>
-      <Switch value onChange={noop} />
+      <Switch
+        accessibilityLabel="Compact — 32 × 18 (default)"
+        value
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyMedium">Standard — 48 × 28</Typography>
-      <Switch value width={48} height={28} onChange={noop} />
+      <Switch
+        accessibilityLabel="Standard — 48 × 28"
+        value
+        width={48}
+        height={28}
+        onChange={noop}
+      />
     </div>
     <div style={row}>
       <Typography variant="bodyMedium">Large — 64 × 36</Typography>
-      <Switch value width={64} height={36} onChange={noop} />
+      <Switch
+        accessibilityLabel="Large — 64 × 36"
+        value
+        width={64}
+        height={36}
+        onChange={noop}
+      />
     </div>
   </div>
 );

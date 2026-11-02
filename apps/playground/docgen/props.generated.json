@@ -8620,6 +8620,13 @@
           "deprecated": false
         },
         {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "The name screen readers give the switch, for one drawn without `label`:\nin a `ListItem`'s `action`, say, beside the words that describe it.\nWithout it such a switch is only \"Switch, on\". Replaces `label` when both\nare given.",
+          "deprecated": false
+        },
+        {
           "name": "containerStyle",
           "type": "StyleProp<ViewStyle>",
           "required": false,

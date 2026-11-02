@@ -29,21 +29,36 @@ export const OnIconButtons = () => (
   <View style={row}>
     <View style={stack}>
       <View style={anchor}>
-        <Button variant="tonal" iconName="email-outline" onClick={() => {}} />
+        <Button
+          variant="tonal"
+          iconName="email-outline"
+          accessibilityLabel="Inbox"
+          onClick={() => {}}
+        />
         <Badge count={3} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Inbox</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button variant="tonal" iconName="bell-outline" onClick={() => {}} />
+        <Button
+          variant="tonal"
+          iconName="bell-outline"
+          accessibilityLabel="Alerts"
+          onClick={() => {}}
+        />
         <Badge count={12} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Alerts</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button variant="tonal" iconName="cart-outline" onClick={() => {}} />
+        <Button
+          variant="tonal"
+          iconName="cart-outline"
+          accessibilityLabel="Cart"
+          onClick={() => {}}
+        />
         <Badge count={128} style={{ top: -2, right: -2 }} />
       </View>
       <Typography variant="labelSmall">Cart</Typography>
@@ -58,6 +73,7 @@ export const Sizes = () => (
         <Button
           variant="outlined"
           iconName="message-outline"
+          accessibilityLabel="Messages"
           onClick={() => {}}
         />
         <Badge count={7} size="large" style={{ top: -2, right: -2 }} />
@@ -69,6 +85,7 @@ export const Sizes = () => (
         <Button
           variant="outlined"
           iconName="message-outline"
+          accessibilityLabel="Messages"
           onClick={() => {}}
         />
         <Badge size="small" style={{ top: 2, right: 2 }} />

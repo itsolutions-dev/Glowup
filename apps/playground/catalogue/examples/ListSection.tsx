@@ -60,6 +60,7 @@ export default function ListSectionExample() {
               dimmed={off}
               action={
                 <Switch
+                  accessibilityLabel={setting.title}
                   value={on[setting.id]}
                   disabled={off}
                   onChange={(value) =>

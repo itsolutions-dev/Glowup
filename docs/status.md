@@ -386,13 +386,25 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       app's `smoke` script. Run locally on a copy of the app without `device` (see below): `@its/glowup-ui@0.12.0`
       from npm type-checks and bundles for web (510 modules), iOS (850) and Android (848).
 - [ ] **Found 2/11: `@its/glowup-device` and `@its/glowup-notifications` are not on npm** (404 without a login;
-      only `ui` 0.12.0 is). The Release of 22/10 on `master` (`956a46b`, PR #108) failed in "publish": `ui`
+      Alice confirmed logged in on npmjs.com: they do not exist; only `ui` 0.12.0 is). Their first publish is
+      Stage 5 work, like `pdf`, `charts` and `pivot`. The Release of 22/10 on `master` (`956a46b`, PR #108) failed in "publish": `ui`
       0.12.0 went out, `device` 0.12.0 did not. Consumer smoke has failed since ("`@its/glowup-device@0.12.0`
       never became resolvable": 22/10, 26/10, 2/11), unnoticed because it runs on `master` only. Likely cause: no
       trusted publisher for those packages on npmjs.com (each needs its own, see `release.yml`). Belongs to the
       Stage 5 release work; until then the smoke job cannot install.
 - [x] No `SafeAreaProvider` needed (1.12, 30/10): the insets are zero without one.
-- [ ] TalkBack pass on the pilot screens' components (1.10). **Claude, on the local emulator.**
+- [x] TalkBack pass on the pilot screens' components (1.10, 2/11, local emulator, TalkBack 15). Method: the
+      accessibility tree of 35 component pages (`uiautomator dump`), then TalkBack's own speech ("Display speech
+      output") for each finding, before and after the fix. Touches go through the emulator's gRPC (`sendTouch`):
+      `adb input` taps and keys are injected and TalkBack ignores them. Found and fixed (changeset
+      `talkback-pass-names.md`): **icons read as a stray character** in every pressable row, card, grid row,
+      breadcrumb and badge (`Glyph` now hidden from screen readers; heard "Roadmap 2027.pdf, Edited yesterday ·
+      2.4 MB. Button"); **a `Switch` without `label` had no name** (new `accessibilityLabel` prop; the playground's
+      33 such switches named); **`Avatar` without `onClick` was "Image. disabled"** (now "Image"); **`StatusBadge`
+      read twice** in a row. Not reached by the tree (a spinner keeps the page busy): `IconButton`, `Autocomplete`.
+- [ ] **Found in the pass, not screen-reader issues:** the date picker's endless calendar is a `FlatList`, and
+      inside a page that scrolls (every form) React Native warns "VirtualizedLists should never be nested inside
+      plain ScrollViews"; the Card page's examples run past the right edge on the Pixel 8 (1080 px).
 - [ ] VoiceOver pass on the same components (1.10). **Needs an iPhone or a Mac**, see "iPhone" below.
 - [ ] The playground's pages on iOS by hand (0.6). CI covers `/native-check` on the simulator; the rest needs the
       iPhone or the Mac.

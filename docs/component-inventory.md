@@ -11,7 +11,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 28 | 380 |
+| Aggiunti | 28 | 381 |
 | Aggiornati | 55 | 714 |
 | Tenuti (invariati) | 33 | 195 |
 
@@ -619,6 +619,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | onChange * | `(value: boolean) => void` |  |  | Called with the new state when the switch, or its label, is pressed. |
 | value * | `boolean` |  |  |  |
+| accessibilityLabel | `string` |  |  | The name screen readers give the switch, for one drawn without `label`: in a `ListItem`'s `action`, say, beside the words that describe it. Without it such a switch is only "Switch, on". Replaces `label` when both are given. |
 | containerStyle | `StyleProp<ViewStyle>` | {} |  | Style for the outer Pressable. |
 | disabled | `boolean` | false |  |  |
 | feedback | `boolean` | true |  | Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |

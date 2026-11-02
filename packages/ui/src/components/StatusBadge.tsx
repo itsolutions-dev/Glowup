@@ -60,7 +60,16 @@ const StatusBadge = ({
       accessibilityLabel={label}
     >
       <Icons name={(icon || ICONS[type]) as any} size={14} color={on} />
-      <Text style={[styles.statusText, { color: on }]}>{label}</Text>
+      {/* The badge is named by its label already: inside a pressable row the
+          text would be read a second time ("Due, Due"). */}
+      <Text
+        style={[styles.statusText, { color: on }]}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+        aria-hidden
+      >
+        {label}
+      </Text>
     </View>
   );
 };

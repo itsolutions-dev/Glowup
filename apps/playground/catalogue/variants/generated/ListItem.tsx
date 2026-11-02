@@ -39,7 +39,13 @@ export const SettingsList = () => (
     <ListItem
       icon={<Icon source="email-outline" size={24} />}
       secondaryText="Weekly digest"
-      action={<Switch value onChange={() => {}} />}
+      action={
+        <Switch
+          accessibilityLabel="Email notifications"
+          value
+          onChange={() => {}}
+        />
+      }
       primaryText="Email notifications"
     />
   </View>
@@ -127,7 +133,13 @@ export const PressableWithAction = () => {
         onClick={() => {}}
         icon="bell-outline"
         secondaryText="Press the row for its settings"
-        action={<Switch value={on} onChange={setOn} />}
+        action={
+          <Switch
+            accessibilityLabel="Notifications"
+            value={on}
+            onChange={setOn}
+          />
+        }
         primaryText="Notifications"
       />
       <ListItem

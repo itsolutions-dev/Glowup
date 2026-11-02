@@ -287,7 +287,13 @@ const CurrentPositionSection = ({ granted }: { granted: boolean }) => {
       <ListSection>
         <ListItem
           secondaryText="maxAge: 60 000 — fast, but the user may have moved since."
-          action={<Switch value={useCache} onChange={setUseCache} />}
+          action={
+            <Switch
+              accessibilityLabel="Accept a fix up to a minute old"
+              value={useCache}
+              onChange={setUseCache}
+            />
+          }
           primaryText="Accept a fix up to a minute old"
         />
       </ListSection>
@@ -333,6 +339,7 @@ const WatchSection = ({ granted }: { granted: boolean }) => {
           }
           action={
             <Switch
+              accessibilityLabel="Follow my position"
               value={following && granted}
               disabled={!granted}
               onChange={setFollowing}

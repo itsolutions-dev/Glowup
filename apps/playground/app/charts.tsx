@@ -85,7 +85,7 @@ const Option = ({
   onChange: (value: boolean) => void;
 }) => (
   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-    <Switch value={value} onChange={onChange} />
+    <Switch accessibilityLabel={label} value={value} onChange={onChange} />
     <Typography variant="bodyMedium">{label}</Typography>
   </View>
 );

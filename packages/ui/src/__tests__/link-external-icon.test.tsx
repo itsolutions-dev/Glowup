@@ -10,7 +10,10 @@ const hasIcon = async (href: string) => {
     </ThemeProvider>,
   );
   const link = view.getByRole("link", { name: "Contact" });
-  return within(link).queryAllByText(/./).length > 1;
+  // The icon is hidden from screen readers, so it is looked for among hidden text too.
+  return (
+    within(link).queryAllByText(/./, { includeHiddenElements: true }).length > 1
+  );
 };
 
 // The "opens a new page" icon belongs on a web address, not on an email

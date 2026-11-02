@@ -842,17 +842,18 @@ RadioGroup:
 
 Animated M3 switch.
 
-| Prop           | Type                                    | Default     | Req | Description                                                |
-| -------------- | --------------------------------------- | ----------- | --- | ---------------------------------------------------------- |
-| value          | boolean                                 | —           | ✓   |                                                            |
-| onChange       | (value) => void                         | —           | ✓   | Called with the new state; pressing the label counts       |
-| disabled       | boolean                                 | `false`     |     |                                                            |
-| label          | string                                  |             |     | Text next to the switch; pressing it toggles too           |
-| labelPlacement | `"start" \| "end" \| "top" \| "bottom"` | `end`       |     | `start` / `end` are left / right in a left-to-right layout |
-| size           | `"small" \| "medium" \| "large"`        | `medium`    |     | Track 24×14 / 32×18 / 40×22                                |
-| width          | number                                  | from `size` |     | Overrides the track width                                  |
-| height         | number                                  | from `size` |     | Overrides the track height; the thumb scales with it       |
-| containerStyle | ViewStyle                               |             |     |                                                            |
+| Prop               | Type                                    | Default     | Req | Description                                                                                          |
+| ------------------ | --------------------------------------- | ----------- | --- | ---------------------------------------------------------------------------------------------------- |
+| value              | boolean                                 | —           | ✓   |                                                                                                      |
+| onChange           | (value) => void                         | —           | ✓   | Called with the new state; pressing the label counts                                                 |
+| disabled           | boolean                                 | `false`     |     |                                                                                                      |
+| label              | string                                  |             |     | Text next to the switch; pressing it toggles too                                                     |
+| accessibilityLabel | string                                  |             |     | Its name for screen readers when drawn without `label`, as a `ListItem`'s `action`; replaces `label` |
+| labelPlacement     | `"start" \| "end" \| "top" \| "bottom"` | `end`       |     | `start` / `end` are left / right in a left-to-right layout                                           |
+| size               | `"small" \| "medium" \| "large"`        | `medium`    |     | Track 24×14 / 32×18 / 40×22                                                                          |
+| width              | number                                  | from `size` |     | Overrides the track width                                                                            |
+| height             | number                                  | from `size` |     | Overrides the track height; the thumb scales with it                                                 |
+| containerStyle     | ViewStyle                               |             |     |                                                                                                      |
 
 The thumb is sized and placed from the track (inside its border), so it stays within it at both ends.
 

@@ -65,6 +65,7 @@ export default function KeepAwakePage() {
             }
             action={
               <Switch
+                accessibilityLabel="Keep the screen on"
                 value={wanted && supported}
                 disabled={!supported}
                 onChange={setWanted}

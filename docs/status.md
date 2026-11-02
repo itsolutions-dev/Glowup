@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-10-30** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19–30 October, `solaris-native.md`,
+As of **2026-11-02** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19 October–2 November, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -17,20 +17,20 @@ change as the handoff**, so the next session starts from here and not from re-re
 
 ## At a glance
 
-| Workstream                                | Done | Progress     | Main thing left                                         | Web | iOS (CI) | Android |
-| ----------------------------------------- | ---- | ------------ | ------------------------------------------------------- | --- | -------- | ------- |
-| Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators             | yes | yes      | yes     |
-| Phase 1: native readiness, web, stability | 40%  | `████░░░░░░` | jest ×3, verification matrix, 1.5 lists, VoiceOver pass | –   | –        | partly  |
-| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                                 | yes | yes      | yes     |
-| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                                  | yes | partly   | partly  |
-| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release           | yes | yes      | yes     |
-| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                         | –   | –        | –       |
-| Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device                      | yes | yes      | yes     |
-| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                             | yes | yes      | yes     |
-| Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)           | yes | –        | yes     |
-| Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2          | yes | –        | partly  |
-| Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`            | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | ~70% | `███████░░░` |                                                         |     |          |         |
+| Workstream                                | Done | Progress     | Main thing left                                | Web | iOS (CI) | Android |
+| ----------------------------------------- | ---- | ------------ | ---------------------------------------------- | --- | -------- | ------- |
+| Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators    | yes | yes      | yes     |
+| Phase 1: native readiness, web, stability | 60%  | `██████░░░░` | VoiceOver pass, iOS pages by hand, 1.7–1.9     | –   | –        | partly  |
+| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
+| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                         | yes | partly   | partly  |
+| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
+| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                | –   | –        | –       |
+| Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
+| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                    | yes | yes      | yes     |
+| Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)  | yes | –        | yes     |
+| Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2 | yes | –        | partly  |
+| Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`   | –   | –        | –       |
+| **Overall (phases 0–8, weighted)**        | ~70% | `███████░░░` |                                                |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -43,10 +43,10 @@ layers of the plan (grid, field panel, calculated fields and drill-through, expo
 - **Left:** 0.6 (run the playground on an iOS simulator and an Android emulator and list what breaks). Partly
   covered by the native CI, which runs `/native-check`, not every page.
 
-### Phase 1: native readiness, web, stability, 40%
+### Phase 1: native readiness, web, stability, 60%
 
-Basis: of the 13 items of the phase, 1.6 and 1.12 are closed (30/10), 1.4, 1.10 and 1.11 partly; the native CI
-(in the phase's "what to add" list) is done.
+Basis: of the 13 items of the phase, 1.1, 1.2, 1.3, 1.5, 1.6 and 1.12 are closed (1.6 and 1.12 on 30/10, the rest
+on 2/11), 1.4, 1.10, 1.11 and 1.13 partly; the native CI (in the phase's "what to add" list) is done.
 
 - **Done:**
   - Native CI: `native.yml` on iPhone and Android 14 and 15, `/native-check` (measurements, charts, PDF, pivot),
@@ -63,19 +63,18 @@ Basis: of the 13 items of the phase, 1.6 and 1.12 are closed (30/10), 1.4, 1.10 
     bottom inset.
   - Android labels cut ("Sav", "Dai…", 30/10): the app must register brand fonts before the first render; the
     playground does, and the library docs say so.
+  - 2/11 (details under Stage 4): 1.1 jest as iOS, Android and a web set; 1.2 the consumer bundles for iOS and
+    Android; 1.3 `docs/native-verification.md`; 1.5 `Select` and `Menu` virtualized; 1.6 `Autocomplete` above the
+    keyboard; 1.10 the TalkBack half; 1.13 a draft in `docs/release-1.0.md` (its questions are the release owners').
 - **Left:**
-  - 1.1 jest on three platforms (B1). `packages/ui` still has one `jest-expo` preset.
-  - 1.2 `expo export -p ios` / `-p android` in `examples/consumer` (only `-p web` today).
-  - 1.3 / A7 `docs/native-verification.md`, the component × platform matrix. The file does not exist.
   - 1.4 `DataGrid` without the `FlatList` inside a horizontal `ScrollView` (B5). The pivot avoided it by writing
     its own grid. The contacts pilot (29/10) found it **working** on the Android emulator: it loads more as it
     scrolls down and scrolls sideways with the header lined up. Rows are memoised since 30/10: a re-render with
-    the same rows draws no cell; a sort still redraws the rows that moved. Not re-measured in the browser.
-  - 1.5 virtualised long lists in `Select`, `Menu`, `Autocomplete`. None uses `FlatList` yet.
-  - 1.6 for `Autocomplete`'s suggestion list (the overlays are done).
+    the same rows draws no cell; since 2/11 a sort redraws a custom cell only if its `renderCell` reads the index.
+    Not re-measured in the browser.
   - 1.7 date pickers on a real Hermes; 1.8 animations; 1.9 RTL.
-  - 1.10 a VoiceOver and TalkBack pass on the 3A components.
-  - 1.13 the 1.0 criteria and the adoption guide.
+  - 1.10 the VoiceOver half (needs the Mac); the required-field name (open, see Stage 4).
+  - 1.13 the release owners' answers to `docs/release-1.0.md`.
 
 ### Phase 2: theme tokens and hooks, 100%
 

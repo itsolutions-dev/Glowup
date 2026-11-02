@@ -172,12 +172,13 @@ describe("InputArea in a form", () => {
     );
     expect(view.getByText("Nota *")).toBeTruthy();
     expect(view.getByText("Una riga")).toBeTruthy();
-    const field = view.getByLabelText("Nota");
+    // Android names the field by the label view, star included.
+    const field = view.getByLabelText(/^Nota( \*)?$/);
     expect(field.props.value).toBe("ciao");
     await fireEvent.changeText(field, "");
     expect(view.getByText("This field is required")).toBeTruthy();
     await fireEvent.changeText(field, "uno\ndue");
-    expect(view.getByLabelText("Nota").props.value).toBe("uno\ndue");
+    expect(view.getByLabelText(/^Nota( \*)?$/).props.value).toBe("uno\ndue");
   });
 });
 

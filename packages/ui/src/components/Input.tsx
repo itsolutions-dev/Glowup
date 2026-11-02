@@ -215,7 +215,9 @@ const Input = ({
           {...a11yState("textbox", { disabled })}
           // No accessibilityValue: the edit box exposes its own text, and on
           // Android the value made an empty field "Username, ".
-          {...field.labelledBy}
+          // The app's own accessibilityLabel replaces the label's name, and on
+          // Android the tie to the label view would outrank it.
+          {...(inputProps?.accessibilityLabel ? null : field.labelledBy)}
           accessibilityHint={placeholder}
           readOnly={readonly}
           maxLength={maxLength}

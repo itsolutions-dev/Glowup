@@ -297,6 +297,8 @@ describe("on native", () => {
       .mockResolvedValue({ action: Share.sharedAction });
     const fetchMock = jest.fn();
     global_.fetch = fetchMock;
+    // Each platform shares a link its own way; the suite runs as both.
+    jest.replaceProperty(Platform, "OS", "ios");
     const ios = await draw(<Download url="https://x.test/r.pdf" />);
     await fireEvent.press(ios.getByRole("button"));
     expect(share).toHaveBeenCalledWith({

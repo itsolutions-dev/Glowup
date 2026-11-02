@@ -98,8 +98,9 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 
 ## Tests
 
-- Component behaviour is tested **in the library** (`packages/ui/src/__tests__`, jest-expo); the
-  playground tests only the playground. The details are in each workspace's `CLAUDE.md`.
+- Component behaviour is tested **in the library** (`packages/ui/src/__tests__`, jest-expo), as iOS
+  and as Android, plus a small web set in `packages/ui/src/__web_tests__`; the playground tests only
+  the playground. The details are in each workspace's `CLAUDE.md`.
 
 ## Releasing
 

@@ -199,7 +199,8 @@ const InputArea = ({
         <TextInput
           accessibilityLabel={label}
           {...a11yState("textbox", { disabled })}
-          {...field.labelledBy}
+          // As in Input: the app's own accessibilityLabel outranks the label.
+          {...(inputProps?.accessibilityLabel ? null : field.labelledBy)}
           accessibilityHint={placeholder}
           multiline
           numberOfLines={fixed ? lines : undefined}

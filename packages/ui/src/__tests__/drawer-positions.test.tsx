@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { Animated, PanResponder, StyleSheet, Text } from "react-native";
+import {
+  Animated,
+  PanResponder,
+  Platform,
+  StyleSheet,
+  Text,
+} from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
@@ -158,13 +164,17 @@ describe("Drawer elevation", () => {
     expect(style(getByTestId("nav")).backgroundColor).toBe(theme.colors[token]);
   });
 
-  it("casts a shadow from level 1 up (iOS)", async () => {
+  it("casts a shadow from level 1 up: a shadow on iOS, an elevation on Android", async () => {
     const { getByTestId } = await draw(
       <Drawer elevation={3} testID="nav">
         {items}
       </Drawer>,
     );
-    expect(style(getByTestId("nav")).shadowOpacity).toBeGreaterThan(0);
+    const shadow =
+      Platform.OS === "android"
+        ? style(getByTestId("nav")).elevation
+        : style(getByTestId("nav")).shadowOpacity;
+    expect(shadow).toBeGreaterThan(0);
   });
 
   it("is 1 when swipeable, and settable", async () => {

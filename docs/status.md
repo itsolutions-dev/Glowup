@@ -178,7 +178,7 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 
-### Phase 8: CRM pilot screens, 45%
+### Phase 8: CRM pilot screens, 100%
 
 - **Done (29/10):** the report (CRM `WaveActivitiesReport`) as a temporary page on invented data, on the web and
   the local Android emulator. Its gaps, fixed in `ui` without changing anything that exists: `Card selected`,
@@ -364,16 +364,46 @@ what these screens use.
 
 ### Stage 4: the minimum of Phase 1 for a 1.0
 
+The task list agreed on 2026-11-02 ("part 1": prove the library works on phones). Who does what and where:
+
+- [x] Check the CI of 30/10's commits (run of 2/11): iPhone 13/13 PASS, screenshots right. Android 14 and 15 at
+      14/16: the two text-field steps looked a field up by `content-desc`, which the library's fields no longer have
+      since the TalkBack fix (they are named by their label). `scripts/android-interact.mjs` now finds the label's
+      text and the field under it; 16/16 on the local emulator at the CI's screen size (2/11). Confirm in the next CI.
 - [ ] `docs/native-verification.md`, the component × platform matrix (A7), filled for the pilot screens'
-      components.
-- [ ] jest on three platforms in `packages/ui` (B1).
-- [ ] `expo export -p ios` and `-p android` in `examples/consumer` (1.2).
+      components. **Claude, here**, from the CI artefacts, the emulator and the handoffs.
+- [x] jest on three platforms in `packages/ui` (B1, 2/11). The whole suite runs as iOS and as Android (194 suites
+      then 197 with the web ones, 3,374 tests); 24 tests failed as Android at first, all test-side (a required
+      field is "Email *" there, ids, an iOS-only shadow, react-native-svg's Android root) except **one library
+      bug**: `inputProps.accessibilityLabel` lost to the label tie on Android (fixed, changeset
+      `field-own-accessibility-label-android.md`). Web: `@testing-library/react-native` cannot read the DOM, so
+      the suite is not run there; a small web set (`src/__web_tests__`, `@testing-library/react`, 18 tests)
+      covers roles and `aria-*`, Escape in dialogs, Enter in a form, the focus ring, no button in a button. Each
+      web test was seen failing with the code it guards broken.
+- [ ] **Open, for the TalkBack pass:** a required field's name on Android is its label view, "Email \*"; iOS
+      says "Email" and nothing about "required". Hear what TalkBack says ("Email star"?) before changing it.
+- [ ] `expo export -p ios` and `-p android` in `examples/consumer` (1.2). **Claude, here** (bundling needs no Mac).
 - [x] No `SafeAreaProvider` needed (1.12, 30/10): the insets are zero without one.
-- [ ] A VoiceOver and TalkBack pass on the pilot screens' components (1.10).
+- [ ] TalkBack pass on the pilot screens' components (1.10). **Claude, on the local emulator.**
+- [ ] VoiceOver pass on the same components (1.10). **Needs an iPhone or a Mac**, see "iPhone" below.
+- [ ] The playground's pages on iOS by hand (0.6). CI covers `/native-check` on the simulator; the rest needs the
+      iPhone or the Mac.
+- [ ] The playground's web build in Safari on Alice's iPhone (GitHub Pages), with VoiceOver: the library in a phone
+      browser. **Alice**, no setup.
 
-### Stage 5: publish, then the CRM uses the packages
+**iPhone (2/11).** Alice has an iPhone but no Mac. A custom native app on an iPhone needs Xcode on a Mac or a paid
+Apple Developer account. Expo Go (App Store) runs every module the playground uses except the PDF viewer's own
+(`requireOptionalNativeModule`, so the PDF page fails softly), but: the App Store Expo Go is on SDK 57 only until the
+SDK 58 version ships ("within a few weeks" of 15/10), after which it no longer opens our SDK 57 playground; it needs
+login to an Expo account in both the CLI and the app; and Expo's docs disagree on whether an EAS Update (the way
+around the office network, which blocks the iPhone from reaching Metro) loads in Expo Go. **Checked 2/11: Alice's
+Expo Go is already on SDK 58.0.0, so it cannot open the playground (SDK 57). Expo Go is out**; the native iPhone
+checks (VoiceOver, the pages by hand) wait for the colleague's Mac, unless the repo moves to SDK 58.
 
-The branch decision can be taken any time before this; the rest waits until the pilot screens have settled the API.
+### Stage 5: publish (last, after Stages 4 and 6)
+
+The branch decision can be taken any time before this. Before the first publish, `dev`'s `ui` (0.11.1) must move past
+npm's 0.12.0 (`master`'s), or the next minor bump collides with it.
 
 - [ ] **Alice:** the release pipeline for `pdf`, `charts`, `pivot` (A9): trusted publishers, `release.yml`,
       `ci.yml`, changesets, `examples/consumer` installing them from the registry. 0.x while the API settles.
@@ -394,15 +424,18 @@ The branch decision can be taken any time before this; the rest waits until the 
   - [ ] `private: false`, a first changeset for each, `release.yml`'s comment, and `examples/consumer` plus
         `consumer-smoke.yml` installing the three.
 
-- [ ] **Alice:** `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport. It doubles as the parity test
-      against a real report.
-- [ ] **Alice:** the CRM's four bar charts with `column`, `target`, `marker`, `dimmed` (Inbound first).
-
 ### Stage 6: one real phone, then 1.0
 
 - [ ] An `arm64` build from CI on one real Android phone, through the pilot screens. iPhone only if an Apple
       Developer account becomes available.
 - [ ] The 1.0 criteria, deprecation and Expo support policy, adoption guide (1.13); release.
+
+### After publishing: the CRM (Alice, 2026-11-02)
+
+**The CRM is built only after everything above is ready and published**, installing from npm. Nothing CRM-side
+blocks or comes before publishing: no `next` pre-release, no tarballs to feed it early. When it starts, the pivot in
+WaveActivitiesReport (also the parity test against a real report) and the four bar charts with `column`, `target`,
+`marker`, `dimmed` (Inbound first) are its first pieces.
 
 ### Deferred until a pilot screen or a CRM user asks
 

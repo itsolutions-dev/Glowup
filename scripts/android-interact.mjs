@@ -229,8 +229,28 @@ const keyCode = (char) =>
 const typeInto = async (label, text, photoName, expectations) => {
   await scrollToTop();
   // By label, not by position: the page scrolls, and the first field in view is not always the same.
-  const field = (nodes) =>
-    nodes.find((n) => n.cls.endsWith("EditText") && n.desc.startsWith(label));
+  // A plain TextInput carries its label as content-desc. The library's fields do not (since 30/10 they
+  // are named by their label view through accessibilityLabelledBy, which uiautomator does not show), so
+  // for those: the label's text, then the nearest field under it that spans the label's x.
+  const field = (nodes) => {
+    const own = nodes.find(
+      (n) => n.cls.endsWith("EditText") && n.desc.startsWith(label),
+    );
+    if (own) return own;
+    const caption = nodes.find(
+      (n) => n.text === label && !n.cls.endsWith("EditText"),
+    );
+    if (!caption) return undefined;
+    return nodes
+      .filter(
+        (n) =>
+          n.cls.endsWith("EditText") &&
+          n.b > caption.t &&
+          n.l <= caption.x &&
+          caption.x <= n.r,
+      )
+      .sort((a, b) => a.t - b.t)[0];
+  };
   await tapNode(field, `the ${label} field`, false);
   await sleep(1500);
   for (const char of text) {

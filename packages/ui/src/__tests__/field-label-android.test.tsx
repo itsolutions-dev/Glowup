@@ -61,3 +61,46 @@ describe.each(fields)("%s label", (_name, field) => {
     ).toBeUndefined();
   });
 });
+
+// `inputProps.accessibilityLabel` replaces the name drawn from `label` (the
+// prop's documentation). On Android the tie to the label view outranks a
+// description, so with both TalkBack read the label and dropped the app's name.
+describe.each([
+  [
+    "Input",
+    <Input
+      key="i"
+      label="Email"
+      value=""
+      onChange={() => {}}
+      inputProps={{ accessibilityLabel: "Customer email" }}
+    />,
+  ],
+  [
+    "InputArea",
+    <InputArea
+      key="a"
+      label="Email"
+      value=""
+      onChange={() => {}}
+      inputProps={{ accessibilityLabel: "Customer email" }}
+    />,
+  ],
+  [
+    "PasswordField",
+    <PasswordField
+      key="p"
+      label="Email"
+      value=""
+      onChange={() => {}}
+      inputProps={{ accessibilityLabel: "Customer email" }}
+    />,
+  ],
+] as const)("%s with its own accessibilityLabel", (_name, field) => {
+  it("is named by the app's label on Android, not tied to the label view", async () => {
+    jest.replaceProperty(Platform, "OS", "android");
+    const view = await draw(field);
+    const input = view.getByLabelText("Customer email");
+    expect(input.props.accessibilityLabelledBy).toBeUndefined();
+  });
+});

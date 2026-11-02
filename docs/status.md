@@ -370,8 +370,10 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       14/16: the two text-field steps looked a field up by `content-desc`, which the library's fields no longer have
       since the TalkBack fix (they are named by their label). `scripts/android-interact.mjs` now finds the label's
       text and the field under it; 16/16 on the local emulator at the CI's screen size (2/11). Confirm in the next CI.
-- [ ] `docs/native-verification.md`, the component × platform matrix (A7), filled for the pilot screens'
-      components. **Claude, here**, from the CI artefacts, the emulator and the handoffs.
+- [x] `docs/native-verification.md`, the component × platform matrix (A7, 2/11), filled for the pilot screens'
+      components and the add-ons (42 rows), every cell with its source. Web and the local Android emulator are covered
+      (the pilots); iPhone only for what `/native-check` draws (about a third, nothing tapped); **no real phone and
+      no VoiceOver anywhere**. The file says what each empty column needs.
 - [x] jest on three platforms in `packages/ui` (B1, 2/11). The whole suite runs as iOS and as Android (194 suites
       then 197 with the web ones, 3,374 tests); 24 tests failed as Android at first, all test-side (a required
       field is "Email *" there, ids, an iOS-only shadow, react-native-svg's Android root) except **one library

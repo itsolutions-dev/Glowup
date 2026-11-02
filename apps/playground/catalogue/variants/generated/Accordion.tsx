@@ -8,7 +8,8 @@ import { Accordion, Typography, StatusBadge, Divider } from "@its/glowup-ui";
 
 const panel: ViewStyle = {
   flexDirection: "column",
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 export const CollapsedAndExpanded = () => (

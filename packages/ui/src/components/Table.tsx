@@ -594,22 +594,41 @@ export const TableCell = ({
         style,
       ]}
     >
-      {typeof children === "string" || typeof children === "number" ? (
-        <Text
-          style={[
-            { color: theme.colors.onSurface },
-            theme.typography.bodyMedium,
-            { textAlign: align },
-            textStyle,
-          ]}
-          numberOfLines={1}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
+      <CellText align={align} textStyle={textStyle}>
+        {children}
+      </CellText>
     </View>
+  );
+};
+
+/**
+ * A cell's content: text and numbers in the table's type on one line, any
+ * other node as it is. DataGrid draws its custom cells through it too.
+ */
+export const CellText = ({
+  children,
+  align = "left",
+  textStyle,
+}: {
+  children?: React.ReactNode;
+  align?: TableCellProps["align"];
+  textStyle?: TableCellProps["textStyle"];
+}) => {
+  const { theme } = useTheme();
+  return typeof children === "string" || typeof children === "number" ? (
+    <Text
+      style={[
+        { color: theme.colors.onSurface },
+        theme.typography.bodyMedium,
+        { textAlign: align },
+        textStyle,
+      ]}
+      numberOfLines={1}
+    >
+      {children}
+    </Text>
+  ) : (
+    <>{children}</>
   );
 };
 

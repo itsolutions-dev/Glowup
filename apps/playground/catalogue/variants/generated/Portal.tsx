@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { Portal, Typography, Paper, Tooltip, Button } from "@its/glowup-ui";
 
 const stage: ViewStyle = {
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
   gap: 12,
 };

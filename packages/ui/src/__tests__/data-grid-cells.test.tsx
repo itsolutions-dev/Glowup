@@ -14,7 +14,13 @@ const json = async (ui: React.ReactElement) =>
 
 describe("DataGrid cells", () => {
   it("draws renderCell instead of the raw value, with the value, row and index", async () => {
-    const renderCell = jest.fn((value: number) => <Text>{`€ ${value}`}</Text>);
+    // All three declared: a renderCell of one or two parameters is not handed
+    // the index (it cannot read it), so a sort leaves its cells alone.
+    const renderCell = jest.fn(
+      (value: number, _row: unknown, _index: number) => (
+        <Text>{`€ ${value}`}</Text>
+      ),
+    );
     const out = await json(
       <DataGrid
         data={rows}

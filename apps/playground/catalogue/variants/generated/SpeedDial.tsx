@@ -10,7 +10,8 @@ import type { SpeedDialAction } from "@its/glowup-ui";
 // SpeedDial's root is an absolutely-positioned overlay that fills its nearest
 // positioned ancestor, so it needs a sized surface to float over.
 const screen: ViewStyle = {
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
   height: 260,
   flexDirection: "row",
 };

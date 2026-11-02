@@ -25,6 +25,7 @@ import Chip from "./Chip";
 import HelperText from "./HelperText";
 import Portal, { usePortalHost } from "./Portal";
 import { fieldWidth } from "./internal/fieldWidth";
+import { useKeyboardHeight } from "./internal/useKeyboardHeight";
 import { filledField } from "./internal/fieldVariant";
 import { swallowEscapeKeyUp } from "./internal/useEscapeKey";
 import { a11yState } from "./internal/a11yState";
@@ -146,6 +147,8 @@ export interface AutocompleteMultipleProps extends AutocompleteBaseProps {
 export type AutocompleteProps =
   AutocompleteSingleProps | AutocompleteMultipleProps;
 
+/** The tallest the suggestion list grows, when there is room for it. */
+const LIST_MAX_HEIGHT = 240;
 const NO_OPTIONS: AutocompleteOption[] = [];
 
 /** Strips diacritics so "cafe" matches "Café". */
@@ -213,6 +216,7 @@ const Autocomplete = ({
   const anchorRef = useRef<View>(null);
   const window = useWindowDimensions();
   const hasPortalHost = usePortalHost();
+  const keyboardHeight = useKeyboardHeight();
   // Window rect of the field, only needed on the portalled path.
   const [anchorRect, setAnchorRect] = useState({
     x: 0,
@@ -274,7 +278,15 @@ const Autocomplete = ({
     anchorRef.current.measureInWindow((x, y, width, height) =>
       setAnchorRect({ x, y, width, height }),
     );
-  }, [hasPortalHost, listVisible, window.width, window.height, suggestions]);
+    // The keyboard can move the page (and the field) when it opens.
+  }, [
+    hasPortalHost,
+    listVisible,
+    window.width,
+    window.height,
+    suggestions,
+    keyboardHeight,
+  ]);
 
   // Portalled, the list is no longer a child of the field, so `top: 100%` and
   // `left/right: 0` mean nothing: it needs the field's window rect. The two
@@ -284,19 +296,34 @@ const Autocomplete = ({
 
     const gap = 4;
     const below = anchorRect.y + anchorRect.height + gap;
-    const spaceBelow = window.height - below;
+    // The room below ends where the keyboard begins: measured against the
+    // whole window, a field in the lower half had its list behind the keyboard.
+    const spaceBelow = window.height - keyboardHeight - below - gap;
+    const spaceAbove = anchorRect.y - gap * 2;
     // Flip above when the list would run off the bottom and there is more room
     // up there — the inline path could never do this.
-    const flipAbove = spaceBelow < 160 && anchorRect.y > spaceBelow;
+    const flipAbove = spaceBelow < 160 && spaceAbove > spaceBelow;
+    // Never taller than the room it opens into.
+    const maxHeight = Math.min(
+      LIST_MAX_HEIGHT,
+      flipAbove ? spaceAbove : spaceBelow,
+    );
 
     return flipAbove
       ? {
           left: anchorRect.x,
           width: anchorRect.width,
           bottom: window.height - anchorRect.y + gap,
+          maxHeight,
         }
-      : { left: anchorRect.x, width: anchorRect.width, top: below };
-  }, [hasPortalHost, anchorRect, window.height, styles.listInline]);
+      : { left: anchorRect.x, width: anchorRect.width, top: below, maxHeight };
+  }, [
+    hasPortalHost,
+    anchorRect,
+    window.height,
+    keyboardHeight,
+    styles.listInline,
+  ]);
 
   // Portal moves its children to the host wherever the element itself sits, so
   // the block below stays put in the source either way.
@@ -668,7 +695,7 @@ const makeStyles = (theme: Theme) =>
     },
     list: {
       position: "absolute",
-      maxHeight: 240,
+      maxHeight: LIST_MAX_HEIGHT,
       borderWidth: 1,
       borderRadius: theme.shape.medium,
       overflow: "hidden",

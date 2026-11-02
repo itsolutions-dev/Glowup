@@ -16,7 +16,8 @@ const row: ViewStyle = {
 const column: ViewStyle = {
   flexDirection: "column",
   gap: 12,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 const caption: ViewStyle = {

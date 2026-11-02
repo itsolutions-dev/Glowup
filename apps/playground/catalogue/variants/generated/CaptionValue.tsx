@@ -9,7 +9,8 @@ import { CaptionValue, StatusBadge } from "@its/glowup-ui";
 const box: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 320,
+  width: "100%",
+  maxWidth: 320,
 };
 
 export const Stacked = () => (

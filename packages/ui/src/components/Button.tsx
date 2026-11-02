@@ -29,6 +29,7 @@ import {
   useRegisterSubmitButton,
 } from "./Form";
 import { a11yState } from "./internal/a11yState";
+import { warnOnce } from "./internal/devWarning";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -196,6 +197,13 @@ const Button = ({
   );
 
   const isInteractive = !isDisabled && !isLoading && !busy;
+
+  // Icons are never read, so an icon-only button has no name of its own.
+  if (!accessibilityLabel && children == null && iconName) {
+    warnOnce(
+      'An icon-only Button needs accessibilityLabel: screen readers read only "Button".',
+    );
+  }
 
   return (
     <Pressable

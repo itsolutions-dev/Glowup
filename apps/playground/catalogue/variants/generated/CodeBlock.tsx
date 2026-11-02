@@ -9,7 +9,8 @@ import { CodeBlock, HighlightedCode } from "@its/glowup-ui";
 const frame: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 480,
+  width: "100%",
+  maxWidth: 480,
 };
 
 const tsx = `import { Button } from "@its/glowup-ui";

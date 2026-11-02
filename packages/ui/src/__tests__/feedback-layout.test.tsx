@@ -154,7 +154,7 @@ describe("hover, press and focus feedback never change the layout box", () => {
   });
 
   it("FAB", async () => {
-    await wrap(<FAB icon="plus" onClick={() => {}} />);
+    await wrap(<FAB icon="plus" label="New" onClick={() => {}} />);
     expectStableBox();
   });
 

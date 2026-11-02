@@ -9,7 +9,8 @@ import { Rating, Typography } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const row: ViewStyle = {

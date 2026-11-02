@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { ChipGroup, Typography } from "@its/glowup-ui";
 
 const field: ViewStyle = {
-  width: 400,
+  width: "100%",
+  maxWidth: 400,
   flexDirection: "column",
   gap: 8,
 };

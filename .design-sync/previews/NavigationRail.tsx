@@ -35,7 +35,12 @@ export const WithFab = () => (
             accessibilityLabel="Menu"
             onClick={() => {}}
           />
-          <FAB icon="pencil-outline" placement="inline" onClick={() => {}} />
+          <FAB
+            icon="pencil-outline"
+            label="Compose"
+            placement="inline"
+            onClick={() => {}}
+          />
         </>
       }
     />

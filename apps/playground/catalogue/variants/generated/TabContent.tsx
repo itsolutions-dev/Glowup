@@ -20,7 +20,8 @@ import {
 const TABS = ["Overview", "Specs", "Reviews"];
 
 const frame: ViewStyle = {
-  width: 400,
+  width: "100%",
+  maxWidth: 400,
   height: 220,
   flexDirection: "column",
 };

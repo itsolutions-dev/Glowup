@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { FAB, IconButton, Toolbar } from "@its/glowup-ui";
 
 const stage: ViewStyle = {
-  width: 400,
+  width: "100%",
+  maxWidth: 400,
   flexDirection: "row",
   justifyContent: "center",
 };
@@ -57,7 +58,9 @@ export const WithFab = () => (
       variant="floating"
       safeArea={false}
       accessibilityLabel="Formatting"
-      fab={<FAB icon="plus" placement="inline" onClick={() => {}} />}
+      fab={
+        <FAB icon="plus" label="New" placement="inline" onClick={() => {}} />
+      }
     >
       {formatting}
     </Toolbar>

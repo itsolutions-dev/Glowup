@@ -9,7 +9,8 @@ import { Input } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 320,
+  width: "100%",
+  maxWidth: 320,
 };
 
 const noop = () => {};

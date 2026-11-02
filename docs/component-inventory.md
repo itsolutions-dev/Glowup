@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 116 componenti.
+Ora: versione 0.11.1, 117 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,7 +11,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 28 | 381 |
+| Aggiunti | 29 | 384 |
 | Aggiornati | 55 | 714 |
 | Tenuti (invariati) | 33 | 195 |
 
@@ -22,6 +22,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Blink](#blink)
 - [Break](#break)
 - [CaptionValue](#captionvalue)
+- [CellText](#celltext)
 - [CheckboxGroup](#checkboxgroup)
 - [Clipboard](#clipboard)
 - [CodeBlock](#codeblock)
@@ -216,6 +217,16 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | valueColor | `ThemeColor` |  |  | A theme colour token (`"primary"`, `"error"`, ...) or any colour string. Defaults to `onSurface`. |
 | valueStyle | `StyleProp<TextStyle>` |  |  |  |
 | width | `DimensionValue` |  |  | Width of the pair. |
+
+### CellText
+
+`packages/ui/src/components/Table.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `TableCellProps["align"]` | "left" |  |  |
+| children | `React.ReactNode` |  |  |  |
+| textStyle | `TableCellProps["textStyle"]` |  |  |  |
 
 ### CheckboxGroup
 

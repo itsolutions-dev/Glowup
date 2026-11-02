@@ -9,7 +9,8 @@ import { Blink, Button, StatusBadge, Typography } from "@its/glowup-ui";
 const column: ViewStyle = {
   flexDirection: "column",
   gap: 20,
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const row: ViewStyle = {

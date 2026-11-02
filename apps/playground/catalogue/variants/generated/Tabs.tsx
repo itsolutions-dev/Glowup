@@ -8,7 +8,8 @@ import { Tabs } from "@its/glowup-ui";
 
 const wrap: ViewStyle = { width: 400, flexDirection: "row" };
 const stack: ViewStyle = {
-  width: 400,
+  width: "100%",
+  maxWidth: 400,
   flexDirection: "column",
   gap: 16,
 };

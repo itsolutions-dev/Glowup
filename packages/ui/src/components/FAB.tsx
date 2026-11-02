@@ -17,6 +17,7 @@ import { useStateLayer } from "./TouchableRipple";
 import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { a11yState } from "./internal/a11yState";
+import { warnOnce } from "./internal/devWarning";
 
 export type FABSize = "small" | "medium" | "large";
 
@@ -100,12 +101,19 @@ const EXPANDED_PADDING = 16;
  * <FAB variant="animated" icon="plus" label="New ticket" extended={extended} onClick={create} />
  * ```
  */
-const FAB = (props: FABProps) =>
-  props.variant === "animated" ? (
+const FAB = (props: FABProps) => {
+  // Icons are never read: without label the FAB is only "<icon> FAB".
+  if (!props.label) {
+    warnOnce(
+      "A FAB needs label: it is its name for screen readers, also when the icon variant does not draw it.",
+    );
+  }
+  return props.variant === "animated" ? (
     <AnimatedFab {...props} />
   ) : (
     <StaticFab {...props} />
   );
+};
 
 export default FAB;
 

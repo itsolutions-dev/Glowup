@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { HelperText, Input, Typography, Checkbox } from "@its/glowup-ui";
 
 const field: ViewStyle = {
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
   flexDirection: "column",
 };
 

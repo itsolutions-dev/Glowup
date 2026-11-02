@@ -382,8 +382,10 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       the suite is not run there; a small web set (`src/__web_tests__`, `@testing-library/react`, 18 tests)
       covers roles and `aria-*`, Escape in dialogs, Enter in a form, the focus ring, no button in a button. Each
       web test was seen failing with the code it guards broken.
-- [ ] **Open, for the TalkBack pass:** a required field's name on Android is its label view, "Email \*"; iOS
-      says "Email" and nothing about "required". Hear what TalkBack says ("Email star"?) before changing it.
+- [ ] **Open:** a required field's name on Android is its label view: TalkBack's text is "Edit box for Work email
+      \*" (heard 2/11; whether the voice says "star" depends on the user's punctuation setting). iOS says "Work
+      email" and nothing about required. Proposal: announce "required" in words on both platforms; not done (it
+      changes every required field's name and the tests that look fields up by it).
 - [x] `expo export -p ios` and `-p android` in `examples/consumer` (1.2, 2/11): added to `consumer-smoke.yml` and the
       app's `smoke` script. Run locally on a copy of the app without `device` (see below): `@its/glowup-ui@0.12.0`
       from npm type-checks and bundles for web (510 modules), iOS (850) and Android (848).
@@ -404,9 +406,16 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       2.4 MB. Button"); **a `Switch` without `label` had no name** (new `accessibilityLabel` prop; the playground's
       33 such switches named); **`Avatar` without `onClick` was "Image. disabled"** (now "Image"); **`StatusBadge`
       read twice** in a row. Not reached by the tree (a spinner keeps the page busy): `IconButton`, `Autocomplete`.
-- [ ] **Found in the pass, not screen-reader issues:** the date picker's endless calendar is a `FlatList`, and
-      inside a page that scrolls (every form) React Native warns "VirtualizedLists should never be nested inside
-      plain ScrollViews"; the Card page's examples run past the right edge on the Pixel 8 (1080 px).
+- [x] **Component fixes after the pass (2/11, changeset `long-lists-and-keyboard.md`, each test first, seen on the
+      local emulator):** the endless calendar no longer warns "VirtualizedLists should never be nested" inside a
+      page that scrolls, and keeps the finger on Android (a drag moved June to July, the page stayed); `Select`
+      and `Menu` are virtualized (`FlatList`; on the device a `height: "100%"` in `Select`'s rows stretched
+      each row to 144 dp inside the list: removed, rows back to 52 dp); `Autocomplete`'s suggestions open above
+      the field when the keyboard takes the room below (seen); a `DataGrid` sort no longer redraws custom cells
+      whose `renderCell` declares one or two parameters (and an `id` of 0 is keyed by id); `FAB` without
+      `label` and icon-only `Button` warn once in development (`internal/devWarning`). The Card page overflow
+      was the galleries' fixed 380-px frames: the variants generator turns a frame of 320 px or more into
+      `width: "100%", maxWidth` (44 galleries; Card checked on the Pixel 8).
 - [ ] VoiceOver pass on the same components (1.10). **Needs an iPhone or a Mac**, see "iPhone" below.
 - [ ] The playground's pages on iOS by hand (0.6). CI covers `/native-check` on the simulator; the rest needs the
       iPhone or the Mac.

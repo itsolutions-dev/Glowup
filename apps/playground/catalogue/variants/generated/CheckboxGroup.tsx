@@ -8,7 +8,8 @@ import { CheckboxGroup } from "@its/glowup-ui";
 
 const stack: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};

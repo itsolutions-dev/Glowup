@@ -52,6 +52,7 @@ import {
   useLabels,
 } from "./DateTimePicker.shared";
 import { a11yState } from "./internal/a11yState";
+import OwnScroller from "./internal/OwnScroller";
 
 /**
  * Internal: the month grid of `DatePicker` and `DateTimePicker`, which render it
@@ -744,29 +745,33 @@ const Calendar = ({
   const renderEndlessDays = () => (
     <>
       {renderWeekRow()}
-      <FlatList
-        ref={listRef}
-        testID={testID ? `${testID}-months` : undefined}
-        data={monthIndices}
-        keyExtractor={(index) => String(index)}
-        style={styles.endlessList}
-        showsVerticalScrollIndicator={false}
-        initialScrollIndex={initialIndex}
-        // Every month renders the same 6-row grid, so the layout is known
-        // up front and the list can jump straight to any year.
-        getItemLayout={(_, index) => ({
-          length: MONTH_ITEM_HEIGHT,
-          offset: MONTH_ITEM_HEIGHT * index,
-          index,
-        })}
-        onScroll={handleScroll}
-        scrollEventThrottle={32}
-        renderItem={({ item }) => (
-          <View style={styles.monthItem}>
-            {renderMonthGrid(fromMonthIndex(item))}
-          </View>
-        )}
-      />
+      {/* The months scroll in a box of fixed height (see OwnScroller). */}
+      <OwnScroller>
+        <FlatList
+          ref={listRef}
+          testID={testID ? `${testID}-months` : undefined}
+          data={monthIndices}
+          keyExtractor={(index) => String(index)}
+          style={styles.endlessList}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+          initialScrollIndex={initialIndex}
+          // Every month renders the same 6-row grid, so the layout is known
+          // up front and the list can jump straight to any year.
+          getItemLayout={(_, index) => ({
+            length: MONTH_ITEM_HEIGHT,
+            offset: MONTH_ITEM_HEIGHT * index,
+            index,
+          })}
+          onScroll={handleScroll}
+          scrollEventThrottle={32}
+          renderItem={({ item }) => (
+            <View style={styles.monthItem}>
+              {renderMonthGrid(fromMonthIndex(item))}
+            </View>
+          )}
+        />
+      </OwnScroller>
     </>
   );
 

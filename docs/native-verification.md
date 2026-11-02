@@ -126,10 +126,9 @@ source does not count.
 
 ## Known limits found while filling this
 
-- The endless calendar of `DatePicker` (and `variant="static"`) is a `FlatList`; inside a page that scrolls, React Native
-  warns "VirtualizedLists should never be nested inside plain ScrollViews" (seen on the emulator, 2/11).
-- The Card page's examples run past the right edge on the Pixel 8 (1080 px) in the playground (2/11, not looked into).
-- A required field's name on Android is its label view, "Email \*", where iOS says "Email" and nothing about required
-  (2/11, to hear with TalkBack before changing).
+- Fixed on 2/11 (see `status.md`): the endless calendar's nested-list warning; the Card page overflow (the galleries'
+  fixed frames); long lists in `Select` and `Menu`; `Autocomplete` behind the keyboard.
+- A required field's name on Android is its label view: TalkBack's text is "Edit box for Work email \*" (2/11), where
+  iOS says "Work email" and nothing about required. Open.
 - On iOS a toast above a dialog is announced but its button is out of VoiceOver's reach while the dialog is open
   (`accessibilityViewIsModal`, 30/10).

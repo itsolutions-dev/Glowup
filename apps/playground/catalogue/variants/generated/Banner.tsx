@@ -10,7 +10,8 @@ import { Banner, Typography, Card, Chip } from "@its/glowup-ui";
 // needs a parent with a real width — it is not an overlay and never portals.
 const frame: ViewStyle = {
   flexDirection: "column",
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
 };
 
 const stack: ViewStyle = { ...frame, gap: 16 };

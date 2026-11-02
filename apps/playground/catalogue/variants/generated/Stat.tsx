@@ -10,13 +10,15 @@ const row: ViewStyle = {
   flexDirection: "row",
   gap: 16,
   flexWrap: "wrap",
-  width: 560,
+  width: "100%",
+  maxWidth: 560,
 };
 
 const column: ViewStyle = {
   flexDirection: "column",
   gap: 12,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 export const Trends = () => (

@@ -21,18 +21,21 @@ const frame: ViewStyle = { height: 440, width: 340, flexDirection: "row" };
 const rail: ViewStyle = { height: 440, width: 120, flexDirection: "row" };
 const atRight: ViewStyle = {
   height: 360,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "row",
   justifyContent: "flex-end",
 };
 const atTop: ViewStyle = {
   height: 300,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
 };
 const atBottom: ViewStyle = {
   height: 300,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
   justifyContent: "flex-end",
 };

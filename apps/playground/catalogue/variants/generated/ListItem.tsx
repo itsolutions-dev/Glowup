@@ -15,7 +15,8 @@ import {
 
 const list: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const chevron = <Icon source="chevron-right" size={20} color="#79747E" />;

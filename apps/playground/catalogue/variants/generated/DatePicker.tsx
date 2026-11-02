@@ -9,7 +9,8 @@ import { DatePicker } from "@its/glowup-ui";
 // `DateTimePicker` carries its own marginBottom, so the column takes no gap.
 const stack: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};

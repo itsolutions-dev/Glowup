@@ -2,7 +2,7 @@
 // search. Each entry is a Draggable onto the canvas, and a tap adds it (§2).
 
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import {
   Draggable,
   Icon,
@@ -19,7 +19,14 @@ import { MANIFEST, type ManifestEntry } from "../manifest";
 import { insertNode } from "../operations";
 import type { Editor } from "./useEditor";
 
-export const Palette = ({ editor }: { editor: Editor }) => {
+export const Palette = ({
+  editor,
+  canDrag = true,
+}: {
+  editor: Editor;
+  /** False at a phone's width (§17): an entry is only pressed, to add. */
+  canDrag?: boolean;
+}) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [query, setQuery] = useState("");
@@ -73,28 +80,42 @@ export const Palette = ({ editor }: { editor: Editor }) => {
               >
                 {group}
               </Typography>
-              {entries.map(({ type, palette }) => (
-                // The entry itself follows the pointer: the drag system draws a
-                // preview at the item's size, and the canvas's draft draws the
-                // real component where it will land.
-                <Draggable
-                  key={type}
-                  id={`new:${type}`}
-                  testID={`palette-${type}`}
-                  data={{ kind: "new", type } satisfies NewDragData}
-                  onPress={() => add(type)}
-                  accessibilityLabel={`Add ${type}`}
-                  style={styles.entry}
-                >
-                  <Icon
-                    // A glyph name: the manifest stays free of library types.
-                    source={palette.icon as IconSource}
-                    size={20}
-                    color={theme.colors.onSurfaceVariant}
-                  />
-                  <Typography variant="bodyMedium">{type}</Typography>
-                </Draggable>
-              ))}
+              {entries.map(({ type, palette }) => {
+                const content = (
+                  <>
+                    <Icon
+                      // A glyph name: the manifest stays free of library types.
+                      source={palette.icon as IconSource}
+                      size={20}
+                      color={theme.colors.onSurfaceVariant}
+                    />
+                    <Typography variant="bodyMedium">{type}</Typography>
+                  </>
+                );
+                const entry = {
+                  testID: `palette-${type}`,
+                  accessibilityLabel: `Add ${type}`,
+                  style: styles.entry,
+                };
+                return canDrag ? (
+                  // The entry itself follows the pointer: the drag system draws
+                  // a preview at the item's size, and the canvas's draft draws
+                  // the real component where it will land.
+                  <Draggable
+                    key={type}
+                    id={`new:${type}`}
+                    data={{ kind: "new", type } satisfies NewDragData}
+                    onPress={() => add(type)}
+                    {...entry}
+                  >
+                    {content}
+                  </Draggable>
+                ) : (
+                  <Pressable key={type} onPress={() => add(type)} {...entry}>
+                    {content}
+                  </Pressable>
+                );
+              })}
             </View>
           ))
         )}

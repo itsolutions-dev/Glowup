@@ -347,9 +347,20 @@ insertion line, its children's boxes inside it, a refusing one left out so the d
 system's index, `tab` (a TabbedPanel's tab, laid over the bar the render tree measures as `bar:<id>`) on that
 panel's first free cell; `applyPlan` makes both the draft and the drop. Which panel of a TabbedPanel is shown is
 editor state (`editor.tabs`, `showTab`), never document: a tap on a tab, a tab hovered for 500 ms while dragging,
-or a drop on it switches it (a tap also selects the TabbedPanel), and the panel is as tall as the tallest one so the page never moves. The edit layer keeps every panel's zone mounted (`<id>:<tab>`, the hidden ones `display: "none"` and disabled): a node dragged out of a panel keeps its box while a hovered tab shows another, since an unmounted active `Draggable` cancels the drag. The palette
+or a drop on it switches it (a tap also selects the TabbedPanel), and the panel is as tall as the tallest one so the page never moves. The edit layer keeps every panel's zone mounted (`<id>:<tab>`, the hidden ones `display: "none"` and disabled): a node dragged out of a panel keeps its box while a hovered tab shows another, since an unmounted active `Draggable` cancels the drag. The toolbar's width switch (the stages' `site/stage.ts`: Full, 720, 360) draws the page in a frame of exactly that width under a `ViewportProvider`. At 360 the grids stack as the export does there (`stackBelow="medium"`), every node is measured where it lands (`child:<id>`, the page's nodes against `canvas-render`) and editing follows §17's compact rules: boxes disabled (no drag), no handles, no growing to the stacked heights, palette entries pressed only. A pulled resize handle holds its cursor over the whole page with a `<style>` rule (web only; jest has no DOM, so only the handles' own cursors are tested). The palette
 (`Palette.tsx`, the Canvas's `palette` slot, inside its `DragDropProvider`) lists the manifest by group with search;
 a tap adds into the selected container when it takes the type, else on the page (`addTarget`).
+
+**Export** (the toolbar's button, `editor/canvas/ExportPanel.tsx`): a `Dialog` with the code, a Preview and the JSON.
+`editor/codegen.ts` (`exportCode`, pure) prints the document as a component file in the examples' shape (2 spaces,
+double quotes, trailing commas, broken past 80 columns): one layout constant per grid, `GridLayout` inside each grid
+container, props equal to the component's default left out (the defaults come from the prop tables through
+`editor/docgen.ts`), a `useState` per controlled component outside a Form, `FormField`s inside one, `Tabs` +
+`TabContent` for a TabbedPanel (which the canvas also draws in `TabContent`, so both look the same), and a header
+listing the handlers left to wire. The Preview runs that text through `compileExample` at the toolbar's width.
+`editor/importJson.ts` (`parseLayout`) refuses what is not a layout it can read and repairs the rest with a note per
+change, `checkDocument` being its last gate; an import is one undo step. `__tests__/editor-export-fidelity.test.tsx`
+holds the export to the canvas: the starter and the fixture show the same texts both ways. `__tests__/editor-export-types.test.ts` type-checks an export of every palette type (empty containers and a Form with every field included) with the TypeScript compiler, in memory, against the app's tsconfig: a manifest entry that exports to code that does not compile fails it.
 
 ## The drag and drop page
 

@@ -2,8 +2,9 @@
 // the middle of each edge, squares on the corners. Resizing is not a drop, so
 // each handle is a plain pan through the responder system.
 
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
+  Platform,
   StyleSheet,
   View,
   type GestureResponderEvent,
@@ -29,6 +30,34 @@ const PLACES: Record<Handle, ViewStyle> = {
   sw: { bottom: HALF, left: HALF },
 };
 const HANDLES = Object.keys(PLACES) as Handle[];
+
+/** The web cursor of each handle: the axis, or the diagonal, it pulls along. */
+const CURSORS: Record<Handle, string> = {
+  n: "ns-resize",
+  s: "ns-resize",
+  e: "ew-resize",
+  w: "ew-resize",
+  ne: "nesw-resize",
+  sw: "nesw-resize",
+  nw: "nwse-resize",
+  se: "nwse-resize",
+};
+
+/**
+ * On the web, the handle's cursor over the whole page while it is pulled (or
+ * the page's own again, with null): the pointer leaves the 12 dp handle at
+ * once, and the boxes it crosses have a cursor of their own.
+ */
+const holdCursor = (cursor: string | null) => {
+  if (Platform.OS !== "web" || typeof document === "undefined") return;
+  const id = "glowup-resize-cursor";
+  document.getElementById(id)?.remove();
+  if (!cursor) return;
+  const rule = document.createElement("style");
+  rule.id = id;
+  rule.textContent = `* { cursor: ${cursor} !important; }`;
+  document.head.appendChild(rule);
+};
 
 export interface ResizeHandlesProps {
   /** Called as the pan moves, and once more with `done` when it is let go. */
@@ -59,10 +88,13 @@ const Grip = ({
         styles.handle,
         handle.length === 1 && styles.diamond,
         PLACES[handle],
+        Platform.OS === "web" &&
+          ({ cursor: CURSORS[handle] } as unknown as ViewStyle),
       ]}
       onStartShouldSetResponder={() => true}
       onResponderTerminationRequest={() => false}
       onResponderGrant={(event) => {
+        holdCursor(CURSORS[handle]);
         start.current = {
           x: event.nativeEvent.pageX,
           y: event.nativeEvent.pageY,
@@ -73,10 +105,14 @@ const Grip = ({
         onResize(handle, dx, dy, false);
       }}
       onResponderRelease={(event) => {
+        holdCursor(null);
         const [dx, dy] = delta(event);
         onResize(handle, dx, dy, true);
       }}
-      onResponderTerminate={onCancel}
+      onResponderTerminate={() => {
+        holdCursor(null);
+        onCancel();
+      }}
     />
   );
 };
@@ -84,6 +120,8 @@ const Grip = ({
 export const ResizeHandles = (props: ResizeHandlesProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  // Unmounted mid-pull (the selection went away): the page gets its cursor back.
+  useEffect(() => () => holdCursor(null), []);
   return (
     <>
       {HANDLES.map((handle) => (

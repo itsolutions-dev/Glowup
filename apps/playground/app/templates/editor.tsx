@@ -1,25 +1,44 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useTheme, type Theme } from "@its/glowup-ui";
 
 import { Canvas } from "../../editor/canvas/Canvas";
+import { ExportPanel } from "../../editor/canvas/ExportPanel";
 import { Palette } from "../../editor/canvas/Palette";
 import { Toolbar } from "../../editor/canvas/Toolbar";
 import { useEditor } from "../../editor/canvas/useEditor";
 import type { LayoutDocument } from "../../editor/document";
 import detail from "../../editor/starters/detail.json";
 import { PageHead } from "../../site/Page";
+import type { StageWidth } from "../../site/stage";
 import { useHydrated } from "../../site/useHydrated";
 
 const Editor = () => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const editor = useEditor(detail as LayoutDocument);
+  const [device, setDevice] = useState<StageWidth>("full");
+  const [exporting, setExporting] = useState(false);
   return (
     <View style={styles.screen}>
-      <Toolbar editor={editor} />
+      <Toolbar
+        editor={editor}
+        device={device}
+        onDevice={setDevice}
+        onExport={() => setExporting(true)}
+      />
+      <ExportPanel
+        editor={editor}
+        device={device}
+        visible={exporting}
+        onClose={() => setExporting(false)}
+      />
       <View style={styles.canvas}>
-        <Canvas editor={editor} palette={<Palette editor={editor} />} />
+        <Canvas
+          editor={editor}
+          device={device}
+          palette={<Palette editor={editor} canDrag={device !== "phone"} />}
+        />
       </View>
     </View>
   );

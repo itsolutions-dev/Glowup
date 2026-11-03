@@ -16,6 +16,7 @@ import * as GlowupUI from "@its/glowup-ui";
 import {
   GridLayout,
   gridLayoutHeight,
+  TabContent,
   Tabs,
   Typography,
   useTheme,
@@ -44,6 +45,8 @@ interface Tree {
   grid: GridSettings;
   dimmed: NodeId | null;
   tabs: Record<NodeId, number>;
+  /** A phone's arrangement: grids stack, and every node is measured where it lands. */
+  stacked: boolean;
   onContentHeight?: (id: NodeId, height: number) => void;
 }
 
@@ -87,10 +90,17 @@ const Grid = ({ nodes, columns }: { nodes: LayoutNode[]; columns: number }) => {
       columns={columns}
       rowHeight={tree.grid.rowHeight}
       gap={tree.grid.gap}
-      stackBelow="compact"
+      // Stacked only for a phone (under its ViewportProvider), as the export
+      // does there; otherwise the canvas, narrower than the window, never stacks.
+      stackBelow={tree.stacked ? "medium" : "compact"}
     >
       {placed.map((node) => (
-        <NodeView key={node.id} node={node} />
+        // Stacked, a sibling that changes moves the ones below it.
+        <NodeView
+          key={node.id}
+          node={node}
+          container={tree.stacked ? nodes : undefined}
+        />
       ))}
     </GridLayout>
   );
@@ -148,6 +158,10 @@ const propsOf = (node: LayoutNode): Record<string, unknown> => {
     ...(controlled
       ? { [controlled.value]: controlled.initial, [controlled.onChange]: noop }
       : {}),
+    // What a Form's FormField hands a required field, so the export matches.
+    ...(node.field?.rules.some((rule) => rule.required)
+      ? { required: true }
+      : {}),
     ...node.props,
   };
 };
@@ -189,13 +203,16 @@ const Body = ({ node }: { node: LayoutNode }) => {
             onChange={noop}
           />
         </Measured>
+        {/* In TabContent, as the export draws it (§15): its padding and surface too. */}
         {panel ? (
-          <InnerGrid
-            id={node.id}
-            nodes={panel.children}
-            columns={panel.columns}
-            minHeight={tallest}
-          />
+          <TabContent activeTab={0}>
+            <InnerGrid
+              id={node.id}
+              nodes={panel.children}
+              columns={panel.columns}
+              minHeight={tallest}
+            />
+          </TabContent>
         ) : null}
       </View>
     );
@@ -247,8 +264,8 @@ const NodeView = React.memo(function NodeView({
 }: {
   node: LayoutNode;
   inFlow?: boolean;
-  /** A flow child's container: when it changes, the child may have moved. */
-  container?: LayoutNode;
+  /** What, when it changes, may have moved the node (its flow container, its stacked siblings). */
+  container?: unknown;
 }) {
   const tree = useContext(TreeContext) as Tree;
   const parent = useContext(ParentFrame);
@@ -268,7 +285,7 @@ const NodeView = React.memo(function NodeView({
   }, [onContentHeight, node]);
 
   const measureOffset = () => {
-    if (inFlow) {
+    if (inFlow || tree.stacked) {
       offsetIn(frame.current, parent?.current, (rect) =>
         rects.set(`child:${node.id}`, rect),
       );
@@ -308,6 +325,8 @@ export interface RenderTreeProps {
   dimmed?: NodeId | null;
   /** The panel shown of each TabbedPanel (the first by default). */
   tabs?: Record<NodeId, number>;
+  /** A phone's arrangement (§17): grids stack, and each node's place is measured. */
+  stacked?: boolean;
   onContentHeight?: (id: NodeId, height: number) => void;
 }
 
@@ -315,16 +334,21 @@ export const RenderTree = ({
   doc,
   dimmed = null,
   tabs = NO_TABS,
+  stacked = false,
   onContentHeight,
 }: RenderTreeProps) => {
   const tree = useMemo(
-    () => ({ grid: doc.grid, dimmed, tabs, onContentHeight }),
-    [doc.grid, dimmed, tabs, onContentHeight],
+    () => ({ grid: doc.grid, dimmed, tabs, stacked, onContentHeight }),
+    [doc.grid, dimmed, tabs, stacked, onContentHeight],
   );
+  // The page's nodes are measured against the page.
+  const page = useRef<View>(null);
   return (
-    <View testID="canvas-render" pointerEvents="none">
+    <View ref={page} testID="canvas-render" pointerEvents="none">
       <TreeContext.Provider value={tree}>
-        <Grid nodes={doc.items} columns={doc.grid.columns} />
+        <ParentFrame.Provider value={page}>
+          <Grid nodes={doc.items} columns={doc.grid.columns} />
+        </ParentFrame.Provider>
       </TreeContext.Provider>
     </View>
   );
@@ -339,7 +363,10 @@ export const NodePreview = ({
   grid: GridSettings;
 }) => {
   const rects = useMemo(() => createRects(), []);
-  const tree = useMemo(() => ({ grid, dimmed: null, tabs: NO_TABS }), [grid]);
+  const tree = useMemo(
+    () => ({ grid, dimmed: null, tabs: NO_TABS, stacked: false }),
+    [grid],
+  );
   return (
     <RectsProvider value={rects}>
       <TreeContext.Provider value={tree}>

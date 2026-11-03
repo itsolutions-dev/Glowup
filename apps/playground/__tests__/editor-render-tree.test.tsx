@@ -184,6 +184,20 @@ describe("the render tree, with tabs", () => {
   });
 });
 
+describe("the render tree, as the export draws it", () => {
+  it("draws a tab panel in TabContent, as the export does", async () => {
+    await draw(doc).view;
+    const frame = screen.getByTestId("frame-n3");
+    let node = screen.getByTestId("inner-n3").parent;
+    let padded = false;
+    while (node && node !== frame) {
+      if (StyleSheet.flatten(node.props.style)?.padding === 16) padded = true;
+      node = node.parent;
+    }
+    expect(padded).toBe(true);
+  });
+});
+
 describe("the rects store", () => {
   it("notifies only when a rect changes", () => {
     const rects: Rects = createRects();

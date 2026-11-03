@@ -75,6 +75,8 @@ interface Layer {
   doc: LayoutDocument;
   editor: Editor;
   pageWidth: number;
+  /** A phone's arrangement: boxes where the render tree measured them, no drag, no handles. */
+  stacked: boolean;
   onResize: ResizeHandler;
   onResizeCancel: () => void;
   styles: ReturnType<typeof makeStyles>;
@@ -136,7 +138,7 @@ const ZoneCells = ({
 };
 
 const Chrome = ({ node }: { node: LayoutNode }) => {
-  const { doc, editor, styles, pageWidth, onResize, onResizeCancel } =
+  const { doc, editor, styles, pageWidth, stacked, onResize, onResizeCancel } =
     useLayer();
   const rects = useRects();
   const { layout } = node;
@@ -151,7 +153,7 @@ const Chrome = ({ node }: { node: LayoutNode }) => {
         : 0;
   return (
     <>
-      {layout && columns ? (
+      {layout && columns && !stacked ? (
         <ResizeHandles
           onResize={(handle, dx, dy, done) =>
             onResize(
@@ -328,7 +330,7 @@ const TabTarget = ({
   );
 };
 
-/** A flow container's child, where the render tree measured it. */
+/** A flow container's child (any node, stacked), where the render tree measured it. */
 const FlowBox = ({ node }: { node: LayoutNode }) => {
   const rect = useRect(`child:${node.id}`);
   if (!rect) return null;
@@ -346,10 +348,36 @@ const FlowBox = ({ node }: { node: LayoutNode }) => {
   );
 };
 
+/** Boxes where the render tree measured each node. */
+const MeasuredBoxes = ({ nodes }: { nodes: LayoutNode[] }) => (
+  <>
+    {nodes.map((child) => (
+      <FlowBox key={child.id} node={child} />
+    ))}
+  </>
+);
+
 const Inside = ({ node }: { node: LayoutNode }) => {
-  const { doc, editor } = useLayer();
+  const { doc, editor, stacked } = useLayer();
   const entry = entryFor(node.type);
   const kind = entry?.kind;
+  // Stacked, every container's children sit where they were drawn; its tabs
+  // still switch panels.
+  if (stacked) {
+    if (kind === "tabs" && node.tabs?.length) {
+      return (
+        <>
+          <TabTargets node={node} />
+          <MeasuredBoxes
+            nodes={node.tabs[shownTab(node, editor.tabs)].children}
+          />
+        </>
+      );
+    }
+    return kind === "grid" || kind === "flow" ? (
+      <MeasuredBoxes nodes={node.children ?? []} />
+    ) : null;
+  }
   if (kind === "grid") {
     return (
       <InnerZone
@@ -411,7 +439,7 @@ const Box = ({
   node: LayoutNode;
   style: React.ComponentProps<typeof View>["style"];
 }) => {
-  const { doc, editor, styles } = useLayer();
+  const { doc, editor, styles, stacked } = useLayer();
   const [hovered, setHovered] = useState(false);
   const selected = editor.selected === node.id;
   // Web only: React Native has no hover, and these props are ignored there.
@@ -428,6 +456,7 @@ const Box = ({
       <Draggable
         id={node.id}
         testID={`box-${node.id}`}
+        disabled={stacked}
         data={{ kind: "node", type: node.type } satisfies NodeDragData}
         preview={<NodePreview node={node} grid={doc.grid} />}
         accessibilityLabel={`${node.type} ${node.id}`}
@@ -491,6 +520,7 @@ export const EditLayer = ({
   editor,
   landing = null,
   pageWidth,
+  stacked = false,
   onResize,
   onResizeCancel,
 }: {
@@ -499,6 +529,8 @@ export const EditLayer = ({
   landing?: Landing | null;
   /** The page grid's width, for a resize's cell size. */
   pageWidth: number;
+  /** A phone's arrangement (§17). */
+  stacked?: boolean;
   onResize: ResizeHandler;
   onResizeCancel: () => void;
 }) => {
@@ -510,10 +542,11 @@ export const EditLayer = ({
       editor,
       styles,
       pageWidth,
+      stacked,
       onResize,
       onResizeCancel,
     }),
-    [doc, editor, styles, pageWidth, onResize, onResizeCancel],
+    [doc, editor, styles, pageWidth, stacked, onResize, onResizeCancel],
   );
   return (
     <LandingContext.Provider value={landing}>
@@ -533,7 +566,11 @@ export const EditLayer = ({
             onPress={() => editor.select(null)}
           />
           <ZoneCells slot={PAGE} columns={doc.grid.columns} />
-          <Boxes nodes={doc.items} columns={doc.grid.columns} />
+          {stacked ? (
+            <MeasuredBoxes nodes={doc.items} />
+          ) : (
+            <Boxes nodes={doc.items} columns={doc.grid.columns} />
+          )}
         </Droppable>
       </LayerContext.Provider>
     </LandingContext.Provider>

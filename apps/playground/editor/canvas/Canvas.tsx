@@ -20,9 +20,13 @@ import { StyleSheet, View } from "react-native";
 import {
   DragDropProvider,
   ScrollArea,
+  Typography,
   useDragScroll,
   useDragState,
+  useTheme,
+  ViewportProvider,
   type DragEndEvent,
+  type Theme,
 } from "@its/glowup-ui";
 
 import {
@@ -45,6 +49,7 @@ import { growToFit, placeNode, slotKey } from "../operations";
 import { EditLayer, type Landing, type ResizeHandler } from "./EditLayer";
 import { RenderTree } from "./RenderTree";
 import { createRects, RectsProvider } from "./rects";
+import { STAGE_WIDTHS, type StageWidth } from "../../site/stage";
 import type { Editor } from "./useEditor";
 
 const GROWS = new Set(["grid", "flow", "tabs"]);
@@ -85,11 +90,20 @@ const resizeKey = (id: NodeId, p: GridPlacement) =>
 const CanvasBody = ({
   editor,
   drawnRef,
+  device,
 }: {
   editor: Editor;
   drawnRef: Drawn;
+  device: StageWidth;
 }) => {
   const scroll = useDragScroll();
+  const { theme } = useTheme();
+  const themed = useMemo(() => makeStyles(theme), [theme]);
+  // The page at a device's width (§17): its components see that width. At a
+  // phone's the grids stack, as the exported screen will, and nothing aims at
+  // a cell: no drag, no handles, no growing to the stacked heights.
+  const width = STAGE_WIDTHS[device];
+  const stacked = device === "phone";
   const { doc, amend } = editor;
   const plan = useDropPlan(doc);
 
@@ -182,33 +196,61 @@ const CanvasBody = ({
   return (
     <ScrollArea
       {...scroll}
-      style={styles.scroller}
+      style={[styles.scroller, themed.backdrop]}
       contentContainerStyle={styles.content}
     >
-      <View
-        style={{
-          minHeight: rowsHeight(doc, pageRows(shown, draft !== null)),
-        }}
-      >
-        <RenderTree
-          doc={shown}
-          dimmed={plan && placed ? placed.id : null}
-          tabs={editor.tabs}
-          onContentHeight={draft ? undefined : onContentHeight}
-        />
-        <View
-          testID="edit-layer"
-          style={StyleSheet.absoluteFill}
-          onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
+      {stacked ? (
+        <Typography
+          variant="bodySmall"
+          color="onSurfaceVariant"
+          style={styles.note}
         >
-          <EditLayer
-            doc={doc}
-            editor={editor}
-            landing={landing}
-            pageWidth={pageWidth}
-            onResize={onResize}
-            onResizeCancel={onResizeCancel}
-          />
+          At phone width the page stacks, as the exported screen will. Switch to
+          Tablet or Desktop to move and resize.
+        </Typography>
+      ) : null}
+      <View
+        testID="canvas-frame"
+        style={[
+          themed.frame,
+          width !== undefined && {
+            width,
+            maxWidth: "100%",
+            alignSelf: "center",
+          },
+        ]}
+      >
+        {/* Outside the page's width, so the page is exactly the device's. */}
+        <View pointerEvents="none" style={themed.outline} />
+        <View
+          style={{
+            minHeight: rowsHeight(doc, pageRows(shown, draft !== null)),
+          }}
+        >
+          <ViewportProvider width={width}>
+            <RenderTree
+              doc={shown}
+              dimmed={plan && placed ? placed.id : null}
+              tabs={editor.tabs}
+              stacked={stacked}
+              onContentHeight={draft || stacked ? undefined : onContentHeight}
+            />
+          </ViewportProvider>
+          <View
+            testID="edit-layer"
+            style={StyleSheet.absoluteFill}
+            onLayout={(event) => setPageWidth(event.nativeEvent.layout.width)}
+          >
+            <EditLayer
+              doc={doc}
+              editor={editor}
+              landing={landing}
+              pageWidth={pageWidth}
+              stacked={stacked}
+              onResize={onResize}
+              onResizeCancel={onResizeCancel}
+            />
+          </View>
         </View>
       </View>
     </ScrollArea>
@@ -218,8 +260,11 @@ const CanvasBody = ({
 export const Canvas = ({
   editor,
   palette,
+  device = "full",
 }: {
   editor: Editor;
+  /** The page's width: the whole canvas, a tablet's or a phone's (§17). */
+  device?: StageWidth;
   /** Drawn beside the canvas, inside its drag and drop: what it adds from. */
   palette?: React.ReactNode;
 }) => {
@@ -242,7 +287,7 @@ export const Canvas = ({
       <DragDropProvider onDragEnd={onDragEnd}>
         <View style={styles.row}>
           {palette}
-          <CanvasBody editor={editor} drawnRef={drawnRef} />
+          <CanvasBody editor={editor} drawnRef={drawnRef} device={device} />
         </View>
       </DragDropProvider>
     </RectsProvider>
@@ -255,4 +300,21 @@ const styles = StyleSheet.create({
   // Room above the top row for a selected node's label and buttons, which a
   // scroll view would otherwise clip; room below for the last row's handles.
   content: { paddingTop: 48, paddingBottom: 24, paddingHorizontal: 24 },
+  // As far above the page as the content's top padding: the selection's label fits between.
+  note: { textAlign: "center", marginBottom: 48 },
 });
+
+const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
+    backdrop: { backgroundColor: theme.colors.surfaceContainer },
+    frame: { backgroundColor: theme.colors.surface },
+    outline: {
+      position: "absolute",
+      top: -1,
+      right: -1,
+      bottom: -1,
+      left: -1,
+      borderWidth: 1,
+      borderColor: theme.colors.outlineVariant,
+    },
+  });

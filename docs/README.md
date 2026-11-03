@@ -28,6 +28,7 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | [`superpowers/plans/2026-10-28-layout-editor-2-core.md`](superpowers/plans/2026-10-28-layout-editor-2-core.md)                             | Plan 2: the editor's pure core (document, grid maths, manifest, forms, operations, undo).                                                    |
 | [`superpowers/plans/2026-10-29-layout-editor-3-canvas.md`](superpowers/plans/2026-10-29-layout-editor-3-canvas.md)                         | Plan 3: the canvas (render tree and edit layer, select, move with a landing preview, resize, nested grids) and the `/templates/editor` page. |
 | [`superpowers/plans/2026-10-29-layout-editor-4-palette-containers.md`](superpowers/plans/2026-10-29-layout-editor-4-palette-containers.md) | Plan 4: the palette (drag or tap to add), stacks and lists as drop zones, TabbedPanel tabs on the canvas, moves between containers.          |
+| [`superpowers/plans/2026-10-29-layout-editor-5-export.md`](superpowers/plans/2026-10-29-layout-editor-5-export.md)                         | Plan 5: the Export panel (generated `.tsx` with copy and download, a Preview that runs it, the JSON with copy, download and import).         |
 
 ## Reference
 

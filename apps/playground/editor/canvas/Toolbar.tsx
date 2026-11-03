@@ -1,13 +1,31 @@
-// The editor's toolbar (spec §2): the layout's name, undo and redo. Width,
-// preview, export and save arrive with their phases.
+// The editor's toolbar (spec §2): the layout's name, undo and redo, and the
+// canvas width, and the Export panel. Save arrives with its phase.
 
 import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import { IconButton, Typography, useTheme, type Theme } from "@its/glowup-ui";
+import {
+  Button,
+  IconButton,
+  ToggleButtonGroup,
+  Typography,
+  useTheme,
+  type Theme,
+} from "@its/glowup-ui";
 
+import { STAGE_WIDTH_OPTIONS, type StageWidth } from "../../site/stage";
 import type { Editor } from "./useEditor";
 
-export const Toolbar = ({ editor }: { editor: Editor }) => {
+export const Toolbar = ({
+  editor,
+  device,
+  onDevice,
+  onExport,
+}: {
+  editor: Editor;
+  device: StageWidth;
+  onDevice: (device: StageWidth) => void;
+  onExport: () => void;
+}) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
@@ -27,6 +45,16 @@ export const Toolbar = ({ editor }: { editor: Editor }) => {
         disabled={!editor.canRedo}
         onClick={editor.redo}
       />
+      {/* The component pages' stage widths: the page as a phone, a tablet, the whole canvas. */}
+      <ToggleButtonGroup
+        accessibilityLabel="Canvas width"
+        value={device}
+        onValueChange={(value) => onDevice(value as StageWidth)}
+        options={[...STAGE_WIDTH_OPTIONS]}
+      />
+      <Button variant="tonal" iconName="export-variant" onClick={onExport}>
+        Export
+      </Button>
     </View>
   );
 };

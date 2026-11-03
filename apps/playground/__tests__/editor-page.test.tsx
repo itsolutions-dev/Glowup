@@ -1,6 +1,11 @@
 import React from "react";
-import { ScrollView, View } from "react-native";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "@its/glowup-ui";
 import { router } from "expo-router";
@@ -101,6 +106,14 @@ describe("the layout editor page", () => {
     ).toBe(true);
   });
 
+  it("switches the canvas width from the toolbar", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("360"));
+    expect(
+      StyleSheet.flatten(screen.getByTestId("canvas-frame").props.style).width,
+    ).toBe(360);
+  });
+
   it("opens a sound starter", () => {
     expect(checkDocument(detail as LayoutDocument)).toEqual([]);
   });
@@ -109,5 +122,84 @@ describe("the layout editor page", () => {
     await draw(<Templates />);
     await fireEvent.press(screen.getByText("New layout"));
     expect(router.push).toHaveBeenCalledWith("/templates/editor");
+  });
+});
+
+describe("the export", () => {
+  const openExport = async (tab?: string) => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("Export"));
+    if (tab) await fireEvent.press(screen.getByText(tab));
+  };
+  const paste = async (text: string) => {
+    await fireEvent.changeText(
+      screen.getByLabelText("Paste a layout's JSON"),
+      text,
+    );
+    await fireEvent.press(screen.getByText("Import"));
+  };
+
+  it("exports the layout's code", async () => {
+    await openExport();
+    expect(
+      screen.getAllByText(/export default function PaginaDiDettaglio()/).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("previews the exported code", async () => {
+    await openExport("Preview");
+    expect(
+      within(screen.getByTestId("export-preview")).getByText(
+        "RSSMRA80A01H501U",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("previews at the toolbar's width", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("360"));
+    await fireEvent.press(screen.getByText("Export"));
+    await fireEvent.press(screen.getByText("Preview"));
+    expect(
+      StyleSheet.flatten(screen.getByTestId("export-preview-stage").props.style)
+        .width,
+    ).toBe(360);
+  });
+
+  it("imports a pasted layout as one undo step", async () => {
+    await openExport("JSON");
+    await paste(
+      JSON.stringify({
+        format: "glowup-layout",
+        version: 1,
+        name: "One",
+        grid: { columns: 12, rowHeight: 48, gap: 16 },
+        items: [
+          {
+            id: "n1",
+            type: "Typography",
+            props: {},
+            text: "Imported",
+            layout: { x: 0, y: 0, w: 6, h: 1 },
+          },
+        ],
+      }),
+    );
+    expect(
+      within(screen.getByTestId("frame-n1")).getByText("Imported"),
+    ).toBeTruthy();
+    expect(screen.queryByText("RSSMRA80A01H501U")).toBeNull();
+    await fireEvent.press(screen.getByLabelText("Undo"));
+    expect(screen.getAllByText("RSSMRA80A01H501U").length).toBeGreaterThan(0);
+  });
+
+  it("refuses a file that is not a layout", async () => {
+    await openExport("JSON");
+    await paste("{}");
+    expect(screen.getByText("Not a Glowup layout")).toBeTruthy();
+    expect(screen.getAllByText("RSSMRA80A01H501U").length).toBeGreaterThan(0);
+    expect(
+      screen.getByLabelText("Undo").props.accessibilityState?.disabled,
+    ).toBe(true);
   });
 });

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "@its/glowup-ui";
@@ -16,6 +16,8 @@ import * as operations from "../editor/operations";
 import { removeNode, removeTab, setProps } from "../editor/operations";
 import { Canvas } from "../editor/canvas/Canvas";
 import { Palette } from "../editor/canvas/Palette";
+import { ResizeHandles } from "../editor/canvas/ResizeHandles";
+import type { StageWidth } from "../site/stage";
 import { useEditor, type Editor } from "../editor/canvas/useEditor";
 
 // The test renderer cannot measure: each view's window rect comes from its testID.
@@ -48,9 +50,11 @@ let commits = 0;
 const Harness = ({
   initial,
   palette,
+  device,
 }: {
   initial: LayoutDocument;
   palette: boolean;
+  device: StageWidth;
 }) => {
   const current = useEditor(initial);
   // Handed to the tests after each render, outside it.
@@ -61,7 +65,12 @@ const Harness = ({
   return (
     <Canvas
       editor={current}
-      palette={palette ? <Palette editor={current} /> : undefined}
+      device={device}
+      palette={
+        palette ? (
+          <Palette editor={current} canDrag={device !== "phone"} />
+        ) : undefined
+      }
     />
   );
 };
@@ -69,6 +78,7 @@ const Harness = ({
 const draw = (
   initial: LayoutDocument = fixture as LayoutDocument,
   palette = false,
+  device: StageWidth = "full",
 ) =>
   render(
     <SafeAreaProvider
@@ -78,7 +88,7 @@ const draw = (
       }}
     >
       <ThemeProvider>
-        <Harness initial={initial} palette={palette} />
+        <Harness initial={initial} palette={palette} device={device} />
       </ThemeProvider>
     </SafeAreaProvider>,
   );
@@ -881,5 +891,94 @@ describe("tabs, after the review", () => {
     await act(async () => editor.select("n4"));
     await tapTab("B tab");
     expect(editor.selected).toBe("n3");
+  });
+});
+
+describe("resize cursors", () => {
+  it("shows the cursor of each handle's direction on the web", async () => {
+    jest.replaceProperty(Platform, "OS", "web");
+    await render(
+      <ThemeProvider>
+        <ResizeHandles onResize={() => {}} onCancel={() => {}} />
+      </ThemeProvider>,
+    );
+    const cursor = (handle: string) =>
+      (
+        StyleSheet.flatten(
+          screen.getByLabelText("Resize " + handle).props.style,
+        ) as any
+      ).cursor;
+    expect(["n", "s", "e", "w", "ne", "sw", "nw", "se"].map(cursor)).toEqual([
+      "ns-resize",
+      "ns-resize",
+      "ew-resize",
+      "ew-resize",
+      "nesw-resize",
+      "nesw-resize",
+      "nwse-resize",
+      "nwse-resize",
+    ]);
+  });
+});
+
+/** What onLayout does at phone width: the stacked page, one node under the other. */
+const measureStacked = async () => {
+  Object.assign(RECTS, {
+    "canvas-render": [24, 48, 360, 900],
+    "frame-n1": [24, 48, 360, 240],
+    "frame-n3": [24, 304, 360, 240],
+    "frame-n5": [24, 560, 360, 120],
+  });
+  for (const [id, height] of [
+    ["n1", 240],
+    ["n3", 240],
+    ["n5", 120],
+  ] as const) {
+    await fireEvent(
+      screen.getByTestId("frame-" + id),
+      "layout",
+      layoutEvent(height),
+    );
+  }
+};
+
+describe("the canvas width", () => {
+  it("draws the page at the width chosen", async () => {
+    await draw(undefined, false, "tablet");
+    expect(
+      StyleSheet.flatten(screen.getByTestId("canvas-frame").props.style).width,
+    ).toBe(720);
+  });
+
+  it("at phone width, places the boxes where the stacked page drew them", async () => {
+    await draw(undefined, false, "phone");
+    await measureStacked();
+    expect(
+      StyleSheet.flatten(screen.getByTestId("place-n3").props.style),
+    ).toMatchObject({ left: 0, top: 256, width: 360, height: 240 });
+  });
+
+  it("at phone width, selects by tap, with no drag and no handles", async () => {
+    await draw(undefined, false, "phone");
+    await measureStacked();
+    await tap("box-n1");
+    expect(editor.selected).toBe("n1");
+    expect(screen.getByLabelText("Delete")).toBeTruthy();
+    expect(screen.queryByLabelText("Resize se")).toBeNull();
+    expect(
+      screen.getByTestId("box-n1").props.accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it("at phone width, a container does not grow to its stacked height", async () => {
+    await draw(undefined, false, "phone");
+    await fireEvent(screen.getByTestId("frame-n1"), "layout", layoutEvent(600));
+    expect(findNode(editor.doc, "n1")?.layout?.h).toBe(4);
+  });
+
+  it("at phone width, the palette adds with a press", async () => {
+    await draw(undefined, true, "phone");
+    await fireEvent.press(screen.getByTestId("palette-Input"));
+    expect(findNode(editor.doc, "n7")?.layout).toMatchObject({ w: 4, h: 2 });
   });
 });

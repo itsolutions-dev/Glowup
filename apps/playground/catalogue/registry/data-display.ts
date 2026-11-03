@@ -144,6 +144,8 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
           { label: "Success", value: "success" },
           { label: "Error", value: "error" },
           { label: "Warning", value: "warning" },
+          { label: "Info", value: "info" },
+          { label: "Neutral", value: "neutral" },
         ],
       },
       icon: { type: "icon", default: "", label: "Icon Override" },

@@ -32,13 +32,18 @@ export interface Option {
 
 const optionKey = (option: Option) => option.id ?? String(option.value);
 
+// A plain string is its own label and value.
+const toOption = (option: Option | string): Option =>
+  typeof option === "string" ? { label: option, value: option } : option;
+
 type SelectVariant = "outlined" | "filled";
 
 export interface SelectProps {
   label?: string;
   error?: string;
   disabled?: boolean;
-  options: Option[];
+  /** The choices: `{ label, value }` objects, or plain strings that are their own label and value. */
+  options: (Option | string)[];
   /**
    * The `value` of the selected option, `null` for none. With `multiple`: the
    * array of selected `value`s (defaults to `[]`).
@@ -96,13 +101,18 @@ export interface SelectProps {
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.
    */
   density?: Density;
+  /**
+   * Keeps the line under the field even with no error, so an error appearing
+   * does not push the next field down. Default false.
+   */
+  reserveHelperText?: boolean;
 }
 
 const Select = ({
   label,
   error,
   disabled,
-  options,
+  options: rawOptions,
   value,
   onChange,
   placeholder = "Select an option",
@@ -118,7 +128,9 @@ const Select = ({
   showAsChips = false,
   defaultOpen = false,
   density,
+  reserveHelperText = false,
 }: SelectProps) => {
+  const options = useMemo(() => rawOptions.map(toOption), [rawOptions]);
   const dense = useDensity(density) === "dense";
   const [visible, setVisible] = useState(defaultOpen);
   const { theme } = useTheme();
@@ -472,7 +484,11 @@ const Select = ({
         </View>
       </Popover>
       {/* The same error line as the other fields: glyph, gutter, announced. */}
-      {!!error && <HelperText type="error">{error}</HelperText>}
+      {(!!error || reserveHelperText) && (
+        <HelperText type="error" visible={!!error}>
+          {error || " "}
+        </HelperText>
+      )}
     </View>
   );
 };

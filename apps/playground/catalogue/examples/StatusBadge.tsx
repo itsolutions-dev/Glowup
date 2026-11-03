@@ -16,6 +16,8 @@ const NEXT = {
   success: "Nothing to do: the payment cleared on 12 November.",
   warning: "The payment is due in 3 days. A reminder goes out tomorrow.",
   error: "The card was declined. Ask the client for another one.",
+  info: "The client asked for a copy of the invoice by post.",
+  neutral: "The invoice was cancelled and replaced by INV-2052.",
 };
 
 export default function StatusBadgeExample() {

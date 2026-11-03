@@ -12,7 +12,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
 | Aggiunti | 29 | 384 |
-| Aggiornati | 55 | 714 |
+| Aggiornati | 55 | 716 |
 | Tenuti (invariati) | 33 | 195 |
 
 ## Aggiunti
@@ -86,12 +86,12 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [ProgressButton](#progressbutton): + onClick, type, variant · − mode, onPress
 - [Rating](#rating): + icon, interval, required
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
-- [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange · ~ value · − onSelect, multiSelect, selectedValues, toggleOptions
+- [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange, reserveHelperText · ~ options, value · − onSelect, multiSelect, selectedValues, toggleOptions
 - [Slider](#slider): + interaction
 - [Snackbar](#snackbar): comportamento · + onClose, position, severity, variant · ~ action, onDismiss · − type
 - [Stack](#stack): + align, background, borderColor, borderWidth, children, dividers, height, justify, margin, padding, radius, style, width, wrap · ~ spacing
-- [Stat](#stat): + direction, trendColor · − invertTrendColors
-- [StatusBadge](#statusbadge): + toneFrom
+- [Stat](#stat): + direction, trendColor, valueColor · − invertTrendColors
+- [StatusBadge](#statusbadge): + toneFrom · ~ type
 - [Stepper](#stepper): + direction, onClick · − onStepPress
 - [Table](#table): + columns, data, emptyMessage, height, hover, onClick, rowsPerPage, selected, tableTitle, testID, width · ~ children
 - [TableCell](#tablecell): + align, flex
@@ -1495,11 +1495,11 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Select
 
-`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`, `onChange`; prop cambiate: `value`; prop tolte: `onSelect`, `multiSelect`, `selectedValues`, `toggleOptions`
+`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`, `onChange`, `reserveHelperText`; prop cambiate: `options`, `value`; prop tolte: `onSelect`, `multiSelect`, `selectedValues`, `toggleOptions`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| options * | `Option[]` |  |  |  |
+| options * | `(Option \| string)[]` |  | cambiata | The choices: `{ label, value }` objects, or plain strings that are their own label and value. |
 | defaultOpen | `boolean` | false |  | Mount with the option list already open. Uncontrolled after that. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
@@ -1514,6 +1514,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | onChange | `(value: any) => void` |  | nuova | Called with the picked option's `value`, or with `null` when a `nullable` select is cleared. With `multiple`: called with the new array of selected `value`s on every toggle (a new array, never the one passed as `value`). |
 | optionStyle | `object` |  |  |  |
 | placeholder | `string` | "Select an option" |  |  |
+| reserveHelperText | `boolean` | false | nuova | Keeps the line under the field even with no error, so an error appearing does not push the next field down. Default false. |
 | showAsChips | `boolean` | false |  | With `multiple`, shows the selection as removable chips in the field. |
 | style | `object` |  |  |  |
 | value | `any` |  | cambiata | The `value` of the selected option, `null` for none. With `multiple`: the array of selected `value`s (defaults to `[]`). |
@@ -1582,7 +1583,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Stat
 
-`packages/ui/src/components/Stat.tsx` — prop nuove: `direction`, `trendColor`; prop tolte: `invertTrendColors`
+`packages/ui/src/components/Stat.tsx` — prop nuove: `direction`, `trendColor`, `valueColor`; prop tolte: `invertTrendColors`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1596,17 +1597,18 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | trend | `"up" \| "down" \| "flat"` |  |  | Direction of `delta`. Drives the arrow, and the colour unless `trendColor` is set. |
 | trendColor | `ThemeColor` |  | nuova | The colour of the arrow and `delta`: a theme colour token (a role such as `"success"` or `"error"`, or `"onSurfaceVariant"`, ...) or any colour string. Left out, `"up"` is `success`, `"down"` is `error` and `"flat"` neutral. For a metric where down is good, pass the colour yourself. |
+| valueColor | `ThemeColor` |  | nuova | The colour of the number: a theme colour token (`"error"` for an overdue count, `"success"`, ...) or any colour string. Defaults to `onSurface`. |
 
 ### StatusBadge
 
-`packages/ui/src/components/StatusBadge.tsx` — prop nuove: `toneFrom`
+`packages/ui/src/components/StatusBadge.tsx` — prop nuove: `toneFrom`; prop cambiate: `type`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | label * | `string` |  |  |  |
 | icon | `string` |  |  |  |
 | toneFrom | `string` |  | nuova | Tints the badge from a `#RRGGBB` colour or from any text instead of from `type`, which still picks the default icon. |
-| type | `"success" \| "error" \| "warning"` | "success" |  |  |
+| type | `"success" \| "error" \| "warning" \| "info" \| "neutral"` | "success" | cambiata | The state, which picks the colours and the icon: `info` for something to look at, `neutral` for neither good nor bad. Defaults to `"success"`. |
 
 ### Stepper
 

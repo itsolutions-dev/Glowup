@@ -167,6 +167,19 @@ describe("Stat", () => {
     expect(out.match(/"color":"#123456"/g)).toHaveLength(2);
   });
 
+  it("colours the value with valueColor, a theme token or any colour", async () => {
+    const { colors } = await themeOf();
+    const value = async (props: object) => {
+      const { getByText } = await draw(
+        <Stat label="Overdue" value="14" {...props} />,
+      );
+      return StyleSheet.flatten(getByText("14").props.style).color;
+    };
+    expect(await value({})).toBe(colors.onSurface);
+    expect(await value({ valueColor: "error" })).toBe(colors.error);
+    expect(await value({ valueColor: "#1D5B9D" })).toBe("#1D5B9D");
+  });
+
   it("stacks label and value by default, and puts them on one line with row", async () => {
     const column = await json(
       <Stat label="Revenue" value="1.2M" delta="12%" />,

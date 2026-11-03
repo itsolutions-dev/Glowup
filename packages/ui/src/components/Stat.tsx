@@ -22,6 +22,11 @@ export interface StatProps {
    */
   trendColor?: ThemeColor;
   /**
+   * The colour of the number: a theme colour token (`"error"` for an overdue
+   * count, `"success"`, ...) or any colour string. Defaults to `onSurface`.
+   */
+  valueColor?: ThemeColor;
+  /**
    * `"column"` stacks the label over the value. `"row"` puts them on one line,
    * the value after the label, with the delta right behind the value. Defaults
    * to `"column"`.
@@ -50,6 +55,7 @@ const Stat = ({
   delta,
   trend,
   trendColor: trendColorProp,
+  valueColor,
   direction = "column",
   helpText,
   icon,
@@ -89,7 +95,9 @@ const Stat = ({
       <Text
         style={[
           theme.typography.headlineMedium,
-          { color: theme.colors.onSurface },
+          {
+            color: resolveColor(theme, valueColor) ?? theme.colors.onSurface,
+          },
         ]}
       >
         {value}

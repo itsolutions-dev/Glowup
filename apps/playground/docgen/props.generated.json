@@ -7106,8 +7106,9 @@
       "props": [
         {
           "name": "options",
-          "type": "Option[]",
+          "type": "(Option | string)[]",
           "required": true,
+          "description": "The choices: `{ label, value }` objects, or plain strings that are their own label and value.",
           "deprecated": false
         },
         {
@@ -7212,6 +7213,14 @@
           "type": "string",
           "required": false,
           "default": "\"Select an option\"",
+          "deprecated": false
+        },
+        {
+          "name": "reserveHelperText",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps the line under the field even with no error, so an error appearing\ndoes not push the next field down. Default false.",
           "deprecated": false
         },
         {
@@ -7879,6 +7888,13 @@
           "required": false,
           "description": "The colour of the arrow and `delta`: a theme colour token (a role such as\n`\"success\"` or `\"error\"`, or `\"onSurfaceVariant\"`, ...) or any colour string.\nLeft out, `\"up\"` is `success`, `\"down\"` is `error` and `\"flat\"` neutral. For a\nmetric where down is good, pass the colour yourself.",
           "deprecated": false
+        },
+        {
+          "name": "valueColor",
+          "type": "ThemeColor",
+          "required": false,
+          "description": "The colour of the number: a theme colour token (`\"error\"` for an overdue\ncount, `\"success\"`, ...) or any colour string. Defaults to `onSurface`.",
+          "deprecated": false
         }
       ]
     },
@@ -8086,13 +8102,16 @@
         },
         {
           "name": "type",
-          "type": "\"success\" | \"error\" | \"warning\"",
+          "type": "\"success\" | \"error\" | \"warning\" | \"info\" | \"neutral\"",
           "required": false,
           "default": "\"success\"",
+          "description": "The state, which picks the colours and the icon: `info` for something to look at, `neutral` for neither good nor bad. Defaults to `\"success\"`.",
           "values": [
             "success",
             "error",
-            "warning"
+            "warning",
+            "info",
+            "neutral"
           ],
           "deprecated": false
         }

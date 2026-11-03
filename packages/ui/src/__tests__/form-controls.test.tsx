@@ -54,6 +54,38 @@ describe("Select", () => {
     error.mockRestore();
   });
 
+  it("takes plain strings as options, each its own label and value", async () => {
+    const onChange = jest.fn();
+    const error = jest.spyOn(console, "error").mockImplementation(() => {});
+    const { getAllByLabelText, getByLabelText, getByText } = await draw({
+      onChange,
+      defaultOpen: true,
+      options: ["Rome", "Milan", { label: "Turin (TO)", value: "Turin" }],
+      value: "Milan",
+    });
+    // The field shows the selected string, and the open list has it too.
+    expect(getAllByLabelText("Milan")).toHaveLength(2);
+    expect(getByText("Turin (TO)")).toBeTruthy();
+    await fireEvent.press(getByLabelText("Rome"));
+    expect(onChange).toHaveBeenCalledWith("Rome");
+    expect(error.mock.calls.flat().join(" ")).not.toMatch(
+      /same key|unique "key"/,
+    );
+    error.mockRestore();
+  });
+
+  it("keeps the line under the field when reserveHelperText says so", async () => {
+    const rows = async (props: Props) =>
+      JSON.stringify((await draw(props)).toJSON()).replace(/_r_\w+_/g, "id");
+    expect((await rows({ reserveHelperText: true })).length).toBeGreaterThan(
+      (await rows({})).length,
+    );
+    // With an error the line is there anyway: the prop changes nothing.
+    expect(await rows({ error: "Pick one", reserveHelperText: true })).toBe(
+      await rows({ error: "Pick one" }),
+    );
+  });
+
   it("reports the picked value through onChange", async () => {
     const onChange = jest.fn();
     const { getByLabelText } = await draw({ onChange, defaultOpen: true });

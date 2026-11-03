@@ -22,7 +22,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators    | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 60%  | `██████░░░░` | VoiceOver pass, iOS pages by hand, 1.7–1.9     | –   | –        | partly  |
 | Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
-| Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                         | yes | partly   | partly  |
+| Phase 3: specialised props (3A/3B/3C)     | 60%  | `██████░░░░` | B3, B4, calendar markers                       | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | left out (3/11), see Phase 5 below             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
@@ -92,11 +92,11 @@ on 2/11), 1.4, 1.10, 1.11 and 1.13 partly; the native CI (in the phase's "what t
     `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes, and on iPhone in CI (`2de68fb`: the bar at
     the end of `/native-check`).
 
-### Phase 3: specialised props, 55%
+### Phase 3: specialised props, 60%
 
-Basis: the "Fatto" column of `crm-component-matrix.md` (filled in 28/10 from the props types) and the three
-rename batches. Of the matrix's 30 rows that propose something, 11 are done, 8 partly and 11 not (50%, a
-partial row counting half); the rename batches are at 2 of 3. Together: 55%.
+Basis: the "Fatto" column of `crm-component-matrix.md` (filled in 28/10 from the props types, updated 3/11) and
+the three rename batches. Of the matrix's 30 rows that propose something, 13 are done, 7 partly and 10 not (55%,
+a partial row counting half; 11, 8 and 11 before 3/11); the rename batches are at 2 of 3. Together: 60%.
 
 - **Done:**
   - 3A first pieces (16/10): `density` and `DensityProvider`, `ListItem` slots, `Input` `decimalSeparator`,
@@ -109,13 +109,15 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   - The decisions of 23/10 applied: `Typography` defaults to `body1`, `Select multiple` takes `value[]`,
     `ConfirmDialog` is merged into `AlertDialog`, a `ListItem` row is pressable as a whole.
   - `Input` / `InputArea` split (26/10).
+  - 3/11, each test first (changeset `select-strings-badge-stat-colours.md`): `Select` takes plain strings as
+    options and `reserveHelperText`; `StatusBadge` `type` `info` and `neutral`; `Stat` `valueColor` (the CRM's
+    name, like `trendColor`, rather than the matrix's `valueTone`).
 - **Left:**
   - B3: `ToggleButtonGroup` with typed values, and `Stepper` as dots or a bar.
   - B4: `DayTimeline`, day markers (now on `DatePicker variant="static"`), `Skeleton` presets.
   - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
-    `rowActions`, `sections`, `%` widths; `Select` string options, `reserveHelperSpace`, `renderOption`;
-    `Input` `type` phone/email; `StatusBadge` `info`/`neutral`; `Stat` `valueTone`; `Dialog` `overline`,
-    `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.
+    `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; `Dialog`
+    `overline`, `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.
 
 ### Phase 4: charts, 90%
 

@@ -322,6 +322,9 @@ private repository requires GitHub Enterprise Cloud.
 
 ## The pivot page
 
-`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report (`site/samplePivot.ts`:
-sites, four categories under each, a true/false column, a count), and a switch of the engine's locale. Nothing in it comes from a real report.
+`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report's query (`site/samplePivot.ts`:
+rows already counted, several per site and category (one per reason and priority), a true/false column, a reason that is sometimes `null`,
+a category that only has `true`), and a switch of the engine's locale. Nothing in it comes from a real report. `samplePivotRows(count)` gives
+any other page the same rows, or exactly `count` of them (more sites) for a large dataset, the same every time; keep the six sites and
+four categories, which `/native-check` and `scripts/android-interact.mjs` count (`pivot=31`).
 Jest runs as a phone, so the page test sees the grid's "not available" message; the web grid is tested in the package.

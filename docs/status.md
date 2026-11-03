@@ -11,7 +11,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 - "Done" means built, tested in jest and looked at on the web. Native proof is a separate column, because almost
   everything native has been seen only on CI simulators and emulators.
 - **Overall** weights each phase by its size in the plan (S = 1, M = 2, L = 3). Phase 9 is not counted (it is
-  future work by decision D12).
+  future work by decision D12), nor, since 3/11, Phase 5 (left out; with it the overall is ~70%).
 - **Nothing has ever run on a real phone.** iOS means the iPhone 17 Pro simulator in CI; Android means the API 34
   and 35 emulators in CI plus the local Pixel 8 emulator (API 35).
 
@@ -24,13 +24,13 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
 | Phase 3: specialised props (3A/3B/3C)     | 55%  | `█████▌░░░░` | B3, B4                                         | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
-| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | everything (B7)                                | –   | –        | –       |
+| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | left out (3/11), see Phase 5 below             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
-| Phase 7: pivot (`packages/pivot`)         | 85%  | `████████▌░` | use in the CRM, parity test                    | yes | yes      | yes     |
+| Phase 7: pivot (`packages/pivot`)         | 95%  | `█████████▌` | use in the CRM, parity test                    | yes | yes      | yes     |
 | Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)  | yes | –        | yes     |
 | Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2 | yes | –        | partly  |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`   | –   | –        | –       |
-| **Overall (phases 0–8, weighted)**        | ~70% | `███████░░░` |                                                |     |          |         |
+| **Overall (phases 0–8 but 5, weighted)**  | ~80% | `████████░░` |                                                |     |          |         |
 
 Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
@@ -136,8 +136,10 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   - Changeset and trusted publisher when the package leaves `private`.
   - `ScatterChart`, `AreaRange`, `TimelineChart` only if the CRM asks for them.
 
-### Phase 5: `composite-ui`, 5%
+### Phase 5: `composite-ui`, 5%, left out
 
+- **Left out for now (Alice, 3/11):** a colleague is building a drag-and-drop way to make complex components, and
+  the four pilot screens needed no composite. Not counted in the overall. The plan's list below stays as reference.
 - **Done:** only the playground's example pages (Sign in, Dashboard, Inbox, Settings), which the phase reuses.
 - **Left:** the whole subpath (B7): `AppShell`, `ListPage`, `FormDialog`/`FormPage`, `DetailPage`, `WizardPage`,
   `ReportPage` (charts and pivot as slots), `OptionPicker`, `ActivityTimeline`, `AgendaPage`.
@@ -157,7 +159,7 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
   - Changeset and trusted publisher when it leaves `private`.
   - **Not verified:** a real download on a device, the password on iPhone, pinch on iOS, saving on Android 10–14.
 
-### Phase 7: pivot, 85% of the decided scope
+### Phase 7: pivot, 95% of the decided scope
 
 - **Done:**
   - Piece 1 (23/10): the AuraPivot 2.6.0 core copied in, 180 tests.
@@ -171,9 +173,26 @@ partial row counting half); the rename batches are at 2 of 3. Together: 55%.
 - **Left (decided scope):**
   1. Open `pivot-sample.xlsx` in real Excel (Google Sheets reads it right, 28/10: sheet name, styles, numbers).
   2. Use `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport.
-  3. A parity test against a real CRM report, plus 50k rows on the web and 5k on native (the phase's exit
-     criteria).
-  4. The minors deferred by the 27/10 review.
+  3. A parity test against a real CRM report (needs a `WavePerformance` response and the CRM's export of it). ~~50k
+     rows on the web and 5k on native~~: done 3/11 on `samplePivotRows(count)` (the shape of the backend's
+     `usp_WaveImport_Report`), with a temporary page, deleted after. Found and fixed two engine costs
+     (`pivot-upstream.md` 9 and 10): a cell walked the longer of its two row lists (cost rows × groups), and
+     every sort comparison built an `Intl` collator, about 10 ms each on Hermes for Android. Results:
+
+     | Where                         | Rows   | Engine + model    | Open/close a group       | Grid painted |
+     | ----------------------------- | ------ | ----------------- | ------------------------ | ------------ |
+     | Chrome (Alice's laptop)       | 50,000 | 79 ms             | 53–57 ms                 | 129 ms       |
+     | Android emulator, debug build | 5,000  | 637 ms (was 12 s) | 115–168 ms (was 10–12 s) | 2.1 s        |
+     | Android emulator, debug build | 50,000 | 1.2–2.6 s         | 0.8–2.2 s                | 2.0 s        |
+
+     Reset's copy of the rows: 1–3 ms, so no change. Not measured: iPhone, a release build, a real phone.
+     `__tests__/no-web-apis.test.ts` now fails if `.localeCompare(` or `.toLocaleString(` comes back.
+
+  4. ~~The minors deferred by the 27/10 review~~: done 3/11, each test first (the download link kept 40 s,
+     one export per double tap, safe file and sheet names, the error in the toolbar row, announced and in the
+     dictionaries, tooltips, the buttons in the full-screen header, no fixture types in the build, the
+     Android script's late share sheet and ANR). Left on purpose: the full-screen height on phones, still a
+     guess (the package cannot read the insets). Seen by Alice on the web (3/11).
 - **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
   saved configurations.
 

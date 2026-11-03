@@ -10,6 +10,7 @@
 
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
+const collators = new Map<string, Intl.Collator>();
 
 const keyOf = (
   locale: string | undefined,
@@ -40,4 +41,22 @@ export const getDateTimeFormat = (
     dateTimeFormats.set(key, fmt);
   }
   return fmt;
+};
+
+/**
+ * The sorts' comparison (Glowup change, docs/pivot-upstream.md): `localeCompare` with a locale
+ * builds a collator on every call, and on Hermes for Android that costs about 10 ms, so sorting a few
+ * hundred groups took seconds. Same result: `localeCompare` is defined as this collator's `compare`.
+ */
+export const getCollator = (
+  locale?: string,
+  options?: Intl.CollatorOptions,
+): Intl.Collator => {
+  const key = keyOf(locale, options);
+  let collator = collators.get(key);
+  if (!collator) {
+    collator = new Intl.Collator(locale, options);
+    collators.set(key, collator);
+  }
+  return collator;
 };

@@ -12,6 +12,7 @@
  * filters on the same field produce an AND across the respective predicates.
  */
 
+import { getCollator } from "../format/intlCache";
 import type { DataRow } from "../types";
 
 /** Full runtime filter shape accepted by the engine (superset of SliceFilter). */
@@ -161,8 +162,9 @@ export const distinctValuesFor = (
   });
   return Array.from(seen.values()).sort((a, b) => {
     if (typeof a === "number" && typeof b === "number") return a - b;
-    return String(a).localeCompare(String(b), locale || undefined, {
-      numeric: true,
-    });
+    return getCollator(locale || undefined, { numeric: true }).compare(
+      String(a),
+      String(b),
+    );
   });
 };

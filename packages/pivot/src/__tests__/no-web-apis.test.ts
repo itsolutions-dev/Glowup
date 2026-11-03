@@ -21,3 +21,17 @@ describe("the copied engine uses no web API", () => {
     },
   );
 });
+
+describe("no call that builds an Intl object each time", () => {
+  // On Hermes for Android each one costs milliseconds (10 ms for a localeCompare with a locale), so a
+  // sort or a loop of them took seconds: use the cached formatters and collator of core/format/intlCache.
+  test.each([".localeCompare(", ".toLocaleString("])(
+    "no source of the package calls %s",
+    (call) => {
+      const hits = sources(path.join(__dirname, "..")).filter((file) =>
+        fs.readFileSync(file, "utf8").includes(call),
+      );
+      expect(hits).toEqual([]);
+    },
+  );
+});

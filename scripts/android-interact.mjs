@@ -535,11 +535,21 @@ steps.push([
       'the pivot\'s "Export to Excel" button',
     );
     // The chooser is the system's, not the app's: package `android` up to Android 13,
-    // `com.android.intentresolver` from 14; some versions show the file's name.
+    // `com.android.intentresolver` from 14; some versions show the file's name. An "app isn't
+    // responding" dialog is package `android` too, so it is told apart by its text.
+    const notResponding = /isn't responding|not responding|Close app/i;
     let sheet = null;
-    for (let i = 0; i < 8 && !sheet; i += 1) {
+    let seconds = 0;
+    // Up to 20 s: a sheet that came after the wait used to cover every later step.
+    while (seconds < 20 && !sheet) {
       await sleep(1000);
+      seconds += 1;
       const nodes = screen();
+      const anr = hasText(nodes, notResponding);
+      if (anr) {
+        photo("android-pivot-export.png");
+        throw new Error(`the app is not responding: ${describe(nodes)}`);
+      }
       sheet =
         nodes.find(
           (n) => n.pkg === "android" || n.pkg === "com.android.intentresolver",
@@ -554,6 +564,12 @@ steps.push([
     // Only with the sheet open: a Back on the screen itself would leave it.
     adb("shell", "input", "keyevent", "KEYCODE_BACK");
     await sleep(1000);
+    // Closed first, so the steps after this one start on the app's screen.
+    if (seconds > 8) {
+      throw new Error(
+        `the share sheet took ${seconds} s to open (8 s at most)`,
+      );
+    }
   },
 ]);
 

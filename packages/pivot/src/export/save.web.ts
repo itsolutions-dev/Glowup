@@ -18,7 +18,8 @@ export const saveXlsx = async (
   document.body.appendChild(link);
   link.click();
   link.remove();
-  // Revoked on the next turn: some browsers start the download only after the click returns.
-  setTimeout(() => URL.revokeObjectURL(url), 0);
+  // Revoked after a while, not on the next turn: some Firefox and Safari versions read the file only after
+  // the click has returned, and cancel the download if its URL is gone (FileSaver.js waits 40 s too).
+  setTimeout(() => URL.revokeObjectURL(url), 40_000);
   return "downloaded";
 };

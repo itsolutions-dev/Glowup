@@ -8,11 +8,26 @@ import { utf8, zipStored } from "./zip";
 export const XLSX_MIME =
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-/** A file name for the export: `pivot.xlsx` when empty, no character a file system refuses, `.xlsx` at the end. */
+// Names Windows keeps for devices, with or without an extension.
+const RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
+/**
+ * A file name for the export: `pivot.xlsx` when empty, no character a file system refuses (nor a control
+ * character, nor a dot or space at the end), no name Windows keeps for itself, `.xlsx` at the end.
+ */
 export const xlsxName = (name?: string): string => {
-  const clean = (name ?? "").trim().replace(/[\\/:*?"<>|]/g, "_");
-  if (!clean) return "pivot.xlsx";
-  return /\.xlsx$/i.test(clean) ? clean : `${clean}.xlsx`;
+  const clean = (name ?? "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/[\\/:*?"<>|]/g, "_")
+    .trim();
+  const extension = /\.xlsx$/i.exec(clean)?.[0] ?? ".xlsx";
+  const base = clean
+    .slice(0, clean.length - (/\.xlsx$/i.test(clean) ? 5 : 0))
+    .replace(/[. ]+$/, "");
+  if (!base) return "pivot.xlsx";
+  const [first, ...rest] = base.split(".");
+  const safe = RESERVED.test(first) ? [`${first}_`, ...rest].join(".") : base;
+  return `${safe}${extension}`;
 };
 
 // XML 1.0 refuses the control characters other than tab, line feed and carriage return.
@@ -26,10 +41,16 @@ const escape = (text: string) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-const sheetNameOf = (name?: string) =>
-  strip(name ?? "")
+// Excel's rules: 31 characters, none of []:*?/\, no apostrophe at either end, and never "History" (its own).
+const sheetNameOf = (name?: string) => {
+  let clean = strip(name ?? "")
     .replace(/[[\]:*?/\\]/g, "")
-    .slice(0, 31) || "Pivot";
+    .slice(0, 31);
+  // The cut must not leave half of a character written with two code units (an emoji).
+  if (/[\uD800-\uDBFF]$/.test(clean)) clean = clean.slice(0, -1);
+  clean = clean.replace(/^'+|'+$/g, "");
+  return clean && clean.toLowerCase() !== "history" ? clean : "Pivot";
+};
 
 const columnLetter = (index: number) => {
   let letters = "";

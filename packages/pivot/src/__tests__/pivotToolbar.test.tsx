@@ -1,5 +1,12 @@
 import React from "react";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 import { ThemeProvider } from "@its/glowup-ui";
 import { PivotEngine, localizationIt } from "../index";
 import { PivotExportError } from "../export/errors";
@@ -117,16 +124,112 @@ describe("PivotGrid toolbar", () => {
     expect(save.mock.calls[1][1]).toBe("Report 10_27.xlsx");
   });
 
-  test("an export that fails says why under the toolbar", async () => {
-    save.mockRejectedValueOnce(
-      new PivotExportError("native-missing", "expo-sharing is not installed"),
+  test("an export that fails says why in the toolbar, in the grid's language", async () => {
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      save.mockRejectedValueOnce(
+        new PivotExportError("native-missing", "expo-sharing is not installed"),
+      );
+      await show({ toolbar: true });
+      await fireEvent.press(await screen.findByLabelText("Export to Excel"));
+      const error = await screen.findByTestId("pivot-export-error");
+      expect(error.props.children).toBe(
+        "Export to Excel is not available in this app.",
+      );
+      // The developer still gets the cause.
+      expect(warn).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "expo-sharing is not installed" }),
+      );
+      await fireEvent.press(screen.getByLabelText("Export to Excel"));
+      expect(screen.queryByTestId("pivot-export-error")).toBeNull();
+
+      save.mockRejectedValueOnce(
+        new PivotExportError("unsupported", "Sharing is not available here."),
+      );
+      save.mockRejectedValueOnce(new Error("disk full"));
+      await show({ toolbar: true, localization: localizationIt });
+      const exportIt = await screen.findByLabelText("Esporta in Excel");
+      await fireEvent.press(exportIt);
+      expect(
+        (await screen.findByTestId("pivot-export-error")).props.children,
+      ).toBe("Questo dispositivo non può condividere file.");
+      await fireEvent.press(exportIt);
+      expect(
+        (await screen.findByTestId("pivot-export-error")).props.children,
+      ).toBe("L'esportazione non è riuscita. Riprova.");
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test("the error keeps the grid inside its height and is read out", async () => {
+    const announce = jest
+      .spyOn(AccessibilityInfo, "announceForAccessibility")
+      .mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      save.mockRejectedValueOnce(new Error("disk full"));
+      await show({ toolbar: true, height: 400 });
+      await fireEvent.press(await screen.findByLabelText("Export to Excel"));
+      const error = await screen.findByTestId("pivot-export-error");
+      expect(error.props.role).toBe("alert");
+      expect(error.props.accessibilityLiveRegion).toBe("polite");
+      expect(error.props.numberOfLines).toBe(2);
+      // Jest runs as iOS, which has no live regions: the message is announced.
+      expect(announce).toHaveBeenCalledWith(
+        "The export did not work. Try again.",
+      );
+      // The message sits in the toolbar's row, so the grid keeps the room it had.
+      expect(
+        StyleSheet.flatten(screen.getByTestId("pivot-grid").props.style).height,
+      ).toBe(400 - 48);
+    } finally {
+      announce.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  test("two taps in a row make one file", async () => {
+    let finish = () => {};
+    save.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve("shared");
+        }),
     );
     await show({ toolbar: true });
-    await fireEvent.press(await screen.findByLabelText("Export to Excel"));
-    expect(
-      (await screen.findByTestId("pivot-export-error")).props.children,
-    ).toBe("expo-sharing is not installed");
-    await fireEvent.press(screen.getByLabelText("Export to Excel"));
-    expect(screen.queryByTestId("pivot-export-error")).toBeNull();
+    const button = await screen.findByLabelText("Export to Excel");
+    await act(async () => {
+      fireEvent.press(button);
+      fireEvent.press(button);
+    });
+    expect(save).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+    await fireEvent.press(button);
+    expect(save).toHaveBeenCalledTimes(2);
+  });
+
+  test("each button shows its name as a tooltip", async () => {
+    await show({ toolbar: true });
+    for (const label of ["Export to Excel", "Fullscreen", "Reset"]) {
+      await fireEvent(await screen.findByLabelText(label), "longPress");
+      expect(await screen.findByText(label)).toBeTruthy();
+    }
+  });
+
+  test("in full screen the buttons sit in the dialog's header", async () => {
+    await show({ toolbar: true });
+    await fireEvent.press(await screen.findByLabelText("Fullscreen"));
+    const dialog = await screen.findByTestId("pivot-fullscreen");
+    // The header is above the dialog's scrolling body, which holds the grid.
+    const inBody = (node: { parent: unknown } | null) => {
+      for (let n = node?.parent as typeof node; n; n = n.parent as typeof n)
+        if ((n as { type?: unknown }).type === "RCTScrollView") return true;
+      return false;
+    };
+    expect(inBody(within(dialog).getByLabelText("Exit Fullscreen"))).toBe(
+      false,
+    );
+    expect(inBody(within(dialog).getByTestId("pivot-grid"))).toBe(true);
   });
 });

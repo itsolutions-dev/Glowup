@@ -10,6 +10,17 @@ describe("xlsxName", () => {
     expect(xlsxName('a\\b:c*d?e"f<g>h|i')).toBe("a_b_c_d_e_f_g_h_i.xlsx");
     expect(xlsxName("a.XLSX")).toBe("a.XLSX");
   });
+
+  test("no control characters, no dot or space at the end, no name Windows keeps for itself", () => {
+    expect(xlsxName("Re\u0000po\u001Frt\u007F")).toBe("Report.xlsx");
+    expect(xlsxName("Report. . ")).toBe("Report.xlsx");
+    expect(xlsxName("Report..xlsx")).toBe("Report.xlsx");
+    expect(xlsxName("...")).toBe("pivot.xlsx");
+    expect(xlsxName("con")).toBe("con_.xlsx");
+    expect(xlsxName("LPT1.xlsx")).toBe("LPT1_.xlsx");
+    expect(xlsxName("nul.report")).toBe("nul_.report.xlsx");
+    expect(xlsxName("console")).toBe("console.xlsx");
+  });
 });
 
 describe("saveXlsx on iOS and Android", () => {
@@ -126,6 +137,8 @@ describe("saveXlsx on the web", () => {
       expect(link.click).toHaveBeenCalledTimes(1);
       expect(blob!.type).toBe(XLSX_MIME);
       expect(blob!.size).toBe(bytes.length);
+      // Kept for a while: some Firefox and Safari versions read the file after the click has returned.
+      jest.advanceTimersByTime(30_000);
       expect(URL.revokeObjectURL).not.toHaveBeenCalled();
       jest.runAllTimers();
       expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:pivot");

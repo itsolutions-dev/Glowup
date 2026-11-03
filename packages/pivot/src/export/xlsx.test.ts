@@ -159,6 +159,20 @@ describe("gridToXlsx", () => {
     expect(cleaned).toMatch(/^abcdefgx+$/);
   });
 
+  test("the sheet name keeps whole characters, no apostrophe at the ends, not History", () => {
+    const name = (sheetName?: string) =>
+      zipText(gridToXlsx(MODEL, { sheetName }), "xl/workbook.xml").match(
+        /<sheet name="([^"]*)"/,
+      )![1];
+    // 30 letters and an emoji: the cut at 31 would split its two halves.
+    expect(name("x".repeat(30) + "📊")).toBe("x".repeat(30));
+    expect(name("'Sales'")).toBe("Sales");
+    expect(name("''")).toBe("Pivot");
+    expect(name("x".repeat(30) + "'y")).toBe("x".repeat(30));
+    expect(name("history")).toBe("Pivot");
+    expect(name("History 2026")).toBe("History 2026");
+  });
+
   test("a closed group's rows are not in the file", () => {
     const engine = new PivotEngine();
     engine.setLocale("en-US");

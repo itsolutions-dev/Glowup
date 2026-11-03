@@ -15,6 +15,7 @@ import {
 import { flattenTreeCompact, sortTreeSiblings } from "../slice/TreeBuilder";
 import { compileFormulaExpression } from "./FormulaEvaluator";
 import type { FormulaEvalOptions } from "./FormulaEvaluator";
+import { getCollator } from "../format/intlCache";
 import type { DataRow, TreeNode, MatrixCell, MetadataRow } from "../types";
 import type { RichSliceField } from "../slice/TreeBuilder";
 
@@ -171,10 +172,9 @@ const compareNodes = (
   if (va !== null) return -1 * dir;
   if (vb !== null) return 1 * dir;
   return (
-    String(a.caption || "").localeCompare(
+    getCollator(locale || undefined, { numeric: true }).compare(
+      String(a.caption || ""),
       String(b.caption || ""),
-      locale || undefined,
-      { numeric: true },
     ) * dir
   );
 };
@@ -195,12 +195,27 @@ const sumField = (
   return total;
 };
 
+// One Set per index list, made the first time the list is intersected: every cell of a column meets the
+// same column list, so the Set is built once and each cell walks only its smaller list (Glowup change:
+// the original built a Set of the smaller list and walked the larger one for every cell, which made the
+// matrix cost rows × groups; see docs/pivot-upstream.md).
+const indexSets = new WeakMap<number[], Set<number>>();
+const setOf = (indexes: number[]): Set<number> => {
+  let set = indexSets.get(indexes);
+  if (!set) {
+    set = new Set(indexes);
+    indexSets.set(indexes, set);
+  }
+  return set;
+};
+
+/** The indexes in both lists, in the order of the smaller one (both are ascending, so ascending). */
 const intersectIndexes = (a: number[], b: number[]): number[] => {
   if (a.length === 0 || b.length === 0) return [];
   const [small, large] = a.length < b.length ? [a, b] : [b, a];
-  const set = new Set(small);
+  const set = setOf(large);
   const out: number[] = [];
-  for (const idx of large) {
+  for (const idx of small) {
     if (set.has(idx)) out.push(idx);
   }
   return out;

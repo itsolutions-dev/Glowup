@@ -56,6 +56,20 @@ Tutto il resto è identico all'originale, salvo lo stile (Prettier: doppi apici,
    `LocalizationDictionary`: tsc non emette i `.json`, e riesportarli da `index.ts` rompeva le dichiarazioni (`attw`).
 7. **Tre file nostri:** `src/index.ts` (l'API pubblica del pacchetto), `src/__tests__/` (`exports`, `no-web-apis`) e
    `core/format/locale.test.ts`.
+8. **Tre messaggi d'errore dell'esportazione nei dizionari** (3/11): `toolbar.exportUnavailable`, `toolbar.exportNoSharing` e
+   `toolbar.exportFailed` in `en.json` e `it.json`, letti dalla barra del `PivotGrid` (`grid/PivotFrame.tsx`) quando un'esportazione
+   non riesce. L'originale non li ha (la sua esportazione è solo web, con `exceljs`). Test: `__tests__/pivotToolbar.test.tsx`.
+9. **L'intersezione delle righe di una cella** (3/11, `matrix/MatrixComputer.ts`, `intersectIndexes`): l'originale faceva un `Set`
+   della lista più corta e scorreva la più lunga a ogni cella, cioè quasi tutto il dataset per ogni cella (la colonna «true» ha due
+   terzi delle righe): il costo era righe × gruppi. Ora il `Set` della lista più lunga si fa una volta (`WeakMap` per lista) e si
+   scorre la più corta; le liste sono crescenti, quindi il risultato e il suo ordine sono gli stessi. Node, 50.000 righe e 107 sedi:
+   da circa 5 s a 1,4 s.
+10. **I confronti degli ordinamenti con un `Intl.Collator` riusato** (3/11, `format/intlCache.ts` `getCollator`, usato da
+    `slice/TreeBuilder.ts`, `slice/FilterEngine.ts` e `matrix/MatrixComputer.ts` al posto di `localeCompare(b, locale, { numeric: true })`):
+    su Hermes per Android ogni `localeCompare` con un locale crea un collator, circa 10 ms a chiamata (misurato sull'emulatore: 10.000
+    chiamate 103 s), quindi ordinare qualche centinaio di gruppi richiedeva secondi. Stesso risultato: `localeCompare` è definito come
+    il `compare` di quel collator. Emulatore, 5.000 righe e 107 sedi: da 12 s a 0,6 s; aprire o chiudere un gruppo da 12 s a 0,1 s.
+    Resta da evitare nel core qualunque `localeCompare` o `toLocaleString` con un locale (6 ms a chiamata il secondo).
 
 Una prova (`src/__tests__/no-web-apis.test.ts`) fallisce se `exceljs`, `document.` o `navigator` rientrano nel core.
 

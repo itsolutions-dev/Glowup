@@ -117,6 +117,9 @@
     "export": "Export",
     "exportExcel": "Export to Excel",
     "exportSuccess": "Export complete",
+    "exportUnavailable": "Export to Excel is not available in this app.",
+    "exportNoSharing": "This device cannot share files.",
+    "exportFailed": "The export did not work. Try again.",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen"
   },

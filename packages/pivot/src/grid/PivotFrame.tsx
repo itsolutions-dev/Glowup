@@ -3,10 +3,18 @@
 // tap, so the file holds what is on screen (the groups the person left open). Fullscreen shows the same
 // engine in the library's full-screen dialog; Reset puts back the layout the engine had when the grid
 // first appeared (groups and sorting), not its data.
-import React, { useState } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { Dialog, IconButton, useTheme } from "@its/glowup-ui";
 import type PivotEngine from "../core/PivotEngine";
+import { PivotExportError } from "../export/errors";
 import { saveXlsx } from "../export/save";
 import usePivotMatrix from "../hooks/usePivotMatrix";
 import { gridToXlsx, xlsxName } from "../export/xlsx";
@@ -16,9 +24,22 @@ import { buildGridModel } from "./model";
 import type { PivotGridProps } from "./props";
 
 const TOOLBAR_HEIGHT = 48;
-// ponytail: the full-screen dialog's header (56 px) plus room for the system bars, guessed; the grid
-// scrolls inside the dialog if the guess is short. Read the safe-area insets if it shows.
-const DIALOG_CHROME = 120;
+// The full-screen dialog's header (56 px, which holds the buttons) and the bottom padding of its body.
+const DIALOG_HEADER = 56;
+// ponytail: the status and navigation bars on a phone, guessed (the package cannot read the safe-area
+// insets without depending on react-native-safe-area-context); the grid scrolls inside the dialog if the
+// guess is short. The web has no bars.
+const SYSTEM_BARS = Platform.OS === "web" ? 0 : 100;
+
+// What a person reads when an export fails; the cause itself goes to the developer's console.
+const EXPORT_ERRORS = {
+  "native-missing": [
+    "exportUnavailable",
+    "Export to Excel is not available in this app.",
+  ],
+  unsupported: ["exportNoSharing", "This device cannot share files."],
+  other: ["exportFailed", "The export did not work. Try again."],
+} as const;
 
 const caption = (
   localization: LocalizationDictionary | undefined,
@@ -30,6 +51,57 @@ const caption = (
     localization?.[section] as Record<string, unknown> | undefined
   )?.[key];
   return typeof value === "string" && value ? value : fallback;
+};
+
+// The three buttons; each one's name is also its tooltip (hover on the web, a long press on a phone).
+const Buttons = ({
+  inDialog,
+  localization,
+  busy,
+  onExport,
+  onFullscreen,
+  onReset,
+}: {
+  inDialog: boolean;
+  localization: LocalizationDictionary | undefined;
+  busy: boolean;
+  onExport: () => void;
+  onFullscreen: () => void;
+  onReset: () => void;
+}) => {
+  const exportLabel = caption(
+    localization,
+    "toolbar",
+    "exportExcel",
+    "Export to Excel",
+  );
+  const fullscreenLabel = inDialog
+    ? caption(localization, "toolbar", "exitFullscreen", "Exit Fullscreen")
+    : caption(localization, "toolbar", "fullscreen", "Fullscreen");
+  const resetLabel = caption(localization, "buttons", "reset", "Reset");
+  return (
+    <View style={styles.buttons}>
+      <IconButton
+        icon="microsoft-excel"
+        accessibilityLabel={exportLabel}
+        title={exportLabel}
+        onClick={onExport}
+        loading={busy}
+      />
+      <IconButton
+        icon={inDialog ? "fullscreen-exit" : "fullscreen"}
+        accessibilityLabel={fullscreenLabel}
+        title={fullscreenLabel}
+        onClick={onFullscreen}
+      />
+      <IconButton
+        icon="restore"
+        accessibilityLabel={resetLabel}
+        title={resetLabel}
+        onClick={onReset}
+      />
+    </View>
+  );
 };
 
 type PivotFrameProps = Omit<PivotGridProps, "toolbar"> & {
@@ -63,7 +135,11 @@ const PivotFrame = ({
     });
   }
 
+  // Two taps in the same frame both see `busy` still false: the ref stops the second one.
+  const exporting = useRef(false);
   const exportXlsx = async () => {
+    if (exporting.current) return;
+    exporting.current = true;
     setError(null);
     setBusy(true);
     try {
@@ -77,8 +153,16 @@ const PivotFrame = ({
       });
       await saveXlsx(gridToXlsx(model), xlsxName(fileName));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (__DEV__) console.warn(e);
+      const [key, fallback] =
+        EXPORT_ERRORS[e instanceof PivotExportError ? e.code : "other"];
+      const message = caption(localization, "toolbar", key, fallback);
+      setError(message);
+      // iOS has no live regions: say it.
+      if (Platform.OS === "ios")
+        AccessibilityInfo.announceForAccessibility(message);
     } finally {
+      exporting.current = false;
       setBusy(false);
     }
   };
@@ -88,76 +172,64 @@ const PivotFrame = ({
     if (initial?.engine === engine) engine.setReport(initial.report);
   };
 
-  const frame = (inDialog: boolean, total: number) => (
-    <View>
-      <View style={styles.bar}>
-        <IconButton
-          icon="microsoft-excel"
-          accessibilityLabel={caption(
-            localization,
-            "toolbar",
-            "exportExcel",
-            "Export to Excel",
-          )}
-          onClick={exportXlsx}
-          loading={busy}
-        />
-        <IconButton
-          icon={inDialog ? "fullscreen-exit" : "fullscreen"}
-          accessibilityLabel={
-            inDialog
-              ? caption(
-                  localization,
-                  "toolbar",
-                  "exitFullscreen",
-                  "Exit Fullscreen",
-                )
-              : caption(localization, "toolbar", "fullscreen", "Fullscreen")
-          }
-          onClick={() => setOpen(!inDialog)}
-        />
-        <IconButton
-          icon="restore"
-          accessibilityLabel={caption(
-            localization,
-            "buttons",
-            "reset",
-            "Reset",
-          )}
-          onClick={reset}
-        />
-      </View>
-      {error ? (
-        <Text
-          testID="pivot-export-error"
-          style={[
-            theme.typography.bodyMedium,
-            styles.error,
-            { color: theme.colors.error },
-          ]}
-        >
-          {error}
-        </Text>
-      ) : null}
-      <Grid
-        engine={engine}
-        localization={localization}
-        height={total - TOOLBAR_HEIGHT}
-      />
-    </View>
+  const buttons = (inDialog: boolean) => (
+    <Buttons
+      inDialog={inDialog}
+      localization={localization}
+      busy={busy}
+      onExport={exportXlsx}
+      onFullscreen={() => setOpen(!inDialog)}
+      onReset={reset}
+    />
   );
+
+  // The message takes the room beside the buttons, two lines at most, so the grid keeps its height.
+  const errorText = error ? (
+    <Text
+      testID="pivot-export-error"
+      role="alert"
+      accessibilityLiveRegion="polite"
+      numberOfLines={2}
+      style={[
+        theme.typography.bodySmall,
+        styles.error,
+        { color: theme.colors.error },
+      ]}
+    >
+      {error}
+    </Text>
+  ) : null;
 
   return (
     <>
-      {frame(false, height)}
+      <View>
+        <View style={styles.bar}>
+          {errorText}
+          {buttons(false)}
+        </View>
+        <Grid
+          engine={engine}
+          localization={localization}
+          height={height - TOOLBAR_HEIGHT}
+        />
+      </View>
       <Dialog
         fullScreen
         visible={open}
         onClose={() => setOpen(false)}
         closeIcon={false}
+        actions={buttons(true)}
         testID="pivot-fullscreen"
       >
-        {frame(true, Math.max(320, window.height - DIALOG_CHROME))}
+        {errorText}
+        <Grid
+          engine={engine}
+          localization={localization}
+          height={Math.max(
+            320,
+            window.height - DIALOG_HEADER - theme.spacing.l - SYSTEM_BARS,
+          )}
+        />
       </Dialog>
     </>
   );
@@ -171,7 +243,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     gap: 4,
   },
-  error: { paddingHorizontal: 8, paddingBottom: 8 },
+  buttons: { flexDirection: "row", alignItems: "center", gap: 4 },
+  error: { flex: 1, paddingHorizontal: 8 },
 });
 
 export default PivotFrame;

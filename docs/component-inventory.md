@@ -11,7 +11,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 31 | 403 |
+| Aggiunti | 31 | 404 |
 | Aggiornati | 58 | 758 |
 | Tenuti (invariati) | 30 | 167 |
 
@@ -746,9 +746,10 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | onChange * | `(date: Date) => void` |  |  | Called with the pressed day, or with the same weekday a week later or earlier after a swipe. |
 | value * | `Date` |  |  | The chosen day. The strip shows the week it falls in. |
+| arrows | `boolean` | Platform.OS === "web" |  | An arrow on each side that moves a week, for a mouse, which cannot swipe. Defaults to `true` on the web and `false` on iOS and Android. |
 | firstDayOfWeek | `number` |  |  | The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's. |
 | gradient | `boolean` | false |  | Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`. |
-| labels | `{ nextWeek?: string; previousWeek?: string }` |  |  | The names of the screen-reader actions that move a week. Default English. |
+| labels | `{ nextWeek?: string; previousWeek?: string }` |  |  | The names of the arrows and of the screen-reader actions that move a week. Default English. |
 | locale | `string` |  |  | The locale of the weekday names and of the first day of the week. Defaults to the device's. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |

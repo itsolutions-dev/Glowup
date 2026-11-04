@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import {
   PanResponder,
+  Platform,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
 } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { gradientStyle } from "../providers/gradient";
+import IconButton from "./IconButton";
 import {
   addDays,
   getDeviceLocale,
@@ -35,7 +37,12 @@ export interface WeekStripProps {
   firstDayOfWeek?: number;
   /** Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`. */
   gradient?: boolean;
-  /** The names of the screen-reader actions that move a week. Default English. */
+  /**
+   * An arrow on each side that moves a week, for a mouse, which cannot swipe.
+   * Defaults to `true` on the web and `false` on iOS and Android.
+   */
+  arrows?: boolean;
+  /** The names of the arrows and of the screen-reader actions that move a week. Default English. */
   labels?: { nextWeek?: string; previousWeek?: string };
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -48,7 +55,8 @@ const SWIPE = 40;
 
 /**
  * A week as a row of days, one of them chosen, as in a phone agenda: press a day to pick it, swipe
- * the row to move a week. Screen readers move a week through the days' actions.
+ * the row (or press an arrow, on the web) to move a week. Screen readers move a week through the
+ * days' actions.
  */
 const WeekStrip = ({
   value,
@@ -57,6 +65,7 @@ const WeekStrip = ({
   locale: localeProp,
   firstDayOfWeek: firstDayProp,
   gradient = false,
+  arrows = Platform.OS === "web",
   labels,
   style,
   testID,
@@ -101,8 +110,12 @@ const WeekStrip = ({
   const previousWeek = labels?.previousWeek ?? "Previous week";
   const move = (weeks: number) => onChange(addDays(chosen, weeks * 7));
 
-  return (
-    <View style={[styles.row, style]} testID={testID} {...swipe.panHandlers}>
+  const strip = (
+    <View
+      style={[styles.row, arrows ? styles.grow : style]}
+      testID={arrows ? undefined : testID}
+      {...swipe.panHandlers}
+    >
       {days.map((day) => {
         const selected = isSameDay(day, chosen);
         return (
@@ -160,6 +173,25 @@ const WeekStrip = ({
       })}
     </View>
   );
+
+  if (!arrows) return strip;
+  return (
+    <View style={[styles.withArrows, style]} testID={testID}>
+      <IconButton
+        icon="chevron-left"
+        accessibilityLabel={previousWeek}
+        title={previousWeek}
+        onClick={() => move(-1)}
+      />
+      {strip}
+      <IconButton
+        icon="chevron-right"
+        accessibilityLabel={nextWeek}
+        title={nextWeek}
+        onClick={() => move(1)}
+      />
+    </View>
+  );
 };
 
 export default WeekStrip;
@@ -167,6 +199,12 @@ export default WeekStrip;
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     row: { flexDirection: "row", gap: theme.spacing.xs },
+    grow: { flex: 1 },
+    withArrows: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
     day: {
       flex: 1,
       alignItems: "center",

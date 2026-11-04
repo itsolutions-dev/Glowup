@@ -7978,6 +7978,14 @@
           "deprecated": false
         },
         {
+          "name": "arrows",
+          "type": "boolean",
+          "required": false,
+          "default": "Platform.OS === \"web\"",
+          "description": "An arrow on each side that moves a week, for a mouse, which cannot swipe.\nDefaults to `true` on the web and `false` on iOS and Android.",
+          "deprecated": false
+        },
+        {
           "name": "firstDayOfWeek",
           "type": "number",
           "required": false,
@@ -7996,7 +8004,7 @@
           "name": "labels",
           "type": "{ nextWeek?: string; previousWeek?: string }",
           "required": false,
-          "description": "The names of the screen-reader actions that move a week. Default English.",
+          "description": "The names of the arrows and of the screen-reader actions that move a week. Default English.",
           "deprecated": false
         },
         {

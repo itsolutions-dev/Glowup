@@ -478,8 +478,10 @@ npm's 0.12.0 (`master`'s), or the next minor bump collides with it.
         copies). `ui`, `notifications` and `device` still have none: tell their owners.
   - [ ] The `@its/glowup-ui` peer range (now `>=0.11`): set it to the `ui` version they are built against, once the
         branch question is settled.
-  - [ ] READMEs as npm pages: drop "Not published yet", add install (with the optional peers) and a usage example
-        (`pdf` and `pivot` have none); links into `docs/` do not work on npmjs.com.
+  - [x] READMEs as npm pages (4/11): install with the optional peers, a usage example (the `pdf` and `pivot` ones
+        type-checked against the source, the pivot one also run through the engine), the props, where it works and what was
+        checked, limits, license; no links into `docs/`. **At the first publish:** delete the line "Not on npm yet" at the
+        top of each.
   - [ ] `private: false`, a first changeset for each, `release.yml`'s comment, and `examples/consumer` plus
         `consumer-smoke.yml` installing the three.
 

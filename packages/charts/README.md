@@ -1,25 +1,39 @@
 # @its/glowup-charts
 
-Charts for Expo apps, built on `@its/glowup-ui` and `react-native-svg`, with **no third-party dependency**: scales and shapes are
-d3 source copied into the package (`docs/charts-upstream.md`). Not published yet (`"private": true`).
+Charts for Expo apps on iOS, Android and the web, built on [`@its/glowup-ui`](https://www.npmjs.com/package/@its/glowup-ui) and
+`react-native-svg`: bars, lines, areas, donuts, pies, stacked bars and sparklines, with a legend, a data table for screen readers
+and a dense mode for thousands of points. There is **no third-party chart library**: the scales and shapes are d3 source (ISC)
+copied into the package.
 
-Plan and decisions: `docs/charts-package-plan.md`. A live demo is the `/charts` page of the playground.
+> Version 0.x: the API may still change between minor versions. Not on npm yet.
 
-## State
+## Install
 
-- **`BarChart`: grouped or stacked bars, several columns per category (stacked or overlapping), vertical or horizontal, a target line or a target per category, an outcome mark per category, dimmed categories, a tooltip on tap or hover, `onSelect`, loading and empty states.** Checked
-  in unit tests and in Chrome; not yet on a phone or in the CI's native check.
-- **`LineChart` and `AreaChart`: one or more lines over categories in order, straight or smooth, a gap where a value is missing, a dot per
-  point, a guide and a tooltip on tap or hover, a target line.** Same checks as the bars.
-- **`DonutChart`, `PieChart`, `StackedBar` and `Sparkline`**: parts of a whole, and a trend with no axes. A gauge is a `DonutChart` with a
-  `total`. Same checks as the bars.
-- **`ChartLegend`, the `legend` prop and `Chart`**: a key under the chart whose items switch a series (or a part) off, and one entry
-  point that picks the component by `type`.
-- **Dense mode** for thousands of points: from 400 bars (200 points for lines) a chart draws one path per series and one touch layer instead of
-  a node per bar; `dense` forces it on or off. Measured on the web, see the plan (step 7). Past about one point (or one bar) per two pixels
-  the points that share a column are folded into their mean, drawn over a faint strip from their lowest to their highest (grouped bars: a
-  faint peak); the tooltip still reads the exact point.
-- Still to do: the check on the iOS and Android simulators (step 8 of the plan).
+```bash
+npx expo install @its/glowup-charts @its/glowup-ui react-native-svg
+```
+
+Pure JavaScript on top of `react-native-svg`: it runs in Expo Go, a development build or a release build. Requires React Native
+0.86 and React 19. The colours come from the theme of `@its/glowup-ui` (`theme.charts`), in light and dark.
+
+## What is in it
+
+- **`BarChart`**: grouped or stacked bars, several columns per category (stacked or overlapping), vertical or horizontal, a target
+  line or a target per category, an outcome mark per category, dimmed categories, a tooltip on tap or hover, `onSelect`, loading
+  and empty states.
+- **`LineChart` and `AreaChart`**: one or more lines over categories in order, straight or smooth, a gap where a value is missing,
+  a dot per point, a guide and a tooltip on tap or hover, a target line.
+- **`DonutChart`, `PieChart`, `StackedBar` and `Sparkline`**: parts of a whole, and a trend with no axes. A gauge is a
+  `DonutChart` with a `total`.
+- **`ChartLegend`, the `legend` prop and `Chart`**: a key under the chart whose items switch a series (or a part) off, and one
+  entry point that picks the component by `type`.
+- **Dense mode** for thousands of points: from 400 bars (200 points for lines) a chart draws one path per series and one touch
+  layer instead of a node per bar; `dense` forces it on or off. 10,000 bars draw in about 75 ms in Chrome. Past about one point
+  (or one bar) per two pixels, the points that share a column are folded into their mean, drawn over a faint strip from their
+  lowest to their highest; the tooltip still reads the exact point.
+
+Checked in unit tests, in Chrome, and on the iOS simulator and the Android 14 and 15 emulators in CI (sizes, a tap on a bar and on
+a donut slice, outcome marks over the right bars). **Not yet tried on a real phone.**
 
 ## Use
 
@@ -41,28 +55,24 @@ import { BarChart } from "@its/glowup-charts";
 />;
 ```
 
-| Prop                      | Meaning                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `data`                    | One object per category: `label` and a number per series key (a missing value draws no bar).                                                                                                                                                                                                                                                                                       |
-| `series`                  | `{ key, label?, color?, column? }` per series. Series with the same `column` share one bar of the category; a series without one is a bar of its own.                                                                                                                                                                                                                              |
-| `height`                  | Height in pixels, default 240. The width is the box the chart sits in.                                                                                                                                                                                                                                                                                                             |
-| `stacked`                 | Pile every series up in one bar per category (wins over `column`).                                                                                                                                                                                                                                                                                                                 |
-| `columnMode`              | `"stack"` (default) or `"overlap"`, for every column or per column id (`{ in: "overlap" }`): an overlapping column starts each series from zero, the longest behind.                                                                                                                                                                                                               |
-| `horizontal`              | One row per category, bars running left to right; long labels are cut with an ellipsis.                                                                                                                                                                                                                                                                                            |
-| `dense`                   | One path per series and one touch layer instead of a node per bar. Default: on from 400 bars. A band behind the active category replaces the dimming of the other bars. With more bars than about one per two pixels, they are folded into columns (mean, with a faint peak up to the highest; a stacked column: mean only). Ignores `marker`, `dimmed` and a target per category. |
-| `target`                  | A number: a dashed reference line across the chart, labelled with its value. A function `(datum, index) => number`, or null for none: a short dashed line across each category, also in the tooltip, the table and the screen reader text.                                                                                                                                         |
-| `marker`                  | `(datum, { index, totals, target }) => { icon, color, label }`, or null for none: an icon past the longest bar of the category. `totals` has one entry per column (sum when stacked, highest when overlapping). `label` is read in the tooltip, the table and the screen reader text.                                                                                              |
-| `dimmed`                  | `(datum, index) => boolean`: the category is drawn in the theme's `outline` colour, faded; its values read as they are.                                                                                                                                                                                                                                                            |
-| `colors`                  | One colour per series; a series' own `color` wins. Default: the theme's `charts.categorical`.                                                                                                                                                                                                                                                                                      |
-| `title`                   | Starts the text a screen reader gets for the chart.                                                                                                                                                                                                                                                                                                                                |
-| `locale`, `numberFormat`  | BCP 47 tag (default `en-US`) and `Intl.NumberFormat` options for every number shown.                                                                                                                                                                                                                                                                                               |
-| `formatValue`             | Replaces the number formatting altogether.                                                                                                                                                                                                                                                                                                                                         |
-| `loading`, `emptyLabel`   | A skeleton while loading; the text shown when there is no data.                                                                                                                                                                                                                                                                                                                    |
-| `onSelect(index \| null)` | A category was tapped, or the same one again.                                                                                                                                                                                                                                                                                                                                      |
-
-## Peers
-
-`@its/glowup-ui`, `react`, `react-native` and `react-native-svg`.
+| Prop                      | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data`                    | One object per category: `label` and a number per series key (a missing value draws no bar).                                                                                                                                                                                                                                                                                                                                              |
+| `series`                  | `{ key, label?, color?, column? }` per series. Series with the same `column` share one bar of the category; a series without one is a bar of its own.                                                                                                                                                                                                                                                                                     |
+| `height`                  | Height in pixels, default 240. The width is the box the chart sits in.                                                                                                                                                                                                                                                                                                                                                                    |
+| `stacked`                 | Pile every series up in one bar per category (wins over `column`).                                                                                                                                                                                                                                                                                                                                                                        |
+| `columnMode`              | `"stack"` (default) or `"overlap"`, for every column or per column id (`{ in: "overlap" }`): an overlapping column starts each series from zero, the longest behind.                                                                                                                                                                                                                                                                      |
+| `horizontal`              | One row per category, bars running left to right; long labels are cut with an ellipsis.                                                                                                                                                                                                                                                                                                                                                   |
+| `dense`                   | One path per series and one touch layer instead of a node per bar. Default: on from 400 bars. A band behind the active category replaces the dimming of the other bars. With more bars than about one per two pixels, they are folded into columns (mean, with a faint peak up to the highest; a stacked column: mean only). Does not draw `marker`, `dimmed` or a target per category; the `table` still lists the targets and outcomes. |
+| `target`                  | A number: a dashed reference line across the chart, labelled with its value. A function `(datum, index) => number`, or null for none: a short dashed line across each category, also in the tooltip, the table and the screen reader text.                                                                                                                                                                                                |
+| `marker`                  | `(datum, { index, totals, target }) => { icon, color, label }`, or null for none: an icon past the longest bar of the category. `totals` has one entry per column (sum when stacked, highest when overlapping). `label` is read in the tooltip, the table and the screen reader text.                                                                                                                                                     |
+| `dimmed`                  | `(datum, index) => boolean`: the category is drawn in the theme's `outline` colour, faded; its values read as they are.                                                                                                                                                                                                                                                                                                                   |
+| `colors`                  | One colour per series; a series' own `color` wins. Default: the theme's `charts.categorical`.                                                                                                                                                                                                                                                                                                                                             |
+| `title`                   | Starts the text a screen reader gets for the chart.                                                                                                                                                                                                                                                                                                                                                                                       |
+| `locale`, `numberFormat`  | BCP 47 tag (default `en-US`) and `Intl.NumberFormat` options for every number shown.                                                                                                                                                                                                                                                                                                                                                      |
+| `formatValue`             | Replaces the number formatting altogether.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `loading`, `emptyLabel`   | A skeleton while loading; the text shown when there is no data.                                                                                                                                                                                                                                                                                                                                                                           |
+| `onSelect(index \| null)` | A category was tapped, or the same one again.                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ## Limits, on purpose
 
@@ -154,3 +164,7 @@ key.
 
 `Chart` takes `type` (`"bar"`, `"line"`, `"area"`, `"donut"`, `"pie"` or `"stacked"`) and then the props of that component, so
 `<Chart type="bar" … />` is a `BarChart`. Use the component itself when the type never changes: it is the smaller import.
+
+## License
+
+MIT. The d3 source copied into the package is ISC.

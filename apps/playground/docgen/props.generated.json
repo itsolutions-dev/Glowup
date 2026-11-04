@@ -8399,7 +8399,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "On the last step, Next becomes a filled `type=\"submit\"` button: it\nsubmits the enclosing `Form` instead of calling `onNext`.",
+          "description": "On the last step, Next becomes a filled `type=\"submit\"` button: it\nsubmits the enclosing `Form` instead of calling `onNext`. Outside a\n`Form` it calls `onNext`, and is disabled without one.",
           "deprecated": false
         },
         {

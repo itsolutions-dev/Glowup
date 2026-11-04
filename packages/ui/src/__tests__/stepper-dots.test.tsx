@@ -119,6 +119,69 @@ describe("Stepper variant=dots / progress", () => {
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
   });
 
+  it("submits the Form without calling onNext", async () => {
+    const onNext = jest.fn();
+    const view = await render(
+      <ThemeProvider>
+        <Form onSubmit={() => {}}>
+          <Stepper
+            variant="dots"
+            steps={3}
+            activeStep={2}
+            onNext={onNext}
+            submitStep
+            nextLabel="Save"
+          />
+        </Form>
+      </ThemeProvider>,
+    );
+    await fireEvent.press(view.getByRole("button", { name: "Save" }));
+    expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it("calls onNext on the submit step outside a Form", async () => {
+    const onNext = jest.fn();
+    const view = await draw({
+      steps: 3,
+      activeStep: 2,
+      onNext,
+      submitStep: true,
+      nextLabel: "Save",
+    });
+    await fireEvent.press(view.getByRole("button", { name: "Save" }));
+    expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables the submit step outside a Form without onNext", async () => {
+    const view = await draw({
+      steps: 3,
+      activeStep: 2,
+      onBack: () => {},
+      submitStep: true,
+      nextLabel: "Save",
+    });
+    expect(
+      view.getByRole("button", { name: "Save" }).props.accessibilityState
+        ?.disabled,
+    ).toBe(true);
+  });
+
+  it("wraps many dots instead of pushing the buttons off the row", async () => {
+    const view = await draw({
+      steps: 24,
+      onBack: () => {},
+      onNext: () => {},
+    });
+    const style = StyleSheet.flatten(
+      view.getByLabelText("Step 2 of 24").props.style,
+    );
+    expect(style).toMatchObject({
+      flexShrink: 1,
+      flexWrap: "wrap",
+      maxWidth: "50%",
+    });
+  });
+
   it("shows the progress bar", async () => {
     const view = await draw({ variant: "progress", steps: 5, activeStep: 2 });
     expect(view.getByLabelText("Step 3 of 5").props.accessibilityValue).toEqual(

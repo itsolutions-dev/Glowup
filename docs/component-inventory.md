@@ -1684,7 +1684,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | onClick | `(stepIndex: number) => void` |  | nuova | Called with the pressed step's position. Makes the steps pressable. |
 | onNext | `() => void` |  | nuova | `"dots"` / `"progress"`: draws Next, which calls this. Disabled on the last step unless `submitStep`. |
 | style | `object` |  |  |  |
-| submitStep | `boolean` | false | nuova | On the last step, Next becomes a filled `type="submit"` button: it submits the enclosing `Form` instead of calling `onNext`. |
+| submitStep | `boolean` | false | nuova | On the last step, Next becomes a filled `type="submit"` button: it submits the enclosing `Form` instead of calling `onNext`. Outside a `Form` it calls `onNext`, and is disabled without one. |
 | variant | `"steps" \| "dots" \| "progress"` | "steps" | nuova | `"steps"` draws a numbered circle and a label per step. `"dots"` and `"progress"` draw a row of dots or a bar between the optional Back and Next buttons, for a form or a set of pages on a phone. Defaults to `"steps"`. |
 
 ### Table

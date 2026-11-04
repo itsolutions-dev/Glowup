@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import Icons from "./Glyph";
 import Button from "./Button";
 import LinearProgress from "./Progress/LinearProgress";
+import { useFormSubmit } from "./Form";
 import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import { a11yState } from "./internal/a11yState";
@@ -35,7 +36,8 @@ export interface StepperProps {
   nextLabel?: string;
   /**
    * On the last step, Next becomes a filled `type="submit"` button: it
-   * submits the enclosing `Form` instead of calling `onNext`.
+   * submits the enclosing `Form` instead of calling `onNext`. Outside a
+   * `Form` it calls `onNext`, and is disabled without one.
    */
   submitStep?: boolean;
   /** What Back does on the first step. Without it Back is disabled there. */
@@ -68,6 +70,7 @@ const Stepper = ({
 }: StepperProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const inForm = !!useFormSubmit();
   const column = direction === "column";
   const steps: (Step | string)[] =
     typeof stepsProp === "number"
@@ -141,8 +144,8 @@ const Stepper = ({
               type={submit ? "submit" : "button"}
               iconName={submit ? undefined : "chevron-right"}
               iconPosition="end"
-              disabled={!submit && (last || !onNext)}
-              onClick={submit ? undefined : onNext}
+              disabled={submit ? !inForm && !onNext : last || !onNext}
+              onClick={submit && inForm ? undefined : onNext}
             >
               {nextLabel}
             </Button>
@@ -336,8 +339,14 @@ const makeStyles = (theme: Theme) =>
     side: { flex: 1, minWidth: 0 },
     start: { alignItems: "flex-start" },
     end: { alignItems: "flex-end" },
+    // Many dots wrap onto more rows within half the width, so Back and Next
+    // keep a quarter each instead of being pushed off a phone's screen.
     dots: {
       flexDirection: "row",
+      flexShrink: 1,
+      flexWrap: "wrap",
+      justifyContent: "center",
+      maxWidth: "50%",
       gap: theme.spacing.s,
       paddingHorizontal: theme.spacing.m,
     },

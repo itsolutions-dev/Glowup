@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 117,
+  "componentCount": 118,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -7894,6 +7894,77 @@
           "type": "ThemeColor",
           "required": false,
           "description": "The colour of the number: a theme colour token (`\"error\"` for an overdue\ncount, `\"success\"`, ...) or any colour string. Defaults to `onSurface`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "WeekStrip": {
+      "name": "WeekStrip",
+      "source": "packages/ui/src/components/WeekStrip.tsx",
+      "propsTypeName": "WeekStripProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "description": "Called with the pressed day, or with the same weekday a week later or earlier after a swipe.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date",
+          "required": true,
+          "description": "The chosen day. The strip shows the week it falls in.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's.",
+          "deprecated": false
+        },
+        {
+          "name": "gradient",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`.",
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ nextWeek?: string; previousWeek?: string }",
+          "required": false,
+          "description": "The names of the screen-reader actions that move a week. Default English.",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "The locale of the weekday names and of the first day of the week. Defaults to the device's.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "weekDays",
+          "type": "number[]",
+          "required": false,
+          "default": "WORK_WEEK",
+          "description": "The days to show, as `Date#getDay()` numbers (0 = Sunday … 6 = Saturday), in the locale's week\norder whatever order they are given in. Defaults to Monday to Friday, `[1, 2, 3, 4, 5]`.",
           "deprecated": false
         }
       ]

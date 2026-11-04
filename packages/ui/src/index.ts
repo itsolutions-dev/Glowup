@@ -255,6 +255,8 @@ export { default as Stack } from "./components/Layout/Stack";
 export * from "./components/Layout/Stack";
 export { default as Stat } from "./components/Stat";
 export * from "./components/Stat";
+export { default as WeekStrip } from "./components/WeekStrip";
+export * from "./components/WeekStrip";
 export { default as CaptionValue } from "./components/CaptionValue";
 export * from "./components/CaptionValue";
 export { default as StatusBadge } from "./components/StatusBadge";

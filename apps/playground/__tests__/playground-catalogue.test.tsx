@@ -124,6 +124,7 @@ const CATALOGUE = [
   "FormControl",
   "DateTimePicker",
   "DatePicker",
+  "WeekStrip",
   "TimePicker",
   "Rating",
   "HelperText",

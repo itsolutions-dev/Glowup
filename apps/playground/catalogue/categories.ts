@@ -61,6 +61,7 @@ export const CATEGORIES: Category[] = [
       "FormControl",
       "DateTimePicker",
       "DatePicker",
+      "WeekStrip",
       "TimePicker",
       "Rating",
       "HelperText",

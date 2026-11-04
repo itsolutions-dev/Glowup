@@ -77,6 +77,8 @@ export const DESCRIPTIONS: Record<string, string> = {
   DateTimePicker:
     "Picks a date, a time or both, in a popover, a dialog or inline, as one value, a range or several.",
   DatePicker: "Picks a date or a date range from a field and a calendar.",
+  WeekStrip:
+    "A week as a row of days, as in a phone agenda: press a day, swipe to move a week.",
   TimePicker: "Picks a time on a clock dial or by typing it.",
   Rating: "A star rating, or any icon, with half steps and a hover preview.",
   HelperText: "The small line under a field for hints and validation messages.",

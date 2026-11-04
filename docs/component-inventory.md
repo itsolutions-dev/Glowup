@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 117 componenti.
+Ora: versione 0.11.1, 118 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,7 +11,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 29 | 384 |
+| Aggiunti | 30 | 393 |
 | Aggiornati | 55 | 716 |
 | Tenuti (invariati) | 33 | 195 |
 
@@ -46,6 +46,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Upload](#upload)
 - [ViewportProvider](#viewportprovider)
 - [Visible](#visible)
+- [WeekStrip](#weekstrip)
 
 ## Aggiornati
 
@@ -715,6 +716,22 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | keepMounted | `boolean` | false |  | Hides the children with `display: "none"` instead of unmounting them, so their state survives. They are then wrapped in a `View` (laid out as if it were not there while they show). Defaults to `false`. |
 | only | `SizeClass \| SizeClass[]` |  |  | Shows only on this size class, or on any of these. |
 | when | `boolean` | true |  | A condition of your own; the children show only while it holds. Defaults to `true`. |
+
+### WeekStrip
+
+`packages/ui/src/components/WeekStrip.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(date: Date) => void` |  |  | Called with the pressed day, or with the same weekday a week later or earlier after a swipe. |
+| value * | `Date` |  |  | The chosen day. The strip shows the week it falls in. |
+| firstDayOfWeek | `number` |  |  | The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's. |
+| gradient | `boolean` | false |  | Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`. |
+| labels | `{ nextWeek?: string; previousWeek?: string }` |  |  | The names of the screen-reader actions that move a week. Default English. |
+| locale | `string` |  |  | The locale of the weekday names and of the first day of the week. Defaults to the device's. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| weekDays | `number[]` | WORK_WEEK |  | The days to show, as `Date#getDay()` numbers (0 = Sunday … 6 = Saturday), in the locale's week order whatever order they are given in. Defaults to Monday to Friday, `[1, 2, 3, 4, 5]`. |
 
 # Componenti aggiornati
 

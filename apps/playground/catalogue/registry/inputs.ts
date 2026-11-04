@@ -21,6 +21,7 @@ import {
   Editable,
   Upload,
   InputArea,
+  WeekStrip,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
@@ -775,6 +776,15 @@ export const inputs: Record<string, ComponentMetadata> = {
       defaultInputType: DEFAULT_INPUT_TYPE,
       showOkButton: SHOW_OK_BUTTON,
       disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  WeekStrip: {
+    name: "WeekStrip",
+    Component: WeekStrip,
+    clientOnly: true,
+    props: {
+      locale: LOCALE,
+      gradient: { type: "boolean", default: false, label: "Brand gradient" },
     },
   },
   TimePicker: {

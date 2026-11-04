@@ -87,6 +87,7 @@ import { variants as Tree } from "./Tree";
 import { variants as Typography } from "./Typography";
 import { variants as Upload } from "./Upload";
 import { variants as Visible } from "./Visible";
+import { variants as WeekStrip } from "./WeekStrip";
 
 export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   AbsoluteCenter,
@@ -175,4 +176,5 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Typography,
   Upload,
   Visible,
+  WeekStrip,
 };

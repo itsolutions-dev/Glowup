@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-02** (evening), `dev` at the commit that carries this file. Built from the handoffs of 19 October–2 November, `solaris-native.md`,
+As of **2026-11-03** (afternoon), `dev` at the commit that carries this file. Built from the handoffs of 19 October–3 November, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -11,7 +11,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 - "Done" means built, tested in jest and looked at on the web. Native proof is a separate column, because almost
   everything native has been seen only on CI simulators and emulators.
 - **Overall** weights each phase by its size in the plan (S = 1, M = 2, L = 3). Phase 9 is not counted (it is
-  future work by decision D12), nor, since 3/11, Phase 5 (left out; with it the overall is ~70%).
+  future work by decision D12), nor, since 3/11, Phase 5 (left out; with it the overall is ~75%).
 - **Nothing has ever run on a real phone.** iOS means the iPhone 17 Pro simulator in CI; Android means the API 34
   and 35 emulators in CI plus the local Pixel 8 emulator (API 35).
 
@@ -22,7 +22,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators    | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 60%  | `██████░░░░` | VoiceOver pass, iOS pages by hand, 1.7–1.9     | –   | –        | partly  |
 | Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
-| Phase 3: specialised props (3A/3B/3C)     | 60%  | `██████░░░░` | B3, B4, calendar markers                       | yes | partly   | partly  |
+| Phase 3: specialised props (3A/3B/3C)     | 60%  | `██████░░░░` | B3, B4                                         | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | left out (3/11), see Phase 5 below             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
@@ -30,9 +30,9 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)  | yes | –        | yes     |
 | Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2 | yes | –        | partly  |
 | Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`   | –   | –        | –       |
-| **Overall (phases 0–8 but 5, weighted)**  | ~80% | `████████░░` |                                                |     |          |         |
+| **Overall (phases 0–8 but 5, weighted)**  | ~85% | `████████▌░` |                                                |     |          |         |
 
-Phase 7 is 85% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
+Phase 7 is 95% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
 
 ## Per workstream
@@ -111,10 +111,12 @@ a partial row counting half; 11, 8 and 11 before 3/11); the rename batches are a
   - `Input` / `InputArea` split (26/10).
   - 3/11, each test first (changeset `select-strings-badge-stat-colours.md`): `Select` takes plain strings as
     options and `reserveHelperText`; `StatusBadge` `type` `info` and `neutral`; `Stat` `valueColor` (the CRM's
-    name, like `trendColor`, rather than the matrix's `valueTone`).
+    name, like `trendColor`, rather than the matrix's `valueTone`). New component `WeekStrip` (changeset
+    `week-strip.md`), the CRM mobile agenda's week row: seen on the Android emulator (press, swipe both ways).
 - **Left:**
   - B3: `ToggleButtonGroup` with typed values, and `Stepper` as dots or a bar.
-  - B4: `DayTimeline`, day markers (now on `DatePicker variant="static"`), `Skeleton` presets.
+  - B4: `DayTimeline`, `Skeleton` presets. The week strip is done (`WeekStrip`, 3/11); day markers are not
+    built: the CRM's `MobileAgenda` draws none (checked 3/11).
   - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
     `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; `Dialog`
     `overline`, `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.

@@ -104,6 +104,7 @@ import Tree from "./Tree";
 import Typography from "./Typography";
 import Upload from "./Upload";
 import Visible from "./Visible";
+import WeekStrip from "./WeekStrip";
 
 export const EXAMPLES: Record<
   string,
@@ -815,5 +816,12 @@ export const EXAMPLES: Record<
     file: "Visible.tsx",
     source:
       'import {\n  Button,\n  Card,\n  Chip,\n  Grid,\n  HStack,\n  Stat,\n  Typography,\n  VStack,\n  Visible,\n  useBreakpoint,\n  useBreakpointValue,\n  type VisibleProps,\n} from "@its/glowup-ui";\n\nconst props: Partial<VisibleProps> = {\n  above: "medium",\n};\n\nexport default function VisibleExample() {\n  const { sizeClass } = useBreakpoint();\n  // The value of the largest size class at or below the window\'s.\n  const span = useBreakpointValue({ compact: 12, medium: 6 }, 12);\n\n  return (\n    <VStack spacing="m">\n      <HStack spacing="s" align="center">\n        <Typography variant="titleLarge" style={{ flex: 1 }}>\n          Storage\n        </Typography>\n        <Chip label={sizeClass} icon="monitor" variant="outlined" />\n      </HStack>\n\n      <Grid container spacing="m">\n        <Grid size={span}>\n          <Stat label="Used" value="38.2 GB" />\n        </Grid>\n        <Grid size={span}>\n          <Stat label="Free" value="61.8 GB" />\n        </Grid>\n      </Grid>\n\n      {/* A wide window gets the whole card, a narrow one a single button. */}\n      <Visible\n        {...props}\n        fallback={\n          <Button variant="text" iconName="arrow-up-circle-outline">\n            Upgrade to 1 TB\n          </Button>\n        }\n      >\n        <Card variant="outlined">\n          <VStack spacing="s">\n            <Typography variant="titleMedium">Need more room?</Typography>\n            <Typography variant="bodyMedium" color="onSurfaceVariant">\n              Upgrade to 1 TB and keep every project, photo and backup in one\n              place.\n            </Typography>\n            <HStack>\n              <Button iconName="arrow-up-circle-outline">\n                Upgrade to 1 TB\n              </Button>\n            </HStack>\n          </VStack>\n        </Card>\n      </Visible>\n    </VStack>\n  );\n}\n',
+  },
+  WeekStrip: {
+    id: "WeekStrip",
+    Component: WeekStrip,
+    file: "WeekStrip.tsx",
+    source:
+      'import { useState } from "react";\nimport {\n  Divider,\n  Typography,\n  VStack,\n  WeekStrip,\n  type WeekStripProps,\n} from "@its/glowup-ui";\n\nconst props: Partial<WeekStripProps> = {\n  gradient: true,\n};\n\n// A few appointments by day of the month, invented.\nconst AGENDA: Record<number, string[]> = {\n  2: ["09:30 · Call with Brightside Studio", "15:00 · Contract review"],\n  3: ["11:00 · Demo for Northgate Ltd"],\n  5: ["10:00 · Branch visit, Riverside", "12:30 · Lunch with the team"],\n};\n\nexport default function WeekStripExample() {\n  const [day, setDay] = useState(new Date(2026, 10, 3));\n  const items = AGENDA[day.getDate()] ?? [];\n  return (\n    <VStack spacing="s">\n      <WeekStrip {...props} value={day} onChange={setDay} />\n      <Divider />\n      {items.length ? (\n        items.map((item) => (\n          <Typography key={item} variant="bodyMedium">\n            {item}\n          </Typography>\n        ))\n      ) : (\n        <Typography variant="bodyMedium" color="onSurfaceVariant">\n          Nothing planned.\n        </Typography>\n      )}\n    </VStack>\n  );\n}\n',
   },
 };

@@ -467,6 +467,15 @@ around the office network, which blocks the iPhone from reaching Metro) loads in
 Expo Go is already on SDK 58.0.0, so it cannot open the playground (SDK 57). Expo Go is out**; the native iPhone
 checks (VoiceOver, the pages by hand) wait for the colleague's Mac, unless the repo moves to SDK 58.
 
+**The colleague's Mac (plan of 4/11).** Not the pilot pages (deleted): the playground itself, built with
+`npm ci --ignore-scripts`, then `npx expo run:ios` in `apps/playground` (simulator) or `npx expo run:ios --device` (an
+iPhone on the Mac, a free Apple ID in Xcode: the app lasts 7 days). What to check is the iPhone column of
+`native-verification.md`, every "–" and "◐", in this order: fields and the keyboard; dialogs, sheets and menus; lists
+and data (with `WeekStrip`, `DayTimeline`, `Skeleton`); buttons and navigation (safe areas); the PDF, pivot and chart
+gestures; then dark mode and rotation on every page. VoiceOver only on a real iPhone (the simulator's Accessibility
+Inspector reads names and roles, not speech). Results go back into that table. Not written yet: an iOS counterpart of
+`android-interact.mjs` in `native.yml`, which would tap and type on the CI simulator (optional, about one session).
+
 ### Stage 5: publish (last, after Stages 4 and 6)
 
 The branch decision can be taken any time before this. Before the first publish, `dev`'s `ui` (0.11.1) must move past

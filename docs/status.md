@@ -1,6 +1,6 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-03** (afternoon), `dev` at the commit that carries this file. Built from the handoffs of 19 October–3 November, `solaris-native.md`,
+As of **2026-11-04**, `dev` at the commit that carries this file. Built from the handoffs of 19 October–4 November, `solaris-native.md`,
 `library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
 change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
 
@@ -22,7 +22,7 @@ change as the handoff**, so the next session starts from here and not from re-re
 | Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators    | yes | yes      | yes     |
 | Phase 1: native readiness, web, stability | 60%  | `██████░░░░` | VoiceOver pass, iOS pages by hand, 1.7–1.9     | –   | –        | partly  |
 | Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
-| Phase 3: specialised props (3A/3B/3C)     | 60%  | `██████░░░░` | B3, B4                                         | yes | partly   | partly  |
+| Phase 3: specialised props (3A/3B/3C)     | 65%  | `██████▌░░░` | the matrix's other gaps, when a screen asks    | yes | partly   | partly  |
 | Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
 | Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | left out (3/11), see Phase 5 below             | –   | –        | –       |
 | Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
@@ -92,11 +92,11 @@ on 2/11), 1.4, 1.10, 1.11 and 1.13 partly; the native CI (in the phase's "what t
     `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes, and on iPhone in CI (`2de68fb`: the bar at
     the end of `/native-check`).
 
-### Phase 3: specialised props, 60%
+### Phase 3: specialised props, 65%
 
 Basis: the "Fatto" column of `crm-component-matrix.md` (filled in 28/10 from the props types, updated 3/11) and
-the three rename batches. Of the matrix's 30 rows that propose something, 13 are done, 7 partly and 10 not (55%,
-a partial row counting half; 11, 8 and 11 before 3/11); the rename batches are at 2 of 3. Together: 60%.
+the three rename batches. Of the matrix's 30 rows that propose something, 16 are done, 8 partly and 6 not (67%,
+a partial row counting half; 13, 7 and 10 on 3/11); the rename batches are at 2 of 3. Together: 65%.
 
 - **Done:**
   - 3A first pieces (16/10): `density` and `DensityProvider`, `ListItem` slots, `Input` `decimalSeparator`,
@@ -113,10 +113,15 @@ a partial row counting half; 11, 8 and 11 before 3/11); the rename batches are a
     options and `reserveHelperText`; `StatusBadge` `type` `info` and `neutral`; `Stat` `valueColor` (the CRM's
     name, like `trendColor`, rather than the matrix's `valueTone`). New component `WeekStrip` (changeset
     `week-strip.md`), the CRM mobile agenda's week row: seen on the Android emulator (press, swipe both ways).
+  - 4/11, B3 and B4, each test first (spec and plan in `docs/superpowers/`), one changeset each:
+    `ToggleButtonGroup` values of any type (`null`/`true`/`false`, the CRM's tri-state filter) and a `tooltip`
+    per option that names an icon-only segment (`Tooltip` gains `style`); `Skeleton preset="list"`; new
+    `DayTimeline` (the mobile agenda's day list, `layout="list"` only); `Stepper variant="dots" | "progress"`
+    with Back/Next, `submitStep`, `onCancel`; `Dialog` `overline`, `leadingActions`, `dividers`. A fresh review
+    found two real defects, fixed test first: `initialFocus="actions"` landed on a leading "Delete" (web), and the
+    stepper drew a button with no handler. Not built (no evidence): `DataGrid` row actions and group rows (only
+    `GrantMatrix`, deferred), `DayTimeline` hour grid, `Skeleton` `card`/`table`.
 - **Left:**
-  - B3: `ToggleButtonGroup` with typed values, and `Stepper` as dots or a bar.
-  - B4: `DayTimeline`, `Skeleton` presets. The week strip is done (`WeekStrip`, 3/11); day markers are not
-    built: the CRM's `MobileAgenda` draws none (checked 3/11).
   - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
     `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; `Dialog`
     `overline`, `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.

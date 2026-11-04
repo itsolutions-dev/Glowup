@@ -13,6 +13,8 @@ import {
   Platform,
   LayoutChangeEvent,
   useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Portal, { usePortalHost } from "./Portal";
@@ -60,6 +62,11 @@ export interface TooltipProps {
   enterDelay?: number;
   /** Grace period (ms) before the tip leaves on hover-out. */
   leaveDelay?: number;
+  /**
+   * The wrapper around the anchor, which otherwise sizes to it: `{ flex: 1 }`
+   * lets an anchor that grows (a segment of a full-width group) keep growing.
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 const GAP = 8;
@@ -76,6 +83,7 @@ const Tooltip = ({
   hideDelay = 1500,
   enterDelay = 500,
   leaveDelay = 100,
+  style,
 }: TooltipProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -298,7 +306,7 @@ const Tooltip = ({
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       {Platform.OS === "web" ? (
         <View ref={anchorRef} onLayout={onAnchorLayout} {...webAnchorProps}>
           {children}

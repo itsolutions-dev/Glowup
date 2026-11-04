@@ -194,3 +194,29 @@ export const Untitled = () => (
     </Dialog>
   </div>
 );
+
+/** `overline` sits above the title; `leadingActions` go on the start of the actions row; `dividers` set the body apart. */
+export const OverlineLeadingDividers = () => (
+  <div style={backdrop}>
+    <Dialog
+      visible
+      overline="Riverside branch"
+      title="Edit route"
+      onClose={() => {}}
+      dividers
+      leadingActions={
+        <Button variant="text" color="error">
+          Delete
+        </Button>
+      }
+      actions={
+        <>
+          <Button variant="text">Cancel</Button>
+          <Button>Save</Button>
+        </>
+      }
+    >
+      <Input label="Route name" value="North loop" onChange={() => {}} />
+    </Dialog>
+  </div>
+);

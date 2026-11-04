@@ -29,6 +29,7 @@ import { variants as Collapse } from "./Collapse";
 import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
+import { variants as DayTimeline } from "./DayTimeline";
 import { variants as Divider } from "./Divider";
 import { variants as Download } from "./Download";
 import { variants as Drawer } from "./Drawer";
@@ -118,6 +119,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   DataGrid,
   DatePicker,
   DateTimePicker,
+  DayTimeline,
   Divider,
   Download,
   Drawer,

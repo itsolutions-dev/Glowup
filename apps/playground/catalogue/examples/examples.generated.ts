@@ -38,6 +38,7 @@ import Collapse from "./Collapse";
 import DataGrid from "./DataGrid";
 import DatePicker from "./DatePicker";
 import DateTimePicker from "./DateTimePicker";
+import DayTimeline from "./DayTimeline";
 import Dialog from "./Dialog";
 import Divider from "./Divider";
 import Download from "./Download";
@@ -354,6 +355,13 @@ export const EXAMPLES: Record<
     file: "DateTimePicker.tsx",
     source:
       'import { useState } from "react";\nimport {\n  Button,\n  DateTimePicker,\n  Typography,\n  VStack,\n  type SingleDateTimePickerProps,\n} from "@its/glowup-ui";\n\nconst props: Partial<SingleDateTimePickerProps> = {\n  label: "Appointment",\n  mode: "datetime",\n  placeholder: "Pick a day and a time",\n  helperText: "Closed on Sundays.",\n  clearable: true,\n};\n\n// A fixed day, not today: the page is prerendered and a clock would not match.\nconst FIRST_DAY = new Date(2026, 9, 22);\n\nexport default function DateTimePickerExample() {\n  const [when, setWhen] = useState<Date | null>(\n    () => new Date(2026, 9, 22, 10, 30),\n  );\n  const [booked, setBooked] = useState(false);\n\n  // The text follows what the picker collects, in its locale.\n  const text = when?.toLocaleString(props.locale || undefined, {\n    ...(props.mode !== "time" && {\n      weekday: "long",\n      day: "numeric",\n      month: "long",\n    }),\n    ...(props.mode !== "date" && {\n      hour: "numeric",\n      minute: "2-digit",\n      hour12: props.use24HourClock ? false : undefined,\n    }),\n  });\n\n  return (\n    <VStack spacing="m">\n      <VStack spacing="xs">\n        <Typography variant="titleMedium">Book a check-up</Typography>\n        <Typography variant="bodySmall" color="onSurfaceVariant">\n          {booked ? `Booked for ${text}.` : "Choose a day and a time."}\n        </Typography>\n      </VStack>\n      <DateTimePicker\n        {...props}\n        value={when}\n        onChange={(date) => {\n          setWhen(date);\n          setBooked(false);\n        }}\n        onClear={() => setWhen(null)}\n        validRange={{ startDate: FIRST_DAY }}\n        isDateDisabled={(date) => date.getDay() === 0}\n      />\n      <Button disabled={!when || booked} onClick={() => setBooked(true)}>\n        {booked ? "Booked" : "Confirm booking"}\n      </Button>\n    </VStack>\n  );\n}\n',
+  },
+  DayTimeline: {
+    id: "DayTimeline",
+    Component: DayTimeline,
+    file: "DayTimeline.tsx",
+    source:
+      'import { useState } from "react";\nimport {\n  DayTimeline,\n  Typography,\n  VStack,\n  WeekStrip,\n  type DayTimelineEvent,\n  type DayTimelineProps,\n} from "@its/glowup-ui";\n\nconst props: Partial<DayTimelineProps> = {\n  loading: false,\n};\n\nconst at = (day: number, h: number, m = 0) => new Date(2026, 10, day, h, m);\n\n// A few appointments, invented.\nconst EVENTS: DayTimelineEvent[] = [\n  {\n    id: 1,\n    title: "Brightside Studio",\n    overline: "Appointment",\n    start: at(3, 9, 30),\n    end: at(3, 10),\n    note: "Contract review",\n    color: "#1D5B9D",\n  },\n  {\n    id: 2,\n    title: "Northgate Ltd",\n    overline: "Call back",\n    start: at(3, 11),\n    end: at(3, 11, 15),\n    color: "#61B340",\n  },\n  {\n    id: 3,\n    title: "Riverside branch",\n    overline: "Appointment",\n    start: at(3, 15),\n    end: at(3, 16),\n    canceled: true,\n  },\n  {\n    id: 4,\n    title: "Harbour & Co",\n    overline: "Appointment",\n    start: at(5, 10),\n    end: at(5, 11),\n    color: "#1D5B9D",\n  },\n];\n\nexport default function DayTimelineExample() {\n  const [day, setDay] = useState(new Date(2026, 10, 3));\n  const [opened, setOpened] = useState<string>();\n  const events = EVENTS.filter((e) => e.start.getDate() === day.getDate());\n  return (\n    <VStack spacing="m">\n      <WeekStrip value={day} onChange={setDay} />\n      <DayTimeline\n        {...props}\n        events={events}\n        onEventPress={(e) => setOpened(e.title)}\n      />\n      {!!opened && (\n        <Typography variant="bodySmall" color="onSurfaceVariant">\n          Opened: {opened}\n        </Typography>\n      )}\n    </VStack>\n  );\n}\n',
   },
   Dialog: {
     id: "Dialog",

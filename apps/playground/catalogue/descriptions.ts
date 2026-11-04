@@ -107,6 +107,8 @@ export const DESCRIPTIONS: Record<string, string> = {
   Stat: "A key figure with its label, an optional trend and a change.",
   CaptionValue:
     "A caption and its value as a pair, with a fallback, copying and truncation.",
+  DayTimeline:
+    "A day's appointments as a list: the time, a coloured card, press to open one.",
   Image: "An image with a fixed ratio, a fit mode and a fallback.",
   Link: "Text that opens an address or runs an action, styled and announced as a link.",
   CodeBlock:

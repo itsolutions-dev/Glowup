@@ -142,10 +142,21 @@ export const navigation: Record<string, ComponentMetadata> = {
     name: "Stepper",
     Component: Stepper,
     props: {
+      variant: {
+        type: "select",
+        default: "steps",
+        label: "Variant",
+        options: [
+          { label: "Steps", value: "steps" },
+          { label: "Dots", value: "dots" },
+          { label: "Progress", value: "progress" },
+        ],
+      },
       direction: {
         type: "select",
         default: "row",
         label: "Direction",
+        appliesWhen: (values) => values.variant === "steps",
         options: [
           { label: "Row", value: "row" },
           { label: "Column", value: "column" },

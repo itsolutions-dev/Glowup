@@ -124,6 +124,13 @@ export const Shapes = () => (
   </View>
 );
 
+/** `preset="list"`: `count` rounded rows `itemHeight` tall, `gap` apart — a phone list loading its first page. */
+export const ListPreset = () => (
+  <View style={{ width: "100%", maxWidth: 340 }}>
+    <Skeleton preset="list" count={4} itemHeight={72} />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Variants",
@@ -144,5 +151,12 @@ export const variants: Variant[] = [
     name: "Shapes",
     title: "Shapes",
     render: Shapes,
+  },
+  {
+    name: "ListPreset",
+    title: "List preset",
+    description:
+      '`preset="list"`: `count` rounded rows `itemHeight` tall, `gap` apart — a phone list loading its first page.',
+    render: ListPreset,
   },
 ];

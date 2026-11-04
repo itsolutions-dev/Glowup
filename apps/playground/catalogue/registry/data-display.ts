@@ -11,6 +11,7 @@ import {
   Link,
   Stat,
   CaptionValue,
+  DayTimeline,
   ListSection,
   ListSubheader,
   Table,
@@ -342,6 +343,13 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
         default: undefined,
         label: "Height (px, empty = tallest page)",
       },
+    },
+  },
+  DayTimeline: {
+    name: "DayTimeline",
+    Component: DayTimeline,
+    props: {
+      loading: { type: "boolean", default: false, label: "Loading" },
     },
   },
   Stat: {

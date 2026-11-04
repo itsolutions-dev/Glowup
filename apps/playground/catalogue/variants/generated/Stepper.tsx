@@ -69,6 +69,34 @@ export const VerticalWithIcons = () => (
   </View>
 );
 
+/** `variant="dots"`: one dot per step between Back and Next, drawn when `onBack` / `onNext` are passed. */
+export const Dots = () => (
+  <View style={wrap}>
+    <Stepper
+      variant="dots"
+      steps={4}
+      activeStep={1}
+      onBack={() => {}}
+      onNext={() => {}}
+    />
+  </View>
+);
+
+/** `variant="progress"` draws a bar; with `submitStep`, Next on the last step is a filled submit button. */
+export const ProgressSubmit = () => (
+  <View style={wrap}>
+    <Stepper
+      variant="progress"
+      steps={4}
+      activeStep={3}
+      onBack={() => {}}
+      onNext={() => {}}
+      submitStep
+      nextLabel="Save"
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Checkout",
@@ -101,5 +129,19 @@ export const variants: Variant[] = [
     name: "VerticalWithIcons",
     title: "Vertical with icons",
     render: VerticalWithIcons,
+  },
+  {
+    name: "Dots",
+    title: "Dots",
+    description:
+      '`variant="dots"`: one dot per step between Back and Next, drawn when `onBack` / `onNext` are passed.',
+    render: Dots,
+  },
+  {
+    name: "ProgressSubmit",
+    title: "Progress submit",
+    description:
+      '`variant="progress"` draws a bar; with `submitStep`, Next on the last step is a filled submit button.',
+    render: ProgressSubmit,
   },
 ];

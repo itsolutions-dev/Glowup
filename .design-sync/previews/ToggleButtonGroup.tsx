@@ -71,3 +71,19 @@ export const MultiSelect = () => (
     />
   </div>
 );
+
+/** Any value, compared with `===`: `null` / `true` / `false` make an all / yes / no filter; `tooltip` names an icon-only segment. */
+export const AllYesNo = () => (
+  <div style={field}>
+    <Typography variant="labelLarge">Status</Typography>
+    <ToggleButtonGroup
+      value={true}
+      onValueChange={() => {}}
+      options={[
+        { icon: "account-multiple", value: null, tooltip: "All" },
+        { icon: "account-check", value: true, tooltip: "Active" },
+        { icon: "account-off", value: false, tooltip: "Inactive" },
+      ]}
+    />
+  </div>
+);

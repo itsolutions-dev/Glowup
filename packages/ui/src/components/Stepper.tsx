@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
 import Icons from "./Glyph";
+import Button from "./Button";
+import LinearProgress from "./Progress/LinearProgress";
 import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
 import { a11yState } from "./internal/a11yState";
@@ -11,8 +13,33 @@ export interface Step {
 }
 
 export interface StepperProps {
-  /** The steps, in order; a string is a step with just a label. */
-  steps: Step[] | string[];
+  /**
+   * The steps, in order; a string is a step with just a label. A number is
+   * that many steps without labels (all `"dots"` and `"progress"` need).
+   */
+  steps: Step[] | string[] | number;
+  /**
+   * `"steps"` draws a numbered circle and a label per step. `"dots"` and
+   * `"progress"` draw a row of dots or a bar between the optional Back and
+   * Next buttons, for a form or a set of pages on a phone. Defaults to
+   * `"steps"`.
+   */
+  variant?: "steps" | "dots" | "progress";
+  /** `"dots"` / `"progress"`: draws Back, which calls this (on the first step, `onCancel` instead). */
+  onBack?: () => void;
+  /** `"dots"` / `"progress"`: draws Next, which calls this. Disabled on the last step unless `submitStep`. */
+  onNext?: () => void;
+  /** The Back button's label. Defaults to "Back". */
+  backLabel?: string;
+  /** The Next button's label. Defaults to "Next". */
+  nextLabel?: string;
+  /**
+   * On the last step, Next becomes a filled `type="submit"` button: it
+   * submits the enclosing `Form` instead of calling `onNext`.
+   */
+  submitStep?: boolean;
+  /** What Back does on the first step. Without it Back is disabled there. */
+  onCancel?: () => void;
   /** Position of the current step. Those before it are completed. */
   activeStep: number;
   /**
@@ -26,15 +53,104 @@ export interface StepperProps {
 }
 
 const Stepper = ({
-  steps,
+  steps: stepsProp,
   activeStep,
   direction = "row",
   onClick,
   style,
+  variant = "steps",
+  onBack,
+  onNext,
+  backLabel = "Back",
+  nextLabel = "Next",
+  submitStep = false,
+  onCancel,
 }: StepperProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const column = direction === "column";
+  const steps: (Step | string)[] =
+    typeof stepsProp === "number"
+      ? Array.from({ length: stepsProp }, () => "")
+      : stepsProp;
+  const count = steps.length;
+
+  if (variant !== "steps") {
+    const first = activeStep <= 0;
+    const last = activeStep >= count - 1;
+    const submit = submitStep && last;
+    // Each button only with something to do: Back with onBack (or onCancel
+    // for the first step), Next with onNext (or submitStep for the last).
+    const hasBack = !!(onBack || onCancel);
+    const hasNext = !!(onNext || submitStep);
+    const hasButtons = hasBack || hasNext;
+    const indicator = (
+      <View
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={`Step ${activeStep + 1} of ${count}`}
+        accessibilityValue={{ min: 1, max: count, now: activeStep + 1 }}
+        style={variant === "dots" ? styles.dots : styles.bar}
+      >
+        {variant === "dots" ? (
+          steps.map((_, index) => (
+            <View
+              key={index}
+              testID="stepper-dot"
+              style={[
+                styles.dot,
+                {
+                  backgroundColor:
+                    index === activeStep
+                      ? theme.colors.primary
+                      : theme.colors.outlineVariant,
+                },
+              ]}
+            />
+          ))
+        ) : (
+          <LinearProgress
+            progress={count > 1 ? activeStep / (count - 1) : 0}
+            decorative
+          />
+        )}
+      </View>
+    );
+    if (!hasButtons)
+      return <View style={[styles.mobile, style]}>{indicator}</View>;
+    return (
+      <View style={[styles.mobile, style]}>
+        {/* Both sides take an equal share, a button or not, so the indicator sits in the middle. */}
+        <View style={[styles.side, styles.start]}>
+          {hasBack && (
+            <Button
+              variant="text"
+              iconName="chevron-left"
+              disabled={first ? !onCancel : !onBack}
+              onClick={first ? onCancel : onBack}
+            >
+              {backLabel}
+            </Button>
+          )}
+        </View>
+        {indicator}
+        <View style={[styles.side, styles.end]}>
+          {hasNext && (
+            <Button
+              variant={submit ? "filled" : "text"}
+              type={submit ? "submit" : "button"}
+              iconName={submit ? undefined : "chevron-right"}
+              iconPosition="end"
+              disabled={!submit && (last || !onNext)}
+              onClick={submit ? undefined : onNext}
+            >
+              {nextLabel}
+            </Button>
+          )}
+        </View>
+      </View>
+    );
+  }
 
   const renderStep = (step: Step | string, index: number) => {
     const isCompleted = index < activeStep;
@@ -61,7 +177,9 @@ const Stepper = ({
         onPress={() => onClick?.(index)}
         disabled={!onClick}
         accessibilityRole="button"
-        accessibilityLabel={`Step ${index + 1}: ${label}`}
+        accessibilityLabel={
+          label ? `Step ${index + 1}: ${label}` : `Step ${index + 1}`
+        }
         {...a11yState("button", { selected: isActive, disabled: !onClick })}
         style={({ hovered, pressed }: PressableState) => [
           styles.stepCircle,
@@ -208,6 +326,23 @@ const makeStyles = (theme: Theme) =>
     // A step is the circle and the line down to the next one, with the label
     // beside the circle; a long label grows the row and the line with it.
     columnStep: { flexDirection: "row" },
+    mobile: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "100%",
+      paddingVertical: theme.spacing.s,
+    },
+    side: { flex: 1, minWidth: 0 },
+    start: { alignItems: "flex-start" },
+    end: { alignItems: "flex-end" },
+    dots: {
+      flexDirection: "row",
+      gap: theme.spacing.s,
+      paddingHorizontal: theme.spacing.m,
+    },
+    dot: { width: 8, height: 8, borderRadius: 4 },
+    bar: { flex: 1, paddingHorizontal: theme.spacing.m },
     columnRail: { alignItems: "center" },
     columnConnector: {
       flex: 1,

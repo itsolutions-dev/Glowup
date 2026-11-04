@@ -8,6 +8,7 @@ import {
   StyleProp,
 } from "react-native";
 import Icons from "../Glyph";
+import Tooltip from "../Tooltip";
 import { useTheme, getFocusRing } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
 import { a11yState } from "../internal/a11yState";
@@ -27,6 +28,12 @@ export interface ToggleButtonProps {
    * button affordance that tells "selected" apart from "just highlighted".
    */
   showSelectedCheck?: boolean;
+  /**
+   * Shown on hover and keyboard focus on the web (on a phone the button takes
+   * the long press itself, so no tip appears); on every platform it names the
+   * button for screen readers when it has no `label`.
+   */
+  tooltip?: string;
   /** Accessibility role. The group sets this per its selection mode. */
   accessibilityRole?: "radio" | "checkbox" | "button";
   style?: StyleProp<ViewStyle>;
@@ -42,6 +49,7 @@ const ToggleButton = ({
   disabled = false,
   grow = false,
   showSelectedCheck = false,
+  tooltip,
   accessibilityRole = "button",
   style,
 }: ToggleButtonProps) => {
@@ -52,12 +60,12 @@ const ToggleButton = ({
     ? theme.colors.onSecondaryContainer
     : theme.colors.onSurfaceVariant;
 
-  return (
+  const button = (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityLabel={
-        label || (icon ? `${icon} toggle button` : "Toggle Button")
+        label || tooltip || (icon ? `${icon} toggle button` : "Toggle Button")
       }
       accessibilityRole={accessibilityRole}
       {...a11yState(accessibilityRole, {
@@ -113,6 +121,19 @@ const ToggleButton = ({
       )}
     </Pressable>
   );
+
+  if (!tooltip) return button;
+  return (
+    // The segment keeps its own name and role: the wrapper is not one more
+    // element for a screen reader to stop on.
+    <Tooltip
+      content={tooltip}
+      anchorAccessible={false}
+      style={grow ? styles.grow : styles.shrink}
+    >
+      {button}
+    </Tooltip>
+  );
 };
 
 export default ToggleButton;
@@ -133,6 +154,9 @@ const styles = StyleSheet.create({
   },
   grow: {
     flex: 1,
+  },
+  shrink: {
+    flexShrink: 1,
   },
   disabled: {
     opacity: 0.38,

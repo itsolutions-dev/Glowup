@@ -76,6 +76,22 @@ export const MultiSelect = () => (
   </View>
 );
 
+/** Any value, compared with `===`: `null` / `true` / `false` make an all / yes / no filter; `tooltip` names an icon-only segment. */
+export const AllYesNo = () => (
+  <View style={field}>
+    <Typography variant="labelLarge">Status</Typography>
+    <ToggleButtonGroup
+      value={true}
+      onValueChange={() => {}}
+      options={[
+        { icon: "account-multiple", value: null, tooltip: "All" },
+        { icon: "account-check", value: true, tooltip: "Active" },
+        { icon: "account-off", value: false, tooltip: "Inactive" },
+      ]}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "ViewMode",
@@ -96,5 +112,12 @@ export const variants: Variant[] = [
     name: "MultiSelect",
     title: "Multi select",
     render: MultiSelect,
+  },
+  {
+    name: "AllYesNo",
+    title: "All yes no",
+    description:
+      "Any value, compared with `===`: `null` / `true` / `false` make an all / yes / no filter; `tooltip` names an icon-only segment.",
+    render: AllYesNo,
   },
 ];

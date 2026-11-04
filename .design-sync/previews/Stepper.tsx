@@ -63,3 +63,31 @@ export const VerticalWithIcons = () => (
     />
   </div>
 );
+
+/** `variant="dots"`: one dot per step between Back and Next, drawn when `onBack` / `onNext` are passed. */
+export const Dots = () => (
+  <div style={wrap}>
+    <Stepper
+      variant="dots"
+      steps={4}
+      activeStep={1}
+      onBack={() => {}}
+      onNext={() => {}}
+    />
+  </div>
+);
+
+/** `variant="progress"` draws a bar; with `submitStep`, Next on the last step is a filled submit button. */
+export const ProgressSubmit = () => (
+  <div style={wrap}>
+    <Stepper
+      variant="progress"
+      steps={4}
+      activeStep={3}
+      onBack={() => {}}
+      onNext={() => {}}
+      submitStep
+      nextLabel="Save"
+    />
+  </div>
+);

@@ -120,11 +120,14 @@ a partial row counting half; 13, 7 and 10 on 3/11); the rename batches are at 2 
     with Back/Next, `submitStep`, `onCancel`; `Dialog` `overline`, `leadingActions`, `dividers`. A fresh review
     found two real defects, fixed test first: `initialFocus="actions"` landed on a leading "Delete" (web), and the
     stepper drew a button with no handler. Not built (no evidence): `DataGrid` row actions and group rows (only
-    `GrantMatrix`, deferred), `DayTimeline` hour grid, `Skeleton` `card`/`table`.
+    `GrantMatrix`, deferred), `DayTimeline` hour grid, `Skeleton` `card`/`table`. Afternoon: `WeekStrip`
+    `arrows` (on by default on the web, where a mouse cannot swipe); the review's minors, test first: `Stepper`
+    dots wrap within half the row, and outside a `Form` the `submitStep` button calls `onNext`. CI on the pushed
+    commit: Android 14 16/16, iPhone 13/13, Android 15 16/16 on its third run (the first two stopped on the
+    runner: adb dropped, then the emulator's launcher "isn't responding").
 - **Left:**
   - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
-    `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; `Dialog`
-    `overline`, `leadingActions`, `dividers`; the hooks `useAbortEffect` and `useInfiniteList`.
+    `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; the hooks `useAbortEffect` and `useInfiniteList`.
 
 ### Phase 4: charts, 90%
 
@@ -137,11 +140,13 @@ a partial row counting half; 13, 7 and 10 on 3/11); the rename batches are at 2 
   - The theme's chart palette (28/10), seen on iPhone and Android 14 and 15 in CI (29/10).
   - 27/10: bar `column`/`columnMode`, a target per category, an outcome `marker`, `dimmed`. Proven in CI
     (Android 15/15, iPhone 13/13).
+  - 4/11, the 27/10 review's minors, test first: a table column whose `target`/`marker` is empty everywhere is left
+    out, and past 12 categories the text for a screen reader sums targets (range) and outcomes (count) up. Documented
+    instead: markers assume values ≥ 0; a column id must not be another series' key.
 - **Left:**
   - Rebuild the CRM's four bar charts with the new props, starting with Inbound.
   - Horizontal scrolling (`minTickWidth` in the CRM).
   - Dense-mode timings on native.
-  - The minors deferred by the 27/10 review.
   - Changeset and trusted publisher when the package leaves `private`.
   - `ScatterChart`, `AreaRange`, `TimelineChart` only if the CRM asks for them.
 
@@ -270,6 +275,9 @@ limits listed at the end of §1–2 there. §3 (API) and §4 (builds) are not ha
   `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
   propose renaming them again.
 
+- **Checked 4/11, not defects:** a `Dialog` without `testID` names its parts `dialog-…` (the default is `"dialog"`),
+  never `undefined-…`; the `Tooltip` wrapper around a `ToggleButton` segment not stretching in height shows nothing
+  (segments and group are 40 high).
 - **`packages/ui` fixes are ours** (30/10, green light): bugs found in `ui` are fixed here, test first, with a
   changeset. No messages or reports to colleagues: the work is shippable code.
 - **No merge or rebase of any branch without Alice's OK** (29/10). On 29/10 no other branch had a `ui` change that

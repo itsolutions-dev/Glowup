@@ -2,7 +2,7 @@
 
 What has been **seen working**, where, and the proof. Item 1.3 / A7 of `solaris-native.md`, Stage 4 of
 `docs/status.md`. Filled on 2026-11-02 for the components the four CRM pilot screens used (report, sign-in with 2FA,
-contacts list, customer detail with outcome), plus the add-ons. Update a row when a check is done; a cell without a
+contacts list, customer detail with outcome), plus the add-ons; the components added on 3–4/11 got their rows on 4/11. Update a row when a check is done; a cell without a
 source does not count.
 
 ## How to read it
@@ -36,8 +36,8 @@ source does not count.
 | P-sign | Pilot "sign-in with 2FA" (`Login`, `Verify2FA`, `Setup2FA`), 29/10: web, local Android                   |
 | P-cont | Pilot "contacts list" (`AllCustomers`), 29/10: web, local Android                                        |
 | P-cust | Pilot "customer detail with outcome" (`CustomerSectionPage`, `OutcomeDialog`), 30/10: web, local Android |
-| NC     | `/native-check` in CI, last run on `2aa312d` (2/11): 13 measurements PASS on iPhone, Android 14 and 15   |
-| AI     | `android-interact.mjs` in CI on `2aa312d` (2/11): 16/16 on Android 14 and 15                             |
+| NC     | `/native-check` in CI, last run 4/11 on the pushed `dev`: 13 measurements PASS on iPhone, Android 14, 15 |
+| AI     | `android-interact.mjs` in CI, 4/11 on the pushed `dev`: 16/16 on Android 14 and 15                       |
 | WT     | Web tests in jsdom (2/11): roles and `aria-*`, Escape, Enter, focus ring, no button in a button          |
 | CH     | Chromium checks of the app-breaking fixes (28/10) and of the `aria-*` attributes in the DOM (30/10)      |
 | TB30   | TalkBack on text fields, 30/10 (`docs/pilots/2026-10-30/checks/android-talkback-*`)                      |
@@ -86,6 +86,9 @@ source does not count.
 | `Popover`      | ✅ P-cust (phone numbers)            | –           | –            | ✅ P-cust                                | –     | ◐ TB2 tree                                   | –         |
 | `QrCode`       | ✅ P-sign                            | –           | –            | ✅ P-sign                                | –     | –                                            | –         |
 | `Banner`       | ✅ P-sign                            | –           | –            | ✅ P-sign                                | –     | ◐ TB2 tree                                   | –         |
+| `WeekStrip`    | ✅ 4/11 (arrows, by Alice)           | –           | –            | ✅ 3/11 (press, swipe both ways)         | –     | –                                            | –         |
+| `DayTimeline`  | –                                    | –           | –            | –                                        | –     | –                                            | –         |
+| `Skeleton`     | –                                    | –           | –            | –                                        | –     | –                                            | –         |
 
 ## Overlays and navigation
 
@@ -110,6 +113,11 @@ source does not count.
 | `PivotGrid`                   | ✅ P-rep                          | ✅ NC height, toolbar                        | ✅ AI open/close, scroll, `.xlsx` export | ✅ P-rep                         | –     | ✅ 26/10 grid | –         |
 | `PdfViewer`                   | ✅ PDF (open, print in Chrome)    | ✅ NC open, width, search, refuse, 300 pages | ✅ NC, AI page drawn                     | ✅ PDF (pinch, password, search) | –     | –             | –         |
 | `gradientStyle`               | ✅ P-rep                          | ✅ NC (the bar at the end)                   | ✅                                       | ✅ P-rep                         | –     | n/a           | n/a       |
+
+**Added 4/11, in unit tests only (not seen on a device yet):** `Stepper` `variant="dots"` / `"progress"`,
+`ToggleButtonGroup` with `null`/`true`/`false` values and a `tooltip` per segment, `Dialog` `overline`,
+`leadingActions` and `dividers` (the focus skipping a leading "Delete" is in WT). Their rows above are the older
+props.
 
 ## What the empty columns need
 

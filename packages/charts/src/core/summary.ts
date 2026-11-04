@@ -10,7 +10,10 @@ type Describe = {
   format: (value: number | null | undefined) => string;
   /** Up to this many categories are read out one by one; beyond it only the extremes and the last. Default 12. */
   maxListed?: number;
-  /** Texts per category read after the series (a target, a verdict); only while every category is read one by one. */
+  /**
+   * Texts per category read after the series (a target, a verdict): one by one with the categories, and beyond `maxListed`
+   * summed up (numbers by their range, texts by how many categories have each).
+   */
   notes?: ChartNote[];
 };
 
@@ -77,7 +80,26 @@ export const describeChart = ({
             .filter(Boolean);
           return said.length ? [`${n.name}: ${said.join(", ")}.`] : [];
         })
-      : [];
+      : notes.flatMap((n) => {
+          const nums = n.values.filter(
+            (v): v is number => typeof v === "number" && isNum(v),
+          );
+          const texts = labels
+            .map((_, i) => noteText(n, i, format))
+            .filter(Boolean);
+          if (!texts.length) return [];
+          if (nums.length === texts.length) {
+            const lo = Math.min(...nums);
+            const hi = Math.max(...nums);
+            const range =
+              lo === hi ? format(lo) : `from ${format(lo)} to ${format(hi)}`;
+            return [`${n.name}: ${range}.`];
+          }
+          const counts = new Map<string, number>();
+          for (const t of texts) counts.set(t, (counts.get(t) ?? 0) + 1);
+          const said = [...counts].map(([t, c]) => `${t} ${c}`).join(", ");
+          return [`${n.name}: ${said}.`];
+        });
   return [head, ...parts, ...noted].join(" ");
 };
 

@@ -295,7 +295,7 @@ describe("summary", () => {
     );
   });
 
-  it("adds a note per category after the series, skipping empty ones, only while each category is read", () => {
+  it("adds a note per category after the series, skipping empty ones", () => {
     const series = [{ name: "North", values: [1, 2, null] }];
     const notes = [{ name: "Status", values: ["ok", "", "no"] }];
     expect(describeChart({ labels, series, format, notes })).toBe(
@@ -303,7 +303,28 @@ describe("summary", () => {
     );
     expect(
       describeChart({ labels, series, format, notes, maxListed: 2 }),
-    ).not.toContain("Status");
+    ).toContain("Status: ok 1, no 1.");
+  });
+
+  it("sums up the notes of many categories: texts counted, numbers by range", () => {
+    const many = Array.from({ length: 20 }, (_, i) => `L${i}`);
+    const text = describeChart({
+      labels: many,
+      series: [{ name: "S", values: many.map(() => 1) }],
+      format,
+      notes: [
+        { name: "Target", values: many.map((_, i) => (i < 10 ? 20 : 30)) },
+        {
+          name: "Status",
+          values: many.map((_, i) => (i % 4 ? "Met" : "Missed")),
+        },
+        { name: "Note", values: many.map(() => null) },
+      ],
+    });
+    expect(text).toContain("Target: from 20 to 30.");
+    // In the order the texts first come.
+    expect(text).toContain("Status: Missed 5, Met 15.");
+    expect(text).not.toContain("Note");
   });
 
   it("sums up many points by lowest, highest and last", () => {

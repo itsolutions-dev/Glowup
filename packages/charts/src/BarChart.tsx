@@ -50,7 +50,8 @@ export type BarChartProps = ChartCommonProps & {
   /**
    * An outcome icon past the longest bar of a category, or null for none. `totals` has one entry per column of all the series, shown or not (its `column`
    * id, the series key for a series without one, `"all"` when `stacked`): the sum when stacked, the highest when overlapping.
-   * `label` is read in the tooltip, the table and the text for a screen reader. Not drawn when dense.
+   * `label` is read in the tooltip, the table and the text for a screen reader. Not drawn when dense. Made for values of 0 and
+   * more: past a negative bar the icon sits on the zero line, and the highest of an overlapping column is the one nearest zero.
    */
   marker?: (
     datum: ChartDatum,

@@ -112,18 +112,22 @@ export const useChartBase = (
         testID: testID ? `${testID}-legend` : undefined,
       })
     : null;
+  // A note with nothing in any category (every target null, say) is no column.
+  const tableNotes = notes.filter((n) =>
+    data.some((_, i) => noteText(n, i, format)),
+  );
   const tableNode: ReactElement | null =
     table && !loading && data.length > 0 && shown.length > 0
       ? createElement(ChartTable, {
           header: [
             "",
             ...shown.map(({ s }) => s.label ?? s.key),
-            ...notes.map((n) => n.name),
+            ...tableNotes.map((n) => n.name),
           ],
           rows: data.map((d, i) => [
             d.label,
             ...shown.map(({ s }) => format(num(d[s.key]))),
-            ...notes.map((n) => noteText(n, i, format) || "–"),
+            ...tableNotes.map((n) => noteText(n, i, format) || "–"),
           ]),
           activeRow: hovered ?? selected,
           onRowPress: toggle,

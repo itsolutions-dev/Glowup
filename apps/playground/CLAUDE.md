@@ -250,10 +250,10 @@ depends on them, and without a direct dependency npm resolves releases outside t
 
 ## Keyboard
 
-`site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web and is a no-op
+`site/useKeyboardShortcuts.ts` binds the site's shortcuts to `document` on web (a shortcut may require Shift with `shift`, and one that names Shift wins over one that does not care: `matchShortcut`) and is a no-op
 on native. `SiteShell` owns the list — ⌘/Ctrl+K or `/` for the command palette, `[` and `]` to
 step through the catalogue, `t` for the scheme, `?` for the list itself — and `ShortcutsDialog`
-renders that same array, so a shortcut cannot exist without being documented.
+renders that same array, so a shortcut cannot exist without being documented. A page adds its own with `usePageShortcuts` (`site/pageShortcuts.tsx`): bound with the shell's while the page is mounted and listed under "This page".
 
 ## Responsive
 
@@ -358,6 +358,24 @@ field, `required`, Data as JSON, Layout as numbers through `placeNode`, Field, T
 is pure, in `editor/panels.ts`. Every change passes a key to `editor.apply` (`text:<id>`, `props:<id>:<name>`, …), so the
 keystrokes in one field are one undo step. On `/templates/editor` the site's navigation is its rail (`wideNav` in
 `site/SiteShell.tsx`), which leaves the canvas 760 dp at 1440.
+
+**Saved layouts** (spec §12, §14): one JSON value in AsyncStorage (`glowup.editor.library`: `{ version, open, layouts }`),
+pure in `editor/library.ts` and read back through `parseLayout`, so what cannot be read is dropped instead of crashing
+the page. `editor/canvas/useLibrary.ts` loads it once (the page renders after hydration and the load), writes it back on
+every change (fire and forget) and saves the open layout 500 ms after the last edit (`useAutosave`); before another
+layout opens the open one is saved at once, and `editor.load` gives the new one a fresh history. Nothing is written until a read has succeeded (a failed read must not replace the stored library); on the web a `storage` event from another tab reloads it before this tab writes; a pending save is flushed on unmount and on `pagehide`. `MANIFEST` has no prototype, so a type read from a file never matches an inherited name. The toolbar's
+"Layouts" (`LayoutsDialog.tsx`) opens, renames and deletes them and starts new ones blank or from a starter
+(`editor/starters/`: "Pagina di dettaglio", "Nuovo cliente", "Cruscotto vendite", each sound, exported, compiled and
+type-checked by the export tests). Tests mock AsyncStorage as an in-memory map.
+
+**Widths and keys** (spec §17, §14): `editorArrangement` in `site/breakpoints.ts` picks three columns (from 1400:
+the 720 dp canvas beside the rail and the panels), side sheets (600–1399: `Sheet.tsx`, Add and Properties toggled from the
+toolbar, one at a time; a drag out of the Add sheet hides it, still mounted, and closes it at the end) or the phone's
+arrangement (below 600: the canvas drawn as the phone whatever the width switch held, a banner, the panels in
+`BottomSheet`s). The editor's shortcuts (`editor/canvas/shortcuts.ts`, the grid steps pure in `editor/keys.ts`) are
+registered with `usePageShortcuts` and listed in the site's dialog under "This page". None while Layouts or Export is open, none while the site's own dialogs are (`withPageShortcuts`), and a key a focused widget already handled (`defaultPrevented`: the Layers tree's arrows, a slider) reaches no shortcut. Page tests set the window with
+`Dimensions.set` (jest's default is a 750-wide phone, the sheets arrangement). The device pass is
+`docs/layout-editor-device-checklist.md`.
 
 **Export** (the toolbar's button, `editor/canvas/ExportPanel.tsx`): a `Dialog` with the code, a Preview and the JSON.
 `editor/codegen.ts` (`exportCode`, pure) prints the document as a component file in the examples' shape (2 spaces,

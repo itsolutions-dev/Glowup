@@ -12,7 +12,7 @@ import {
   type LayoutDocument,
   type LayoutNode,
 } from "../editor/document";
-import detail from "../editor/starters/detail.json";
+import { STARTERS } from "../editor/starters";
 import { compileExample } from "../site/liveCode";
 
 const Providers = ({ children }: { children: React.ReactNode }) => (
@@ -69,8 +69,11 @@ const page = (name: string, items: LayoutNode[]): LayoutDocument => ({
 });
 
 describe("the export draws what the canvas draws", () => {
-  it.each([
-    ["the starter", detail as LayoutDocument],
+  it.each<[string, LayoutDocument]>([
+    ...STARTERS.map((s): [string, LayoutDocument] => [
+      `the starter ${s.id}`,
+      s.doc,
+    ]),
     ["the fixture", fixture as LayoutDocument],
   ])("%s exports a file that draws what the canvas draws", async (_, doc) => {
     const canvas = await canvasTexts(doc);

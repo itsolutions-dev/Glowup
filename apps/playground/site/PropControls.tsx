@@ -122,6 +122,18 @@ const PropControl = ({
   // passes through while typing and neither survives a round trip through
   // Number().
   const [draft, setDraft] = useState<string | null>(null);
+  // A value changed from outside (an undo in the layout editor) replaces the
+  // draft, unless the draft already says it ("1." is 1, an empty field the default).
+  const [seen, setSeen] = useState(value);
+  if (seen !== value) {
+    setSeen(value);
+    const says =
+      draft === null ||
+      (draft.trim() === ""
+        ? value === definition.default
+        : Number(draft) === value);
+    if (!says) setDraft(null);
+  }
   const [pickerOpen, setPickerOpen] = useState(false);
 
   switch (definition.type) {

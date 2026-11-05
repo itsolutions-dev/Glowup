@@ -32,6 +32,8 @@ export interface Editor {
   /** The panel shown of each TabbedPanel: canvas state, not in the document or history. */
   tabs: Record<NodeId, number>;
   showTab(id: NodeId, tab: number): void;
+  /** Another layout: a fresh history (nothing to undo), no selection, no open tabs. */
+  load(doc: LayoutDocument): void;
 }
 
 interface State {
@@ -49,7 +51,8 @@ type Action =
   | { type: "undo" }
   | { type: "redo" }
   | { type: "select"; id: NodeId | null }
-  | { type: "tab"; id: NodeId; tab: number };
+  | { type: "tab"; id: NodeId; tab: number }
+  | { type: "load"; doc: LayoutDocument };
 
 /** A selection whose node left the document is dropped, not revived by an undo. */
 const keep = (state: State, history: History): State => {
@@ -85,7 +88,14 @@ const reduce = (state: State, action: Action): State => {
     case "select":
       return action.id === state.selected
         ? state
-        : { ...state, selected: action.id };
+        : {
+            ...state,
+            selected: action.id,
+            // The next edit is a step of its own, even in a field of the same key.
+            history: { ...state.history, lastKey: null },
+          };
+    case "load":
+      return { history: createHistory(action.doc), selected: null, tabs: {} };
     case "tab":
       return state.tabs[action.id] === action.tab
         ? state
@@ -118,6 +128,10 @@ export const useEditor = (initial: LayoutDocument): Editor => {
   );
   const undoDoc = useCallback(() => dispatch({ type: "undo" }), []);
   const redoDoc = useCallback(() => dispatch({ type: "redo" }), []);
+  const load = useCallback(
+    (doc: LayoutDocument) => dispatch({ type: "load", doc }),
+    [],
+  );
   const showTab = useCallback(
     (id: NodeId, tab: number) => dispatch({ type: "tab", id, tab }),
     [],
@@ -136,6 +150,7 @@ export const useEditor = (initial: LayoutDocument): Editor => {
       canRedo: state.history.future.length > 0,
       tabs,
       showTab,
+      load,
     }),
     [
       doc,
@@ -148,6 +163,7 @@ export const useEditor = (initial: LayoutDocument): Editor => {
       state.history,
       tabs,
       showTab,
+      load,
     ],
   );
 };

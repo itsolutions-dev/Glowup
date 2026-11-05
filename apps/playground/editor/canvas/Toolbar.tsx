@@ -20,16 +20,30 @@ export const Toolbar = ({
   device,
   onDevice,
   onExport,
+  onLayouts,
+  arrangement = "columns",
+  panel = null,
+  onPanel,
 }: {
+  /** Below 1400 dp the panels are opened from here (§17). */
+  arrangement?: "columns" | "sheets" | "compact";
+  panel?: "add" | "properties" | null;
+  onPanel?: (panel: "add" | "properties") => void;
   editor: Editor;
   device: StageWidth;
   onDevice: (device: StageWidth) => void;
   onExport: () => void;
+  onLayouts: () => void;
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   return (
     <View style={styles.bar}>
+      <IconButton
+        icon="folder-outline"
+        accessibilityLabel="Layouts"
+        onClick={onLayouts}
+      />
       <Typography variant="titleMedium" style={styles.name}>
         {editor.doc.name}
       </Typography>
@@ -45,13 +59,32 @@ export const Toolbar = ({
         disabled={!editor.canRedo}
         onClick={editor.redo}
       />
-      {/* The component pages' stage widths: the page as a phone, a tablet, the whole canvas. */}
-      <ToggleButtonGroup
-        accessibilityLabel="Canvas width"
-        value={device}
-        onValueChange={(value) => onDevice(value as StageWidth)}
-        options={[...STAGE_WIDTH_OPTIONS]}
-      />
+      {arrangement !== "columns" ? (
+        <>
+          <IconButton
+            icon="plus-box-outline"
+            accessibilityLabel="Add"
+            variant={panel === "add" ? "tonal" : "standard"}
+            onClick={() => onPanel?.("add")}
+          />
+          <IconButton
+            icon="tune-variant"
+            accessibilityLabel="Properties"
+            variant={panel === "properties" ? "tonal" : "standard"}
+            onClick={() => onPanel?.("properties")}
+          />
+        </>
+      ) : null}
+      {/* The component pages' stage widths: the page as a phone, a tablet, the
+          whole canvas. Not on a phone, which is the phone. */}
+      {arrangement !== "compact" ? (
+        <ToggleButtonGroup
+          accessibilityLabel="Canvas width"
+          value={device}
+          onValueChange={(value) => onDevice(value as StageWidth)}
+          options={[...STAGE_WIDTH_OPTIONS]}
+        />
+      ) : null}
       <Button variant="tonal" iconName="export-variant" onClick={onExport}>
         Export
       </Button>

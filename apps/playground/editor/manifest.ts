@@ -333,8 +333,13 @@ const ENTRIES: ManifestEntry[] = [
   entry("ScrollArea", "grid", [L, "gesture-swipe-vertical"], [6, 4], [2, 2]),
 ];
 
-export const MANIFEST: Record<string, ManifestEntry> = Object.fromEntries(
-  ENTRIES.map((e) => [e.type, e]),
+/**
+ * Without a prototype: a type read from a file ("constructor", "toString")
+ * must not find what every object inherits and pass for a component.
+ */
+export const MANIFEST: Record<string, ManifestEntry> = Object.assign(
+  Object.create(null),
+  Object.fromEntries(ENTRIES.map((e) => [e.type, e])),
 );
 
 /** Catalogued components the palette leaves out, each with its reason. */

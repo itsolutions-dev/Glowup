@@ -353,6 +353,14 @@ export const setProps = (
   return out === doc ? doc : normalizeFields(out);
 };
 
+/** The layout's name, trimmed; refused when empty or unchanged. */
+export const setName = (doc: LayoutDocument, name: string): LayoutDocument => {
+  const trimmed = name.trim();
+  return trimmed === "" || trimmed === doc.name
+    ? doc
+    : { ...doc, name: trimmed };
+};
+
 /** A text component's label; refused on any other kind. */
 export const setText = (
   doc: LayoutDocument,

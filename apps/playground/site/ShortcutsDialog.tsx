@@ -13,15 +13,35 @@ import { COMMAND_KEY_LABEL } from "./useKeyboardShortcuts";
  */
 export const ShortcutsDialog = ({
   shortcuts,
+  pageShortcuts = [],
   visible,
   onDismiss,
 }: {
   shortcuts: Shortcut[];
+  /** The page on screen's own (`usePageShortcuts`), under "This page". */
+  pageShortcuts?: Shortcut[];
   visible: boolean;
   onDismiss: () => void;
 }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const row = (shortcut: Shortcut) => (
+    <View key={shortcut.description} style={styles.row}>
+      <View style={styles.keys}>
+        {shortcut.meta ? (
+          <Text style={styles.key}>{COMMAND_KEY_LABEL}</Text>
+        ) : null}
+        {shortcut.shift ? <Text style={styles.key}>Shift</Text> : null}
+        <Text style={styles.key}>{shortcut.label}</Text>
+      </View>
+      <Typography
+        variant="bodyMedium"
+        style={{ color: theme.colors.onSurfaceVariant, flex: 1 }}
+      >
+        {shortcut.description}
+      </Typography>
+    </View>
+  );
 
   return (
     <Dialog
@@ -31,22 +51,13 @@ export const ShortcutsDialog = ({
       icon="keyboard-outline"
     >
       <View style={styles.list}>
-        {shortcuts.map((shortcut) => (
-          <View key={shortcut.label} style={styles.row}>
-            <View style={styles.keys}>
-              {shortcut.meta ? (
-                <Text style={styles.key}>{COMMAND_KEY_LABEL}</Text>
-              ) : null}
-              <Text style={styles.key}>{shortcut.label}</Text>
-            </View>
-            <Typography
-              variant="bodyMedium"
-              style={{ color: theme.colors.onSurfaceVariant, flex: 1 }}
-            >
-              {shortcut.description}
-            </Typography>
-          </View>
-        ))}
+        {shortcuts.map(row)}
+        {pageShortcuts.length > 0 ? (
+          <Typography variant="labelLarge" style={styles.group}>
+            This page
+          </Typography>
+        ) : null}
+        {pageShortcuts.map(row)}
       </View>
     </Dialog>
   );
@@ -55,6 +66,7 @@ export const ShortcutsDialog = ({
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
     list: { gap: theme.spacing.s, minWidth: 280 },
+    group: { marginTop: theme.spacing.s },
     row: {
       flexDirection: "row",
       alignItems: "center",

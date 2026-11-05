@@ -1,0 +1,92 @@
+{
+  "format": "glowup-layout",
+  "version": 1,
+  "name": "Cruscotto vendite",
+  "grid": { "columns": 12, "rowHeight": 48, "gap": 16 },
+  "items": [
+    {
+      "id": "n1",
+      "type": "Stat",
+      "props": { "label": "Fatturato", "value": "€ 128.400" },
+      "layout": { "x": 0, "y": 0, "w": 3, "h": 2 }
+    },
+    {
+      "id": "n2",
+      "type": "Stat",
+      "props": { "label": "Ordini", "value": "1.284" },
+      "layout": { "x": 3, "y": 0, "w": 3, "h": 2 }
+    },
+    {
+      "id": "n3",
+      "type": "Stat",
+      "props": { "label": "Clienti", "value": "342" },
+      "layout": { "x": 6, "y": 0, "w": 3, "h": 2 }
+    },
+    {
+      "id": "n4",
+      "type": "Stat",
+      "props": { "label": "Resi", "value": "1,8%" },
+      "layout": { "x": 9, "y": 0, "w": 3, "h": 2 }
+    },
+    {
+      "id": "n5",
+      "type": "Paper",
+      "props": {},
+      "layout": { "x": 0, "y": 2, "w": 12, "h": 8 },
+      "columns": 12,
+      "children": [
+        {
+          "id": "n6",
+          "type": "Typography",
+          "props": { "variant": "titleMedium" },
+          "text": "Ultimi ordini",
+          "layout": { "x": 0, "y": 0, "w": 12, "h": 1 }
+        },
+        {
+          "id": "n7",
+          "type": "DataGrid",
+          "props": {
+            "columns": [
+              { "id": "cliente", "label": "Cliente" },
+              { "id": "data", "label": "Data" },
+              { "id": "totale", "label": "Totale" }
+            ],
+            "data": [
+              {
+                "id": "1",
+                "cliente": "Rossi Srl",
+                "data": "03/11/2026",
+                "totale": "€ 1.200"
+              },
+              {
+                "id": "2",
+                "cliente": "Bianchi SpA",
+                "data": "02/11/2026",
+                "totale": "€ 860"
+              },
+              {
+                "id": "3",
+                "cliente": "Verdi & C.",
+                "data": "02/11/2026",
+                "totale": "€ 2.340"
+              },
+              {
+                "id": "4",
+                "cliente": "Neri Snc",
+                "data": "31/10/2026",
+                "totale": "€ 415"
+              },
+              {
+                "id": "5",
+                "cliente": "Gallo Srl",
+                "data": "30/10/2026",
+                "totale": "€ 1.090"
+              }
+            ]
+          },
+          "layout": { "x": 0, "y": 1, "w": 12, "h": 6 }
+        }
+      ]
+    }
+  ]
+}

@@ -45,6 +45,11 @@ const draw = (initial: LayoutDocument = fixture as LayoutDocument) =>
 const select = (id: string) => act(async () => editor.select(id));
 const type = (label: string, text: string) =>
   fireEvent.changeText(screen.getByLabelText(label), text);
+/** Typed, then the field left: what commits a position. */
+const enter = async (label: string, text: string) => {
+  await type(label, text);
+  await fireEvent(screen.getByLabelText(label), "blur");
+};
 const node = (id: string) => findNode(editor.doc, id) as LayoutNode;
 
 /** The switch in the row whose text is `label`. */
@@ -93,15 +98,15 @@ describe("the Properties panel", () => {
   it("moves and resizes by numbers, as dragging would", async () => {
     await draw();
     await select("n1");
-    await type("w", "8");
+    await enter("w", "8");
     expect(node("n1").layout?.w).toBe(8);
-    await type("w", "abc");
+    await enter("w", "abc");
     expect(node("n1").layout?.w).toBe(8);
-    await type("x", "-3");
+    await enter("x", "-3");
     expect(node("n1").layout?.x).toBe(0);
-    await type("w", "99");
+    await enter("w", "99");
     expect(node("n1").layout?.w).toBe(12);
-    await type("h", "1.5");
+    await enter("h", "1.5");
     expect(Number.isInteger(node("n1").layout?.h)).toBe(true);
     expect(checkDocument(editor.doc)).toEqual([]);
   });
@@ -185,5 +190,71 @@ describe("the Properties panel", () => {
     await draw();
     await select("n6");
     expect(screen.getByText(/onClick/)).toBeTruthy();
+  });
+});
+
+describe("the Properties panel, after the review", () => {
+  it("commits a typed position when the field is left, as one step", async () => {
+    await draw();
+    await select("n1");
+    await type("w", "1");
+    expect(node("n1").layout?.w).toBe(6);
+    await type("w", "10");
+    expect(node("n1").layout?.w).toBe(6);
+    await fireEvent(screen.getByLabelText("w"), "blur");
+    expect(node("n1").layout?.w).toBe(10);
+    await act(async () => editor.undo());
+    expect(node("n1").layout?.w).toBe(6);
+  });
+
+  it("shows a number prop's stored value again after an undo", async () => {
+    await draw(
+      withItems({
+        id: "n7",
+        type: "QrCode",
+        props: { value: "https://example.com" },
+        layout: { x: 4, y: 4, w: 2, h: 3 },
+      }),
+    );
+    await select("n7");
+    await type("Size (px)", "200");
+    expect(node("n7").props.size).toBe(200);
+    await act(async () => editor.undo());
+    expect(screen.getByLabelText("Size (px)").props.value).toBe("160");
+  });
+
+  it("edits a VStack's spacing with Stack's controls, without its direction", async () => {
+    await draw();
+    await select("n5");
+    expect(screen.getByText("Spacing")).toBeTruthy();
+    expect(screen.queryByText("Direction")).toBeNull();
+  });
+
+  it("starts a new undo step when the selection changes", async () => {
+    await draw();
+    await select("n2");
+    await type("Text", "A");
+    await select("n6");
+    await select("n2");
+    await type("Text", "AB");
+    await act(async () => editor.undo());
+    expect(node("n2").text).toBe("A");
+  });
+
+  it("refuses list items of another kind", async () => {
+    const options = [{ label: "One", value: "1" }];
+    await draw(
+      withItems({
+        id: "n7",
+        type: "Select",
+        props: { label: "Choice", options },
+        layout: { x: 4, y: 4, w: 4, h: 2 },
+      }),
+    );
+    await select("n7");
+    await type("options", "[1, 2]");
+    expect(screen.getByText("Every item must be an object")).toBeTruthy();
+    await type("options", "[null]");
+    expect(node("n7").props.options).toEqual(options);
   });
 });

@@ -8,6 +8,7 @@ import { exportCode } from "../editor/codegen";
 import { emptyDocument, type LayoutDocument } from "../editor/document";
 import { MANIFEST } from "../editor/manifest";
 import { insertNode } from "../editor/operations";
+import { STARTERS } from "../editor/starters";
 
 const errorsOf = (code: string): string[] => {
   const configPath = join(__dirname, "../tsconfig.json");
@@ -63,5 +64,11 @@ const everything = (): LayoutDocument => {
 describe("the exported file type-checks", () => {
   it("for every palette type, empty containers and bound fields", () => {
     expect(errorsOf(exportCode(everything()))).toEqual([]);
+  }, 180_000);
+
+  it("for every starter", () => {
+    for (const { doc } of STARTERS) {
+      expect(errorsOf(exportCode(doc))).toEqual([]);
+    }
   }, 180_000);
 });

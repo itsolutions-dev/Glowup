@@ -1,0 +1,96 @@
+{
+  "format": "glowup-layout",
+  "version": 1,
+  "name": "Nuovo cliente",
+  "grid": { "columns": 12, "rowHeight": 48, "gap": 16 },
+  "items": [
+    {
+      "id": "n1",
+      "type": "Form",
+      "props": {},
+      "layout": { "x": 0, "y": 0, "w": 8, "h": 10 },
+      "columns": 8,
+      "children": [
+        {
+          "id": "n2",
+          "type": "Typography",
+          "props": { "variant": "titleSmall" },
+          "text": "Dati anagrafici",
+          "layout": { "x": 0, "y": 0, "w": 8, "h": 1 }
+        },
+        {
+          "id": "n3",
+          "type": "Input",
+          "props": { "label": "Nome" },
+          "layout": { "x": 0, "y": 1, "w": 4, "h": 2 },
+          "field": {
+            "name": "nome",
+            "rules": [{ "required": true }],
+            "auto": true
+          }
+        },
+        {
+          "id": "n4",
+          "type": "Input",
+          "props": { "label": "Cognome" },
+          "layout": { "x": 4, "y": 1, "w": 4, "h": 2 },
+          "field": {
+            "name": "cognome",
+            "rules": [{ "required": true }],
+            "auto": true
+          }
+        },
+        {
+          "id": "n5",
+          "type": "DatePicker",
+          "props": { "label": "Data di nascita" },
+          "layout": { "x": 0, "y": 3, "w": 4, "h": 2 },
+          "field": { "name": "dataDiNascita", "rules": [], "auto": true }
+        },
+        {
+          "id": "n6",
+          "type": "Typography",
+          "props": { "variant": "titleSmall" },
+          "text": "Contatti",
+          "layout": { "x": 0, "y": 5, "w": 8, "h": 1 }
+        },
+        {
+          "id": "n7",
+          "type": "Input",
+          "props": { "label": "Email" },
+          "layout": { "x": 0, "y": 6, "w": 4, "h": 2 },
+          "field": {
+            "name": "email",
+            "rules": [{ "required": true }, { "type": "email" }],
+            "auto": true
+          }
+        },
+        {
+          "id": "n8",
+          "type": "Input",
+          "props": { "label": "Telefono" },
+          "layout": { "x": 4, "y": 6, "w": 4, "h": 2 },
+          "field": { "name": "telefono", "rules": [], "auto": true }
+        },
+        {
+          "id": "n9",
+          "type": "Checkbox",
+          "props": { "label": "Accetto l'informativa" },
+          "layout": { "x": 0, "y": 8, "w": 5, "h": 1 },
+          "field": {
+            "name": "accettoLInformativa",
+            "rules": [{ "required": true }],
+            "auto": true
+          }
+        },
+        {
+          "id": "n10",
+          "type": "Button",
+          "props": { "type": "submit" },
+          "text": "Salva",
+          "layout": { "x": 5, "y": 8, "w": 3, "h": 1 }
+        }
+      ]
+    }
+  ]
+}

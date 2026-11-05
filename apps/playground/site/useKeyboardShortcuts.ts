@@ -6,6 +6,11 @@ export interface Shortcut {
   key: string;
   /** Requires the platform's command key (⌘ on macOS, Ctrl elsewhere). */
   meta?: boolean;
+  /**
+   * Requires Shift held (true) or not held (false); left out, Shift is not
+   * looked at — "?" is a shifted key on most layouts.
+   */
+  shift?: boolean;
   label: string;
   description: string;
   run: () => void;
@@ -29,6 +34,37 @@ const isTypingTarget = (target: EventTarget | null): boolean => {
   );
 };
 
+/** The shortcut a key press runs, if any: what the document listener uses. */
+export const matchShortcut = (
+  shortcuts: Shortcut[],
+  event: {
+    key: string;
+    metaKey: boolean;
+    ctrlKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+    /** A focused widget (a tree, a slider) already used the key. */
+    defaultPrevented?: boolean;
+  },
+  typing: boolean,
+): Shortcut | undefined => {
+  // A modifier combination the page does not claim belongs to the browser,
+  // and a key a focused widget already handled belongs to that widget.
+  if (event.altKey || event.defaultPrevented) return undefined;
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  const commandKey = event.metaKey || event.ctrlKey;
+  const matches = shortcuts.filter(
+    (shortcut) =>
+      (shortcut.meta === true) === commandKey &&
+      (shortcut.shift === undefined || shortcut.shift === event.shiftKey) &&
+      shortcut.key === key &&
+      (!typing || shortcut.whileTyping === true),
+  );
+  // One that names the Shift state wins over one that does not care:
+  // Ctrl+Shift+Z is redo even with an undo on Ctrl+Z listed first.
+  return matches.find((s) => s.shift !== undefined) ?? matches[0];
+};
+
 /**
  * Binds a set of keyboard shortcuts to the document.
  *
@@ -41,23 +77,14 @@ export const useKeyboardShortcuts = (shortcuts: Shortcut[]) => {
     if (Platform.OS !== "web" || typeof document === "undefined") return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      // A modifier combination the page does not claim belongs to the browser.
-      if (event.altKey) return;
-
-      const typing = isTypingTarget(event.target);
-      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      const commandKey = event.metaKey || event.ctrlKey;
-
-      for (const shortcut of shortcuts) {
-        const wantsCommand = shortcut.meta === true;
-        if (wantsCommand !== commandKey) continue;
-        if (shortcut.key !== key) continue;
-        if (typing && !shortcut.whileTyping) continue;
-
-        event.preventDefault();
-        shortcut.run();
-        return;
-      }
+      const shortcut = matchShortcut(
+        shortcuts,
+        event,
+        isTypingTarget(event.target),
+      );
+      if (!shortcut) return;
+      event.preventDefault();
+      shortcut.run();
     };
 
     document.addEventListener("keydown", onKeyDown);

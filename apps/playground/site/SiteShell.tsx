@@ -23,6 +23,7 @@ import { FLAT_ORDER } from "../catalogue/categories";
 import { useLayout } from "./breakpoints";
 import { CommandPalette } from "./CommandPalette";
 import { ShortcutsDialog } from "./ShortcutsDialog";
+import { PageShortcutsContext, withPageShortcuts } from "./pageShortcuts";
 import {
   COMMAND_KEY_LABEL,
   useKeyboardShortcuts,
@@ -137,7 +138,14 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
     [step, toggleTheme],
   );
 
-  useKeyboardShortcuts(shortcuts);
+  // The page on screen's own shortcuts (usePageShortcuts), bound and listed with these.
+  const [pageShortcuts, setPageShortcuts] = useState<Shortcut[]>([]);
+  const bound = useMemo(
+    () =>
+      withPageShortcuts(shortcuts, pageShortcuts, shortcutsOpen || paletteOpen),
+    [shortcuts, pageShortcuts, shortcutsOpen, paletteOpen],
+  );
+  useKeyboardShortcuts(bound);
   // Site-wide preferences live with the chrome that owns them: the shell is
   // mounted for every route, so the colour set is restored wherever the reader
   // lands, not only on /theming.
@@ -246,7 +254,11 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
           />
         )}
 
-        <View style={styles.content}>{children}</View>
+        <View style={styles.content}>
+          <PageShortcutsContext.Provider value={setPageShortcuts}>
+            {children}
+          </PageShortcutsContext.Provider>
+        </View>
       </View>
 
       {drawerOpen && (
@@ -262,6 +274,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
 
       <ShortcutsDialog
         shortcuts={shortcuts}
+        pageShortcuts={pageShortcuts}
         visible={shortcutsOpen}
         onDismiss={() => setShortcutsOpen(false)}
       />

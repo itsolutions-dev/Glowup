@@ -32,6 +32,20 @@ export const sizeClassFor = (width: number): SizeClass => {
   return match;
 };
 
+/**
+ * How the layout editor lays out (spec §17): its three columns need a canvas
+ * of 720 dp beside the rail (80) and the panels (280 + 320), so from 1400;
+ * side sheets from 600; below that the phone's arrangement.
+ */
+export const editorArrangement = (
+  width: number,
+): "columns" | "sheets" | "compact" =>
+  width >= 1400
+    ? "columns"
+    : width >= BREAKPOINTS.medium
+      ? "sheets"
+      : "compact";
+
 export interface Layout {
   width: number;
   height: number;

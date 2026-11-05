@@ -261,7 +261,13 @@ export const Canvas = ({
   editor,
   left,
   device = "full",
+  onDragStart,
+  onDragFinish,
 }: {
+  /** A drag began (a sheet it started in gets out of the way). */
+  onDragStart?: () => void;
+  /** A drag ended, dropped or cancelled. */
+  onDragFinish?: () => void;
   editor: Editor;
   /** The page's width: the whole canvas, a tablet's or a phone's (§17). */
   device?: StageWidth;
@@ -271,6 +277,7 @@ export const Canvas = ({
   const rects = useMemo(() => createRects(), []);
   const drawnRef: Drawn = useRef(null);
   const onDragEnd = ({ active, over }: DragEndEvent) => {
+    onDragFinish?.();
     const plan = dropTarget(editor.doc, active, over);
     if (!plan) return;
     const drawn = drawnRef.current;
@@ -284,7 +291,11 @@ export const Canvas = ({
   };
   return (
     <RectsProvider value={rects}>
-      <DragDropProvider onDragEnd={onDragEnd}>
+      <DragDropProvider
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onDragCancel={onDragFinish}
+      >
         <View style={styles.row}>
           {left}
           <CanvasBody editor={editor} drawnRef={drawnRef} device={device} />

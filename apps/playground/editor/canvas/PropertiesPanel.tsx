@@ -51,11 +51,18 @@ const DraftField = ({
   value,
   commit,
   area = false,
+  onLeave = false,
 }: {
   label: string;
   value: string;
   commit: (text: string) => string | null;
   area?: boolean;
+  /**
+   * Commit when the field is left (or Enter is pressed), not on every
+   * keystroke: a position typed digit by digit would otherwise place the node
+   * at every number on the way ("1", then "10") and push others for nothing.
+   */
+  onLeave?: boolean;
 }) => {
   const [text, setText] = useState(value);
   const [problem, setProblem] = useState<string | null>(null);
@@ -69,7 +76,14 @@ const DraftField = ({
   }
   const onChange = (next: string) => {
     setText(next);
-    setProblem(commit(next));
+    setProblem(onLeave ? null : commit(next));
+  };
+  const leave = () => {
+    const why = commit(text);
+    setProblem(why);
+    // Applied, or nothing to apply: the field shows the stored value again
+    // (a changed one arrives as a new value and replaces it anyway).
+    if (!why) setText(value);
   };
   return area ? (
     <InputArea
@@ -85,6 +99,9 @@ const DraftField = ({
       value={text}
       onChange={onChange}
       error={problem ?? undefined}
+      {...(onLeave
+        ? { onBlur: leave, inputProps: { onSubmitEditing: leave } }
+        : {})}
     />
   );
 };
@@ -108,6 +125,17 @@ const Section = ({
 
 const LAYOUT_KEYS = ["x", "y", "w", "h"] as const;
 
+/**
+ * The controls for a type: its catalogue entry, or for VStack and HStack
+ * (no page of their own) Stack's, less the direction their name fixes.
+ */
+const registryFor = (type: string) => {
+  if (ComponentRegistry[type]) return ComponentRegistry[type];
+  if (type !== "VStack" && type !== "HStack") return undefined;
+  const { direction: _fixed, ...props } = ComponentRegistry.Stack.props;
+  return { ...ComponentRegistry.Stack, name: type, props };
+};
+
 const Body = ({
   editor,
   node,
@@ -120,7 +148,7 @@ const Body = ({
   const { doc, apply } = editor;
   const id: NodeId = node.id;
   const entry = entryFor(node.type);
-  const meta = ComponentRegistry[node.type];
+  const meta = registryFor(node.type);
   const [removing, setRemoving] = useState<number | null>(null);
 
   // The registry's controls, but not its `children` (Content owns the text)
@@ -228,6 +256,17 @@ const Body = ({
                     return "Not valid JSON";
                   }
                   const kind = kindOf(current);
+                  // A list keeps the kind of its items: a Select's options
+                  // given [null] would break the component, and the page.
+                  const item = Array.isArray(current) ? current[0] : undefined;
+                  if (
+                    item !== undefined &&
+                    Array.isArray(parsed) &&
+                    parsed.some((p) => kindOf(p) !== kindOf(item))
+                  ) {
+                    const k = kindOf(item);
+                    return `Every item must be ${k === "object" || k === "array" ? "an" : "a"} ${k}`;
+                  }
                   if (current !== undefined && kindOf(parsed) !== kind) {
                     return `Expected ${kind === "array" ? "an array" : `a${kind === "object" ? "n" : ""} ${kind}`}`;
                   }
@@ -248,26 +287,26 @@ const Body = ({
           <View style={styles.row}>
             {LAYOUT_KEYS.map((key) => (
               <View key={key} style={styles.grow}>
-                <Input
+                <DraftField
                   label={key}
                   value={String(node.layout?.[key] ?? "")}
-                  type="number"
-                  onChange={(text) => {
+                  onLeave
+                  commit={(text) => {
                     const n = Number(text);
+                    if (text.trim() === "" || !Number.isFinite(n)) {
+                      return "Not a number";
+                    }
                     // Same rules as dragging: placeNode clamps what it is given.
-                    if (
-                      text.trim() === "" ||
-                      !Number.isFinite(n) ||
-                      !node.layout
-                    )
-                      return;
-                    apply(
-                      placeNode(doc, id, {
-                        ...node.layout,
-                        [key]: Math.round(n),
-                      }),
-                      `layout:${id}`,
-                    );
+                    if (node.layout) {
+                      apply(
+                        placeNode(doc, id, {
+                          ...node.layout,
+                          [key]: Math.round(n),
+                        }),
+                        `layout:${id}:${key}`,
+                      );
+                    }
+                    return null;
                   }}
                 />
               </View>

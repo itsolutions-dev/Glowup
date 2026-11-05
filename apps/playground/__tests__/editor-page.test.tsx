@@ -1,6 +1,8 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import {
+  act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -11,12 +13,22 @@ import { ThemeProvider } from "@its/glowup-ui";
 import { router } from "expo-router";
 
 import LayoutEditorPage from "../app/templates/editor";
+import { PageShortcutsContext } from "../site/pageShortcuts";
 import Templates from "../app/templates";
 import detail from "../editor/starters/detail.json";
 import { checkDocument } from "../editor/check";
 import type { LayoutDocument } from "../editor/document";
 
 // No navigator is mounted in a test: the router is a spy and Link renders what it wraps.
+// The saved layouts live in AsyncStorage: an in-memory map, emptied before each test.
+const mockStore = new Map<string, string>();
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(async (key: string) => mockStore.get(key) ?? null),
+  setItem: jest.fn(async (key: string, value: string) => {
+    mockStore.set(key, value);
+  }),
+}));
+
 jest.mock("expo-router", () => {
   const { Fragment } = jest.requireActual("react");
   return {
@@ -36,8 +48,17 @@ jest.mock("../site/useHydrated", () => ({
 
 const at = (x: number, y: number) => ({ nativeEvent: { pageX: x, pageY: y } });
 
-beforeEach(() => {
+/** The window the page is drawn in (jest's default is a 750-wide phone). */
+const setWidth = (width: number) =>
+  act(() => {
+    const size = { width, height: 900, scale: 1, fontScale: 1 };
+    Dimensions.set({ window: size, screen: size });
+  });
+
+beforeEach(async () => {
+  await setWidth(1440);
   mockHydrated = true;
+  mockStore.clear();
   for (const component of [View, ScrollView]) {
     jest
       .spyOn(component.prototype as any, "measureInWindow")
@@ -241,5 +262,171 @@ describe("the panels", () => {
     expect(
       within(screen.getByTestId("frame-n7")).getByText("Cellulare"),
     ).toBeTruthy();
+  });
+});
+
+/** Time passing on real timers: the autosave waits 500 ms. */
+const wait = (ms: number) =>
+  act(() => new Promise((resolve) => setTimeout(resolve, ms)));
+
+describe("the saved layouts", () => {
+  const openLayouts = () => fireEvent.press(screen.getByLabelText("Layouts"));
+
+  it("opens the starter on a first visit, and the saved layout after", async () => {
+    await draw(<LayoutEditorPage />);
+    expect(screen.getAllByText("RSSMRA80A01H501U").length).toBeGreaterThan(0);
+    await fireEvent.press(screen.getByText("Layers"));
+    await fireEvent.press(screen.getByText("Typography · Telefono"));
+    await fireEvent.changeText(screen.getByLabelText("Text"), "Cellulare");
+    await wait(600);
+    // The page left and opened again (RNTL's cleanup: a bare unmount breaks later renders).
+    await cleanup();
+    await draw(<LayoutEditorPage />);
+    expect(
+      within(screen.getByTestId("frame-n7")).getByText("Cellulare"),
+    ).toBeTruthy();
+  });
+
+  it("starts a new layout from a starter", async () => {
+    await draw(<LayoutEditorPage />);
+    await openLayouts();
+    await fireEvent.press(screen.getByText("Cruscotto vendite"));
+    expect(screen.getAllByText("Fatturato").length).toBeGreaterThan(0);
+    await openLayouts();
+    expect(screen.getByLabelText("Open Pagina di dettaglio")).toBeTruthy();
+    expect(screen.getByLabelText("Open Cruscotto vendite")).toBeTruthy();
+  });
+
+  it("opening another layout leaves nothing to undo", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("Layers"));
+    await fireEvent.press(screen.getByText("Typography · Telefono"));
+    await fireEvent.changeText(screen.getByLabelText("Text"), "Cellulare");
+    await openLayouts();
+    await fireEvent.press(screen.getByText("Nuovo cliente"));
+    expect(
+      screen.getByLabelText("Undo").props.accessibilityState?.disabled,
+    ).toBe(true);
+    await openLayouts();
+    await fireEvent.press(screen.getByLabelText("Open Pagina di dettaglio"));
+    expect(
+      within(screen.getByTestId("frame-n7")).getByText("Cellulare"),
+    ).toBeTruthy();
+    expect(
+      screen.getByLabelText("Undo").props.accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it("renames a layout", async () => {
+    await draw(<LayoutEditorPage />);
+    await openLayouts();
+    const field = screen.getByLabelText("Name of Pagina di dettaglio");
+    await fireEvent.changeText(field, "Scheda cliente");
+    await fireEvent(field, "blur");
+    expect(screen.getAllByText("Scheda cliente").length).toBeGreaterThan(0);
+  });
+
+  it("deleting the open layout opens another, or a new starter", async () => {
+    await draw(<LayoutEditorPage />);
+    await openLayouts();
+    await fireEvent.press(screen.getByText("Cruscotto vendite"));
+    await openLayouts();
+    await fireEvent.press(screen.getByLabelText("Delete Cruscotto vendite"));
+    expect(screen.getAllByText("RSSMRA80A01H501U").length).toBeGreaterThan(0);
+    // The dialog closes on another layout, as after opening one.
+    await openLayouts();
+    await fireEvent.press(screen.getByLabelText("Delete Pagina di dettaglio"));
+    expect(screen.getAllByText("RSSMRA80A01H501U").length).toBeGreaterThan(0);
+    await openLayouts();
+    expect(screen.getAllByLabelText(/^Open /)).toHaveLength(1);
+  });
+});
+
+describe("the editor at every width", () => {
+  const selectFirstPaper = async () => {
+    await fireEvent.press(screen.getByText("Layers"));
+    await fireEvent.press(screen.getAllByText("Paper")[0]);
+  };
+
+  it("opens the panels as sheets, one at a time, below 1400", async () => {
+    await setWidth(1024);
+    await draw(<LayoutEditorPage />);
+    expect(screen.queryByTestId("properties")).toBeNull();
+    await fireEvent.press(screen.getByLabelText("Add"));
+    await selectFirstPaper();
+    await fireEvent.press(screen.getByLabelText("Properties"));
+    expect(
+      within(screen.getByTestId("properties")).getByText("Paper · n1"),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("palette-Chip")).toBeNull();
+    await fireEvent.press(screen.getByLabelText("Add"));
+    expect(screen.queryByTestId("properties")).toBeNull();
+    expect(screen.getByTestId("palette-Chip")).toBeTruthy();
+  });
+
+  it("hides the sheet while something is dragged from it", async () => {
+    await setWidth(1024);
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByLabelText("Add"));
+    const entry = screen.getByTestId("palette-Input");
+    entry.props.onStartShouldSetResponderCapture(at(10, 10));
+    expect(entry.props.onStartShouldSetResponder(at(10, 10))).toBe(true);
+    await fireEvent(entry, "responderGrant", at(10, 10));
+    await wait(300);
+    const sheet = screen.getByTestId("sheet-left");
+    expect(StyleSheet.flatten(sheet.props.style).opacity).toBe(0);
+    expect(screen.getByTestId("palette-Input")).toBeTruthy();
+    await fireEvent(entry, "responderRelease", at(400, 400));
+    expect(screen.queryByTestId("sheet-left")).toBeNull();
+  });
+
+  it("follows the phone's rules below 600", async () => {
+    await setWidth(390);
+    await draw(<LayoutEditorPage />);
+    expect(
+      screen.getByText("Turn the phone sideways to move and resize"),
+    ).toBeTruthy();
+    expect(screen.queryByText("720")).toBeNull();
+    expect(
+      screen.getByTestId("box-n1").props.accessibilityState?.disabled,
+    ).toBe(true);
+    await tap("box-n1");
+    await fireEvent.press(screen.getByLabelText("Properties"));
+    expect(
+      within(screen.getByTestId("properties")).getByText("Paper · n1"),
+    ).toBeTruthy();
+  });
+
+  it("keeps the selection across a breakpoint", async () => {
+    await setWidth(1024);
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByLabelText("Add"));
+    await selectFirstPaper();
+    await setWidth(1440);
+    expect(
+      within(screen.getByTestId("properties")).getByText("Paper · n1"),
+    ).toBeTruthy();
+  });
+});
+
+describe("the editor's shortcuts behind a dialog", () => {
+  it("are withdrawn while Layouts or Export is open", async () => {
+    let registered: unknown[] = [];
+    await draw(
+      <PageShortcutsContext.Provider
+        value={(list) => {
+          registered = list;
+        }}
+      >
+        <LayoutEditorPage />
+      </PageShortcutsContext.Provider>,
+    );
+    expect(registered.length).toBeGreaterThan(0);
+    await fireEvent.press(screen.getByLabelText("Layouts"));
+    expect(registered).toEqual([]);
+    await fireEvent.press(screen.getByLabelText("Close"));
+    expect(registered.length).toBeGreaterThan(0);
+    await fireEvent.press(screen.getByText("Export"));
+    expect(registered).toEqual([]);
   });
 });

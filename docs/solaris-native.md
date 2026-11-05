@@ -372,7 +372,7 @@ riguarda solo il nativo non lo blocca. Cosa cambia **rispetto a oggi**, in ordin
 | 1.12 | **Safe area**: ogni componente che richiede `SafeAreaProvider` lo dichiara nel README e in un errore leggibile (oggi solo in `.design-sync/conventions.md`).                                                                                                                           | web + nativo | AppBar, TopAppBar, Toolbar, FAB, AnimatedFAB, SpeedDial, SideSheet.       |
 | 1.13 | **Stabilità (D15, D16)**: criterio scritto per il 1.0 (componenti stabili, verifica per piattaforma fatta, API documentata), politica di deprecazione e di supporto Expo nel README e in `CLAUDE.md`; una guida "come adottare la libreria in un'app Expo" (incluso il caso solo-web). | web + nativo | La libreria non servirà solo il CRM.                                      |
 
-Cosa **aggiungere** (non c'è oggi): `docs/native-verification.md` con la matrice componente × piattaforma
+Cosa **aggiungere** (non c'è oggi): `docs/mac-testing/native-verification.md` con la matrice componente × piattaforma
 (**web**, iOS, Android) × data × versione; il progetto jest multi-piattaforma; il bundle nativo in CI; la guida di
 adozione.
 
@@ -756,7 +756,7 @@ packages/pdf/                    # NUOVO: @its/glowup-pdf (peer: @its/glowup-ui;
 packages/pivot/                  # NUOVO: @its/glowup-pivot (peer: @its/glowup-ui; exceljs opzionale, solo web)
   src/core/  options/  localization/  hooks/  excel.ts   # core copiato da AuraPivot + nota di provenienza; renderer RN accanto
 apps/playground/templates/       # pagine d'esempio (codice), come oggi
-docs/native-verification.md      # matrice componente × piattaforma (web, iOS, Android) × data
+docs/mac-testing/native-verification.md      # matrice componente × piattaforma (web, iOS, Android) × data
 docs/crm-component-matrix.md     # matrice 0.5
 docs/pivot-upstream.md           # differenze dalla copia di AuraPivot
 docs/handoff/                    # un file per giornata (§8)

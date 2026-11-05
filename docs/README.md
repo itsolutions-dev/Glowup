@@ -7,25 +7,23 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 
 ## Start here
 
-| Document                                 | What it is                                                                                              |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [`../CLAUDE.md`](../CLAUDE.md)           | Rules for working in the repo: commands, the library/app boundary, tests, releasing, handoffs.          |
-| [`status.md`](status.md)                 | Done / left per workstream with percentages, and the "do not redo" list. Read before starting work.     |
-| [`handoff/`](handoff)                    | One file per working day: what was done, what was verified, open questions, next step. Read the newest. |
-| [`pilots/`](pilots)                      | Screenshots of the temporary CRM pilot screens (web, phone, Android), one folder per day and screen.    |
-| [`solaris-native.md`](solaris-native.md) | The master plan (decisions D1–D17, phases 0–9, rules, risks). Italian.                                  |
+| Document                                 | What it is                                                                                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`../CLAUDE.md`](../CLAUDE.md)           | Rules for working in the repo: commands, the library/app boundary, tests, releasing, handoffs.                                               |
+| [`status.md`](status.md)                 | Done / left per workstream with percentages, the library backlog, the decisions taken and the "do not redo" list. Read before starting work. |
+| [`handoff/`](handoff)                    | One file per working day: what was done, what was verified, open questions, next step. Read the newest.                                      |
+| [`pilots/`](pilots)                      | Screenshots of the temporary CRM pilot screens (web, phone, Android), one folder per day and screen.                                         |
+| [`solaris-native.md`](solaris-native.md) | The master plan (decisions D1–D17, phases 0–9, rules, risks). Italian.                                                                       |
 
 ## Plans and roadmap
 
 | Document                                                                                                                                     | What it is                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`library-roadmap.md`](library-roadmap.md)                                                                                                   | What the library still needs: verified bugs, API gaps, missing components, in priority order.                                                |
-| [`decisions.md`](decisions.md)                                                                                                               | Decisions already taken ("do not re-propose") and the ones waiting for a yes or no.                                                          |
 | [`solaris-native.md`](solaris-native.md)                                                                                                     | Phases 0–9 of the Solaris UI plan: native readiness, charts, PDF, pivot, pilot screens. Italian.                                             |
-| [`work-split.md`](work-split.md)                                                                                                             | Who does what between the two people on the plan, and where the two streams meet. Italian.                                                   |
 | [`crm-component-matrix.md`](crm-component-matrix.md)                                                                                         | The CRM families mapped onto Glowup components: the Phase 3 work list, with a "done" column. Italian.                                        |
 | [`release-1.0.md`](release-1.0.md)                                                                                                           | **Draft**: the 1.0 criteria, versioning and Expo support policy, and the adoption guide, with the decisions still to take.                   |
-| [`native-verification.md`](native-verification.md)                                                                                           | Component × platform: what was seen working on web, iPhone, Android, a phone and screen readers, with the proof.                             |
+| [`mac-testing/`](mac-testing/README.md)                                                                                                      | **Instructions for the Mac and iPhone checks** (Italian), with the two lists below.                                                          |
+| [`mac-testing/native-verification.md`](mac-testing/native-verification.md)                                                                   | Component × platform: what was seen working on web, iPhone, Android, a phone and screen readers, with the proof.                             |
 | [`device-package-plan.md`](device-package-plan.md)                                                                                           | Design and phases of `@its/glowup-device`. Linked from the published package's README, so it stays here.                                     |
 | [`superpowers/specs/2026-10-26-layout-editor-design.md`](superpowers/specs/2026-10-26-layout-editor-design.md)                               | The layout editor: canvas on a grid, palette, nesting, props panel, JSON and code export. Approved.                                          |
 | [`superpowers/plans/2026-10-27-layout-editor-1-foundations.md`](superpowers/plans/2026-10-27-layout-editor-1-foundations.md)                 | Plan 1 for the layout editor: drag and drop additions and `GridLayout` in the library.                                                       |
@@ -36,7 +34,7 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | [`superpowers/plans/2026-11-05-layout-editor-6-panels.md`](superpowers/plans/2026-11-05-layout-editor-6-panels.md)                           | Plan 6: the Properties panel (text, props, data, position, field, tabs) and the Layers tree with "Move into…".                               |
 | [`superpowers/plans/2026-11-05-layout-editor-7-saved-layouts.md`](superpowers/plans/2026-11-05-layout-editor-7-saved-layouts.md)             | Plan 7: saved layouts in local storage (autosave, open, rename, delete) and the two new starters.                                            |
 | [`superpowers/plans/2026-11-05-layout-editor-8-responsive-keyboard.md`](superpowers/plans/2026-11-05-layout-editor-8-responsive-keyboard.md) | Plan 8: the editor at every width (columns, sheets, phone), its keyboard shortcuts, and the device checklist.                                |
-| [`layout-editor-device-checklist.md`](layout-editor-device-checklist.md)                                                                     | The layout editor's manual pass on an iPhone and an Android phone, upright and sideways (spec §20).                                          |
+| [`mac-testing/layout-editor-device-checklist.md`](mac-testing/layout-editor-device-checklist.md)                                             | The layout editor's manual pass on an iPhone and an Android phone, upright and sideways (spec §20).                                          |
 
 ## Reference
 
@@ -48,12 +46,6 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | `../packages/device/README.md`, `../packages/notifications/README.md`                                      | Usage guides of the two headless packages.                                                                                                                                         |
 | [`../.design-sync/NOTES.md`](../.design-sync/NOTES.md), [`conventions.md`](../.design-sync/conventions.md) | Notes and conventions of the design-sync tooling (previews, `config.json`).                                                                                                        |
 
-## Reports
-
-| Document                                                                   | What it is                                                                         |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [`reports/2026-10-session-summary.md`](reports/2026-10-session-summary.md) | Everything done between 19 and 23 October, organised to be presented in a meeting. |
-
 ## Per-workspace rules
 
 `packages/ui/CLAUDE.md`, `packages/device/CLAUDE.md`, `packages/notifications/CLAUDE.md` and
@@ -62,10 +54,12 @@ documentation site: the one-example-per-component model, the generators, the ico
 
 ## Keeping this folder tidy
 
-- **A plan that is finished goes.** Keep its outcome in `decisions.md` or the roadmap, and let git hold the
+- **A plan that is finished goes.** Keep its outcome in `status.md`, and let git hold the
   text (`git log -- docs/<file>` finds the last version). Nine finished documents were removed on
   2026-10-23 this way: the library-split and npm-publishing plans, the NativeBase comparison, the four
-  Phase 0 spikes, and the two earliest handoffs.
+  Phase 0 spikes, and the two earliest handoffs. Three more on 2026-11-05: `work-split.md` (the two-person split
+  ended on 30/10), `ui-fixes-from-the-native-check.md` and the 19–23 October meeting report; `decisions.md` and
+  `library-roadmap.md` were fused into `status.md` the same day.
 - **One handoff per calendar day**, in `handoff/AAAA-MM-GG.md`; update today's file rather than adding a second.
 - **Generated files are never edited by hand**: the inventory here, and `docgen`, `variants`, `templates`,
   `examples` in the playground (see the root `CLAUDE.md`).

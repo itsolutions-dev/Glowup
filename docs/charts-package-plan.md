@@ -1,6 +1,6 @@
 # Piano di `@its/glowup-charts`: i grafici, con il codice di d3 copiato e nessuna dipendenza
 
-Riguarda la Fase 4 di `docs/solaris-native.md` e il lavoro A4 di `docs/work-split.md`. **Cambia la decisione D7** di quel
+Riguarda la Fase 4 di `docs/solaris-native.md`. **Cambia la decisione D7** di quel
 piano (che prevedeva `d3-scale` e `d3-shape` come dipendenze): vedi §2. Esito dello spike su cui poggiava D7: `docs/spike-0.4-bar-chart.md`.
 
 Stato al 2026-10-20: **passi 0–7 fatti** (`BarChart` raggruppato, impilato e orizzontale; `LineChart` e `AreaChart` con curva e
@@ -109,7 +109,7 @@ Ogni passo si chiude con `type-check`, `lint`, `test` e `build` del pacchetto ve
 | 6   | **`ChartLegend` e facciata `Chart`**                                                                                                                                                                                                  | test: nascondere una serie ridisegna gli assi                                                                     |
 | 7   | **Modalità densa** (un `<Path>`) e misura dei tempi su web                                                                                                                                                                            | numeri nella sezione sotto; soglia scelta dalla misura                                                            |
 | 8   | **Verifica nativa:** riga `charts` in `/native-check` (disegna un grafico, legge le dimensioni dei nodi) e screenshot in CI                                                                                                           | righe `NATIVECHECK charts` e screenshot negli artefatti del run                                                   |
-| 9   | **Documentazione:** README con limiti, `docs/solaris-native.md` (D7 e Fase 4), `docs/work-split.md`, changeset quando esce da `private`                                                                                               |                                                                                                                   |
+| 9   | **Documentazione:** README con limiti, `docs/solaris-native.md` (D7 e Fase 4), changeset quando esce da `private`                                                                                                                     |                                                                                                                   |
 
 **Cosa non si può verificare dal portatile di lavoro:** iOS e Android a runtime. Il passo 8 passa dalla CI nativa come per il PDF.
 Non si dichiara "funziona su iOS/Android" finché un run non lo mostra. **Non verificati in ogni caso:** tocco e velocità su un

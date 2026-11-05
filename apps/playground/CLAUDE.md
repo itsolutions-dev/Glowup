@@ -379,7 +379,7 @@ arrangement (below 600: the canvas drawn as the phone whatever the width switch 
 `BottomSheet`s). The editor's shortcuts (`editor/canvas/shortcuts.ts`, the grid steps pure in `editor/keys.ts`) are
 registered with `usePageShortcuts` and listed in the site's dialog under "This page". None while Layouts or Export is open, none while the site's own dialogs are (`withPageShortcuts`), and a key a focused widget already handled (`defaultPrevented`: the Layers tree's arrows, a slider) reaches no shortcut. Page tests set the window with
 `Dimensions.set` (jest's default is a 750-wide phone, the sheets arrangement). The device pass is
-`docs/layout-editor-device-checklist.md`.
+`docs/mac-testing/layout-editor-device-checklist.md`.
 
 **Export** (the toolbar's button, `editor/canvas/ExportPanel.tsx`): a `Dialog` with the code, a Preview and the JSON.
 `editor/codegen.ts` (`exportCode`, pure) prints the document as a component file in the examples' shape (2 spaces,

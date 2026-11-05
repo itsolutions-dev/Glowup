@@ -100,7 +100,7 @@
 
 **Files:**
 
-- Create: `docs/layout-editor-device-checklist.md` (the manual iOS/Android pass, §20: upright and sideways; add, move, resize, nest, scroll while dragging, tabs, properties, layouts, export; what to note for each)
+- Create: `docs/mac-testing/layout-editor-device-checklist.md` (the manual iOS/Android pass, §20: upright and sideways; add, move, resize, nest, scroll while dragging, tabs, properties, layouts, export; what to note for each)
 - Modify: `apps/playground/CLAUDE.md` ("The canvas": arrangement and keys; "Keyboard": Shift and page shortcuts), the spec §19 (phase 8: done on the web, the device pass waiting for the checklist to be run), `docs/handoff/2026-11-05.md`, `docs/README.md` (this plan's row and the checklist's)
 
 - [ ] **Step 1: Everything** — editor and site tests, tsc, the full suite (no dev server running), ESLint and Prettier on the changed files.

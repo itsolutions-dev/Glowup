@@ -4,7 +4,8 @@ import { useTheme, type Theme } from "@its/glowup-ui";
 
 import { Canvas } from "../../editor/canvas/Canvas";
 import { ExportPanel } from "../../editor/canvas/ExportPanel";
-import { Palette } from "../../editor/canvas/Palette";
+import { PropertiesPanel } from "../../editor/canvas/PropertiesPanel";
+import { SidePanel } from "../../editor/canvas/SidePanel";
 import { Toolbar } from "../../editor/canvas/Toolbar";
 import { useEditor } from "../../editor/canvas/useEditor";
 import type { LayoutDocument } from "../../editor/document";
@@ -33,12 +34,16 @@ const Editor = () => {
         visible={exporting}
         onClose={() => setExporting(false)}
       />
-      <View style={styles.canvas}>
-        <Canvas
-          editor={editor}
-          device={device}
-          palette={<Palette editor={editor} canDrag={device !== "phone"} />}
-        />
+      {/* Three columns (§13): Add | Layers, the canvas, Properties. */}
+      <View style={styles.columns}>
+        <View style={styles.canvas}>
+          <Canvas
+            editor={editor}
+            device={device}
+            left={<SidePanel editor={editor} canDrag={device !== "phone"} />}
+          />
+        </View>
+        <PropertiesPanel editor={editor} />
       </View>
     </View>
   );
@@ -68,5 +73,6 @@ const makeStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.colors.surface,
     },
+    columns: { flex: 1, flexDirection: "row" },
     canvas: { flex: 1 },
   });

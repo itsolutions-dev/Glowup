@@ -126,12 +126,8 @@ export const Palette = ({
 
 const makeStyles = (theme: Theme) =>
   StyleSheet.create({
-    palette: {
-      width: 280,
-      borderRightWidth: 1,
-      borderRightColor: theme.colors.outlineVariant,
-      backgroundColor: theme.colors.surfaceContainerLow,
-    },
+    // The side panel draws the column; the palette fills it.
+    palette: { flexGrow: 1, flexShrink: 1 },
     search: { padding: 12 },
     list: { flexGrow: 1, flexShrink: 1 },
     empty: { paddingHorizontal: 16, paddingVertical: 8 },

@@ -259,14 +259,14 @@ const CanvasBody = ({
 
 export const Canvas = ({
   editor,
-  palette,
+  left,
   device = "full",
 }: {
   editor: Editor;
   /** The page's width: the whole canvas, a tablet's or a phone's (§17). */
   device?: StageWidth;
-  /** Drawn beside the canvas, inside its drag and drop: what it adds from. */
-  palette?: React.ReactNode;
+  /** Drawn left of the canvas, inside its drag and drop: what it adds from. */
+  left?: React.ReactNode;
 }) => {
   const rects = useMemo(() => createRects(), []);
   const drawnRef: Drawn = useRef(null);
@@ -286,7 +286,7 @@ export const Canvas = ({
     <RectsProvider value={rects}>
       <DragDropProvider onDragEnd={onDragEnd}>
         <View style={styles.row}>
-          {palette}
+          {left}
           <CanvasBody editor={editor} drawnRef={drawnRef} device={device} />
         </View>
       </DragDropProvider>

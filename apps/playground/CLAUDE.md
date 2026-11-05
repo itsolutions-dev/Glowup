@@ -348,8 +348,16 @@ system's index, `tab` (a TabbedPanel's tab, laid over the bar the render tree me
 panel's first free cell; `applyPlan` makes both the draft and the drop. Which panel of a TabbedPanel is shown is
 editor state (`editor.tabs`, `showTab`), never document: a tap on a tab, a tab hovered for 500 ms while dragging,
 or a drop on it switches it (a tap also selects the TabbedPanel), and the panel is as tall as the tallest one so the page never moves. The edit layer keeps every panel's zone mounted (`<id>:<tab>`, the hidden ones `display: "none"` and disabled): a node dragged out of a panel keeps its box while a hovered tab shows another, since an unmounted active `Draggable` cancels the drag. The toolbar's width switch (the stages' `site/stage.ts`: Full, 720, 360) draws the page in a frame of exactly that width under a `ViewportProvider`. At 360 the grids stack as the export does there (`stackBelow="medium"`), every node is measured where it lands (`child:<id>`, the page's nodes against `canvas-render`) and editing follows §17's compact rules: boxes disabled (no drag), no handles, no growing to the stacked heights, palette entries pressed only. A pulled resize handle holds its cursor over the whole page with a `<style>` rule (web only; jest has no DOM, so only the handles' own cursors are tested). The palette
-(`Palette.tsx`, the Canvas's `palette` slot, inside its `DragDropProvider`) lists the manifest by group with search;
+(`Palette.tsx`, in `SidePanel`, the Canvas's `left` slot, inside its `DragDropProvider`) lists the manifest by group with search;
 a tap adds into the selected container when it takes the type, else on the page (`addTarget`).
+
+**The panels** (spec §13): the left column is `SidePanel` (tabs Add | Layers: the palette, or `LayersPanel`, the document
+as a library `Tree` to select from plus "Move into…", a list of the containers `moveTargets` allows); the right column is
+`PropertiesPanel` (header, Content, Props through the component pages' `PropControls` minus `children` and, on a bound
+field, `required`, Data as JSON, Layout as numbers through `placeNode`, Field, Tabs, "Set in code"). What they compute
+is pure, in `editor/panels.ts`. Every change passes a key to `editor.apply` (`text:<id>`, `props:<id>:<name>`, …), so the
+keystrokes in one field are one undo step. On `/templates/editor` the site's navigation is its rail (`wideNav` in
+`site/SiteShell.tsx`), which leaves the canvas 760 dp at 1440.
 
 **Export** (the toolbar's button, `editor/canvas/ExportPanel.tsx`): a `Dialog` with the code, a Preview and the JSON.
 `editor/codegen.ts` (`exportCode`, pure) prints the document as a component file in the examples' shape (2 spaces,

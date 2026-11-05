@@ -5,6 +5,8 @@ import docgen from "../docgen/props.generated.json";
 
 export interface PropDoc {
   name: string;
+  /** The type as written (`"filled" | "tonal"`, `() => void`). */
+  type?: string;
   /** The default as source text (`"\"filled\""`, `"1"`), when there is one. */
   default?: string;
 }

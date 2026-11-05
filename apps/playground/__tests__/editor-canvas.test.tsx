@@ -66,7 +66,7 @@ const Harness = ({
     <Canvas
       editor={current}
       device={device}
-      palette={
+      left={
         palette ? (
           <Palette editor={current} canDrag={device !== "phone"} />
         ) : undefined

@@ -88,7 +88,10 @@ describe("the layout editor page", () => {
   it("undoes and redoes from the toolbar", async () => {
     await draw(<LayoutEditorPage />);
     await tap("box-n1");
-    await fireEvent.press(screen.getByLabelText("Delete"));
+    // The canvas's own Delete (the Properties column has one too).
+    await fireEvent.press(
+      within(screen.getByTestId("edit-layer")).getByLabelText("Delete"),
+    );
     expect(screen.queryByTestId("frame-n1")).toBeNull();
     await fireEvent.press(screen.getByLabelText("Undo"));
     expect(screen.getByTestId("frame-n1")).toBeTruthy();
@@ -201,5 +204,42 @@ describe("the export", () => {
     expect(
       screen.getByLabelText("Undo").props.accessibilityState?.disabled,
     ).toBe(true);
+  });
+});
+
+describe("the panels", () => {
+  it("shows the layers and selects from them", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("Layers"));
+    expect(screen.getByText("Typography · Anagrafica")).toBeTruthy();
+    expect(screen.getByText("TabbedPanel")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Button · Modifica"));
+    expect(
+      within(screen.getByTestId("properties")).getByText("Button · n23"),
+    ).toBeTruthy();
+  });
+
+  it("moves a node into another container from the layers", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("Layers"));
+    await fireEvent.press(screen.getByText("Typography · Telefono"));
+    await fireEvent.press(screen.getByLabelText("Move into VStack (n22)"));
+    expect(
+      within(screen.getByTestId("frame-n22")).getByText("Telefono"),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText("Undo"));
+    expect(
+      within(screen.getByTestId("frame-n1")).getByText("Telefono"),
+    ).toBeTruthy();
+  });
+
+  it("edits the selection in the Properties column", async () => {
+    await draw(<LayoutEditorPage />);
+    await fireEvent.press(screen.getByText("Layers"));
+    await fireEvent.press(screen.getByText("Typography · Telefono"));
+    await fireEvent.changeText(screen.getByLabelText("Text"), "Cellulare");
+    expect(
+      within(screen.getByTestId("frame-n7")).getByText("Cellulare"),
+    ).toBeTruthy();
   });
 });

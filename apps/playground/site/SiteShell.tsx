@@ -50,6 +50,14 @@ const DRAWER_WIDTH = 232;
  * the only route that has one, and putting both in the shell is what produced
  * 600dp of navigation next to a 310dp stage in the previous layout.
  */
+/**
+ * Whether the permanent navigation is the labelled drawer (232dp) rather than
+ * the rail (80dp): from the large class, except on the layout editor, whose
+ * palette, canvas and properties need the room (spec §17).
+ */
+export const wideNav = (pathname: string, large: boolean) =>
+  large && !pathname.startsWith("/templates/editor");
+
 export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
   const layout = useLayout();
@@ -66,7 +74,7 @@ export const SiteShell = ({ children }: { children: React.ReactNode }) => {
   // frame first.
   const drawerOpen = drawerRequested && !layout.hasRail;
 
-  const expanded = layout.atLeast("large");
+  const expanded = wideNav(pathname, layout.atLeast("large"));
 
   // `[` and `]` step through the catalogue in its documented order, but only
   // while a component page is what is on screen.

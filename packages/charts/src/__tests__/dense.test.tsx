@@ -96,6 +96,40 @@ describe("a chart with more points than pixels", () => {
     expect(screen.getByTestId("c-dense-a")).toBeTruthy();
   });
 
+  it("folds by column: one strip per column, a peak only where the series overlap", async () => {
+    const one = series.map((s) => ({ ...s, column: "x" }));
+    await bars({ data: many(1000), series: one, columnMode: "overlap" });
+    expect(screen.getByTestId("c-peak-a")).toBeTruthy();
+    // One column for both series: the plot's width over 2.
+    expect(
+      (screen.getByTestId("c-dense-a").props.d as string).match(/M/g),
+    ).toHaveLength(Math.floor(plotSize().width / 2));
+    await screen.unmount();
+    await bars({ data: many(1000), series: one });
+    expect(screen.queryByTestId("c-peak-a")).toBeNull();
+    expect(screen.getByTestId("c-dense-b")).toBeTruthy();
+  });
+
+  it("draws the longer series of an overlapping column first, whatever the list order", async () => {
+    await bars({
+      data: Array.from({ length: 500 }, (_, i) => ({
+        label: `c${i}`,
+        small: 1,
+        big: 5,
+      })),
+      series: [
+        { key: "small", column: "x" },
+        { key: "big", column: "x" },
+      ],
+      columnMode: "overlap",
+    });
+    const json = JSON.stringify(screen.toJSON());
+    expect(json.indexOf('"c-dense-big"')).toBeGreaterThan(-1);
+    expect(json.indexOf('"c-dense-big"')).toBeLessThan(
+      json.indexOf('"c-dense-small"'),
+    );
+  });
+
   it("leaves a chart with room for every point as it is", async () => {
     await lines({ data: many(100), series, dense: true });
     expect(screen.queryByTestId("c-band-a")).toBeNull();

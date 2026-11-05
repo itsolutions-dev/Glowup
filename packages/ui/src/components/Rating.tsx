@@ -3,6 +3,7 @@ import { View, Pressable, StyleSheet, Platform } from "react-native";
 import Icons from "./Glyph";
 import { useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 /** The glyphs that have an `-outline` twin, which Rating draws the empty state with. */
 type OutlinedGlyph = {
@@ -63,7 +64,7 @@ const Rating = ({
       style={[styles.container, disabled && { opacity: 0.38 }]}
       accessibilityRole="adjustable"
       accessibilityLabel={`Rating: ${value} of ${max}`}
-      accessibilityValue={{ min: 0, max, now: value }}
+      {...a11yState("adjustable", undefined, { min: 0, max, now: value })}
     >
       {Array.from({ length: max }, (_, index) => {
         const starNumber = index + 1;

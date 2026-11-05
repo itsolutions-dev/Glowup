@@ -23,6 +23,7 @@ import Icons from "./Glyph";
 import Button from "./Button";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { swallowEscapeKeyUp } from "./internal/useEscapeKey";
 import {
   CalendarScrollMode,
   DateRange,
@@ -50,6 +51,8 @@ import {
   toggleMultipleSelection,
   useLabels,
 } from "./DateTimePicker.shared";
+import { a11yState } from "./internal/a11yState";
+import OwnScroller from "./internal/OwnScroller";
 
 /**
  * Internal: the month grid of `DatePicker` and `DateTimePicker`, which render it
@@ -450,6 +453,7 @@ const Calendar = ({
         case "Escape":
           if (onRequestClose) {
             handled();
+            swallowEscapeKeyUp();
             onRequestClose();
           }
           return;
@@ -530,7 +534,7 @@ const Calendar = ({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={dayLabelFormat.format(day)}
-            accessibilityState={{ selected, disabled }}
+            {...a11yState("button", { selected, disabled })}
             disabled={disabled}
             onPress={() => select(day)}
             // Only while a range is open: any other hover would re-render the
@@ -645,7 +649,7 @@ const Calendar = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={labels.selectYear}
-        accessibilityState={{ expanded: view === "years" }}
+        {...a11yState("button", { expanded: view === "years" })}
         onPress={() => {
           setYearPageStart(visibleMonth.getFullYear() - 6);
           setView(view === "years" ? "days" : "years");
@@ -675,7 +679,9 @@ const Calendar = ({
           accessibilityLabel={
             view === "years" ? labels.previousYears : labels.previousMonth
           }
-          accessibilityState={{ disabled: view === "days" && !canStepBack }}
+          {...a11yState("button", {
+            disabled: view === "days" && !canStepBack,
+          })}
           disabled={view === "days" && !canStepBack}
           onPress={() =>
             view === "years"
@@ -709,7 +715,9 @@ const Calendar = ({
           accessibilityLabel={
             view === "years" ? labels.nextYears : labels.nextMonth
           }
-          accessibilityState={{ disabled: view === "days" && !canStepForward }}
+          {...a11yState("button", {
+            disabled: view === "days" && !canStepForward,
+          })}
           disabled={view === "days" && !canStepForward}
           onPress={() =>
             view === "years"
@@ -737,29 +745,33 @@ const Calendar = ({
   const renderEndlessDays = () => (
     <>
       {renderWeekRow()}
-      <FlatList
-        ref={listRef}
-        testID={testID ? `${testID}-months` : undefined}
-        data={monthIndices}
-        keyExtractor={(index) => String(index)}
-        style={styles.endlessList}
-        showsVerticalScrollIndicator={false}
-        initialScrollIndex={initialIndex}
-        // Every month renders the same 6-row grid, so the layout is known
-        // up front and the list can jump straight to any year.
-        getItemLayout={(_, index) => ({
-          length: MONTH_ITEM_HEIGHT,
-          offset: MONTH_ITEM_HEIGHT * index,
-          index,
-        })}
-        onScroll={handleScroll}
-        scrollEventThrottle={32}
-        renderItem={({ item }) => (
-          <View style={styles.monthItem}>
-            {renderMonthGrid(fromMonthIndex(item))}
-          </View>
-        )}
-      />
+      {/* The months scroll in a box of fixed height (see OwnScroller). */}
+      <OwnScroller>
+        <FlatList
+          ref={listRef}
+          testID={testID ? `${testID}-months` : undefined}
+          data={monthIndices}
+          keyExtractor={(index) => String(index)}
+          style={styles.endlessList}
+          nestedScrollEnabled
+          showsVerticalScrollIndicator={false}
+          initialScrollIndex={initialIndex}
+          // Every month renders the same 6-row grid, so the layout is known
+          // up front and the list can jump straight to any year.
+          getItemLayout={(_, index) => ({
+            length: MONTH_ITEM_HEIGHT,
+            offset: MONTH_ITEM_HEIGHT * index,
+            index,
+          })}
+          onScroll={handleScroll}
+          scrollEventThrottle={32}
+          renderItem={({ item }) => (
+            <View style={styles.monthItem}>
+              {renderMonthGrid(fromMonthIndex(item))}
+            </View>
+          )}
+        />
+      </OwnScroller>
     </>
   );
 
@@ -783,7 +795,7 @@ const Calendar = ({
             <Pressable
               key={year}
               accessibilityRole="button"
-              accessibilityState={{ selected: active, disabled }}
+              {...a11yState("button", { selected: active, disabled })}
               disabled={disabled}
               onPress={() => {
                 goToMonth(new Date(year, visibleMonth.getMonth(), 1));

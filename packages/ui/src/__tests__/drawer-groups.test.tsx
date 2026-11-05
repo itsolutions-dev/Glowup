@@ -16,6 +16,31 @@ describe("DrawerItem groups", () => {
     </Drawer>
   );
 
+  it("in a collapsed drawer is a plain item: no hidden open state", async () => {
+    const onToggle = jest.fn();
+    const onClick = jest.fn();
+    const { getByLabelText } = await draw(
+      <Drawer collapsed>
+        <DrawerItem
+          label="Settings"
+          icon="cog-outline"
+          onToggle={onToggle}
+          onClick={onClick}
+        >
+          <DrawerItem label="Profile" onClick={() => {}} />
+        </DrawerItem>
+      </Drawer>,
+    );
+    const item = getByLabelText("Settings");
+    expect(item.props.accessibilityState.expanded).toBeUndefined();
+    await fireEvent.press(item);
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(
+      getByLabelText("Settings").props.accessibilityState.expanded,
+    ).toBeUndefined();
+  });
+
   it("starts closed, opens on press and reports the new state", async () => {
     const onToggle = jest.fn();
     const { getByLabelText, queryByText } = await draw(group({ onToggle }));

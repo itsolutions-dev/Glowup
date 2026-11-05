@@ -9,7 +9,8 @@ import { Editable, Typography } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 360,
+  width: "100%",
+  maxWidth: 360,
 };
 
 const roles = [
@@ -72,8 +73,21 @@ export const CustomDisplay = () => (
 // The open state: `startWithEditView` mounts with the field already open. The
 // default submit mode confirms on blur, so two open fields would close each other
 // as the second takes focus: these stay open with `submitMode="none"`.
+// An open field also takes focus, and on web the focused `Input` draws the
+// browser focus ring inside its outline; these cells show the field at rest.
+const OpenAtRest = ({ children }: { children: React.ReactNode }) => {
+  React.useEffect(() => {
+    const id = setTimeout(
+      () => (document.activeElement as HTMLElement | null)?.blur(),
+      50,
+    );
+    return () => clearTimeout(id);
+  }, []);
+  return <View style={stack}>{children}</View>;
+};
+
 export const EditingText = () => (
-  <View style={stack}>
+  <OpenAtRest>
     <Editable
       label="Name"
       defaultValue="Ada Lovelace"
@@ -87,11 +101,11 @@ export const EditingText = () => (
       submitMode="none"
       startWithEditView
     />
-  </View>
+  </OpenAtRest>
 );
 
 export const EditingNumberAndTextarea = () => (
-  <View style={stack}>
+  <OpenAtRest>
     <Editable
       label="Rate"
       type="number"
@@ -107,11 +121,11 @@ export const EditingNumberAndTextarea = () => (
       submitMode="none"
       startWithEditView
     />
-  </View>
+  </OpenAtRest>
 );
 
 export const WithButtons = () => (
-  <View style={stack}>
+  <OpenAtRest>
     <Editable
       label="Name"
       defaultValue="Ada Lovelace"
@@ -125,7 +139,7 @@ export const WithButtons = () => (
       showControls
       startWithEditView
     />
-  </View>
+  </OpenAtRest>
 );
 
 // The validation error is not previewed: `validate` shows its message only once

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { a11yState } from "./internal/a11yState";
 
 /**
  * How a pointer moves the value: `"drag"` only by dragging the thumb,
@@ -298,7 +299,7 @@ const Slider = ({
       <View
         ref={areaRef}
         style={styles.touchArea}
-        accessibilityState={{ disabled }}
+        {...a11yState("slider", { disabled })}
         {...semantics}
         onLayout={onAreaLayout}
         onStartShouldSetResponder={shouldStart}

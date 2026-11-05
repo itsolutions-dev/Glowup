@@ -8,7 +8,8 @@ import { DateTimePicker } from "@its/glowup-ui";
 
 const stack: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};
@@ -67,8 +68,8 @@ export const SelectionModes = () => (
   </View>
 );
 
-// The field accepts a typed date in the locale's own field order — the capture
-// browser is it-IT, so this reads DD/MM/YYYY.
+// A single `date` field accepts a typed date in the locale's own field order
+// (DD/MM/YYYY here); while empty it shows that mask, not `placeholder`.
 export const TypedEntry = () => (
   <View style={stack}>
     <DateTimePicker
@@ -82,7 +83,6 @@ export const TypedEntry = () => (
       label="Date of birth"
       value={null}
       inputEnabled
-      placeholder="Not set"
       onChange={noop}
     />
     <DateTimePicker
@@ -114,57 +114,42 @@ export const Constrained = () => (
   </View>
 );
 
+// The relative prefix only appears on a read-only field: a single `date`
+// field is typed into by default, so these opt out with `inputEnabled={false}`.
 export const RelativeDays = () => (
   <View style={stack}>
-    <DateTimePicker
-      label="Invoice date"
-      mode="date"
-      value={yesterday}
-      onChange={noop}
-    />
-    <DateTimePicker
-      label="Invoice date"
-      mode="date"
-      value={today}
-      onChange={noop}
-    />
-    <DateTimePicker
-      label="Invoice date"
-      mode="date"
-      value={tomorrow}
-      onChange={noop}
-    />
-    <DateTimePicker
-      label="Invoice date"
-      mode="date"
-      value={later}
-      onChange={noop}
-    />
+    {[yesterday, today, tomorrow, later].map((value) => (
+      <DateTimePicker
+        key={value.toISOString()}
+        label="Invoice date"
+        mode="date"
+        value={value}
+        inputEnabled={false}
+        onChange={noop}
+      />
+    ))}
   </View>
 );
 
-// The device locale drives the relative day words by default (it-IT here);
-// `relativeLabels` overrides them, e.g. with strings from i18n.
-const englishLabels = {
-  today: "Today",
-  yesterday: "Yesterday",
-  tomorrow: "Tomorrow",
-};
+// The device locale drives the relative day words by default;
+// `relativeLabels` overrides any of them, e.g. with strings from i18n.
+const dueLabels = { today: "Due today", tomorrow: "Due tomorrow" };
 
 export const LabelOverrides = () => (
   <View style={stack}>
     <DateTimePicker
-      label="Invoice date"
+      label="Invoice"
       mode="date"
       value={today}
-      relativeLabels={englishLabels}
+      inputEnabled={false}
+      relativeLabels={dueLabels}
       onChange={noop}
     />
     <DateTimePicker
-      label="Payment due"
+      label="Payment"
       mode="datetime"
       value={tomorrow}
-      relativeLabels={englishLabels}
+      relativeLabels={dueLabels}
       onChange={noop}
     />
   </View>

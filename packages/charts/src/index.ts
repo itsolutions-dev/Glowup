@@ -1,5 +1,6 @@
 export { default as BarChart } from "./BarChart";
-export type { BarChartProps } from "./BarChart";
+export type { BarChartProps, BarMarker } from "./BarChart";
+export type { ColumnMode } from "./core/columns";
 export { LineChart, AreaChart } from "./LineChart";
 export type { LineChartProps } from "./LineChart";
 export { DonutChart, PieChart } from "./DonutChart";

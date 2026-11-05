@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import IconButton from "./IconButton";
 import Paper from "./Paper";
@@ -109,7 +109,7 @@ const AppBar = ({
 }: AppBarProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
 
   const underNavigator =
     navigation !== undefined || route !== undefined || options !== undefined;

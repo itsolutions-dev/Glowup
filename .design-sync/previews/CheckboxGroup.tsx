@@ -47,10 +47,10 @@ export const Direction = () => (
 export const States = () => (
   <div
     style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(3, 260px)",
+      display: "flex",
+      flexDirection: "row",
       columnGap: 32,
-      alignItems: "start",
+      alignItems: "flex-start",
     }}
   >
     <CheckboxGroup

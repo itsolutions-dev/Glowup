@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
 import { View, Pressable, StyleSheet, ViewStyle } from "react-native";
@@ -65,6 +66,10 @@ const wantsDialog = (
  */
 const SCROLLS = { overflowY: "auto" } as unknown as ViewStyle;
 
+const NO_SUBSCRIPTION = () => () => {};
+const ON_CLIENT = () => true;
+const ON_SERVER = () => false;
+
 /**
  * The field and its picker: the `default` variant. On a mouse the surface is
  * docked to the field; on a touch device or a narrow window it opens as a
@@ -118,7 +123,13 @@ const PopupPicker = (props: DateTimePickerProps) => {
     );
   }, [openHeight, props.mode]);
 
-  const popoverOpen = open && !asDialog;
+  // A static export prerenders in Node: no `document`, and react-dom's server
+  // renderer has no portals. A picker seeded open (`defaultOpen`) portals its
+  // popover only in the browser; the server snapshot also holds while the page
+  // hydrates, so the first client render matches the prerendered html.
+  const inBrowser = useSyncExternalStore(NO_SUBSCRIPTION, ON_CLIENT, ON_SERVER);
+
+  const popoverOpen = open && !asDialog && inBrowser;
 
   useEffect(() => {
     if (!popoverOpen) return;

@@ -37,6 +37,17 @@
 - **`copy`, `save` and `onPick` are adapters because the library depends on no native module.**
   The app brings `expo-clipboard`, `expo-file-system` or a picker; web has a default, and on native
   a trigger is drawn only when the app passed one. Don't import an Expo module to give it a default.
+- **Tests run on three platforms** (`jest.projects` in `package.json`, 2/11). Everything in
+  `src/__tests__` runs twice, as iOS and as Android (`jest-expo/ios`, `jest-expo/android`,
+  `@testing-library/react-native`): a test that needs one platform sets it
+  (`jest.replaceProperty(Platform, "OS", …)`) or checks both; a field is named "Email *" on Android
+  when required (its label view, see `internal/fieldLabel.ts`). `src/__web_tests__` is the web
+  project (`jest-expo/web`, jsdom, `@testing-library/react`): what only the browser shows, as DOM
+  roles, `aria-*`, keys and computed styles, kept small; `@testing-library/react-native` cannot
+  read the DOM, so the rest of the suite is not run there. Its `jest.web.setup.js` counts fonts as
+  loaded, and a `Dialog` there needs `animationType="none"` (react-native-web makes a modal active
+  when its animation ends, which jsdom never does). `--selectProjects iOS Android Web` picks; it
+  takes several names, so put a file filter before it.
 - **Tests** live in `src/__tests__` (jest-expo). `babel.config.js` exists only for jest (`bob build`
   has its own config). It needed `lazyImports: true` while the barrel re-exported the drawer
   navigator, because the eager transform pulled `@react-navigation/drawer` → reanimated →

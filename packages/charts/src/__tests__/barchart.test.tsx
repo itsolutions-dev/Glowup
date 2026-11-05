@@ -1,8 +1,14 @@
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react-native";
 import { ThemeProvider } from "@its/glowup-ui";
 import { BarChart } from "..";
-import type { BarChartProps } from "..";
+import type { BarChartProps, BarMarker, ChartDatum } from "..";
 
 const data = [
   { label: "Jan", a: 10, b: 20 },
@@ -155,5 +161,270 @@ describe("BarChart", () => {
     expect(json).toContain("…");
     await fireEvent.press(screen.getByTestId("c-category-0"));
     expect(screen.getByText(long)).toBeTruthy();
+  });
+});
+
+// Two columns per category, the CRM's "calls by branch": what came in, what was done with it.
+const crm = [
+  { label: "Capriate", rec: 1, uniq: 1, ok: 1, ko: 0 },
+  { label: "Corsico", rec: 3, uniq: 2, ok: 0, ko: 2 },
+];
+const crmSeries = [
+  { key: "rec", column: "in" },
+  { key: "uniq", column: "in" },
+  { key: "ok", column: "out" },
+  { key: "ko", column: "out" },
+];
+const at = (id: string) => {
+  const p = screen.getByTestId(id).props;
+  return {
+    x: Number(p.x),
+    y: Number(p.y),
+    width: Number(p.width),
+    height: Number(p.height),
+  };
+};
+
+describe("BarChart columns", () => {
+  it("puts the series of a column in one bar and the columns side by side", async () => {
+    await show({ data: crm, series: crmSeries });
+    const rec = at("c-bar-1-rec");
+    const ko = at("c-bar-1-ko");
+    expect(ko.x).toBeGreaterThan(rec.x + rec.width - 1);
+    expect(ko.width).toBeCloseTo(rec.width);
+  });
+
+  it("stacks a column by default", async () => {
+    await show({ data: crm, series: crmSeries });
+    const rec = at("c-bar-1-rec");
+    const uniq = at("c-bar-1-uniq");
+    expect(uniq.y + uniq.height).toBeCloseTo(rec.y);
+    expect(uniq.x).toBe(rec.x);
+  });
+
+  it("overlapping series start at zero and the shorter one is drawn in front", async () => {
+    // The shorter series comes first: the drawing order must not follow the list.
+    const [rec0, uniq0, ...out] = crmSeries;
+    await show({
+      data: crm,
+      series: [uniq0, rec0, ...out],
+      columnMode: { in: "overlap" },
+    });
+    const rec = at("c-bar-1-rec"); // 3
+    const uniq = at("c-bar-1-uniq"); // 2
+    expect(uniq.x).toBe(rec.x);
+    expect(uniq.width).toBe(rec.width);
+    expect(rec.y + rec.height).toBeCloseTo(uniq.y + uniq.height);
+    expect(uniq.height).toBeCloseTo((2 / 3) * rec.height);
+    const order = bars().map((b) => b.props.testID);
+    expect(order.indexOf("c-bar-1-uniq")).toBeGreaterThan(
+      order.indexOf("c-bar-1-rec"),
+    );
+  });
+
+  it("a column whose series are all switched off goes and the others widen", async () => {
+    await show({ data: crm, series: crmSeries, legend: true });
+    const before = at("c-bar-1-rec").width;
+    await fireEvent.press(screen.getByTestId("c-legend-ok"));
+    expect(screen.getByTestId("c-bar-1-ko")).toBeTruthy();
+    expect(at("c-bar-1-rec").width).toBeCloseTo(before);
+    await fireEvent.press(screen.getByTestId("c-legend-ko"));
+    expect(at("c-bar-1-rec").width).toBeGreaterThan(before);
+  });
+
+  it("lays columns out one below the other in a horizontal chart", async () => {
+    await show({
+      data: crm,
+      series: crmSeries,
+      horizontal: true,
+      columnMode: "overlap",
+    });
+    const rec = at("c-bar-1-rec");
+    const uniq = at("c-bar-1-uniq");
+    const ko = at("c-bar-1-ko");
+    expect(uniq.y).toBe(rec.y);
+    expect(ko.y).toBeGreaterThan(rec.y);
+    expect(ko.x).toBe(rec.x);
+  });
+});
+
+describe("BarChart, per category", () => {
+  const febless = (d: { label: string }) => (d.label === "Feb" ? null : 25);
+
+  it("draws a short target line per category, inside its band, and none where it is null", async () => {
+    await show({ target: febless });
+    expect(screen.queryByTestId("c-target-1")).toBeNull();
+    const line = screen.getByTestId("c-target-0").props;
+    const a = at("c-bar-0-a");
+    const b = at("c-bar-0-b");
+    expect(Number(line.x1)).toBeLessThanOrEqual(a.x);
+    expect(Number(line.x2)).toBeGreaterThanOrEqual(b.x + b.width);
+    expect(Number(line.x2)).toBeLessThan(at("c-bar-2-a").x);
+    expect(Number(line.y1)).toBe(Number(line.y2));
+  });
+
+  it("the value axis reaches a category target above every bar", async () => {
+    await show({
+      data: [{ label: "x", a: 5 }],
+      series: [{ key: "a" }],
+      target: () => 50,
+    });
+    expect(JSON.stringify(screen.toJSON())).toContain(`"content":"50"`);
+  });
+
+  it("shows the category target in the tooltip, the table and the screen reader text", async () => {
+    await show({ target: febless, table: true, title: "Sales" });
+    await fireEvent.press(screen.getByTestId("c-category-0"));
+    expect(screen.getByText("Target: 25")).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("c-category-1"));
+    expect(screen.queryByText(/^Target:/)).toBeNull();
+    expect(screen.getByTestId("c").props.accessibilityLabel).toContain(
+      "Target: Jan 25, Mar 25.",
+    );
+    expect(
+      screen.getByLabelText("Feb, North 30, South 0, Target –"),
+    ).toBeTruthy();
+  });
+});
+
+describe("BarChart, outcome marker", () => {
+  const met = (): BarMarker => ({
+    icon: "check",
+    color: "green",
+    label: "Met",
+  });
+  const box = (id: string) =>
+    StyleSheet.flatten(screen.getByTestId(id).props.style) as {
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+    };
+
+  it("asks the app for a marker per category with the column totals and the target", async () => {
+    const marker = jest.fn(
+      (
+        _d: ChartDatum,
+        info: { totals: Record<string, number>; target: number | null },
+      ) =>
+        info.target == null
+          ? null
+          : info.totals.out >= info.target
+            ? met()
+            : ({ icon: "close", color: "red", label: "Missed" } as BarMarker),
+    );
+    await show({
+      data: crm,
+      series: crmSeries,
+      columnMode: { in: "overlap" },
+      target: (d) => d.uniq as number,
+      marker,
+    });
+    expect(marker).toHaveBeenCalledWith(crm[1], {
+      index: 1,
+      totals: { in: 3, out: 2 },
+      target: 2,
+    });
+    expect(screen.getByTestId("c-marker-0")).toBeTruthy();
+    expect(screen.getByTestId("c-marker-1")).toBeTruthy();
+  });
+
+  it("puts the marker past the longest column of its category, centred on it", async () => {
+    await show({ data: crm, series: crmSeries, marker: met });
+    const m = box("c-marker-1");
+    const uniq = at("c-bar-1-uniq"); // stacked on rec: rec+uniq = 5, the longest
+    const ko = at("c-bar-1-ko");
+    expect(m.top + m.height).toBeLessThanOrEqual(uniq.y - 3);
+    expect(m.top).toBeGreaterThanOrEqual(0);
+    expect(m.left + m.width / 2).toBeCloseTo((uniq.x + ko.x + ko.width) / 2, 0);
+  });
+
+  it("puts the marker to the right in a horizontal chart", async () => {
+    await show({ data: crm, series: crmSeries, horizontal: true, marker: met });
+    const m = box("c-marker-1");
+    const uniq = at("c-bar-1-uniq");
+    expect(m.left).toBeGreaterThanOrEqual(uniq.x + uniq.width + 3);
+    expect(m.left + m.width).toBeLessThanOrEqual(300);
+  });
+
+  it("reads the marker in the tooltip, the table and the screen reader text, and none for null", async () => {
+    await show({
+      data: crm,
+      series: crmSeries,
+      table: true,
+      marker: (d) =>
+        d.label === "Corsico"
+          ? { icon: "close", color: "red", label: "Missed" }
+          : null,
+    });
+    expect(screen.queryByTestId("c-marker-0")).toBeNull();
+    expect(screen.getByTestId("c").props.accessibilityLabel).toContain(
+      "Status: Corsico Missed.",
+    );
+    expect(screen.getByLabelText(/^Corsico, .*Status Missed$/)).toBeTruthy();
+    await fireEvent.press(screen.getByTestId("c-category-1"));
+    expect(
+      within(screen.getByTestId("c-tooltip")).getByText("Missed"),
+    ).toBeTruthy();
+  });
+
+  it("keeps the totals of every series when the legend hides one: hiding is not a verdict", async () => {
+    const marker = jest.fn(met);
+    await show({ data: crm, series: crmSeries, legend: true, marker });
+    await fireEvent.press(screen.getByTestId("c-legend-ko"));
+    expect(marker).toHaveBeenLastCalledWith(crm[1], {
+      index: 1,
+      totals: { in: 5, out: 2 },
+      target: null,
+    });
+  });
+
+  it("calls marker once per category per render", async () => {
+    const marker = jest.fn(met);
+    await show(
+      { data: crm, series: crmSeries, marker },
+      null as unknown as number,
+    );
+    expect(marker).toHaveBeenCalledTimes(crm.length);
+  });
+
+  it("shrinks the marker to the width of a narrow category", async () => {
+    const data = Array.from({ length: 40 }, (_, i) => ({
+      label: `c${i}`,
+      a: (i % 5) + 1,
+    }));
+    await show({ data, series: [{ key: "a" }], marker: met });
+    const m = box("c-marker-0");
+    const next = box("c-marker-1");
+    expect(m.width).toBeLessThan(20);
+    expect(m.left + m.width).toBeLessThanOrEqual(next.left + 0.01);
+  });
+
+  it("ignores marker and category targets when dense", async () => {
+    await show({ dense: true, marker: met, target: () => 5 });
+    expect(screen.queryByTestId("c-marker-0")).toBeNull();
+    expect(screen.queryByTestId("c-target-0")).toBeNull();
+    expect(screen.getByTestId("c-dense-a")).toBeTruthy();
+  });
+
+  it("leaves dense bars in their series colour even when a category is dimmed", async () => {
+    await show({ dense: true });
+    const fill = screen.getByTestId("c-dense-a").props.fill;
+    await screen.unmount();
+    await show({ dense: true, dimmed: () => true });
+    expect(screen.getByTestId("c-dense-a").props.fill).toEqual(fill);
+  });
+});
+
+describe("BarChart, dimmed categories", () => {
+  it("draws a dimmed category in another colour, faded, and keeps its values", async () => {
+    await show({ dimmed: (_, i) => i === 1 });
+    const feb = screen.getByTestId("c-bar-1-a").props;
+    const jan = screen.getByTestId("c-bar-0-a").props;
+    expect(feb.fill).not.toEqual(jan.fill);
+    expect(Number(feb.opacity)).toBeLessThan(1);
+    expect(Number(jan.opacity)).toBe(1);
+    await fireEvent.press(screen.getByTestId("c-category-1"));
+    expect(screen.getByText("North: 30")).toBeTruthy();
   });
 });

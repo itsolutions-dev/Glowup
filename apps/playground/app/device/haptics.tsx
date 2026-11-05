@@ -73,6 +73,7 @@ export default function HapticsPage() {
             secondaryText="press · toggle · selection, from Button, Switch, Checkbox, Radio, Chip, segmented buttons and stepped sliders."
             action={
               <Switch
+                accessibilityLabel="Interaction feedback"
                 value={preference.enabled}
                 onChange={preference.setEnabled}
               />

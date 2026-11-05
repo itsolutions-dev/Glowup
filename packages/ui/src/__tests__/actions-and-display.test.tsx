@@ -345,6 +345,36 @@ describe("Card", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
+  it("marks a selected card with a primary border, for screen readers too, without moving", async () => {
+    const box = (s: Record<string, number>) =>
+      (s.padding ?? 0) + (s.borderWidth ?? 0);
+    for (const variant of ["filled", "outlined"] as const) {
+      const { getByRole, rerender } = await draw(
+        <Card variant={variant} onClick={() => {}}>
+          <Typography variant="body1">Calls</Typography>
+        </Card>,
+      );
+      const idle = StyleSheet.flatten(getByRole("button").props.style);
+      expect(getByRole("button").props.accessibilityState?.selected).toBe(
+        undefined,
+      );
+
+      await rerender(
+        <ThemeProvider>
+          <Probe />
+          <Card variant={variant} onClick={() => {}} selected>
+            <Typography variant="body1">Calls</Typography>
+          </Card>
+        </ThemeProvider>,
+      );
+      const card = getByRole("button", { selected: true });
+      const style = StyleSheet.flatten(card.props.style);
+      expect(style.borderWidth).toBe(2);
+      expect(style.borderColor).toBe(theme.colors.primary);
+      expect(box(style)).toBe(box(idle));
+    }
+  });
+
   it("lays the title between a start and an end slot", async () => {
     const { getByText } = await draw(
       <Card.Title

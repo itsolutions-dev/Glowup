@@ -286,7 +286,13 @@ export default function SensorsPage() {
         <ListSection>
           <ListItem
             secondaryText="{ enabled } on every hook below."
-            action={<Switch value={listening} onChange={setListening} />}
+            action={
+              <Switch
+                accessibilityLabel="Read the sensors"
+                value={listening}
+                onChange={setListening}
+              />
+            }
             primaryText="Read the sensors"
           />
         </ListSection>

@@ -85,7 +85,7 @@ const Option = ({
   onChange: (value: boolean) => void;
 }) => (
   <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-    <Switch value={value} onChange={onChange} />
+    <Switch accessibilityLabel={label} value={value} onChange={onChange} />
     <Typography variant="bodyMedium">{label}</Typography>
   </View>
 );
@@ -293,6 +293,84 @@ const PartsDemo = () => {
   );
 };
 
+// A sprint per team: points planned and committed (one column, overlapping), and how the committed ones ended (stacked).
+const SPRINT: ChartDatum[] = [
+  ["Design", 8, 6, 6, 0, 0],
+  ["Mobile", 13, 10, 7, 2, 1],
+  ["Web", 12, 12, 9, 3, 0],
+  ["Backend", 20, 15, 15, 0, 0],
+  ["Data", 5, 3, 2, 1, 0],
+  ["Platform", 0, 0, 0, 0, 0],
+  ["QA", 6, 6, 4, 0, 2],
+  ["Support", 4, 4, 4, 0, 0],
+].map(([label, planned, committed, done, review, blocked]) => ({
+  label: label as string,
+  planned,
+  committed,
+  done,
+  review,
+  blocked,
+}));
+
+/** Two columns per category, one overlapping and one stacked, a target and an outcome mark per category. */
+const ColumnsDemo = () => {
+  const { theme } = useTheme();
+  const c = theme.colors;
+  return (
+    <Tile wide title="Sprint points by team">
+      <BarChart
+        testID="demo-columns"
+        height={280}
+        data={SPRINT}
+        series={[
+          {
+            key: "planned",
+            label: "Planned",
+            column: "plan",
+            color: c.primaryContainer,
+          },
+          {
+            key: "committed",
+            label: "Committed",
+            column: "plan",
+            color: c.primary,
+          },
+          { key: "done", label: "Done", column: "result", color: c.success },
+          {
+            key: "review",
+            label: "In review",
+            column: "result",
+            color: c.secondary,
+          },
+          {
+            key: "blocked",
+            label: "Blocked",
+            column: "result",
+            color: c.error,
+          },
+        ]}
+        columnMode={{ plan: "overlap" }}
+        // The target of a team is what it committed to.
+        target={(d) => (d.committed ? Number(d.committed) : null)}
+        marker={(d, { totals, target }) =>
+          !target
+            ? null
+            : d.blocked
+              ? { icon: "close", color: c.error, label: "Work blocked" }
+              : totals.result < target || d.review
+                ? { icon: "check", color: c.warning, label: "Not finished yet" }
+                : { icon: "check", color: c.success, label: "Commitment met" }
+        }
+        // Fewer than five points: too small a commitment to judge.
+        dimmed={(d) => Number(d.committed) < 5}
+        legend
+        table
+        title="Sprint points by team"
+      />
+    </Tile>
+  );
+};
+
 // A trend, twelve swells over the range and noise: what a long series looks like, and what the dense mode folds.
 const manyPoints = (n: number): ChartDatum[] =>
   Array.from({ length: n }, (_, i) => ({
@@ -391,7 +469,7 @@ export default function ChartsPage() {
           visible
           type="info"
           icon="information-outline"
-          message="Checked in a browser; on a phone it has run only in unit tests so far. Series colours are provisional: they come from the theme's roles until the library has a chart palette."
+          message="Checked in a browser, and on the iPhone simulator and the Android emulators in CI. Series colours come from the theme's chart palette (theme.charts), in order."
         />
       }
     >
@@ -406,6 +484,12 @@ export default function ChartsPage() {
         description="A donut or a pie, a gauge (a donut with a total bigger than its part), a single stacked bar and sparklines. Tap or point at a slice to read it."
       >
         <PartsDemo />
+      </Section>
+      <Section
+        title="Columns, targets and outcomes"
+        description="Series that share a column make one bar of the category: stacked, or overlapping from zero with the longest behind. A target per category draws a short line across it, an outcome mark sits past its longest bar, and a category can be dimmed. Target and outcome are read in the tooltip, the table and the text for a screen reader."
+      >
+        <ColumnsDemo />
       </Section>
       <Section
         title="Thousands of points"

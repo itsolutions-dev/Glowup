@@ -191,9 +191,6 @@ describe("DataGrid column reorder", () => {
     Array.from(JSON.stringify(tree).matchAll(/"(Name|Role)"/g)).map(
       (m) => m[1],
     );
-  // The right arrow of the first column: the only arrow it has.
-  const RIGHT = "\u{F0142}";
-
   const ui = (label = "Role") => (
     <ThemeProvider>
       <DataGrid
@@ -209,9 +206,9 @@ describe("DataGrid column reorder", () => {
   );
 
   it("keeps the order the user chose when columns is a new but equal array", async () => {
-    const { getByText, toJSON, rerender } = await render(ui());
+    const { getByRole, toJSON, rerender } = await render(ui());
     expect(headers(toJSON())).toEqual(["Name", "Role"]);
-    await fireEvent.press(getByText(RIGHT));
+    await fireEvent.press(getByRole("button", { name: "Move Name right" }));
     expect(headers(toJSON())).toEqual(["Role", "Name"]);
 
     await rerender(ui());

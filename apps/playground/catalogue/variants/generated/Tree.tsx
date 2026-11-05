@@ -9,7 +9,8 @@ import type { TreeNode } from "@its/glowup-ui";
 
 const panel: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const files: TreeNode[] = [
@@ -134,7 +135,7 @@ export const ControlledCheckboxes = () => {
         onSelectedChange={setSelected}
       />
       <Typography variant="bodySmall">
-        {selected.join(", ") || "none"}
+        {`Checked: ${selected.join(", ") || "nothing"}`}
       </Typography>
     </View>
   );

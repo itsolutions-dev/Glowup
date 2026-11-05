@@ -30,7 +30,9 @@ engine.setSlice({
   filters: [],
 });
 
-<PivotGrid engine={engine} height={480} />`;
+// \`toolbar\`: Export to Excel (an .xlsx on web, iOS and Android), Fullscreen and Reset.
+// On iOS and Android the export needs expo-file-system and expo-sharing in the app.
+<PivotGrid engine={engine} height={528} toolbar fileName="report" />`;
 
 const LOCALES = [
   { id: "en-US", label: "English" },
@@ -52,7 +54,12 @@ const Demo = () => {
           backgroundColor: theme.colors.surface,
         }}
       >
-        <PivotGrid engine={engine} height={480} />
+        <PivotGrid
+          engine={engine}
+          height={528}
+          toolbar
+          fileName="pivot-sample"
+        />
       </Paper>
       <View style={{ flexDirection: "row", gap: 12 }}>
         {LOCALES.map(({ id, label }) => (
@@ -77,13 +84,13 @@ export default function PivotPage() {
     <Page
       eyebrow="Companion package"
       title="Pivot"
-      description="@its/glowup-pivot shows a pivot table, with the engine of AuraPivot copied into the package. On the web, phone browsers included, it is a read-only grid; in the iOS and Android app it is not available yet. This page is not published yet."
+      description="@its/glowup-pivot shows a pivot table, with the engine of AuraPivot copied into the package. It is a read-only grid on the web, phone browsers included, and in the iOS and Android app. This page is not published yet."
       banner={
         <Banner
           visible
           type="info"
           icon="information-outline"
-          message="Read-only for now: rows and column groups open and close, the header and the first two columns stay in view while you scroll. The field panel, filters, calculated fields, drill-through and export are later pieces."
+          message="A table to read and export: rows and column groups open and close, the header and the first two columns stay in view while you scroll, and the toolbar exports what is on screen to Excel, opens the grid full screen and resets it. The field panel, formats, filters, calculated fields and drill-through are left out for now."
         />
       }
     >
@@ -95,7 +102,7 @@ export default function PivotPage() {
       </Section>
       <Section
         title="Use it"
-        description="An engine holds the data and the report; the grid shows it and asks the engine to open or close a row."
+        description="An engine holds the data and the report; the grid shows it and asks the engine to open or close a row. With toolbar, the grid exports an .xlsx of what it shows: downloaded on the web, handed to the share sheet on iOS and Android."
       >
         <CodeBlock code={INSTALL} language="bash" title="Terminal" />
         <CodeBlock code={USAGE} title="Screen.tsx" />

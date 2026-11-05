@@ -184,7 +184,8 @@ const PasswordField = ({
 
   if (!showStrength) return field;
 
-  const score = passwordStrength(value);
+  // A FormField hands `undefined` to a field its form starts without.
+  const score = passwordStrength(value ?? "");
   const label = strengthLabels[score] ?? DEFAULT_LABELS[score];
   return (
     <View style={fieldWidth(fullWidth)}>

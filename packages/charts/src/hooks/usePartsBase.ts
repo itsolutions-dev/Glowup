@@ -62,7 +62,7 @@ export const usePartsBase = ({
   const [hidden, setHidden] = useState<string[]>([]);
   const allColors = resolveSeriesColors(
     data.map((d) => ({ key: d.id, color: d.color })),
-    colors ?? themeSeriesColors(theme.colors),
+    colors ?? themeSeriesColors(theme),
   );
   const colorOf = (id: string) =>
     allColors[data.findIndex((d) => d.id === id)] ?? "currentColor";

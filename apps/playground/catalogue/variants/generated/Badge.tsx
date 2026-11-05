@@ -4,7 +4,7 @@
 import React from "react";
 import { View, type ViewStyle } from "react-native";
 import type { Variant } from "../types";
-import { Badge, Avatar, Button, Typography } from "@its/glowup-ui";
+import { Badge, Avatar, IconButton, Typography } from "@its/glowup-ui";
 
 const row: ViewStyle = {
   flexDirection: "row",
@@ -25,56 +25,89 @@ const anchor: ViewStyle = {
   flexDirection: "row",
 };
 
+/** `position="top-right"` pins the badge to the anchor's corner, overlapping it slightly. (`IconButton` also has its own `badge` prop.) */
 export const OnIconButtons = () => (
   <View style={row}>
-    <View style={stack}>
-      <View style={anchor}>
-        <Button variant="tonal" iconName="email-outline" onClick={() => {}} />
-        <Badge count={3} style={{ top: -2, right: -2 }} />
+    {(
+      [
+        ["email-outline", "Inbox", 3],
+        ["bell-outline", "Alerts", 12],
+        ["cart-outline", "Cart", 128],
+      ] as const
+    ).map(([icon, label, count]) => (
+      <View key={label} style={stack}>
+        <View style={anchor}>
+          <IconButton
+            variant="tonal"
+            icon={icon}
+            accessibilityLabel={label}
+            onClick={() => {}}
+          />
+          <Badge count={count} position="top-right" />
+        </View>
+        <Typography variant="labelSmall">{label}</Typography>
       </View>
-      <Typography variant="labelSmall">Inbox</Typography>
-    </View>
-    <View style={stack}>
-      <View style={anchor}>
-        <Button variant="tonal" iconName="bell-outline" onClick={() => {}} />
-        <Badge count={12} style={{ top: -2, right: -2 }} />
-      </View>
-      <Typography variant="labelSmall">Alerts</Typography>
-    </View>
-    <View style={stack}>
-      <View style={anchor}>
-        <Button variant="tonal" iconName="cart-outline" onClick={() => {}} />
-        <Badge count={128} style={{ top: -2, right: -2 }} />
-      </View>
-      <Typography variant="labelSmall">Cart</Typography>
-    </View>
+    ))}
   </View>
 );
 
+/** `size="large"` carries a count; `size="small"` (or no `count`) is a 6 px dot that only says "something new". */
 export const Sizes = () => (
   <View style={row}>
     <View style={stack}>
       <View style={anchor}>
-        <Button
+        <IconButton
           variant="outlined"
-          iconName="message-outline"
+          icon="message-outline"
+          accessibilityLabel="Messages"
           onClick={() => {}}
         />
-        <Badge count={7} size="large" style={{ top: -2, right: -2 }} />
+        <Badge count={7} size="large" position="top-right" />
       </View>
       <Typography variant="labelSmall">large (count)</Typography>
     </View>
     <View style={stack}>
       <View style={anchor}>
-        <Button
+        <IconButton
           variant="outlined"
-          iconName="message-outline"
+          icon="message-outline"
+          accessibilityLabel="Messages"
           onClick={() => {}}
         />
-        <Badge size="small" style={{ top: 2, right: 2 }} />
+        <Badge size="small" style={{ top: 6, right: 6 }} />
       </View>
       <Typography variant="labelSmall">small (dot)</Typography>
     </View>
+  </View>
+);
+
+/** `color` takes a colour role; `error` is the default. */
+export const Colors = () => (
+  <View style={row}>
+    {(
+      [
+        ["error", "bell-outline"],
+        ["primary", "email-outline"],
+        ["tertiary", "message-outline"],
+        ["success", "cloud-check-outline"],
+        ["warning", "alert-outline"],
+        ["info", "information-outline"],
+        ["neutral", "inbox-outline"],
+      ] as const
+    ).map(([color, icon]) => (
+      <View key={color} style={stack}>
+        <View style={anchor}>
+          <IconButton
+            variant="tonal"
+            icon={icon}
+            accessibilityLabel={color}
+            onClick={() => {}}
+          />
+          <Badge count={4} color={color} position="top-right" />
+        </View>
+        <Typography variant="labelSmall">{color}</Typography>
+      </View>
+    ))}
   </View>
 );
 
@@ -130,12 +163,22 @@ export const variants: Variant[] = [
   {
     name: "OnIconButtons",
     title: "On icon buttons",
+    description:
+      '`position="top-right"` pins the badge to the anchor\'s corner, overlapping it slightly. (`IconButton` also has its own `badge` prop.)',
     render: OnIconButtons,
   },
   {
     name: "Sizes",
     title: "Sizes",
+    description:
+      '`size="large"` carries a count; `size="small"` (or no `count`) is a 6 px dot that only says "something new".',
     render: Sizes,
+  },
+  {
+    name: "Colors",
+    title: "Colors",
+    description: "`color` takes a colour role; `error` is the default.",
+    render: Colors,
   },
   {
     name: "OverflowAndZero",

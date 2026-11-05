@@ -56,6 +56,26 @@ describe("chart table", () => {
     expect(onSelect).toHaveBeenLastCalledWith(null);
   });
 
+  it("leaves out a Target or Status column with nothing in it", async () => {
+    await mount(
+      <BarChart
+        data={data}
+        series={series}
+        table
+        target={() => null}
+        marker={(d) =>
+          d.label === "Feb"
+            ? { icon: "check", color: "#00AA00", label: "Met" }
+            : null
+        }
+        testID="c"
+        locale="en-US"
+      />,
+    );
+    expect(screen.queryByText("Target")).toBeNull();
+    expect(screen.getByText("Status")).toBeTruthy();
+  });
+
   it("follows the series the legend switches off", async () => {
     await mount(
       <BarChart

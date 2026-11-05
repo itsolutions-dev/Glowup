@@ -41,7 +41,8 @@
     "!**/*.map",
     "!**/__tests__",
     "!**/*.test.ts",
-    "!**/*.test.tsx"
+    "!**/*.test.tsx",
+    "!android/build"
   ],
   "sideEffects": false,
   "scripts": {

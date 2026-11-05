@@ -29,6 +29,7 @@ import { variants as Collapse } from "./Collapse";
 import { variants as DataGrid } from "./DataGrid";
 import { variants as DatePicker } from "./DatePicker";
 import { variants as DateTimePicker } from "./DateTimePicker";
+import { variants as DayTimeline } from "./DayTimeline";
 import { variants as Divider } from "./Divider";
 import { variants as Download } from "./Download";
 import { variants as Drawer } from "./Drawer";
@@ -37,6 +38,7 @@ import { variants as EmptyState } from "./EmptyState";
 import { variants as Form } from "./Form";
 import { variants as FormControl } from "./FormControl";
 import { variants as Grid } from "./Grid";
+import { variants as GridLayout } from "./GridLayout";
 import { variants as HelperText } from "./HelperText";
 import { variants as IFrame } from "./IFrame";
 import { variants as IconButton } from "./IconButton";
@@ -87,6 +89,7 @@ import { variants as Tree } from "./Tree";
 import { variants as Typography } from "./Typography";
 import { variants as Upload } from "./Upload";
 import { variants as Visible } from "./Visible";
+import { variants as WeekStrip } from "./WeekStrip";
 
 export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   AbsoluteCenter,
@@ -117,6 +120,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   DataGrid,
   DatePicker,
   DateTimePicker,
+  DayTimeline,
   Divider,
   Download,
   Drawer,
@@ -125,6 +129,7 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Form,
   FormControl,
   Grid,
+  GridLayout,
   HelperText,
   IFrame,
   IconButton,
@@ -175,4 +180,5 @@ export const GENERATED_VARIANTS: Record<string, Variant[]> = {
   Typography,
   Upload,
   Visible,
+  WeekStrip,
 };

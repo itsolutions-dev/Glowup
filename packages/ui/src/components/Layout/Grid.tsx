@@ -12,6 +12,7 @@ import React, {
 import {
   LayoutChangeEvent,
   StyleProp,
+  StyleSheet,
   View,
   ViewProps,
   ViewStyle,
@@ -215,7 +216,17 @@ const GridContainer = ({
   );
 
   const handleLayout = (event: LayoutChangeEvent) => {
-    setWidth(event.nativeEvent.layout.width);
+    // The layout width includes the container's own padding and border; the
+    // items share only what is inside them.
+    const s = StyleSheet.flatten([cell, style]) ?? {};
+    const px = (...values: unknown[]) =>
+      values.find((v): v is number => typeof v === "number") ?? 0;
+    const inset =
+      px(s.paddingLeft, s.paddingStart, s.paddingHorizontal, s.padding) +
+      px(s.paddingRight, s.paddingEnd, s.paddingHorizontal, s.padding) +
+      px(s.borderLeftWidth, s.borderStartWidth, s.borderWidth) +
+      px(s.borderRightWidth, s.borderEndWidth, s.borderWidth);
+    setWidth(event.nativeEvent.layout.width - inset);
     onLayout?.(event);
   };
 

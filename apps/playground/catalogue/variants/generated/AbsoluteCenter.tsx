@@ -40,7 +40,17 @@ export const Axes = () => (
         borderColor="outlineVariant"
       >
         <AbsoluteCenter axis={axis}>
-          <Typography variant="labelLarge">axis=&quot;{axis}&quot;</Typography>
+          <Box
+            background="secondaryContainer"
+            radius="small"
+            padding={8}
+            margin={12}
+            align="center"
+          >
+            <Typography variant="labelLarge">
+              axis=&quot;{axis}&quot;
+            </Typography>
+          </Box>
         </AbsoluteCenter>
       </Box>
     ))}
@@ -52,7 +62,7 @@ export const OverContent = () => (
   <Box
     background="surfaceContainerLow"
     radius="large"
-    height={200}
+    height={240}
     width={360}
     padding={16}
     gap={8}

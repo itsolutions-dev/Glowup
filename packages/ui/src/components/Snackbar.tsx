@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useMemo, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
   Pressable,
   StyleSheet,
@@ -205,6 +206,13 @@ const Snackbar = ({
     }
   }, [visible, hiddenOffset, fadeAnim, translateYAnim]);
 
+  // iOS has no live region: VoiceOver hears the message only when told.
+  useEffect(() => {
+    if (visible && message && Platform.OS === "ios") {
+      AccessibilityInfo.announceForAccessibility(message);
+    }
+  }, [visible, message]);
+
   // A snackbar with a close button waits for it; the others time out.
   useEffect(() => {
     if (!visible || persistent || duration <= 0) return;
@@ -219,6 +227,10 @@ const Snackbar = ({
   const styles = useMemo(() => makeStyles(theme, colors), [theme, colors]);
 
   if (!shouldRender) return null;
+
+  // The close button: `onClose`'s, or `onDismiss`'s when no timer and no
+  // action would ever dismiss the snackbar (it stayed up for good).
+  const close = onClose ?? (duration <= 0 && !action ? onDismiss : undefined);
 
   const iconName = icon ?? (severity ? SEVERITY_ICONS[severity] : undefined);
   const edge =
@@ -281,11 +293,11 @@ const Snackbar = ({
           </Button>
         )}
 
-        {onClose && (
+        {close && (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close"
-            onPress={onClose}
+            onPress={close}
             style={({ hovered, pressed }: PressableState) => [
               styles.closeButton,
               (pressed || hovered) && {

@@ -52,7 +52,9 @@ export const WithFab = () => (
       variant="floating"
       safeArea={false}
       accessibilityLabel="Formatting"
-      fab={<FAB icon="plus" placement="inline" onClick={() => {}} />}
+      fab={
+        <FAB icon="plus" label="New" placement="inline" onClick={() => {}} />
+      }
     >
       {formatting}
     </Toolbar>

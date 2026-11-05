@@ -207,7 +207,11 @@ const PropControl = ({
           >
             {definition.label}
           </Typography>
-          <Switch value={!!value} onChange={onChange} />
+          <Switch
+            accessibilityLabel={definition.label}
+            value={!!value}
+            onChange={onChange}
+          />
         </View>
       );
 

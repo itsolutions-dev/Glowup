@@ -8,6 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
+import { a11yState } from "./internal/a11yState";
 
 /** Which unit the dial is currently editing. */
 export type ClockUnit = "hours" | "minutes";
@@ -196,9 +197,9 @@ const ClockDial = ({
     <View
       testID={testID}
       accessibilityRole="adjustable"
-      accessibilityValue={{
+      {...a11yState("adjustable", undefined, {
         text: `${pad2(hours)}:${pad2(minutes)}`,
-      }}
+      })}
       style={[styles.dial, style]}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}

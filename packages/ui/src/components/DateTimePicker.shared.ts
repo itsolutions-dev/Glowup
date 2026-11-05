@@ -611,10 +611,22 @@ export const formatDateInput = (date: Date, locale: string) => {
  * silently rolled over to 03/03.
  */
 export const parseDateInput = (text: string, locale: string): Date | null => {
-  const groups = text.split(/\D+/).filter(Boolean);
+  const order = getDateFieldOrder(locale);
+  let groups = text.split(/\D+/).filter(Boolean);
+  // Digits typed without separators ("05112026", "051126"): two for the day
+  // and the month, the rest for the year, in the locale's order.
+  if (groups.length === 1 && /^(\d{6}|\d{8})$/.test(groups[0])) {
+    const digits = groups[0];
+    const yearWidth = digits.length - 4;
+    let at = 0;
+    groups = order.map((field) => {
+      const width = field === "year" ? yearWidth : 2;
+      at += width;
+      return digits.slice(at - width, at);
+    });
+  }
   if (groups.length !== 3) return null;
 
-  const order = getDateFieldOrder(locale);
   const values: Partial<Record<DateField, number>> = {};
   order.forEach((field, index) => {
     values[field] = Number(groups[index]);

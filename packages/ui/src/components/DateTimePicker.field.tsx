@@ -13,6 +13,7 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import HelperText from "./HelperText";
 import { filledField } from "./internal/fieldVariant";
+import { a11yState } from "./internal/a11yState";
 
 export interface PickerFieldProps {
   label?: string;
@@ -100,7 +101,7 @@ const PickerField = forwardRef<View, PickerFieldProps>(
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={openAccessibilityLabel ?? label}
-        accessibilityState={{ disabled, expanded: active }}
+        {...a11yState("button", { disabled, expanded: active })}
         disabled={disabled}
         onPress={onClick}
         hitSlop={8}
@@ -214,8 +215,11 @@ const PickerField = forwardRef<View, PickerFieldProps>(
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={accessibilityLabel ?? label}
-              accessibilityValue={{ text: displayValue }}
-              accessibilityState={{ disabled, expanded: active }}
+              {...a11yState(
+                "button",
+                { disabled, expanded: active },
+                { text: displayValue },
+              )}
               disabled={disabled}
               onPress={onClick}
               style={styles.trigger}

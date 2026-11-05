@@ -57,10 +57,14 @@ const Host = ({
 /** Input needs `value` and `onChange` as props; a FormField supplies them. */
 const Field = Input as unknown as React.ComponentType<Partial<InputProps>>;
 
+// A field is named by its label: on iOS by `label`, on Android by the label view,
+// which shows a required field's star ("Email *").
+const named = (label: string) => new RegExp(`^${label}( \\*)?$`);
+
 const type = (view: { getByLabelText: any }, label: string, text: string) =>
-  fireEvent.changeText(view.getByLabelText(label), text);
+  fireEvent.changeText(view.getByLabelText(named(label)), text);
 const blur = (view: { getByLabelText: any }, label: string) =>
-  fireEvent(view.getByLabelText(label), "blur");
+  fireEvent(view.getByLabelText(named(label)), "blur");
 
 describe("names and paths", () => {
   it("dots and brackets read the same, and are stored with brackets", () => {
@@ -647,9 +651,9 @@ describe("Form with fields", () => {
         <Email />
       </Host>,
     );
-    expect(view.getByLabelText("Email").props.value).toBe("a@b.it");
+    expect(view.getByLabelText(named("Email")).props.value).toBe("a@b.it");
     await type(view, "Email", "c@d.it");
-    expect(view.getByLabelText("Email").props.value).toBe("c@d.it");
+    expect(view.getByLabelText(named("Email")).props.value).toBe("c@d.it");
     expect(form().getValue("email")).toBe("c@d.it");
   });
 
@@ -789,7 +793,7 @@ describe("Form with fields", () => {
         </FormField>
       </Host>,
     );
-    expect(view.getByLabelText("Nick").props.value).toBe("ada");
+    expect(view.getByLabelText(named("Nick")).props.value).toBe("ada");
     expect(form().getValues()).toEqual({ nick: "ada" });
     expect(form().isDirty()).toBe(false);
   });
@@ -807,8 +811,8 @@ describe("Form with fields", () => {
         </FormField>
       </Host>,
     );
-    expect(view.getByLabelText("City").props.value).toBe("Rome");
-    expect(view.getByLabelText("Qty").props.value).toBe("1");
+    expect(view.getByLabelText(named("City")).props.value).toBe("Rome");
+    expect(view.getByLabelText(named("Qty")).props.value).toBe("1");
     await type(view, "City", "Milan");
     await type(view, "Qty", "x");
     expect(form().getValues()).toEqual({
@@ -832,7 +836,7 @@ describe("Form with fields", () => {
     );
     await type(view, "Code", "  ab1 ");
     expect(form().getValue("code")).toBe("AB1");
-    expect(view.getByLabelText("Code").props.value).toBe("AB1");
+    expect(view.getByLabelText(named("Code")).props.value).toBe("AB1");
   });
 
   it("reads a DOM event's target by default, and getValueFromEvent when given", async () => {
@@ -948,8 +952,8 @@ describe("Form with fields", () => {
         <Button type="submit">Save</Button>
       </Host>,
     );
-    expect(view.getByLabelText("Email").props.editable).toBe(false);
-    expect(view.getByLabelText("Other").props.editable).toBe(false);
+    expect(view.getByLabelText(named("Email")).props.editable).toBe(false);
+    expect(view.getByLabelText(named("Other")).props.editable).toBe(false);
     await fireEvent.press(view.getByText("Save"));
     expect(onSubmit).not.toHaveBeenCalled();
     expect(
@@ -969,8 +973,8 @@ describe("Form with fields", () => {
         </FormField>
       </Host>,
     );
-    expect(view.getByLabelText("A").props.editable).toBe(false);
-    expect(view.getByLabelText("B").props.editable).not.toBe(false);
+    expect(view.getByLabelText(named("A")).props.editable).toBe(false);
+    expect(view.getByLabelText(named("B")).props.editable).not.toBe(false);
   });
 
   it("reset puts the fields back", async () => {
@@ -982,7 +986,7 @@ describe("Form with fields", () => {
     await type(view, "Email", "bad");
     expect(view.getByText("Enter a valid email address")).toBeTruthy();
     await act(async () => form().reset());
-    expect(view.getByLabelText("Email").props.value).toBe("a@b.it");
+    expect(view.getByLabelText(named("Email")).props.value).toBe("a@b.it");
     expect(view.queryByText("Enter a valid email address")).toBeNull();
   });
 
@@ -993,7 +997,7 @@ describe("Form with fields", () => {
       </Host>,
     );
     await act(async () => form().setValues({ email: "z@z.it" }));
-    expect(view.getByLabelText("Email").props.value).toBe("z@z.it");
+    expect(view.getByLabelText(named("Email")).props.value).toBe("z@z.it");
     await act(async () => form().setError("email", "Already registered"));
     expect(view.getByText("Already registered")).toBeTruthy();
   });
@@ -1008,7 +1012,7 @@ describe("Form with fields", () => {
       );
     };
     const view = await draw(<Outer />);
-    expect(view.getByLabelText("Email").props.value).toBe("from-form");
+    expect(view.getByLabelText(named("Email")).props.value).toBe("from-form");
   });
 
   it("works with no form instance given: the hooks reach the form's own", async () => {

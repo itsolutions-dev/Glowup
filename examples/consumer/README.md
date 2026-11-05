@@ -40,7 +40,7 @@ install, and that it validates the **last published version**, not your working 
 ```bash
 cd examples/consumer
 npm install          # pulls @its/glowup-ui from the registry
-npm run smoke        # tsc --noEmit + expo export -p web
+npm run smoke        # tsc --noEmit + expo export for web, iOS and Android
 npm run web          # or open it in a browser
 ```
 

@@ -56,6 +56,7 @@ export default function SwitchExample() {
               <Switch
                 size={props.size}
                 value={!!topics[topic.id]}
+                accessibilityLabel={topic.title}
                 disabled={!allowed}
                 onChange={(on) =>
                   setTopics((all) => ({ ...all, [topic.id]: on }))

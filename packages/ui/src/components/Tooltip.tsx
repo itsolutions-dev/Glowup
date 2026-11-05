@@ -13,6 +13,8 @@ import {
   Platform,
   LayoutChangeEvent,
   useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import Portal, { usePortalHost } from "./Portal";
@@ -20,8 +22,12 @@ import Button from "./Button";
 import { useEscapeKey } from "./internal/useEscapeKey";
 
 export interface TooltipProps {
-  /** The tip's text; the body text of a rich tooltip. */
-  content: string;
+  /**
+   * The tip's text; the body of a rich tooltip, which can also be laid out (a
+   * small sum, a list). A node never names the anchor: give the rich tooltip a
+   * `title` for that.
+   */
+  content: React.ReactNode;
   /**
    * `"plain"` is the one-line label for an icon-only control. `"rich"` adds a
    * `title` and an `action`, for context a label cannot carry. Defaults to
@@ -56,6 +62,11 @@ export interface TooltipProps {
   enterDelay?: number;
   /** Grace period (ms) before the tip leaves on hover-out. */
   leaveDelay?: number;
+  /**
+   * The wrapper around the anchor, which otherwise sizes to it: `{ flex: 1 }`
+   * lets an anchor that grows (a segment of a full-width group) keep growing.
+   */
+  style?: StyleProp<ViewStyle>;
 }
 
 const GAP = 8;
@@ -72,6 +83,7 @@ const Tooltip = ({
   hideDelay = 1500,
   enterDelay = 500,
   leaveDelay = 100,
+  style,
 }: TooltipProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -256,9 +268,13 @@ const Tooltip = ({
           {title}
         </Text>
       )}
-      <Text style={[theme.typography.bodyMedium, styles.richText]}>
-        {content}
-      </Text>
+      {typeof content === "string" ? (
+        <Text style={[theme.typography.bodyMedium, styles.richText]}>
+          {content}
+        </Text>
+      ) : (
+        content
+      )}
       {action && (
         <View style={styles.richActions}>
           <Button
@@ -290,7 +306,7 @@ const Tooltip = ({
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, style]}>
       {Platform.OS === "web" ? (
         <View
           ref={anchorRef}
@@ -308,9 +324,9 @@ const Tooltip = ({
           accessible={anchorAccessible}
           accessibilityLabel={
             anchorAccessible
-              ? title
-                ? `${title}. ${content}`
-                : content
+              ? [title, typeof content === "string" ? content : undefined]
+                  .filter(Boolean)
+                  .join(". ") || undefined
               : undefined
           }
           onLongPress={handleLongPress}

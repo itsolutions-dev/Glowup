@@ -17,6 +17,7 @@ import SideOverlay from "./internal/SideOverlay";
 import { elevationStyle } from "./internal/elevation";
 import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
+import { a11yState } from "./internal/a11yState";
 
 // M3 navigation drawer: up to 360dp wide, 56dp items with a full-width pill
 // indicator inset 12dp from the container edges.
@@ -73,7 +74,9 @@ export const DrawerItem = ({
   const level = useContext(LevelContext);
   const collapsed = useContext(CollapsedContext);
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const isGroup = React.Children.toArray(children).length > 0;
+  // Collapsed, the children are hidden: a group is a plain item then, with no
+  // open state to flip or announce.
+  const isGroup = !collapsed && React.Children.toArray(children).length > 0;
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const content = selected
     ? theme.colors.onSecondaryContainer
@@ -95,12 +98,11 @@ export const DrawerItem = ({
       disabled={disabled}
       accessibilityRole={isGroup ? "button" : "link"}
       accessibilityLabel={label}
-      accessibilityState={{
+      {...a11yState(isGroup ? "button" : "link", {
         selected,
         disabled,
         expanded: isGroup ? expanded : undefined,
-      }}
-      aria-current={selected ? "page" : undefined}
+      })}
       testID={testID}
       style={({ hovered, pressed, focused }: PressableState) => [
         styles.item,
@@ -198,7 +200,7 @@ export const DrawerSection = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={title}
-        accessibilityState={{ expanded }}
+        {...a11yState("header", { expanded })}
         onPress={() => {
           setExpanded(!expanded);
           onToggle?.(!expanded);

@@ -40,16 +40,34 @@ const OnASurface = () => (
       <Typography variant="bodyMedium">
         INV-2042 · Vento Lab · €640.00
       </Typography>
-      <FAB icon="plus" onClick={() => {}} />
+      <FAB icon="plus" label="New" onClick={() => {}} />
     </Paper>
   </View>
 );
 
 const Sizes = () => (
   <View style={demo.row}>
-    <FAB icon="pencil-outline" size="small" onClick={() => {}} style={inline} />
-    <FAB icon="plus" size="medium" onClick={() => {}} style={inline} />
-    <FAB icon="plus" size="large" onClick={() => {}} style={inline} />
+    <FAB
+      icon="pencil-outline"
+      label="Compose"
+      size="small"
+      onClick={() => {}}
+      style={inline}
+    />
+    <FAB
+      icon="plus"
+      label="New"
+      size="medium"
+      onClick={() => {}}
+      style={inline}
+    />
+    <FAB
+      icon="plus"
+      label="New"
+      size="large"
+      onClick={() => {}}
+      style={inline}
+    />
   </View>
 );
 
@@ -88,23 +106,26 @@ const Positions = () => (
       </Typography>
       <FAB
         icon="arrow-left"
+        label="Back"
         size="small"
         position="top-left"
         onClick={() => {}}
       />
       <FAB
         icon="magnify"
+        label="Search"
         size="small"
         position="top-right"
         onClick={() => {}}
       />
       <FAB
         icon="filter-variant"
+        label="Filters"
         size="small"
         position="bottom-left"
         onClick={() => {}}
       />
-      <FAB icon="plus" position="bottom-right" onClick={() => {}} />
+      <FAB icon="plus" label="New" position="bottom-right" onClick={() => {}} />
     </Paper>
   </View>
 );

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "./types";
@@ -31,7 +31,11 @@ const SpeedDial = ({
   defaultOpen = false,
 }: SpeedDialProps) => {
   const [open, setOpen] = useState(defaultOpen);
-  const insets = useSafeAreaInsets();
+  // True once the close spring has settled: the invisible actions are then
+  // disabled, which takes them out of the web tab order. Not before, or they
+  // would turn grey while still shrinking away.
+  const [settledClosed, setSettledClosed] = useState(!defaultOpen);
+  const insets = useInsets();
 
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -43,12 +47,15 @@ const SpeedDial = ({
 
   const toggle = () => {
     const toValue = open ? 0 : 1;
+    if (!open) setSettledClosed(false);
     Animated.spring(anim, {
       toValue,
       useNativeDriver: true,
       tension: 50,
       friction: 7,
-    }).start();
+    }).start(({ finished }) => {
+      if (finished && toValue === 0) setSettledClosed(true);
+    });
     setOpen(!open);
   };
 
@@ -77,6 +84,7 @@ const SpeedDial = ({
             return (
               <Animated.View
                 key={action.id}
+                aria-hidden={!open}
                 style={[
                   styles.actionRow,
                   { flexDirection: isLeft ? "row-reverse" : "row" },
@@ -98,8 +106,8 @@ const SpeedDial = ({
                       theme.typography.labelLarge,
                       { color: theme.colors.onSurface },
                     ]}
-                    accessibilityLabel={action.label}
-                    accessibilityRole="text"
+                    // The button beside it carries the same name.
+                    aria-hidden
                   >
                     {action.label}
                   </Text>
@@ -107,6 +115,8 @@ const SpeedDial = ({
 
                 <FAB
                   icon={action.icon}
+                  label={action.label}
+                  disabled={settledClosed}
                   onClick={() => {
                     action.onPress();
                     toggle();
@@ -120,9 +130,11 @@ const SpeedDial = ({
           })}
         </View>
 
-        {/* Open, the trigger becomes the close button (the M3 FAB menu). */}
+        {/* Open, the trigger becomes the close button (the M3 FAB menu), and
+            says so to a screen reader. */}
         <FAB
           icon={open ? "close" : mainIcon}
+          label={open ? "Close actions" : "Open actions"}
           onClick={toggle}
           size="medium"
           placement="inline"

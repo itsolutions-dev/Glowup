@@ -16,7 +16,10 @@ import {
   useWindowDimensions,
   GestureResponderEvent,
 } from "react-native";
+import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { ToastLayer } from "./internal/ToastLayer";
+import KeyboardFrame from "./internal/KeyboardFrame";
 import Typography from "./Typography";
 import IconButton from "./IconButton";
 import Divider from "./Divider";
@@ -39,6 +42,7 @@ export interface BottomSheetProps {
   dismissOnScrimTap?: boolean;
   /** Max sheet height as a fraction of the window height. */
   maxHeightRatio?: number;
+  testID?: string;
 }
 
 const DISMISS_THRESHOLD = 120;
@@ -53,6 +57,7 @@ const BottomSheet = ({
   showHandle = true,
   dismissOnScrimTap = true,
   maxHeightRatio = 0.85,
+  testID,
 }: BottomSheetProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -148,76 +153,79 @@ const BottomSheet = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={styles.root}>
-        <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={dismissOnScrimTap ? onClose : undefined}
-            accessibilityLabel="Close bottom sheet"
-          />
-        </Animated.View>
+      <KeyboardFrame>
+        <View style={styles.root} testID={testID}>
+          <Animated.View style={[styles.scrim, { opacity: scrimOpacity }]}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={dismissOnScrimTap ? onClose : undefined}
+              accessibilityLabel="Close bottom sheet"
+            />
+          </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              maxHeight: window.height * maxHeightRatio,
-              transform: [{ translateY }],
-            },
-          ]}
-          accessibilityViewIsModal
-        >
-          {showHandle && (
-            <View
-              style={styles.handleArea}
-              onStartShouldSetResponder={() => true}
-              onMoveShouldSetResponder={() => true}
-              onResponderGrant={handleDragStart}
-              onResponderMove={handleDragMove}
-              onResponderRelease={handleDragEnd}
-              onResponderTerminate={handleDragEnd}
-            >
-              <View style={styles.handle} />
-            </View>
-          )}
-
-          {(!!title || showCloseButton) && (
-            <View style={styles.header}>
-              <Typography
-                variant="titleLarge"
-                accessibilityRole="header"
-                numberOfLines={1}
-                style={[styles.title, showCloseButton && styles.titleStart]}
-              >
-                {title ?? ""}
-              </Typography>
-              {showCloseButton && (
-                <IconButton
-                  icon="close"
-                  accessibilityLabel="Close"
-                  onClick={onClose}
-                />
-              )}
-            </View>
-          )}
-
-          {/* Scrolls on its own, so a tall sheet keeps its actions in view. */}
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
+          <Animated.View
+            style={[
+              styles.sheet,
+              {
+                maxHeight: window.height * maxHeightRatio,
+                transform: [{ translateY }],
+              },
+            ]}
+            accessibilityViewIsModal
           >
-            {children}
-          </ScrollView>
+            {showHandle && (
+              <View
+                style={styles.handleArea}
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={handleDragStart}
+                onResponderMove={handleDragMove}
+                onResponderRelease={handleDragEnd}
+                onResponderTerminate={handleDragEnd}
+              >
+                <View style={styles.handle} />
+              </View>
+            )}
 
-          {actions != null && (
-            <>
-              <Divider />
-              <View style={styles.actions}>{actions}</View>
-            </>
-          )}
-        </Animated.View>
-      </View>
+            {(!!title || showCloseButton) && (
+              <View style={styles.header}>
+                <Typography
+                  variant="titleLarge"
+                  accessibilityRole="header"
+                  numberOfLines={1}
+                  style={[styles.title, showCloseButton && styles.titleStart]}
+                >
+                  {title ?? ""}
+                </Typography>
+                {showCloseButton && (
+                  <IconButton
+                    icon="close"
+                    accessibilityLabel="Close"
+                    onClick={onClose}
+                  />
+                )}
+              </View>
+            )}
+
+            {/* Scrolls on its own, so a tall sheet keeps its actions in view. */}
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps="handled"
+            >
+              {children}
+            </ScrollView>
+
+            {actions != null && (
+              <>
+                <Divider />
+                <View style={styles.actions}>{actions}</View>
+              </>
+            )}
+          </Animated.View>
+          <ToastLayer active={visible} />
+        </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 };
@@ -236,7 +244,7 @@ const makeStyles = (theme: Theme) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: rgba(theme.colors.scrim, 0.5),
     },
     sheet: {
       backgroundColor: theme.colors.surfaceContainerLow,
@@ -248,10 +256,10 @@ const makeStyles = (theme: Theme) =>
       maxWidth: 640,
       ...Platform.select({
         web: {
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
+          boxShadow: `0 -4px 20px ${rgba(theme.colors.shadow, 0.15)}`,
         },
         ios: {
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 0.15,
           shadowRadius: 20,

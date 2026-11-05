@@ -78,7 +78,8 @@ describe("Input reserveHelperText", () => {
       </ThemeProvider>,
     );
     // The helper is the only place the field draws the alert glyph or its text.
-    return JSON.stringify(toJSON());
+    // On Android the label ties to the field with an id each render makes anew.
+    return JSON.stringify(toJSON()).replace(/_r_\w+_/g, "id");
   };
 
   it("keeps the line under the field when there is nothing to say", async () => {

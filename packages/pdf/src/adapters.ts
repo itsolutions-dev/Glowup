@@ -1,5 +1,5 @@
 // The Expo implementations of the viewer's adapters. Every Expo module is loaded
-// when first used, inside a try: an app that ships only a website installs none of
+// when first used, with a `.catch` on its `import()`: an app that ships only a website installs none of
 // them, and one that forgot to add the package to its dependencies gets a readable
 // `native-missing` error instead of a crash at start-up (spike 0.3).
 import { requireOptionalNativeModule } from "expo";
@@ -16,23 +16,18 @@ import type {
   PdfSaveResult,
 } from "./types";
 
-const load = async <T>(
-  importer: () => Promise<T>,
-  name: string,
-): Promise<T> => {
-  try {
-    return await importer();
-  } catch {
-    throw createPdfError(
-      "native-missing",
-      `${name} is not installed: add it to the app's dependencies and make a new development build.`,
-    );
-  }
+const missing = (name: string) => (): never => {
+  throw createPdfError(
+    "native-missing",
+    `${name} is not installed: add it to the app's dependencies and make a new development build.`,
+  );
 };
 
 // Typed by hand: the inferred type names expo-file-system's internal files, which declarations cannot refer to.
 const fileSystem = (): Promise<typeof import("expo-file-system")> =>
-  load(() => import("expo-file-system"), "expo-file-system");
+  // The `.catch` sits on the `import()` itself: that is what makes Metro treat the module as optional, so an
+  // app without it still bundles (a `try` in another function does not count; optionalPeers.test.ts).
+  import("expo-file-system").catch(missing("expo-file-system"));
 
 const uniqueName = () =>
   `glowup-pdf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -158,7 +153,7 @@ const withPdfExtension = (name = "document.pdf") =>
 
 export const expoActions: PdfActions = {
   async print(uri) {
-    const Print = await load(() => import("expo-print"), "expo-print");
+    const Print = await import("expo-print").catch(missing("expo-print"));
     await Print.printAsync({ uri });
   },
   async save(uri, name): Promise<PdfSaveResult> {
@@ -171,7 +166,7 @@ export const expoActions: PdfActions = {
       ).catch(() => false);
       if (saved) return "downloads";
     }
-    const Sharing = await load(() => import("expo-sharing"), "expo-sharing");
+    const Sharing = await import("expo-sharing").catch(missing("expo-sharing"));
     if (!(await Sharing.isAvailableAsync())) {
       throw createPdfError("unsupported", "Sharing is not available here.");
     }

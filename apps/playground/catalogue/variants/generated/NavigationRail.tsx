@@ -7,6 +7,8 @@ import type { Variant } from "../types";
 import { FAB, IconButton, NavigationRail } from "@its/glowup-ui";
 
 const frame: ViewStyle = { height: 400, flexDirection: "row" };
+// The header (menu + FAB) adds ~120px above the four destinations.
+const tall: ViewStyle = { height: 480, flexDirection: "row" };
 
 const ITEMS = [
   { id: "home", label: "Home", icon: "home-outline" as const },
@@ -27,7 +29,7 @@ export const Default = () => (
 );
 
 export const WithFab = () => (
-  <View style={frame}>
+  <View style={tall}>
     <NavigationRail
       items={ITEMS}
       activeId="home"
@@ -40,7 +42,12 @@ export const WithFab = () => (
             accessibilityLabel="Menu"
             onClick={() => {}}
           />
-          <FAB icon="pencil-outline" placement="inline" onClick={() => {}} />
+          <FAB
+            icon="pencil-outline"
+            label="Compose"
+            placement="inline"
+            onClick={() => {}}
+          />
         </>
       }
     />

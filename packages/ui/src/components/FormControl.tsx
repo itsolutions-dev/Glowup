@@ -74,7 +74,15 @@ const FormControl = ({
           </Text>
         )}
 
-        <View style={disabled && styles.disabled}>{children}</View>
+        {/* Dimmed and out of reach of touches: it only dimmed. Out of the
+            keyboard's Tab order too when the child gets `disabled` itself, as
+            `FormField` hands it. */}
+        <View
+          style={disabled && styles.disabled}
+          pointerEvents={disabled ? "none" : "auto"}
+        >
+          {children}
+        </View>
 
         {!!(error || helperText) && (
           <HelperText type={error ? "error" : "info"} disabled={disabled}>

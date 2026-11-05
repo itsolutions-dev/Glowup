@@ -3,7 +3,11 @@ import FormControl from "./FormControl";
 import { useFormDisabled, useFormField } from "./Form";
 import type { FormRule, FormValidateOn, FormValues } from "./Form";
 
-export interface FormFieldProps {
+export interface FormFieldProps<
+  V extends string = "value",
+  T extends string = "onChange",
+  C extends boolean = false,
+> {
   /**
    * The field's name in the form's values: `"email"`, `"address.city"`,
    * `"items[0].qty"` (dots and brackets both nest).
@@ -22,12 +26,12 @@ export interface FormFieldProps {
    * The child's prop that takes the value. `"checked"` for a `Checkbox`.
    * Defaults to `"value"`.
    */
-  valuePropName?: string;
+  valuePropName?: V;
   /**
    * The child's callback that reports a new value. `"onValueChange"` for a
    * `Checkbox` or a `Slider`. Defaults to `"onChange"`.
    */
-  trigger?: string;
+  trigger?: T;
   /**
    * Turns what the trigger is called with into the value to store. By default
    * the first argument, or, when that is a DOM event, its `target.value`
@@ -55,7 +59,7 @@ export interface FormFieldProps {
    * `required`, `label` or `helperText`: `FormControl` draws those). Defaults
    * to `false`.
    */
-  control?: boolean;
+  control?: C;
   /**
    * The one control to connect, which receives the value, the trigger,
    * `onBlur`, `error`, `required` and `disabled` as props. Or a function
@@ -64,11 +68,31 @@ export interface FormFieldProps {
    * have to write out: `{(field) => <Input label="Email" {...field} />}`.
    */
   children:
-    React.ReactElement | ((field: FormFieldChildProps) => React.ReactNode);
+    | React.ReactElement
+    | ((field: FormFieldChildProps<V, T, C>) => React.ReactNode);
 }
 
-/** What a `FormField` hands its child: `value` (or `valuePropName`), `onChange` (or `trigger`), `onBlur`, `error`, `required`, `disabled`, `label`, `helperText`. */
-export type FormFieldChildProps = any;
+/**
+ * What a `FormField` hands its child: the value under `valuePropName`, the
+ * callback under `trigger`, `onBlur` and `disabled`; then `error` as a
+ * boolean with `control`, or `error`, `required`, `label` and `helperText`
+ * without. The value is `any`: the form does not know each field's type.
+ */
+export type FormFieldChildProps<
+  V extends string = "value",
+  T extends string = "onChange",
+  C extends boolean = false,
+> = { [K in V]: any } & { [K in T]: (...args: any[]) => void } & {
+  onBlur: (...args: any[]) => void;
+  disabled?: boolean;
+} & (C extends true
+    ? { error: boolean }
+    : {
+        error?: string;
+        required?: boolean;
+        label?: string;
+        helperText?: string;
+      });
 
 // A DOM event carries the value on its target; anything else is the value.
 const valueOf = (arg: any, prop: string) =>
@@ -101,22 +125,26 @@ const valueOf = (arg: any, prop: string) =>
  * runtime, but TypeScript asks for the `value` and `onChange` the control
  * requires; the function child does not.
  */
-const FormField = ({
+const FormField = <
+  V extends string = "value",
+  T extends string = "onChange",
+  C extends boolean = false,
+>({
   name,
   rules,
   label,
   helperText,
-  valuePropName = "value",
-  trigger = "onChange",
+  valuePropName = "value" as V,
+  trigger = "onChange" as T,
   getValueFromEvent,
   normalize,
   dependencies,
   initialValue,
   validateOn,
   disabled = false,
-  control = false,
+  control = false as C,
   children,
-}: FormFieldProps) => {
+}: FormFieldProps<V, T, C>) => {
   const field = useFormField(name, {
     rules,
     dependencies,
@@ -156,7 +184,7 @@ const FormField = ({
   }
   const element = child
     ? React.cloneElement(child, injected)
-    : (children as (field: FormFieldChildProps) => React.ReactNode)(injected);
+    : (children as (field: any) => React.ReactNode)(injected);
 
   return control ? (
     <FormControl

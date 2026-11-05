@@ -9,7 +9,8 @@ import { RadioButton } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 0,
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};
@@ -27,21 +28,20 @@ export const Selection = () => (
 );
 
 export const DisabledAndError = () => (
-  <View style={stack}>
-    <RadioButton label="Bank transfer" selected disabled onPress={noop} />
-    <RadioButton
-      label="Cash on delivery (unavailable)"
-      selected={false}
-      disabled
-      onPress={noop}
-    />
-    <RadioButton
-      label="Pick a payment method"
-      selected={false}
-      error
-      onPress={noop}
-    />
-    <RadioButton label="Credit card" selected error onPress={noop} />
+  <View style={{ ...stack, gap: 16 }}>
+    <View style={stack}>
+      <RadioButton label="Bank transfer" selected disabled onPress={noop} />
+      <RadioButton
+        label="Cash on delivery (unavailable)"
+        selected={false}
+        disabled
+        onPress={noop}
+      />
+    </View>
+    <View style={stack}>
+      <RadioButton label="Credit card" selected={false} error onPress={noop} />
+      <RadioButton label="PayPal" selected={false} error onPress={noop} />
+    </View>
   </View>
 );
 

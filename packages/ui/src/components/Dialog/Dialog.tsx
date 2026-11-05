@@ -14,13 +14,14 @@ import {
 import { rgba } from "polished";
 import { SafeAreaInsetsContext } from "react-native-safe-area-context";
 import { useTheme, Theme, getGlowStyles } from "../../providers/ThemeProvider";
+import { ToastLayer } from "../internal/ToastLayer";
+import KeyboardFrame from "../internal/KeyboardFrame";
 
 import Button from "../Button";
 import Form from "../Form";
 import Icon, { IconSource } from "../Icon";
 import IconButton from "../IconButton";
 import Title from "../Typography";
-import { useEscapeKey } from "../internal/useEscapeKey";
 import type { MaterialCommunityIconsGlyphs } from "../types";
 
 /** Maximum dialog widths: the dialog is 85% of the window, up to this many px. */
@@ -50,6 +51,11 @@ export interface DialogSlotStyles {
 export interface DialogProps {
   children: React.ReactNode | string;
   title?: string;
+  /**
+   * A small line above the title: what the dialog is about (a record's name,
+   * a step). Not drawn by `fullScreen`.
+   */
+  overline?: string;
   /** Hero glyph above the title (M3 dialog icon). Centres the header. */
   icon?: IconSource;
   animationType?: "none" | "slide" | "fade";
@@ -107,6 +113,17 @@ export interface DialogProps {
    */
   actions?: React.ReactNode;
   /**
+   * Actions on the start of the actions row, apart from `actions` at its
+   * end: a destructive or secondary action ("Delete", "Reset"). Ignored by
+   * `fullScreen`.
+   */
+  leadingActions?: React.ReactNode;
+  /**
+   * Draws a line above and below the body, to set a long, scrolling body apart
+   * from the title and the actions. Ignored by `fullScreen`. Defaults to `false`.
+   */
+  dividers?: boolean;
+  /**
    * The M3 full-screen dialog, for a form on a compact window: it fills the
    * window, with a close button, the title and `actions` in a header row and
    * a scrolling body. Defaults to `false`.
@@ -134,7 +151,10 @@ export interface DialogProps {
   initialFocus?: "auto" | "actions";
   /** Style overrides for the parts of the dialog, merged after its own styles. */
   slotStyles?: DialogSlotStyles;
-  /** Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`. */
+  /**
+   * Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`,
+   * the actions row `${testID}-actions`, the dividers `${testID}-divider-top` / `-bottom`.
+   */
   testID?: string;
 }
 
@@ -197,6 +217,7 @@ const closeStyles = StyleSheet.create({
 function Dialog({
   children,
   title,
+  overline,
   icon,
   visible,
   animationType = "fade",
@@ -212,6 +233,8 @@ function Dialog({
   form = false,
   onSubmit,
   actions,
+  leadingActions,
+  dividers = false,
   fullScreen = false,
   role,
   describedBy,
@@ -243,10 +266,10 @@ function Dialog({
   // uses the insets, and a plain dialog must keep working without one.
   const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
 
-  // react-native's `onRequestClose` covers Android back but not the web ESC
-  // key, so the platform's own dismiss gesture has to be wired up by hand.
+  // `onRequestClose` is Android back and, on the web, Escape: react-native-web's
+  // Modal calls it for the topmost modal only. A key listener of our own would
+  // call `onClose` twice and close every dialog of a stack at once.
   const onEscape = disableEscapeKeyDown ? undefined : onClose;
-  useEscapeKey(visible && !!onEscape, () => onEscape?.());
 
   const closable = !!onClose && closeIcon !== false;
   const closeControl = (style?: StyleProp<ViewStyle>) =>
@@ -298,28 +321,31 @@ function Dialog({
         visible={visible}
         onRequestClose={onEscape}
       >
-        <View
-          testID={testID}
-          accessibilityViewIsModal
-          {...roleProps}
-          style={[
-            styles.fullScreen,
-            { paddingTop: insets.top, paddingBottom: insets.bottom },
-            slotStyles?.container,
-          ]}
-        >
-          {form ? (
-            <Form
-              onSubmit={onSubmit}
-              style={styles.fullScreenForm}
-              testID={`${testID}-form`}
-            >
-              {screen}
-            </Form>
-          ) : (
-            screen
-          )}
-        </View>
+        <KeyboardFrame>
+          <View
+            testID={testID}
+            accessibilityViewIsModal
+            {...roleProps}
+            style={[
+              styles.fullScreen,
+              { paddingTop: insets.top, paddingBottom: insets.bottom },
+              slotStyles?.container,
+            ]}
+          >
+            {form ? (
+              <Form
+                onSubmit={onSubmit}
+                style={styles.fullScreenForm}
+                testID={`${testID}-form`}
+              >
+                {screen}
+              </Form>
+            ) : (
+              screen
+            )}
+            <ToastLayer active={visible} />
+          </View>
+        </KeyboardFrame>
       </NativeModal>
     );
   }
@@ -333,18 +359,44 @@ function Dialog({
     slotStyles?.content,
   ];
 
-  const footer = actions ? (
-    <View ref={actionsRef} style={[styles.actions, slotStyles?.actions]}>
-      {actions}
-    </View>
-  ) : (
-    // The text button stands in for the close icon, not next to it.
-    !!onClose &&
-    closeIcon === false && <Button onClick={onClose}>{closeText}</Button>
-  );
+  const footer =
+    actions || leadingActions ? (
+      <View
+        // With leading actions, `initialFocus="actions"` must land on the
+        // trailing group: a leading "Delete" is never where focus starts.
+        ref={leadingActions ? undefined : actionsRef}
+        testID={`${testID}-actions`}
+        style={[
+          styles.actions,
+          !!leadingActions && styles.actionsSplit,
+          slotStyles?.actions,
+        ]}
+      >
+        {!!leadingActions && (
+          <View style={styles.actionGroup}>{leadingActions}</View>
+        )}
+        {leadingActions ? (
+          <View ref={actionsRef} style={styles.actionGroup}>
+            {actions}
+          </View>
+        ) : (
+          actions
+        )}
+      </View>
+    ) : (
+      // The text button stands in for the close icon, not next to it.
+      !!onClose &&
+      closeIcon === false && <Button onClick={onClose}>{closeText}</Button>
+    );
+
+  const divider = (edge: "top" | "bottom") =>
+    dividers ? (
+      <View testID={`${testID}-divider-${edge}`} style={styles.divider} />
+    ) : null;
 
   const main = (
     <>
+      {divider("top")}
       {scrolls ? (
         <ScrollView style={bodyStyle} contentContainerStyle={styles.scrollBody}>
           {content}
@@ -352,6 +404,7 @@ function Dialog({
       ) : (
         <View style={bodyStyle}>{content}</View>
       )}
+      {divider("bottom")}
       {footer}
     </>
   );
@@ -364,84 +417,100 @@ function Dialog({
       onRequestClose={onEscape}
       onShow={initialFocus === "actions" ? focusActions : undefined}
     >
-      <View testID={testID} style={styles.overlay}>
-        {/*
+      <KeyboardFrame>
+        <View testID={testID} style={styles.overlay}>
+          {/*
           The scrim is a sibling *behind* the dialog, not its parent: as a
           parent it would need a no-op press handler on the dialog to stop the
           dismiss from firing through it. Hidden from assistive tech, which
           should reach the dialog, not a full-screen button.
         */}
-        <Pressable
-          testID={`${testID}-scrim`}
-          style={[StyleSheet.absoluteFill, styles.scrim, slotStyles?.backdrop]}
-          onPress={disableBackdropClick ? undefined : onClose}
-          importantForAccessibility="no"
-          accessibilityElementsHidden
-        />
+          <Pressable
+            testID={`${testID}-scrim`}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.scrim,
+              slotStyles?.backdrop,
+            ]}
+            onPress={disableBackdropClick ? undefined : onClose}
+            importantForAccessibility="no"
+            accessibilityElementsHidden
+          />
 
-        <View
-          accessibilityViewIsModal
-          {...roleProps}
-          style={[
-            styles.modalContent,
-            { maxWidth: MAX_WIDTHS[width] },
-            height != null && { height },
-            getGlowStyles(theme, true),
-            slotStyles?.container,
-          ]}
-        >
-          {(!!icon || !!title || closable) && (
-            <View
-              style={[
-                styles.header,
-                closable && styles.headerClosable,
-                slotStyles?.header,
-              ]}
-            >
-              {closeControl(styles.closeCorner)}
+          <View
+            accessibilityViewIsModal
+            {...roleProps}
+            style={[
+              styles.modalContent,
+              { maxWidth: MAX_WIDTHS[width] },
+              height != null && { height },
+              getGlowStyles(theme, true),
+              slotStyles?.container,
+            ]}
+          >
+            {(!!icon || !!title || !!overline || closable) && (
+              <View
+                style={[
+                  styles.header,
+                  closable && styles.headerClosable,
+                  slotStyles?.header,
+                ]}
+              >
+                {closeControl(styles.closeCorner)}
 
-              {!!icon && (
-                <View style={styles.iconRow}>
-                  <Icon
-                    source={icon}
-                    size={24}
-                    color={theme.colors.secondary}
-                  />
-                </View>
-              )}
+                {!!icon && (
+                  <View style={styles.iconRow}>
+                    <Icon
+                      source={icon}
+                      size={24}
+                      color={theme.colors.secondary}
+                    />
+                  </View>
+                )}
 
-              {!!title && (
-                <View style={styles.modalTitleContainer}>
-                  <Title
-                    variant="headlineMedium"
-                    accessibilityRole="header"
-                    {...titleProps}
-                    style={[
-                      styles.modalTitleText,
-                      closable && styles.titleInset,
-                      slotStyles?.title,
-                    ]}
-                  >
-                    {title}
-                  </Title>
-                </View>
-              )}
-            </View>
-          )}
+                {(!!title || !!overline) && (
+                  <View style={styles.modalTitleContainer}>
+                    {!!overline && (
+                      <Text
+                        style={[styles.overline, closable && styles.titleInset]}
+                      >
+                        {overline}
+                      </Text>
+                    )}
+                    {!!title && (
+                      <Title
+                        variant="headlineMedium"
+                        accessibilityRole="header"
+                        {...titleProps}
+                        style={[
+                          styles.modalTitleText,
+                          closable && styles.titleInset,
+                          slotStyles?.title,
+                        ]}
+                      >
+                        {title}
+                      </Title>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
 
-          {form ? (
-            <Form
-              onSubmit={onSubmit}
-              style={[styles.form, height != null && styles.formFill]}
-              testID={`${testID}-form`}
-            >
-              {main}
-            </Form>
-          ) : (
-            main
-          )}
+            {form ? (
+              <Form
+                onSubmit={onSubmit}
+                style={[styles.form, height != null && styles.formFill]}
+                testID={`${testID}-form`}
+              >
+                {main}
+              </Form>
+            ) : (
+              main
+            )}
+          </View>
+          <ToastLayer active={visible} />
         </View>
-      </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 }
@@ -542,6 +611,24 @@ const makeStyles = (theme: Theme) =>
       justifyContent: "flex-end",
       gap: theme.spacing.s,
       width: "100%",
+    },
+    actionsSplit: { justifyContent: "space-between" },
+    actionGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.s,
+    },
+    overline: {
+      ...theme.typography.labelMedium,
+      color: theme.colors.onSurfaceVariant,
+      // Centred like the title under it.
+      textAlign: "center",
+      marginBottom: theme.spacing.xs,
+    },
+    divider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: theme.colors.outlineVariant,
+      alignSelf: "stretch",
     },
   });
 

@@ -11,6 +11,7 @@ import IconButton, {
   type IconButtonVariant,
 } from "./IconButton";
 import { type ColorRole } from "./internal/colorRole";
+import { a11yState } from "./internal/a11yState";
 
 /**
  * Writes `text` to the clipboard. Resolve when it is written, throw (or reject)
@@ -248,7 +249,7 @@ const Clipboard = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={copied ? copiedLabel : label}
-        accessibilityState={{ disabled: !!disabled }}
+        {...a11yState("button", { disabled: !!disabled })}
         disabled={disabled}
         onPress={() => void run()}
         style={style}

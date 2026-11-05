@@ -15,6 +15,7 @@ import { useDensity, type Density } from "../../providers/Density";
 import type { MaterialCommunityIconsGlyphs } from "../types";
 import { fieldWidth } from "./fieldWidth";
 import { filledField } from "./fieldVariant";
+import { useFieldLabel } from "./fieldLabel";
 
 /**
  * The props `Input` and `InputArea` share: the label, the box, the helper line.
@@ -53,6 +54,11 @@ export interface FieldShellApi {
   onBlur: () => void;
   /** The text field's own style: typography, colour and vertical padding. */
   style: TextStyle;
+  /** Spread on the `TextInput`, after its `accessibilityLabel`: names it by the label on Android. */
+  labelledBy: {
+    accessibilityLabelledBy?: string;
+    accessibilityLabel?: undefined;
+  };
 }
 
 /**
@@ -71,7 +77,7 @@ export const fieldText = (
   const style: TextStyle = {
     ...typography,
     // No browser focus ring: the field draws its own.
-    ...Platform.select<TextStyle>({ web: { outlineWidth: 0 } }),
+    ...Platform.select<TextStyle>({ web: { outlineStyle: "none" as any } }),
     color: theme.colors.onSurface,
     paddingVertical,
   };
@@ -105,9 +111,13 @@ const FieldShell = ({
   const dense = useDensity(density) === "dense";
   const [isFocused, setIsFocused] = useState(false);
   const { theme } = useTheme();
-  const styles = useMemo(() => makeStyles(theme, dense, multiline), [theme, dense, multiline]);
+  const styles = useMemo(
+    () => makeStyles(theme, dense, multiline),
+    [theme, dense, multiline],
+  );
   const activeColor = error ? theme.colors.error : theme.colors.primary;
   const labelInside = labelPlacement === "inside";
+  const tie = useFieldLabel();
 
   // Focus ring + error border, both driven by the theme's glow helper.
   const dynamicStyles = useMemo(
@@ -119,6 +129,7 @@ const FieldShell = ({
     <View style={[styles.wrapper, fieldWidth(fullWidth), style]}>
       {!!label && !labelInside && (
         <Text
+          {...tie.label}
           style={[
             theme.typography.bodySmall,
             {
@@ -162,6 +173,7 @@ const FieldShell = ({
         <View style={styles.textInputWrapper}>
           {!!label && labelInside && (
             <Text
+              {...tie.label}
               style={[
                 theme.typography.labelSmall,
                 {
@@ -185,6 +197,7 @@ const FieldShell = ({
               onBlur?.();
             },
             style: fieldText(theme, dense, labelInside).style,
+            labelledBy: label ? tie.input : {},
           })}
         </View>
 

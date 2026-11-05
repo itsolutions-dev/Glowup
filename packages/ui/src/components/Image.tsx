@@ -81,10 +81,13 @@ const Image = ({
   // A genuinely new source deserves a fresh attempt, otherwise one broken URL
   // would permanently poison the component instance.
   const [loadedKey, setLoadedKey] = useState(sourceKey);
+  // Width over height of the file that loaded, when the event reports it.
+  const [loadedRatio, setLoadedRatio] = useState<number | null>(null);
   if (sourceKey !== loadedKey) {
     setLoadedKey(sourceKey);
     setLoading(true);
     setFailed(false);
+    setLoadedRatio(null);
   }
 
   const borderRadius =
@@ -93,10 +96,20 @@ const Image = ({
   const activeSource = failed && fallbackSource ? fallbackSource : source;
   const showBrokenState = failed && !fallbackSource;
 
+  // With neither `height` nor `ratio` the frame would have no height at all:
+  // it takes the picture's own proportions (a 4:3 placeholder until known).
+  const sized = height !== undefined || ratio !== undefined;
+  const asset =
+    !sized && typeof activeSource === "number"
+      ? RNImage.resolveAssetSource(activeSource)
+      : null;
+  const naturalRatio =
+    loadedRatio ?? (asset?.height ? asset.width / asset.height : 4 / 3);
+
   const frameStyle: ViewStyle = {
     width: width ?? "100%",
     height,
-    aspectRatio: ratio,
+    aspectRatio: sized ? ratio : naturalRatio,
     borderRadius,
   };
 
@@ -119,7 +132,11 @@ const Image = ({
           resizeMode={resizeMode}
           style={styles.image}
           onLoadEnd={() => setLoading(false)}
-          onLoad={onLoad}
+          onLoad={(event) => {
+            const { width: w, height: h } = event.nativeEvent?.source ?? {};
+            if (w && h) setLoadedRatio(w / h);
+            onLoad?.();
+          }}
           onError={() => {
             setLoading(false);
             setFailed(true);

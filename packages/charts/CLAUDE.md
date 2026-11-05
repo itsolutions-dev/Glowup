@@ -12,8 +12,8 @@ Plan and decisions: `docs/charts-package-plan.md` (it changes D7 of `docs/solari
 - **Sits on top of the library.** It may import `@its/glowup-ui`, **by package name only**. It imports neither
   `@its/glowup-device` nor `@its/glowup-notifications` nor another high-level package (`pdf`, `pivot`), and nothing below it
   imports it. ESLint enforces all of it (`ADDON_PACKAGES` in the root `eslint.config.js`).
-- **Colours come from theme tokens, never written by hand.** Until the library has a chart palette (B0 in
-  `docs/work-split.md`), series take theme roles and every chart accepts `colors`.
+- **Colours come from theme tokens, never written by hand.** Series take `theme.charts.categorical` (28/10, validated
+  with the `dataviz` skill's script against the light and dark surfaces of every palette) and every chart accepts `colors`.
 - **Private until ready.** `changeset publish` publishes any non-private package whose version is not on npm yet, so this one
   stays `"private": true` until its first release (it also needs its own trusted publisher on npmjs.com, see `release.yml`).
 - **Type-check and tests read the library's source** (`paths` in `tsconfig.json`): CI runs both before the build, and

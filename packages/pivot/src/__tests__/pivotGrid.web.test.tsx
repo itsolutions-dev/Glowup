@@ -164,7 +164,8 @@ describe("PivotGrid (web)", () => {
       });
     try {
       await show(engineFor(ROWS));
-      expect(await screen.findByLabelText(/boom/)).toBeTruthy();
+      // An aria-label on a div with no role is ignored by screen readers: the cell needs one.
+      expect((await screen.findByLabelText(/boom/)).props.role).toBe("img");
     } finally {
       spy.mockRestore();
     }
@@ -212,5 +213,16 @@ describe("PivotGrid (web)", () => {
     ]) {
       expect(style(id).height).toBeUndefined();
     }
+  });
+
+  test("with toolbar, the same three buttons as on the phone", async () => {
+    await render(
+      <ThemeProvider>
+        <PivotGrid engine={engineFor([])} toolbar />
+      </ThemeProvider>,
+    );
+    expect(await screen.findByLabelText("Export to Excel")).toBeTruthy();
+    expect(screen.getByLabelText("Fullscreen")).toBeTruthy();
+    expect(screen.getByLabelText("Reset")).toBeTruthy();
   });
 });

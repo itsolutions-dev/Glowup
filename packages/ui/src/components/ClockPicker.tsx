@@ -21,6 +21,7 @@ import {
   isSameDay,
   useLabels,
 } from "./DateTimePicker.shared";
+import { a11yState } from "./internal/a11yState";
 
 const pad2 = (value: number) => String(value).padStart(2, "0");
 
@@ -192,7 +193,7 @@ const ClockPicker = ({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        accessibilityState={{ selected: active }}
+        {...a11yState("button", { selected: active })}
         onPress={() => setUnit(unitKey)}
         style={({ hovered }: PressableState) => [
           ...shared,
@@ -256,7 +257,7 @@ const ClockPicker = ({
                   key={period.key}
                   accessibilityRole="button"
                   accessibilityLabel={period.label}
-                  accessibilityState={{ selected: active, disabled }}
+                  {...a11yState("button", { selected: active, disabled })}
                   disabled={disabled}
                   onPress={() => setDayPeriod(period.pm)}
                   style={({ hovered }: PressableState) => [

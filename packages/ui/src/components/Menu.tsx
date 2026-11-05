@@ -3,7 +3,7 @@ import {
   View,
   Text,
   Pressable,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Platform,
 } from "react-native";
@@ -12,8 +12,10 @@ import { useTheme, Theme } from "../providers/ThemeProvider";
 
 import Popover from "./Popover";
 import Divider from "./Divider";
+import OwnScroller from "./internal/OwnScroller";
 import type { AnchorPosition } from "./internal/anchorPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface MenuItem {
   id: string;
@@ -87,99 +89,112 @@ const Menu = ({
       anchorPosition={anchorPosition}
     >
       <View style={styles.menuContent}>
-        <ScrollView bounces={false} style={{ maxHeight: 320 }}>
-          {items.map((item, index) => {
-            const isSelected = !!selected?.includes(item.id);
-            const contentColor = item.destructive
-              ? theme.colors.error
-              : isSelected
-                ? theme.colors.onSecondaryContainer
-                : theme.colors.onSurface;
-            const iconColor = item.destructive
-              ? theme.colors.error
-              : isSelected
-                ? theme.colors.onSecondaryContainer
-                : theme.colors.onSurfaceVariant;
+        {/* Virtualized: a menu of hundreds draws about a screen of items. */}
+        <OwnScroller>
+          <FlatList
+            data={items}
+            keyExtractor={(item) => item.id}
+            bounces={false}
+            style={{ maxHeight: 320 }}
+            nestedScrollEnabled
+            initialNumToRender={12}
+            renderItem={({ item, index }) => {
+              const isSelected = !!selected?.includes(item.id);
+              const contentColor = item.destructive
+                ? theme.colors.error
+                : isSelected
+                  ? theme.colors.onSecondaryContainer
+                  : theme.colors.onSurface;
+              const iconColor = item.destructive
+                ? theme.colors.error
+                : isSelected
+                  ? theme.colors.onSecondaryContainer
+                  : theme.colors.onSurfaceVariant;
 
-            return (
-              <React.Fragment key={item.id}>
-                {(item.dividerAbove || (dividers && index > 0)) && (
-                  <Divider contentSpacing={0} />
-                )}
-                <Pressable
-                  // Not `disabled`: a disabled Pressable lets the touch through
-                  // to the popover's backdrop, which would close the menu.
-                  onPress={() => !item.disabled && handleItemPress(item)}
-                  aria-disabled={item.disabled}
-                  accessibilityLabel={item.label}
-                  accessibilityRole={
-                    (Platform.OS === "web" ? "menuitem" : "button") as any
-                  }
-                  accessibilityState={{
-                    disabled: item.disabled,
-                    selected: selected ? isSelected : undefined,
-                  }}
-                  style={({ hovered, pressed }: PressableState) => [
-                    styles.item,
-                    item.disabled && { opacity: 0.38 },
-                    {
-                      backgroundColor:
-                        !item.disabled && pressed
-                          ? theme.colors.primaryContainer
-                          : !item.disabled && hovered
-                            ? theme.colors.surfaceContainerHigh
-                            : isSelected
-                              ? theme.colors.secondaryContainer
-                              : "transparent",
-                    },
-                  ]}
-                  {...(Platform.OS === "android" && {
-                    android_ripple: { color: theme.colors.onPrimary },
-                  })}
-                >
-                  <View style={styles.itemRow}>
-                    {!!item.icon && (
-                      <Icons
-                        name={item.icon}
-                        size={20}
-                        color={iconColor}
-                        style={styles.leadingIcon}
-                      />
-                    )}
-                    <Text
-                      style={[
-                        theme.typography.bodyLarge,
-                        styles.label,
-                        { color: contentColor },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {item.label}
-                    </Text>
-                    {item.trailing && (
+              return (
+                <React.Fragment key={item.id}>
+                  {(item.dividerAbove || (dividers && index > 0)) && (
+                    <Divider contentSpacing={0} />
+                  )}
+                  <Pressable
+                    // Not `disabled`: a disabled Pressable lets the touch through
+                    // to the popover's backdrop, which would close the menu.
+                    onPress={() => !item.disabled && handleItemPress(item)}
+                    accessibilityLabel={item.label}
+                    // A menu with a selection is a group of radio items on the web.
+                    accessibilityRole={
+                      (Platform.OS === "web"
+                        ? selected
+                          ? "menuitemradio"
+                          : "menuitem"
+                        : "button") as any
+                    }
+                    {...a11yState(selected ? "menuitemradio" : "menuitem", {
+                      disabled: item.disabled,
+                      selected: selected ? isSelected : undefined,
+                    })}
+                    style={({ hovered, pressed }: PressableState) => [
+                      styles.item,
+                      item.disabled && { opacity: 0.38 },
+                      {
+                        backgroundColor:
+                          !item.disabled && pressed
+                            ? theme.colors.primaryContainer
+                            : !item.disabled && hovered
+                              ? theme.colors.surfaceContainerHigh
+                              : isSelected
+                                ? theme.colors.secondaryContainer
+                                : "transparent",
+                      },
+                    ]}
+                    {...(Platform.OS === "android" && {
+                      android_ripple: { color: theme.colors.onPrimary },
+                    })}
+                  >
+                    <View style={styles.itemRow}>
+                      {!!item.icon && (
+                        <Icons
+                          name={item.icon}
+                          size={20}
+                          color={iconColor}
+                          style={styles.leadingIcon}
+                        />
+                      )}
                       <Text
                         style={[
-                          theme.typography.labelSmall,
-                          { color: theme.colors.onSurfaceVariant },
+                          theme.typography.bodyLarge,
+                          styles.label,
+                          { color: contentColor },
                         ]}
+                        numberOfLines={1}
                       >
-                        {item.trailing}
+                        {item.label}
                       </Text>
-                    )}
-                    {isSelected && (
-                      <Icons
-                        name="check"
-                        size={18}
-                        color={iconColor}
-                        style={styles.check}
-                      />
-                    )}
-                  </View>
-                </Pressable>
-              </React.Fragment>
-            );
-          })}
-        </ScrollView>
+                      {item.trailing && (
+                        <Text
+                          style={[
+                            theme.typography.labelSmall,
+                            { color: theme.colors.onSurfaceVariant },
+                          ]}
+                        >
+                          {item.trailing}
+                        </Text>
+                      )}
+                      {isSelected && (
+                        <Icons
+                          name="check"
+                          size={18}
+                          color={iconColor}
+                          style={styles.check}
+                        />
+                      )}
+                    </View>
+                  </Pressable>
+                </React.Fragment>
+              );
+            }}
+          />
+        </OwnScroller>
       </View>
     </Popover>
   );

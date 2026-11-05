@@ -24,16 +24,21 @@ import {
   BottomSheet,
   Button,
   DrawerItem,
+  Icon,
   Input,
   SearchBar,
   Drawer,
   Select,
   Tabs,
+  gradientStyle,
   useTheme,
+  type IconRenderProps,
 } from "@its/glowup-ui";
 import { BarChart, DonutChart } from "@its/glowup-charts";
 import { isPdfError, usePdfAdapters } from "@its/glowup-pdf";
+import { PivotGrid, usePivotGrid } from "@its/glowup-pivot";
 
+import { samplePivotEngine } from "../site/samplePivot";
 import {
   LONG_PDF_PAGES,
   SAMPLE_PDF_PAGES,
@@ -54,6 +59,20 @@ const CHART_DATA = Array.from({ length: 5 }, (_, i) => ({
   a: 10 + i * 3,
   b: 20 - i * 2,
 }));
+// Two columns per category (one overlapping, one stacked), a target, an outcome mark and a dimmed category.
+// C is the tallest bar and B the shortest, so their marks must sit highest and lowest.
+const OUTCOME_DATA = [
+  { label: "A", calls: 3, callers: 2, done: 1, open: 1 },
+  { label: "B", calls: 1, callers: 1, done: 1, open: 0 },
+  { label: "C", calls: 6, callers: 4, done: 4, open: 0 },
+];
+const OUTCOME_SERIES = [
+  { key: "calls", column: "in" },
+  { key: "callers", column: "in" },
+  { key: "done", column: "out" },
+  { key: "open", column: "out" },
+];
+type Box = { x: number; y: number; width: number; height: number };
 // 250 categories x 2 series is past the dense threshold: one path per series and one touch layer.
 const CHART_DENSE = Array.from({ length: 250 }, (_, i) => ({
   label: `${i + 1}`,
@@ -66,6 +85,9 @@ const CHART_PARTS = [
   { id: "lost", label: "Lost", value: 19 },
   { id: "void", label: "Void", value: 1 },
 ];
+
+// The toolbar (48) and a grid of 240, as before the toolbar: the Android script's drags assume that grid.
+const PIVOT_HEIGHT = 288;
 
 const PDF_WIDTH = 600;
 const PDF_OPEN = "pdf opens and reports its pages";
@@ -273,15 +295,48 @@ export default function NativeCheck() {
   const [chartWidths, setChartWidths] = useState<number[]>([]);
   const [pick, setPick] = useState<number | null>(null);
   const [part, setPart] = useState<string | null>(null);
+  // Where each outcome mark lands, measured against the chart's own box.
+  const outcomeBox = useRef<View>(null);
+  const markRefs = useRef<Record<string, View | null>>({});
+  const [outcomeWidth, setOutcomeWidth] = useState<number | null>(null);
+  const [marks, setMarks] = useState<Record<string, Box>>({});
+  const measureMark = useCallback((label: string) => {
+    const box = outcomeBox.current;
+    if (!box) return;
+    markRefs.current[label]?.measureLayout?.(
+      box,
+      (x, y, width, height) =>
+        setMarks((prev) => ({ ...prev, [label]: { x, y, width, height } })),
+      noop,
+    );
+  }, []);
+  // The glyph is the library's Icon, wrapped in a view that can be measured.
+  const markIcon = (label: string, glyph: "check" | "close") => {
+    const MarkIcon = ({ size, color }: IconRenderProps) => (
+      <View
+        ref={(r) => {
+          markRefs.current[label] = r;
+        }}
+        onLayout={() => measureMark(label)}
+      >
+        <Icon source={glyph} size={size} color={color} />
+      </View>
+    );
+    return MarkIcon;
+  };
+  // The phone grid on invented data: `pivot=<rows>` is what scripts/android-interact.mjs reads after a tap on an arrow.
+  const pivotEngine = useMemo(() => samplePivotEngine(), []);
+  const { model: pivotModel } = usePivotGrid(pivotEngine);
   // iOS has nothing to scroll the page from CI: it cycles by itself, 10 s each, over the top, the
   // charts and the PDF page, and native.yml takes a screenshot every few seconds. Fixed delays from
   // the screen opening drifted away from the workflow's clock (a slow runner took every shot at the PDF).
   const scroll = useRef<ScrollView>(null);
   const chartsAt = useRef(0);
+  const pivotAt = useRef(0);
   const pdfAt = useRef(0);
   useEffect(() => {
     if (Platform.OS !== "ios") return;
-    const stops = [0, chartsAt, pdfAt];
+    const stops = [0, chartsAt, pivotAt, pdfAt];
     let i = 0;
     const timer = setInterval(() => {
       i = (i + 1) % stops.length;
@@ -313,15 +368,22 @@ export default function NativeCheck() {
         chartWidths.join(" -> "),
       ],
       [
+        "pivot grid is laid out at its height",
+        h.pivotBox == null ? null : h.pivotBox === PIVOT_HEIGHT,
+        `${h.pivotBox}, expected ${PIVOT_HEIGHT}`,
+      ],
+      [
         "button badge adds width",
         w.badgeOn == null || w.badgeOff == null
           ? null
           : w.badgeOn - w.badgeOff >= 12,
         `${w.badgeOff} -> ${w.badgeOn}`,
       ],
+      outcomeCheck(marks, outcomeWidth),
     ],
-    [h, w, chartWidths],
+    [h, w, chartWidths, marks, outcomeWidth],
   );
+  const outcomesOk = measured.at(-1)?.[1];
   const checks = useMemo<Row[]>(
     () => [...measured, ...pdf.checks],
     [measured, pdf.checks],
@@ -402,6 +464,41 @@ export default function NativeCheck() {
               />
             </View>
           </View>
+          {/* Columns, a target per category, outcome marks and a dimmed category: `outcomes=` is what scripts/android-interact.mjs reads. */}
+          <View
+            ref={outcomeBox}
+            onLayout={(e: LayoutChangeEvent) => {
+              // Read it here: React runs the updater later, when the native event is gone.
+              const width = Math.round(e.nativeEvent.layout.width);
+              setOutcomeWidth(width);
+            }}
+          >
+            <BarChart
+              title="Native outcomes"
+              data={OUTCOME_DATA}
+              series={OUTCOME_SERIES}
+              columnMode={{ in: "overlap" }}
+              target={(d) => Number(d.callers)}
+              marker={(d) =>
+                d.open
+                  ? {
+                      icon: markIcon(d.label, "close"),
+                      color: theme.colors.error,
+                      label: "Not handled",
+                    }
+                  : {
+                      icon: markIcon(d.label, "check"),
+                      color: theme.colors.success,
+                      label: "Handled",
+                    }
+              }
+              dimmed={(d) => Number(d.calls) < 2}
+              height={CHART_HEIGHT}
+            />
+          </View>
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`outcomes=${outcomesOk == null ? "pending" : outcomesOk ? "ok" : "bad"}`}</Text>
           {/* The tap steps of scripts/android-interact.mjs: the chart is found by the start of its summary, and a tap reads back through the state lines. */}
           <BarChart
             title="Native dense"
@@ -423,6 +520,33 @@ export default function NativeCheck() {
           <Text
             style={{ color: theme.colors.onSurface }}
           >{`part=${part ?? "none"}`}</Text>
+        </View>
+
+        {/* The phone grid: the state line sits right above it, so a tap on an arrow and its effect are on screen together. */}
+        <View
+          style={{ gap: 8 }}
+          onLayout={(e: LayoutChangeEvent) => {
+            pivotAt.current = e.nativeEvent.layout.y;
+          }}
+        >
+          <Text
+            style={{ color: theme.colors.onSurface }}
+          >{`pivot=${pivotModel?.rows.length ?? "none"}`}</Text>
+          <View
+            testID="pivot-box"
+            onLayout={(e: LayoutChangeEvent) => {
+              // Read it here: React runs the updater later, when the native event is gone.
+              const height = Math.round(e.nativeEvent.layout.height);
+              setH((prev) => ({ ...prev, pivotBox: height }));
+            }}
+          >
+            <PivotGrid
+              engine={pivotEngine}
+              height={PIVOT_HEIGHT}
+              toolbar
+              fileName="pivot-sample"
+            />
+          </View>
         </View>
 
         <Text style={{ color: theme.colors.onSurfaceVariant }}>
@@ -581,6 +705,14 @@ export default function NativeCheck() {
             }}
           />
         ) : null}
+        {/* After the PDF page, so nothing measured moves: the brand gradient (primary into tertiary), drawn by React Native itself, read in the screenshots. */}
+        <View
+          accessibilityLabel="Brand gradient"
+          style={[
+            { height: 48, borderRadius: 12 },
+            gradientStyle(theme.colors.primary, theme.colors.tertiary),
+          ]}
+        />
       </ScrollView>
     </View>
   );
@@ -599,5 +731,27 @@ function check(
     name,
     Math.abs(delta - expected) <= 2,
     `${normal} -> ${dense}, Δ=${delta}, expected ${expected}`,
+  ];
+}
+
+/** The outcome marks are inside the chart, left to right in category order, and higher over a taller bar (C, then A, then B). */
+function outcomeCheck(
+  marks: Record<string, Box>,
+  width: number | null,
+): [string, boolean | null, string] {
+  const name = "outcome marks sit over their bars, in order";
+  const [a, b, c] = ["A", "B", "C"].map((l) => marks[l]);
+  if (!a || !b || !c || width == null) return [name, null, "not measured yet"];
+  const inside = [a, b, c].every(
+    (m) => m.width > 0 && m.x >= 0 && m.y >= 0 && m.x + m.width <= width + 1,
+  );
+  const ordered = a.x < b.x && b.x < c.x;
+  const higher = c.y < a.y && a.y < b.y;
+  const at = (m: Box) =>
+    `${Math.round(m.x)},${Math.round(m.y)} ${Math.round(m.width)}`;
+  return [
+    name,
+    inside && ordered && higher,
+    `A ${at(a)}, B ${at(b)}, C ${at(c)}, box ${width}`,
   ];
 }

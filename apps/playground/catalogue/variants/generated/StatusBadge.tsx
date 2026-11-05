@@ -69,6 +69,15 @@ export const InvoiceList = () => (
   </View>
 );
 
+/** `toneFrom` tints the badge from a `#RRGGBB` colour, or from any text (the same text always gets the same tint), instead of from `type`. */
+export const ToneFrom = () => (
+  <View style={row}>
+    <StatusBadge label="Logistics" toneFrom="Logistics" icon="truck-outline" />
+    <StatusBadge label="Finance" toneFrom="Finance" icon="cash-multiple" />
+    <StatusBadge label="Brand" toneFrom="#00629E" icon="palette-outline" />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Types",
@@ -84,5 +93,12 @@ export const variants: Variant[] = [
     name: "InvoiceList",
     title: "Invoice list",
     render: InvoiceList,
+  },
+  {
+    name: "ToneFrom",
+    title: "Tone from",
+    description:
+      "`toneFrom` tints the badge from a `#RRGGBB` colour, or from any text (the same text always gets the same tint), instead of from `type`.",
+    render: ToneFrom,
   },
 ];

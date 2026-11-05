@@ -51,7 +51,11 @@ const rows = [
   },
 ];
 
-const frame: ViewStyle = { width: 560, height: 320, flexDirection: "row" };
+// The grid fills its container but does not stretch its columns, so each frame
+// is exactly as wide as the columns sum (+2 for the border). With no height
+// the grid is as tall as its rows.
+const frame: ViewStyle = { width: 532, flexDirection: "row" };
+const crmFrame: ViewStyle = { width: 422, flexDirection: "row" };
 
 export const Sorted = () => (
   <View style={frame}>
@@ -110,7 +114,7 @@ const crmRows = [
 ];
 
 export const CellsAndAlignment = () => (
-  <View style={frame}>
+  <View style={crmFrame}>
     <DataGrid
       data={crmRows}
       columns={crmColumns}
@@ -122,7 +126,7 @@ export const CellsAndAlignment = () => (
 );
 
 export const EmptyState = () => (
-  <View style={frame}>
+  <View style={crmFrame}>
     <DataGrid
       data={[]}
       columns={crmColumns}
@@ -136,13 +140,13 @@ export const EmptyState = () => (
 );
 
 export const TitleAndPaging = () => (
-  <View style={{ ...frame, height: 420 }}>
+  <View style={frame}>
     <DataGrid
       data={rows}
       columns={columns}
       tableTitle="Invoices"
       rowsPerPage={3}
-      height={400}
+      height={316}
     />
   </View>
 );

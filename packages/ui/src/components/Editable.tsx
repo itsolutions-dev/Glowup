@@ -23,6 +23,7 @@ import Select, { type Option } from "./Select";
 import Typography, { type TypographyProps } from "./Typography";
 import { useEscapeKey } from "./internal/useEscapeKey";
 import type { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 /** What an `Editable` edits with: a text field, a multi-line one, a number field or a dropdown. */
 export type EditableType = "text" | "textarea" | "number" | "select";
@@ -303,7 +304,7 @@ const Editable = ({
         accessibilityRole="button"
         accessibilityLabel={`${label ? `${label}: ` : ""}${text || placeholder}`}
         accessibilityHint="Edit"
-        accessibilityState={{ disabled }}
+        {...a11yState("button", { disabled })}
         disabled={disabled}
         onPress={() => setEditing(true)}
         onLayout={onDisplayLayout}

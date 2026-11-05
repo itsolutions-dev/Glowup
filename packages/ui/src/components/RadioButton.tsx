@@ -3,6 +3,7 @@ import { Pressable, View, Text, StyleSheet, Platform } from "react-native";
 import { useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface RadioButtonProps {
   label?: string;
@@ -64,7 +65,7 @@ const RadioButton = ({
       }}
       accessibilityLabel={label}
       accessibilityRole="radio"
-      accessibilityState={{ selected, disabled }}
+      {...a11yState("radio", { selected, disabled })}
       disabled={disabled}
       style={[styles.wrapper, { opacity: disabled ? 0.38 : 1 }]}
     >

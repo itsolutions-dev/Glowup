@@ -22,8 +22,16 @@ export interface ManifestEntry {
   minSize: { w: number; h: number };
   /** Outside a Form, the value/change pair the export turns into state. */
   controlled?: { value: string; onChange: string; initial: unknown };
-  /** Inside a Form, how FormField connects it. */
-  field?: { valueProp: string; trigger: string; initial: unknown };
+  /**
+   * Inside a Form, how FormField connects it. `control`: the component takes
+   * `error` as a boolean, so FormField draws the message (a Checkbox).
+   */
+  field?: {
+    valueProp: string;
+    trigger: string;
+    initial: unknown;
+    control?: boolean;
+  };
   palette: { group: string; icon: string };
 }
 
@@ -47,8 +55,13 @@ const entry = (
 });
 
 /** A field: bound by a Form inside one, held in state outside. */
-const field = (valueProp: string, trigger: string, initial: unknown) => ({
-  field: { valueProp, trigger, initial },
+const field = (
+  valueProp: string,
+  trigger: string,
+  initial: unknown,
+  control?: boolean,
+) => ({
+  field: { valueProp, trigger, initial, ...(control ? { control } : {}) },
   controlled: { value: valueProp, onChange: trigger, initial },
 });
 
@@ -168,7 +181,7 @@ const ENTRIES: ManifestEntry[] = [
   }),
   entry("Checkbox", "leaf", [I, "checkbox-marked-outline"], [3, 1], [1, 1], {
     defaultProps: { label: "I agree" },
-    ...field("checked", "onValueChange", false),
+    ...field("checked", "onValueChange", false, true),
   }),
   entry(
     "CheckboxGroup",
@@ -383,6 +396,8 @@ export const LEFT_OUT: Record<string, string> = {
   GridLayout: "Every grid in the editor is a GridLayout already.",
   AspectRatio: "Keeps a ratio, and a grid item has both sides fixed.",
   Visible: "Shows content by window size; a layout stacks on phones by itself.",
+  WeekStrip: "Days and a selected date held in code; later.",
+  DayTimeline: "A day's events, data held in code; later.",
 };
 
 export const entryFor = (type: string): ManifestEntry | undefined =>

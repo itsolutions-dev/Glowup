@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import HelperText from "./HelperText";
+import { a11yState } from "./internal/a11yState";
 
 export interface PinInputProps {
   /** Number of cells. Defaults to 6. */
@@ -54,6 +55,13 @@ const PATTERNS: Record<NonNullable<PinInputProps["type"]>, RegExp> = {
  * one field. Typing advances, Backspace retreats, and pasting a whole code
  * into any cell fills the row.
  */
+/**
+ * A later cell typed first pads the code with spaces: as long as the code, but
+ * not complete until every cell holds a character.
+ */
+const isComplete = (code: string, length: number) =>
+  code.length >= length && !code.slice(0, length).includes(" ");
+
 const PinInput = ({
   length = 6,
   value,
@@ -82,9 +90,9 @@ const PinInput = ({
   const characters = value.slice(0, length).split("");
 
   // Report completion once, on the transition into a full code.
-  const wasComplete = useRef(value.length >= length);
+  const wasComplete = useRef(isComplete(value, length));
   useEffect(() => {
-    const complete = value.length >= length;
+    const complete = isComplete(value, length);
     if (complete && !wasComplete.current) onComplete?.(value);
     wasComplete.current = complete;
   }, [value, length, onComplete]);
@@ -169,12 +177,15 @@ const PinInput = ({
               // for paste and SMS autofill to work.
               selectTextOnFocus
               accessibilityLabel={`${label ?? "Code"} ${index + 1}/${length}`}
-              accessibilityState={{ disabled: !!disabled }}
+              {...a11yState("textbox", { disabled: !!disabled })}
               style={[
                 styles.cell,
                 theme.typography.titleLarge,
                 {
+                  // Narrower when the row has no room (a phone, inside a card), never wider.
                   width: cellSize,
+                  flexShrink: 1,
+                  minWidth: 0,
                   height: cellSize,
                   color: theme.colors.onSurface,
                 },
@@ -217,7 +228,7 @@ const makeStyles = (theme: Theme) =>
       borderRadius: theme.shape.medium,
       backgroundColor: theme.colors.surface,
       // Suppress the browser focus ring; getGlowStyles draws the M3 one.
-      ...Platform.select({ web: { outlineWidth: 0 } }),
+      ...Platform.select({ web: { outlineStyle: "none" as any } }),
     },
     cellFilled: { backgroundColor: theme.colors.surfaceContainerHighest },
     cellFilledIdle: { borderColor: "transparent" },

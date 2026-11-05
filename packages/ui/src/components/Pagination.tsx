@@ -14,6 +14,7 @@ import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export type PaginationSize = "sm" | "md" | "lg";
 export type PaginationVariant = "rounded" | "circular";
@@ -64,21 +65,23 @@ const getPageRange = (
   totalPages: number,
   siblingCount: number,
 ): (number | typeof ELLIPSIS)[] => {
-  // First page, last page, current +/- siblings, ellipsis in the gaps
-  const maxVisible = siblingCount * 2 + 5;
-  if (totalPages <= maxVisible) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
+  // First page, last page, current +/- siblings, ellipsis in the gaps, always
+  // in the same number of slots: a row that changed width moved the next and
+  // previous buttons out from under the pointer.
+  const slots = siblingCount * 2 + 5;
+  const pages = (from: number, to: number) =>
+    Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  if (totalPages <= slots) return pages(1, totalPages);
 
-  const start = Math.max(2, page - siblingCount);
-  const end = Math.min(totalPages - 1, page + siblingCount);
-
-  const range: (number | typeof ELLIPSIS)[] = [1];
-  if (start > 2) range.push(ELLIPSIS);
-  for (let i = start; i <= end; i++) range.push(i);
-  if (end < totalPages - 1) range.push(ELLIPSIS);
-  range.push(totalPages);
-  return range;
+  const left = Math.max(page - siblingCount, 2);
+  const right = Math.min(page + siblingCount, totalPages - 1);
+  const leftGap = left > 2;
+  const rightGap = right < totalPages - 1;
+  // Near an end the pages on that side fill the slots the gap would take.
+  if (!leftGap) return [...pages(1, slots - 2), ELLIPSIS, totalPages];
+  if (!rightGap)
+    return [1, ELLIPSIS, ...pages(totalPages - slots + 3, totalPages)];
+  return [1, ELLIPSIS, ...pages(left, right), ELLIPSIS, totalPages];
 };
 
 const Pagination = ({
@@ -145,7 +148,8 @@ const Pagination = ({
   return (
     <View
       style={[styles.container, disabled && { opacity: 0.38 }]}
-      accessibilityRole="menubar"
+      role="navigation"
+      accessibilityLabel="Pagination"
     >
       {showFirstLast && renderArrow("page-first", 1, activePage <= 1)}
       {renderArrow("chevron-left", activePage - 1, activePage <= 1)}
@@ -169,14 +173,19 @@ const Pagination = ({
         }
 
         const active = entry === activePage;
+        // The current page stays focusable (a disabled one is announced as
+        // unavailable and skipped by Tab); pressing it just does nothing.
         return (
           <Pressable
             key={entry}
-            onPress={() => onChange(entry)}
-            disabled={disabled || active}
+            onPress={active ? undefined : () => onChange(entry)}
+            disabled={disabled}
             accessibilityRole="button"
             accessibilityLabel={`Page ${entry}`}
             accessibilityState={{ selected: active }}
+            {...((active && Platform.OS === "web"
+              ? { "aria-current": "page" }
+              : null) as object)}
             style={styles.item}
           >
             {({ hovered, pressed }: PressableState) => (
@@ -308,7 +317,7 @@ const PageSelect = ({
         disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel="Select page"
-        accessibilityState={{ expanded: open, disabled: !!disabled }}
+        {...a11yState("button", { expanded: open, disabled: !!disabled })}
         style={({ hovered, pressed }: PressableState) => [
           styles.select,
           { height, borderRadius },
@@ -382,7 +391,7 @@ const PageSelect = ({
                   key={page}
                   accessibilityRole="menuitem"
                   accessibilityLabel={`Page ${page}`}
-                  accessibilityState={{ selected: page === activePage }}
+                  {...a11yState("menuitem", { selected: page === activePage })}
                   onPress={() => pick(page)}
                   style={({ hovered, pressed }: PressableState) => [
                     styles.option,

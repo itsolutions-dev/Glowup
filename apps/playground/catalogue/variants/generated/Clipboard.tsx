@@ -16,7 +16,8 @@ const row: ViewStyle = {
 const column: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 360,
+  width: "100%",
+  maxWidth: 360,
 };
 
 /** An icon button that copies `value`, then shows a check for a moment. */

@@ -117,6 +117,9 @@
     "export": "Esporta",
     "exportExcel": "Esporta in Excel",
     "exportSuccess": "Esportazione completata",
+    "exportUnavailable": "L'esportazione in Excel non è disponibile in questa app.",
+    "exportNoSharing": "Questo dispositivo non può condividere file.",
+    "exportFailed": "L'esportazione non è riuscita. Riprova.",
     "fullscreen": "Schermo intero",
     "exitFullscreen": "Esci da schermo intero"
   },

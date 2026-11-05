@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { TouchableRipple, Typography, Divider } from "@its/glowup-ui";
 
 const panel: ViewStyle = {
-  width: 360,
+  width: "100%",
+  maxWidth: 360,
   flexDirection: "column",
   gap: 12,
 };

@@ -17,6 +17,7 @@ import {
   getStateColor,
 } from "../../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs } from "../types";
+import { a11yState } from "../internal/a11yState";
 
 export type ListItemVariant = "standard" | "outlined" | "contained";
 
@@ -225,7 +226,7 @@ function ListItem({
           onPress={onClick}
           disabled={disabled}
           accessibilityRole="button"
-          accessibilityState={{ disabled }}
+          {...a11yState("button", { disabled })}
           style={[styles.press, isRow && styles.pressRow]}
         >
           {leading}

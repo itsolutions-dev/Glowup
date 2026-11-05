@@ -151,6 +151,7 @@ export default function Settings() {
           secondaryText="Mentions, replies and assignments"
           action={
             <Switch
+              accessibilityLabel="Push notifications"
               value={draft.push}
               onChange={(value) => set("push", value)}
             />
@@ -161,6 +162,7 @@ export default function Settings() {
           secondaryText="Everything that needs your attention"
           action={
             <Switch
+              accessibilityLabel="Email alerts"
               value={draft.email}
               onChange={(value) => set("email", value)}
             />
@@ -171,6 +173,7 @@ export default function Settings() {
           secondaryText="One summary every Monday"
           action={
             <Switch
+              accessibilityLabel="Weekly digest"
               value={draft.digest}
               onChange={(value) => set("digest", value)}
             />

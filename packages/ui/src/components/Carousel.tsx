@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import Icons from "./Glyph";
 import { useTheme, Theme } from "../providers/ThemeProvider";
+import { a11yState } from "./internal/a11yState";
 
 export interface CarouselProps {
   children: React.ReactNode;
@@ -82,6 +83,12 @@ const Carousel = ({
     },
     [containerWidth, pages.length, onIndexChange],
   );
+
+  // A rotation or a resize changes the page width, not the scroll offset:
+  // without this the carousel is left between two pages.
+  useEffect(() => {
+    goToIndex(activeIndexRef.current, false);
+  }, [containerWidth, goToIndex]);
 
   useEffect(() => {
     if (!autoPlayInterval || autoPlayInterval <= 0 || pages.length < 2) return;
@@ -164,7 +171,7 @@ const Carousel = ({
               onPress={() => goToIndex(index)}
               accessibilityRole="button"
               accessibilityLabel={`Go to slide ${index + 1}`}
-              accessibilityState={{ selected: index === activeIndex }}
+              {...a11yState("button", { selected: index === activeIndex })}
               style={styles.dotPressable}
             >
               <View

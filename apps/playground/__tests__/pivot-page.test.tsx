@@ -4,7 +4,7 @@ import { ThemeProvider } from "@its/glowup-ui";
 import { buildGridModel } from "@its/glowup-pivot";
 
 import PivotPage from "../app/pivot";
-import { samplePivotEngine } from "../site/samplePivot";
+import { samplePivotEngine, samplePivotRows } from "../site/samplePivot";
 
 describe("the pivot page", () => {
   it("shows the live section and the usage section", async () => {
@@ -23,10 +23,12 @@ describe("the pivot page", () => {
     expect(await screen.findByText("Pivot")).toBeTruthy();
     expect(screen.getByText("Live")).toBeTruthy();
     expect(screen.getByText("Use it")).toBeTruthy();
-    // Jest runs as a phone, where the grid says it is not there yet; the web grid is tested in the package.
-    expect(
-      screen.getByText("The pivot grid is not available on this platform yet."),
-    ).toBeTruthy();
+    // Jest runs as a phone, so this is the phone grid; the web grid is tested in the package.
+    expect(screen.getByLabelText("Pivot grid")).toBeTruthy();
+    expect(screen.getByText("Harbour")).toBeTruthy();
+    expect(screen.getByLabelText("Export to Excel")).toBeTruthy();
+    expect(screen.getByLabelText("Fullscreen")).toBeTruthy();
+    expect(screen.getByLabelText("Reset")).toBeTruthy();
   });
 });
 
@@ -65,5 +67,50 @@ describe("the sample pivot", () => {
     expect(model.rows[0].cells[0].text).toBe(
       new Intl.NumberFormat("en-US").format(sum),
     );
+  });
+
+  it("has several counted rows per site and category, as a report's query returns them", () => {
+    const rows = samplePivotRows();
+    const keys = new Set(rows.map((r) => `${r.site}|${r.category}`));
+    expect(keys.size).toBe(24);
+    expect(rows.length).toBeGreaterThan(keys.size * 2);
+  });
+
+  it("leaves a cell empty where a category never has the other flag", () => {
+    const { model } = modelOf("en-US");
+    const falseColumn = model.columns.findIndex((c) => c.label === "false");
+    const seasonal = model.rows.filter((r) => r.label === "Seasonal");
+    expect(seasonal.length).toBe(6);
+    for (const row of seasonal) expect(row.cells[falseColumn].text).toBe("");
+  });
+
+  it("totals the same with a field that is sometimes empty on the rows", () => {
+    const engine = samplePivotEngine();
+    expect(samplePivotRows().some((r) => r.reason === null)).toBe(true);
+    const totalOf = (field: string) => {
+      engine.setSlice({
+        rows: [{ uniqueName: field }],
+        columns: [{ uniqueName: "Measures" }],
+        measures: [{ uniqueName: "n", aggregation: "sum" }],
+        expands: { expandAll: true },
+        filters: [],
+      } as never);
+      return buildGridModel({
+        matrix: engine.processMatrix(),
+        slice: engine.getSlice(),
+        format: engine.getFormat(),
+        metadata: engine.getMetadata(),
+        locale: "en-US",
+      }).rows[0].cells[0].text;
+    };
+    expect(totalOf("reason")).toBe(totalOf("site"));
+  });
+
+  it("makes as many rows as asked, the same every time", () => {
+    const rows = samplePivotRows(50_000);
+    expect(rows.length).toBe(50_000);
+    expect(new Set(rows.map((r) => r.site)).size).toBeGreaterThan(6);
+    expect(samplePivotRows(50_000)).toEqual(rows);
+    expect(samplePivotRows(500)).toEqual(rows.slice(0, 500));
   });
 });

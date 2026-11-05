@@ -3,7 +3,7 @@
 File **generato** da `npm run docgen -w @its/glowup-playground && npm run inventory -w @its/glowup-playground`: non si modifica a mano
 (salvo l'elenco "Altre aggiunte", che sta nello script `apps/playground/docgen/inventory.mjs`). Confronto con il commit `14a148f`,
 prima della prima modifica della libreria di questo lavoro (versione 0.11.1, 102 componenti).
-Ora: versione 0.11.1, 116 componenti.
+Ora: versione 0.11.1, 119 componenti.
 
 Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'inizio; «cambiata» = tipo, obbligatorietà o default diversi.
 
@@ -11,9 +11,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Stato | Componenti | Prop in totale |
 | ----- | ---------- | -------------- |
-| Aggiunti | 28 | 379 |
-| Aggiornati | 55 | 711 |
-| Tenuti (invariati) | 33 | 195 |
+| Aggiunti | 31 | 404 |
+| Aggiornati | 58 | 758 |
+| Tenuti (invariati) | 30 | 167 |
 
 ## Aggiunti
 
@@ -22,9 +22,11 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Blink](#blink)
 - [Break](#break)
 - [CaptionValue](#captionvalue)
+- [CellText](#celltext)
 - [CheckboxGroup](#checkboxgroup)
 - [Clipboard](#clipboard)
 - [CodeBlock](#codeblock)
+- [DayTimeline](#daytimeline)
 - [Dialog](#dialog)
 - [Download](#download)
 - [Drawer](#drawer)
@@ -45,6 +47,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Upload](#upload)
 - [ViewportProvider](#viewportprovider)
 - [Visible](#visible)
+- [WeekStrip](#weekstrip)
 
 ## Aggiornati
 
@@ -55,10 +58,10 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Avatar](#avatar): + onClick · ~ size · − onPress
 - [Badge](#badge): + color, position
 - [Banner](#banner): comportamento
-- [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton · − onDismiss
+- [BottomSheet](#bottomsheet): comportamento · + onClose, actions, showCloseButton, testID · − onDismiss
 - [Box](#box): + background, children, margin, padding, style, variant · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Button](#button): comportamento · + badge, color, density, onClick, type, variant · ~ iconPosition · − mode, onPress, tone
-- [Card](#card): + onClick · − onPress
+- [Card](#card): + onClick, selected · − onPress
 - [CardTitle](#cardtitle): + endIcon, startIcon · − left, right
 - [Center](#center): + align, background, children, direction, justify, margin, padding, style · ~ gap · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py, row
 - [Chip](#chip): + border, color, onClick, toneFrom, variant · ~ size · − mode, onPress
@@ -82,16 +85,17 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [Pagination](#pagination): + activePage, onChange, color, pageSelect, size, variant · − onPageChange, page
 - [PinInput](#pininput): + onChange, variant · − onChangeText
 - [Popover](#popover): + anchorPosition
-- [ProgressButton](#progressbutton): + onClick, variant · − mode, onPress
+- [ProgressButton](#progressbutton): + onClick, type, variant · − mode, onPress
 - [Rating](#rating): + icon, interval, required
 - [SearchBar](#searchbar): + onChange, debounceTime, icon, showLoading · − onChangeText, leadingIcon
-- [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange · ~ value · − onSelect, multiSelect, selectedValues, toggleOptions
+- [Select](#select): comportamento · + density, disabledOptions, emptyMessage, fullWidth, labelPlacement, multiple, nullable, onChange, reserveHelperText · ~ options, value · − onSelect, multiSelect, selectedValues, toggleOptions
+- [Skeleton](#skeleton): + count, gap, itemHeight, preset, testID
 - [Slider](#slider): + interaction
 - [Snackbar](#snackbar): comportamento · + onClose, position, severity, variant · ~ action, onDismiss · − type
 - [Stack](#stack): + align, background, borderColor, borderWidth, children, dividers, height, justify, margin, padding, radius, style, width, wrap · ~ spacing
-- [Stat](#stat): + direction, trendColor · − invertTrendColors
-- [StatusBadge](#statusbadge): + toneFrom
-- [Stepper](#stepper): + direction, onClick · − onStepPress
+- [Stat](#stat): + direction, trendColor, valueColor · − invertTrendColors
+- [StatusBadge](#statusbadge): + toneFrom · ~ type
+- [Stepper](#stepper): + backLabel, direction, nextLabel, onBack, onCancel, onClick, onNext, submitStep, variant · ~ steps · − onStepPress
 - [Table](#table): + columns, data, emptyMessage, height, hover, onClick, rowsPerPage, selected, tableTitle, testID, width · ~ children
 - [TableCell](#tablecell): + align, flex
 - [TableHeaderCell](#tableheadercell): comportamento · + align, flex, onClick · − onPress
@@ -100,13 +104,15 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 - [ThemeProvider](#themeprovider): + density, themeScrollbars
 - [TimePicker](#timepicker): + fieldVariant, presentation, showOkButton, showToday, variant
 - [ToastProvider](#toastprovider): + maxVisible, position
-- [Tooltip](#tooltip): + anchorAccessible
+- [ToggleButton](#togglebutton): + tooltip
+- [ToggleButtonGroup](#togglebuttongroup): ~ options, value
+- [Tooltip](#tooltip): + anchorAccessible, style · ~ content
 - [Typography](#typography): + align, color, fontSize, nowrap, onClick · ~ variant
 - [VStack](#vstack): + background, children, dividers, margin, padding, style · ~ spacing · − bg, flex, m, mb, ml, mr, mt, mx, my, p, pb, pl, pr, pt, px, py
 
 ## Tenuti
 
-[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Skeleton](#skeleton) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [ToggleButton](#togglebutton) · [ToggleButtonGroup](#togglebuttongroup) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
+[AlertProvider](#alertprovider) · [AlertProviderWrapper](#alertproviderwrapper) · [Breadcrumbs](#breadcrumbs) · [ButtonGroup](#buttongroup) · [CardActions](#cardactions) · [CardContent](#cardcontent) · [CardCover](#cardcover) · [Carousel](#carousel) · [Checkbox](#checkbox) · [Collapse](#collapse) · [Divider](#divider) · [EmptyState](#emptystate) · [FormControl](#formcontrol) · [HelperText](#helpertext) · [Icon](#icon) · [Image](#image) · [Link](#link) · [ListSubheader](#listsubheader) · [Paper](#paper) · [Portal](#portal) · [PortalHost](#portalhost) · [RadioButton](#radiobutton) · [RadioGroup](#radiogroup) · [Spacer](#spacer) · [SpeedDial](#speeddial) · [SplitButton](#splitbutton) · [TabContent](#tabcontent) · [TableHead](#tablehead) · [Toolbar](#toolbar) · [TouchableRipple](#touchableripple)
 
 ## Altre aggiunte (non componenti)
 
@@ -217,6 +223,16 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | valueStyle | `StyleProp<TextStyle>` |  |  |  |
 | width | `DimensionValue` |  |  | Width of the pair. |
 
+### CellText
+
+`packages/ui/src/components/Table.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| align | `TableCellProps["align"]` | "left" |  |  |
+| children | `React.ReactNode` |  |  |  |
+| textStyle | `TableCellProps["textStyle"]` |  |  |  |
+
 ### CheckboxGroup
 
 `packages/ui/src/components/CheckboxGroup.tsx`
@@ -276,6 +292,20 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | title | `string` |  |  | Shown above the snippet: a file name, or what it is for. Defaults to the language's name. |
 | wrap | `boolean` | false |  | Wraps long lines instead of scrolling the block sideways. |
 
+### DayTimeline
+
+`packages/ui/src/components/DayTimeline.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| events * | `DayTimelineEvent[]` |  |  | The day's events, in any order: they are shown by start time. |
+| emptyState | `EmptyStateProps` | { icon: "calendar-blank-outline", title: "Nothing scheduled" } |  | Shown when there are no events. Defaults to "Nothing scheduled". |
+| labels | `DayTimelineLabels` |  |  | Words read by screen readers, for another language. |
+| loading | `boolean` | false |  | Shows a list skeleton in place of the events. |
+| onEventPress | `(event: DayTimelineEvent) => void` |  |  | Called with the pressed event. Makes each card a button. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+
 ### Dialog
 
 `packages/ui/src/components/Dialog/Dialog.tsx`
@@ -291,17 +321,20 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | describedBy | `string` |  |  | The `nativeID` of the element that describes the dialog (an alert's message), set as `aria-describedby`. Only used with `role`. |
 | disableBackdropClick | `boolean` | false |  | Keeps a click on the backdrop from calling `onClose`. Defaults to `false`. |
 | disableEscapeKeyDown | `boolean` | false |  | Keeps Escape (web) and Android back from calling `onClose`. Turn it on for a decision the user must not be able to skip. Defaults to `false`. |
+| dividers | `boolean` | false |  | Draws a line above and below the body, to set a long, scrolling body apart from the title and the actions. Ignored by `fullScreen`. Defaults to `false`. |
 | form | `boolean` | false |  | Wraps the body and the `actions` in a `Form`, so a `Button type="submit"` in `actions` (or Enter in a field, on the web) calls `onSubmit`. In a `fullScreen` dialog the header is inside it too. |
 | fullScreen | `boolean` | false |  | The M3 full-screen dialog, for a form on a compact window: it fills the window, with a close button, the title and `actions` in a header row and a scrolling body. Defaults to `false`. |
 | height | `number \| `${number}%`` |  |  | A fixed height for the dialog card, in px or as a percentage of the window (`"60%"`). The body scrolls when the content is taller. The card never grows past 90% of the window. Ignored by `fullScreen`. |
 | icon | `IconSource` |  |  | Hero glyph above the title (M3 dialog icon). Centres the header. |
 | initialFocus | `"auto" \| "actions"` | "auto" |  | Web: where focus goes once the dialog is open. `"auto"` leaves it to the modal's focus trap, which takes the first focusable element (the close icon, or a field in the body). `"actions"` focuses the first control of the `actions` row, so an alert starts on its least destructive button. Ignored by `fullScreen`. Defaults to `"auto"`. |
+| leadingActions | `React.ReactNode` |  |  | Actions on the start of the actions row, apart from `actions` at its end: a destructive or secondary action ("Delete", "Reset"). Ignored by `fullScreen`. |
 | onClose | `() => void` |  |  | Asks the dialog to close: called by the close icon, a click on the backdrop, Escape (web) and Android back. Without it the dialog has no way to close itself, so `visible` stays up to the app. |
 | onSubmit | `() => void` |  |  | Called when the `form` is submitted. Only used with `form`. |
+| overline | `string` |  |  | A small line above the title: what the dialog is about (a record's name, a step). Not drawn by `fullScreen`. |
 | role | `"dialog" \| "alertdialog"` |  |  | The ARIA role of the card, for the web and for screen readers elsewhere. `"alertdialog"` marks a dialog that interrupts to ask for an answer (see `AlertDialog`); the title then names the card. Left out, the card has no role of its own and react-native-web's modal supplies `dialog`. |
 | scrollable | `boolean` | false |  | Scrolls the body when the content is taller than the dialog. |
 | slotStyles | `DialogSlotStyles` |  |  | Style overrides for the parts of the dialog, merged after its own styles. |
-| testID | `string` | "dialog" |  | Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`. |
+| testID | `string` | "dialog" |  | Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`, the actions row `${testID}-actions`, the dividers `${testID}-divider-top` / `-bottom`. |
 | title | `string` |  |  |  |
 | transparent | `boolean` | true |  |  |
 | width | `DialogWidth` | "md" |  | How wide the dialog may grow on a wide window: `"xs"` 360, `"sm"` 480, `"md"` 560, `"lg"` 800. Defaults to `"md"`. Ignored by `fullScreen`. |
@@ -406,9 +439,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| children * | `React.ReactElement \| ((field: FormFieldChildProps) => React.ReactNode)` |  |  | The one control to connect, which receives the value, the trigger, `onBlur`, `error`, `required` and `disabled` as props. Or a function that gets those props and returns the control, for a control whose required props (`Input` needs `value` and `onChange`) you would otherwise have to write out: `{(field) => <Input label="Email" {...field} />}`. |
+| children * | `\| React.ReactElement \| ((field: FormFieldChildProps<V, T, C>) => React.ReactNode)` |  |  | The one control to connect, which receives the value, the trigger, `onBlur`, `error`, `required` and `disabled` as props. Or a function that gets those props and returns the control, for a control whose required props (`Input` needs `value` and `onChange`) you would otherwise have to write out: `{(field) => <Input label="Email" {...field} />}`. |
 | name * | `string` |  |  | The field's name in the form's values: `"email"`, `"address.city"`, `"items[0].qty"` (dots and brackets both nest). |
-| control | `boolean` | false |  | For a child that draws no label, helper or error text of its own (`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a `FormControl` that does, and passes it `error` as a boolean (and no `required`, `label` or `helperText`: `FormControl` draws those). Defaults to `false`. |
+| control | `C` | false as C |  | For a child that draws no label, helper or error text of its own (`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a `FormControl` that does, and passes it `error` as a boolean (and no `required`, `label` or `helperText`: `FormControl` draws those). Defaults to `false`. |
 | dependencies | `string[]` |  |  | Names of other fields this one's rules read (`"password"` for a "confirm password"): it is validated again when one changes, once it has been touched or edited, or shows an error. |
 | disabled | `boolean` | false |  | Disables this field (the child's `disabled`); the form's `disabled` does it for all. |
 | getValueFromEvent | `(...args: any[]) => unknown` |  |  | Turns what the trigger is called with into the value to store. By default the first argument, or, when that is a DOM event, its `target.value` (`target.checked` for `valuePropName="checked"`). |
@@ -417,9 +450,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | label | `string` |  |  | Label, passed to the child as its `label` (`Input`, `Select`... draw it). With `control`, drawn above the child by `FormControl` instead. |
 | normalize | `(value: any, previous: any, values: FormValues) => unknown` |  |  | Turns the reported value into the stored one: `(value, previous, allValues) => stored`. Trim, uppercase, format. |
 | rules | `FormRule[]` |  |  | What the value must satisfy, checked in order; the first failure is the field's `error`. |
-| trigger | `string` | "onChange" |  | The child's callback that reports a new value. `"onValueChange"` for a `Checkbox` or a `Slider`. Defaults to `"onChange"`. |
+| trigger | `T` | "onChange" as T |  | The child's callback that reports a new value. `"onValueChange"` for a `Checkbox` or a `Slider`. Defaults to `"onChange"`. |
 | validateOn | `FormValidateOn` |  |  | Overrides the form's `validateOn` for this field: a `Checkbox` has no blur, so `"change"` suits it. |
-| valuePropName | `string` | "value" |  | The child's prop that takes the value. `"checked"` for a `Checkbox`. Defaults to `"value"`. |
+| valuePropName | `V` | "value" as V |  | The child's prop that takes the value. `"checked"` for a `Checkbox`. Defaults to `"value"`. |
 
 ### HighlightedCode
 
@@ -516,6 +549,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | activeId * | `string` |  |  | `id` of the current destination. |
 | items * | `NavBarItem[]` |  |  | Destinations, three to five per M3. |
 | onClick * | `(id: string) => void` |  |  | Called with the `id` of the pressed destination. |
+| safeArea | `boolean` | true |  | Pads the bottom safe-area inset, so the bar clears the phone's gesture bar or home indicator, as `AppBar` does at the top. Defaults to `true`. |
 | showLabels | `"always" \| "selected"` | "always" |  | "always" shows every label, "selected" only the active one. |
 
 ### NumberField
@@ -528,9 +562,9 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | value * | `number` |  |  |  |
 | disabled | `boolean` |  |  |  |
 | label | `string` |  |  |  |
-| max | `number` | 100 |  |  |
-| min | `number` | 0 |  |  |
-| step | `number` | 1 |  |  |
+| max | `number` |  |  | No upper limit when unset. |
+| min | `number` |  |  | No lower limit when unset. |
+| step | `number` | 1 |  | How much the buttons add or take away. A fraction (`0.5`) is fine. |
 
 ### PasswordField
 
@@ -618,6 +652,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | ---- | ---- | ------- | ------------------- | ----------- |
 | onChange * | `(value: boolean) => void` |  |  | Called with the new state when the switch, or its label, is pressed. |
 | value * | `boolean` |  |  |  |
+| accessibilityLabel | `string` |  |  | The name screen readers give the switch, for one drawn without `label`: in a `ListItem`'s `action`, say, beside the words that describe it. Without it such a switch is only "Switch, on". Replaces `label` when both are given. |
 | containerStyle | `StyleProp<ViewStyle>` | {} |  | Style for the outer Pressable. |
 | disabled | `boolean` | false |  |  |
 | feedback | `boolean` | true |  | Report the switch to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
@@ -702,6 +737,23 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | keepMounted | `boolean` | false |  | Hides the children with `display: "none"` instead of unmounting them, so their state survives. They are then wrapped in a `View` (laid out as if it were not there while they show). Defaults to `false`. |
 | only | `SizeClass \| SizeClass[]` |  |  | Shows only on this size class, or on any of these. |
 | when | `boolean` | true |  | A condition of your own; the children show only while it holds. Defaults to `true`. |
+
+### WeekStrip
+
+`packages/ui/src/components/WeekStrip.tsx`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onChange * | `(date: Date) => void` |  |  | Called with the pressed day, or with the same weekday a week later or earlier after a swipe. |
+| value * | `Date` |  |  | The chosen day. The strip shows the week it falls in. |
+| arrows | `boolean` | Platform.OS === "web" |  | An arrow on each side that moves a week, for a mouse, which cannot swipe. Defaults to `true` on the web and `false` on iOS and Android. |
+| firstDayOfWeek | `number` |  |  | The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's. |
+| gradient | `boolean` | false |  | Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`. |
+| labels | `{ nextWeek?: string; previousWeek?: string }` |  |  | The names of the arrows and of the screen-reader actions that move a week. Default English. |
+| locale | `string` |  |  | The locale of the weekday names and of the first day of the week. Defaults to the device's. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  |  |  |
+| weekDays | `number[]` | WORK_WEEK |  | The days to show, as `Date#getDay()` numbers (0 = Sunday … 6 = Saturday), in the locale's week order whatever order they are given in. Defaults to Monday to Friday, `[1, 2, 3, 4, 5]`. |
 
 # Componenti aggiornati
 
@@ -848,7 +900,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### BottomSheet
 
-`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `onClose`, `actions`, `showCloseButton`; prop tolte: `onDismiss`
+`packages/ui/src/components/BottomSheet.tsx` — comportamento: il contenuto scorre da solo; l'intestazione ha un ruolo `header`; prop nuove: `onClose`, `actions`, `showCloseButton`, `testID`; prop tolte: `onDismiss`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -860,6 +912,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | maxHeightRatio | `number` | 0.85 |  | Max sheet height as a fraction of the window height. |
 | showCloseButton | `boolean` | false | nuova | Adds a close button at the end of the title row. Defaults to `false`. |
 | showHandle | `boolean` | true |  |  |
+| testID | `string` |  | nuova |  |
 | title | `string` |  |  |  |
 
 ### Box
@@ -915,13 +968,14 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Card
 
-`packages/ui/src/components/Card.tsx` — prop nuove: `onClick`; prop tolte: `onPress`
+`packages/ui/src/components/Card.tsx` — prop nuove: `onClick`, `selected`; prop tolte: `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
 | accessibilityLabel | `string` |  |  |  |
 | onClick | `() => void` |  | nuova |  |
+| selected | `boolean` |  | nuova | Draws the card as the chosen one of a set (a primary border) and says so to screen readers. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | variant | `"elevated" \| "filled" \| "outlined" \| "glow"` | "filled" |  |  |
 
@@ -1023,7 +1077,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| columns * | `ColumnDefinition[]` |  |  |  |
+| columns * | `ColumnDefinition[]` |  |  | The columns, in order. Keep the array stable (`useMemo`), and `onClick` too (`useCallback`): a row is drawn again only when something it shows changes, which a new array every render defeats. |
 | data * | `any[]` |  |  |  |
 | density | `Density` |  | cambiata | Row height; follows `ThemeProvider`'s `density` unless set here. |
 | emptyMessage | `ReactNode` |  | cambiata | Shown centered when data is empty and not loading. |
@@ -1032,7 +1086,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | height | `DimensionValue` |  | nuova | Height of the grid. The header stays in place and the rows scroll under it (a virtualised list). Without it the grid fills the height of its container, which must then be bounded for the rows to scroll. |
 | hover | `boolean` | false | nuova | Highlights the row under the pointer, on web; a row with `onClick` also highlights while pressed. |
 | loading | `boolean` | false |  |  |
-| onClick | `(row: any, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable, with the button role: a cell then should not hold a control of its own. |
+| onClick | `(row: any, index: number) => void` |  | nuova | Called with the row and its index in `data` when a row is pressed. Giving it makes the rows pressable: a button on iOS and Android, where a cell then should not hold a control of its own (the row is read as one element); a focusable row on the web, which Enter presses. |
 | onColumnReorder | `(newColumns: ColumnDefinition[]) => void` |  |  |  |
 | onEndReached | `() => void` |  |  |  |
 | onEndReachedThreshold | `number` | 0.5 |  |  |
@@ -1416,7 +1470,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### ProgressButton
 
-`packages/ui/src/components/ProgressButton.tsx` — prop nuove: `onClick`, `variant`; prop tolte: `mode`, `onPress`
+`packages/ui/src/components/ProgressButton.tsx` — prop nuove: `onClick`, `type`, `variant`; prop tolte: `mode`, `onPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1442,6 +1496,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | successLabel | `string` | "Done" |  | Label once the task succeeded. |
 | testID | `string` |  |  |  |
 | trackColor | `string` |  |  | Colour behind the bar, and behind the fill on outlined and text. |
+| type | `"button" \| "submit"` |  | nuova | `"submit"` submits the enclosing `Form` when pressed, after `onClick`, as on `Button`. |
 | variant | `ButtonVariant` | "filled" | nuova |  |
 
 ### Rating
@@ -1479,11 +1534,11 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Select
 
-`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`, `onChange`; prop cambiate: `value`; prop tolte: `onSelect`, `multiSelect`, `selectedValues`, `toggleOptions`
+`packages/ui/src/components/Select.tsx` — comportamento: segue `ThemeProvider density`; prop nuove: `density`, `disabledOptions`, `emptyMessage`, `fullWidth`, `labelPlacement`, `multiple`, `nullable`, `onChange`, `reserveHelperText`; prop cambiate: `options`, `value`; prop tolte: `onSelect`, `multiSelect`, `selectedValues`, `toggleOptions`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
-| options * | `Option[]` |  |  |  |
+| options * | `(Option \| string)[]` |  | cambiata | The choices: `{ label, value }` objects, or plain strings that are their own label and value. |
 | defaultOpen | `boolean` | false |  | Mount with the option list already open. Uncontrolled after that. |
 | density | `Density` |  | nuova | Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below. |
 | disabled | `boolean` |  |  |  |
@@ -1498,10 +1553,30 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | onChange | `(value: any) => void` |  | nuova | Called with the picked option's `value`, or with `null` when a `nullable` select is cleared. With `multiple`: called with the new array of selected `value`s on every toggle (a new array, never the one passed as `value`). |
 | optionStyle | `object` |  |  |  |
 | placeholder | `string` | "Select an option" |  |  |
+| reserveHelperText | `boolean` | false | nuova | Keeps the line under the field even with no error, so an error appearing does not push the next field down. Default false. |
 | showAsChips | `boolean` | false |  | With `multiple`, shows the selection as removable chips in the field. |
 | style | `object` |  |  |  |
 | value | `any` |  | cambiata | The `value` of the selected option, `null` for none. With `multiple`: the array of selected `value`s (defaults to `[]`). |
 | variant | `SelectVariant` | "outlined" |  | The look of the box: `"outlined"` is a bordered box on the surface, `"filled"` a tinted box (like `PinInput`'s) that shows its border only while focused or in error. Where the label sits is `labelPlacement`'s business, not the variant's. Defaults to `"outlined"`. |
+
+### Skeleton
+
+`packages/ui/src/components/Skeleton.tsx` — prop nuove: `count`, `gap`, `itemHeight`, `preset`, `testID`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| animate | `boolean` | true |  | false renders a static placeholder (no pulse). |
+| borderRadius | `number` |  |  |  |
+| count | `number` | 6 | nuova | `preset="list"`: how many rows. Defaults to 6. |
+| duration | `number` | 1200 |  | Pulse animation duration for a full cycle (ms). |
+| gap | `number` |  | nuova | `preset="list"`: the space between rows. Defaults to `theme.spacing.s`. |
+| height | `DimensionValue` |  |  |  |
+| itemHeight | `number` | 64 | nuova | `preset="list"`: each row's height. Defaults to 64. |
+| preset | `"list"` |  | nuova | `"list"`: `count` rounded rows stacked `gap` apart, the placeholder of a list loading its first page. `width` and `style` then apply to the list. |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| testID | `string` |  | nuova | Root testID; with `preset="list"` each row gets `${testID}-row`. |
+| variant | `SkeletonVariant` | "rect" |  |  |
+| width | `DimensionValue` |  |  |  |
 
 ### Slider
 
@@ -1566,7 +1641,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 
 ### Stat
 
-`packages/ui/src/components/Stat.tsx` — prop nuove: `direction`, `trendColor`; prop tolte: `invertTrendColors`
+`packages/ui/src/components/Stat.tsx` — prop nuove: `direction`, `trendColor`, `valueColor`; prop tolte: `invertTrendColors`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
@@ -1580,29 +1655,37 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | testID | `string` |  |  |  |
 | trend | `"up" \| "down" \| "flat"` |  |  | Direction of `delta`. Drives the arrow, and the colour unless `trendColor` is set. |
 | trendColor | `ThemeColor` |  | nuova | The colour of the arrow and `delta`: a theme colour token (a role such as `"success"` or `"error"`, or `"onSurfaceVariant"`, ...) or any colour string. Left out, `"up"` is `success`, `"down"` is `error` and `"flat"` neutral. For a metric where down is good, pass the colour yourself. |
+| valueColor | `ThemeColor` |  | nuova | The colour of the number: a theme colour token (`"error"` for an overdue count, `"success"`, ...) or any colour string. Defaults to `onSurface`. |
 
 ### StatusBadge
 
-`packages/ui/src/components/StatusBadge.tsx` — prop nuove: `toneFrom`
+`packages/ui/src/components/StatusBadge.tsx` — prop nuove: `toneFrom`; prop cambiate: `type`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | label * | `string` |  |  |  |
 | icon | `string` |  |  |  |
 | toneFrom | `string` |  | nuova | Tints the badge from a `#RRGGBB` colour or from any text instead of from `type`, which still picks the default icon. |
-| type | `"success" \| "error" \| "warning"` | "success" |  |  |
+| type | `"success" \| "error" \| "warning" \| "info" \| "neutral"` | "success" | cambiata | The state, which picks the colours and the icon: `info` for something to look at, `neutral` for neither good nor bad. Defaults to `"success"`. |
 
 ### Stepper
 
-`packages/ui/src/components/Stepper.tsx` — prop nuove: `direction`, `onClick`; prop tolte: `onStepPress`
+`packages/ui/src/components/Stepper.tsx` — prop nuove: `backLabel`, `direction`, `nextLabel`, `onBack`, `onCancel`, `onClick`, `onNext`, `submitStep`, `variant`; prop cambiate: `steps`; prop tolte: `onStepPress`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | activeStep * | `number` |  |  | Position of the current step. Those before it are completed. |
-| steps * | `Step[] \| string[]` |  |  | The steps, in order; a string is a step with just a label. |
+| steps * | `Step[] \| string[] \| number` |  | cambiata | The steps, in order; a string is a step with just a label. A number is that many steps without labels (all `"dots"` and `"progress"` need). |
+| backLabel | `string` | "Back" | nuova | The Back button's label. Defaults to "Back". |
 | direction | `"row" \| "column"` | "row" | nuova | `"row"` lays the steps out side by side, the label under each circle; `"column"` stacks them, the label beside each circle. Defaults to `"row"`. |
+| nextLabel | `string` | "Next" | nuova | The Next button's label. Defaults to "Next". |
+| onBack | `() => void` |  | nuova | `"dots"` / `"progress"`: draws Back, which calls this (on the first step, `onCancel` instead). |
+| onCancel | `() => void` |  | nuova | What Back does on the first step. Without it Back is disabled there. |
 | onClick | `(stepIndex: number) => void` |  | nuova | Called with the pressed step's position. Makes the steps pressable. |
+| onNext | `() => void` |  | nuova | `"dots"` / `"progress"`: draws Next, which calls this. Disabled on the last step unless `submitStep`. |
 | style | `object` |  |  |  |
+| submitStep | `boolean` | false | nuova | On the last step, Next becomes a filled `type="submit"` button: it submits the enclosing `Form` instead of calling `onNext`. Outside a `Form` it calls `onNext`, and is disabled without one. |
+| variant | `"steps" \| "dots" \| "progress"` | "steps" | nuova | `"steps"` draws a numbered circle and a label per step. `"dots"` and `"progress"` draw a row of dots or a bar between the optional Back and Next buttons, for a form or a set of pages on a phone. Defaults to `"steps"`. |
 
 ### Table
 
@@ -1746,14 +1829,50 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | maxVisible | `number` | 1 | nuova | How many toasts are on screen together. The others wait in the queue and appear, in order, as a slot frees. Defaults to `1`: one at a time. At a given position they stack with a gap, the newest nearest the edge. |
 | position | `SnackbarPosition` | "bottom-center" | nuova | Where toasts appear unless one asks for another. Defaults to `"bottom-center"`. |
 
+### ToggleButton
+
+`packages/ui/src/components/ToggleButton/ToggleButton.tsx` — prop nuove: `tooltip`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| active * | `boolean` |  |  |  |
+| onPress * | `() => void` |  |  |  |
+| accessibilityRole | `"radio" \| "checkbox" \| "button"` | "button" |  | Accessibility role. The group sets this per its selection mode. |
+| disabled | `boolean` | false |  |  |
+| grow | `boolean` | false |  | Stretch to an equal share of the group's width. |
+| icon | `MaterialCommunityIconsGlyphs` |  |  |  |
+| isFirst | `boolean` |  |  |  |
+| isLast | `boolean` |  |  |  |
+| label | `string` |  |  |  |
+| showSelectedCheck | `boolean` | false |  | Swap the leading glyph for a check mark while selected — the M3 segmented button affordance that tells "selected" apart from "just highlighted". |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+| tooltip | `string` |  | nuova | Shown on hover and keyboard focus on the web (on a phone the button takes the long press itself, so no tip appears); on every platform it names the button for screen readers when it has no `label`. |
+
+### ToggleButtonGroup
+
+`packages/ui/src/components/ToggleButton/ToggleButtonGroup.tsx` — prop cambiate: `options`, `value`
+
+| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
+| ---- | ---- | ------- | ------------------- | ----------- |
+| onValueChange * | `(val: any) => void` |  |  |  |
+| options * | `ToggleButtonOption<T>[]` |  | cambiata |  |
+| value * | `T \| T[]` |  | cambiata | The selected option's value, or the selected values with `multiSelect`. |
+| accessibilityLabel | `string` |  |  | Names the group for assistive tech — a group of choices needs a question. |
+| disabled | `boolean` | false |  | Disables every segment. |
+| feedback | `boolean` | true |  | Report each press (a toggle with `multiSelect`, else a selection) to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
+| fullWidth | `boolean` | false |  | Segments share the row equally instead of sizing to their labels. |
+| multiSelect | `boolean` | false |  |  |
+| showSelectedCheck | `boolean` | false |  | Show a check mark on the selected segments (M3 segmented button). |
+| style | `StyleProp<ViewStyle>` |  |  |  |
+
 ### Tooltip
 
-`packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`
+`packages/ui/src/components/Tooltip.tsx` — prop nuove: `anchorAccessible`, `style`; prop cambiate: `content`
 
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `React.ReactNode` |  |  |  |
-| content * | `string` |  |  | The tip's text; the body text of a rich tooltip. |
+| content * | `React.ReactNode` |  | cambiata | The tip's text; the body of a rich tooltip, which can also be laid out (a small sum, a list). A node never names the anchor: give the rich tooltip a `title` for that. |
 | action | `{ label: string; onPress: () => void }` |  |  | Rich only: a text button. A rich tooltip with an action stays open while the pointer is over it (web) and until the action is taken or the anchor is long-pressed again (native). |
 | anchorAccessible | `boolean` | true | nuova | Native only. Whether the anchor is one accessibility element named by `content`. Turn it off when the child is a control with a name of its own (an `IconButton`): behind an accessible wrapper a screen reader never reaches the control, only the wrapper, which does nothing when activated. The long press still shows the tip. Defaults to `true`. |
 | disabled | `boolean` |  |  |  |
@@ -1761,6 +1880,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | hideDelay | `number` | 1500 |  | Auto-hide delay (ms) after long-press on native. |
 | leaveDelay | `number` | 100 |  | Grace period (ms) before the tip leaves on hover-out. |
 | position | `"top" \| "bottom" \| "left" \| "right"` | "top" |  |  |
+| style | `StyleProp<ViewStyle>` |  | nuova | The wrapper around the anchor, which otherwise sizes to it: `{ flex: 1 }` lets an anchor that grows (a segment of a full-width group) keep growing. |
 | title | `string` |  |  | Rich only: the subhead. |
 | variant | `"plain" \| "rich"` | "plain" |  | `"plain"` is the one-line label for an icon-only control. `"rich"` adds a `title` and an `action`, for context a label cannot carry. Defaults to `"plain"`. |
 
@@ -2022,7 +2142,7 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | externalIcon | `MaterialCommunityIconsGlyphs` | "open-in-new" |  |  |
 | href | `string` |  |  | Opened with `Linking.openURL`. Ignored when `onPress` is given, and when its scheme is not in `allowedSchemes` — then the link does nothing. |
 | onPress | `() => void` |  |  |  |
-| showExternalIcon | `boolean` |  |  | Appends an external-link icon. Defaults to `true` when `href` is remote. |
+| showExternalIcon | `boolean` |  |  | Appends an external-link icon. Defaults to `true` when `href` is an `http` or `https` address. |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 | testID | `string` |  |  |  |
 | textStyle | `StyleProp<TextStyle>` |  |  |  |
@@ -2095,20 +2215,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | feedback | `boolean` | true |  | Report each selection to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
 | label | `string` |  |  |  |
 
-### Skeleton
-
-`packages/ui/src/components/Skeleton.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| animate | `boolean` | true |  | false renders a static placeholder (no pulse). |
-| borderRadius | `number` |  |  |  |
-| duration | `number` | 1200 |  | Pulse animation duration for a full cycle (ms). |
-| height | `DimensionValue` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-| variant | `SkeletonVariant` | "rect" |  |  |
-| width | `DimensionValue` |  |  |  |
-
 ### Spacer
 
 `packages/ui/src/components/Layout/Spacer.tsx`
@@ -2162,41 +2268,6 @@ Legenda: `*` accanto al nome = prop obbligatoria. «nuova» = non c'era all'iniz
 | Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
 | ---- | ---- | ------- | ------------------- | ----------- |
 | children * | `ReactNode` |  |  |  |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-
-### ToggleButton
-
-`packages/ui/src/components/ToggleButton/ToggleButton.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| active * | `boolean` |  |  |  |
-| onPress * | `() => void` |  |  |  |
-| accessibilityRole | `"radio" \| "checkbox" \| "button"` | "button" |  | Accessibility role. The group sets this per its selection mode. |
-| disabled | `boolean` | false |  |  |
-| grow | `boolean` | false |  | Stretch to an equal share of the group's width. |
-| icon | `MaterialCommunityIconsGlyphs` |  |  |  |
-| isFirst | `boolean` |  |  |  |
-| isLast | `boolean` |  |  |  |
-| label | `string` |  |  |  |
-| showSelectedCheck | `boolean` | false |  | Swap the leading glyph for a check mark while selected — the M3 segmented button affordance that tells "selected" apart from "just highlighted". |
-| style | `StyleProp<ViewStyle>` |  |  |  |
-
-### ToggleButtonGroup
-
-`packages/ui/src/components/ToggleButton/ToggleButtonGroup.tsx`
-
-| Prop | Tipo | Default | Rispetto all'inizio | Descrizione |
-| ---- | ---- | ------- | ------------------- | ----------- |
-| onValueChange * | `(val: any) => void` |  |  |  |
-| options * | `ToggleButtonOption[]` |  |  |  |
-| value * | `string \| string[]` |  |  |  |
-| accessibilityLabel | `string` |  |  | Names the group for assistive tech — a group of choices needs a question. |
-| disabled | `boolean` | false |  | Disables every segment. |
-| feedback | `boolean` | true |  | Report each press (a toggle with `multiSelect`, else a selection) to `ThemeProvider`'s `onInteractionFeedback` (haptics). Defaults to true. |
-| fullWidth | `boolean` | false |  | Segments share the row equally instead of sizing to their labels. |
-| multiSelect | `boolean` | false |  |  |
-| showSelectedCheck | `boolean` | false |  | Show a check mark on the selected segments (M3 segmented button). |
 | style | `StyleProp<ViewStyle>` |  |  |  |
 
 ### Toolbar

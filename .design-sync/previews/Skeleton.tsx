@@ -120,3 +120,10 @@ export const Shapes = () => (
     </div>
   </div>
 );
+
+/** `preset="list"`: `count` rounded rows `itemHeight` tall, `gap` apart — a phone list loading its first page. */
+export const ListPreset = () => (
+  <div style={{ width: 340 }}>
+    <Skeleton preset="list" count={4} itemHeight={72} />
+  </div>
+);

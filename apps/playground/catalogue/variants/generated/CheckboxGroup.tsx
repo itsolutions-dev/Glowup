@@ -8,7 +8,8 @@ import { CheckboxGroup } from "@its/glowup-ui";
 
 const stack: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};
@@ -47,8 +48,15 @@ export const Direction = () => (
   </View>
 );
 
+/** Side by side: stacked, the three groups overrun the card's height. */
 export const States = () => (
-  <View style={stack}>
+  <View
+    style={{
+      flexDirection: "row",
+      columnGap: 32,
+      alignItems: "flex-start",
+    }}
+  >
     <CheckboxGroup
       label="Channels"
       options={[
@@ -94,6 +102,8 @@ export const variants: Variant[] = [
   {
     name: "States",
     title: "States",
+    description:
+      "Side by side: stacked, the three groups overrun the card's height.",
     render: States,
   },
 ];

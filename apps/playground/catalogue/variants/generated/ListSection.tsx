@@ -13,6 +13,12 @@ import {
 } from "@its/glowup-ui";
 
 const panel: ViewStyle = { width: 380, flexDirection: "row" };
+// A bare ListSection (no Paper around it) needs a column parent to stretch to its width.
+const bare: ViewStyle = {
+  width: "100%",
+  maxWidth: 380,
+  flexDirection: "column",
+};
 
 export const Grouped = () => (
   <View style={panel}>
@@ -45,17 +51,35 @@ export const SettingsScreen = () => {
             in the middle of itself, so the group ended in line + gap + line. */}
         <ListSection title="Notifications" divider>
           <ListItem
-            action={<Switch value={digest} onChange={setDigest} />}
+            action={
+              <Switch
+                accessibilityLabel="Email digest"
+                value={digest}
+                onChange={setDigest}
+              />
+            }
             primaryText="Email digest"
           />
           <ListItem
-            action={<Switch value={mentions} onChange={setMentions} />}
+            action={
+              <Switch
+                accessibilityLabel="Mentions"
+                value={mentions}
+                onChange={setMentions}
+              />
+            }
             primaryText="Mentions"
           />
         </ListSection>
         <ListSection title="Advanced">
           <ListItem
-            action={<Switch value={beta} onChange={setBeta} />}
+            action={
+              <Switch
+                accessibilityLabel="Experimental features"
+                value={beta}
+                onChange={setBeta}
+              />
+            }
             primaryText="Experimental features"
           />
         </ListSection>
@@ -66,7 +90,7 @@ export const SettingsScreen = () => {
 
 /** `variant="standard"` rows, a `gap` and `showDividers`: a plain list, like a sidebar's. */
 export const PlainList = () => (
-  <View style={panel}>
+  <View style={bare}>
     <ListSection title="Projects" gap="xs" showDividers>
       <ListItem
         variant="standard"
@@ -92,8 +116,8 @@ export const PlainList = () => (
 
 /** `gap` spaces the items; `divider` is the one rule after the last. */
 export const GapAndDivider = () => (
-  <View style={panel}>
-    <ListSection title="Contained, gap l" gap="l" divider>
+  <View style={bare}>
+    <ListSection title="Notify me about" gap="l" divider>
       <ListItem primaryText="Email digest" />
       <ListItem primaryText="Mentions" />
       <ListItem primaryText="Comments" />

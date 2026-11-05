@@ -12,6 +12,7 @@ import {
 import { useTheme } from "../providers/ThemeProvider";
 import Pagination from "./Pagination";
 import Table, {
+  CellText,
   TableCell,
   TableHead,
   TableHeaderCell,
@@ -40,12 +41,20 @@ export interface ColumnDefinition {
   /**
    * Draws the cell instead of printing `row[id]`: a badge, a formatted
    * amount, a button. Receives the value, the row and its index in `data`.
+   * Declared with one or two parameters it is not called again when a sort
+   * only moves its row (it cannot read the index); declare `index` as the
+   * third parameter, not a default one, when the cell shows it.
    */
   renderCell?: (value: any, row: any, index: number) => ReactNode;
 }
 
 export interface DataGridProps {
   data: any[];
+  /**
+   * The columns, in order. Keep the array stable (`useMemo`), and `onClick`
+   * too (`useCallback`): a row is drawn again only when something it shows
+   * changes, which a new array every render defeats.
+   */
   columns: ColumnDefinition[];
   /** A heading drawn above the header row. */
   tableTitle?: string;
@@ -76,8 +85,9 @@ export interface DataGridProps {
   selected?: number | number[];
   /**
    * Called with the row and its index in `data` when a row is pressed. Giving it
-   * makes the rows pressable, with the button role: a cell then should not hold
-   * a control of its own.
+   * makes the rows pressable: a button on iOS and Android, where a cell then
+   * should not hold a control of its own (the row is read as one element); a
+   * focusable row on the web, which Enter presses.
    */
   onClick?: (row: any, index: number) => void;
   loading?: boolean;
@@ -143,6 +153,11 @@ const DataGrid = ({
     const byId = new Map(columns.map((c) => [c.id, c]));
     return order.flatMap((id) => byId.get(id) ?? []);
   }, [columns, order]);
+  // The grid is never narrower than its columns: past that it scrolls sideways.
+  const minWidth = orderedColumns.reduce(
+    (sum, column) => sum + (column.width ?? FLEX_MIN),
+    0,
+  );
 
   const paged = typeof rowsPerPage === "number" && rowsPerPage > 0;
   const perPage = paged ? Math.floor(rowsPerPage) || 1 : 0;
@@ -195,7 +210,8 @@ const DataGrid = ({
         {orderedColumns.map((column, index) => (
           <TableHeaderCell
             key={column.id}
-            width={column.width}
+            width={column.width ?? FLEX_MIN}
+            flex={column.width === undefined}
             align={column.align ?? column.alignment}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
@@ -221,48 +237,22 @@ const DataGrid = ({
     </TableHead>
   );
 
-  const renderRow = ({ item, index: offset }: { item: any; index: number }) => {
-    // The index in `data`, not in the page.
-    const index = start + offset;
-    // The stripe is drawn on the cells, not the row: a row's own background
-    // (selected, hovered, `rowStyle`) would otherwise be painted over by it.
-    const stripe =
-      offset % 2 === 1
-        ? { backgroundColor: theme.colors.surfaceVariant + "20" }
-        : undefined;
-    return (
-      <TableRow
-        hover={hover}
-        selected={selectedRows.has(index)}
-        onClick={onClick ? () => onClick(item, index) : undefined}
-        style={[
-          typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
-          { height: density === "dense" ? 40 : 56 },
-        ]}
-      >
-        {orderedColumns.map((column, colIndex) => (
-          <TableCell
-            key={`${item.id || index}-${column.id}`}
-            width={column.width}
-            align={column.align ?? column.alignment}
-            style={[
-              colIndex === orderedColumns.length - 1
-                ? { borderRightWidth: 0 }
-                : {},
-              { paddingVertical: density === "dense" ? 4 : 12 },
-              stripe,
-            ]}
-          >
-            {column.renderCell
-              ? column.renderCell(item[column.id], item, index)
-              : isEmptyCell(item[column.id])
-                ? column.fallback
-                : item[column.id]}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  };
+  const stripeColor = theme.colors.surfaceVariant + "20";
+  const renderRow = ({ item, index: offset }: { item: any; index: number }) => (
+    <DataGridRow
+      item={item}
+      // The index in `data`, not in the page.
+      index={start + offset}
+      striped={offset % 2 === 1}
+      stripeColor={stripeColor}
+      selected={selectedRows.has(start + offset)}
+      columns={orderedColumns}
+      dense={density === "dense"}
+      hover={hover}
+      onClick={onClick}
+      rowStyle={rowStyle}
+    />
+  );
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -301,12 +291,19 @@ const DataGrid = ({
           </Text>
         </View>
       )}
-      <ScrollView horizontal bounces={false}>
-        <View>
+      <ScrollView
+        horizontal
+        bounces={false}
+        contentContainerStyle={styles.fill}
+      >
+        <View style={[styles.fill, { minWidth }]}>
           {renderHeader()}
           <FlatList
             // A new page starts at the top.
             key={current}
+            // No scrollbar, as in Table: on the web it takes width from the rows and not from the header above
+            // them, and the columns would not line up.
+            showsVerticalScrollIndicator={false}
             data={rows}
             renderItem={renderRow}
             keyExtractor={(item, index) =>
@@ -358,7 +355,117 @@ const DataGrid = ({
   );
 };
 
+// What a column without a width gets at least: the width every column had before they shared the free width.
+const FLEX_MIN = 150;
+
+interface DataGridRowProps {
+  item: any;
+  index: number;
+  striped: boolean;
+  stripeColor: string;
+  selected: boolean;
+  columns: ColumnDefinition[];
+  dense: boolean;
+  hover?: boolean;
+  onClick?: DataGridProps["onClick"];
+  rowStyle?: DataGridProps["rowStyle"];
+}
+
+/**
+ * One row, drawn again only when one of its props changes: a screen that
+ * re-renders around the grid (a keystroke in a search box, a counter) no
+ * longer redraws every row with the same data. It skips only while `columns`,
+ * `onClick` and a function `rowStyle` keep their identity (`useMemo`,
+ * `useCallback` in the app); a sort still redraws the rows that moved.
+ */
+const DataGridRow = React.memo(function DataGridRow({
+  item,
+  index,
+  striped,
+  stripeColor,
+  selected,
+  columns,
+  dense,
+  hover,
+  onClick,
+  rowStyle,
+}: DataGridRowProps) {
+  return (
+    <TableRow
+      hover={hover}
+      selected={selected}
+      onClick={onClick ? () => onClick(item, index) : undefined}
+      style={[
+        typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
+        // A minimum: a cell of two lines (a name and a chip) grows its row instead of spilling out.
+        { minHeight: dense ? 40 : 56 },
+      ]}
+    >
+      {columns.map((column, colIndex) => (
+        <TableCell
+          key={`${item.id ?? index}-${column.id}`}
+          width={column.width ?? FLEX_MIN}
+          flex={column.width === undefined}
+          align={column.align ?? column.alignment}
+          style={[
+            colIndex === columns.length - 1 ? { borderRightWidth: 0 } : {},
+            { paddingVertical: dense ? 4 : 12 },
+            // The stripe is drawn on the cells, not the row: a row's own
+            // background (selected, hovered, `rowStyle`) would otherwise be
+            // painted over by it.
+            striped && { backgroundColor: stripeColor },
+          ]}
+        >
+          {column.renderCell ? (
+            <CellContent
+              column={column}
+              item={item}
+              value={item[column.id]}
+              // A sort moves rows to new indexes; a renderCell that declares one
+              // or two parameters cannot read the index, and keeps what it drew.
+              // Any other (three, or none as with rest parameters) gets it.
+              index={skipsIndex(column.renderCell) ? undefined : index}
+            />
+          ) : isEmptyCell(item[column.id]) ? (
+            column.fallback
+          ) : (
+            item[column.id]
+          )}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+});
+
+const skipsIndex = (render: (...args: never[]) => unknown) =>
+  render.length === 1 || render.length === 2;
+
+/**
+ * What a custom cell (`renderCell`) shows, memoised on its own: a row that only moved (a sort) is
+ * drawn again for its new index and stripe, its custom cells are not. `index`
+ * is left out only for a renderCell that declares one or two parameters.
+ */
+const CellContent = React.memo(function CellContent({
+  column,
+  item,
+  value,
+  index,
+}: {
+  column: ColumnDefinition;
+  item: any;
+  value: unknown;
+  index: number | undefined;
+}) {
+  return (
+    <CellText align={column.align ?? column.alignment}>
+      {column.renderCell?.(value, item, index as number)}
+    </CellText>
+  );
+});
+
 const styles = StyleSheet.create({
+  // The columns span the grid when they fit, and scroll sideways when they do not.
+  fill: { flexGrow: 1 },
   // The grid fills its container, so the FlatList inside it can scroll.
   grid: { flex: 1 },
   title: {

@@ -1,0 +1,542 @@
+# Project status: done, left, and what not to redo
+
+As of **2026-11-04**, `dev` at the commit that carries this file. Built from the handoffs of 19 October–4 November, `solaris-native.md`,
+`library-roadmap.md`, `decisions.md` and `work-split.md`. **Update it at the end of every session, in the same
+change as the handoff**, so the next session starts from here and not from re-reading seven handoffs.
+
+## How to read the percentages
+
+- A percentage is the share of the items **the plan itself lists** for that workstream, not hours of work. They
+  are estimates rounded to 5; the basis is under each section.
+- "Done" means built, tested in jest and looked at on the web. Native proof is a separate column, because almost
+  everything native has been seen only on CI simulators and emulators.
+- **Overall** weights each phase by its size in the plan (S = 1, M = 2, L = 3). Phase 9 is not counted (it is
+  future work by decision D12), nor, since 3/11, Phase 5 (left out; with it the overall is ~75%).
+- **Nothing has ever run on a real phone.** iOS means the iPhone 17 Pro simulator in CI; Android means the API 34
+  and 35 emulators in CI plus the local Pixel 8 emulator (API 35).
+
+## At a glance
+
+| Workstream                                | Done | Progress     | Main thing left                                | Web | iOS (CI) | Android |
+| ----------------------------------------- | ---- | ------------ | ---------------------------------------------- | --- | -------- | ------- |
+| Phase 0: spikes                           | 90%  | `█████████░` | 0.6: run the whole playground on simulators    | yes | yes      | yes     |
+| Phase 1: native readiness, web, stability | 60%  | `██████░░░░` | VoiceOver pass, iOS pages by hand, 1.7–1.9     | –   | –        | partly  |
+| Phase 2: theme tokens and hooks           | 100% | `██████████` | nothing                                        | yes | yes      | yes     |
+| Phase 3: specialised props (3A/3B/3C)     | 65%  | `██████▌░░░` | the matrix's other gaps, when a screen asks    | yes | partly   | partly  |
+| Phase 4: charts (`packages/charts`)       | 90%  | `█████████░` | the CRM's bar charts, native timings, release  | yes | yes      | yes     |
+| Phase 5: `composite-ui`                   | 5%   | `▌░░░░░░░░░` | left out (3/11), see Phase 5 below             | –   | –        | –       |
+| Phase 6: PDF (`packages/pdf`)             | 95%  | `█████████▌` | release; native checks on a device             | yes | yes      | yes     |
+| Phase 7: pivot (`packages/pivot`)         | 95%  | `█████████▌` | use in the CRM, parity test                    | yes | yes      | yes     |
+| Phase 8: CRM pilot screens                | 100% | `██████████` | nothing (iPhone and a real phone are Stage 6)  | yes | –        | yes     |
+| Library hardening (`library-roadmap.md`)  | 90%  | `█████████░` | the limits listed in `library-roadmap.md` §1–2 | yes | –        | partly  |
+| Releasing the new packages (A9)           | 0%   | `░░░░░░░░░░` | `pdf`, `charts`, `pivot` are still `private`   | –   | –        | –       |
+| **Overall (phases 0–8 but 5, weighted)**  | ~85% | `████████▌░` |                                                |     |          |         |
+
+Phase 7 is 95% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
+layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
+
+## Per workstream
+
+### Phase 0: spikes, 90%
+
+- **Done:** 0.1 pivot core on Hermes, 0.2 CRM desktop density, 0.3 PDF, 0.4 bar chart, 0.5 CRM → Glowup matrix.
+- **Left:** 0.6 (run the playground on an iOS simulator and an Android emulator and list what breaks). Partly
+  covered by the native CI, which runs `/native-check`, not every page.
+
+### Phase 1: native readiness, web, stability, 60%
+
+Basis: of the 13 items of the phase, 1.1, 1.2, 1.3, 1.5, 1.6 and 1.12 are closed (1.6 and 1.12 on 30/10, the rest
+on 2/11), 1.4, 1.10, 1.11 and 1.13 partly; the native CI (in the phase's "what to add" list) is done.
+
+- **Done:**
+  - Native CI: `native.yml` on iPhone and Android 14 and 15, `/native-check` (measurements, charts, PDF, pivot),
+    `scripts/android-interact.mjs` (16 steps), iOS screenshots on a cycle (`ios-seq-*.png`, 22/10).
+  - Local Android emulator that builds and runs the playground (22/10, recipe in memory).
+  - Native fixes found by that CI: `Select` height, `Input` iOS padding, focus ring `elevation` (20/10),
+    `Collapse` that did not open on native (26/10, `0ede135`).
+  - Web: hover and focus no longer shift the layout (23/10); the theme's scrollbars on web (26/10).
+  - Screen readers: TalkBack tried for real on the pivot grid (26/10) and on text fields (30/10: a filled field
+    was read without its label; fixed with `accessibilityLabelledBy`, heard on the emulator).
+  - 1.6 keyboard avoidance (30/10): `Dialog`, `BottomSheet` and side sheets give up the keyboard's room inside
+    their `Modal` (`internal/KeyboardFrame`); seen on the Android emulator with a full-screen dialog.
+  - 1.12 safe area (30/10): nothing throws without a `SafeAreaProvider` (`internal/useInsets`); `NavBar` pads the
+    bottom inset.
+  - Android labels cut ("Sav", "Dai…", 30/10): the app must register brand fonts before the first render; the
+    playground does, and the library docs say so.
+  - 2/11 (details under Stage 4): 1.1 jest as iOS, Android and a web set; 1.2 the consumer bundles for iOS and
+    Android; 1.3 `docs/native-verification.md`; 1.5 `Select` and `Menu` virtualized; 1.6 `Autocomplete` above the
+    keyboard; 1.10 the TalkBack half; 1.13 a draft in `docs/release-1.0.md` (its questions are the release owners').
+- **Left:**
+  - 1.4 `DataGrid` without the `FlatList` inside a horizontal `ScrollView` (B5). The pivot avoided it by writing
+    its own grid. The contacts pilot (29/10) found it **working** on the Android emulator: it loads more as it
+    scrolls down and scrolls sideways with the header lined up. Rows are memoised since 30/10: a re-render with
+    the same rows draws no cell; since 2/11 a sort redraws a custom cell only if its `renderCell` reads the index.
+    Not re-measured in the browser.
+  - 1.7 date pickers on a real Hermes; 1.8 animations; 1.9 RTL.
+  - 1.10 the VoiceOver half (needs the Mac); the required-field name (open, see Stage 4).
+  - 1.13 the release owners' answers to `docs/release-1.0.md`.
+
+### Phase 2: theme tokens and hooks, 100%
+
+- **Done:** 2A hooks (`useDebouncedValue`, `useDebouncedCallback`, breakpoints), 2B-a/b status roles (`success`,
+  `warning`, `info`, `neutral`), `toneFrom` (16/10).
+  - 2B-c, the chart palette (B0, B2; 28/10): `theme.charts` with `categorical` (8), `sequential` and `diverging`,
+    light and dark, fixed under every brand palette; validated with the `dataviz` skill's script against the light
+    and dark surfaces and containers of every built-in palette (all hard checks pass; aqua, yellow, magenta below
+    3:1 on light, so labels or a table view are required, which the charts have). The charts take
+    `categorical` in order; checked on the web Charts page in light and dark, and in `/native-check` on iPhone
+    and Android 14 and 15 (CI on `596dfb5`, 29/10).
+  - The brand gradient (29/10), asked for by the report pilot: `gradientStyle(from, to, angle?)`, no theme token and
+    no package. React Native 0.86 draws it itself on iOS and Android (`experimental_backgroundImage`), CSS on the web;
+    the start colour is the fallback. Brand = `primary` into `tertiary`: the `databeasy` palette gives the CRM's
+    `#1D5B9D → #61B340`. Seen on the web and the local Android emulator in both palettes, and on iPhone in CI (`2de68fb`: the bar at
+    the end of `/native-check`).
+
+### Phase 3: specialised props, 65%
+
+Basis: the "Fatto" column of `crm-component-matrix.md` (filled in 28/10 from the props types, updated 3/11) and
+the three rename batches. Of the matrix's 30 rows that propose something, 16 are done, 8 partly and 6 not (67%,
+a partial row counting half; 13, 7 and 10 on 3/11); the rename batches are at 2 of 3. Together: 65%.
+
+- **Done:**
+  - 3A first pieces (16/10): `density` and `DensityProvider`, `ListItem` slots, `Input` `decimalSeparator`,
+    `Autocomplete` `onSearch`.
+  - 3B first round: `Dialog` size, `BottomSheet` actions, `Tabs`, `Snackbar`.
+  - 3C: `CaptionValue`.
+  - Rename batch 1 (19/10: actions, display, form fields, date pickers) and batch 2 (22/10: overlays,
+    navigation, layout, `Table` driven by data).
+  - 16 new components and the `Form` engine (23/10).
+  - The decisions of 23/10 applied: `Typography` defaults to `body1`, `Select multiple` takes `value[]`,
+    `ConfirmDialog` is merged into `AlertDialog`, a `ListItem` row is pressable as a whole.
+  - `Input` / `InputArea` split (26/10).
+  - 3/11, each test first (changeset `select-strings-badge-stat-colours.md`): `Select` takes plain strings as
+    options and `reserveHelperText`; `StatusBadge` `type` `info` and `neutral`; `Stat` `valueColor` (the CRM's
+    name, like `trendColor`, rather than the matrix's `valueTone`). New component `WeekStrip` (changeset
+    `week-strip.md`), the CRM mobile agenda's week row: seen on the Android emulator (press, swipe both ways).
+  - 4/11, B3 and B4, each test first (spec and plan in `docs/superpowers/`), one changeset each:
+    `ToggleButtonGroup` values of any type (`null`/`true`/`false`, the CRM's tri-state filter) and a `tooltip`
+    per option that names an icon-only segment (`Tooltip` gains `style`); `Skeleton preset="list"`; new
+    `DayTimeline` (the mobile agenda's day list, `layout="list"` only); `Stepper variant="dots" | "progress"`
+    with Back/Next, `submitStep`, `onCancel`; `Dialog` `overline`, `leadingActions`, `dividers`. A fresh review
+    found two real defects, fixed test first: `initialFocus="actions"` landed on a leading "Delete" (web), and the
+    stepper drew a button with no handler. Not built (no evidence): `DataGrid` row actions and group rows (only
+    `GrantMatrix`, deferred), `DayTimeline` hour grid, `Skeleton` `card`/`table`. Afternoon: `WeekStrip`
+    `arrows` (on by default on the web, where a mouse cannot swipe); the review's minors, test first: `Stepper`
+    dots wrap within half the row, and outside a `Form` the `submitStep` button calls `onNext`. CI on the pushed
+    commit: Android 14 16/16, iPhone 13/13, Android 15 16/16 on its third run (the first two stopped on the
+    runner: adb dropped, then the emulator's launcher "isn't responding").
+- **Left:**
+  - The matrix's other gaps, built only when a pilot screen asks: `DataGrid` `renderRow`, `rowGap`,
+    `rowActions`, `sections`, `%` widths; `Select` `renderOption`; `Input` `type` phone/email; the hooks `useAbortEffect` and `useInfiniteList`.
+
+### Phase 4: charts, 90%
+
+- **Done:**
+  - Steps 0–9 of `charts-package-plan.md`: `BarChart`, `LineChart`/`AreaChart`, `DonutChart`/`PieChart`,
+    `StackedBar`, `Sparkline`, `ChartLegend`, the `Chart` facade.
+  - Dense mode (10,000 bars: 8.2 s → 74 ms on the web), table mode for screen readers, donut labels outside the
+    ring.
+  - In `/native-check`, green on all three devices.
+  - The theme's chart palette (28/10), seen on iPhone and Android 14 and 15 in CI (29/10).
+  - 27/10: bar `column`/`columnMode`, a target per category, an outcome `marker`, `dimmed`. Proven in CI
+    (Android 15/15, iPhone 13/13).
+  - 4/11, the 27/10 review's minors, test first: a table column whose `target`/`marker` is empty everywhere is left
+    out, and past 12 categories the text for a screen reader sums targets (range) and outcomes (count) up. Documented
+    instead: markers assume values ≥ 0; a column id must not be another series' key.
+- **Left:**
+  - Rebuild the CRM's four bar charts with the new props, starting with Inbound.
+  - Horizontal scrolling (`minTickWidth` in the CRM).
+  - Dense-mode timings on native.
+  - Changeset and trusted publisher when the package leaves `private`.
+  - `ScatterChart`, `AreaRange`, `TimelineChart` only if the CRM asks for them.
+
+### Phase 5: `composite-ui`, 5%, left out
+
+- **Left out for now (Alice, 3/11):** a colleague is building a drag-and-drop way to make complex components, and
+  the four pilot screens needed no composite. Not counted in the overall. The plan's list below stays as reference.
+- **Done:** only the playground's example pages (Sign in, Dashboard, Inbox, Settings), which the phase reuses.
+- **Left:** the whole subpath (B7): `AppShell`, `ListPage`, `FormDialog`/`FormPage`, `DetailPage`, `WizardPage`,
+  `ReportPage` (charts and pivot as slots), `OptionPicker`, `ActivityTimeline`, `AgendaPage`.
+
+### Phase 6: PDF, 95%
+
+- **Done:**
+  - Steps 0–6 and 8–14 of `pdf-package-plan.md`. There is no third-party library.
+  - Web: an iframe on `blob:`, print, open in a tab.
+  - iOS: PDFKit. Android: `PdfRenderer`, with search from API 35 and `PdfRendererPreV` below.
+  - Render queue, two-finger zoom, search page by page, download through `.part`, save to Downloads.
+  - The password error, tried on Android (23/10). Web print, tried in Chrome (23/10).
+  - 300 pages: fast everywhere (23/10).
+  - Each optional `import()` in `adapters.ts` has its own `.catch`, so an app without `expo-print` or
+    `expo-sharing` still builds; `optionalPeers.test.ts` asks Metro (28/10).
+- **Left:**
+  - Changeset and trusted publisher when it leaves `private`.
+  - **Not verified:** a real download on a device, the password on iPhone, pinch on iOS, saving on Android 10–14.
+
+### Phase 7: pivot, 95% of the decided scope
+
+- **Done:**
+  - Piece 1 (23/10): the AuraPivot 2.6.0 core copied in, 180 tests.
+  - Piece 2 (23/10): the read-only web grid, sticky header and label columns.
+  - Piece 3 (23–26/10): the iOS and Android grid on the native driver, plus four "Important" fixes from the
+    review. CI green: 14/14 on Android, 12/12 on iPhone.
+  - Toolbar (27/10): our own `.xlsx` export on web, iOS and Android, fullscreen, reset. Export proven on
+    Android's share sheet in CI.
+  - Script fix (28/10): the toolbar had moved a text field onto the Android script's swipes; CI back to 16/16 on
+    Android 14 and 15, every native check PASS (PDF search PENDING on 14, as designed), iPhone all PASS.
+- **Left (decided scope):**
+  1. Open `pivot-sample.xlsx` in real Excel (Google Sheets reads it right, 28/10: sheet name, styles, numbers).
+  2. Use `<PivotGrid toolbar />` in the CRM's WaveActivitiesReport.
+  3. A parity test against a real CRM report (needs a `WavePerformance` response and the CRM's export of it). ~~50k
+     rows on the web and 5k on native~~: done 3/11 on `samplePivotRows(count)` (the shape of the backend's
+     `usp_WaveImport_Report`), with a temporary page, deleted after. Found and fixed two engine costs
+     (`pivot-upstream.md` 9 and 10): a cell walked the longer of its two row lists (cost rows × groups), and
+     every sort comparison built an `Intl` collator, about 10 ms each on Hermes for Android. Results:
+
+     | Where                         | Rows   | Engine + model    | Open/close a group       | Grid painted |
+     | ----------------------------- | ------ | ----------------- | ------------------------ | ------------ |
+     | Chrome (Alice's laptop)       | 50,000 | 79 ms             | 53–57 ms                 | 129 ms       |
+     | Android emulator, debug build | 5,000  | 637 ms (was 12 s) | 115–168 ms (was 10–12 s) | 2.1 s        |
+     | Android emulator, debug build | 50,000 | 1.2–2.6 s         | 0.8–2.2 s                | 2.0 s        |
+
+     Reset's copy of the rows: 1–3 ms, so no change. Not measured: iPhone, a release build, a real phone.
+     `__tests__/no-web-apis.test.ts` now fails if `.localeCompare(` or `.toLocaleString(` comes back.
+
+  4. ~~The minors deferred by the 27/10 review~~: done 3/11, each test first (the download link kept 40 s,
+     one export per double tap, safe file and sheet names, the error in the toolbar row, announced and in the
+     dictionaries, tooltips, the buttons in the full-screen header, no fixture types in the build, the
+     Android script's late share sheet and ANR). Left on purpose: the full-screen height on phones, still a
+     guess (the package cannot read the insets). Seen by Alice on the web (3/11).
+- **Out until needed (27/10):** field panel, filters, calculated fields, conditional formats, drill-through,
+  saved configurations.
+
+### Phase 8: CRM pilot screens, 100%
+
+- **Done (29/10):** the report (CRM `WaveActivitiesReport`) as a temporary page on invented data, on the web and
+  the local Android emulator. Its gaps, fixed in `ui` without changing anything that exists: `Card selected`,
+  `Select` options without `id`, `Tooltip` with a node as content, `gradientStyle`. Not gaps: the narrow `Table`
+  scrolls sideways by design; an `IconButton` on a coloured bar takes `variant="tonal"`; the month filter is a
+  `Select` of 12 months, as in the CRM.
+- **Done (29/10):** sign-in with 2FA (CRM `Login`, `FirstLogin`, `Verify2FA`, `Setup2FA`) as a temporary page:
+  login, expired password, 6-digit code, 2FA setup with QR code, on the web (1440 and 390 px) and the local Android
+  emulator. Three bugs found and fixed in `ui` (see Library hardening). Not gaps: `Input` takes `autoComplete` and
+  `autoCapitalize` through `inputProps`; each step needs its own `Form` (one reused keeps its first
+  `initialValues`); the CRM's reCAPTCHA is a third-party widget, the app's.
+- **Done (29/10):** the contacts list (CRM `AllCustomers` → `PageWrapper`) as a temporary page: 2,000 invented
+  contacts loaded 50 at a time, `DataGrid` with custom cells on wide screens and `ListItem` cards on a phone, search,
+  a filters dialog with a count badge, a sort menu, stats tabs, a "New customer" FAB with a form; on the web and
+  the Android emulator. Four `DataGrid`/`Table` fixes (Library hardening). Found, not fixed: tab labels cut off on
+  Android with room to spare; no range slider (the CRM's distance filter is from–to); no Excel export for a list;
+  `DataGrid` re-rendering every row on a sort. Not gaps: on a phone the list must be the only vertical scroller (React
+  Native warns otherwise); the labelled FAB is `variant="extended"`. Screenshots in `docs/pilots/2026-10-29/`.
+- **Done (30/10):** customer detail with outcome (CRM `CustomerSectionPage`, the outcome flow, `OutcomeDialog`, the
+  mobile page and `OutcomeScreen`) as a temporary page: three columns on the web, bottom tabs on a phone, the
+  whole outcome flow (Risposto/Non risposto, tiles, recall/appointment form, summary, toast), the history with
+  filters and the outcome dialog, the phone popover, the two-step edit dialog with the unsaved-changes guard. On
+  the web (1440 and 390 px) and the Android emulator. Five fixes in `ui` (keyboard in modals, `NavBar` inset,
+  digits-only dates, `Select` error, `ToggleButtonGroup` width). No `DetailPage` or `FormDialog` composite was
+  needed: `Card`, `CaptionValue`, `Dialog` with `Form` and `Stepper` did it. Screenshots in
+  `docs/pilots/2026-10-30/`; page deleted.
+- **Left:** nothing for Phase 8. The four screens on iPhone and a real phone belong to Stage 6.
+
+### Library hardening (`library-roadmap.md`), 90%
+
+Basis: every item of the roadmap's §1 and §2 is fixed (30/10), plus what the pilots found; what is left are the
+limits listed at the end of §1–2 there. §3 (API) and §4 (builds) are not hardening.
+
+- **Done (23/10 afternoon):** 7 items. Hover and focus no longer shift the box, `Tabs` hover, `Slider`, the
+  `Switch` thumb, the picker popover scrollbar, `useToast` identity and `maxVisible`, `DataGrid` column order.
+- **Done (28/10), the ones that broke an app:** 11, each in a failing jest test first; the web ones also driven in
+  Chromium (and Escape seen failing there on the old code). Escape closing every stacked dialog, twice; the picker
+  portal in a static render; `NumberField`'s hidden 0..100 range and integer-only input; `Select` tick for falsy
+  values; `PinInput` completing with blanks; `ProgressButton type="submit"`; Enter submitting a disabled form;
+  `Table` rows keyed by index; `Alert()` lost before the provider, overwritten by a second one, Escape skipping
+  cancel. Changeset `app-blocking-fixes.md` (minor: `NumberField` no longer clamps to 0..100 by default).
+- **Done (29/10), found by the sign-in pilot:** 3, each in a failing test first (the focus ring in Chromium, since
+  jest takes the native branch). `PasswordField showStrength` crashing on the `undefined` a `FormField` hands a
+  field its form starts without; a second, black browser focus ring inside `Input`, `PasswordField` and `PinInput`
+  on keyboard focus (`outlineWidth: 0` is ignored by Chrome; now `outlineStyle: "none"`); `PinInput` overflowing a
+  phone-wide card (cells now narrow to fit). Changeset `sign-in-field-fixes.md` (patch).
+- **Done (29/10), found by the contacts pilot:** 4 in `DataGrid` (and `Table`'s header), each in a failing test
+  first. Rows have a minimum height, not a fixed one (a name with a chip under it spilled out); columns without a
+  `width` share the free width, never under 150 (an empty band was left on the right); the list's scrollbar is
+  hidden as in `Table` (on the web it made the header and the rows drift apart); an unsorted sortable column shows an
+  up-and-down icon, not a faint arrow. Changeset `data-grid-rows-and-width.md` (patch).
+- **Done (30/10):** all of §1 and §2, in seven commits (`28f3855`, `2d20efa`, `07c26cf`, `513d86a`, `70ee95d`,
+  `6cbdb05`), each defect reproduced in a failing test first; the details are in `library-roadmap.md` §1–2 and
+  the handoff of 30/10.
+- **Left:** the limits at the end of `library-roadmap.md` §1–2 (a `FAB` without `label`; VoiceOver and a toast
+  over a dialog; the calendar's Escape not driven in a browser; a `DataGrid` sort; Tab into a disabled
+  `FormControl`). Then §4 (what to build: `useConfirm`, theme mode, `AppShell`, the rest of Toast v2, motion…).
+
+## Do not redo: already settled or already fixed
+
+- **No rename batch 3, no "one field contract"** (Alice, 28/10). The field family keeps `onPress`, `mode`,
+  `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
+  propose renaming them again.
+
+- **Checked 4/11, not defects:** a `Dialog` without `testID` names its parts `dialog-…` (the default is `"dialog"`),
+  never `undefined-…`; the `Tooltip` wrapper around a `ToggleButton` segment not stretching in height shows nothing
+  (segments and group are 40 high).
+- **`packages/ui` fixes are ours** (30/10, green light): bugs found in `ui` are fixed here, test first, with a
+  changeset. No messages or reports to colleagues: the work is shippable code.
+- **No merge or rebase of any branch without Alice's OK** (29/10). On 29/10 no other branch had a `ui` change that
+  `dev` lacks, except Gabriele's `DragDrop`/`GridLayout` work and Adriano's audit on `master` (left out on 16/10).
+- **The pilot screens are temporary** (29/10): built to find gaps, then deleted. Rebuilding the CRM is not Alice's
+  job.
+- **A narrow `Table` scrolls sideways**; it is not cut off (checked on Android, 29/10). Phones show no scrollbar
+  until you scroll.
+
+Check here before starting something that feels familiar.
+
+**CI and tooling**
+
+- **Android 15 stopping after the first screenshot** is a runner problem: `adb logcat -d` gets cut off. It has
+  happened three times. Re-run the job, don't debug the app. Since `59893fb` that dump no longer stops the script.
+- **Search PENDING on Android 14** is expected: the emulator lacks SDK extension 13. Not a bug.
+- **iOS screenshots** come from the `ios-seq-*.png` cycle. `ios-check/charts/pdf.png` no longer exist.
+- **"Unable to resolve module ./generated"**, or a stale example or gallery, is Metro's cache: `npx expo start -c`.
+  **Metro with `CI=1`** disables reloads.
+- **Pinch on the emulator** works only through the emulator's gRPC, not `adb input` or `sendevent` (recipe in
+  memory). `input text` does not reach the PDF search field; send `input keyevent` one key at a time.
+- **Look at the screenshots, not only the `NATIVECHECK` lines.** The iOS PDF half-scale bug passed every line.
+- **A drag that starts on a text field doesn't scroll the page** on the emulator, focused or not. The script's
+  `swipe` starts beside any field (28/10). If steps fail "not on screen" with the page stuck, look for a field
+  under the swipe's start, not at the app.
+- **Never merge `master` into `dev`** (16/10).
+
+**Library**
+
+- **`Collapse` on native is fixed** (26/10, `0ede135`, changeset `collapse-opens-on-native.md`). The colleague
+  still has to be told.
+- **`Typography`** defaults to `body1` and keeps the M3 names as aliases. **`Select multiple`** is `value[]` +
+  `onChange(values)`. **`Autocomplete`** keeps `onChange(text)`.
+- **`ConfirmDialog` is gone** (it is `AlertDialog`). **`Center` is back** as a thin `Box`. **`SideSheet`** is
+  `Drawer position="right"`.
+- **`ListItem` with `onClick`** makes the whole row pressable; the action is a sibling, never nested.
+- **`Calendar`, `ClockPicker`, `ClockDial`** are internal; use `variant="static"` on the pickers.
+- **`InputArea`**: `rows` wins over `minRows`/`maxRows`; no uncontrolled mode; no prefix or suffix.
+- **Kept on 23/10:** `Dialog` close icon, `Pagination` shape, `Stat` colours, `density` left to the app.
+  **Not now:** the rename to Solaris UI.
+- **Not built for lack of CRM evidence** (`decisions.md`): `Autocomplete` `multiple`/`uppercase`, `BottomSheet`
+  snap points, `DataGrid` percentage widths, row actions, group rows.
+- **Plan questions Q1–Q6 are closed** with the defaults.
+
+**PDF**
+
+- **JPEG at 90%** stays (21/10, checked at 4× zoom).
+- **Abandoned or out of scope:** the PdfBox fallback (step 7), in-page PDF on mobile browsers (§12, only if CRM
+  users open PDFs in a phone browser), the "visible region" for high zoom, asking for a password.
+- **300-page PDFs are not slow** (23/10: 16–834 ms to open on emulators).
+- **There is no download cache.** If one is ever added, its key must include the headers.
+
+**Charts**
+
+- **d3 is copied in** (`src/vendor/d3`), not a dependency. The x axis is categorical, not dates. A `Gauge` is a
+  `DonutChart` with `total`.
+- **`dense` is automatic** (400 bars, 200 line points); `dense={false}` above the threshold is allowed.
+
+**Pivot**
+
+- **The grid is written inside `packages/pivot`**, not on `ui`'s `DataGrid`. Native uses `Animated` with the
+  native driver, not Reanimated.
+- **The header and the label column don't start a drag**, by design. Only the numbers area scrolls.
+- **Scope = show and export** (27/10). The `.xlsx` writer is ours; no `exceljs`.
+
+## Road to done
+
+Agreed on 2026-10-28, and reordered the same day: **publishing comes after the library is fixed** (Stage 5), since
+nobody needs the packages in the CRM before then and `release.yml` cannot publish from `dev` anyway. **The CRM
+pilot screens decide what gets built next**: the plan put `composite-ui`
+(Phase 5) before the pilot screens (Phase 8), this order flips it, so a composite is built when a pilot screen
+needs it. Tick a box when it is done **and** its verification is noted in the handoff.
+
+**Done means:** the four pilot screens work on web, the iOS simulator, the Android emulator and one real Android
+phone; `pdf`, `charts` and `pivot` are published on npm; `docs/native-verification.md` and the 1.0 criteria
+exist. Work that serves none of these waits (see "Deferred" below).
+
+### Stage 0: close what is already diagnosed (Alice, 1–2 days)
+
+- [x] Android script regression: fixed, 16/16 in CI on Android 14 and 15 (run on `4075ab5`, 28/10).
+- [x] A `.catch` on each optional `import()` in `packages/pdf/src/adapters.ts`, with a test like the pivot's
+      `optionalPeers.test.ts`.
+- [ ] **Alice, not blocking:** open `pivot-sample.xlsx` in Excel when a machine with it is at hand. Google Sheets
+      done (28/10); Excel is stricter (the repair prompt). Export it from `/pivot` on the web.
+- [x] Tell Gabriele about the `Collapse.tsx` change and its changeset (28/10).
+- [x] Fill in the "Fatto" column of `crm-component-matrix.md` (28/10): Phase 3 stays at 55%, now counted.
+- [ ] **Alice, not blocking:** say yes to deleting `backup/dev-before-rebase` and `backup/dev-before-ui-integration`
+      (checked 28/10: everything in them is in `dev`).
+
+### Stage 1: freeze the API
+
+- [x] ~~Rename batch 3 and the one field contract~~: **dropped by Alice (28/10)**. The current names stay; see
+      "Do not redo".
+- [x] The chart palette type and values (B0, B2) and the charts' default (28/10). The brand gradient waits for a
+      pilot screen that draws it.
+
+### Stage 2: harden the library (in parallel with Stage 3)
+
+- [x] **Alice:** the bugs that break an app (`library-roadmap.md` §1 and §2), each reproduced in a test first
+      (28/10: 11 fixed).
+- [x] The rest of §1 and §2, accessibility included, and toasts above dialogs (30/10).
+
+### Stage 3: the pilot screens, cheapest first
+
+Every gap a screen exposes becomes the next library task, with a general name (D4). `composite-ui` gets only
+what these screens use.
+
+- [ ] **Ask the CRM side now** for real report definitions and anonymised data for the screens, so this
+      stage does not stall.
+- [x] Report (charts and pivot): built 29/10 as a temporary page, gaps fixed (Phase 8 above), page deleted after
+      the CI on `2de68fb`.
+- [x] Sign-in with 2FA: built 29/10 as a temporary page, three bugs fixed (Phase 8 above), page deleted after the CI
+      on `51b873f` (green; field heights unchanged on iPhone). No `OtpVerify` composite needed: `PinInput` +
+      `Button` + `Banner` do it.
+- [x] Contacts list with filters: built 29/10 as a temporary page, four `DataGrid` fixes (Phase 8 above). No
+      `ListPage` or `AppShell` needed for it. Page deleted after the CI on `a830808` (green).
+- [x] Customer detail with outcome: built 30/10 as a temporary page, five fixes (Phase 8 above); keyboard
+      avoidance (1.6) found and fixed; no `DetailPage` or `FormDialog` needed. Page deleted.
+
+### Stage 4: the minimum of Phase 1 for a 1.0
+
+The task list agreed on 2026-11-02 ("part 1": prove the library works on phones). Who does what and where:
+
+- [x] Check the CI of 30/10's commits (run of 2/11): iPhone 13/13 PASS, screenshots right. Android 14 and 15 at
+      14/16: the two text-field steps looked a field up by `content-desc`, which the library's fields no longer have
+      since the TalkBack fix (they are named by their label). `scripts/android-interact.mjs` now finds the label's
+      text and the field under it; 16/16 on the local emulator at the CI's screen size (2/11). CI confirmed it:
+      16/16 on Android 14 and 15 (run of 2/11, 17:49).
+- [x] `docs/native-verification.md`, the component × platform matrix (A7, 2/11), filled for the pilot screens'
+      components and the add-ons (42 rows), every cell with its source. Web and the local Android emulator are covered
+      (the pilots); iPhone only for what `/native-check` draws (about a third, nothing tapped); **no real phone and
+      no VoiceOver anywhere**. The file says what each empty column needs.
+- [x] jest on three platforms in `packages/ui` (B1, 2/11). The whole suite runs as iOS and as Android (194 suites
+      then 197 with the web ones, 3,374 tests); 24 tests failed as Android at first, all test-side (a required
+      field is "Email *" there, ids, an iOS-only shadow, react-native-svg's Android root) except **one library
+      bug**: `inputProps.accessibilityLabel` lost to the label tie on Android (fixed, changeset
+      `field-own-accessibility-label-android.md`). Web: `@testing-library/react-native` cannot read the DOM, so
+      the suite is not run there; a small web set (`src/__web_tests__`, `@testing-library/react`, 18 tests)
+      covers roles and `aria-*`, Escape in dialogs, Enter in a form, the focus ring, no button in a button. Each
+      web test was seen failing with the code it guards broken.
+- [ ] **Open:** a required field's name on Android is its label view: TalkBack's text is "Edit box for Work email
+      \*" (heard 2/11; whether the voice says "star" depends on the user's punctuation setting). iOS says "Work
+      email" and nothing about required. Proposal: announce "required" in words on both platforms; not done (it
+      changes every required field's name and the tests that look fields up by it).
+- [x] `expo export -p ios` and `-p android` in `examples/consumer` (1.2, 2/11): added to `consumer-smoke.yml` and the
+      app's `smoke` script. Run locally on a copy of the app without `device` (see below): `@its/glowup-ui@0.12.0`
+      from npm type-checks and bundles for web (510 modules), iOS (850) and Android (848).
+- [ ] **Found 2/11: `@its/glowup-device` and `@its/glowup-notifications` are not on npm** (404 without a login;
+      Alice confirmed logged in on npmjs.com: they do not exist; only `ui` 0.12.0 is). Their first publish is
+      Stage 5 work, like `pdf`, `charts` and `pivot`. The Release of 22/10 on `master` (`956a46b`, PR #108) failed in "publish": `ui`
+      0.12.0 went out, `device` 0.12.0 did not. Consumer smoke has failed since ("`@its/glowup-device@0.12.0`
+      never became resolvable": 22/10, 26/10, 2/11), unnoticed because it runs on `master` only. Likely cause: no
+      trusted publisher for those packages on npmjs.com (each needs its own, see `release.yml`). Belongs to the
+      Stage 5 release work; until then the smoke job cannot install.
+- [x] No `SafeAreaProvider` needed (1.12, 30/10): the insets are zero without one.
+- [x] TalkBack pass on the pilot screens' components (1.10, 2/11, local emulator, TalkBack 15). Method: the
+      accessibility tree of 35 component pages (`uiautomator dump`), then TalkBack's own speech ("Display speech
+      output") for each finding, before and after the fix. Touches go through the emulator's gRPC (`sendTouch`):
+      `adb input` taps and keys are injected and TalkBack ignores them. Found and fixed (changeset
+      `talkback-pass-names.md`): **icons read as a stray character** in every pressable row, card, grid row,
+      breadcrumb and badge (`Glyph` now hidden from screen readers; heard "Roadmap 2027.pdf, Edited yesterday ·
+      2.4 MB. Button"); **a `Switch` without `label` had no name** (new `accessibilityLabel` prop; the playground's
+      33 such switches named); **`Avatar` without `onClick` was "Image. disabled"** (now "Image"); **`StatusBadge`
+      read twice** in a row. Not reached by the tree (a spinner keeps the page busy): `IconButton`, `Autocomplete`.
+- [x] **Component fixes after the pass (2/11, changeset `long-lists-and-keyboard.md`, each test first, seen on the
+      local emulator):** the endless calendar no longer warns "VirtualizedLists should never be nested" inside a
+      page that scrolls, and keeps the finger on Android (a drag moved June to July, the page stayed); `Select`
+      and `Menu` are virtualized (`FlatList`; on the device a `height: "100%"` in `Select`'s rows stretched
+      each row to 144 dp inside the list: removed, rows back to 52 dp); `Autocomplete`'s suggestions open above
+      the field when the keyboard takes the room below (seen); a `DataGrid` sort no longer redraws custom cells
+      whose `renderCell` declares one or two parameters (and an `id` of 0 is keyed by id); `FAB` without
+      `label` and icon-only `Button` warn once in development (`internal/devWarning`). The Card page overflow
+      was the galleries' fixed 380-px frames: the variants generator turns a frame of 320 px or more into
+      `width: "100%", maxWidth` (44 galleries; Card checked on the Pixel 8).
+- [ ] VoiceOver pass on the same components (1.10). **Needs an iPhone or a Mac**, see "iPhone" below.
+- [ ] The playground's pages on iOS by hand (0.6). CI covers `/native-check` on the simulator; the rest needs the
+      iPhone or the Mac.
+- [ ] The playground's web build in Safari on Alice's iPhone (GitHub Pages), with VoiceOver: the library in a phone
+      browser. **Alice**, no setup.
+
+**iPhone (2/11).** Alice has an iPhone but no Mac. A custom native app on an iPhone needs Xcode on a Mac or a paid
+Apple Developer account. Expo Go (App Store) runs every module the playground uses except the PDF viewer's own
+(`requireOptionalNativeModule`, so the PDF page fails softly), but: the App Store Expo Go is on SDK 57 only until the
+SDK 58 version ships ("within a few weeks" of 15/10), after which it no longer opens our SDK 57 playground; it needs
+login to an Expo account in both the CLI and the app; and Expo's docs disagree on whether an EAS Update (the way
+around the office network, which blocks the iPhone from reaching Metro) loads in Expo Go. **Checked 2/11: Alice's
+Expo Go is already on SDK 58.0.0, so it cannot open the playground (SDK 57). Expo Go is out**; the native iPhone
+checks (VoiceOver, the pages by hand) wait for the colleague's Mac, unless the repo moves to SDK 58.
+
+**The colleague's Mac (plan of 4/11).** Not the pilot pages (deleted): the playground itself, built with
+`npm ci --ignore-scripts`, then `npx expo run:ios` in `apps/playground` (simulator) or `npx expo run:ios --device` (an
+iPhone on the Mac, a free Apple ID in Xcode: the app lasts 7 days). What to check is the iPhone column of
+`native-verification.md`, every "–" and "◐", in this order: fields and the keyboard; dialogs, sheets and menus; lists
+and data (with `WeekStrip`, `DayTimeline`, `Skeleton`); buttons and navigation (safe areas); the PDF, pivot and chart
+gestures; then dark mode and rotation on every page. VoiceOver only on a real iPhone (the simulator's Accessibility
+Inspector reads names and roles, not speech). Results go back into that table. Not written yet: an iOS counterpart of
+`android-interact.mjs` in `native.yml`, which would tap and type on the CI simulator (optional, about one session).
+
+### Stage 5: publish (last, after Stages 4 and 6)
+
+The branch decision can be taken any time before this. Before the first publish, `dev`'s `ui` (0.11.1) must move past
+npm's 0.12.0 (`master`'s), or the next minor bump collides with it.
+
+- [ ] **Alice:** the release pipeline for `pdf`, `charts`, `pivot` (A9): trusted publishers, `release.yml`,
+      `ci.yml`, changesets, `examples/consumer` installing them from the registry. 0.x while the API settles.
+- [ ] **Alice + Adriano + Gabriele: which branch publishes** (28/10). `release.yml` publishes from `master` only, and
+      `dev` and `master` have split (140 and 105 commits). `@its/glowup-ui@0.12.0` on npm is `master`'s, without
+      `dev`'s library work, and `pdf`, `charts`, `pivot` are built against `dev`'s `ui`. Options: `dev` into
+      `master` through a PR (the one published line 1.0 needs); a `next` pre-release from `dev`; or postpone.
+      Nothing can be published until this is decided.
+- Before the first publish of `pdf`, `charts`, `pivot` (checked 28/10; `publint` and `attw` are clean on all three):
+  - [x] `pdf` no longer packs `android/build/` (213 files of local Gradle output); `pivot` no longer packs the
+        test helper `export/__fixtures__`.
+  - [x] A `LICENSE` in each of the three (MIT, IT Solutions S.r.l., the text of AuraPivot's, whose engine `pivot`
+        copies). `ui`, `notifications` and `device` still have none: tell their owners.
+  - [ ] The `@its/glowup-ui` peer range (now `>=0.11`): set it to the `ui` version they are built against, once the
+        branch question is settled.
+  - [x] READMEs as npm pages (4/11): install with the optional peers, a usage example (the `pdf` and `pivot` ones
+        type-checked against the source, the pivot one also run through the engine), the props, where it works and what was
+        checked, limits, license; no links into `docs/`. **At the first publish:** delete the line "Not on npm yet" at the
+        top of each.
+  - [ ] `private: false`, a first changeset for each, `release.yml`'s comment, and `examples/consumer` plus
+        `consumer-smoke.yml` installing the three.
+
+### Stage 6: one real phone, then 1.0
+
+- [ ] An `arm64` build from CI on one real Android phone, through the pilot screens. iPhone only if an Apple
+      Developer account becomes available.
+- [ ] The 1.0 criteria, deprecation and Expo support policy, adoption guide (1.13); release. **Drafted 2/11 in
+      `docs/release-1.0.md`**, with six open questions for whoever owns the releases, not Alice (which packages, which Expo SDKs, deprecation length,
+      which branch, real phones, B3/B4); in force once decided.
+
+### After publishing: the CRM (Alice, 2026-11-02)
+
+**The CRM is built only after everything above is ready and published**, installing from npm. Nothing CRM-side
+blocks or comes before publishing: no `next` pre-release, no tarballs to feed it early. When it starts, the pivot in
+WaveActivitiesReport (also the parity test against a real report) and the four bar charts with `column`, `target`,
+`marker`, `dimmed` (Inbound first) are its first pieces.
+
+### Deferred until a pilot screen or a CRM user asks
+
+Phase 9; the pivot's field panel, filters, calculated fields, conditional formats, drill-through and saved
+configurations; `ScatterChart`, `AreaRange`, `TimelineChart`; chart horizontal scrolling; RTL (1.9); animation
+work without a seen defect (1.8); rounded icon glyphs; the PDF inside a phone browser and its "visible region";
+the rename to Solaris UI; the `library-roadmap.md` §4 items no screen needs.
+
+**Expo SDK 58 (note, 2/11; left out for now by Alice).** SDK 58 is out (15/10: React Native 0.88.1, React 19.3,
+Reanimated 4.7.1, react-native-svg 15.16); the repo is on 57 (0.86.3, 19.2.3, 4.5.1, 15.15.4). Our peer ranges
+accept 58's versions, so an SDK 58 app installs the packages, but nothing has been run on it. To know: a branch that
+moves the repo to 58 (all native versions together), the tests and the native CI. It belongs with the 1.0 rules'
+Expo support policy (57, 58 or both); the App Store's Expo Go already runs only 58.
+
+## Open questions
+
+- From `decisions.md`, each with a default:
+  - Rounded icon glyphs.
+  - `QrCode` fixed colours.
+  - `Autocomplete` aligned to `Select`.
+- Which Android versions do the CRM's users have? Do they open PDFs in the app or in a phone browser?
+- Charts (27/10, to confirm): the "Status" header in the table, and `BarMarker.icon` as an `IconSource`.
+- Testing on a real phone. Android needs an `arm64` build in CI; iPhone needs an Apple Developer account and an EAS
+  build. Alice said "not for now".

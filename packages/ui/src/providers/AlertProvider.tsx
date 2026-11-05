@@ -34,35 +34,36 @@ interface AlertConfig {
 // context because `Alert` is called from outside React (a service, a catch
 // block), exactly like react-native's own `Alert.alert`.
 export const AlertProvider = ({ children }: { children: ReactNode }) => {
-  const [visible, setVisible] = useState(false);
-  const [config, setConfig] = useState<AlertConfig>({
-    title: "",
-    message: "",
-    buttons: [],
-  });
+  // One alert at a time, the others wait their turn: a second Alert() must not
+  // replace the first, whose buttons someone is waiting on.
+  const [queue, setQueue] = useState<AlertConfig[]>([]);
+  const config = queue[0];
+  const visible = !!config;
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
   const showAlert: ShowAlert = useCallback((title, message, buttons) => {
-    // If on Mobile (iOS/Android), use native system dialog
-    if (Platform.OS !== "web") {
-      RNAlert.alert(title, message, buttons);
-      return;
-    }
-
-    // If on Web, trigger the custom Dialog
-    setConfig({ title, message, buttons: buttons || [{ text: "OK" }] });
-    setVisible(true);
+    setQueue((current) => [
+      ...current,
+      { title, message, buttons: buttons || [{ text: "OK" }] },
+    ]);
   }, []);
 
   useEffect(() => {
     alertRef = showAlert;
+    // The ones raised before this provider was there.
+    pending.splice(0).forEach((args) => showAlert(...args));
     return () => {
       if (alertRef === showAlert) alertRef = undefined;
     };
   }, [showAlert]);
 
-  const closeAlert = () => setVisible(false);
+  const closeAlert = () => setQueue((current) => current.slice(1));
+  // Escape, like a native alert's dismissal, answers with the cancel button.
+  const cancelAlert = () => {
+    closeAlert();
+    config?.buttons.find((button) => button.style === "cancel")?.onPress?.();
+  };
 
   return (
     <>
@@ -71,12 +72,12 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
       {Platform.OS === "web" && (
         <Dialog
           visible={visible}
-          title={config.title}
-          onClose={closeAlert}
+          title={config?.title}
+          onClose={cancelAlert}
           // The buttons are the way out, as in a native alert.
           closeIcon={false}
           actions={
-            config.buttons.length === 0 ? (
+            !config || config.buttons.length === 0 ? (
               <Button onClick={closeAlert}>OK</Button>
             ) : (
               config.buttons.map((button, index) => (
@@ -96,7 +97,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
           }
         >
           <View style={styles.messageContainer}>
-            {!!config.message && (
+            {!!config?.message && (
               <Text style={styles.message}>{config.message}</Text>
             )}
           </View>
@@ -118,12 +119,17 @@ const makeStyles = (theme: Theme) =>
   });
 
 let alertRef: ShowAlert | undefined;
+/** Web alerts raised before an `AlertProvider` mounted: it shows them when it does. */
+const pending: Parameters<ShowAlert>[] = [];
 
 export const Alert: ShowAlert = (title, message, buttons) => {
-  if (alertRef) {
+  // On iOS and Android it is the system's own alert, which needs no provider.
+  if (Platform.OS !== "web") {
+    RNAlert.alert(title, message, buttons);
+  } else if (alertRef) {
     alertRef(title, message, buttons);
   } else {
-    console.warn("AlertProvider is not initialized.");
+    pending.push([title, message, buttons]);
   }
 };
 

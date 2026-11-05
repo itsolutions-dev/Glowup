@@ -8,7 +8,8 @@ import { Accordion, Typography, StatusBadge, Divider } from "@its/glowup-ui";
 
 const panel: ViewStyle = {
   flexDirection: "column",
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 export const CollapsedAndExpanded = () => (
@@ -98,14 +99,15 @@ export const Contained = () => (
 export const CustomIcon = () => (
   <View style={panel}>
     <Accordion title="Advanced options" icon="cog-outline">
-      Hidden until expanded.
+      Webhooks, API keys and data export.
     </Accordion>
     <Accordion
       title="Billing"
       icon={<StatusBadge label="New" type="success" />}
       expanded
     >
-      The icon slot takes any node, a badge here.
+      Invoices are issued on the 1st of each month and charged to the card on
+      file.
     </Accordion>
   </View>
 );

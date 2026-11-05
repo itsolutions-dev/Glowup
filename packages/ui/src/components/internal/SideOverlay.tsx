@@ -11,10 +11,11 @@ import {
 } from "react-native";
 import type { LayoutChangeEvent, StyleProp, ViewStyle } from "react-native";
 import { rgba } from "polished";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./useInsets";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
+import { ToastLayer } from "./ToastLayer";
+import KeyboardFrame from "./KeyboardFrame";
 import { useReduceMotion } from "./useReduceMotion";
-import { useEscapeKey } from "./useEscapeKey";
 import { useWindowWidth } from "./useWindowWidth";
 
 /** The window edge an overlay panel is attached to. */
@@ -89,7 +90,7 @@ const SideOverlay = ({
   const windowWidth = useWindowWidth();
   const window = useWindowDimensions();
   const reduceMotion = useReduceMotion();
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const horizontal = position === "left" || position === "right";
   // Zero is what a prerendered page reports before it hydrates.
   const panelWidth = windowWidth > 0 ? Math.min(width, windowWidth) : width;
@@ -126,9 +127,6 @@ const SideOverlay = ({
     // `mounted` is read, not a trigger: the run starts when `visible` changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, progress, reduceMotion]);
-
-  // react-native's onRequestClose covers Android back, not Escape on web.
-  useEscapeKey(visible, dismiss);
 
   // What the drag handlers read: they outlive the render that made them.
   const live = useRef({ extent, dismiss, duration });
@@ -246,43 +244,48 @@ const SideOverlay = ({
       visible={mounted}
       transparent
       animationType="none"
+      // Android back and, on the web, Escape: react-native-web's Modal calls it
+      // for the topmost modal only, so no key listener of our own.
       onRequestClose={dismiss}
     >
-      <View style={styles.root} testID={testID}>
-        <Animated.View style={[styles.scrim, { opacity: progress }]}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={dismiss}
-            accessibilityRole="button"
-            accessibilityLabel={scrimLabel}
-            testID={testID ? `${testID}-scrim` : undefined}
-          />
-        </Animated.View>
-        <Animated.View
-          accessibilityViewIsModal
-          onLayout={onLayout}
-          testID={testID ? `${testID}-panel` : undefined}
-          {...(swipeable && horizontal ? pan.panHandlers : null)}
-          style={[
-            styles.panel,
-            horizontal && styles.panelSwipeX,
-            innerEdge,
-            placement,
-            {
-              transform: [
-                horizontal
-                  ? { translateX: translate }
-                  : { translateY: translate },
-              ],
-            },
-            panelStyle,
-          ]}
-        >
-          {position === "bottom" && handle}
-          {children}
-          {position === "top" && handle}
-        </Animated.View>
-      </View>
+      <KeyboardFrame>
+        <View style={styles.root} testID={testID}>
+          <Animated.View style={[styles.scrim, { opacity: progress }]}>
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={dismiss}
+              accessibilityRole="button"
+              accessibilityLabel={scrimLabel}
+              testID={testID ? `${testID}-scrim` : undefined}
+            />
+          </Animated.View>
+          <Animated.View
+            accessibilityViewIsModal
+            onLayout={onLayout}
+            testID={testID ? `${testID}-panel` : undefined}
+            {...(swipeable && horizontal ? pan.panHandlers : null)}
+            style={[
+              styles.panel,
+              horizontal && styles.panelSwipeX,
+              innerEdge,
+              placement,
+              {
+                transform: [
+                  horizontal
+                    ? { translateX: translate }
+                    : { translateY: translate },
+                ],
+              },
+              panelStyle,
+            ]}
+          >
+            {position === "bottom" && handle}
+            {children}
+            {position === "top" && handle}
+          </Animated.View>
+          <ToastLayer active={visible} />
+        </View>
+      </KeyboardFrame>
     </NativeModal>
   );
 };

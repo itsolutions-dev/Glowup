@@ -16,7 +16,8 @@ const grid: ViewStyle = {
   flexDirection: "row",
   flexWrap: "wrap",
   gap: 12,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 const tile: ViewStyle = { width: 116, flexDirection: "row" };

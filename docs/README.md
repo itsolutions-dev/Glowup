@@ -1,7 +1,7 @@
 # Documentation map
 
 Where things live, what each document is for, and when to read it. If you are starting a session, read
-the three under **Start here** and nothing else until you need it.
+the four under **Start here** and nothing else until you need it.
 
 Language: the roadmap and handoffs are in Italian, everything else is in English.
 
@@ -10,7 +10,9 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | Document                                 | What it is                                                                                              |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | [`../CLAUDE.md`](../CLAUDE.md)           | Rules for working in the repo: commands, the library/app boundary, tests, releasing, handoffs.          |
+| [`status.md`](status.md)                 | Done / left per workstream with percentages, and the "do not redo" list. Read before starting work.     |
 | [`handoff/`](handoff)                    | One file per working day: what was done, what was verified, open questions, next step. Read the newest. |
+| [`pilots/`](pilots)                      | Screenshots of the temporary CRM pilot screens (web, phone, Android), one folder per day and screen.    |
 | [`solaris-native.md`](solaris-native.md) | The master plan (decisions D1–D17, phases 0–9, rules, risks). Italian.                                  |
 
 ## Plans and roadmap
@@ -22,6 +24,8 @@ Language: the roadmap and handoffs are in Italian, everything else is in English
 | [`solaris-native.md`](solaris-native.md)                                                                                                     | Phases 0–9 of the Solaris UI plan: native readiness, charts, PDF, pivot, pilot screens. Italian.                                             |
 | [`work-split.md`](work-split.md)                                                                                                             | Who does what between the two people on the plan, and where the two streams meet. Italian.                                                   |
 | [`crm-component-matrix.md`](crm-component-matrix.md)                                                                                         | The CRM families mapped onto Glowup components: the Phase 3 work list, with a "done" column. Italian.                                        |
+| [`release-1.0.md`](release-1.0.md)                                                                                                           | **Draft**: the 1.0 criteria, versioning and Expo support policy, and the adoption guide, with the decisions still to take.                   |
+| [`native-verification.md`](native-verification.md)                                                                                           | Component × platform: what was seen working on web, iPhone, Android, a phone and screen readers, with the proof.                             |
 | [`device-package-plan.md`](device-package-plan.md)                                                                                           | Design and phases of `@its/glowup-device`. Linked from the published package's README, so it stays here.                                     |
 | [`superpowers/specs/2026-10-26-layout-editor-design.md`](superpowers/specs/2026-10-26-layout-editor-design.md)                               | The layout editor: canvas on a grid, palette, nesting, props panel, JSON and code export. Approved.                                          |
 | [`superpowers/plans/2026-10-27-layout-editor-1-foundations.md`](superpowers/plans/2026-10-27-layout-editor-1-foundations.md)                 | Plan 1 for the layout editor: drag and drop additions and `GridLayout` in the library.                                                       |

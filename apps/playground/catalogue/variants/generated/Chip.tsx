@@ -16,14 +16,34 @@ const row: ViewStyle = {
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 12,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
+const MODES = ["filled", "tonal", "outlined"] as const;
+
+// Without a `color`, filled and tonal share the secondary container at rest;
+// they part on selection (filled turns tertiary), so both states are shown.
 export const Modes = () => (
-  <View style={row}>
-    <Chip label="React Native" variant="filled" onClick={() => {}} />
-    <Chip label="Expo" variant="tonal" onClick={() => {}} />
-    <Chip label="Material You" variant="outlined" onClick={() => {}} />
+  <View style={stack}>
+    {[false, true].map((selected) => (
+      <View key={String(selected)} style={stack}>
+        <Typography variant="labelMedium">
+          {selected ? "Selected" : "Idle"}
+        </Typography>
+        <View style={row}>
+          {MODES.map((mode) => (
+            <Chip
+              key={mode}
+              label={mode[0].toUpperCase() + mode.slice(1)}
+              variant={mode}
+              selected={selected}
+              onClick={() => {}}
+            />
+          ))}
+        </View>
+      </View>
+    ))}
   </View>
 );
 
@@ -76,38 +96,25 @@ export const Removable = () => (
   </View>
 );
 
+// 24 / 32 / 40px: the icon, the close glyph and the padding scale with it.
 export const Sizes = () => (
   <View style={stack}>
-    <View style={row}>
-      <Chip
-        label="Medium"
-        variant="filled"
-        icon="tag-outline"
-        onClick={() => {}}
-      />
-      <Chip label="Medium tonal" variant="tonal" onClick={() => {}} />
-    </View>
-    <View style={row}>
-      <Chip
-        label="Small"
-        size="small"
-        variant="filled"
-        icon="tag-outline"
-        onClick={() => {}}
-      />
-      <Chip
-        label="Small tonal"
-        size="small"
-        variant="tonal"
-        onClick={() => {}}
-      />
-      <Chip
-        label="Small outlined"
-        size="small"
-        variant="outlined"
-        onClick={() => {}}
-      />
-    </View>
+    {(["small", "medium", "large"] as const).map((size) => (
+      <View key={size} style={row}>
+        <Chip
+          label={size[0].toUpperCase() + size.slice(1)}
+          size={size}
+          icon="tag-outline"
+          onClick={() => {}}
+        />
+        <Chip
+          label="Design"
+          size={size}
+          variant="outlined"
+          onClose={() => {}}
+        />
+      </View>
+    ))}
   </View>
 );
 

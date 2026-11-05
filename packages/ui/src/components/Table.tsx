@@ -9,11 +9,13 @@ import {
   ViewStyle,
   TextStyle,
   DimensionValue,
+  Platform,
 } from "react-native";
 import Icons from "./Glyph";
 import Pagination from "./Pagination";
 import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 // Table: pass `columns` and `data` and it draws the whole table (title, header,
 // rows, empty state, paging). Pass the primitives below as `children` instead
@@ -43,6 +45,11 @@ export interface TableColumn {
    */
   width?: number;
 }
+
+const rowKey = (row: Record<string, unknown>, index: number) =>
+  typeof row.id === "string" || typeof row.id === "number"
+    ? `id:${row.id}`
+    : index;
 
 /** A row of a data driven `Table`: its cells by column `id`. Text and numbers are drawn in the theme's type, any other node as given. */
 export type TableRowData = Record<string, string | number | ReactNode>;
@@ -201,7 +208,9 @@ const DataTable = ({
         const index = start + offset;
         return (
           <TableRow
-            key={index}
+            // By id when the row has one, so its local state follows it through a
+            // sort or a filter; by position otherwise.
+            key={rowKey(row, index)}
             hover={hover}
             selected={selectedRows.has(index)}
             onClick={onClick ? () => onClick(row, index) : undefined}
@@ -368,7 +377,7 @@ export const TableRow = ({
       <View
         role="row"
         testID={testID}
-        accessibilityState={selected ? { selected } : undefined}
+        {...a11yState("row", selected ? { selected } : undefined)}
         style={[base, style]}
       >
         {children}
@@ -376,16 +385,20 @@ export const TableRow = ({
     );
   }
 
+  // On the web a clickable row stays a row (focusable, Enter presses it): a
+  // button may not hold the buttons in its cells. iOS and Android have no
+  // rows, so there it is a button.
+  const role = onClick && Platform.OS !== "web" ? "button" : "row";
   return (
     <Pressable
-      role={onClick ? "button" : "row"}
+      role={role}
       onPress={onClick}
       testID={testID}
       // A row that only highlights is not a control: no tab stop, and no
       // grouping of the controls in its cells into one element.
       focusable={!!onClick}
       accessible={!!onClick}
-      accessibilityState={{ selected }}
+      {...a11yState(role, { selected })}
       style={({ hovered, pressed }: PressableState) => [
         base,
         !selected &&
@@ -463,20 +476,30 @@ export const TableHeaderCell = ({
               color={theme.colors.primary}
             />
           ) : (
+            // Sortable, not sorted yet: visible at a glance, not only once pressed.
             <Icons
-              name="chevron-up"
+              name="unfold-more-horizontal"
               size={18}
-              color={theme.colors.outlineVariant}
-              style={{ opacity: 0.5 }}
+              color={theme.colors.onSurfaceVariant}
             />
           )}
         </View>
       )}
     </>
   );
+  const name = typeof children === "string" ? children : "column";
   return (
     <View
       role="columnheader"
+      {...((sortable
+        ? {
+            "aria-sort": sortDirection
+              ? sortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none",
+          }
+        : null) as object)}
       style={[
         styles.th,
         cellSize(width, flex),
@@ -487,6 +510,8 @@ export const TableHeaderCell = ({
       {interactive ? (
         <Pressable
           onPress={onClick}
+          accessibilityRole="button"
+          accessibilityLabel={`Sort by ${name}`}
           style={({ hovered, pressed }: PressableState) => [
             styles.thContent,
             contentStyle,
@@ -505,7 +530,12 @@ export const TableHeaderCell = ({
 
       <View style={styles.reorderContainer}>
         {onMoveLeft && (
-          <Pressable onPress={onMoveLeft} style={styles.reorderButton}>
+          <Pressable
+            onPress={onMoveLeft}
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${name} left`}
+            style={styles.reorderButton}
+          >
             <Icons
               name="chevron-left"
               size={14}
@@ -514,7 +544,12 @@ export const TableHeaderCell = ({
           </Pressable>
         )}
         {onMoveRight && (
-          <Pressable onPress={onMoveRight} style={styles.reorderButton}>
+          <Pressable
+            onPress={onMoveRight}
+            accessibilityRole="button"
+            accessibilityLabel={`Move ${name} right`}
+            style={styles.reorderButton}
+          >
             <Icons
               name="chevron-right"
               size={14}
@@ -559,22 +594,41 @@ export const TableCell = ({
         style,
       ]}
     >
-      {typeof children === "string" || typeof children === "number" ? (
-        <Text
-          style={[
-            { color: theme.colors.onSurface },
-            theme.typography.bodyMedium,
-            { textAlign: align },
-            textStyle,
-          ]}
-          numberOfLines={1}
-        >
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
+      <CellText align={align} textStyle={textStyle}>
+        {children}
+      </CellText>
     </View>
+  );
+};
+
+/**
+ * A cell's content: text and numbers in the table's type on one line, any
+ * other node as it is. DataGrid draws its custom cells through it too.
+ */
+export const CellText = ({
+  children,
+  align = "left",
+  textStyle,
+}: {
+  children?: React.ReactNode;
+  align?: TableCellProps["align"];
+  textStyle?: TableCellProps["textStyle"];
+}) => {
+  const { theme } = useTheme();
+  return typeof children === "string" || typeof children === "number" ? (
+    <Text
+      style={[
+        { color: theme.colors.onSurface },
+        theme.typography.bodyMedium,
+        { textAlign: align },
+        textStyle,
+      ]}
+      numberOfLines={1}
+    >
+      {children}
+    </Text>
+  ) : (
+    <>{children}</>
   );
 };
 

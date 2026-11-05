@@ -57,6 +57,11 @@ const EXCLUDED = new Set([
   "Autocomplete",
   // Lays its examples out with CSS grid.
   "Tooltip",
+  // Fake a drag in progress for the capture with querySelector and synthetic
+  // mouse events: web-only, and the site has its own "Drag and drop" section.
+  "DragDropProvider",
+  "Draggable",
+  "Droppable",
 ]);
 
 /**
@@ -97,6 +102,9 @@ const NOT_CATALOGUED = new Set([
   "TableRow",
   "TableCell",
   "TableHeaderCell",
+  // Documented inside Form's page and CodeBlock's, not on pages of their own.
+  "FormField",
+  "HighlightedCode",
 ]);
 
 /** `WithIcons` → `With icons`, `FullWidth` → `Full width`. */
@@ -173,6 +181,16 @@ const enclosingObjectLiteral = (source, index) => {
   return undefined;
 };
 
+/** Whether `index` sits directly in a top-level `const name: ViewStyle = { … }`. */
+const isStyleConstant = (source, index) => {
+  const body = enclosingObjectLiteral(source, index);
+  if (!body) return false;
+  const start = source.lastIndexOf(body, index);
+  return /^const \w+: ViewStyle = $/m.test(
+    source.slice(source.lastIndexOf("\n", start) + 1, start),
+  );
+};
+
 /** Whether the style object around `index` already picks a main axis. */
 const declaresFlexDirection = (source, index) =>
   /\bflexDirection\s*:/.test(enclosingObjectLiteral(source, index) ?? "");
@@ -213,6 +231,26 @@ const convert = (source) => {
   );
   out = out.replace(/\boverflowY:\s*"auto"/g, 'overflow: "scroll"');
   out = out.replace(/\boverflowX:\s*"auto"/g, 'overflow: "scroll"');
+
+  // A preview's frame is drawn for a desktop canvas: `width: 380` on its outer
+  // column. A phone has less than that once the page's margins are taken (the
+  // Pixel 8's 412 dp, 2/11: the cards ran past the right edge), so a frame as
+  // wide as a phone or wider fills what there is and stops at its width. On a
+  // wide screen nothing changes. Only a style constant's own `width` line, the
+  // frame, not a width written inline on an element inside it.
+  out = out.replace(
+    /^([ \t]+)width:\s*(\d+),[ \t]*$/gm,
+    (whole, indent, value, index) =>
+      Number(value) >= 320 && isStyleConstant(out, index)
+        ? `${indent}width: "100%",\n${indent}maxWidth: ${value},`
+        : whole,
+  );
+  // The same frame written inline, as a wrapper with nothing but a width.
+  out = out.replace(/<div style=\{\{ width: (\d+) \}\}>/g, (whole, value) =>
+    Number(value) >= 320
+      ? `<div style={{ width: "100%", maxWidth: ${value} }}>`
+      : whole,
+  );
 
   // `textAlign` on a layout wrapper is a browser-only inheritance trick: React
   // Native never inherits text styles, so the property does nothing on a View

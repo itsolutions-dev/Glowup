@@ -21,6 +21,7 @@ import {
   Editable,
   Upload,
   InputArea,
+  WeekStrip,
 } from "@its/glowup-ui";
 import type { ComponentMetadata } from "../types";
 
@@ -571,8 +572,8 @@ export const inputs: Record<string, ComponentMetadata> = {
     Component: NumberField,
     props: {
       label: { type: "text", default: "", label: "Label" },
-      min: { type: "number", default: 0, label: "Min" },
-      max: { type: "number", default: 100, label: "Max" },
+      min: { type: "number", default: undefined, label: "Min" },
+      max: { type: "number", default: undefined, label: "Max" },
       step: { type: "number", default: 1, label: "Step" },
       disabled: { type: "boolean", default: false, label: "Disabled" },
     },
@@ -775,6 +776,15 @@ export const inputs: Record<string, ComponentMetadata> = {
       defaultInputType: DEFAULT_INPUT_TYPE,
       showOkButton: SHOW_OK_BUTTON,
       disabled: { type: "boolean", default: false, label: "Disabled" },
+    },
+  },
+  WeekStrip: {
+    name: "WeekStrip",
+    Component: WeekStrip,
+    clientOnly: true,
+    props: {
+      locale: LOCALE,
+      gradient: { type: "boolean", default: false, label: "Brand gradient" },
     },
   },
   TimePicker: {

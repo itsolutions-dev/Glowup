@@ -5,17 +5,29 @@ import { MaterialCommunityIconsGlyphs } from "../types";
 import { isSelected, selectionRoles, toggleIn } from "../internal/selection";
 import { useInteractionFeedback } from "../../providers/InteractionFeedback";
 
-export interface ToggleButtonOption {
+export interface ToggleButtonOption<T = string> {
   label?: string;
   icon?: MaterialCommunityIconsGlyphs;
-  value: string;
+  /**
+   * Any value, compared with `===`: `null` / `true` / `false` make an
+   * all / yes / no filter.
+   */
+  value: T;
   /** Greys out this segment while leaving the rest of the group usable. */
   disabled?: boolean;
+  /**
+   * Shown on hover and keyboard focus on the web (not on a phone, where the
+   * segment takes the long press itself); on every platform it is the
+   * segment's name for screen readers when it has no `label`: an icon-only
+   * segment needs one.
+   */
+  tooltip?: string;
 }
 
-export interface ToggleButtonGroupProps {
-  options: ToggleButtonOption[];
-  value: string | string[]; // Single string or array of strings
+export interface ToggleButtonGroupProps<T = string> {
+  options: ToggleButtonOption<T>[];
+  /** The selected option's value, or the selected values with `multiSelect`. */
+  value: T | T[];
   onValueChange: (val: any) => void;
   multiSelect?: boolean;
   /** Disables every segment. */
@@ -34,7 +46,7 @@ export interface ToggleButtonGroupProps {
   feedback?: boolean;
 }
 
-const ToggleButtonGroup = ({
+const ToggleButtonGroup = <T = string,>({
   options,
   value,
   onValueChange,
@@ -45,10 +57,10 @@ const ToggleButtonGroup = ({
   accessibilityLabel,
   style,
   feedback = true,
-}: ToggleButtonGroupProps) => {
+}: ToggleButtonGroupProps<T>) => {
   const roles = selectionRoles(multiSelect);
   const emitFeedback = useInteractionFeedback(feedback);
-  const handlePress = (itemValue: string) => {
+  const handlePress = (itemValue: T) => {
     emitFeedback(multiSelect ? "toggle" : "selection");
     onValueChange(multiSelect ? toggleIn(value, itemValue) : itemValue);
   };
@@ -63,9 +75,12 @@ const ToggleButtonGroup = ({
     >
       {options.map((option, index) => (
         <ToggleButton
-          key={option.value}
+          // By position: a value need not be a string, and null and false
+          // would both stringify to keys that collide with "null"/"false".
+          key={index}
           label={option.label}
           icon={option.icon}
+          tooltip={option.tooltip}
           active={isSelected(value, option.value, multiSelect)}
           onPress={() => handlePress(option.value)}
           isFirst={index === 0}
@@ -87,6 +102,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginVertical: 8,
+    // Never wider than its container: the segments shrink instead.
+    maxWidth: "100%",
   },
   fullWidth: {
     alignSelf: "stretch",

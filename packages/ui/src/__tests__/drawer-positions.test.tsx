@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { Animated, PanResponder, StyleSheet, Text } from "react-native";
+import {
+  Animated,
+  PanResponder,
+  Platform,
+  StyleSheet,
+  Text,
+} from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
@@ -146,8 +152,8 @@ describe("Drawer elevation", () => {
     [2, "surfaceContainer"],
     [3, "surfaceContainerHigh"],
     [4, "surfaceContainerHighest"],
-    [5, "surfaceDim"],
-    [9, "surfaceDim"],
+    [5, "surfaceContainerHighest"],
+    [9, "surfaceContainerHighest"],
     [-2, "surface"],
   ] as const)("level %s paints the %s tone", async (elevation, token) => {
     const { getByTestId } = await draw(
@@ -158,13 +164,17 @@ describe("Drawer elevation", () => {
     expect(style(getByTestId("nav")).backgroundColor).toBe(theme.colors[token]);
   });
 
-  it("casts a shadow from level 1 up (iOS)", async () => {
+  it("casts a shadow from level 1 up: a shadow on iOS, an elevation on Android", async () => {
     const { getByTestId } = await draw(
       <Drawer elevation={3} testID="nav">
         {items}
       </Drawer>,
     );
-    expect(style(getByTestId("nav")).shadowOpacity).toBeGreaterThan(0);
+    const shadow =
+      Platform.OS === "android"
+        ? style(getByTestId("nav")).elevation
+        : style(getByTestId("nav")).shadowOpacity;
+    expect(shadow).toBeGreaterThan(0);
   });
 
   it("is 1 when swipeable, and settable", async () => {
@@ -306,19 +316,24 @@ describe("Drawer swipeable", () => {
     ).toBe("Close drawer");
   });
 
-  it("closes on Escape while open (web): registers onClose with the key hook", async () => {
+  // react-native-web's Modal closes the topmost modal on Escape through
+  // `onRequestClose`; a key listener of the drawer's own closed it twice, and
+  // every other open overlay with it.
+  it("leaves Escape to the Modal: back and Escape go through onRequestClose", async () => {
     const hook = useEscapeKey as jest.Mock;
     hook.mockClear();
     const onClose = jest.fn();
-    await render(swipeable(true, { onClose }));
-    const [active, handler] = hook.mock.calls.at(-1);
-    expect(active).toBe(true);
-    handler();
+    const { container } = await render(swipeable(true, { onClose }));
+    expect(hook).not.toHaveBeenCalled();
+    const modal = (
+      container as unknown as {
+        queryAll: (p: (n: { type: string }) => boolean) => {
+          props: { onRequestClose: () => void };
+        }[];
+      }
+    ).queryAll((n) => n.type === "Modal")[0];
+    await act(async () => modal.props.onRequestClose());
     expect(onClose).toHaveBeenCalledTimes(1);
-
-    hook.mockClear();
-    await render(swipeable(false, { onClose }));
-    expect(hook.mock.calls.at(-1)[0]).toBe(false);
   });
 
   it("a static drawer listens for no key", async () => {

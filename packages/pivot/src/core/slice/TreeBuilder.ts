@@ -7,6 +7,7 @@
  * bucket with a column bucket in O(n).
  */
 
+import { getCollator } from "../format/intlCache";
 import type { DataRow, TreeNode, MetadataRow, SortDirection } from "../types";
 
 /** Extended SliceField that may carry a richer per-dimension sort config. */
@@ -34,9 +35,10 @@ const compare = (
   if (isNumeric) {
     result = a - b;
   } else {
-    result = String(a).localeCompare(String(b), locale || undefined, {
-      numeric: true,
-    });
+    result = getCollator(locale || undefined, { numeric: true }).compare(
+      String(a),
+      String(b),
+    );
   }
   return direction === "desc" ? -result : result;
 };

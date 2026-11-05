@@ -98,8 +98,9 @@ Rules that apply only inside one workspace live in `packages/ui/CLAUDE.md`,
 
 ## Tests
 
-- Component behaviour is tested **in the library** (`packages/ui/src/__tests__`, jest-expo); the
-  playground tests only the playground. The details are in each workspace's `CLAUDE.md`.
+- Component behaviour is tested **in the library** (`packages/ui/src/__tests__`, jest-expo), as iOS
+  and as Android, plus a small web set in `packages/ui/src/__web_tests__`; the playground tests only
+  the playground. The details are in each workspace's `CLAUDE.md`.
 
 ## Releasing
 
@@ -116,7 +117,8 @@ status, decisions, what was verified on web/iOS/Android, files and commits, open
 step). **One handoff per calendar day**: if today's file already exists, update it (add or edit a
 section; with two people, one section each) and never create a second one for the same day — no
 `-2`, no name suffix. Earlier files that already carry a suffix stay as they are. A later session
-starts from the latest handoff and `docs/solaris-native.md`. `docs/README.md` maps every document.
+starts from `docs/status.md`, the latest handoff and `docs/solaris-native.md`, and updates
+`docs/status.md` (percentages, done / left, "do not redo") with the handoff. `docs/README.md` maps every document.
 
 ## Code style
 

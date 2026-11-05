@@ -9,6 +9,11 @@ export type ChartSeries = {
   key: string;
   label?: string;
   color?: string;
+  /**
+   * `BarChart` only: series with the same column share one bar of the category; without it a series is a bar of its own.
+   * Never use another series' `key` as a column id: a series without `column` is the column named by its key, so the two would merge.
+   */
+  column?: string;
 };
 
 export type CurveName = "linear" | "monotone" | "natural" | "step";

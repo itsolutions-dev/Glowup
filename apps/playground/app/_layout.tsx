@@ -19,6 +19,7 @@ import {
 import { HapticThemeProvider } from "../site/HapticsPreference";
 import { SiteShell } from "../site/SiteShell";
 import { ThemeStatusBar } from "../site/ThemeStatusBar";
+import { useNativeFontsReady } from "../site/usePaletteFonts";
 
 /**
  * The provider chain plus the site chrome, mounted once for every route.
@@ -54,6 +55,8 @@ export default function RootLayout() {
   // browser — hydrating the page after the shell, whose icons had loaded the
   // font by then — drew them with glyphs: React's hydration error #418.
   useFonts(MaterialCommunityIcons.font);
+  const fontsReady = useNativeFontsReady();
+  if (!fontsReady) return null;
 
   return (
     <HapticThemeProvider>

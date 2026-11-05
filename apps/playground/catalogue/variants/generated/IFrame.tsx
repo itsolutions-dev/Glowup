@@ -23,7 +23,8 @@ const SCRIPT = page(
 const column: ViewStyle = {
   flexDirection: "column",
   gap: 12,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
 };
 
 const rounded = { borderRadius: 12, borderWidth: 1, borderColor: "#CAC4D0" };

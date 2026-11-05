@@ -9,7 +9,8 @@ import { Upload, type UploadFile } from "@its/glowup-ui";
 const frame: ViewStyle = {
   flexDirection: "column",
   gap: 24,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
 };
 
 const files: UploadFile[] = [

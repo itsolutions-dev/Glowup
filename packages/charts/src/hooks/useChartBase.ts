@@ -5,7 +5,7 @@ import { ChartTable } from "../ChartTable";
 import { below } from "./below";
 import { makeValueFormatter } from "../core/format";
 import { resolveSeriesColors, themeSeriesColors } from "../core/palette";
-import { describeChart } from "../core/summary";
+import { describeChart, noteText, type ChartNote } from "../core/summary";
 import type { ChartDatum, ChartSeries } from "../core/types";
 
 /** The props every chart over categories shares. */
@@ -41,21 +41,25 @@ export const num = (v: ChartDatum[string]): number | null =>
  * formatting, the text for a screen reader, which category is active (hovered,
  * else the one last tapped) and which series the legend has switched off.
  * `keys`, `names` and `seriesColors` are those of the series still shown.
+ * `notes` are values per category (a target, a verdict) added to the table and the text for a screen reader.
  */
-export const useChartBase = ({
-  data,
-  series,
-  colors,
-  legend,
-  table,
-  loading,
-  title,
-  locale,
-  numberFormat,
-  formatValue,
-  onSelect,
-  testID,
-}: ChartCommonProps) => {
+export const useChartBase = (
+  {
+    data,
+    series,
+    colors,
+    legend,
+    table,
+    loading,
+    title,
+    locale,
+    numberFormat,
+    formatValue,
+    onSelect,
+    testID,
+  }: ChartCommonProps,
+  notes: ChartNote[] = [],
+) => {
   const { theme } = useTheme();
   const [selected, setSelected] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -63,7 +67,7 @@ export const useChartBase = ({
   // Colours follow the position in the whole list, so switching a series off does not recolour the others.
   const allColors = resolveSeriesColors(
     series,
-    colors ?? themeSeriesColors(theme.colors),
+    colors ?? themeSeriesColors(theme),
   );
   const shown = series
     .map((s, i) => ({ s, color: allColors[i] }))
@@ -85,6 +89,7 @@ export const useChartBase = ({
       values: data.map((d) => num(d[s.key])),
     })),
     format,
+    notes,
   });
   const toggle = (index: number) => {
     const next = selected === index ? null : index;
@@ -107,13 +112,22 @@ export const useChartBase = ({
         testID: testID ? `${testID}-legend` : undefined,
       })
     : null;
+  // A note with nothing in any category (every target null, say) is no column.
+  const tableNotes = notes.filter((n) =>
+    data.some((_, i) => noteText(n, i, format)),
+  );
   const tableNode: ReactElement | null =
     table && !loading && data.length > 0 && shown.length > 0
       ? createElement(ChartTable, {
-          header: ["", ...shown.map(({ s }) => s.label ?? s.key)],
-          rows: data.map((d) => [
+          header: [
+            "",
+            ...shown.map(({ s }) => s.label ?? s.key),
+            ...tableNotes.map((n) => n.name),
+          ],
+          rows: data.map((d, i) => [
             d.label,
             ...shown.map(({ s }) => format(num(d[s.key]))),
+            ...tableNotes.map((n) => noteText(n, i, format) || "–"),
           ]),
           activeRow: hovered ?? selected,
           onRowPress: toggle,

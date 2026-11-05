@@ -3,7 +3,7 @@ import {
   View,
   Text,
   Pressable,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Platform,
   LayoutChangeEvent,
@@ -14,17 +14,27 @@ import { Theme, useTheme, getGlowStyles } from "../providers/ThemeProvider";
 import Popover from "./Popover";
 import Checkbox from "./Checkbox";
 import Chip from "./Chip";
+import HelperText from "./HelperText";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
+import { a11yState } from "./internal/a11yState";
+import OwnScroller from "./internal/OwnScroller";
 
 export interface Option {
-  id: string;
+  /** The row's key. Defaults to the value as a string. */
+  id?: string;
   label: string;
   value: any;
   icon?: MaterialCommunityIconsGlyphs;
 }
+
+const optionKey = (option: Option) => option.id ?? String(option.value);
+
+// A plain string is its own label and value.
+const toOption = (option: Option | string): Option =>
+  typeof option === "string" ? { label: option, value: option } : option;
 
 type SelectVariant = "outlined" | "filled";
 
@@ -32,7 +42,8 @@ export interface SelectProps {
   label?: string;
   error?: string;
   disabled?: boolean;
-  options: Option[];
+  /** The choices: `{ label, value }` objects, or plain strings that are their own label and value. */
+  options: (Option | string)[];
   /**
    * The `value` of the selected option, `null` for none. With `multiple`: the
    * array of selected `value`s (defaults to `[]`).
@@ -90,13 +101,18 @@ export interface SelectProps {
    * Control height. `"dense"` is for desktop forms and tables: a 40 px field instead of 52, 14 px text, less space below.
    */
   density?: Density;
+  /**
+   * Keeps the line under the field even with no error, so an error appearing
+   * does not push the next field down. Default false.
+   */
+  reserveHelperText?: boolean;
 }
 
 const Select = ({
   label,
   error,
   disabled,
-  options,
+  options: rawOptions,
   value,
   onChange,
   placeholder = "Select an option",
@@ -112,7 +128,9 @@ const Select = ({
   showAsChips = false,
   defaultOpen = false,
   density,
+  reserveHelperText = false,
 }: SelectProps) => {
+  const options = useMemo(() => rawOptions.map(toOption), [rawOptions]);
   const dense = useDensity(density) === "dense";
   const [visible, setVisible] = useState(defaultOpen);
   const { theme } = useTheme();
@@ -160,7 +178,7 @@ const Select = ({
         .map((opt) => (
           <Chip
             label={opt.label}
-            key={opt.id}
+            key={optionKey(opt)}
             onClose={() => internalToggleOption(opt.value)}
           />
         ));
@@ -240,8 +258,9 @@ const Select = ({
   const Anchor = (
     <Pressable
       accessibilityLabel={selectedOption?.label || label || placeholder}
-      accessibilityRole={(Platform.OS === "web" ? "listbox" : "none") as any}
-      accessibilityState={{ expanded: visible, disabled }}
+      // A combobox that opens a listbox: the trigger is not the list itself.
+      accessibilityRole={(Platform.OS === "web" ? "combobox" : "none") as any}
+      {...a11yState("combobox", { expanded: visible, disabled })}
       disabled={disabled}
       onPress={() => setVisible(true)}
       style={[
@@ -345,124 +364,130 @@ const Select = ({
               {emptyMessage}
             </Text>
           ) : (
-            <ScrollView bounces={false} style={{ maxHeight: 250 }}>
-              {options.map((option) => {
-                const optionDisabled = disabled || isOptionDisabled(option);
-                const isSelected = multiple
-                  ? selectedValues.includes(option.value)
-                  : value === option.value;
-                return (
-                  <Pressable
-                    key={option.id}
-                    // Not `disabled`: a disabled Pressable lets the touch through to
-                    // the popover's backdrop, which would close the list.
-                    onPress={() => {
-                      if (optionDisabled) return;
-                      if (multiple) {
-                        // Keep the menu open while toggling multiple options
-                        internalToggleOption(option.value);
-                      } else {
-                        onChange?.(
-                          nullable && isSelected ? null : option.value,
-                        );
-                        setVisible(false);
+            // Virtualized: a list of hundreds draws about a screen of rows.
+            <OwnScroller>
+              <FlatList
+                data={options}
+                keyExtractor={optionKey}
+                bounces={false}
+                style={{ maxHeight: 250 }}
+                nestedScrollEnabled
+                keyboardShouldPersistTaps="handled"
+                initialNumToRender={12}
+                renderItem={({ item: option }) => {
+                  const optionDisabled = disabled || isOptionDisabled(option);
+                  const isSelected = multiple
+                    ? selectedValues.includes(option.value)
+                    : value === option.value;
+                  return (
+                    <Pressable
+                      key={optionKey(option)}
+                      // Not `disabled`: a disabled Pressable lets the touch through to
+                      // the popover's backdrop, which would close the list.
+                      onPress={() => {
+                        if (optionDisabled) return;
+                        if (multiple) {
+                          // Keep the menu open while toggling multiple options
+                          internalToggleOption(option.value);
+                        } else {
+                          onChange?.(
+                            nullable && isSelected ? null : option.value,
+                          );
+                          setVisible(false);
+                        }
+                      }}
+                      aria-disabled={optionDisabled}
+                      accessibilityLabel={option.label}
+                      accessibilityRole={
+                        (Platform.OS === "web" ? "option" : "none") as any
                       }
-                    }}
-                    aria-disabled={optionDisabled}
-                    accessibilityLabel={option.label}
-                    accessibilityRole={
-                      (Platform.OS === "web" ? "option" : "none") as any
-                    }
-                    accessibilityState={{
-                      selected: isSelected,
-                      disabled: optionDisabled,
-                    }}
-                    style={({ hovered, pressed }: PressableState) => [
-                      styles.optionItem,
-                      multiple && { paddingVertical: 0 },
-                      optionStyle,
-                      {
-                        backgroundColor: optionDisabled
-                          ? "transparent"
-                          : pressed
-                            ? theme.colors.primaryContainer // Pressed state
-                            : hovered
-                              ? theme.colors.surfaceContainerHigh // Hover state (Web only)
-                              : "transparent",
-                      },
-                      // The checkbox dims itself in a multiple select.
-                      optionDisabled && !multiple && { opacity: 0.38 },
-                    ]}
-                    {...(Platform.OS === "android" &&
-                      !optionDisabled && {
-                        android_ripple: { color: theme.colors.onPrimary },
+                      {...a11yState("option", {
+                        selected: isSelected,
+                        disabled: optionDisabled,
                       })}
-                  >
-                    <View style={styles.optionLabelRow}>
-                      {multiple && (
-                        <Checkbox
-                          label={option.label}
-                          checked={isSelected}
-                          disabled={optionDisabled}
-                          onValueChange={() =>
-                            internalToggleOption(option.value)
-                          }
-                        />
-                      )}
-                      {!multiple && (
-                        <View style={styles.innerContent}>
-                          <View style={styles.leftSlot}>
-                            {!!option.icon && (
-                              <Icons
-                                name={option.icon}
-                                size={20}
-                                color={
-                                  isSelected
-                                    ? theme.colors.primary
-                                    : theme.colors.onSurfaceVariant
-                                }
-                                style={styles.leadingIcon}
-                              />
-                            )}
-                            <Text
-                              style={[
-                                theme.typography.bodyLarge,
-                                {
-                                  color: isSelected
-                                    ? theme.colors.primary
-                                    : theme.colors.onSurface,
-                                },
-                              ]}
-                            >
-                              {option.label}
-                            </Text>
+                      style={({ hovered, pressed }: PressableState) => [
+                        styles.optionItem,
+                        multiple && { paddingVertical: 0 },
+                        optionStyle,
+                        {
+                          backgroundColor: optionDisabled
+                            ? "transparent"
+                            : pressed
+                              ? theme.colors.primaryContainer // Pressed state
+                              : hovered
+                                ? theme.colors.surfaceContainerHigh // Hover state (Web only)
+                                : "transparent",
+                        },
+                        // The checkbox dims itself in a multiple select.
+                        optionDisabled && !multiple && { opacity: 0.38 },
+                      ]}
+                      {...(Platform.OS === "android" &&
+                        !optionDisabled && {
+                          android_ripple: { color: theme.colors.onPrimary },
+                        })}
+                    >
+                      <View style={styles.optionLabelRow}>
+                        {multiple && (
+                          <Checkbox
+                            label={option.label}
+                            checked={isSelected}
+                            disabled={optionDisabled}
+                            onValueChange={() =>
+                              internalToggleOption(option.value)
+                            }
+                          />
+                        )}
+                        {!multiple && (
+                          <View style={styles.innerContent}>
+                            <View style={styles.leftSlot}>
+                              {!!option.icon && (
+                                <Icons
+                                  name={option.icon}
+                                  size={20}
+                                  color={
+                                    isSelected
+                                      ? theme.colors.primary
+                                      : theme.colors.onSurfaceVariant
+                                  }
+                                  style={styles.leadingIcon}
+                                />
+                              )}
+                              <Text
+                                style={[
+                                  theme.typography.bodyLarge,
+                                  {
+                                    color: isSelected
+                                      ? theme.colors.primary
+                                      : theme.colors.onSurface,
+                                  },
+                                ]}
+                              >
+                                {option.label}
+                              </Text>
+                            </View>
                           </View>
-                        </View>
-                      )}
-                      {!multiple && isSelected && !!option.value && (
-                        <Icons
-                          name="check"
-                          size={18}
-                          color={theme.colors.primary}
-                        />
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+                        )}
+                        {!multiple && isSelected && option.value != null && (
+                          <Icons
+                            name="check"
+                            size={18}
+                            color={theme.colors.primary}
+                          />
+                        )}
+                      </View>
+                    </Pressable>
+                  );
+                }}
+              />
+            </OwnScroller>
           )}
         </View>
       </Popover>
-      {!!error && (
-        <Text
-          style={[
-            theme.typography.bodySmall,
-            { color: theme.colors.error, marginTop: 4, marginLeft: 16 },
-          ]}
-        >
-          {error}
-        </Text>
+      {/* The same error line as the other fields: glyph, gutter, announced. */}
+      {(!!error || reserveHelperText) && (
+        <HelperText type="error" visible={!!error}>
+          {error || " "}
+        </HelperText>
       )}
     </View>
   );
@@ -506,11 +531,12 @@ const makeStyles = (theme: Theme, dense: boolean) =>
     leadingIcon: {
       marginRight: 12,
     },
+    // No height: "100%": inside the virtualized list it was measured against
+    // the list, and every option grew to a third of it (seen on Android, 2/11).
     innerContent: {
       flex: 1,
       flexDirection: "column",
       justifyContent: "center",
-      height: "100%",
     },
     menuContent: {
       minWidth: 150,

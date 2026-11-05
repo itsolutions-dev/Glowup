@@ -10,8 +10,11 @@ type View = Awaited<ReturnType<typeof draw>>;
 
 const path = (view: View) =>
   view.container.queryAll((n) => n.type === "RNSVGPath")[0];
+// react-native-svg draws its root with a different native view on each platform.
 const svg = (view: View) =>
-  view.container.queryAll((n) => n.type === "RNSVGSvgView")[0];
+  view.container.queryAll(
+    (n) => n.type === "RNSVGSvgView" || n.type === "RNSVGSvgViewAndroid",
+  )[0];
 const box = (view: View, testID = "q") =>
   StyleSheet.flatten(view.getByTestId(testID).props.style);
 

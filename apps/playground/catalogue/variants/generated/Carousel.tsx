@@ -7,7 +7,8 @@ import type { Variant } from "../types";
 import { Carousel, Card, Typography, Avatar } from "@its/glowup-ui";
 
 const frame: ViewStyle = {
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
   flexDirection: "column",
 };
 

@@ -23,8 +23,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // the button went out of view.
 adb("shell", "settings", "put", "secure", "show_ime_with_hard_keyboard", "0");
 
+// An emulator given the CI's screen with `wm size 320x640` reports its physical size first: the
+// override is the size taps and swipes are in.
+const wmSize = adb("shell", "wm", "size");
 const [screenW, screenH] = (
-  adb("shell", "wm", "size").match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
+  wmSize.match(/Override size: (\d+)x(\d+)/) ??
+  wmSize.match(/(\d+)x(\d+)/) ?? [0, 1080, 2400]
 )
   .slice(1)
   .map(Number);
@@ -39,26 +43,33 @@ const screen = () => {
       xml = "";
     }
   }
-  return [...xml.matchAll(/<node\s[^>]*>/g)].map(([tag]) => {
-    const attr = (name) =>
-      (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) ?? [])[1] ?? "";
-    const [l, t, r, b] = (attr("bounds").match(/\d+/g) ?? [0, 0, 0, 0]).map(
-      Number,
-    );
-    return {
-      l,
-      t,
-      r,
-      b,
-      text: attr("text"),
-      desc: attr("content-desc"),
-      cls: attr("class"),
-      focused: attr("focused") === "true",
-      pkg: attr("package"),
-      x: Math.round((l + r) / 2),
-      y: Math.round((t + b) / 2),
-    };
-  });
+  return (
+    [...xml.matchAll(/<node\s[^>]*>/g)]
+      .map(([tag]) => {
+        const attr = (name) =>
+          (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) ?? [])[1] ?? "";
+        const [l, t, r, b] = (attr("bounds").match(/\d+/g) ?? [0, 0, 0, 0]).map(
+          Number,
+        );
+        return {
+          l,
+          t,
+          r,
+          b,
+          text: attr("text"),
+          desc: attr("content-desc"),
+          cls: attr("class"),
+          focused: attr("focused") === "true",
+          pkg: attr("package"),
+          x: Math.round((l + r) / 2),
+          y: Math.round((t + b) / 2),
+        };
+      })
+      // React Native draws `overflow: hidden` by clipping the canvas, so Android still counts a view
+      // scrolled out of its clip as visible; its accessible bounds come back clamped and upside down
+      // (top below bottom), which can fall inside any box on screen. Such a node is not on screen.
+      .filter((n) => n.r > n.l && n.b > n.t)
+  );
 };
 
 const named = (nodes, label) =>
@@ -72,30 +83,50 @@ const describe = (nodes) =>
     .slice(0, 30)
     .join(" | ");
 
-/** A swipe of `span` of the screen's height (0.4 by default); a short one nudges. */
-const swipe = (direction, span = 0.4) => {
+/**
+ * A swipe of `span` of the screen's height (0.4 by default); a short one nudges. At a quarter of the
+ * width, not in the middle: on a 320 px screen the middle is over the pivot grid's numbers, which
+ * scroll the grid instead of the page, and the steps that look for a field below it ran out of swipes.
+ * A quarter is over the grid's column of labels, which does not scroll and leaves the drag to the page.
+ *
+ * Never from a text field: it keeps the drag, focused or not (seen on the emulator), the page does not
+ * move, and every later step looking past it ran out of swipes (the pivot's toolbar put Amount on the
+ * starting point). `nodes` is the screen as the caller last read it; without, it is read here.
+ */
+const swipe = (direction, span = 0.4, nodes = screen()) => {
   const [from, to] =
     direction === "down"
       ? [0.5 + span / 2, 0.5 - span / 2]
       : [0.5 - span / 2, 0.5 + span / 2];
-  adb(
-    "shell",
-    "input",
-    "swipe",
-    screenW / 2,
-    screenH * from,
-    screenW / 2,
-    screenH * to,
-    300,
-  );
+  const x = Math.round(screenW / 4);
+  let [y0, y1] = [screenH * from, screenH * to];
+  const fieldAt = (y) =>
+    nodes.find(
+      (n) =>
+        n.cls.endsWith("EditText") &&
+        n.l <= x &&
+        x <= n.r &&
+        n.t <= y &&
+        y <= n.b,
+    );
+  const field = fieldAt(y0);
+  if (field) {
+    // Just below it, or just above when below is the bottom edge or another field; the same length of swipe.
+    const below = field.b + 8;
+    const start =
+      below <= screenH * 0.85 && !fieldAt(below) ? below : field.t - 8;
+    [y0, y1] = [start, start + (y1 - y0)];
+  }
+  adb("shell", "input", "swipe", x, y0, x, y1, 300);
 };
 
 // Until the title is on screen: the page is long, and a fixed number of swipes stops short of the
 // top once something is added at the end of it (the PDF page did, on Android 14).
 const scrollToTop = async () => {
   for (let i = 0; i < 24; i += 1) {
-    if (named(screen(), "Native check")) return;
-    swipe("up");
+    const nodes = screen();
+    if (named(nodes, "Native check")) return;
+    swipe("up", 0.4, nodes);
     await sleep(300);
   }
 };
@@ -107,13 +138,15 @@ const scrollToTop = async () => {
  * past.
  */
 const find = async (predicate, tries = 6) => {
-  let hit = predicate(screen());
+  let nodes = screen();
+  let hit = predicate(nodes);
   if (hit) return hit;
   for (const direction of ["down", "up"]) {
     for (let i = 0; i < (direction === "down" ? tries : tries * 2); i += 1) {
-      swipe(direction);
+      swipe(direction, 0.4, nodes);
       await sleep(600);
-      hit = predicate(screen());
+      nodes = screen();
+      hit = predicate(nodes);
       if (hit) return hit;
     }
   }
@@ -139,8 +172,14 @@ const bring = async (predicate, what) => {
   throw new Error(`${what} would not come into view`);
 };
 
-const tapNode = async (predicate, what) => {
-  const node = await find(predicate);
+/**
+ * Taps a node where it is found. With `centred`, it is brought into the middle first: found on the
+ * last row of pixels, "Open sheet" was tapped at the very bottom of the screen on Android 14, where
+ * the tap does not reach the page. Text fields are not brought: on the emulator the page would not
+ * move while the field above still had the cursor, and the step gave up.
+ */
+const tapNode = async (predicate, what, centred = true) => {
+  const node = centred ? await bring(predicate, what) : await find(predicate);
   if (!node) {
     throw new Error(`${what} not on screen; on screen: ${describe(screen())}`);
   }
@@ -190,9 +229,29 @@ const keyCode = (char) =>
 const typeInto = async (label, text, photoName, expectations) => {
   await scrollToTop();
   // By label, not by position: the page scrolls, and the first field in view is not always the same.
-  const field = (nodes) =>
-    nodes.find((n) => n.cls.endsWith("EditText") && n.desc.startsWith(label));
-  await tapNode(field, `the ${label} field`);
+  // A plain TextInput carries its label as content-desc. The library's fields do not (since 30/10 they
+  // are named by their label view through accessibilityLabelledBy, which uiautomator does not show), so
+  // for those: the label's text, then the nearest field under it that spans the label's x.
+  const field = (nodes) => {
+    const own = nodes.find(
+      (n) => n.cls.endsWith("EditText") && n.desc.startsWith(label),
+    );
+    if (own) return own;
+    const caption = nodes.find(
+      (n) => n.text === label && !n.cls.endsWith("EditText"),
+    );
+    if (!caption) return undefined;
+    return nodes
+      .filter(
+        (n) =>
+          n.cls.endsWith("EditText") &&
+          n.b > caption.t &&
+          n.l <= caption.x &&
+          caption.x <= n.r,
+      )
+      .sort((a, b) => a.t - b.t)[0];
+  };
+  await tapNode(field, `the ${label} field`, false);
   await sleep(1500);
   for (const char of text) {
     adb("shell", "input", "keyevent", keyCode(char));
@@ -316,7 +375,203 @@ steps.push(
         "part state",
       ),
   ],
+  [
+    "a bar chart draws its outcome marks over the right bars",
+    // Nothing to tap: the screen measures the marks itself and writes `outcomes=ok`; the photo shows them.
+    async () => {
+      await scrollToTop();
+      await bring(
+        (nodes) => nodes.find((n) => n.desc.startsWith("Native outcomes")),
+        'the "Native outcomes" chart',
+      );
+      await sleep(700);
+      photo("android-chart-outcomes.png");
+      await expectText(/^outcomes=ok$/, "outcome state");
+    },
+  ],
 );
+
+/** The first node inside a box (the grid's) that passes the test. */
+const within = (nodes, box, test) =>
+  nodes.find(
+    (n) =>
+      n.l >= box.l - 2 &&
+      n.r <= box.r + 2 &&
+      n.t >= box.t - 2 &&
+      n.b <= box.b + 2 &&
+      test(n),
+  );
+
+const pivotGrid = () =>
+  bring(
+    (nodes) => nodes.find((n) => n.desc === "Pivot grid"),
+    "the pivot grid",
+  );
+
+/**
+ * Taps the first arrow with this label inside the pivot grid. With `move`, the finger slides that
+ * many pixels before it lifts, as a real one does: `input tap` sends no move at all.
+ */
+const tapArrow = async (label, move = 0) => {
+  const box = await pivotGrid();
+  const arrow = within(screen(), box, (n) => n.desc === label);
+  if (!arrow) {
+    throw new Error(
+      `no "${label}" arrow in the grid; on screen: ${describe(screen())}`,
+    );
+  }
+  console.log(
+    `  tap the ${label} arrow at ${arrow.x},${arrow.y}${move ? `, moving ${move} px` : ""} (grid ${box.l},${box.t} - ${box.r},${box.b})`,
+  );
+  if (move) {
+    adb(
+      "shell",
+      "input",
+      "swipe",
+      arrow.x,
+      arrow.y,
+      arrow.x + move,
+      arrow.y + move,
+      120,
+    );
+  } else {
+    adb("shell", "input", "tap", arrow.x, arrow.y);
+  }
+  await sleep(700);
+};
+
+/** A drag up the numbers of the grid (the fixed columns take up its left and do not take a drag). */
+const dragGrid = (box) => {
+  const x = Math.round(box.l + (box.r - box.l) * 0.75);
+  adb(
+    "shell",
+    "input",
+    "swipe",
+    x,
+    Math.round(box.b - 20),
+    x,
+    Math.round(box.t + 60),
+    400,
+  );
+};
+
+steps.push(
+  [
+    "a tap on a pivot arrow closes a group and opens it again",
+    async () => {
+      await scrollToTop();
+      // The first arrow is the first site's: it hides its four categories (31 rows become 27).
+      await tapArrow("Collapse");
+      photo("android-pivot.png");
+      await expectText(/^pivot=27$/, "pivot rows after closing the first site");
+      await tapArrow("Expand");
+      await expectText(/^pivot=31$/, "pivot rows after opening it again");
+    },
+  ],
+  [
+    "the pivot header stays put while the rows scroll, and an arrow still answers after the scroll",
+    async () => {
+      const box = await pivotGrid();
+      const total = (nodes) => within(nodes, box, (n) => n.text === "Total");
+      const before = total(screen());
+      if (!before) {
+        throw new Error(
+          `the header is not on screen; on screen: ${describe(screen())}`,
+        );
+      }
+      // A drag up the grid: its rows move, its header must not.
+      dragGrid(box);
+      await sleep(900);
+      photo("android-pivot-scrolled.png");
+      const after = total(screen());
+      if (!after || Math.abs(after.t - before.t) > 6) {
+        throw new Error(
+          `the header moved: top ${before.t} -> ${after ? after.t : "gone"}`,
+        );
+      }
+      if (within(screen(), box, (n) => n.text === "Sum Total of Count")) {
+        throw new Error(
+          "the rows did not scroll: the first row is still there",
+        );
+      }
+      // An arrow of the rows now in view: the touch must reach it after the animated move.
+      await tapArrow("Collapse");
+      await expectText(
+        /^pivot=27$/,
+        "pivot rows after a tap following the scroll",
+      );
+    },
+  ],
+  [
+    "after a scroll, an arrow answers a tap whose finger moves a little",
+    async () => {
+      // Pressability measures the arrow where the JavaScript side last saw it, before the native
+      // animation moved it: a finger that moved out of that zone used to drop the press.
+      const line = await find((nodes) => hasText(nodes, /^pivot=\d+$/));
+      if (!line) throw new Error("the pivot=<rows> line is not on screen");
+      const rows = Number(line.text.slice("pivot=".length));
+      const box = await pivotGrid();
+      dragGrid(box);
+      await sleep(900);
+      await tapArrow("Collapse", 3);
+      await expectText(
+        new RegExp(`^pivot=${rows - 4}$`),
+        "pivot rows after a moving tap on Collapse",
+      );
+      await tapArrow("Expand", 3);
+      await expectText(
+        new RegExp(`^pivot=${rows}$`),
+        "pivot rows after a moving tap on Expand",
+      );
+    },
+  ],
+);
+
+steps.push([
+  "Export to Excel hands an .xlsx to Android's share sheet",
+  async () => {
+    await tapNode(
+      (nodes) => named(nodes, "Export to Excel"),
+      'the pivot\'s "Export to Excel" button',
+    );
+    // The chooser is the system's, not the app's: package `android` up to Android 13,
+    // `com.android.intentresolver` from 14; some versions show the file's name. An "app isn't
+    // responding" dialog is package `android` too, so it is told apart by its text.
+    const notResponding = /isn't responding|not responding|Close app/i;
+    let sheet = null;
+    let seconds = 0;
+    // Up to 20 s: a sheet that came after the wait used to cover every later step.
+    while (seconds < 20 && !sheet) {
+      await sleep(1000);
+      seconds += 1;
+      const nodes = screen();
+      const anr = hasText(nodes, notResponding);
+      if (anr) {
+        photo("android-pivot-export.png");
+        throw new Error(`the app is not responding: ${describe(nodes)}`);
+      }
+      sheet =
+        nodes.find(
+          (n) => n.pkg === "android" || n.pkg === "com.android.intentresolver",
+        ) ?? hasText(nodes, /pivot(-sample)?\.xlsx/);
+    }
+    photo("android-pivot-export.png");
+    if (!sheet) {
+      throw new Error(
+        `no share sheet after the tap; on screen: ${describe(screen())}`,
+      );
+    }
+    // Only with the sheet open: a Back on the screen itself would leave it.
+    adb("shell", "input", "keyevent", "KEYCODE_BACK");
+    await sleep(1000);
+    // Closed first, so the steps after this one start on the app's screen.
+    if (seconds > 8) {
+      throw new Error(
+        `the share sheet took ${seconds} s to open (8 s at most)`,
+      );
+    }
+  },
+]);
 
 steps.push([
   "the sample PDF page is on screen, drawn at the viewer's size",

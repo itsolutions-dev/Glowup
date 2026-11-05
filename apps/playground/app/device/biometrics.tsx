@@ -215,6 +215,7 @@ export default function BiometricsPage() {
             }
             action={
               <Switch
+                accessibilityLabel="Lock the card"
                 value={lockWanted && supported}
                 disabled={!supported}
                 onChange={setLockWanted}

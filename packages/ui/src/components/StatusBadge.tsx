@@ -7,7 +7,8 @@ import { toneFrom as resolveTone } from "../providers/toneFrom";
 export interface StatusBadgeProps {
   label: string;
   icon?: string;
-  type?: "success" | "error" | "warning";
+  /** The state, which picks the colours and the icon: `info` for something to look at, `neutral` for neither good nor bad. Defaults to `"success"`. */
+  type?: "success" | "error" | "warning" | "info" | "neutral";
   /**
    * Tints the badge from a `#RRGGBB` colour or from any text instead of from
    * `type`, which still picks the default icon.
@@ -19,6 +20,8 @@ const ICONS = {
   success: "check-circle",
   error: "alert-circle",
   warning: "alert",
+  info: "information",
+  neutral: "minus-circle",
 } as const;
 
 const StatusBadge = ({
@@ -35,32 +38,34 @@ const StatusBadge = ({
       const tint = resolveTone(toneFrom, theme.isDark ? "dark" : "light");
       return { bg: tint.background, on: tint.foreground };
     }
-    if (type === "error") {
-      return {
-        bg: theme.colors.errorContainer,
-        on: theme.colors.onErrorContainer,
-      };
-    }
-    if (type === "warning") {
-      return {
-        bg: theme.colors.warningContainer,
-        on: theme.colors.onWarningContainer,
-      };
-    }
-    return {
-      bg: theme.colors.successContainer,
-      on: theme.colors.onSuccessContainer,
-    };
+    const roles = {
+      success: ["successContainer", "onSuccessContainer"],
+      error: ["errorContainer", "onErrorContainer"],
+      warning: ["warningContainer", "onWarningContainer"],
+      info: ["infoContainer", "onInfoContainer"],
+      neutral: ["neutralContainer", "onNeutralContainer"],
+    } as const;
+    const [container, onContainer] = roles[type] ?? roles.success;
+    return { bg: theme.colors[container], on: theme.colors[onContainer] };
   }, [type, theme, toneFrom]);
 
   return (
     <View
       style={[styles.statusContainer, { backgroundColor: bg }]}
       accessibilityRole="text"
-      accessibilityLabel={`${type}: ${label}`}
+      accessibilityLabel={label}
     >
       <Icons name={(icon || ICONS[type]) as any} size={14} color={on} />
-      <Text style={[styles.statusText, { color: on }]}>{label}</Text>
+      {/* The badge is named by its label already: inside a pressable row the
+          text would be read a second time ("Due, Due"). */}
+      <Text
+        style={[styles.statusText, { color: on }]}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
+        aria-hidden
+      >
+        {label}
+      </Text>
     </View>
   );
 };

@@ -22,7 +22,14 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
-import { useFormDisabled, useFormSubmit, useFormSubmitting } from "./Form";
+import {
+  useFormDisabled,
+  useFormSubmit,
+  useFormSubmitting,
+  useRegisterSubmitButton,
+} from "./Form";
+import { a11yState } from "./internal/a11yState";
+import { warnOnce } from "./internal/devWarning";
 
 export type ButtonVariant = "filled" | "tonal" | "outlined" | "text";
 export type ButtonColor = ColorRole;
@@ -174,6 +181,7 @@ const Button = ({
   const formDisabled = useFormDisabled();
   const isLoading = loading || (type === "submit" && submitting);
   const isDisabled = disabled || (type === "submit" && formDisabled);
+  useRegisterSubmitButton(type === "submit", disabled);
   const dense = useDensity(density) === "dense";
   const emitFeedback = useInteractionFeedback(feedback);
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -190,6 +198,13 @@ const Button = ({
 
   const isInteractive = !isDisabled && !isLoading && !busy;
 
+  // Icons are never read, so an icon-only button has no name of its own.
+  if (!accessibilityLabel && children == null && iconName) {
+    warnOnce(
+      'An icon-only Button needs accessibilityLabel: screen readers read only "Button".',
+    );
+  }
+
   return (
     <Pressable
       accessibilityLabel={
@@ -198,10 +213,11 @@ const Button = ({
       }
       accessibilityHint={accessibilityHint}
       accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled, busy: isLoading || busy }}
-      accessibilityValue={badge ? { text: String(badge) } : undefined}
-      // react-native-web does not map accessibilityState.busy to the DOM.
-      aria-busy={isLoading || busy}
+      {...a11yState(
+        "button",
+        { disabled: isDisabled, busy: isLoading || busy },
+        badge ? { text: String(badge) } : undefined,
+      )}
       testID={testID}
       // A no-op rather than undefined while busy: the Pressable stays enabled,
       // and an undefined handler leaves the press free to be answered by

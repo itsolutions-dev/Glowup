@@ -215,15 +215,17 @@ it("links the overview to every capability", async () => {
 it("lists the device info", async () => {
   await render(<DeviceInfoPage />, { wrapper: Providers });
   expect(screen.getByText("Pixel 8")).toBeTruthy();
-  expect(screen.getByText("Real device")).toBeTruthy();
+  expect(screen.getByLabelText("Real device")).toBeTruthy();
 });
 
 describe("location", () => {
   it("asks first, then locates on demand", async () => {
     await render(<LocationPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getByText("Not asked")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("Not asked")).toBeTruthy(),
+    );
     await fireEvent.press(screen.getByText("Use my location"));
-    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
     expect(location.requestCount).toBe(1);
     await fireEvent.press(screen.getByText("Locate me"));
     await waitFor(() => expect(screen.getByText("41.902800")).toBeTruthy());
@@ -233,7 +235,9 @@ describe("location", () => {
     location.setPermission("granted", { precision: "approximate" });
     location.setPosition(buildPosition({ latitude: 45.464211 }));
     await render(<LocationPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getByText("Approximate")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("Approximate")).toBeTruthy(),
+    );
     await fireEvent.press(screen.getByText("Locate me"));
     await waitFor(() => expect(screen.getByText("45.464211")).toBeTruthy());
   });
@@ -241,7 +245,7 @@ describe("location", () => {
   it("follows the compass once started", async () => {
     location.setPermission("granted");
     await render(<LocationPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getByText("Granted")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
     await fireEvent.press(screen.getByText("Start the compass"));
     await waitFor(() => expect(location.headingWatches).toBe(1));
     await act(async () => {
@@ -253,7 +257,7 @@ describe("location", () => {
     });
     expect(screen.getAllByText("90° E")).toHaveLength(2);
     expect(screen.getByText("Needs a location fix first")).toBeTruthy();
-    expect(screen.getByText("Unreliable")).toBeTruthy();
+    expect(screen.getByLabelText("Unreliable")).toBeTruthy();
     await fireEvent.press(screen.getByText("Stop the compass"));
     await waitFor(() => expect(location.headingWatches).toBe(0));
   });
@@ -351,10 +355,10 @@ describe("camera", () => {
 
 it("follows the network", async () => {
   await render(<NetworkPage />, { wrapper: Providers });
-  await waitFor(() => expect(screen.getByText("Online")).toBeTruthy());
+  await waitFor(() => expect(screen.getByLabelText("Online")).toBeTruthy());
   expect(screen.getByText("wifi")).toBeTruthy();
   await act(async () => network.setState(OFFLINE_NETWORK));
-  expect(screen.getByText("Offline")).toBeTruthy();
+  expect(screen.getByLabelText("Offline")).toBeTruthy();
   await fireEvent.press(screen.getByText("Check again"));
   await waitFor(() => expect(network.refreshCount).toBe(1));
 });
@@ -376,7 +380,7 @@ describe("keep awake", () => {
     expect(keepAwake.isAwake).toBe(false);
     await fireEvent.press(screen.getByRole("switch"));
     await waitFor(() => expect(keepAwake.isAwake).toBe(true));
-    expect(screen.getByText("Holding")).toBeTruthy();
+    expect(screen.getByLabelText("Holding")).toBeTruthy();
   });
 
   it("lets go while another page is on screen", async () => {
@@ -392,7 +396,7 @@ describe("orientation", () => {
     await render(<OrientationPage />, { wrapper: Providers });
     await waitFor(() => expect(screen.getByText("portrait-up")).toBeTruthy());
     await fireEvent.press(screen.getByText("Landscape"));
-    await waitFor(() => expect(screen.getByText("Locked")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Locked")).toBeTruthy());
     expect(orientation.currentLock).toBe("landscape");
     expect(screen.getByText("landscape-left")).toBeTruthy();
     await fireEvent.press(screen.getByText("App's own"));
@@ -403,7 +407,7 @@ describe("orientation", () => {
     orientation = createMockOrientationAdapter({ lockable: false });
     await render(<OrientationPage />, { wrapper: Providers });
     await fireEvent.press(screen.getByRole("radio", { name: "Portrait" }));
-    await waitFor(() => expect(screen.getByText("Refused")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Refused")).toBeTruthy());
   });
 });
 
@@ -449,7 +453,7 @@ describe("biometrics", () => {
       screen.getByRole("radio", { name: "Biometrics only" }),
     );
     await fireEvent.press(screen.getByText("Authenticate"));
-    await waitFor(() => expect(screen.getByText("Success")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Success")).toBeTruthy());
     expect(biometrics.calls).toEqual([
       expect.objectContaining({ fallback: "none", strength: "weak" }),
     ]);
@@ -460,7 +464,7 @@ describe("biometrics", () => {
       detail: "lockout: Too many attempts",
     });
     await fireEvent.press(screen.getByText("Authenticate"));
-    await waitFor(() => expect(screen.getByText("lockout")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("lockout")).toBeTruthy());
     expect(screen.getByText("lockout: Too many attempts")).toBeTruthy();
   });
 
@@ -511,10 +515,12 @@ describe("secure store", () => {
     await render(<SecureStorePage />, { wrapper: Providers });
     await fireEvent.changeText(screen.getByLabelText("Secret"), "s3cret");
     await fireEvent.press(screen.getByText("Save protected"));
-    await waitFor(() => expect(screen.getByText("ok")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("ok")).toBeTruthy());
 
     await fireEvent.press(screen.getByText("Read"));
-    await waitFor(() => expect(screen.getByText("ok: s3cret")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("ok: s3cret")).toBeTruthy(),
+    );
     expect(secureStore.prompts).toEqual([
       "Open the playground's secret",
       "Open the playground's secret",
@@ -522,14 +528,17 @@ describe("secure store", () => {
 
     secureStore.invalidate();
     await fireEvent.press(screen.getByText("Read"));
-    await waitFor(() => expect(screen.getByText("invalidated")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("invalidated")).toBeTruthy(),
+    );
 
     secureStore.denyNext("cancelled");
     await fireEvent.press(screen.getByText("Read"));
-    // The badge, and the detail (the mock's message is the status).
-    await waitFor(() =>
-      expect(screen.getAllByText("cancelled")).toHaveLength(2),
-    );
+    // The badge (named by its label), and the detail (the mock's message is the status).
+    await waitFor(() => {
+      expect(screen.getByLabelText("cancelled")).toBeTruthy();
+      expect(screen.getByText("cancelled")).toBeTruthy();
+    });
   });
 });
 
@@ -579,7 +588,7 @@ describe("sensors", () => {
     mockFocused = false;
     await render(<SensorsPage />, { wrapper: Providers });
     await waitFor(() =>
-      expect(screen.getAllByText("Paused").length).toBeGreaterThan(0),
+      expect(screen.getAllByLabelText("Paused").length).toBeGreaterThan(0),
     );
     expect(sensors.isActive("accelerometer")).toBe(false);
   });
@@ -597,7 +606,7 @@ describe("sensors", () => {
     await waitFor(() =>
       expect(screen.getByText("Allow motion access")).toBeTruthy(),
     );
-    expect(screen.getByText("Needs motion access")).toBeTruthy();
+    expect(screen.getByLabelText("Needs motion access")).toBeTruthy();
     expect(sensors.isActive("barometer")).toBe(false);
 
     await fireEvent.press(screen.getByText("Allow motion access"));
@@ -642,7 +651,9 @@ describe("media picker", () => {
     // Single item: the third switch is the crop.
     await fireEvent.press(screen.getAllByRole("switch")[1]);
     await fireEvent.press(screen.getByText("Choose"));
-    await waitFor(() => expect(screen.getByText("Cancelled")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("Cancelled")).toBeTruthy(),
+    );
     expect(mediaPicker.requests).toEqual([
       expect.objectContaining({ multiple: false, edit: true }),
     ]);
@@ -661,13 +672,15 @@ describe("media picker", () => {
 describe("media library", () => {
   it("saves a chosen photo, asking for the permission the first time", async () => {
     await render(<MediaLibraryPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getByText("Not asked")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByLabelText("Not asked")).toBeTruthy(),
+    );
     await fireEvent.press(screen.getByText("Choose a photo"));
     await waitFor(() =>
       expect(screen.getByText("Choose another")).toBeTruthy(),
     );
     await fireEvent.press(screen.getByText("Save to Photos"));
-    await waitFor(() => expect(screen.getByText("Saved")).toBeTruthy());
+    await waitFor(() => expect(screen.getByLabelText("Saved")).toBeTruthy());
     expect(screen.getByText("mock-asset-1")).toBeTruthy();
     expect(mediaLibrary.saved).toEqual([buildPickedMedia().uri]);
     expect(mediaLibrary.permissionRequests).toBe(1);
@@ -701,7 +714,7 @@ describe("media library", () => {
 
     mediaLibrary = createMockMediaLibraryAdapter({ supported: false });
     await render(<MediaLibraryPage />, { wrapper: Providers });
-    expect(screen.getByText("No photo library here")).toBeTruthy();
+    expect(screen.getByLabelText("No photo library here")).toBeTruthy();
   });
 });
 
@@ -709,7 +722,9 @@ describe("background location", () => {
   it("records positions through the task and stops", async () => {
     location.setPermission("granted");
     await render(<BackgroundLocationPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getAllByText("Stopped")).toHaveLength(2));
+    await waitFor(() =>
+      expect(screen.getAllByLabelText("Stopped")).toHaveLength(2),
+    );
     expect(
       screen.getByText("Nothing yet. Start one of the two above, then move."),
     ).toBeTruthy();
@@ -791,7 +806,9 @@ describe("background location", () => {
       supported: false,
     });
     await render(<BackgroundLocationPage />, { wrapper: Providers });
-    await waitFor(() => expect(screen.getAllByText("Stopped")).toHaveLength(2));
+    await waitFor(() =>
+      expect(screen.getAllByLabelText("Stopped")).toHaveLength(2),
+    );
     expect(screen.getByText("Start recording")).toBeTruthy();
     backgroundLocation = createMockBackgroundLocationAdapter();
     backgroundLocation.failNextStart("unsupported");

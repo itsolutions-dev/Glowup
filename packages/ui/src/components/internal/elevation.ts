@@ -30,7 +30,9 @@ export const elevationStyle = (theme: Theme, level: number): ViewStyle => {
     c.surfaceContainer,
     c.surfaceContainerHigh,
     c.surfaceContainerHighest,
-    c.surfaceDim,
+    // The top of the container scale: the shadow tells 5 from 4. (surfaceDim
+    // is darker than the page in dark mode, so 5 looked lower than 0.)
+    c.surfaceContainerHighest,
   ][elevation];
   const shadow = SHADOWS[elevation];
   if (!shadow) return { backgroundColor };

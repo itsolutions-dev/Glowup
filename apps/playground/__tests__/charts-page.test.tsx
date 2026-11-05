@@ -92,4 +92,16 @@ describe("the charts page", () => {
     expect(screen.getByTestId("demo-many-dense-value")).toBeTruthy();
     expect(screen.queryAllByTestId(/^demo-many-bar-/)).toHaveLength(0);
   });
+
+  it("draws two columns per team with an outcome mark and a target", async () => {
+    await open();
+    await fireEvent(screen.getByTestId("demo-columns"), "layout", {
+      nativeEvent: { layout: { width: 900, height: 280, x: 0, y: 0 } },
+    });
+    expect(
+      screen.queryAllByTestId(/^demo-columns-bar-/).length,
+    ).toBeGreaterThan(10);
+    expect(screen.queryAllByTestId(/^demo-columns-marker-/).length).toBe(7);
+    expect(screen.getByTestId("demo-columns-target-0")).toBeTruthy();
+  });
 });

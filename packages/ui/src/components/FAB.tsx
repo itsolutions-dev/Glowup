@@ -10,12 +10,14 @@ import {
   ViewStyle,
 } from "react-native";
 import Icons from "./Glyph";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useInsets } from "./internal/useInsets";
 import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { useStateLayer } from "./TouchableRipple";
 import { cornerStyle, type Corner } from "./internal/cornerPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
+import { warnOnce } from "./internal/devWarning";
 
 export type FABSize = "small" | "medium" | "large";
 
@@ -99,12 +101,19 @@ const EXPANDED_PADDING = 16;
  * <FAB variant="animated" icon="plus" label="New ticket" extended={extended} onClick={create} />
  * ```
  */
-const FAB = (props: FABProps) =>
-  props.variant === "animated" ? (
+const FAB = (props: FABProps) => {
+  // Icons are never read: without label the FAB is only "<icon> FAB".
+  if (!props.label) {
+    warnOnce(
+      "A FAB needs label: it is its name for screen readers, also when the icon variant does not draw it.",
+    );
+  }
+  return props.variant === "animated" ? (
     <AnimatedFab {...props} />
   ) : (
     <StaticFab {...props} />
   );
+};
 
 export default FAB;
 
@@ -123,7 +132,7 @@ const StaticFab = ({
 }: FABProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const stateLayer = useStateLayer(
     theme.colors.primaryContainer,
     theme.colors.onPrimaryContainer,
@@ -138,7 +147,7 @@ const StaticFab = ({
       accessibilityLabel={label || `${icon} FAB`}
       accessibilityRole="button"
       disabled={disabled}
-      accessibilityState={{ disabled }}
+      {...a11yState("button", { disabled })}
       onPress={() => {
         emitFeedback("press");
         onClick();
@@ -202,7 +211,7 @@ const AnimatedFab = ({
 }: FABProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
-  const insets = useSafeAreaInsets();
+  const insets = useInsets();
   const stateLayer = useStateLayer(
     theme.colors.primaryContainer,
     theme.colors.onPrimaryContainer,
@@ -305,7 +314,7 @@ const AnimatedFab = ({
         testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label || `${icon} FAB`}
-        accessibilityState={{ disabled, expanded: extended }}
+        {...a11yState("button", { disabled, expanded: extended })}
         disabled={disabled}
         onPress={() => {
           emitFeedback("press");

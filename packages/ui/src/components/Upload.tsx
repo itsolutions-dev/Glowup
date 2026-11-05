@@ -29,6 +29,7 @@ import {
   type MaterialCommunityIconsGlyphs,
   type PressableState,
 } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 /** What `Upload` gives an `onUpload` besides the file. */
 export interface UploadHandlers {
@@ -340,7 +341,7 @@ const Upload = ({
         accessibilityRole="button"
         accessibilityLabel={text}
         accessibilityHint={limits || undefined}
-        accessibilityState={{ disabled }}
+        {...a11yState("button", { disabled })}
         disabled={disabled}
         onPress={() => void open()}
         testID={testID && `${testID}-trigger`}

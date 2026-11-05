@@ -11,6 +11,7 @@ import {
 import Icons from "./Glyph";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 export interface LinkProps {
   children: string;
@@ -31,7 +32,7 @@ export interface LinkProps {
   variant?: keyof Theme["typography"];
   /** Underline behaviour. Defaults to `"hover"`. */
   underline?: "always" | "hover" | "none";
-  /** Appends an external-link icon. Defaults to `true` when `href` is remote. */
+  /** Appends an external-link icon. Defaults to `true` when `href` is an `http` or `https` address. */
   showExternalIcon?: boolean;
   externalIcon?: MaterialCommunityIconsGlyphs;
   color?: string;
@@ -45,7 +46,10 @@ export interface LinkProps {
 const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
 const DEFAULT_SCHEMES = ["http", "https", "mailto", "tel"];
 
-const isRemote = (href?: string) => !!href && SCHEME.test(href);
+// A web address opens a page elsewhere; mailto: and tel: open the mail or
+// phone app, and an app's own scheme stays in the app.
+const isRemote = (href?: string) =>
+  !!href && /^https?$/i.test(SCHEME.exec(href)?.[1] ?? "");
 
 /**
  * The scheme a URL parser would read, or `undefined` for a relative href.
@@ -102,7 +106,7 @@ const Link = ({
     <Pressable
       accessibilityRole="link"
       accessibilityLabel={accessibilityLabel ?? children}
-      accessibilityState={{ disabled: !!disabled }}
+      {...a11yState("link", { disabled: !!disabled })}
       disabled={disabled || !handlePress}
       onPress={handlePress}
       testID={testID}

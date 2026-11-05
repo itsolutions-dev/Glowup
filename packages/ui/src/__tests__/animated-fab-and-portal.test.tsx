@@ -2,6 +2,7 @@ import React from "react";
 import { Text, View } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import {
   FAB,
   Autocomplete,
@@ -11,7 +12,7 @@ import {
   Tooltip,
 } from "../index";
 
-// SafeAreaProvider is part of the kit's provider contract — FAB, AppBar and SpeedDial all read insets and throw without it, same as in App.tsx.
+// SafeAreaProvider, as an app mounts it: FAB, AppBar and SpeedDial read its insets (without one they are zero).
 const Providers = ({ children }: { children: React.ReactNode }) => (
   <SafeAreaProvider
     initialMetrics={{
@@ -228,21 +229,29 @@ describe("SpeedDial trigger", () => {
     { id: 1, icon: "pencil" as const, label: "Edit", onPress: () => {} },
   ];
 
+  const glyph = (name: "plus" | "close") =>
+    String.fromCodePoint(Number(MaterialCommunityIcons.glyphMap[name]));
+  const drawn = (button: any) => JSON.stringify(button);
+
   // The trigger is a rounded square: turning the whole button 45° drew a diamond.
   it("shows a close icon while open, and never turns the button", async () => {
-    const { getByLabelText, queryByLabelText, toJSON } = await wrap(
+    const { getByLabelText, toJSON } = await wrap(
       <SpeedDial mainIcon="plus" actions={actions} />,
     );
-    expect(queryByLabelText("close FAB")).toBeNull();
-    await fireEvent.press(getByLabelText("plus FAB"));
-    expect(getByLabelText("close FAB")).toBeTruthy();
+    const closed = getByLabelText("Open actions");
+    expect(drawn(closed)).not.toContain(glyph("close"));
+    await fireEvent.press(closed);
+    const open = getByLabelText("Close actions");
+    expect(drawn(toJSON())).toContain(glyph("close"));
+    expect(open).toBeTruthy();
     expect(JSON.stringify(toJSON())).not.toContain("deg");
   });
 
   it("opens on the close icon with defaultOpen", async () => {
-    const { getByLabelText } = await wrap(
+    const { getByLabelText, toJSON } = await wrap(
       <SpeedDial mainIcon="plus" actions={actions} defaultOpen />,
     );
-    expect(getByLabelText("close FAB")).toBeTruthy();
+    expect(getByLabelText("Close actions")).toBeTruthy();
+    expect(drawn(toJSON())).toContain(glyph("close"));
   });
 });

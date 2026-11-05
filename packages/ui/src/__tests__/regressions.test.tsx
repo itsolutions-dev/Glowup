@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Linking, Pressable, Text } from "react-native";
+import { Linking, Pressable, StyleSheet, Text } from "react-native";
 import { act, fireEvent, render } from "@testing-library/react-native";
 import {
   Alert,
@@ -121,6 +121,23 @@ describe("Collapse", () => {
     // …and gone once it has.
     expect(body()).toBeNull();
   });
+
+  it("is never exactly 0 tall on the phone, so it can measure what it opens to", async () => {
+    // Fabric does not send onLayout to the content of a box laid out at height 0: a Collapse that
+    // started closed measured its children as 0 when they mounted and opened to nothing (a drawer
+    // group showed no sub-items on Android). One physical pixel is enough for the event to come.
+    const { getByTestId } = await render(
+      <ThemeProvider>
+        <Collapse open={false} testID="box">
+          <Text>Body</Text>
+        </Collapse>
+      </ThemeProvider>,
+    );
+    // Closed, it is hidden from assistive tech: the query has to include hidden elements.
+    const box = getByTestId("box", { includeHiddenElements: true });
+    const style = StyleSheet.flatten(box.props.style);
+    expect(style.minHeight).toBe(StyleSheet.hairlineWidth);
+  });
 });
 
 describe("Alert", () => {
@@ -143,6 +160,21 @@ describe("Alert", () => {
       );
     } finally {
       spy.mockRestore();
+    }
+  });
+
+  // On iOS and Android it is react-native's own alert: no provider needed, so
+  // one raised at startup (before the provider mounts) is not lost.
+  it("on iOS and Android needs no mounted provider", () => {
+    const { Alert: RNAlert } = jest.requireActual("react-native");
+    const spy = jest.spyOn(RNAlert, "alert").mockImplementation(() => {});
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      Alert("Started offline");
+      expect(spy).toHaveBeenCalledWith("Started offline", undefined, undefined);
+    } finally {
+      spy.mockRestore();
+      warn.mockRestore();
     }
   });
 });

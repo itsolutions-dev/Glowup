@@ -13,6 +13,7 @@ import {
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { placeAnchored, type AnchorPosition } from "./internal/anchorPlacement";
 
@@ -172,11 +173,11 @@ const makeStyles = (theme: Theme) =>
       overflow: "hidden",
       ...Platform.select({
         web: {
-          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+          boxShadow: `0 10px 25px ${rgba(theme.colors.shadow, 0.1)}`,
           backdropFilter: "blur(10px)", // Adds a premium "glass" look
         },
         ios: {
-          shadowColor: "#000",
+          shadowColor: theme.colors.shadow,
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.1,
           shadowRadius: 12,

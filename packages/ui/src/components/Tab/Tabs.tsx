@@ -14,6 +14,7 @@ import { colorRoleTokens } from "../internal/colorRole";
 import type { ColorRole } from "../internal/colorRole";
 import { useReduceMotion } from "../internal/useReduceMotion";
 import { MaterialCommunityIconsGlyphs, PressableState } from "../types";
+import { a11yState } from "../internal/a11yState";
 
 export interface TabItem {
   label: string;
@@ -235,8 +236,7 @@ const Tabs = ({
             },
         ]}
         accessibilityRole="tab"
-        accessibilityState={{ selected: isActive, disabled }}
-        aria-selected={isActive}
+        {...a11yState("tab", { selected: isActive, disabled })}
         accessibilityLabel={label}
       >
         {!!iconName && stacked && (

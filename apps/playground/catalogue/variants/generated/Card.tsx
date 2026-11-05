@@ -21,7 +21,8 @@ import {
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 12,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 const spacer = (h: number) => <View style={{ height: h }} />;
@@ -63,7 +64,7 @@ export const Variants = () => (
 );
 
 export const ProfileCard = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: "100%", maxWidth: 380 }}>
     <Card variant="elevated">
       <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
         <Avatar name="Marta Rossi" size={48} status="online" />
@@ -139,7 +140,7 @@ export const Pressable = () => (
 );
 
 export const WithActions = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: "100%", maxWidth: 380 }}>
     <Card variant="outlined">
       <CardTitle title="Invite your team" subtitle="Workspace · Acme Inc." />
       <CardContent>
@@ -180,7 +181,7 @@ const cover = {
 
 /** The four Card parts in one composition: cover, header, body, action row. */
 export const ComposedFromParts = () => (
-  <View style={{ width: 380 }}>
+  <View style={{ width: "100%", maxWidth: 380 }}>
     <Card variant="elevated">
       <CardCover source={cover} alt="Release banner" />
       <CardTitle

@@ -346,6 +346,7 @@ export const exportCode = (doc: LayoutDocument): string => {
         attrs.push(value("valuePropName", binding.valueProp));
       if (binding.trigger !== "onChange")
         attrs.push(value("trigger", binding.trigger));
+      if (binding.control) attrs.push(same("control"));
       return {
         tag: "FormField",
         attrs,

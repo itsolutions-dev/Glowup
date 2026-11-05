@@ -9,7 +9,8 @@ import { DatePicker } from "@its/glowup-ui";
 // `DateTimePicker` carries its own marginBottom, so the column takes no gap.
 const stack: ViewStyle = {
   flexDirection: "column",
-  width: 340,
+  width: "100%",
+  maxWidth: 340,
 };
 
 const noop = () => {};
@@ -28,12 +29,8 @@ const nextWeek = new Date(2024, 4, 22);
 export const Basic = () => (
   <View style={stack}>
     <DatePicker label="Invoice date" value={later} onChange={noop} />
-    <DatePicker
-      label="Invoice date"
-      value={null}
-      placeholder="Not set"
-      onChange={noop}
-    />
+    {/* Empty, the typed-entry field shows the locale's date mask. */}
+    <DatePicker label="Invoice date" value={null} onChange={noop} />
   </View>
 );
 

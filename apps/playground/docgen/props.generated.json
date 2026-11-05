@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 120,
+  "componentCount": 123,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -910,6 +910,12 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
           "name": "title",
           "type": "string",
           "required": false,
@@ -1402,6 +1408,13 @@
           "name": "onClick",
           "type": "() => void",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "required": false,
+          "description": "Draws the card as the chosen one of a set (a primary border) and says so to screen readers.",
           "deprecated": false
         },
         {
@@ -2379,6 +2392,7 @@
           "name": "columns",
           "type": "ColumnDefinition[]",
           "required": true,
+          "description": "The columns, in order. Keep the array stable (`useMemo`), and `onClick`\ntoo (`useCallback`): a row is drawn again only when something it shows\nchanges, which a new array every render defeats.",
           "deprecated": false
         },
         {
@@ -2440,7 +2454,7 @@
           "name": "onClick",
           "type": "(row: any, index: number) => void",
           "required": false,
-          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable, with the button role: a cell then should not hold\na control of its own.",
+          "description": "Called with the row and its index in `data` when a row is pressed. Giving it\nmakes the rows pressable: a button on iOS and Android, where a cell then\nshould not hold a control of its own (the row is read as one element); a\nfocusable row on the web, which Enter presses.",
           "deprecated": false
         },
         {
@@ -3201,6 +3215,14 @@
           "deprecated": false
         },
         {
+          "name": "dividers",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Draws a line above and below the body, to set a long, scrolling body apart\nfrom the title and the actions. Ignored by `fullScreen`. Defaults to `false`.",
+          "deprecated": false
+        },
+        {
           "name": "form",
           "type": "boolean",
           "required": false,
@@ -3243,6 +3265,13 @@
           "deprecated": false
         },
         {
+          "name": "leadingActions",
+          "type": "React.ReactNode",
+          "required": false,
+          "description": "Actions on the start of the actions row, apart from `actions` at its\nend: a destructive or secondary action (\"Delete\", \"Reset\"). Ignored by\n`fullScreen`.",
+          "deprecated": false
+        },
+        {
           "name": "onClose",
           "type": "() => void",
           "required": false,
@@ -3254,6 +3283,13 @@
           "type": "() => void",
           "required": false,
           "description": "Called when the `form` is submitted. Only used with `form`.",
+          "deprecated": false
+        },
+        {
+          "name": "overline",
+          "type": "string",
+          "required": false,
+          "description": "A small line above the title: what the dialog is about (a record's name,\na step). Not drawn by `fullScreen`.",
           "deprecated": false
         },
         {
@@ -3287,7 +3323,7 @@
           "type": "string",
           "required": false,
           "default": "\"dialog\"",
-          "description": "Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`.",
+          "description": "Root testID. The scrim gets `${testID}-scrim`, the close icon `${testID}-close`, the form `${testID}-form`,\nthe actions row `${testID}-actions`, the dividers `${testID}-divider-top` / `-bottom`.",
           "deprecated": false
         },
         {
@@ -3918,7 +3954,7 @@
       "props": [
         {
           "name": "children",
-          "type": "React.ReactElement | ((field: FormFieldChildProps) => React.ReactNode)",
+          "type": "| React.ReactElement | ((field: FormFieldChildProps<V, T, C>) => React.ReactNode)",
           "required": true,
           "description": "The one control to connect, which receives the value, the trigger,\n`onBlur`, `error`, `required` and `disabled` as props. Or a function\nthat gets those props and returns the control, for a control whose\nrequired props (`Input` needs `value` and `onChange`) you would otherwise\nhave to write out: `{(field) => <Input label=\"Email\" {...field} />}`.",
           "deprecated": false
@@ -3932,9 +3968,9 @@
         },
         {
           "name": "control",
-          "type": "boolean",
+          "type": "C",
           "required": false,
-          "default": "false",
+          "default": "false as C",
           "description": "For a child that draws no label, helper or error text of its own\n(`Checkbox`, `Switch`, `Slider`, `RadioGroup`): wraps it in a\n`FormControl` that does, and passes it `error` as a boolean (and no\n`required`, `label` or `helperText`: `FormControl` draws those). Defaults\nto `false`.",
           "deprecated": false
         },
@@ -3997,9 +4033,9 @@
         },
         {
           "name": "trigger",
-          "type": "string",
+          "type": "T",
           "required": false,
-          "default": "\"onChange\"",
+          "default": "\"onChange\" as T",
           "description": "The child's callback that reports a new value. `\"onValueChange\"` for a\n`Checkbox` or a `Slider`. Defaults to `\"onChange\"`.",
           "deprecated": false
         },
@@ -4012,9 +4048,9 @@
         },
         {
           "name": "valuePropName",
-          "type": "string",
+          "type": "V",
           "required": false,
-          "default": "\"value\"",
+          "default": "\"value\" as V",
           "description": "The child's prop that takes the value. `\"checked\"` for a `Checkbox`.\nDefaults to `\"value\"`.",
           "deprecated": false
         }
@@ -5236,7 +5272,7 @@
           "name": "showExternalIcon",
           "type": "boolean",
           "required": false,
-          "description": "Appends an external-link icon. Defaults to `true` when `href` is remote.",
+          "description": "Appends an external-link icon. Defaults to `true` when `href` is an `http` or `https` address.",
           "deprecated": false
         },
         {
@@ -5566,6 +5602,14 @@
           "type": "(id: string) => void",
           "required": true,
           "description": "Called with the `id` of the pressed destination.",
+          "deprecated": false
+        },
+        {
+          "name": "safeArea",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Pads the bottom safe-area inset, so the bar clears the phone's gesture bar\nor home indicator, as `AppBar` does at the top. Defaults to `true`.",
           "deprecated": false
         },
         {
@@ -6704,6 +6748,17 @@
           "deprecated": false
         },
         {
+          "name": "type",
+          "type": "\"button\" | \"submit\"",
+          "required": false,
+          "description": "`\"submit\"` submits the enclosing `Form` when pressed, after `onClick`, as on `Button`.",
+          "values": [
+            "button",
+            "submit"
+          ],
+          "deprecated": false
+        },
+        {
           "name": "variant",
           "type": "ButtonVariant",
           "required": false,
@@ -7139,8 +7194,9 @@
       "props": [
         {
           "name": "options",
-          "type": "Option[]",
+          "type": "(Option | string)[]",
           "required": true,
+          "description": "The choices: `{ label, value }` objects, or plain strings that are their own label and value.",
           "deprecated": false
         },
         {
@@ -7248,6 +7304,14 @@
           "deprecated": false
         },
         {
+          "name": "reserveHelperText",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Keeps the line under the field even with no error, so an error appearing\ndoes not push the next field down. Default false.",
+          "deprecated": false
+        },
+        {
           "name": "showAsChips",
           "type": "boolean",
           "required": false,
@@ -7299,11 +7363,26 @@
           "deprecated": false
         },
         {
+          "name": "count",
+          "type": "number",
+          "required": false,
+          "default": "6",
+          "description": "`preset=\"list\"`: how many rows. Defaults to 6.",
+          "deprecated": false
+        },
+        {
           "name": "duration",
           "type": "number",
           "required": false,
           "default": "1200",
           "description": "Pulse animation duration for a full cycle (ms).",
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": false,
+          "description": "`preset=\"list\"`: the space between rows. Defaults to `theme.spacing.s`.",
           "deprecated": false
         },
         {
@@ -7313,9 +7392,31 @@
           "deprecated": false
         },
         {
+          "name": "itemHeight",
+          "type": "number",
+          "required": false,
+          "default": "64",
+          "description": "`preset=\"list\"`: each row's height. Defaults to 64.",
+          "deprecated": false
+        },
+        {
+          "name": "preset",
+          "type": "\"list\"",
+          "required": false,
+          "description": "`\"list\"`: `count` rounded rows stacked `gap` apart, the placeholder of a\nlist loading its first page. `width` and `style` then apply to the list.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Root testID; with `preset=\"list\"` each row gets `${testID}-row`.",
           "deprecated": false
         },
         {
@@ -7681,14 +7782,14 @@
           "name": "max",
           "type": "number",
           "required": false,
-          "default": "100",
+          "description": "No upper limit when unset.",
           "deprecated": false
         },
         {
           "name": "min",
           "type": "number",
           "required": false,
-          "default": "0",
+          "description": "No lower limit when unset.",
           "deprecated": false
         },
         {
@@ -7696,6 +7797,7 @@
           "type": "number",
           "required": false,
           "default": "1",
+          "description": "How much the buttons add or take away. A fraction (`0.5`) is fine.",
           "deprecated": false
         }
       ]
@@ -7911,6 +8013,149 @@
           "required": false,
           "description": "The colour of the arrow and `delta`: a theme colour token (a role such as\n`\"success\"` or `\"error\"`, or `\"onSurfaceVariant\"`, ...) or any colour string.\nLeft out, `\"up\"` is `success`, `\"down\"` is `error` and `\"flat\"` neutral. For a\nmetric where down is good, pass the colour yourself.",
           "deprecated": false
+        },
+        {
+          "name": "valueColor",
+          "type": "ThemeColor",
+          "required": false,
+          "description": "The colour of the number: a theme colour token (`\"error\"` for an overdue\ncount, `\"success\"`, ...) or any colour string. Defaults to `onSurface`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "WeekStrip": {
+      "name": "WeekStrip",
+      "source": "packages/ui/src/components/WeekStrip.tsx",
+      "propsTypeName": "WeekStripProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onChange",
+          "type": "(date: Date) => void",
+          "required": true,
+          "description": "Called with the pressed day, or with the same weekday a week later or earlier after a swipe.",
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "Date",
+          "required": true,
+          "description": "The chosen day. The strip shows the week it falls in.",
+          "deprecated": false
+        },
+        {
+          "name": "arrows",
+          "type": "boolean",
+          "required": false,
+          "default": "Platform.OS === \"web\"",
+          "description": "An arrow on each side that moves a week, for a mouse, which cannot swipe.\nDefaults to `true` on the web and `false` on iOS and Android.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's.",
+          "deprecated": false
+        },
+        {
+          "name": "gradient",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Fills the chosen day with the brand gradient (`primary` into `tertiary`) instead of `primary`.",
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ nextWeek?: string; previousWeek?: string }",
+          "required": false,
+          "description": "The names of the arrows and of the screen-reader actions that move a week. Default English.",
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "The locale of the weekday names and of the first day of the week. Defaults to the device's.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "weekDays",
+          "type": "number[]",
+          "required": false,
+          "default": "WORK_WEEK",
+          "description": "The days to show, as `Date#getDay()` numbers (0 = Sunday … 6 = Saturday), in the locale's week\norder whatever order they are given in. Defaults to Monday to Friday, `[1, 2, 3, 4, 5]`.",
+          "deprecated": false
+        }
+      ]
+    },
+    "DayTimeline": {
+      "name": "DayTimeline",
+      "source": "packages/ui/src/components/DayTimeline.tsx",
+      "propsTypeName": "DayTimelineProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "events",
+          "type": "DayTimelineEvent[]",
+          "required": true,
+          "description": "The day's events, in any order: they are shown by start time.",
+          "deprecated": false
+        },
+        {
+          "name": "emptyState",
+          "type": "EmptyStateProps",
+          "required": false,
+          "default": "{ icon: \"calendar-blank-outline\", title: \"Nothing scheduled\" }",
+          "description": "Shown when there are no events. Defaults to \"Nothing scheduled\".",
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "DayTimelineLabels",
+          "required": false,
+          "description": "Words read by screen readers, for another language.",
+          "deprecated": false
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Shows a list skeleton in place of the events.",
+          "deprecated": false
+        },
+        {
+          "name": "onEventPress",
+          "type": "(event: DayTimelineEvent) => void",
+          "required": false,
+          "description": "Called with the pressed event. Makes each card a button.",
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "deprecated": false
         }
       ]
     },
@@ -8118,13 +8363,16 @@
         },
         {
           "name": "type",
-          "type": "\"success\" | \"error\" | \"warning\"",
+          "type": "\"success\" | \"error\" | \"warning\" | \"info\" | \"neutral\"",
           "required": false,
           "default": "\"success\"",
+          "description": "The state, which picks the colours and the icon: `info` for something to look at, `neutral` for neither good nor bad. Defaults to `\"success\"`.",
           "values": [
             "success",
             "error",
-            "warning"
+            "warning",
+            "info",
+            "neutral"
           ],
           "deprecated": false
         }
@@ -8145,9 +8393,17 @@
         },
         {
           "name": "steps",
-          "type": "Step[] | string[]",
+          "type": "Step[] | string[] | number",
           "required": true,
-          "description": "The steps, in order; a string is a step with just a label.",
+          "description": "The steps, in order; a string is a step with just a label. A number is\nthat many steps without labels (all `\"dots\"` and `\"progress\"` need).",
+          "deprecated": false
+        },
+        {
+          "name": "backLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Back\"",
+          "description": "The Back button's label. Defaults to \"Back\".",
           "deprecated": false
         },
         {
@@ -8163,6 +8419,28 @@
           "deprecated": false
         },
         {
+          "name": "nextLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Next\"",
+          "description": "The Next button's label. Defaults to \"Next\".",
+          "deprecated": false
+        },
+        {
+          "name": "onBack",
+          "type": "() => void",
+          "required": false,
+          "description": "`\"dots\"` / `\"progress\"`: draws Back, which calls this (on the first step, `onCancel` instead).",
+          "deprecated": false
+        },
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": false,
+          "description": "What Back does on the first step. Without it Back is disabled there.",
+          "deprecated": false
+        },
+        {
           "name": "onClick",
           "type": "(stepIndex: number) => void",
           "required": false,
@@ -8170,9 +8448,37 @@
           "deprecated": false
         },
         {
+          "name": "onNext",
+          "type": "() => void",
+          "required": false,
+          "description": "`\"dots\"` / `\"progress\"`: draws Next, which calls this. Disabled on the last step unless `submitStep`.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "object",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "submitStep",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "On the last step, Next becomes a filled `type=\"submit\"` button: it\nsubmits the enclosing `Form` instead of calling `onNext`. Outside a\n`Form` it calls `onNext`, and is disabled without one.",
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "\"steps\" | \"dots\" | \"progress\"",
+          "required": false,
+          "default": "\"steps\"",
+          "description": "`\"steps\"` draws a numbered circle and a label per step. `\"dots\"` and\n`\"progress\"` draw a row of dots or a bar between the optional Back and\nNext buttons, for a form or a set of pages on a phone. Defaults to\n`\"steps\"`.",
+          "values": [
+            "steps",
+            "dots",
+            "progress"
+          ],
           "deprecated": false
         }
       ]
@@ -8652,6 +8958,13 @@
           "deprecated": false
         },
         {
+          "name": "accessibilityLabel",
+          "type": "string",
+          "required": false,
+          "description": "The name screen readers give the switch, for one drawn without `label`:\nin a `ListItem`'s `action`, say, beside the words that describe it.\nWithout it such a switch is only \"Switch, on\". Replaces `label` when both\nare given.",
+          "deprecated": false
+        },
+        {
           "name": "containerStyle",
           "type": "StyleProp<ViewStyle>",
           "required": false,
@@ -8809,6 +9122,13 @@
           "type": "StyleProp<ViewStyle>",
           "required": false,
           "deprecated": false
+        },
+        {
+          "name": "tooltip",
+          "type": "string",
+          "required": false,
+          "description": "Shown on hover and keyboard focus on the web (on a phone the button takes\nthe long press itself, so no tip appears); on every platform it names the\nbutton for screen readers when it has no `label`.",
+          "deprecated": false
         }
       ]
     },
@@ -8826,14 +9146,15 @@
         },
         {
           "name": "options",
-          "type": "ToggleButtonOption[]",
+          "type": "ToggleButtonOption<T>[]",
           "required": true,
           "deprecated": false
         },
         {
           "name": "value",
-          "type": "string | string[]",
+          "type": "T | T[]",
           "required": true,
+          "description": "The selected option's value, or the selected values with `multiSelect`.",
           "deprecated": false
         },
         {
@@ -8989,9 +9310,9 @@
         },
         {
           "name": "content",
-          "type": "string",
+          "type": "React.ReactNode",
           "required": true,
-          "description": "The tip's text; the body text of a rich tooltip.",
+          "description": "The tip's text; the body of a rich tooltip, which can also be laid out (a\nsmall sum, a list). A node never names the anchor: give the rich tooltip a\n`title` for that.",
           "deprecated": false
         },
         {
@@ -9050,6 +9371,13 @@
             "left",
             "right"
           ],
+          "deprecated": false
+        },
+        {
+          "name": "style",
+          "type": "StyleProp<ViewStyle>",
+          "required": false,
+          "description": "The wrapper around the anchor, which otherwise sizes to it: `{ flex: 1 }`\nlets an anchor that grows (a segment of a full-width group) keep growing.",
           "deprecated": false
         },
         {
@@ -10521,6 +10849,32 @@
           "type": "number",
           "required": false,
           "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
+          "deprecated": false
+        }
+      ]
+    },
+    "CellText": {
+      "name": "CellText",
+      "source": "packages/ui/src/components/Table.tsx",
+      "extends": [],
+      "props": [
+        {
+          "name": "align",
+          "type": "TableCellProps[\"align\"]",
+          "required": false,
+          "default": "\"left\"",
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "textStyle",
+          "type": "TableCellProps[\"textStyle\"]",
+          "required": false,
           "deprecated": false
         }
       ]

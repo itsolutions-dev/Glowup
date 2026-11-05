@@ -5,6 +5,7 @@ import {
   Easing,
   LayoutChangeEvent,
   Platform,
+  StyleSheet,
   StyleProp,
   ViewStyle,
 } from "react-native";
@@ -89,6 +90,7 @@ const Collapse = ({
 
   const shouldRenderChildren =
     open || mounted || keepMounted || collapsedHeight > 0;
+  const hidden = !open && collapsedHeight === 0;
 
   return (
     <Animated.View
@@ -99,14 +101,20 @@ const Collapse = ({
         contentHeight === null
           ? { height: open ? undefined : collapsedHeight }
           : { height },
-        { overflow: "hidden" },
+        // Never exactly 0 on iOS and Android: Fabric sends no onLayout to the content of a box laid
+        // out at height 0, so a Collapse that started closed measured its children as 0 when they
+        // mounted and opened to nothing. One physical pixel, empty and transparent, is enough.
+        Platform.OS === "web"
+          ? { overflow: "hidden" }
+          : { overflow: "hidden", minHeight: StyleSheet.hairlineWidth },
         animateOpacity && { opacity: progress },
         style,
       ]}
-      // Hide collapsed content from assistive tech and from tab order on web.
-      accessibilityElementsHidden={!open}
-      importantForAccessibility={open ? "auto" : "no-hide-descendants"}
-      {...(Platform.OS === "web" ? { "aria-hidden": !open } : null)}
+      // Hide collapsed content from assistive tech, unless a teaser of it
+      // (`collapsedHeight`) is still on screen.
+      accessibilityElementsHidden={hidden}
+      importantForAccessibility={hidden ? "no-hide-descendants" : "auto"}
+      {...(Platform.OS === "web" ? { "aria-hidden": hidden } : null)}
     >
       <View onLayout={handleLayout}>
         {shouldRenderChildren ? children : null}

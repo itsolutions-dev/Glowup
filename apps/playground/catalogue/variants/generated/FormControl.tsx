@@ -6,7 +6,6 @@ import type { Variant } from "../types";
 import {
   Checkbox,
   FormControl,
-  Input,
   RadioGroup,
   Slider,
   VStack,
@@ -55,7 +54,10 @@ export const AroundARadioGroup = () => (
   </VStack>
 );
 
-/** `disabled` dims the whole group, control and supporting text together. */
+/**
+ * `disabled` dims the control and its supporting text, beside an enabled group.
+ * It does not reach the control itself, so the control takes `disabled` too.
+ */
 export const Disabled = () => (
   <VStack spacing="m" width={380}>
     <FormControl
@@ -72,8 +74,17 @@ export const Disabled = () => (
         disabled
       />
     </FormControl>
-    <FormControl label="Workspace name" helperText="Shown on every invoice.">
-      <Input value="Acme Inc." onChange={() => {}} />
+    <FormControl
+      label="Budget alert"
+      helperText="Notify me at this share of the budget."
+    >
+      <Slider
+        value={80}
+        onValueChange={() => {}}
+        min={0}
+        max={100}
+        showValueLabel
+      />
     </FormControl>
   </VStack>
 );
@@ -93,7 +104,7 @@ export const variants: Variant[] = [
     name: "Disabled",
     title: "Disabled",
     description:
-      "`disabled` dims the whole group, control and supporting text together.",
+      "`disabled` dims the control and its supporting text, beside an enabled group. It does not reach the control itself, so the control takes `disabled` too.",
     render: Disabled,
   },
 ];

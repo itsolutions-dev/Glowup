@@ -7,19 +7,22 @@ import type { Variant } from "../types";
 import { Portal, Typography, Paper, Tooltip, Button } from "@its/glowup-ui";
 
 const stage: ViewStyle = {
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
   gap: 12,
 };
 
-// Opens the tooltip for the capture, as in the Tooltip preview.
+// Opens the tooltip for the capture with a real hover. Tooltip's web anchor
+// listens through React's onPointerEnter, which React synthesises from a
+// bubbling `pointerover` (a native `pointerenter` never reaches it).
 const Hovered = ({ children }: { children: React.ReactNode }) => {
   const hostRef = React.useRef<View | null>(null);
   React.useEffect(() => {
     const anchor = hostRef.current?.firstElementChild
       ?.firstElementChild as HTMLElement | null;
     anchor?.dispatchEvent(
-      new PointerEvent("pointerenter", { pointerType: "mouse" }),
+      new PointerEvent("pointerover", { pointerType: "mouse", bubbles: true }),
     );
   }, []);
   return (
@@ -69,31 +72,61 @@ export const EscapesAClippingParent = () => (
   </Portal.Host>
 );
 
-export const BacksTheTooltip = () => (
-  <Portal.Host>
-    <View style={{ ...stage, height: 200 }}>
-      <Typography variant="bodySmall">
-        With a host mounted, Tooltip renders through it — so a tip on an anchor
-        inside a scrolling or clipping container is no longer cut off.
-      </Typography>
-      <View
-        style={{
-          height: 56,
-          overflow: "hidden",
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <Hovered>
-          <Tooltip content="Not clipped" position="bottom" enterDelay={0}>
-            <Button variant="tonal" onClick={() => {}}>
-              Hover me
-            </Button>
-          </Tooltip>
-        </Hovered>
-      </View>
+// Tooltip places a portalled tip in window coordinates, which assumes the
+// host sits at the window origin, as it does wrapping an app root. The card
+// is inset in the page, so this wrapper moves the host's box back to the
+// origin (padding keeps the content where it was).
+const AtWindowOrigin = ({ children }: { children: React.ReactNode }) => {
+  const ref = React.useRef<View | null>(null);
+  const [inset, setInset] = React.useState({ x: 0, y: 0 });
+  React.useLayoutEffect(() => {
+    // A native View has no getBoundingClientRect: it stays at the origin.
+    const rect = ref.current?.getBoundingClientRect?.();
+    if (rect) setInset({ x: rect.left, y: rect.top });
+  }, []);
+  return (
+    <View
+      ref={ref}
+      style={{
+        position: "relative",
+        left: -inset.x,
+        top: -inset.y,
+        paddingLeft: inset.x,
+        paddingTop: inset.y,
+      }}
+    >
+      {children}
     </View>
-  </Portal.Host>
+  );
+};
+
+export const BacksTheTooltip = () => (
+  <AtWindowOrigin>
+    <Portal.Host>
+      <View style={{ ...stage, height: 200 }}>
+        <Typography variant="bodySmall">
+          With a host mounted, Tooltip renders through it — so a tip on an
+          anchor inside a scrolling or clipping container is no longer cut off.
+        </Typography>
+        <View
+          style={{
+            height: 56,
+            overflow: "hidden",
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          <Hovered>
+            <Tooltip content="Not clipped" position="bottom" enterDelay={0}>
+              <Button variant="tonal" onClick={() => {}}>
+                Hover me
+              </Button>
+            </Tooltip>
+          </Hovered>
+        </View>
+      </View>
+    </Portal.Host>
+  </AtWindowOrigin>
 );
 
 export const variants: Variant[] = [

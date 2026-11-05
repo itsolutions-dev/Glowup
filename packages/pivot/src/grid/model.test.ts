@@ -191,6 +191,8 @@ describe("buildGridModel", () => {
       }),
     );
     expect(model.rows[0].cells[0].text).toContain("%");
+    // The export writes it with a percent format, so Excel shows what the grid shows.
+    expect(model.rows[0].cells[0].percent).toBe(true);
   });
 
   test("a missing cell and a null value are empty text", () => {

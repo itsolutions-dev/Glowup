@@ -9,7 +9,8 @@ import { InputArea } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 360,
+  width: "100%",
+  maxWidth: 360,
 };
 
 const noop = () => {};
@@ -40,9 +41,7 @@ export const FixedRows = () => (
     <InputArea
       label="Two rows"
       rows={2}
-      value={
-        "Ring the bell twice.\nThe intercom is broken.\nLeave it with the concierge."
-      }
+      value={"Ring the bell twice.\nThe intercom is broken."}
       onChange={noop}
     />
     <InputArea

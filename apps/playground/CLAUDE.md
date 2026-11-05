@@ -117,7 +117,7 @@ as its content and the grid picks its columns from its width, so left to itself 
   `catalogue/variants/generate.mjs`. The previews stay in the browser dialect because the
   design-sync converter cannot resolve `react-native`; **edit the preview, then run
   `npm run variants -w @its/glowup-playground`** (it overwrites the folder in place and removes
-  only stale files, so a running Metro keeps resolving `./generated`). Seven previews are excluded by name in the
+  only stale files, so a running Metro keeps resolving `./generated`). Some previews are excluded by name in the
   generator, each with its reason; hand-written galleries live in
   `catalogue/variants/manual/` and win over the generated entry for the same component.
   A catalogued component with no gallery at all fails the playground test.
@@ -146,7 +146,7 @@ without one of them fails there. It gets its page, its props table and its URL f
 `app/native-check.tsx` (/native-check) is a verification screen for the **native smoke job only**
 (`.github/workflows/native.yml`); nothing links to it. A build made with
 `EXPO_PUBLIC_NATIVE_CHECK_ROUTE=/native-check` opens it a minute after launch (`NativeCheckTrigger` in
-`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has four parts:
+`_layout.tsx`; a deep link cannot do it on iOS, which asks "Open in Glowup?" first). It has five parts:
 
 - **Measurements**: normal and dense controls and a button with and without a badge are laid out on the
   device and their sizes compared (Δ height 24 / 12 / 20, badge width +12), so it catches what jest cannot.
@@ -156,7 +156,9 @@ without one of them fails there. It gets its page, its props table and its URL f
   with a `state=` line. `scripts/android-interact.mjs` drives them on the emulator with `adb` (types,
   taps, `uiautomator dump`) and prints PASS/FAIL per step. Typing goes through key events, and a failing step leaves
   `android-step-N.png`. iOS has no equivalent from CI. The screen and the script are kept in step by hand: add a control
-  there when a component gains behaviour a phone must prove.
+  there when a component gains behaviour a phone must prove. A drag that starts on a text field (focused or not) does not
+  scroll the page, so the script's `swipe` starts beside any field under its starting point: adding height above the
+  `Interaction` fields once put one there and stranded every later step (2026-10-28).
 - **PDF rows** (`usePdfChecks`): the package's native module on the sample PDF (`site/samplePdf.ts`): opens it (3 pages),
   draws page 1 at 600 px (its real width is read from the file) and again at the width the viewer would ask on this screen
   (screen width minus 32, times the pixel ratio): that second drawing is the last thing on the screen, one image pixel to one
@@ -171,9 +173,11 @@ without one of them fails there. It gets its page, its props table and its URL f
   fails the run. Run in CI on 2026-10-21 (iPhone simulator, Android 14 and 15 emulators): both rows pass (160; 200 → 100).
   Two `Interaction`-style steps in `scripts/android-interact.mjs` tap the dense chart (any category: `chart=<n>`) and the donut's
   "open" slice (`part=open`); the charts are found by the start of their summary (`title` of the chart) and a tap reads back through
-  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts and the PDF page, 10 s each (`Platform.OS === "ios"` only:
+  the state lines `onSelect` writes. On iOS the screen cycles by itself over its top, the charts, the pivot grid and the PDF page, 10 s each (`Platform.OS === "ios"` only:
   on Android it would fight the script), and `native.yml` takes `ios-seq-NN.png` every 6 s for two minutes: read the ones that show each position (fixed delays from the screen opening drifted off the workflow's clock once). Android leaves
   `android-chart-bars.png` and `android-chart-donut.png`.
+
+- **Pivot rows**: a `PivotGrid` (the phone one: two scrolls, one inside the other, with the header and the column of labels moved by the native animation) on the sample of `site/samplePivot.ts`, 240 px high, with a state line `pivot=<rows>` right above it (31 rows at the start: the grand total, six sites and four categories under each; closing the first site makes it 27). The row `pivot grid is laid out at its height` checks the 240. Two steps of `scripts/android-interact.mjs` find the grid by its label `Pivot grid`: one taps the first arrow (`Collapse`, then `Expand`) and reads the line; the other drags the grid up, checks that the header (`Total`) has not moved and the first row has, then taps an arrow **after the scroll** (the touch on a view the native animation has moved is the risk on Android) and reads the line again. They leave `android-pivot.png` and `android-pivot-scrolled.png`. On iOS read the grid in `ios-seq-*.png`: look at the screenshot, not only at the lines.
 
 ## The notifications page
 
@@ -400,6 +404,9 @@ copy that follows the pointer.
 
 ## The pivot page
 
-`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report (`site/samplePivot.ts`:
-sites, four categories under each, a true/false column, a count), and a switch of the engine's locale. Nothing in it comes from a real report.
+`app/pivot.tsx` (/pivot) demos `@its/glowup-pivot`: a `PivotGrid` on invented data with the shape of a CRM report's query (`site/samplePivot.ts`:
+rows already counted, several per site and category (one per reason and priority), a true/false column, a reason that is sometimes `null`,
+a category that only has `true`), and a switch of the engine's locale. Nothing in it comes from a real report. `samplePivotRows(count)` gives
+any other page the same rows, or exactly `count` of them (more sites) for a large dataset, the same every time; keep the six sites and
+four categories, which `/native-check` and `scripts/android-interact.mjs` count (`pivot=31`).
 Jest runs as a phone, so the page test sees the grid's "not available" message; the web grid is tested in the package.

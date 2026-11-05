@@ -195,13 +195,25 @@ export default function MediaPickerPage() {
         <ListSection>
           <ListItem
             secondaryText="multiple: true, in the order picked."
-            action={<Switch value={multiple} onChange={setMultiple} />}
+            action={
+              <Switch
+                accessibilityLabel="Several at once"
+                value={multiple}
+                onChange={setMultiple}
+              />
+            }
             primaryText="Several at once"
           />
           {multiple ? (
             <ListItem
               secondaryText="limit: 3 (the web keeps the first three files)."
-              action={<Switch value={limited} onChange={setLimited} />}
+              action={
+                <Switch
+                  accessibilityLabel="At most three"
+                  value={limited}
+                  onChange={setLimited}
+                />
+              }
               primaryText="At most three"
             />
           ) : null}
@@ -215,6 +227,7 @@ export default function MediaPickerPage() {
             }
             action={
               <Switch
+                accessibilityLabel="Crop"
                 value={canEdit && edit}
                 disabled={!canEdit}
                 onChange={setEdit}

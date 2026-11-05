@@ -8,6 +8,7 @@ import Typography from "./Typography";
 import type { NavBarItem } from "./NavBar";
 import type { PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
+import { a11yState } from "./internal/a11yState";
 
 // M3 navigation rail: 80dp container, 56x32 active indicator, 56dp per item.
 const RAIL_WIDTH = 80;
@@ -81,7 +82,10 @@ const NavigationRail = ({
               disabled={item.disabled}
               accessibilityRole="tab"
               accessibilityLabel={item.label}
-              accessibilityState={{ selected: active, disabled: item.disabled }}
+              {...a11yState("tab", {
+                selected: active,
+                disabled: item.disabled,
+              })}
               style={[styles.item, item.disabled && styles.disabled]}
             >
               {({ hovered, pressed, focused }: PressableState) => (

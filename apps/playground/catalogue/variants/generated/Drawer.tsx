@@ -18,43 +18,51 @@ import {
 // `<Drawer variant="swipeable" visible onClose={...}>` takes the same props.
 
 const frame: ViewStyle = { height: 440, width: 340, flexDirection: "row" };
+const tall: ViewStyle = { height: 520, width: 340, flexDirection: "row" };
 const rail: ViewStyle = { height: 440, width: 120, flexDirection: "row" };
 const atRight: ViewStyle = {
   height: 360,
-  width: 420,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "row",
   justifyContent: "flex-end",
 };
 const atTop: ViewStyle = {
-  height: 300,
-  width: 420,
+  height: 340,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
 };
 const atBottom: ViewStyle = {
-  height: 300,
-  width: 420,
+  height: 340,
+  width: "100%",
+  maxWidth: 420,
   flexDirection: "column",
   justifyContent: "flex-end",
 };
 
+const Folders = () => (
+  <DrawerSection>
+    <DrawerItem
+      label="Inbox"
+      icon="inbox-outline"
+      badge={24}
+      selected
+      onClick={() => {}}
+    />
+    <DrawerItem label="Sent" icon="send-outline" onClick={() => {}} />
+    <DrawerItem
+      label="Drafts"
+      icon="file-outline"
+      badge={3}
+      onClick={() => {}}
+    />
+  </DrawerSection>
+);
+
 const Mail = () => (
   <>
-    <DrawerSection>
-      <DrawerItem
-        label="Inbox"
-        icon="inbox-outline"
-        badge={24}
-        selected
-        onClick={() => {}}
-      />
-      <DrawerItem label="Sent" icon="send-outline" onClick={() => {}} />
-      <DrawerItem
-        label="Drafts"
-        icon="file-outline"
-        badge={3}
-        onClick={() => {}}
-      />
-    </DrawerSection>
+    <Folders />
     <DrawerSection title="Labels" showDivider>
       <DrawerItem label="Family" icon="label-outline" onClick={() => {}} />
       <DrawerItem label="Work" icon="label-outline" onClick={() => {}} />
@@ -133,7 +141,7 @@ export const WithFooter = () => (
 
 /** Nested items, a collapsible section and a header: a menu with depth. */
 export const NestedItems = () => (
-  <View style={frame}>
+  <View style={tall}>
     <Drawer
       width={320}
       header={
@@ -193,16 +201,16 @@ export const SideSheet = () => (
 /** Top and bottom span the width and grow with their content, up to `height`. */
 export const Top = () => (
   <View style={atTop}>
-    <Drawer position="top" title="Mail" height={240}>
-      <Mail />
+    <Drawer position="top" title="Mail" height={320}>
+      <Folders />
     </Drawer>
   </View>
 );
 
 export const Bottom = () => (
   <View style={atBottom}>
-    <Drawer position="bottom" title="Mail" height={240}>
-      <Mail />
+    <Drawer position="bottom" title="Mail" height={320}>
+      <Folders />
     </Drawer>
   </View>
 );

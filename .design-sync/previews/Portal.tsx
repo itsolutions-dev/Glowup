@@ -75,7 +75,8 @@ const AtWindowOrigin = ({ children }: { children: React.ReactNode }) => {
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [inset, setInset] = React.useState({ x: 0, y: 0 });
   React.useLayoutEffect(() => {
-    const rect = ref.current?.getBoundingClientRect();
+    // A native View has no getBoundingClientRect: it stays at the origin.
+    const rect = ref.current?.getBoundingClientRect?.();
     if (rect) setInset({ x: rect.left, y: rect.top });
   }, []);
   return (

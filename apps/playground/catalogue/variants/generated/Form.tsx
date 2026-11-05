@@ -23,7 +23,8 @@ import type { FormProps } from "@its/glowup-ui";
 const card: ViewStyle = {
   flexDirection: "column",
   gap: 16,
-  width: 360,
+  width: "100%",
+  maxWidth: 360,
 };
 
 export const SignUp = () => (

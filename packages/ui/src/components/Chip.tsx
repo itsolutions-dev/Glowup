@@ -12,6 +12,7 @@ import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { toneFrom as resolveTone } from "../providers/toneFrom";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
+import { a11yState } from "./internal/a11yState";
 
 const HEIGHTS = { small: 24, medium: 32, large: 40 } as const;
 
@@ -204,11 +205,12 @@ const Chip = ({
           onClick ? (accessibilityRole ?? "button") : undefined
         }
         accessibilityLabel={label}
-        accessibilityState={
+        {...a11yState(
+          onClick ? (accessibilityRole ?? "button") : undefined,
           accessibilityRole === "radio" || accessibilityRole === "checkbox"
             ? { disabled, checked: selected }
-            : { disabled, selected }
-        }
+            : { disabled, selected },
+        )}
         style={styles.content}
         {...(Platform.OS === "android" && {
           android_ripple: { color: rippleColor },

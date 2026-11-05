@@ -9,8 +9,8 @@ below was read in the code at the place cited; **none was run**, and the ones th
 inline edit, clipboard, code block, password reveal, form validation, `Visible`, dialog roles) are not listed.
 Paths are relative to `packages/ui/src`. Effort: **S** under a day, **M** a few days, **L** a week or more.
 
-About 35 distinct defects are still open, 9 of them high. Nothing here is a regression from the recent work:
-they were found by reading, and they were already there.
+Sections 1 and 2 were fixed on 30 October (below); what is left is the API work of section 3, the builds of
+section 4 and the open points of section 5.
 
 **Fixed on the afternoon of 23 October** (items from the first draft of this plan, found again by hand): hover
 and focus feedback on `Button` and its siblings no longer changes the box (it shifted the page); `Tabs` no
@@ -19,50 +19,46 @@ stays inside its track; the date and time popover no longer shows a scrollbar wh
 keeps one identity and `ToastProvider` takes `maxVisible`; a `DataGrid` keeps a column reorder when
 `columns` is a new array.
 
-## 1. Fix first: wrong behaviour and accessibility blockers (all small unless noted)
+**Fixed on 28 October** (each reproduced in a failing test first; the web ones also in Chromium, changeset
+`app-blocking-fixes.md`): Escape closing every stacked dialog and calling `onClose` twice (#1); the picker
+portal during a static render (#11); `NumberField`'s hidden 0..100 range and integer-only input (#7); `Select`'s
+tick for falsy values, `PinInput` completing with blanks, `ProgressButton type`, Enter submitting a disabled form;
+`Table` rows keyed by index; `Alert()` lost before the provider, overwritten by a second one, and Escape skipping
+the cancel button.
 
-| #   | Where                                                                          | Problem                                                                                                                                                                                                                            | Effort |
-| --- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1   | `components/Dialog/Dialog.tsx:249,299,364`, `internal/SideOverlay.tsx:131,249` | On web, Escape fires `onClose` twice (a document key listener plus the Modal's own), and with stacked dialogs every one closes. _(the Modal side was not re-read)_                                                                 | S      |
-| 3   | `providers/ToastProvider.tsx:150-171`                                          | The toast host is an ordinary View: a toast raised while a Dialog, BottomSheet or Drawer is open appears under the scrim.                                                                                                          | M      |
-| 4   | `components/Pagination.tsx:148,176`                                            | The current page is `disabled`: announced as disabled and out of the tab order. The container is a `menubar`.                                                                                                                      | S      |
-| 6   | 35+ files (Checkbox, RadioButton, Chip, Select, Slider, Rating…)               | `accessibilityState` and `accessibilityValue` never reach the DOM; only Accordion, LinearProgress, Switch, Tabs and Tree set `aria-*`. A web screen reader hears no checked, selected or value state. One shared helper fixes all. | M      |
-| 7   | `components/NumberField.tsx:32-33,50,117`                                      | Integer only (a step of 0.5 truncates) and `min`/`max` silently default to 0 and 100.                                                                                                                                              | S      |
-| 8   | `components/SpeedDial.tsx`, `components/FAB.tsx:138`                           | Icon-only buttons are named "<icon> FAB"; closed SpeedDial rows stay focusable.                                                                                                                                                    | S      |
-| 9   | `components/Card.tsx:36-127`                                                   | A pressable Card is a button on web and its `Card.Actions` buttons nest inside it (the JSDoc example does this).                                                                                                                   | M      |
-| 10  | `components/Snackbar.tsx:232`, `components/Banner.tsx:56`                      | iOS never announces them (the live region is Android only); Banner is assertive on load.                                                                                                                                           | S      |
-| 11  | `components/DateTimePicker.web.tsx:196`                                        | `createPortal` during render when `defaultOpen` seeds the picker open: a likely throw in the static export.                                                                                                                        | S      |
+## 1 and 2. Fixed on 30 October
 
-Also small and worth doing in the same pass: `Select` hides the tick for option values `0`, `""` and `false`
-(`Select.tsx:440`); `PinInput` pads with spaces, so a later cell can fire `onComplete` with blanks
-(`PinInput.tsx:109`); `ProgressButton` does not forward `type`, so it cannot submit a Form
-(`ProgressButton.tsx:305`); `Form` Enter on web ignores a disabled standalone submit button
-(`Form.tsx:385`); `Input` never submits a form on native `onSubmitEditing` (`Input.tsx`).
+Every item of the two lists below was reproduced in a failing test first (jsdom or headless Chrome for the web
+ones, the local Android emulator with TalkBack for the native ones) and fixed; commits `28f3855`, `2d20efa`,
+`07c26cf`, `513d86a`, `70ee95d`, changesets `accessibility-and-keyboard-fixes`, `web-aria-state-and-card-actions`,
+`second-tier-fixes`, `toasts-above-overlays`, `data-grid-row-memo`.
 
-## 2. Correctness, second tier
-
-- **Table / DataGrid**: rows keyed by index so cell state follows position after a sort (`Table.tsx:203`);
-  the sort header has no role, label or `aria-sort` (`:487`); a clickable row becomes a button that nests
-  buttons (`:379`).
-- **Overlays and feedback**: `Alert()` before the provider mounts is dropped with a warning, a second web
-  `Alert()` overwrites the first, and closing by Escape skips the cancel button (`AlertProvider.tsx:46-128`);
-  a toast with `duration <= 0` and no `onClose` can never be dismissed (`Snackbar.tsx:211`).
-- **Layout and content**: `Carousel` does not re-snap on rotation or resize (`:55`); `Collapse` hides its
-  visible teaser from assistive tech (`:107`); `Image` with neither `height` nor `ratio` draws nothing
-  (`:96`); `Grid` sizes items from the container width including padding (`Layout/Grid.tsx:217`).
-- **Theme**: a component outside a provider silently renders dark (`ThemeProvider.tsx:162`); elevation 5
-  uses `surfaceDim`, which in dark mode is darker than elevation 0 (`internal/elevation.ts:33`); light
-  `surfaceContainerHighest` is nearly `surfaceContainerHigh` (`theme.json:31`).
-- **Navigation**: `Pagination` window width changes with the page; `Breadcrumbs` is a `menubar` with no `aria-current`;
-  `AppBar`, `Toolbar`, `FAB`, `SpeedDial` and `SideOverlay` throw without a `SafeAreaProvider`; a group
-  `DrawerItem` in a collapsed `Drawer` still toggles.
-- **Small**: hard-coded colours (Avatar status dots, popover and sheet shadows), `Link` treats `mailto:`
-  and `tel:` as external, `StatusBadge` prefixes an English word, `FormControl disabled` only dims (nothing reads `useFormControl`).
+- **Section 1:** toasts above an open `Dialog`, `BottomSheet` or side sheet (#3, the topmost overlay draws them in
+  its own window); the current `Pagination` page focusable, `aria-current`, a `navigation` landmark (#4); every
+  control's state reaches the DOM through one helper, `internal/a11yState`, in 38 components (#6); `SpeedDial` and its
+  actions named, closed actions hidden and out of the tab order (#8); a pressable `Card` with `Card.Actions` is an
+  action area plus an actions row (#9); `Snackbar` and `Banner` announced on iOS, `Banner` a polite `status` on
+  the web (#10); `Input` submits its `Form` on the return key; one Escape closes a popover inside a `Dialog`, not both.
+- **Section 2:** `Table` header `aria-sort`, named sort and reorder buttons, clickable rows stay rows on the web;
+  `Snackbar` with `duration={0}` closable; `Carousel` re-snaps on resize; `Collapse` teaser readable; `Image` takes
+  its natural ratio; `Grid` leaves padding and border out; light default theme outside a provider; elevation 5 no
+  longer `surfaceDim`; light `surfaceContainerHighest` `#E6E0E9`; `Pagination` keeps its width; `Breadcrumbs` a
+  `navigation` with `aria-current`; no `SafeAreaProvider` needed (`internal/useInsets`); a collapsed `Drawer`'s group is
+  a plain item; `Link`'s external icon for http(s) only; `StatusBadge` read as its label; `FormControl disabled`
+  blocks touches; `Avatar` dots and `Popover`/`BottomSheet` shadows from the theme.
+- **Found on the way and fixed:** text fields named for TalkBack (`accessibilityLabelledBy`, no value copied into
+  `accessibilityValue`); `FormField`'s function child typed; `DataGrid` rows memoised (a re-render with the same rows
+  draws no cell).
+- **Left, with their limit:** a standalone `FAB` without `label` is still named after its icon (the app must pass
+  `label`); on iOS a toast over a dialog is announced but its action button is out of VoiceOver's reach until the
+  dialog closes (`accessibilityViewIsModal`); the calendar's own Escape (keyboard inside the grid) is fixed but was
+  not driven in a browser; a sort still redraws the `DataGrid` rows that moved; a disabled `FormControl` blocks
+  touches but not Tab, unless its child gets `disabled` (as `FormField` hands it).
 
 ## 3. Make the API consistent
 
 The first two rename batches left the field family on the old vocabulary: it still uses `onPress`, `mode`,
-`onValueChange` and `multiSelect`.
+`onValueChange` and `multiSelect`. **Points 1 and 2 were dropped on 2026-10-28** (Alice): those names stay on purpose.
 
 1. **Rename batch 3**: `RadioButton`, `ToggleButton`, `ToggleButtonGroup`, `ButtonGroup`, `SplitButton`,
    `Checkbox`, `Slider`, `RadioGroup`, `SpeedDialAction`, `Banner` (`type` to `severity`, `onPress` to
@@ -76,17 +72,15 @@ The first two rename batches left the field family on the old vocabulary: it sti
 
 ## 4. What to build, in order of value
 
-| Order | Item                                                                                                                                                                                                                      | Why                                                                                     | Effort   |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------- |
-| 1     | **`Table` and `DataGrid` stay two components and share more**: `DataGrid` now takes `Table`'s props; still open: one `Column` type, ids for selection (`getRowId`), client sort and `loading` on `Table`, a sticky column | The biggest gap for real admin data                                                     | M        |
-| 2     | **`useConfirm()` / `Alert.confirm()`** returning a promise, on top of the single `AlertDialog`                                                                                                                            | The most common dialog; today every call site keeps `visible` state                     | S        |
-| 3     | **Theme mode**: `mode` / `setMode` / `defaultMode`, system option, nested provider inherits                                                                                                                               | A settings screen cannot be built; `toggleTheme` has no "system"                        | M        |
-| 4     | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh), and nav items that take an `href` or link slot                                                                                                 | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L      |
-| 5     | **Toast v2**: render above native modals, `toast.promise` / `update`, exit animation (`maxVisible` is done)                                                                                                               | Toasts are hidden behind dialogs                                                        | M        |
-| 6     | **Motion layer**: `Fade` / `Grow` / `Slide` + one reduced-motion rule; `Backdrop`, `LoadingOverlay`                                                                                                                       | Four copies of mount-until-exit; only 9 files honour reduced motion                     | M        |
-| 7     | **Small data pieces**: `AvatarGroup`, `Skeleton` presets, `Stat.loading` and `Sparkline`, `Timeline`, a virtualised `List`                                                                                                | One-line loading and dashboard states                                                   | S-M each |
-| 8     | **Input family**: `type` (email, tel, url), `clearable`, `showCount`, masks (`PhoneInput`, `CurrencyInput`), slider range, `Tabs` scroll and keyboard model, `Stepper` per-step state                                     | The basics of a business form and of a wizard                                           | M each   |
-| 9     | **Charts** (Phase 4 of the master plan, `solaris-native.md`)                                                                                                                                                              | Planned as a separate package                                                           | L        |
+| Order | Item                                                                                                                                                                                  | Why                                                                                     | Effort |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------ |
+| 2     | **`useConfirm()` / `Alert.confirm()`** returning a promise, on top of the single `AlertDialog`                                                                                        | The most common dialog; today every call site keeps `visible` state                     | S      |
+| 3     | **Theme mode**: `mode` / `setMode` / `defaultMode`, system option, nested provider inherits                                                                                           | A settings screen cannot be built; `toggleTheme` has no "system"                        | M      |
+| 4     | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh), and nav items that take an `href` or link slot                                                             | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L    |
+| 5     | **Toast v2**: `toast.promise` / `update`, exit animation (`maxVisible` and drawing above native modals are done)                                                                      | Promises (saving…, saved) and a soft exit                                               | M      |
+| 6     | **Motion layer**: `Fade` / `Grow` / `Slide` + one reduced-motion rule; `Backdrop`, `LoadingOverlay`                                                                                   | Four copies of mount-until-exit; only 9 files honour reduced motion                     | M      |
+| 8     | **Input family**: `type` (email, tel, url), `clearable`, `showCount`, masks (`PhoneInput`, `CurrencyInput`), slider range, `Tabs` scroll and keyboard model, `Stepper` per-step state | The basics of a business form and of a wizard                                           | M each |
+| 9     | **Charts** (Phase 4 of the master plan, `solaris-native.md`)                                                                                                                          | Planned as a separate package                                                           | L      |
 
 ## 5. Not code, but open
 
@@ -103,10 +97,8 @@ The first two rename batches left the field family on the old vocabulary: it sti
 
 ## Suggested order
 
-1. **One hardening pass** on section 1 (about a week of small fixes), with a test per fix. It removes every
-   high-severity item and most of the accessibility debt.
-2. **Rename batch 3 with the field contract**, because it is breaking and cheaper to do before more consumers
-   adopt the current names.
+1. ~~One hardening pass on sections 1 and 2~~ (done on 2026-10-30).
+2. ~~Rename batch 3 with the field contract~~ (dropped on 2026-10-28).
 3. **`useConfirm` and the theme mode**, then **the shared `Column` type and ids for `Table` and `DataGrid`**.
 4. **AppShell and nav links**, then **Toast v2 and the motion layer**.
 5. Charts, pivot and PDF follow the master plan, not this list.

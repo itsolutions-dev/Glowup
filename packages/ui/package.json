@@ -30,6 +30,7 @@
     "lib",
     "!**/*.map",
     "!**/__tests__",
+    "!**/__web_tests__",
     "!**/__fixtures__",
     "!**/*.test.ts",
     "!**/*.test.tsx",
@@ -72,6 +73,8 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@react-native/jest-preset": "^0.86.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.17",
@@ -109,9 +112,36 @@
     ]
   },
   "jest": {
-    "preset": "jest-expo",
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js"
+    "projects": [
+      {
+        "preset": "jest-expo/ios",
+        "setupFilesAfterEnv": [
+          "<rootDir>/jest.setup.js"
+        ],
+        "testPathIgnorePatterns": [
+          "/node_modules/",
+          "/__web_tests__/"
+        ]
+      },
+      {
+        "preset": "jest-expo/android",
+        "setupFilesAfterEnv": [
+          "<rootDir>/jest.setup.js"
+        ],
+        "testPathIgnorePatterns": [
+          "/node_modules/",
+          "/__web_tests__/"
+        ]
+      },
+      {
+        "preset": "jest-expo/web",
+        "setupFilesAfterEnv": [
+          "<rootDir>/jest.web.setup.js"
+        ],
+        "testMatch": [
+          "<rootDir>/src/__web_tests__/**/*.test.[jt]s?(x)"
+        ]
+      }
     ],
     "testTimeout": 30000
   },

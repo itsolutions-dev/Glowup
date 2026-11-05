@@ -9,7 +9,8 @@ import { LinearProgress, Paper, Typography, useTheme } from "@its/glowup-ui";
 const stack: ViewStyle = {
   flexDirection: "column",
   gap: 20,
-  width: 380,
+  width: "100%",
+  maxWidth: 380,
 };
 
 const labelRow: ViewStyle = {

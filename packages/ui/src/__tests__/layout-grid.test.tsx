@@ -130,6 +130,25 @@ describe("Grid", () => {
       expect(292 + 16 + 292).toBe(600);
     });
 
+    it("leaves the container's padding and border out of the row", async () => {
+      const { getByTestId } = await draw(
+        <Grid
+          container
+          testID="grid"
+          spacing={16}
+          style={{ paddingHorizontal: 20, borderWidth: 2 }}
+        >
+          {item("A", 6)}
+          {item("B", 6)}
+          {item("D", 12)}
+        </Grid>,
+      );
+      // The layout width includes 2 * 20 of padding and 2 * 2 of border.
+      await layout(getByTestId("grid"), 644);
+      expect(style(getByTestId("A")).width).toBe(292);
+      expect(style(getByTestId("D")).width).toBe(600);
+    });
+
     it("never lets a measured row exceed its container", async () => {
       const { getByTestId } = await draw(
         <Grid container testID="grid" spacing={8}>

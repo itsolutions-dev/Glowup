@@ -39,3 +39,7 @@ export type {
   GridCell,
   GridModelInput,
 } from "./grid/model";
+
+export { gridToXlsx, xlsxName, XLSX_MIME } from "./export/xlsx";
+export { saveXlsx, PivotExportError } from "./export/save";
+export type { SaveModules } from "./export/save";

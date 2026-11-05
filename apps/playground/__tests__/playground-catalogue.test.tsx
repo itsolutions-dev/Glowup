@@ -124,6 +124,7 @@ const CATALOGUE = [
   "FormControl",
   "DateTimePicker",
   "DatePicker",
+  "WeekStrip",
   "TimePicker",
   "Rating",
   "HelperText",
@@ -141,6 +142,7 @@ const CATALOGUE = [
   "Carousel",
   "Stat",
   "CaptionValue",
+  "DayTimeline",
   "Image",
   "Link",
   "CodeBlock",
@@ -425,6 +427,14 @@ describe("Playground catalogue", () => {
       off: { variant: "icon" },
       on: { variant: "animated" },
       props: ["animateFrom", "iconMode", "duration"],
+    },
+
+    // Dots and a bar have no direction: only the labelled steps do.
+    {
+      component: "Stepper",
+      off: { variant: "dots" },
+      on: { variant: "steps" },
+      props: ["direction"],
     },
 
     // The empty message is for a grid that is not loading.

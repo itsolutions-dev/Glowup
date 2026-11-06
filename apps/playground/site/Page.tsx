@@ -4,6 +4,8 @@ import {
   StyleSheet,
   View,
   type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
 import Head from "expo-router/head";
 import { ScrollArea, Typography, useTheme, type Theme } from "@its/glowup-ui";
@@ -32,6 +34,10 @@ interface PageProps {
   children: React.ReactNode;
   /** Opt out of the scroll view for routes that manage their own panes. */
   scroll?: boolean;
+  /** The scroll view's own layout, for a page that needs its viewport height. */
+  onScrollerLayout?: (event: LayoutChangeEvent) => void;
+  /** The scroll view's scroll events. */
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 /**
@@ -50,6 +56,8 @@ export const Page = ({
   banner,
   children,
   scroll = true,
+  onScrollerLayout,
+  onScroll,
 }: PageProps) => {
   const { theme } = useTheme();
   const layout = useLayout();
@@ -108,6 +116,8 @@ export const Page = ({
           style={styles.fill}
           contentContainerStyle={styles.scroll}
           testID="page-scroller"
+          onLayout={onScrollerLayout}
+          onScroll={onScroll}
         >
           {body}
         </ScrollArea>

@@ -27,70 +27,72 @@ is done; a cell without a source does not count.
 - **Android (CI)**: the API 34 and 35 emulators in `native.yml`, `/native-check` plus `scripts/android-interact.mjs`
   (16 steps that type, tap and scroll).
 - **Android (local)**: the Pixel 8 emulator (API 35) on Alice's laptop, driven by hand; the pilot screens ran there.
-- **Phone**: a real device. None yet, on either platform.
+- **Phone**: a real device. Since 6/11 one Android phone, a ZTE Blade A51 (Android 11, 32-bit, 2 GB, a slow phone on
+  purpose), with a Release build; no iPhone yet.
 - **TalkBack / VoiceOver**: a screen reader actually speaking. TalkBack on the local emulator (TalkBack 15, speech read
   from its "Display speech output"); VoiceOver never.
 
 **Sources** (the dates are the handoffs in `docs/handoff/`, the pilots' screenshots are in `docs/pilots/`)
 
-| Code   | What                                                                                                     |
-| ------ | -------------------------------------------------------------------------------------------------------- |
-| P-rep  | Pilot "report" (CRM `WaveActivitiesReport`), 29/10: web 1440 / 390 px, local Android                     |
-| P-sign | Pilot "sign-in with 2FA" (`Login`, `Verify2FA`, `Setup2FA`), 29/10: web, local Android                   |
-| P-cont | Pilot "contacts list" (`AllCustomers`), 29/10: web, local Android                                        |
-| P-cust | Pilot "customer detail with outcome" (`CustomerSectionPage`, `OutcomeDialog`), 30/10: web, local Android |
-| NC     | `/native-check` in CI, last run 4/11 on the pushed `dev`: 13 measurements PASS on iPhone, Android 14, 15 |
-| AI     | `android-interact.mjs` in CI, 4/11 on the pushed `dev`: 16/16 on Android 14 and 15                       |
-| WT     | Web tests in jsdom (2/11): roles and `aria-*`, Escape, Enter, focus ring, no button in a button          |
-| CH     | Chromium checks of the app-breaking fixes (28/10) and of the `aria-*` attributes in the DOM (30/10)      |
-| TB30   | TalkBack on text fields, 30/10 (`docs/pilots/2026-10-30/checks/android-talkback-*`)                      |
-| TB2    | TalkBack pass, 2/11: accessibility tree of 35 pages, speech heard for each finding before and after      |
-| PDF    | PDF checks of 20–23/10 (native CI, pinch, password, print, 300 pages)                                    |
+| Code   | What                                                                                                        |
+| ------ | ----------------------------------------------------------------------------------------------------------- |
+| P-rep  | Pilot "report" (CRM `WaveActivitiesReport`), 29/10: web 1440 / 390 px, local Android                        |
+| P-sign | Pilot "sign-in with 2FA" (`Login`, `Verify2FA`, `Setup2FA`), 29/10: web, local Android                      |
+| P-cont | Pilot "contacts list" (`AllCustomers`), 29/10: web, local Android                                           |
+| P-cust | Pilot "customer detail with outcome" (`CustomerSectionPage`, `OutcomeDialog`), 30/10: web, local Android    |
+| NC     | `/native-check` in CI, last run 4/11 on the pushed `dev`: 13 measurements PASS on iPhone, Android 14, 15    |
+| AI     | `android-interact.mjs` in CI, 4/11 on the pushed `dev`: 16/16 on Android 14 and 15                          |
+| WT     | Web tests in jsdom (2/11): roles and `aria-*`, Escape, Enter, focus ring, no button in a button             |
+| CH     | Chromium checks of the app-breaking fixes (28/10) and of the `aria-*` attributes in the DOM (30/10)         |
+| TB30   | TalkBack on text fields, 30/10 (`docs/pilots/2026-10-30/checks/android-talkback-*`)                         |
+| TB2    | TalkBack pass, 2/11: accessibility tree of 35 pages, speech heard for each finding before and after         |
+| PDF    | PDF checks of 20–23/10 (native CI, pinch, password, print, 300 pages)                                       |
+| ZTE    | ZTE Blade A51, 6/11: `/native-check` (13 measurements PASS, PDF search off on Android 11) and Alice by hand |
 
 ## Fields and forms
 
-| Component                    | Web                                          | iPhone (CI)              | Android (CI)                         | Android (local)                          | Phone | TalkBack                        | VoiceOver |
-| ---------------------------- | -------------------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------- | ----- | ------------------------------- | --------- |
-| `Input`                      | ✅ P-sign, P-cust; WT focus                  | ◐ NC drawn, dense height | ✅ AI typed, decimal comma; NC dense | ✅ P-sign, P-cust (keyboard in a dialog) | –     | ✅ TB30 named by its label      | –         |
-| `PasswordField`              | ✅ P-sign (strength, focus)                  | –                        | –                                    | ✅ P-sign                                | –     | ◐ TB2 tree; same tie as `Input` | –         |
-| `PinInput`                   | ✅ P-sign (fits 390 px)                      | –                        | –                                    | ✅ P-sign (code with keyboard)           | –     | ◐ TB2 tree                      | –         |
-| `NumberField`                | ✅ CH ("2,5" then +0.5)                      | –                        | –                                    | –                                        | –     | ◐ TB2 tree                      | –         |
-| `InputArea`                  | ✅ 26/10 (growth, cap)                       | –                        | –                                    | ✅ P-cust (notes above the keyboard)     | –     | ◐ TB2 tree                      | –         |
-| `Select`                     | ✅ P-rep, P-cust; WT combobox                | ◐ NC drawn, dense height | ◐ NC dense height                    | ✅ P-rep, P-cust                         | –     | ◐ TB2 tree                      | –         |
-| `Autocomplete`               | ✅ CH (Escape inside a dialog)               | –                        | –                                    | –                                        | –     | – (tree not read: a spinner)    | –         |
-| `DatePicker`                 | ✅ P-cust (digits typed)                     | –                        | –                                    | ✅ P-cust                                | –     | ◐ TB2 tree                      | –         |
-| `SearchBar`                  | ✅                                           | ◐ NC drawn               | ✅ AI typed                          | ✅ PDF search                            | –     | –                               | –         |
-| `Form` / `FormField`         | ✅ CH, WT (Enter submits, not when disabled) | –                        | –                                    | ✅ 30/10 (return key submits)            | –     | –                               | –         |
-| `FormControl` / `HelperText` | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `CheckboxGroup`              | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `RadioButton` / `RadioGroup` | ✅ WT (radio, checked when selected)         | –                        | –                                    | –                                        | –     | –                               | –         |
-| `Slider`                     | ✅ WT (slider, range and value)              | –                        | –                                    | –                                        | –     | –                               | –         |
-| `Rating`                     | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `DateTimePicker`             | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `TimePicker`                 | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `Editable`                   | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
-| `Upload`                     | –                                            | –                        | –                                    | –                                        | –     | –                               | –         |
+| Component                    | Web                                          | iPhone (CI)              | Android (CI)                         | Android (local)                          | Phone                 | TalkBack                        | VoiceOver |
+| ---------------------------- | -------------------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------- | --------------------- | ------------------------------- | --------- |
+| `Input`                      | ✅ P-sign, P-cust; WT focus                  | ◐ NC drawn, dense height | ✅ AI typed, decimal comma; NC dense | ✅ P-sign, P-cust (keyboard in a dialog) | ◐ ZTE NC dense height | ✅ TB30 named by its label      | –         |
+| `PasswordField`              | ✅ P-sign (strength, focus)                  | –                        | –                                    | ✅ P-sign                                | –                     | ◐ TB2 tree; same tie as `Input` | –         |
+| `PinInput`                   | ✅ P-sign (fits 390 px)                      | –                        | –                                    | ✅ P-sign (code with keyboard)           | –                     | ◐ TB2 tree                      | –         |
+| `NumberField`                | ✅ CH ("2,5" then +0.5)                      | –                        | –                                    | –                                        | –                     | ◐ TB2 tree                      | –         |
+| `InputArea`                  | ✅ 26/10 (growth, cap)                       | –                        | –                                    | ✅ P-cust (notes above the keyboard)     | –                     | ◐ TB2 tree                      | –         |
+| `Select`                     | ✅ P-rep, P-cust; WT combobox                | ◐ NC drawn, dense height | ◐ NC dense height                    | ✅ P-rep, P-cust                         | ◐ ZTE NC dense height | ◐ TB2 tree                      | –         |
+| `Autocomplete`               | ✅ CH (Escape inside a dialog)               | –                        | –                                    | –                                        | –                     | – (tree not read: a spinner)    | –         |
+| `DatePicker`                 | ✅ P-cust (digits typed)                     | –                        | –                                    | ✅ P-cust                                | –                     | ◐ TB2 tree                      | –         |
+| `SearchBar`                  | ✅                                           | ◐ NC drawn               | ✅ AI typed                          | ✅ PDF search                            | –                     | –                               | –         |
+| `Form` / `FormField`         | ✅ CH, WT (Enter submits, not when disabled) | –                        | –                                    | ✅ 30/10 (return key submits)            | –                     | –                               | –         |
+| `FormControl` / `HelperText` | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `CheckboxGroup`              | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `RadioButton` / `RadioGroup` | ✅ WT (radio, checked when selected)         | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `Slider`                     | ✅ WT (slider, range and value)              | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `Rating`                     | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `DateTimePicker`             | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `TimePicker`                 | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `Editable`                   | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
+| `Upload`                     | –                                            | –                        | –                                    | –                                        | –                     | –                               | –         |
 
 ## Actions
 
-| Component            | Web                       | iPhone (CI)              | Android (CI)               | Android (local)           | Phone | TalkBack                                                  | VoiceOver |
-| -------------------- | ------------------------- | ------------------------ | -------------------------- | ------------------------- | ----- | --------------------------------------------------------- | --------- |
-| `Button`             | ✅                        | ✅ NC dense, badge width | ✅ AI badge counts presses | ✅ all pilots             | –     | ✅ TB2 ("… Button"); icon-only needs `accessibilityLabel` | –         |
-| `IconButton`         | ✅ P-rep (tonal on a bar) | –                        | –                          | ✅ P-rep                  | –     | – (tree not read: a spinner)                              | –         |
-| `FAB` (extended)     | ✅ P-cont                 | –                        | –                          | ✅ P-cont                 | –     | ◐ TB2 tree                                                | –         |
-| `ToggleButtonGroup`  | ✅ P-cust (fits 390 px)   | –                        | –                          | ◐ P-cust                  | –     | ◐ TB2 tree                                                | –         |
-| `Menu`               | ✅ P-cont (sort)          | –                        | –                          | ✅ P-cont                 | –     | ◐ TB2 tree                                                | –         |
-| `Badge`              | ✅                        | ✅ NC (on a button)      | ✅ AI                      | ✅ P-cont (filters count) | –     | ◐ TB2 tree                                                | –         |
-| `ToggleButton`       | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `ButtonGroup`        | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `SplitButton`        | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `ProgressButton`     | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `SpeedDial`          | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `Chip` / `ChipGroup` | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `TouchableRipple`    | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `Link`               | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `Clipboard`          | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
-| `Download`           | –                         | –                        | –                          | –                         | –     | –                                                         | –         |
+| Component            | Web                       | iPhone (CI)              | Android (CI)               | Android (local)           | Phone                       | TalkBack                                                  | VoiceOver |
+| -------------------- | ------------------------- | ------------------------ | -------------------------- | ------------------------- | --------------------------- | --------------------------------------------------------- | --------- |
+| `Button`             | ✅                        | ✅ NC dense, badge width | ✅ AI badge counts presses | ✅ all pilots             | ◐ ZTE NC dense, badge width | ✅ TB2 ("… Button"); icon-only needs `accessibilityLabel` | –         |
+| `IconButton`         | ✅ P-rep (tonal on a bar) | –                        | –                          | ✅ P-rep                  | –                           | – (tree not read: a spinner)                              | –         |
+| `FAB` (extended)     | ✅ P-cont                 | –                        | –                          | ✅ P-cont                 | –                           | ◐ TB2 tree                                                | –         |
+| `ToggleButtonGroup`  | ✅ P-cust (fits 390 px)   | –                        | –                          | ◐ P-cust                  | –                           | ◐ TB2 tree                                                | –         |
+| `Menu`               | ✅ P-cont (sort)          | –                        | –                          | ✅ P-cont                 | –                           | ◐ TB2 tree                                                | –         |
+| `Badge`              | ✅                        | ✅ NC (on a button)      | ✅ AI                      | ✅ P-cont (filters count) | ◐ ZTE NC (on a button)      | ◐ TB2 tree                                                | –         |
+| `ToggleButton`       | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `ButtonGroup`        | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `SplitButton`        | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `ProgressButton`     | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `SpeedDial`          | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `Chip` / `ChipGroup` | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `TouchableRipple`    | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `Link`               | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `Clipboard`          | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
+| `Download`           | –                         | –                        | –                          | –                         | –                           | –                                                         | –         |
 
 ## Display
 
@@ -187,13 +189,13 @@ a check of their own. On iOS a quick look is enough: the page draws, nothing ove
 
 ## Add-ons
 
-| Component                     | Web                               | iPhone (CI)                                  | Android (CI)                             | Android (local)                  | Phone | TalkBack      | VoiceOver |
-| ----------------------------- | --------------------------------- | -------------------------------------------- | ---------------------------------------- | -------------------------------- | ----- | ------------- | --------- |
-| Charts (`BarChart`, outcomes) | ✅ P-rep, 27/10 (1440, 360, dark) | ✅ NC height, marks over the bars            | ✅ AI tap on a dense chart, marks        | ✅ P-rep                         | –     | –             | –         |
-| `DonutChart`                  | ✅                                | ✅ NC drawn                                  | ✅ AI tap on a slice                     | ✅                               | –     | –             | –         |
-| `PivotGrid`                   | ✅ P-rep                          | ✅ NC height, toolbar                        | ✅ AI open/close, scroll, `.xlsx` export | ✅ P-rep                         | –     | ✅ 26/10 grid | –         |
-| `PdfViewer`                   | ✅ PDF (open, print in Chrome)    | ✅ NC open, width, search, refuse, 300 pages | ✅ NC, AI page drawn                     | ✅ PDF (pinch, password, search) | –     | –             | –         |
-| `gradientStyle`               | ✅ P-rep                          | ✅ NC (the bar at the end)                   | ✅                                       | ✅ P-rep                         | –     | n/a           | n/a       |
+| Component                     | Web                               | iPhone (CI)                                  | Android (CI)                             | Android (local)                  | Phone                                                   | TalkBack      | VoiceOver |
+| ----------------------------- | --------------------------------- | -------------------------------------------- | ---------------------------------------- | -------------------------------- | ------------------------------------------------------- | ------------- | --------- |
+| Charts (`BarChart`, outcomes) | ✅ P-rep, 27/10 (1440, 360, dark) | ✅ NC height, marks over the bars            | ✅ AI tap on a dense chart, marks        | ✅ P-rep                         | ✅ ZTE NC height, marks; bars tapped (Alice)            | –             | –         |
+| `DonutChart`                  | ✅                                | ✅ NC drawn                                  | ✅ AI tap on a slice                     | ✅                               | ✅ ZTE NC drawn; charts page used (Alice)               | –             | –         |
+| `PivotGrid`                   | ✅ P-rep                          | ✅ NC height, toolbar                        | ✅ AI open/close, scroll, `.xlsx` export | ✅ P-rep                         | ✅ ZTE NC height; scrolled both ways (Alice)            | ✅ 26/10 grid | –         |
+| `PdfViewer`                   | ✅ PDF (open, print in Chrome)    | ✅ NC open, width, search, refuse, 300 pages | ✅ NC, AI page drawn                     | ✅ PDF (pinch, password, search) | ✅ ZTE open, pinch, print, save, 300 pages (search off) | –             | –         |
+| `gradientStyle`               | ✅ P-rep                          | ✅ NC (the bar at the end)                   | ✅                                       | ✅ P-rep                         | ◐ ZTE NC drawn                                          | n/a           | n/a       |
 
 **Added 4/11, seen on the web by Alice on 5/11, not yet on a device:** `Stepper` `variant="dots"` / `"progress"`
 (also with many steps), `ToggleButtonGroup` with `null`/`true`/`false` values and a `tooltip` per segment (shown on
@@ -205,7 +207,7 @@ rows above are the older props.
 - **iPhone**: the CI only draws `/native-check`, and taps nothing. Everything above marked "–" or "◐" on iPhone needs
   the playground on a simulator by hand (the colleague's Mac) or iOS interaction steps in `native.yml` (an iOS
   counterpart of `android-interact.mjs`, through `xcrun simctl` and an XCUITest or Maestro flow).
-- **Phone**: an `arm64` build from CI on one real Android phone (Stage 6). iPhone only with an Apple Developer account,
+- **Phone**: Android: the ZTE (6/11), by hand, page by page; a faster phone would add a second point. iPhone only with an Apple Developer account,
   or a free Apple ID in Xcode on the Mac (the app then expires after 7 days).
 - **VoiceOver**: none yet. On the Mac's simulator (Accessibility Inspector) or a real iPhone. Safari on Alice's iPhone
   with VoiceOver covers the **web** build only.

@@ -87,7 +87,10 @@ appears after 400 px. A section needs `track(id)` on its `onLayout` (`Section` t
 **The gallery cards** (`app/components/index.tsx`) show the example in a 240 px well: it is laid out in
 a box 1 / 0.75 as wide as the well and drawn at 0.75 from its centre (inert, `pointerEvents="none"`),
 under a `ViewportProvider` of 360. 3 columns from the `large` class, 2 from `medium`, 1 below; the
-description is clamped to 2 lines (and reserves them) in the card and in the list.
+description is clamped to 2 lines (and reserves them) in the card and in the list. On iOS and Android a
+card mounts its preview only once the reader has scrolled to within two screens of it, and keeps it
+(`LAZY_PREVIEWS`): all ~100 at once took 5.6 s to show the page on a slow phone (ZTE Blade A51, 6/11),
+now 1.8 s cold and 1.0 s warm. The web keeps every preview, so the exported HTML is the whole gallery.
 
 ## The icons
 

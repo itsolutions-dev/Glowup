@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Platform,
   Pressable,
@@ -47,6 +47,15 @@ const PREVIEW_SCALE = 0.75;
 /** The window the preview believes it is in: a small card is a phone-sized space. */
 const PREVIEW_VIEWPORT = 360;
 
+/**
+ * Native only: a card mounts its live preview once the reader has scrolled to
+ * within this many screens of it, and keeps it. Drawing all ~100 previews at once
+ * took 5.6 s to show the page and 8–11 s to settle on a ZTE Blade A51 (6/11); the
+ * web keeps every preview, so the exported HTML is the whole gallery.
+ */
+const LAZY_PREVIEWS = Platform.OS !== "web";
+const REVEAL_SCREENS = 2;
+
 type LayoutMode = "gallery" | "list";
 
 /**
@@ -71,6 +80,20 @@ export default function ComponentsIndex() {
     "catalogue.mode",
     "gallery",
   );
+
+  // How far down the page previews may be mounted (native), and where each
+  // category group starts. A card's top is estimated from its row: rows are
+  // at least a preview well tall, so the estimate errs on mounting early.
+  const [revealY, setRevealY] = useState(LAZY_PREVIEWS ? 0 : Infinity);
+  const [groupTop, setGroupTop] = useState<Record<string, number>>({});
+  const viewport = useRef(0);
+  const reveal = useCallback((top: number) => {
+    // Whole screens: ScrollArea reports every 16 ms, and the gallery should
+    // re-render once per screen scrolled, not once per frame.
+    const screen = viewport.current || 1;
+    const y = (Math.ceil(top / screen) + REVEAL_SCREENS) * screen;
+    setRevealY((current) => (y > current ? y : current));
+  }, []);
 
   const needle = query.trim().toLowerCase();
   const groups = useMemo(
@@ -100,6 +123,19 @@ export default function ComponentsIndex() {
 
   return (
     <Page
+      onScrollerLayout={
+        LAZY_PREVIEWS
+          ? (event) => {
+              viewport.current = event.nativeEvent.layout.height;
+              reveal(0);
+            }
+          : undefined
+      }
+      onScroll={
+        LAZY_PREVIEWS
+          ? (event) => reveal(event.nativeEvent.contentOffset.y)
+          : undefined
+      }
       eyebrow="Reference"
       title="Components"
       description={`${TOTAL_COUNT} components, each with one live, editable example. Search by name or by what a component does, filter by category and switch between the gallery and a list, then open one to edit its props and code.`}
@@ -166,7 +202,23 @@ export default function ComponentsIndex() {
         </Typography>
       ) : (
         groups.map((group) => (
-          <View key={group.label} style={styles.group}>
+          <View
+            key={group.label}
+            style={styles.group}
+            testID={`gallery-group-${group.label}`}
+            onLayout={
+              LAZY_PREVIEWS
+                ? (event) => {
+                    const { y } = event.nativeEvent.layout;
+                    setGroupTop((tops) =>
+                      tops[group.label] === y
+                        ? tops
+                        : { ...tops, [group.label]: y },
+                    );
+                  }
+                : undefined
+            }
+          >
             <View style={styles.groupHeader}>
               <Icons
                 name={group.icon as never}
@@ -190,8 +242,19 @@ export default function ComponentsIndex() {
 
             {mode === "gallery" ? (
               <View style={styles.grid}>
-                {group.items.map((name) => (
-                  <GalleryCard key={name} name={name} columns={columns} />
+                {group.items.map((name, index) => (
+                  <GalleryCard
+                    key={name}
+                    name={name}
+                    columns={columns}
+                    live={
+                      !LAZY_PREVIEWS ||
+                      (groupTop[group.label] !== undefined &&
+                        groupTop[group.label] +
+                          Math.floor(index / columns) * PREVIEW_HEIGHT <
+                          revealY)
+                    }
+                  />
                 ))}
               </View>
             ) : (
@@ -279,7 +342,16 @@ const CategoryChip = ({
   );
 };
 
-const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
+const GalleryCard = ({
+  name,
+  columns,
+  live,
+}: {
+  name: string;
+  columns: number;
+  /** Whether to mount the live preview yet (see LAZY_PREVIEWS). */
+  live: boolean;
+}) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const doc = docFor(name);
@@ -312,13 +384,15 @@ const GalleryCard = ({ name, columns }: { name: string; columns: number }) => {
               {/* Inert: the whole card is one link, so a control inside the
                   preview must not eat the press or take a tab stop of its own. */}
               <View style={styles.well} pointerEvents="none">
-                <View style={styles.wellInner}>
-                  <ViewportProvider width={PREVIEW_VIEWPORT}>
-                    <DemoErrorBoundary label={name}>
-                      {example ? <example.Component /> : null}
-                    </DemoErrorBoundary>
-                  </ViewportProvider>
-                </View>
+                {live ? (
+                  <View style={styles.wellInner} testID={`preview-${name}`}>
+                    <ViewportProvider width={PREVIEW_VIEWPORT}>
+                      <DemoErrorBoundary label={name}>
+                        {example ? <example.Component /> : null}
+                      </DemoErrorBoundary>
+                    </ViewportProvider>
+                  </View>
+                ) : null}
               </View>
 
               <View style={styles.cardFooter}>

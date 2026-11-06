@@ -173,7 +173,9 @@ a partial row counting half; 13, 7 and 10 on 3/11); the rename batches are at 2 
     `expo-sharing` still builds; `optionalPeers.test.ts` asks Metro (28/10).
 - **Left:**
   - Changeset and trusted publisher when it leaves `private`.
-  - **Not verified:** a real download on a device, the password on iPhone, pinch on iOS, saving on Android 10–14.
+  - **Not verified:** a real download on a device, the password on iPhone, pinch on iOS, saving on Android 10, 12–14.
+    **Seen on a real phone (6/11, ZTE Blade A51, Android 11):** open, pinch zoom, print and save work; the 300-page
+    file opens in 848 ms; search is off (no SDK extension 13 on that phone, as designed).
 
 ### Phase 7: pivot, 95% of the decided scope
 

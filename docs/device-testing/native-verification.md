@@ -155,7 +155,7 @@ is done; a cell without a source does not count.
 ## Drag and drop and grid layout
 
 Gabriele's, added to `ui` for the layout editor (`/templates/editor`, handoffs 27/10–5/11). Seen in the browser
-inside the editor (1440 × 900, by Gabriele); on phones the pass is `docs/mac-testing/layout-editor-device-checklist.md` (18 steps on
+inside the editor (1440 × 900, by Gabriele); on phones the pass is `docs/device-testing/layout-editor-device-checklist.md` (18 steps on
 an iPhone and an Android, upright and sideways), not run yet. The variant galleries leave them out: their drags are
 web-only fakes.
 

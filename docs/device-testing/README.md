@@ -3,12 +3,17 @@
 Istruzioni per provare la libreria Glowup su iPhone, con un Mac. Finora l'app è stata provata su iPhone solo dalla CI,
 che apre una pagina e fa delle foto ma non tocca e non scrive niente. Qui serve una persona che la usi davvero.
 
+**Per un telefono Android** le istruzioni sono in [`android.md`](android.md): come compilare il playground e
+installarlo su un telefono collegato con il cavo, scritte per essere seguite da Claude (la persona fa solo la parte del
+telefono e del cavo).
+
 In questa cartella:
 
-| File                                                                     | Cosa si prova                                                            |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| [`native-verification.md`](native-verification.md)                       | I **123 componenti** della libreria, uno per uno (colonna iPhone)        |
-| [`layout-editor-device-checklist.md`](layout-editor-device-checklist.md) | L'**editor di layout** (pagina `/templates/editor`): 18 passi da seguire |
+| File                                                                     | Cosa si prova                                                                |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| [`native-verification.md`](native-verification.md)                       | I **123 componenti** della libreria, uno per uno (colonne iPhone e Phone)    |
+| [`android.md`](android.md)                                               | Il playground su un **telefono Android** vero, dalla compilazione alle prove |
+| [`layout-editor-device-checklist.md`](layout-editor-device-checklist.md) | L'**editor di layout** (pagina `/templates/editor`): 18 passi da seguire     |
 
 ## 1. Cosa serve sul Mac (una volta sola)
 

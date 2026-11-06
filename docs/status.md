@@ -66,7 +66,7 @@ on 2/11), 1.4, 1.10, 1.11 and 1.13 partly; the native CI (in the phase's "what t
   - Android labels cut ("Sav", "Dai…", 30/10): the app must register brand fonts before the first render; the
     playground does, and the library docs say so.
   - 2/11 (details under Stage 4): 1.1 jest as iOS, Android and a web set; 1.2 the consumer bundles for iOS and
-    Android; 1.3 `docs/mac-testing/native-verification.md`; 1.5 `Select` and `Menu` virtualized; 1.6 `Autocomplete` above the
+    Android; 1.3 `docs/device-testing/native-verification.md`; 1.5 `Select` and `Menu` virtualized; 1.6 `Autocomplete` above the
     keyboard; 1.10 the TalkBack half; 1.13 a draft in `docs/release-1.0.md` (its questions are the release owners').
 - **Left:**
   - 1.4 `DataGrid` without the `FlatList` inside a horizontal `ScrollView` (B5). The pivot avoided it by writing
@@ -483,7 +483,7 @@ pilot screens decide what gets built next**: the plan put `composite-ui`
 needs it. Tick a box when it is done **and** its verification is noted in the handoff.
 
 **Done means:** the four pilot screens work on web, the iOS simulator, the Android emulator and one real Android
-phone; `pdf`, `charts` and `pivot` are published on npm; `docs/mac-testing/native-verification.md` and the 1.0 criteria
+phone; `pdf`, `charts` and `pivot` are published on npm; `docs/device-testing/native-verification.md` and the 1.0 criteria
 exist. Work that serves none of these waits (see "Deferred" below).
 
 ### Stage 0: close what is already diagnosed (Alice, 1–2 days)
@@ -537,7 +537,7 @@ The task list agreed on 2026-11-02 ("part 1": prove the library works on phones)
       since the TalkBack fix (they are named by their label). `scripts/android-interact.mjs` now finds the label's
       text and the field under it; 16/16 on the local emulator at the CI's screen size (2/11). CI confirmed it:
       16/16 on Android 14 and 15 (run of 2/11, 17:49).
-- [x] `docs/mac-testing/native-verification.md`, the component × platform matrix (A7, 2/11), filled for the pilot screens'
+- [x] `docs/device-testing/native-verification.md`, the component × platform matrix (A7, 2/11), filled for the pilot screens'
       components and the add-ons (42 rows), every cell with its source. Web and the local Android emulator are covered
       (the pilots); iPhone only for what `/native-check` draws (about a third, nothing tapped); **no real phone and
       no VoiceOver anywhere**. The file says what each empty column needs.
@@ -601,10 +601,10 @@ checks (VoiceOver, the pages by hand) wait for the colleague's Mac, unless the r
 **The colleague's Mac (plan of 4/11).** Not the pilot pages (deleted): the playground itself, built with
 `npm ci --ignore-scripts`, then `npx expo run:ios` in `apps/playground` (simulator) or `npx expo run:ios --device` (an
 iPhone on the Mac, a free Apple ID in Xcode: the app lasts 7 days). What to check is the iPhone column of
-`mac-testing/native-verification.md`, every "–" and "◐", in this order: fields and the keyboard; dialogs, sheets and menus; lists
+`device-testing/native-verification.md`, every "–" and "◐", in this order: fields and the keyboard; dialogs, sheets and menus; lists
 and data (with `WeekStrip`, `DayTimeline`, `Skeleton`); buttons and navigation (safe areas); the PDF, pivot and chart
 gestures; then dark mode and rotation on every page. VoiceOver only on a real iPhone (the simulator's Accessibility
-Inspector reads names and roles, not speech). Results go back into that table. **Since 5/11 the steps are written for the colleague in `docs/mac-testing/README.md`**, with the table and the layout editor's checklist in the same folder. Not written yet: an iOS counterpart of
+Inspector reads names and roles, not speech). Results go back into that table. **Since 5/11 the steps are written for the colleague in `docs/device-testing/README.md`**, with the table and the layout editor's checklist in the same folder. Not written yet: an iOS counterpart of
 `android-interact.mjs` in `native.yml`, which would tap and type on the CI simulator (optional, about one session).
 
 ### Stage 5: publish (last, after Stages 4 and 6)

@@ -197,6 +197,16 @@ a check of their own. On iOS a quick look is enough: the page draws, nothing ove
 | `PdfViewer`                   | ✅ PDF (open, print in Chrome)    | ✅ NC open, width, search, refuse, 300 pages | ✅ NC, AI page drawn                     | ✅ PDF (pinch, password, search) | ✅ ZTE open, pinch, print, save, 300 pages (search off) | –             | –         |
 | `gradientStyle`               | ✅ P-rep                          | ✅ NC (the bar at the end)                   | ✅                                       | ✅ P-rep                         | ◐ ZTE NC drawn                                          | n/a           | n/a       |
 
+**Every component page on the ZTE (6/11).** All 104 pages of the catalogue opened one after the other on the
+phone (`glowup://components/<Name>`), each checked for a crash and for errors in the log. Two were broken, both in the
+generated variant galleries, not in the library: Editable closed the app (`document` used in a timer) and Portal logged
+`Property 'PointerEvent' doesn't exist`. Fixed the same day (the previews check that the browser global exists;
+`__tests__/variants-browser-globals.test.ts` keeps it so); after the fix both open cleanly. This proves a page draws
+without errors on that phone, not that each component works: that is the "Phone" column, row by row. Known effect: the
+Editable gallery opens its fields already editing, so on a phone the keyboard comes up when the page opens.
+The CI's `android-interact.mjs` run on the ZTE passes its first step (typing) and cannot go on: it is written for an
+emulator with a hardware keyboard, and on a phone the on-screen keyboard covers the half its swipes start from.
+
 **Added 4/11, seen on the web by Alice on 5/11, not yet on a device:** `Stepper` `variant="dots"` / `"progress"`
 (also with many steps), `ToggleButtonGroup` with `null`/`true`/`false` values and a `tooltip` per segment (shown on
 hover), `Dialog` `overline`, `leadingActions` and `dividers` (the focus skipping a leading "Delete" is in WT). Their

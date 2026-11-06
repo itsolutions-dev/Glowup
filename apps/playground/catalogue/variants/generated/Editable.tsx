@@ -75,8 +75,11 @@ export const CustomDisplay = () => (
 // as the second takes focus: these stay open with `submitMode="none"`.
 // An open field also takes focus, and on web the focused `Input` draws the
 // browser focus ring inside its outline; these cells show the field at rest.
+// Web only: the site's gallery runs this on iOS and Android, where there is no
+// `document` (an uncaught ReferenceError there closed the app).
 const OpenAtRest = ({ children }: { children: React.ReactNode }) => {
   React.useEffect(() => {
+    if (typeof document === "undefined") return;
     const id = setTimeout(
       () => (document.activeElement as HTMLElement | null)?.blur(),
       50,

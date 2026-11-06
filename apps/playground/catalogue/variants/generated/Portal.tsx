@@ -15,10 +15,12 @@ const stage: ViewStyle = {
 
 // Opens the tooltip for the capture with a real hover. Tooltip's web anchor
 // listens through React's onPointerEnter, which React synthesises from a
-// bubbling `pointerover` (a native `pointerenter` never reaches it).
+// bubbling `pointerover` (a native `pointerenter` never reaches it). Web only: the
+// site's gallery runs this on iOS and Android, where there is no `PointerEvent`.
 const Hovered = ({ children }: { children: React.ReactNode }) => {
   const hostRef = React.useRef<View | null>(null);
   React.useEffect(() => {
+    if (typeof PointerEvent === "undefined") return;
     const anchor = hostRef.current?.firstElementChild
       ?.firstElementChild as HTMLElement | null;
     anchor?.dispatchEvent(

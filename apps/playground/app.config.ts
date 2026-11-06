@@ -25,6 +25,8 @@ const config: ExpoConfig = {
     supportsTablet: true,
   },
   android: {
+    // Needed by `expo run:android` (a development build); Expo Go ignores it.
+    package: "it.itsolutions.glowupplayground",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: ICON_BACKGROUND,

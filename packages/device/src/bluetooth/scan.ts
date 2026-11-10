@@ -178,7 +178,8 @@ function createScanStore(adapter: BluetoothAdapter): ScanStore {
 
   function armTimer(id: number, ms: number) {
     timer = setTimeout(() => {
-      if (id === session) void stop();
+      // Nobody awaits this stop: it must not become an unhandled rejection.
+      if (id === session) stop().catch(() => {});
     }, ms);
   }
 

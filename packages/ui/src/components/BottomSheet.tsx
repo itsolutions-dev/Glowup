@@ -90,8 +90,9 @@ const BottomSheet = ({
           duration: 250,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        setShouldRender(false);
+      ]).start(({ finished }) => {
+        // Reopened while closing: the show animation interrupted this one.
+        if (finished) setShouldRender(false);
       });
     }
   }, [visible, translateY, scrimOpacity]);

@@ -117,8 +117,11 @@ function createAppLockStore(): AppLockStore {
       const since = backgroundAt;
       backgroundAt = null;
       const { enabled, relockAfter } = state.config;
+      // A negative elapsed time means the wall clock went backwards while
+      // the app was away: lock, rather than trust it.
+      const elapsed = since === null ? null : Date.now() - since;
       const relock =
-        enabled && since !== null && Date.now() - since >= relockAfter;
+        enabled && elapsed !== null && (elapsed < 0 || elapsed >= relockAfter);
       set(
         relock
           ? { isActive: true, locked: true, lockId: state.lockId + 1 }

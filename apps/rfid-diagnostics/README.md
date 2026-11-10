@@ -40,6 +40,25 @@ Kotlin, or to switch vendor, build again: reloading Metro updates the JavaScript
 --clean` forces it). Host → Native module shows the module's revision, in red when the app
 needs rebuilding.
 
+## A standalone APK
+
+`npm run android` gives a development build: debug, with the JavaScript served by Metro over
+USB. To hand the app to someone, or to test away from the machine, build the release variant
+instead, with the JavaScript bundled in:
+
+```bash
+npm install                                   # at the repository root
+npm run apk -w @its/rfid-diagnostics          # Honeywell: RFID (IH40) and barcode scanner (CT40)
+RFID_VENDOR=zebra npm run apk -w @its/rfid-diagnostics
+```
+
+It needs the same machine and the same SDK files as above (it stops at once, naming the file,
+when one is missing), regenerates `android/` for the vendor, builds the ARM ABIs only and
+leaves `build/rfid-diagnostics-<vendor>.apk` (git ignores it). Install it with
+`adb install -r <apk>`, or copy it to the device. It is signed with the generated project's
+debug keystore: for testing, not for a store, and Android refuses it over an install signed
+with another key (uninstall that one first).
+
 ## On the packed packages
 
 The build above runs the packages' source. To check what npm would ship instead (the built

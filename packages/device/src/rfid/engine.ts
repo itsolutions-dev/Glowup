@@ -305,7 +305,13 @@ function createEngine(adapter: RfidAdapter): RfidEngine {
         timeout,
         `The RFID reader ${readerId} did not connect within ${timeout} ms.`,
       ).catch(async (failure: unknown) => {
-        if (failure instanceof RfidError && failure.code === "timeout") {
+        // Only the latest attempt may drop the link: a newer connect() may
+        // have connected another reader while this one was timing out.
+        if (
+          failure instanceof RfidError &&
+          failure.code === "timeout" &&
+          id === connectCount
+        ) {
           await adapter.disconnect().catch(() => {});
         }
         throw failure;

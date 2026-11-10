@@ -89,9 +89,15 @@ export function useRfidTrigger(
 
   useEffect(
     () =>
-      store.listen((pressed) =>
-        (pressed ? latest.current.onPress : latest.current.onRelease)?.(),
-      ),
+      store.listen((pressed) => {
+        // A handler that returns a mode's promise (`() => inventory.start()`)
+        // rejects by design (not connected, released before it began) and
+        // the mode already reports it in its `error`: no unhandled rejection.
+        const result: unknown = (
+          pressed ? latest.current.onPress : latest.current.onRelease
+        )?.();
+        if (result instanceof Promise) result.catch(() => {});
+      }),
     [store],
   );
 

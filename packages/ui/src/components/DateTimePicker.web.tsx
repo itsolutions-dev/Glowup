@@ -74,7 +74,13 @@ const DateTimePicker = (props: DateTimePickerProps) => {
       Math.max(MARGIN, rect.left),
       Math.max(MARGIN, window.innerWidth - SURFACE_WIDTH - MARGIN),
     );
-    setAnchor({ top, left });
+    // Scroll events arrive in bursts (the open calendar's own list included):
+    // keep the same object while the position holds, so they do not re-render.
+    setAnchor((previous) =>
+      previous?.top === top && previous.left === left
+        ? previous
+        : { top, left },
+    );
   }, [measuredHeight]);
 
   useEffect(() => {

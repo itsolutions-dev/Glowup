@@ -141,6 +141,17 @@ it("waits relockAfter in the background before locking", async () => {
   expect(result.current.isLocked).toBe(true);
 });
 
+it("locks when the clock went backwards in the background", async () => {
+  const now = jest.spyOn(Date, "now").mockReturnValue(100_000);
+  const { result } = await setup({ relockAfter: 60_000 });
+  await act(() => result.current.unlock());
+
+  await moveTo("background");
+  now.mockReturnValue(40_000);
+  await moveTo("active");
+  expect(result.current.isLocked).toBe(true);
+});
+
 it("does not count a trip to the background a prompt caused", async () => {
   const { result, biometrics } = await setup({}, { manual: true });
   let pending!: Promise<unknown>;

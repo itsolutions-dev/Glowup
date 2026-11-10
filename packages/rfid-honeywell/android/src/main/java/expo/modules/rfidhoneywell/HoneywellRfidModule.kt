@@ -28,7 +28,7 @@ class RfidException(code: String, message: String, cause: Throwable? = null) :
 
 // Raised with every native change: JavaScript compares it with its own
 // (HONEYWELL_NATIVE_REVISION), since a Metro reload does not rebuild this.
-private const val NATIVE_REVISION = 4
+private const val NATIVE_REVISION = 5
 
 // Reads reach JavaScript at most this often (plan R10): the SDK delivers
 // batches many times a second.
@@ -62,7 +62,7 @@ class HoneywellRfidModule : Module() {
   private val lock = Any()
   private var manager: RfidManager? = null
   private var creatingManager = false
-  private val managerWaiters = mutableListOf<(RfidManager) -> Unit>()
+  private val managerWaiters = mutableListOf<Pair<(RfidManager) -> Unit, Promise>>()
 
   private var reader: RfidReader? = null
   private var readerId: String? = null
@@ -113,18 +113,21 @@ class HoneywellRfidModule : Module() {
 
     OnDestroy {
       scanner?.stop()
-      val m = synchronized(lock) {
+      val (m, r, running) = synchronized(lock) {
         keepConnected = false
+        val last = Triple(manager, reader, mode)
         reader = null
         mode = Mode.IDLE
-        manager
+        last
       }
-      try {
-        m?.removeEventListener(eventListener)
-        m?.setAutoReconnect(false)
-        m?.disconnect()
-      } catch (_: Throwable) {
-      }
+      // Each step alone: one that throws must not skip the next.
+      quietly { m?.removeEventListener(eventListener) }
+      quietly { if (running != Mode.IDLE) r?.stopRead() }
+      // As disconnect() leaves it (plan C6): a reload while JavaScript held
+      // the trigger must not leave the reader's trigger in RFID mode.
+      quietly { if (r != null) m?.setTriggerMode(TriggerMode.BARCODE) }
+      quietly { m?.setAutoReconnect(false) }
+      quietly { m?.disconnect() }
       worker?.quitSafely()
     }
 
@@ -187,8 +190,9 @@ class HoneywellRfidModule : Module() {
         throw RfidException("ERR_READER", "The reader could not start the search.", error)
       }
       if (!started) {
-        r.setLocateEPC("")
+        // The mode first: a reader that also refuses this must not keep it.
         endMode(Mode.LOCATE)
+        quietly { r.setLocateEPC("") }
         throw RfidException("ERR_READER", "The reader refused to start the search.")
       }
     }
@@ -197,27 +201,44 @@ class HoneywellRfidModule : Module() {
       stopReading(Mode.LOCATE)
     }
 
-    AsyncFunction("readOnce") { windowMs: Int, tid: Boolean ->
-      val r = beginMode(Mode.SINGLE)
-      try {
-        val reads = if (tid) readWindow(r, windowMs) else syncRead(r, windowMs)
-        diagnostic(
-          "syncRead",
-          mapOf(
-            "path" to if (tid) "read" else "syncRead",
-            "size" to reads.size,
-            "tids" to reads.count { it["tid"] != null },
-            "windowMs" to windowMs
-          )
-        )
-        reads
+    AsyncFunction("readOnce") { windowMs: Int, tid: Boolean, promise: Promise ->
+      val r = try {
+        beginMode(Mode.SINGLE)
       } catch (error: RfidException) {
-        throw error
-      } catch (error: Throwable) {
-        throw RfidException("ERR_READER", "The reader could not read.", error)
-      } finally {
-        endMode(Mode.SINGLE)
+        promise.reject(error)
+        return@AsyncFunction
       }
+      // The read blocks for its whole window. On a thread of its own: Expo
+      // runs every module's async functions on one queue, which would hold
+      // back disconnect() and the barcode scanner's calls meanwhile; and the
+      // worker sends the events.
+      Thread(
+        Runnable {
+          var reads: List<Map<String, Any?>> = emptyList()
+          var failure: RfidException? = null
+          try {
+            reads = if (tid) readWindow(r, windowMs) else syncRead(r, windowMs)
+            diagnostic(
+              "syncRead",
+              mapOf(
+                "path" to if (tid) "read" else "syncRead",
+                "size" to reads.size,
+                "tids" to reads.count { it["tid"] != null },
+                "windowMs" to windowMs
+              )
+            )
+          } catch (error: RfidException) {
+            failure = error
+          } catch (error: Throwable) {
+            failure = RfidException("ERR_READER", "The reader could not read.", error)
+          }
+          // Before the promise settles: the next mode may start at once.
+          endMode(Mode.SINGLE)
+          val error = failure
+          if (error != null) promise.reject(error) else promise.resolve(reads)
+        },
+        "HoneywellRfid-read"
+      ).start()
     }
 
     AsyncFunction("setTriggerHandover") { enabled: Boolean ->
@@ -309,7 +330,7 @@ class HoneywellRfidModule : Module() {
       return
     }
     val create = synchronized(lock) {
-      managerWaiters.add(block)
+      managerWaiters.add(block to promise)
       if (creatingManager) false else true.also { creatingManager = true }
     }
     if (!create) return
@@ -323,18 +344,23 @@ class HoneywellRfidModule : Module() {
           managerWaiters.toList().also { managerWaiters.clear() }
         }
         if (created == null) {
-          promise.reject(RfidException("ERR_SDK", "The Honeywell RFID service did not start."))
+          // Every connect() that waited, not the first alone.
+          waiters.forEach { (_, waiting) ->
+            waiting.reject(RfidException("ERR_SDK", "The Honeywell RFID service did not start."))
+          }
           return@create
         }
         created.addEventListener(eventListener)
-        waiters.forEach { post { it(created) } }
+        waiters.forEach { (run, _) -> post { run(created) } }
       }
     } catch (error: Throwable) {
-      synchronized(lock) {
+      val waiters = synchronized(lock) {
         creatingManager = false
-        managerWaiters.clear()
+        managerWaiters.toList().also { managerWaiters.clear() }
       }
-      promise.reject(RfidException("ERR_SDK", "The Honeywell RFID service did not start.", error))
+      waiters.forEach { (_, waiting) ->
+        waiting.reject(RfidException("ERR_SDK", "The Honeywell RFID service did not start.", error))
+      }
     }
   }
 
@@ -743,6 +769,13 @@ class HoneywellRfidModule : Module() {
   }
 
   // --- Helpers ------------------------------------------------------------
+
+  private fun quietly(run: () -> Unit) {
+    try {
+      run()
+    } catch (_: Throwable) {
+    }
+  }
 
   private fun <T> guard(run: () -> T): T = try {
     run()

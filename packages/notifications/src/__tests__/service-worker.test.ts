@@ -187,6 +187,23 @@ describe("service worker", () => {
     }
   });
 
+  it("never opens another origin, whatever the payload's url says", async () => {
+    const { self, fire } = bootWorker([]);
+
+    await fire("notificationclick", {
+      action: "",
+      notification: {
+        close: jest.fn(),
+        data: {
+          glowup: { id: "n5", title: "Hi", url: "https://evil.example/x" },
+        },
+      },
+    });
+
+    const opened = new URL(self.clients.openWindow.mock.calls[0][0]);
+    expect(opened.origin + opened.pathname).toBe("https://app.example/");
+  });
+
   it("tells every tab when the subscription changes", async () => {
     const tabs = [client(), client({ visibilityState: "visible" })];
     const { fire } = bootWorker(tabs);

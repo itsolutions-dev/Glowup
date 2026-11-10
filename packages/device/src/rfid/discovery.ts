@@ -127,9 +127,15 @@ function createDiscoveryStore(engine: RfidEngine): DiscoveryStore {
       throw failure;
     }
     if (id !== session) return;
-    if (timeout > 0) timer = setTimeout(() => void stop(), timeout);
+    // Nobody awaits these stops: a reader that refuses to stop must not
+    // surface as an unhandled rejection.
+    if (timeout > 0) {
+      timer = setTimeout(() => {
+        stop().catch(() => {});
+      }, timeout);
+    }
     appState = AppState.addEventListener("change", (next) => {
-      if (next === "background" && id === session) void stop();
+      if (next === "background" && id === session) stop().catch(() => {});
     });
   }
 

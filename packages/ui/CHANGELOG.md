@@ -1,5 +1,13 @@
 # @its/glowup-ui
 
+## 0.12.1
+
+### Patch Changes
+
+- 9abfd42: `BottomSheet` and `Snackbar` reopened while closing stay mounted (the interrupted close no
+  longer unmounts them for a frame), and the web `DateTimePicker` no longer re-renders on every
+  scroll event while open.
+
 ## 0.12.0
 
 ### Minor Changes

@@ -37,7 +37,8 @@ Roadmap, the Honeywell SDK's facts and its licence: `docs/device-package-plan.md
   15 s, until `connect()` or `disconnect()`. The read option sets `data` and `protocol` as the
   SDK's own `read()` does: without them the TID never comes back. `syncRead` takes no read option,
   so a single read with a TID is a `read()` window instead, collected by the tag listener while
-  the mode is `SINGLE`. Reads arrive on SDK
+  the mode is `SINGLE`. Either way the single read blocks for its window, so it runs on a thread
+  of its own, not on Expo's async queue (shared by every module) nor on the worker. Reads arrive on SDK
   threads: every state change goes through `lock`, no blocking SDK call runs under it, and reads
   are batched to JavaScript every 100 ms from the module's `HandlerThread`. While locating, the
   SDK passes only the searched tag to `onTagRead` (matched with `String.equals` on uppercase

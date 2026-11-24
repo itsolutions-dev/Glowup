@@ -17,6 +17,11 @@ export {
   type ViewportProviderProps,
 } from "./providers/Viewport";
 export * from "./providers/AlertProvider";
+export {
+  default as LinkProvider,
+  type LinkProviderProps,
+  type NavigateHandler,
+} from "./providers/LinkProvider";
 // ToastProvider is exported by name from the module itself.
 export * from "./providers/ToastProvider";
 

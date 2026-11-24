@@ -2270,12 +2270,12 @@ The library itself never imports react-navigation. Pads the top safe-area inset.
 Bottom navigation bar: the destinations of a compact window, three to five per M3. It reports
 presses; the app's router decides what they mean.
 
-| Prop       | Type                     | Default  | Req | Description                                     |
-| ---------- | ------------------------ | -------- | --- | ----------------------------------------------- |
-| items      | `NavBarItem[]`           | —        | ✓   | `{ id, label, icon, badgeCount?, disabled? }`   |
-| activeId   | string                   | —        | ✓   | `id` of the current destination                 |
-| onClick    | (id) => void             | —        | ✓   | Called with the `id` of the pressed destination |
-| showLabels | `"always" \| "selected"` | `always` |     |                                                 |
+| Prop       | Type                     | Default  | Req | Description                                                                                                 |
+| ---------- | ------------------------ | -------- | --- | ----------------------------------------------------------------------------------------------------------- |
+| items      | `NavBarItem[]`           | —        | ✓   | `{ id, label, icon, badgeCount?, disabled?, href? }`                                                        |
+| activeId   | string                   | —        | ✓   | `id` of the current destination                                                                             |
+| onClick    | (id) => void             | —        |     | Called with the `id` of the pressed destination; optional when every item has `href` under a `LinkProvider` |
+| showLabels | `"always" \| "selected"` | `always` |     |                                                                                                             |
 
 ### NavigationRail
 
@@ -2309,10 +2309,18 @@ its edge, the scrim, Android back and Escape close it. A right-hand side sheet i
 | height          | number                                   | `360`                     |     | Top and bottom: the largest height                                                                                                                                                                 |
 | style / testID  |                                          |                           |     |                                                                                                                                                                                                    |
 
-`DrawerItem`: `label` (required), `icon`, `selected`, trailing `badge`, `onClick`, `disabled`, and
+`DrawerItem`: `label` (required), `icon`, `selected`, trailing `badge`, `onClick`, `href`, `disabled`, and
 `children` (sub-items, which make it a group that the press opens and closes; `defaultExpanded`,
-`onToggle`). `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
+`onToggle`; they nest to any depth). `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
 `defaultExpanded` (`true`) and `onToggle`.
+
+**Links.** A `DrawerItem`, `NavBar` or `NavigationRail` item with `href` is a real anchor on the web (its
+URL on hover, Ctrl, Cmd, Shift or middle click for a new tab or window): a plain click runs the item's
+handler and then the `LinkProvider`'s `navigate`, so the route changes without a page load; with
+neither, the browser follows the link. On iOS and Android a press does both. A bar with links is a
+`navigation` landmark of links instead of a tab list. The library imports no router:
+`<LinkProvider navigate={(href) => router.push(href)}>` plugs in expo-router (react-navigation:
+`linkTo`). A group item (with `children`) still opens and closes, unless the drawer is `collapsed`.
 
 ```tsx
 <Drawer

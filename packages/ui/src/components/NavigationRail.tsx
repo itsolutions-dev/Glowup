@@ -9,6 +9,7 @@ import type { NavBarItem } from "./NavBar";
 import type { PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 import { a11yState } from "./internal/a11yState";
+import { linkPressProps, useNavigateHandler } from "../providers/LinkProvider";
 
 // M3 navigation rail: 80dp container, 56x32 active indicator, 56dp per item.
 const RAIL_WIDTH = 80;
@@ -20,7 +21,11 @@ export interface NavigationRailProps {
   items: NavBarItem[];
   /** `id` of the current destination. */
   activeId: string;
-  onItemPress: (id: string) => void;
+  /**
+   * Called with the `id` of the pressed destination. Optional when every
+   * item has an `href` under a `LinkProvider`.
+   */
+  onItemPress?: (id: string) => void;
   /**
    * `"always"` labels every destination, `"selected"` only the active one,
    * `"none"` none (the label is still the accessible name). Defaults to `"always"`.
@@ -54,12 +59,17 @@ const NavigationRail = ({
 }: NavigationRailProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const navigate = useNavigateHandler();
+  // Links (an item with `href`) make it a navigation landmark: a tab list
+  // holds tabs only.
+  const links = items.some((item) => item.href);
 
   return (
     <View
       style={[styles.container, style]}
-      accessibilityRole="tablist"
-      aria-orientation="vertical"
+      role={links ? "navigation" : undefined}
+      accessibilityRole={links ? undefined : "tablist"}
+      aria-orientation={links ? undefined : "vertical"}
       testID={testID}
     >
       {header != null && <View style={styles.header}>{header}</View>}
@@ -74,15 +84,20 @@ const NavigationRail = ({
           const icon = activeGlyph(item.icon, active);
           const showLabel =
             showLabels === "always" || (showLabels === "selected" && active);
+          const role = item.href ? "link" : links ? "button" : "tab";
 
           return (
             <Pressable
               key={item.id}
-              onPress={() => onItemPress(item.id)}
+              {...linkPressProps(
+                item.href,
+                onItemPress && (() => onItemPress(item.id)),
+                navigate,
+              )}
               disabled={item.disabled}
-              accessibilityRole="tab"
+              accessibilityRole={role}
               accessibilityLabel={item.label}
-              {...a11yState("tab", {
+              {...a11yState(role, {
                 selected: active,
                 disabled: item.disabled,
               })}

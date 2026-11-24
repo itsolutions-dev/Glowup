@@ -16,15 +16,16 @@ const props: Partial<NavigationRailProps> = {
 };
 
 const PLACES: NavBarItem[] = [
-  { id: "files", label: "Files", icon: "folder-outline" },
-  { id: "recent", label: "Recent", icon: "clock-outline" },
+  { id: "files", label: "Files", icon: "folder-outline", href: "#files" },
+  { id: "recent", label: "Recent", icon: "clock-outline", href: "#recent" },
   {
     id: "shared",
     label: "Shared",
     icon: "account-multiple-outline",
     badgeCount: 2,
+    href: "#shared",
   },
-  { id: "trash", label: "Trash", icon: "trash-can-outline" },
+  { id: "trash", label: "Trash", icon: "trash-can-outline", href: "#trash" },
 ];
 
 export default function NavigationRailExample() {

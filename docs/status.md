@@ -1,6 +1,7 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-05**, `dev` at the commit that carries this file. Built from the handoffs of 19 October–4 November and
+As of **2026-11-24**, at the commit that carries this file (the `claude/appshell` branch adds the navigation links to
+`dev` of 5/11). Built from the handoffs of 19 October–4 November and
 `solaris-native.md`. Since 5/11 it also holds the decisions (once `decisions.md`, now "Decisions taken" below) and the
 library's backlog (once `library-roadmap.md`, now "Library hardening" and "Library: what is left to build"). **Update it
 at the end of every session, in the same change as the handoff**, so the next session starts from here and not from
@@ -310,11 +311,14 @@ day, **M** a few days, **L** a week or more.
   | **`useConfirm()` / `Alert.confirm()`** returning a promise, on top of the single `AlertDialog`                                                                                        | The most common dialog; today every call site keeps `visible` state                     | S      |
   | **Theme mode**: `mode` / `setMode` / `defaultMode`, system option, nested provider inherits                                                                                           | A settings screen cannot be built; `toggleTheme` has no "system"                        | M      |
   | The shared `Column` type and ids for `Table` and `DataGrid`                                                                                                                           | Next in the roadmap's suggested order (23/10)                                           | M      |
-  | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh), and nav items that take an `href` or link slot                                                             | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L    |
+  | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh): **on hold**, see below; nav items with `href` done 24/11                                                   | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L    |
   | **Toast v2**: `toast.promise` / `update`, exit animation (`maxVisible` and drawing above native modals are done)                                                                      | Promises (saving…, saved) and a soft exit                                               | M      |
   | **Motion layer**: `Fade` / `Grow` / `Slide` + one reduced-motion rule; `Backdrop`, `LoadingOverlay`                                                                                   | Four copies of mount-until-exit; only 9 files honour reduced motion                     | M      |
   | **Input family**: `type` (email, tel, url), `clearable`, `showCount`, masks (`PhoneInput`, `CurrencyInput`), slider range, `Tabs` scroll and keyboard model, `Stepper` per-step state | The basics of a business form and of a wizard                                           | M each |
 
+- **`AppShell` on hold (24/11).** The user wants the CRM to compose its frame from the existing components first, and
+  is deciding whether Glowup needs a shell component at all. Do not build it until they say so. Its first half, the
+  navigation items that take an `href` (`LinkProvider`), is built.
 - **Docs gaps:** the `Input` tables in `packages/ui/README.md` and `components.md` lack `density`, `decimalSeparator`,
   `allUpperCase` and `reserveHelperText`; `Upload.maxFiles` has no "needs `multiple`" rule in the playground.
 - **Playground limit, by design:** the Properties panel covers props the library declares or inherits from its own
@@ -358,6 +362,12 @@ Check here before starting something that feels familiar.
 
 **Library**
 
+- **Navigation links (24/11): the router comes in as a function, not as its `Link`.** `DrawerItem` and the
+  `NavBar` / `NavigationRail` items take `href`; `LinkProvider navigate={(href) => router.push(href)}` plugs the
+  router in. Not `Link asChild` around the item: expo-router's merges the child's style into a plain object (a
+  `Pressable`'s state style function is lost) and passes `onClick`, which react-native-web's `Pressable` overrides,
+  so the anchor would reload the page. A group `DrawerItem` opens and closes rather than navigating, unless the drawer
+  is `collapsed`. No base-URL mapping: the CRM serves from the root (add one to `LinkProvider` when an app does not).
 - **`Collapse` on native is fixed** (26/10, `0ede135`, changeset `collapse-opens-on-native.md`). The colleague
   still has to be told.
 - **The component and API decisions** (`Typography`, `Select multiple`, `ConfirmDialog`, `InputArea`, what was not

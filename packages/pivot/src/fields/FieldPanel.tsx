@@ -388,6 +388,7 @@ const FieldPanelBody = ({ engine, localization, onClose }: FieldPanelProps) => {
       overline={t("subtitle", "Drag and drop fields to arrange them")}
       width="lg"
       dividers
+      scrollable
       testID="pivot-fields"
       leadingActions={
         !canApply ? (

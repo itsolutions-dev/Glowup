@@ -177,6 +177,7 @@ const FilterEditor = ({
       onClose={onClose}
       title={meta?.caption || filter.uniqueName}
       width="sm"
+      scrollable
       testID="pivot-filter-editor"
       leadingActions={
         <Button

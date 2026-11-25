@@ -8134,7 +8134,14 @@
           "name": "events",
           "type": "DayTimelineEvent[]",
           "required": true,
-          "description": "The day's events, in any order: they are shown by start time.",
+          "description": "The events, in any order: they are shown by start time. The grid and the\nmonth place each one on the day it starts and leave out the others.",
+          "deprecated": false
+        },
+        {
+          "name": "days",
+          "type": "Date[]",
+          "required": false,
+          "description": "The grid's columns, one per day, in the order given. Defaults to today.",
           "deprecated": false
         },
         {
@@ -8146,10 +8153,41 @@
           "deprecated": false
         },
         {
+          "name": "endHour",
+          "type": "number",
+          "required": false,
+          "default": "20",
+          "description": "The hour the grid ends at, 1–24. Defaults to 20.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's.",
+          "deprecated": false
+        },
+        {
+          "name": "hourHeight",
+          "type": "number",
+          "required": false,
+          "default": "48",
+          "description": "The height of an hour in the grid, in dp. Defaults to 48.",
+          "deprecated": false
+        },
+        {
           "name": "labels",
           "type": "DayTimelineLabels",
           "required": false,
           "description": "Words read by screen readers, for another language.",
+          "deprecated": false
+        },
+        {
+          "name": "layout",
+          "type": "DayTimelineLayout",
+          "required": false,
+          "default": "\"list\"",
+          "description": "How the events are laid out. Defaults to `\"list\"`.",
           "deprecated": false
         },
         {
@@ -8161,10 +8199,77 @@
           "deprecated": false
         },
         {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "The weekday names and the first day of the week. Defaults to the device's.",
+          "deprecated": false
+        },
+        {
+          "name": "maxPerDay",
+          "type": "number",
+          "required": false,
+          "default": "3",
+          "description": "The month layout's events per day before \"+N\". Defaults to 3.",
+          "deprecated": false
+        },
+        {
+          "name": "month",
+          "type": "Date",
+          "required": false,
+          "description": "Any day of the month the month layout shows. Defaults to today.",
+          "deprecated": false
+        },
+        {
+          "name": "onDayPress",
+          "type": "(day: Date) => void",
+          "required": false,
+          "description": "A press on a day's heading in the grid or its number in the month.",
+          "deprecated": false
+        },
+        {
+          "name": "onEventChange",
+          "type": "(event: DayTimelineEvent, change: DayTimelineChange) => void",
+          "required": false,
+          "description": "Makes the grid's and the month's events draggable: drop one on another\ntime or day (in the month, another day at the same time) to move it,\nkeeping its length. Called with the event and where it now is; update\n`events` here.",
+          "deprecated": false
+        },
+        {
           "name": "onEventPress",
           "type": "(event: DayTimelineEvent) => void",
           "required": false,
           "description": "Called with the pressed event. Makes each card a button.",
+          "deprecated": false
+        },
+        {
+          "name": "onSlotPress",
+          "type": "(start: Date) => void",
+          "required": false,
+          "description": "A press on an empty part of the grid, with its time snapped to `step`, or\non an empty part of a month's day, with that day at `startHour`.",
+          "deprecated": false
+        },
+        {
+          "name": "resizable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "With `onEventChange`, a handle at the foot of each grid event drags its end.",
+          "deprecated": false
+        },
+        {
+          "name": "startHour",
+          "type": "number",
+          "required": false,
+          "default": "8",
+          "description": "The grid's first hour, 0–23. Defaults to 8.",
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "30",
+          "description": "The minutes a press, a move or a resize in the grid snaps to. Defaults to 30.",
           "deprecated": false
         },
         {
@@ -8177,6 +8282,14 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "weekDays",
+          "type": "number[]",
+          "required": false,
+          "default": "ALL_DAYS",
+          "description": "The month layout's weekdays, as `Date#getDay()` numbers (0 = Sunday … 6 =\nSaturday), shown from the first day of the week. Defaults to all seven.",
           "deprecated": false
         }
       ]

@@ -349,7 +349,40 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
     name: "DayTimeline",
     Component: DayTimeline,
     props: {
-      loading: { type: "boolean", default: false, label: "Loading" },
+      layout: {
+        type: "select",
+        default: "list",
+        label: "Layout",
+        options: [
+          { label: "List", value: "list" },
+          { label: "Grid", value: "grid" },
+          { label: "Month", value: "month" },
+        ],
+      },
+      loading: {
+        type: "boolean",
+        default: false,
+        label: "Loading",
+        appliesWhen: (values) => !values.layout || values.layout === "list",
+      },
+      resizable: {
+        type: "boolean",
+        default: false,
+        label: "Resizable",
+        appliesWhen: (values) => values.layout === "grid",
+      },
+      step: {
+        type: "number",
+        default: 30,
+        label: "Step (minutes)",
+        appliesWhen: (values) => values.layout === "grid",
+      },
+      maxPerDay: {
+        type: "number",
+        default: 3,
+        label: "Events per day",
+        appliesWhen: (values) => values.layout === "month",
+      },
     },
   },
   Stat: {

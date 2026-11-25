@@ -78,3 +78,93 @@ export const itemPlacement = (
     height: rowsHeight(h, rowHeight, gap),
   };
 };
+
+// Editing: what a move, a resize or a drop asks of the grid. Moved from the
+// playground's layout editor (canvasMath, engine), on GridLayoutItem.
+
+/** A resize handle: an edge, or the corner of two. */
+export type GridHandle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+
+/** Whether two items share a cell. */
+export const gridItemsOverlap = (
+  a: Omit<GridLayoutItem, "id">,
+  b: Omit<GridLayoutItem, "id">,
+): boolean =>
+  a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/** A column with its gap, and a row with its gap, in dp, on a grid `width` wide. */
+export const gridPitch = (
+  width: number,
+  columns: number,
+  rowHeight: number,
+  gap: number,
+) => ({ x: (width + gap) / Math.max(1, columns), y: rowHeight + gap });
+
+/**
+ * The cell under a dragged preview's top-left corner (a drop's `over.rect`),
+ * for an item `size` big: whole cells, inside the columns.
+ */
+export const gridCellAt = (
+  rect: { x: number; y: number },
+  pitch: { x: number; y: number },
+  columns: number,
+  size: { w: number; h: number },
+): { x: number; y: number } => ({
+  x: Math.min(
+    Math.max(0, Math.round(rect.x / pitch.x)),
+    Math.max(0, columns - size.w),
+  ),
+  y: Math.max(0, Math.round(rect.y / pitch.y)),
+});
+
+/**
+ * The item a handle dragged by `dx`, `dy` asks for, in whole cells, clamped
+ * into the grid and to one cell at least; the opposite edge stays put.
+ */
+export const resizeGridItem = (
+  start: GridLayoutItem,
+  handle: GridHandle,
+  dx: number,
+  dy: number,
+  pitch: { x: number; y: number },
+  columns: number,
+): GridLayoutItem => {
+  const dc = Math.round(dx / pitch.x);
+  const dr = Math.round(dy / pitch.y);
+  let { x, y, w, h } = start;
+  if (handle.includes("e")) w = Math.min(Math.max(1, w + dc), columns - x);
+  if (handle.includes("w")) {
+    const left = Math.min(Math.max(0, x + dc), x + w - 1);
+    w += x - left;
+    x = left;
+  }
+  if (handle.includes("s")) h = Math.max(1, h + dr);
+  if (handle.includes("n")) {
+    const top = Math.min(Math.max(0, y + dr), y + h - 1);
+    h += y - top;
+    y = top;
+  }
+  return { id: start.id, x, y, w, h };
+};
+
+/** Whether `item` can stand where it is: no other item of `layout` under it. */
+export const gridItemFits = (
+  layout: GridLayoutItem[],
+  item: GridLayoutItem,
+): boolean =>
+  !layout.some(
+    (other) => other.id !== item.id && gridItemsOverlap(other, item),
+  );
+
+/**
+ * The first row at or below `item.y` where it stands clear of every other
+ * item: a drop is placed there rather than over what is already placed.
+ */
+export const gridFreeRow = (
+  layout: GridLayoutItem[],
+  item: GridLayoutItem,
+): number => {
+  let y = item.y;
+  while (!gridItemFits(layout, { ...item, y })) y += 1;
+  return y;
+};

@@ -2,7 +2,7 @@
   "libraryName": "@its/glowup-ui",
   "libraryVersion": "0.11.1",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 124,
+  "componentCount": 126,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -10414,6 +10414,82 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "GridCells": {
+      "name": "GridCells",
+      "source": "packages/ui/src/components/Layout/GridLayout.tsx",
+      "propsTypeName": "GridCellsProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "columns",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "landing",
+          "type": "Cells | null",
+          "required": true,
+          "description": "Where the dragged item will land, drawn over the empty cells.",
+          "deprecated": false
+        },
+        {
+          "name": "rowHeight",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "taken",
+          "type": "Cells[]",
+          "required": true,
+          "description": "What the grid's other items cover: no cell is drawn there.",
+          "deprecated": false
+        },
+        {
+          "name": "refused",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The landing place is taken: drawn in the error colour.",
+          "deprecated": false
+        }
+      ]
+    },
+    "GridResizeHandles": {
+      "name": "GridResizeHandles",
+      "source": "packages/ui/src/components/Layout/GridLayout.tsx",
+      "propsTypeName": "ResizeHandlesProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": true,
+          "description": "The system took the touch: the resize is called off.",
+          "deprecated": false
+        },
+        {
+          "name": "onResize",
+          "type": "(handle: Handle, dx: number, dy: number, done: boolean) => void",
+          "required": true,
+          "description": "Called as the pan moves, and once more with `done` when it is let go.",
           "deprecated": false
         }
       ]

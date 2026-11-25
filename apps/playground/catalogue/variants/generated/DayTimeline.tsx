@@ -69,6 +69,74 @@ export const Empty = () => (
   </View>
 );
 
+const week = [2, 3, 4, 5, 6].map((d) => new Date(2026, 10, d));
+const on = (day: number, h: number, m = 0) => new Date(2026, 10, day, h, m);
+
+/** `layout="grid"`: a column per day on a grid of hours; overlapping events share the width. */
+export const Grid = () => (
+  <View style={{ width: 720, height: 420 }}>
+    <DayTimeline
+      layout="grid"
+      days={week}
+      startHour={8}
+      endHour={14}
+      onEventPress={() => {}}
+      onEventChange={() => {}}
+      resizable
+      events={[
+        {
+          id: 1,
+          title: "Brightside Studio",
+          start: on(3, 9, 30),
+          end: on(3, 10, 30),
+          color: "#1D5B9D",
+        },
+        {
+          id: 2,
+          title: "Northgate Ltd",
+          start: on(3, 10),
+          end: on(3, 10, 30),
+          color: "#61B340",
+        },
+        {
+          id: 3,
+          title: "Harbour & Co",
+          start: on(5, 11),
+          end: on(5, 12),
+          color: "#1D5B9D",
+        },
+        {
+          id: 4,
+          title: "Riverside branch",
+          start: on(2, 8, 30),
+          end: on(2, 9),
+          canceled: true,
+        },
+      ]}
+    />
+  </View>
+);
+
+/** `layout="month"`: a few events per day, "+N" opens the rest. */
+export const Month = () => (
+  <View style={{ width: "100%", maxWidth: 720 }}>
+    <DayTimeline
+      layout="month"
+      month={on(1, 0)}
+      firstDayOfWeek={1}
+      maxPerDay={2}
+      onEventPress={() => {}}
+      events={[9, 10, 11, 15].map((h, i) => ({
+        id: i,
+        title: ["Brightside", "Northgate", "Harbour", "Riverside"][i],
+        start: on(4, h),
+        end: on(4, h, 30),
+        color: i % 2 ? "#61B340" : "#1D5B9D",
+      }))}
+    />
+  </View>
+);
+
 export const variants: Variant[] = [
   {
     name: "Day",
@@ -94,5 +162,18 @@ export const variants: Variant[] = [
     title: "Empty",
     description: 'No events: `emptyState`, "Nothing scheduled" by default.',
     render: Empty,
+  },
+  {
+    name: "Grid",
+    title: "Grid",
+    description:
+      '`layout="grid"`: a column per day on a grid of hours; overlapping events share the width.',
+    render: Grid,
+  },
+  {
+    name: "Month",
+    title: "Month",
+    description: '`layout="month"`: a few events per day, "+N" opens the rest.',
+    render: Month,
   },
 ];

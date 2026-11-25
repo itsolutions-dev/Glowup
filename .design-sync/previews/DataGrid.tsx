@@ -157,3 +157,51 @@ export const HoverSelectedAndClick = () => (
     />
   </div>
 );
+
+const matrixColumns = [
+  { id: "key", label: "Key", width: "40%" as const, minWidth: 160 },
+  { id: "admin", label: "Admin", minWidth: 72 },
+  { id: "operator", label: "Operator", minWidth: 72 },
+];
+
+const matrixSections = [
+  {
+    key: "customers",
+    title: "Customers",
+    trailing: "2 keys",
+    data: [
+      { id: "c1", key: "customers.read", admin: "✓", operator: "✓" },
+      { id: "c2", key: "customers.write", admin: "✓", operator: "" },
+    ],
+  },
+  {
+    key: "users",
+    title: "Users",
+    trailing: "1 key",
+    data: [{ id: "u1", key: "users.add", admin: "✓", operator: "" }],
+  },
+];
+
+export const SectionsAndPercentWidths = () => (
+  <div style={{ width: 480, display: "flex" }}>
+    <DataGrid sections={matrixSections} columns={matrixColumns} />
+  </div>
+);
+
+export const RowActions = () => (
+  <div style={{ width: 532, display: "flex" }}>
+    <DataGrid
+      data={rows.slice(0, 3)}
+      columns={columns.slice(0, 3)}
+      rowActions={(row: { id: number }) => [
+        { icon: "pencil-outline", label: "Edit", onPress: () => {} },
+        {
+          icon: "delete-outline",
+          label: "Delete",
+          onPress: () => {},
+          disabled: row.id === 1,
+        },
+      ]}
+    />
+  </div>
+);

@@ -123,6 +123,7 @@ interface ZoneEntry {
   data?: unknown;
   accept?: (item: DragItem) => boolean;
   disabled?: boolean;
+  onDrop?: (event: DragEndEvent) => void;
   orientation: DropOrientation;
   depth: number;
   /** The draggables this zone sits inside: it never takes one of them. */
@@ -178,7 +179,7 @@ const pointOf = (event: GestureResponderEvent): Point => {
 
 interface Handlers {
   onDragStart?: (event: DragStartEvent) => void;
-  onDragEnd: (event: DragEndEvent) => void;
+  onDragEnd?: (event: DragEndEvent) => void;
   onDragCancel?: (event: DragStartEvent) => void;
   emit: InteractionFeedbackHandler;
 }
@@ -187,7 +188,7 @@ interface Handlers {
 // zone whose insertion point changed, never the tree.
 const createManager = () => {
   // The provider's latest props, set after each of its renders.
-  let handlers: Handlers = { onDragEnd: () => {}, emit: () => {} };
+  let handlers: Handlers = { emit: () => {} };
   let state = IDLE;
   const listeners = new Set<() => void>();
   const set = (next: Partial<DragState>) => {
@@ -404,8 +405,12 @@ const createManager = () => {
     stopAutoScroll();
     set(IDLE);
     const item = { id: active.id, data: active.data };
-    if (dropped) handlers.onDragEnd({ active: item, over });
-    else handlers.onDragCancel?.({ active: item });
+    if (dropped) {
+      // The zone's own handler first: what it placed is there when the
+      // provider's handler reads the app's state.
+      if (over) zones.get(over.id)?.onDrop?.({ active: item, over });
+      handlers.onDragEnd?.({ active: item, over });
+    } else handlers.onDragCancel?.({ active: item });
   };
 
   // The innermost draggable under the current press: the only one that lifts.
@@ -486,6 +491,10 @@ interface Scope {
 
 const ScopeContext = createContext<Scope>({ zone: null, depth: 0, within: [] });
 
+/** Whether a `DragDropProvider` is above: a component that drags can bring its own when not. */
+export const useHasDragDrop = (): boolean =>
+  useContext(ManagerContext) !== null;
+
 const useManager = (name: string) => {
   const manager = useContext(ManagerContext);
   if (!manager) throw new Error(`${name} must be inside a DragDropProvider.`);
@@ -504,8 +513,11 @@ export interface DragDropProviderProps {
   children: React.ReactNode;
   /** An item was lifted: by a resting touch, or a mouse moved while pressed. */
   onDragStart?: (event: DragStartEvent) => void;
-  /** An item was let go. Apply the move here; `over` is null outside every zone. */
-  onDragEnd: (event: DragEndEvent) => void;
+  /**
+   * An item was let go. Apply the move here, or in the zone's own `onDrop`;
+   * `over` is null outside every zone.
+   */
+  onDragEnd?: (event: DragEndEvent) => void;
   /** The drag was called off: Escape on the web, or the system took the touch. */
   onDragCancel?: (event: DragStartEvent) => void;
   /**
@@ -946,6 +958,11 @@ export interface DroppableProps {
   /** Takes nothing. */
   disabled?: boolean;
   /**
+   * An item was let go over this zone: called before the provider's
+   * `onDragEnd`, so a zone can apply its own drops.
+   */
+  onDrop?: (event: DragEndEvent) => void;
+  /**
    * Draw the insertion line among the zone's draggables. Turn it off for a
    * zone that places by position (a grid) and shows its own landing place.
    * Defaults to true.
@@ -991,6 +1008,7 @@ const LiveDroppable = ({
   accept,
   orientation,
   disabled,
+  onDrop,
   indicator,
   style,
   testID,
@@ -1010,6 +1028,7 @@ const LiveDroppable = ({
       data,
       accept,
       disabled,
+      onDrop,
       orientation,
       depth: scope.depth,
       within: scope.within,

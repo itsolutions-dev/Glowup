@@ -1,4 +1,11 @@
-import React, { Children, isValidElement, ReactElement } from "react";
+import React, {
+  Children,
+  isValidElement,
+  ReactElement,
+  useId,
+  useMemo,
+  useState,
+} from "react";
 import {
   ScrollView,
   StyleProp,
@@ -7,19 +14,46 @@ import {
   ViewStyle,
 } from "react-native";
 import { SizeClass, useBreakpoint } from "../../hooks/useBreakpoint";
+import { useTheme, Theme } from "../../providers/ThemeProvider";
+import {
+  DragDropProvider,
+  DragEndEvent,
+  DragItem,
+  Draggable,
+  Droppable,
+  useDragState,
+  useHasDragDrop,
+} from "../DragDrop";
+import { GridCells } from "../internal/GridCells";
+import { ResizeHandles } from "../internal/ResizeHandles";
 import {
   GridLayoutItem,
+  clampGridItem,
+  gridCellAt,
+  gridFreeRow,
+  gridItemFits,
   gridLayoutHeight,
+  gridPitch,
   gridReadingOrder,
   itemPlacement,
+  resizeGridItem,
 } from "../internal/gridLayout";
 
-export type { GridLayoutItem } from "../internal/gridLayout";
+export type { GridLayoutItem, GridHandle } from "../internal/gridLayout";
 export {
   clampGridItem,
+  gridCellAt,
+  gridFreeRow,
+  gridItemFits,
+  gridItemsOverlap,
   gridLayoutHeight,
+  gridPitch,
   gridReadingOrder,
+  resizeGridItem,
 } from "../internal/gridLayout";
+
+/** The cells an item dropped on the grid takes, without its id. */
+export type GridPlacement = Omit<GridLayoutItem, "id">;
 
 export interface GridLayoutProps {
   /** Where each child sits, matched to the child by `key` = `id`. */
@@ -40,6 +74,32 @@ export interface GridLayoutProps {
   style?: StyleProp<ViewStyle>;
   /** Also gives each item's wrapper `${testID}-${id}`. */
   testID?: string;
+  /**
+   * Arrange the items: drag one to move it, pull the handles of the selected
+   * one to resize it, drop a `Draggable` from elsewhere (a palette) to add
+   * one. Nothing is compacted and nothing is pushed: an item stays where it
+   * is put, and a move or a resize onto another item is refused. The items
+   * take no taps of their own while editable, and the grid never stacks.
+   */
+  editable?: boolean;
+  /** The layout after a move or a resize. Keep it in state and pass it back. */
+  onLayoutChange?: (layout: GridLayoutItem[]) => void;
+  /** The item drawn selected, with its handles. Uncontrolled when left out. */
+  selected?: string | null;
+  /** An item was tapped, or the grid's empty space (`null`). */
+  onSelect?: (id: string | null) => void;
+  /**
+   * How big a dragged item from outside the grid lands, or null to refuse it.
+   * Without it the grid takes no drops but its own items'.
+   */
+  dropSize?: (item: DragItem) => { w: number; h: number } | null;
+  /**
+   * An outside item was dropped: the cells it takes, on the first free row at
+   * or below where it was let go. Add the child and its entry to `layout`.
+   */
+  onDrop?: (item: DragItem, placement: GridPlacement) => void;
+  /** Empty rows kept below the lowest item while editable, to move items down into. Defaults to 4. */
+  spareRows?: number;
 }
 
 /**
@@ -64,6 +124,8 @@ const GridLayout = ({
   children,
   style,
   testID,
+  editable = false,
+  ...edit
 }: GridLayoutProps) => {
   const { atLeast } = useBreakpoint();
   // forEach, not toArray: toArray rewrites the keys the layout refers to.
@@ -74,6 +136,21 @@ const GridLayout = ({
     }
   });
   const itemID = (id: string) => (testID ? `${testID}-${id}` : undefined);
+
+  if (editable) {
+    return (
+      <EditableGrid
+        {...edit}
+        layout={layout}
+        columns={columns}
+        rowHeight={rowHeight}
+        gap={gap}
+        byId={byId}
+        style={style}
+        testID={testID}
+      />
+    );
+  }
 
   if (!atLeast(stackBelow)) {
     return (
@@ -125,3 +202,240 @@ const styles = StyleSheet.create({
   item: { position: "absolute" },
   content: { flexGrow: 1 },
 });
+
+/** What an item of an editable grid carries as it is dragged. */
+interface ItemDrag {
+  grid: string;
+  item: GridLayoutItem;
+}
+
+const ownItem = (item: DragItem | null, grid: string) =>
+  (item?.data as ItemDrag | undefined)?.grid === grid
+    ? (item?.data as ItemDrag).item
+    : null;
+
+interface EditableProps extends Omit<
+  GridLayoutProps,
+  "children" | "stackBelow" | "editable"
+> {
+  columns: number;
+  rowHeight: number;
+  gap: number;
+  byId: Map<string, ReactElement>;
+}
+
+/** A provider of its own when the app brings none: moves and resizes need no palette. */
+const EditableGrid = (props: EditableProps) =>
+  useHasDragDrop() ? (
+    <EditableZone {...props} />
+  ) : (
+    <DragDropProvider>
+      <EditableZone {...props} />
+    </DragDropProvider>
+  );
+
+const EditableZone = ({
+  layout: given,
+  columns,
+  rowHeight,
+  gap,
+  byId,
+  style,
+  testID,
+  onLayoutChange,
+  selected: controlled,
+  onSelect,
+  dropSize,
+  onDrop,
+  spareRows = 4,
+}: EditableProps) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => makeEditStyles(theme), [theme]);
+  const zone = `grid-layout-${useId()}`;
+  const [width, setWidth] = useState(0);
+  const [own, setOwn] = useState<string | null>(null);
+  const selected = controlled === undefined ? own : controlled;
+  const select = (id: string | null) => {
+    setOwn(id);
+    onSelect?.(id);
+  };
+  // The item as a handle is pulled: drawn there, written on release.
+  const [resizing, setResizing] = useState<GridLayoutItem | null>(null);
+  const layout = useMemo(
+    () =>
+      given.map((item) =>
+        clampGridItem(
+          resizing && item.id === resizing.id ? resizing : item,
+          columns,
+        ),
+      ),
+    [given, resizing, columns],
+  );
+  const pitch = gridPitch(width, columns, rowHeight, gap);
+
+  // Where the dragged thing would land, as one string: the grid re-renders
+  // once per cell crossed, not on every move.
+  const landingKey = useDragState(({ active, over }) => {
+    if (!active || over?.id !== zone) return null;
+    const mine = ownItem(active, zone);
+    const size = mine ?? dropSize?.(active);
+    if (!size) return null;
+    const cell = gridCellAt(
+      over.rect,
+      gridPitch(over.zone.width, columns, rowHeight, gap),
+      columns,
+      size,
+    );
+    const at = { id: mine?.id ?? "", ...cell, w: size.w, h: size.h };
+    // An outside item goes to the first free row; one of ours is refused.
+    const y = mine ? at.y : gridFreeRow(layout, at);
+    const fits = gridItemFits(layout, { ...at, y });
+    return `${at.id}|${at.x}|${y}|${at.w}|${at.h}|${fits ? 1 : 0}`;
+  });
+  const landing = landingKey
+    ? (() => {
+        const [id, x, y, w, h, fits] = landingKey.split("|");
+        return {
+          item: { id, x: +x, y: +y, w: +w, h: +h },
+          fits: fits === "1",
+        };
+      })()
+    : null;
+
+  const handleDrop = ({ active, over }: DragEndEvent) => {
+    if (!over) return;
+    const mine = ownItem(active, zone);
+    const size = mine ?? dropSize?.(active);
+    if (!size) return;
+    const cell = gridCellAt(
+      over.rect,
+      gridPitch(over.zone.width, columns, rowHeight, gap),
+      columns,
+      size,
+    );
+    if (mine) {
+      const moved = { ...mine, ...cell };
+      if (
+        (moved.x !== mine.x || moved.y !== mine.y) &&
+        gridItemFits(layout, moved)
+      ) {
+        onLayoutChange?.(
+          layout.map((item) => (item.id === mine.id ? moved : item)),
+        );
+      }
+      return;
+    }
+    const at = { id: "", ...cell, w: size.w, h: size.h };
+    onDrop?.(active, { x: at.x, y: gridFreeRow(layout, at), w: at.w, h: at.h });
+  };
+
+  const rows =
+    Math.max(
+      ...layout.map((item) => item.y + item.h),
+      landing ? landing.item.y + landing.item.h : 0,
+      0,
+    ) + spareRows;
+  const height = rows * rowHeight + Math.max(0, rows - 1) * gap;
+
+  return (
+    <Droppable
+      id={zone}
+      testID={testID}
+      indicator={false}
+      accept={(item) => Boolean(ownItem(item, zone) ?? dropSize?.(item))}
+      onDrop={handleDrop}
+      style={[{ height }, style]}
+    >
+      <View
+        testID={testID ? `${testID}-space` : undefined}
+        style={StyleSheet.absoluteFill}
+        onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={() => select(null)}
+      />
+      {landing ? (
+        <GridCells
+          columns={columns}
+          rows={rows}
+          gap={gap}
+          rowHeight={rowHeight}
+          taken={layout.filter((item) => item.id !== landing.item.id)}
+          landing={landing.item}
+          refused={!landing.fits}
+        />
+      ) : null}
+      {layout.map((item) => {
+        const child = byId.get(item.id);
+        if (!child) return null;
+        const isSelected = item.id === selected;
+        return (
+          <Draggable
+            key={item.id}
+            id={`${zone}:${item.id}`}
+            data={{ grid: zone, item } satisfies ItemDrag}
+            onPress={() => select(item.id)}
+            accessibilityLabel={item.id}
+            testID={testID ? `${testID}-${item.id}` : undefined}
+            style={[styles.item, itemPlacement(item, columns, rowHeight, gap)]}
+          >
+            <View style={styles.content}>{child}</View>
+            <View style={[styles.frame, isSelected && styles.selected]} />
+            {isSelected ? (
+              <ResizeHandles
+                onResize={(handle, dx, dy, done) => {
+                  const start = given.find((one) => one.id === item.id);
+                  if (!start) return;
+                  const next = resizeGridItem(
+                    clampGridItem(start, columns),
+                    handle,
+                    dx,
+                    dy,
+                    pitch,
+                    columns,
+                  );
+                  const fits = gridItemFits(layout, next);
+                  if (!done) {
+                    if (fits) setResizing(next);
+                    return;
+                  }
+                  const last = fits ? next : resizing;
+                  setResizing(null);
+                  if (last) {
+                    onLayoutChange?.(
+                      layout.map((one) => (one.id === last.id ? last : one)),
+                    );
+                  }
+                }}
+                onCancel={() => setResizing(null)}
+              />
+            ) : null}
+          </Draggable>
+        );
+      })}
+    </Droppable>
+  );
+};
+
+const makeEditStyles = (theme: Theme) =>
+  StyleSheet.create({
+    item: { position: "absolute" },
+    // Drawn, never touched: a press on an item is a press on the item.
+    content: { flex: 1, overflow: "hidden", pointerEvents: "none" },
+    frame: {
+      pointerEvents: "none",
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      borderWidth: 1,
+      borderStyle: "dashed",
+      borderColor: theme.colors.outlineVariant,
+      borderRadius: theme.shape.small,
+    },
+    selected: {
+      borderWidth: 2,
+      borderStyle: "solid",
+      borderColor: theme.colors.primary,
+    },
+  });

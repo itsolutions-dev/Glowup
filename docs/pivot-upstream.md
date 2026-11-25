@@ -70,6 +70,16 @@ Tutto il resto è identico all'originale, salvo lo stile (Prettier: doppi apici,
     chiamate 103 s), quindi ordinare qualche centinaio di gruppi richiedeva secondi. Stesso risultato: `localeCompare` è definito come
     il `compare` di quel collator. Emulatore, 5.000 righe e 107 sedi: da 12 s a 0,6 s; aprire o chiudere un gruppo da 12 s a 0,1 s.
     Resta da evitare nel core qualunque `localeCompare` o `toLocaleString` con un locale (6 ms a chiamata il secondo).
+11. **Il pannello dei campi e la barra dei filtri, portati dai componenti** (25/11, `src/fields/`, non dal core): `sliceEdits.ts` è
+    `components/FieldList/sliceEdits.ts` dell'originale (le zone, `ensureMeasuresAnchor`, `stripFromSlice`, `applyZoneDrop`) senza il
+    trascinamento HTML5 (`DRAG_TYPE`, `startDrag`, `readDragPayload`): il trascinamento è il `DragDropProvider` della libreria e il carico
+    viaggia come `data` del `Draggable`; `dropTarget` (nuovo) converte l'indice di rilascio della libreria nell'indice di chip che
+    `applyZoneDrop` riceve. `FieldPanel.tsx` riscrive `FieldList.tsx` sulla libreria: tutti i campi (le parti di una data sotto la data),
+    le quattro zone, aggregazione e «nascondi» di un valore, «Mostra totali» per riga o colonna, Applica/Annulla; un tocco su un campo o
+    su una chip apre un menu con gli stessi spostamenti. Lasciati fuori: campi calcolati, rinomina, formati data, colonne del
+    drill-through. `FilterBar.tsx` riscrive `FilterBar/FilterBar.tsx` (stesse modalità per tipo; l'elenco dei valori è
+    `shared/MemberChecklist.tsx` rifatto con `SearchBar` e `Checkbox`; le date con il `DatePicker`). Le voci dei dizionari sono quelle
+    dell'originale (`fieldsList`, `filterBar`, `filterEditor`). Test: `fields/sliceEdits.test.ts`, `__tests__/pivotFields.test.tsx`.
 
 Una prova (`src/__tests__/no-web-apis.test.ts`) fallisce se `exceljs`, `document.` o `navigator` rientrano nel core.
 

@@ -187,6 +187,16 @@ export const dataDisplay: Record<string, ComponentMetadata> = {
         // Drawn in the body's empty slot, which the spinner takes over.
         appliesWhen: (values) => !values.loading,
       },
+      // Only the web hovers; a touch screen always shows the actions.
+      revealRowActions: {
+        type: "select",
+        default: "always",
+        label: "Reveal Row Actions",
+        options: [
+          { label: "Always", value: "always" },
+          { label: "On hover", value: "hover" },
+        ],
+      },
     },
   },
   ListItem: {

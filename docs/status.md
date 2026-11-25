@@ -1,7 +1,7 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-24**, at the commit that carries this file (the `claude/appshell` branch adds the navigation links to
-`dev` of 5/11). Built from the handoffs of 19 October–4 November and
+As of **2026-11-25**, at the commit that carries this file (the `claude/appshell` branch adds to `dev` of 5/11 the
+navigation links and the CRM's gaps G2–G6: see the handoff of 25/11). Built from the handoffs of 19 October–4 November and
 `solaris-native.md`. Since 5/11 it also holds the decisions (once `decisions.md`, now "Decisions taken" below) and the
 library's backlog (once `library-roadmap.md`, now "Library hardening" and "Library: what is left to build"). **Update it
 at the end of every session, in the same change as the handoff**, so the next session starts from here and not from
@@ -37,6 +37,15 @@ re-reading seven handoffs.
 
 Phase 7 is 95% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
+Since 25/11 the field panel is built too (G4: zones, aggregations, totals, per-field filters, drag or menu), so
+against the original layers it is about 75%; calculated fields, renaming, date formats and drill-through are left.
+
+**Built for the CRM on 25/11** (on `claude/appshell`, with tests, docs and changesets): `DayTimeline`
+`layout="grid" | "month"` with drag to move and resize (G3); `GridLayout` edit mode, with `GridCells` and
+`GridResizeHandles` public and the playground using them (G5); `DataGrid` `sections`, `rowActions`, `renderRow`, `%`
+widths and `minWidth` with flex (G2); the pivot's field panel and filter bar (G4); `ScatterChart`, `TimelineChart`
+and `tableLabels` in `packages/charts` (G6). The CRM's open proposals for the library are in
+[`crm-proposals.md`](crm-proposals.md).
 
 ## Per workstream
 

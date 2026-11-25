@@ -4234,6 +4234,21 @@
           "deprecated": false
         },
         {
+          "name": "dropSize",
+          "type": "(item: DragItem) => { w: number; h: number } | null",
+          "required": false,
+          "description": "How big a dragged item from outside the grid lands, or null to refuse it.\nWithout it the grid takes no drops but its own items'.",
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Arrange the items: drag one to move it, pull the handles of the selected\none to resize it, drop a `Draggable` from elsewhere (a palette) to add\none. Nothing is compacted and nothing is pushed: an item stays where it\nis put, and a move or a resize onto another item is refused. The items\ntake no taps of their own while editable, and the grid never stacks.",
+          "deprecated": false
+        },
+        {
           "name": "gap",
           "type": "number",
           "required": false,
@@ -4242,11 +4257,46 @@
           "deprecated": false
         },
         {
+          "name": "onDrop",
+          "type": "(item: DragItem, placement: GridPlacement) => void",
+          "required": false,
+          "description": "An outside item was dropped: the cells it takes, on the first free row at\nor below where it was let go. Add the child and its entry to `layout`.",
+          "deprecated": false
+        },
+        {
+          "name": "onLayoutChange",
+          "type": "(layout: GridLayoutItem[]) => void",
+          "required": false,
+          "description": "The layout after a move or a resize. Keep it in state and pass it back.",
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(id: string | null) => void",
+          "required": false,
+          "description": "An item was tapped, or the grid's empty space (`null`).",
+          "deprecated": false
+        },
+        {
           "name": "rowHeight",
           "type": "number",
           "required": false,
           "default": "48",
           "description": "Height of one row, in dp. Defaults to 48.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string | null",
+          "required": false,
+          "description": "The item drawn selected, with its handles. Uncontrolled when left out.",
+          "deprecated": false
+        },
+        {
+          "name": "spareRows",
+          "type": "number",
+          "required": false,
+          "description": "Empty rows kept below the lowest item while editable, to move items down into. Defaults to 4.",
           "deprecated": false
         },
         {
@@ -10078,13 +10128,6 @@
           "deprecated": false
         },
         {
-          "name": "onDragEnd",
-          "type": "(event: DragEndEvent) => void",
-          "required": true,
-          "description": "An item was let go. Apply the move here; `over` is null outside every zone.",
-          "deprecated": false
-        },
-        {
           "name": "feedback",
           "type": "boolean",
           "required": false,
@@ -10097,6 +10140,13 @@
           "type": "(event: DragStartEvent) => void",
           "required": false,
           "description": "The drag was called off: Escape on the web, or the system took the touch.",
+          "deprecated": false
+        },
+        {
+          "name": "onDragEnd",
+          "type": "(event: DragEndEvent) => void",
+          "required": false,
+          "description": "An item was let go. Apply the move here, or in the zone's own `onDrop`;\n`over` is null outside every zone.",
           "deprecated": false
         },
         {
@@ -10224,6 +10274,13 @@
           "required": false,
           "default": "true",
           "description": "Draw the insertion line among the zone's draggables. Turn it off for a\nzone that places by position (a grid) and shows its own landing place.\nDefaults to true.",
+          "deprecated": false
+        },
+        {
+          "name": "onDrop",
+          "type": "(event: DragEndEvent) => void",
+          "required": false,
+          "description": "An item was let go over this zone: called before the provider's\n`onDragEnd`, so a zone can apply its own drops.",
           "deprecated": false
         },
         {

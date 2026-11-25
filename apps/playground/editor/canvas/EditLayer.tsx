@@ -14,6 +14,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 import {
   Draggable,
   Droppable,
+  GridCells,
+  GridResizeHandles,
   IconButton,
   Typography,
   useDragState,
@@ -46,8 +48,6 @@ import {
   slotColumns,
   slotKey,
 } from "../operations";
-import { ResizeHandles } from "./ResizeHandles";
-import { GridCells } from "./GridCells";
 import { NodePreview } from "./RenderTree";
 import { useRect, useRects } from "./rects";
 import type { Editor } from "./useEditor";
@@ -154,7 +154,7 @@ const Chrome = ({ node }: { node: LayoutNode }) => {
   return (
     <>
       {layout && columns && !stacked ? (
-        <ResizeHandles
+        <GridResizeHandles
           onResize={(handle, dx, dy, done) =>
             onResize(
               node.id,

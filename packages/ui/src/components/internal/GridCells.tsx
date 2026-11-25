@@ -7,14 +7,17 @@ import { StyleSheet, View } from "react-native";
 import { useTheme, Theme } from "../../providers/ThemeProvider";
 import { GridLayoutItem, gridItemsOverlap, itemPlacement } from "./gridLayout";
 
+type Cells = Omit<GridLayoutItem, "id">;
+
 export interface GridCellsProps {
   columns: number;
   rows: number;
   gap: number;
   rowHeight: number;
   /** What the grid's other items cover: no cell is drawn there. */
-  taken: GridLayoutItem[];
-  landing: GridLayoutItem | null;
+  taken: Cells[];
+  /** Where the dragged item will land, drawn over the empty cells. */
+  landing: Cells | null;
   /** The landing place is taken: drawn in the error colour. */
   refused?: boolean;
 }
@@ -41,14 +44,10 @@ const CellRow = React.memo(function CellRow({
         flag === "1" ? (
           <View
             key={x}
+            testID={`grid-cell-${x}-${y}`}
             style={[
               cellStyle,
-              itemPlacement(
-                { id: "", x, y, w: 1, h: 1 },
-                columns,
-                rowHeight,
-                gap,
-              ),
+              itemPlacement({ x, y, w: 1, h: 1 }, columns, rowHeight, gap),
             ]}
           />
         ) : null,

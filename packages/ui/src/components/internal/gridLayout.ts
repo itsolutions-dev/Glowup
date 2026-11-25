@@ -61,12 +61,12 @@ export const gridReadingOrder = (layout: GridLayoutItem[]): GridLayoutItem[] =>
  * grid placed this way prerenders at width 0 and reflows by itself.
  */
 export const itemPlacement = (
-  item: GridLayoutItem,
+  item: Omit<GridLayoutItem, "id">,
   columns: number,
   rowHeight: number,
   gap: number,
 ) => {
-  const { x, y, w, h } = clampGridItem(item, columns);
+  const { x, y, w, h } = clampGridItem({ id: "", ...item }, columns);
   const cols = Math.max(1, Math.round(columns));
   const after = cols - x - w;
   return {

@@ -40,6 +40,13 @@ import {
 } from "../internal/gridLayout";
 
 export type { GridLayoutItem, GridHandle } from "../internal/gridLayout";
+// The editing pieces GridLayout draws, for an editor that places its own boxes
+// (one that cannot render through GridLayout, as the playground's canvas).
+export { GridCells, type GridCellsProps } from "../internal/GridCells";
+export {
+  ResizeHandles as GridResizeHandles,
+  type ResizeHandlesProps as GridResizeHandlesProps,
+} from "../internal/ResizeHandles";
 export {
   clampGridItem,
   gridCellAt,

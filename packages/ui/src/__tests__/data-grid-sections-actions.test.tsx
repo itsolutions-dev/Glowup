@@ -181,3 +181,43 @@ describe("DataGrid widths", () => {
     expect(gridMinWidth([{ id: "a", label: "" }], 40)).toBe(190);
   });
 });
+
+describe("DataGrid in its box", () => {
+  // A long header widened the rows past the box: once measured, the rows are as wide as the box.
+  it("lays the rows out at the box's width once it is measured, never under the columns' minimum", async () => {
+    const { toJSON } = await draw(
+      <DataGrid
+        data={[{ id: 1, name: "a" }]}
+        columns={[{ id: "name", label: "A header far longer than its column" }]}
+      />,
+    );
+    // Fired on the header, the layout reaches the grid's horizontal scroll above it.
+    const header = () =>
+      screen.getByText("A header far longer than its column");
+    await fireEvent(header(), "layout", {
+      nativeEvent: { layout: { width: 420, height: 300 } },
+    });
+    expect(JSON.stringify(toJSON())).toContain(`"width":420`);
+    await fireEvent(header(), "layout", {
+      nativeEvent: { layout: { width: 100, height: 300 } },
+    });
+    expect(JSON.stringify(toJSON())).toContain(`"width":150`);
+  });
+});
+
+describe("DataGrid headers", () => {
+  // A long header wrapped out of its 48 px row; a node label nested in the header's Text lost its own numberOfLines.
+  it("draws a text header on one line, and a node header as it is", async () => {
+    await draw(
+      <DataGrid
+        data={[]}
+        columns={[
+          { id: "a", label: "Limited operator" },
+          { id: "b", label: <Text numberOfLines={1}>Node</Text> },
+        ]}
+      />,
+    );
+    expect(screen.getByText("Limited operator").props.numberOfLines).toBe(1);
+    expect(screen.getByText("Node").parent?.type).not.toBe("Text");
+  });
+});

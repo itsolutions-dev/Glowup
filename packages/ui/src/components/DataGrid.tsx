@@ -259,6 +259,7 @@ const DataGrid = ({
   const start = paged ? (current - 1) * perPage : 0;
   const rows = paged ? data.slice(start, start + perPage) : data;
 
+  const [viewport, setViewport] = useState(0);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -437,8 +438,17 @@ const DataGrid = ({
         horizontal
         bounces={false}
         contentContainerStyle={styles.fill}
+        onLayout={(event) => setViewport(event.nativeEvent.layout.width)}
       >
-        <View style={[styles.fill, { minWidth }]}>
+        <View
+          style={[
+            styles.fill,
+            { minWidth },
+            // As wide as the grid's box once it is known: left to the content, a long header or cell text
+            // widened the row past the box and the grid scrolled with room to spare.
+            viewport > 0 && { width: Math.max(viewport, minWidth) },
+          ]}
+        >
           {renderHeader()}
           <FlatList
             // A new page starts at the top.

@@ -488,9 +488,18 @@ export const TableHeaderCell = ({
   };
   const content = (
     <>
-      <Text style={[styles.thText, { color: theme.colors.onSurface }]}>
-        {children}
-      </Text>
+      {/* Text on one line, cut with an ellipsis: the header is one row high. Any other node is drawn as it
+          is, outside a Text (a Text nested in another ignores its own numberOfLines). */}
+      {typeof children === "string" || typeof children === "number" ? (
+        <Text
+          numberOfLines={1}
+          style={[styles.thText, { color: theme.colors.onSurface }]}
+        >
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
       {sortable && (
         <View style={styles.sortIconContainer}>
           {sortDirection ? (
@@ -720,6 +729,7 @@ const styles = StyleSheet.create({
   },
   thText: {
     fontWeight: "700",
+    flexShrink: 1,
   },
   td: {
     paddingHorizontal: 12,

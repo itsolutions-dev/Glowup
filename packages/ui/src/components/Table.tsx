@@ -355,6 +355,8 @@ export interface TableRowProps {
   hover?: boolean;
   /** Draws the row highlighted and marks it selected for assistive technology. */
   selected?: boolean;
+  /** Called with `true` when the pointer enters the row and `false` when it leaves (web). */
+  onHoverChange?: (hovered: boolean) => void;
   testID?: string;
 }
 export const TableRow = ({
@@ -363,6 +365,7 @@ export const TableRow = ({
   onClick,
   hover = false,
   selected = false,
+  onHoverChange,
   testID,
 }: TableRowProps) => {
   const { theme } = useTheme();
@@ -372,7 +375,7 @@ export const TableRow = ({
     selected && { backgroundColor: theme.colors.secondaryContainer },
   ];
 
-  if (!onClick && !hover) {
+  if (!onClick && !hover && !onHoverChange) {
     return (
       <View
         role="row"
@@ -393,6 +396,8 @@ export const TableRow = ({
     <Pressable
       role={role}
       onPress={onClick}
+      onHoverIn={onHoverChange && (() => onHoverChange(true))}
+      onHoverOut={onHoverChange && (() => onHoverChange(false))}
       testID={testID}
       // A row that only highlights is not a control: no tab stop, and no
       // grouping of the controls in its cells into one element.
@@ -421,20 +426,38 @@ const FLEX: Record<TableAlign, "flex-start" | "center" | "flex-end"> = {
   right: "flex-end",
 };
 
-/** A cell's size: `width` px, or with `flex` a share of the row's free width that is never below `width`. */
-const cellSize = (width: number | undefined, flex: boolean | undefined) =>
-  flex
-    ? { flex: 1, minWidth: width ?? CELL_WIDTH }
-    : { width: width || CELL_WIDTH };
+/** A cell's width: pixels, or a share of the row as a percentage (`"30%"`). */
+export type CellWidth = number | `${number}%`;
+
+/**
+ * A cell's size: `width` px; a percentage of the row, never below `minWidth`;
+ * or with `flex` a share of the row's free width that is never below
+ * `minWidth`, else `width`.
+ */
+const cellSize = (
+  width: CellWidth | undefined,
+  flex: boolean | undefined,
+  minWidth: number | undefined,
+) =>
+  typeof width === "string"
+    ? { width, minWidth }
+    : flex
+      ? { flex: 1, minWidth: minWidth ?? width ?? CELL_WIDTH }
+      : { width: width || CELL_WIDTH };
 
 export interface TableHeaderCellProps {
   children: ReactNode;
   align?: TableAlign;
   style?: StyleProp<ViewStyle>;
-  /** Width in px. Defaults to 150. With `flex`, the narrowest the cell gets. */
-  width?: number;
+  /**
+   * Width in px, or a percentage of the row (`"30%"`). Defaults to 150. With
+   * `flex`, the narrowest the cell gets (unless `minWidth` says).
+   */
+  width?: CellWidth;
   /** Shares the row's free width with the other `flex` cells instead of having a fixed `width`. */
   flex?: boolean;
+  /** The narrowest a `flex` cell, or one with a percentage `width`, gets, in px. */
+  minWidth?: number;
   /** Called when a `sortable` header is pressed. */
   onClick?: () => void;
   sortable?: boolean;
@@ -448,6 +471,7 @@ export const TableHeaderCell = ({
   style,
   width,
   flex,
+  minWidth,
   onClick,
   sortable,
   sortDirection,
@@ -502,7 +526,7 @@ export const TableHeaderCell = ({
         : null) as object)}
       style={[
         styles.th,
-        cellSize(width, flex),
+        cellSize(width, flex, minWidth),
         { borderRightColor: theme.colors.outlineVariant },
         style,
       ]}
@@ -567,10 +591,15 @@ export interface TableCellProps {
   align?: TableAlign;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
-  /** Width in px. Defaults to 150. With `flex`, the narrowest the cell gets. */
-  width?: number;
+  /**
+   * Width in px, or a percentage of the row (`"30%"`). Defaults to 150. With
+   * `flex`, the narrowest the cell gets (unless `minWidth` says).
+   */
+  width?: CellWidth;
   /** Shares the row's free width with the other `flex` cells instead of having a fixed `width`. */
   flex?: boolean;
+  /** The narrowest a `flex` cell, or one with a percentage `width`, gets, in px. */
+  minWidth?: number;
 }
 export const TableCell = ({
   children,
@@ -579,6 +608,7 @@ export const TableCell = ({
   textStyle,
   width,
   flex,
+  minWidth,
 }: TableCellProps) => {
   const { theme } = useTheme();
   return (
@@ -586,7 +616,7 @@ export const TableCell = ({
       role="cell"
       style={[
         styles.td,
-        cellSize(width, flex),
+        cellSize(width, flex, minWidth),
         {
           borderRightColor: theme.colors.outlineVariant,
           alignItems: FLEX[align],

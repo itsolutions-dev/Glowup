@@ -6,10 +6,14 @@ import {
   FlatList,
   ScrollView,
   ActivityIndicator,
+  Platform,
+  Pressable,
   ViewStyle,
   DimensionValue,
 } from "react-native";
-import { useTheme } from "../providers/ThemeProvider";
+import { useTheme, getFocusRing } from "../providers/ThemeProvider";
+import Icons from "./Glyph";
+import IconButton from "./IconButton";
 import Pagination from "./Pagination";
 import Table, {
   CellText,
@@ -17,8 +21,11 @@ import Table, {
   TableHead,
   TableHeaderCell,
   TableRow,
+  type CellWidth,
   type TableAlign,
 } from "./Table";
+import { a11yState } from "./internal/a11yState";
+import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 
 // --- Main DataGrid Component ---
@@ -27,7 +34,17 @@ export interface ColumnDefinition {
   id: string;
   /** The header: text, or any node. */
   label: ReactNode;
-  width?: number;
+  /**
+   * Fixed width in px, or a share of the grid as a percentage (`"30%"`).
+   * Without it the column shares the free width with the other such columns.
+   */
+  width?: CellWidth;
+  /**
+   * The narrowest the column gets, in px: for a column without `width`
+   * (default 150) or with a percentage one (default none). The grid scrolls
+   * sideways once its columns no longer fit.
+   */
+  minWidth?: number;
   sortable?: boolean;
   /** Alignment of the header and the cells. Defaults to `"left"`; use `"right"` for numbers. */
   align?: TableAlign;
@@ -48,8 +65,36 @@ export interface ColumnDefinition {
   renderCell?: (value: any, row: any, index: number) => ReactNode;
 }
 
-export interface DataGridProps {
+/** An action on one row, drawn as an icon button in the grid's last column. */
+export interface DataGridRowAction {
+  icon: MaterialCommunityIconsGlyphs;
+  /** Its accessible name, and the tooltip on the web. */
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  testID?: string;
+}
+
+/** A group of rows under a header row that folds them away. */
+export interface DataGridSection {
+  /** Unique among the sections; it keeps a section folded across new data. */
+  key: string;
+  /** The header row's text, or any node. */
+  title: ReactNode;
+  /** Drawn after the title: a count, a badge. */
+  trailing?: ReactNode;
   data: any[];
+}
+
+export interface DataGridProps {
+  /** The rows. Ignored when `sections` is given. */
+  data?: any[];
+  /**
+   * The rows in groups, each under a header row that folds and unfolds it;
+   * every section starts unfolded. A row's index is its position in all the
+   * sections' rows, folded ones included. Not combined with `rowsPerPage`.
+   */
+  sections?: DataGridSection[];
   /**
    * The columns, in order. Keep the array stable (`useMemo`), and `onClick`
    * too (`useCallback`): a row is drawn again only when something it shows
@@ -107,13 +152,38 @@ export interface DataGridProps {
   /** One style for every row, or a function of the row (to dim or highlight one). */
   rowStyle?: ViewStyle | ((row: any, index: number) => ViewStyle | undefined);
   headerStyle?: ViewStyle;
+  /**
+   * The actions on a row, drawn as icon buttons in a last column as wide as
+   * the row with the most. Keep the function stable (`useCallback`).
+   */
+  rowActions?: (row: any, index: number) => DataGridRowAction[];
+  /**
+   * When the row actions show: `"always"`, or `"hover"`, only while the
+   * pointer is over the row or one of them has the focus (web; on a touch
+   * screen they always show).
+   */
+  revealRowActions?: "always" | "hover";
+  /**
+   * Draws a whole row instead of its cells, for the rows it returns a node
+   * for: a note spanning the grid, a divider. `null` or `undefined` draws the
+   * row as usual. Keep the function stable (`useCallback`).
+   */
+  renderRow?: (row: any, index: number) => ReactNode;
+  testID?: string;
 }
 
 const isEmptyCell = (value: unknown) =>
   value === null || value === undefined || value === "" || value === false;
 
+const NO_DATA: any[] = [];
+
+type GridItem =
+  | { section: DataGridSection; collapsed: boolean; key: string }
+  | { row: any; index: number; stripe: boolean; key: string };
+
 const DataGrid = ({
-  data,
+  data = NO_DATA,
+  sections,
   columns,
   tableTitle,
   width,
@@ -135,6 +205,10 @@ const DataGrid = ({
   style,
   rowStyle,
   headerStyle,
+  rowActions,
+  revealRowActions = "always",
+  renderRow: renderWholeRow,
+  testID,
 }: DataGridProps) => {
   const density = useDensity(densityProp);
   const { theme } = useTheme();
@@ -153,13 +227,23 @@ const DataGrid = ({
     const byId = new Map(columns.map((c) => [c.id, c]));
     return order.flatMap((id) => byId.get(id) ?? []);
   }, [columns, order]);
-  // The grid is never narrower than its columns: past that it scrolls sideways.
-  const minWidth = orderedColumns.reduce(
-    (sum, column) => sum + (column.width ?? FLEX_MIN),
-    0,
+  const allRows = useMemo(
+    () => (sections ? sections.flatMap((section) => section.data) : data),
+    [sections, data],
   );
+  // As wide as the row with the most actions: 40 px a button, 8 px either side.
+  const actionsWidth = useMemo(() => {
+    if (!rowActions) return 0;
+    const most = allRows.reduce(
+      (max: number, row, index) => Math.max(max, rowActions(row, index).length),
+      0,
+    );
+    return most && most * ACTION_SIZE + 16;
+  }, [allRows, rowActions]);
+  // The grid is never narrower than its columns: past that it scrolls sideways.
+  const minWidth = gridMinWidth(orderedColumns, actionsWidth);
 
-  const paged = typeof rowsPerPage === "number" && rowsPerPage > 0;
+  const paged = !sections && typeof rowsPerPage === "number" && rowsPerPage > 0;
   const perPage = paged ? Math.floor(rowsPerPage) || 1 : 0;
   const totalPages = paged ? Math.max(1, Math.ceil(data.length / perPage)) : 1;
   const [page, setPage] = useState(1);
@@ -174,6 +258,47 @@ const DataGrid = ({
   const current = Math.min(page, totalPages);
   const start = paged ? (current - 1) * perPage : 0;
   const rows = paged ? data.slice(start, start + perPage) : data;
+
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const toggleSection = useCallback(
+    (key: string) =>
+      setCollapsed((held) => {
+        const next = new Set(held);
+        if (!next.delete(key)) next.add(key);
+        return next;
+      }),
+    [],
+  );
+  // One list of header rows and rows, so a single FlatList scrolls them all.
+  const items = useMemo<GridItem[]>(() => {
+    if (!sections)
+      return rows.map((row, offset) => ({
+        row,
+        // The index in `data`, not in the page.
+        index: start + offset,
+        stripe: offset % 2 === 1,
+        key: row.id?.toString() || (start + offset).toString(),
+      }));
+    let index = 0;
+    return sections.flatMap((section) => {
+      const folded = collapsed.has(section.key);
+      const first = index;
+      index += section.data.length;
+      return [
+        { section, collapsed: folded, key: `section:${section.key}` },
+        ...(folded
+          ? []
+          : section.data.map((row, offset) => ({
+              row,
+              index: first + offset,
+              stripe: offset % 2 === 1,
+              key: row.id?.toString() || `${section.key}:${offset}`,
+            }))),
+      ];
+    });
+  }, [sections, collapsed, rows, start]);
 
   const selectedRows = useMemo(
     () => new Set(typeof selected === "number" ? [selected] : (selected ?? [])),
@@ -210,8 +335,7 @@ const DataGrid = ({
         {orderedColumns.map((column, index) => (
           <TableHeaderCell
             key={column.id}
-            width={column.width ?? FLEX_MIN}
-            flex={column.width === undefined}
+            {...columnSize(column)}
             align={column.align ?? column.alignment}
             sortable={column.sortable}
             sortDirection={sortColumn === column.id ? sortDirection : null}
@@ -227,32 +351,49 @@ const DataGrid = ({
                 : undefined
             }
             style={
-              index === orderedColumns.length - 1 ? { borderRightWidth: 0 } : []
+              index === orderedColumns.length - 1 && !actionsWidth
+                ? { borderRightWidth: 0 }
+                : []
             }
           >
             {column.label}
           </TableHeaderCell>
         ))}
+        {!!actionsWidth && (
+          <TableHeaderCell width={actionsWidth} style={styles.lastCell}>
+            {""}
+          </TableHeaderCell>
+        )}
       </TableRow>
     </TableHead>
   );
 
   const stripeColor = theme.colors.surfaceVariant + "20";
-  const renderRow = ({ item, index: offset }: { item: any; index: number }) => (
-    <DataGridRow
-      item={item}
-      // The index in `data`, not in the page.
-      index={start + offset}
-      striped={offset % 2 === 1}
-      stripeColor={stripeColor}
-      selected={selectedRows.has(start + offset)}
-      columns={orderedColumns}
-      dense={density === "dense"}
-      hover={hover}
-      onClick={onClick}
-      rowStyle={rowStyle}
-    />
-  );
+  const renderItem = ({ item }: { item: GridItem }) =>
+    "section" in item ? (
+      <SectionHeader
+        section={item.section}
+        collapsed={item.collapsed}
+        onToggle={toggleSection}
+      />
+    ) : (
+      <DataGridRow
+        item={item.row}
+        index={item.index}
+        striped={item.stripe}
+        stripeColor={stripeColor}
+        selected={selectedRows.has(item.index)}
+        columns={orderedColumns}
+        dense={density === "dense"}
+        hover={hover}
+        onClick={onClick}
+        rowStyle={rowStyle}
+        rowActions={rowActions}
+        actionsWidth={actionsWidth}
+        revealOnHover={revealRowActions === "hover" && Platform.OS === "web"}
+        renderWholeRow={renderWholeRow}
+      />
+    );
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -265,6 +406,7 @@ const DataGrid = ({
 
   return (
     <Table
+      testID={testID}
       style={[
         // Without a height the grid fills its container; with one it is that tall.
         height === undefined && styles.grid,
@@ -304,11 +446,9 @@ const DataGrid = ({
             // No scrollbar, as in Table: on the web it takes width from the rows and not from the header above
             // them, and the columns would not line up.
             showsVerticalScrollIndicator={false}
-            data={rows}
-            renderItem={renderRow}
-            keyExtractor={(item, index) =>
-              item.id?.toString() || (start + index).toString()
-            }
+            data={items}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.key}
             onEndReached={onEndReached}
             onEndReachedThreshold={onEndReachedThreshold}
             ListFooterComponent={renderFooter}
@@ -357,6 +497,118 @@ const DataGrid = ({
 
 // What a column without a width gets at least: the width every column had before they shared the free width.
 const FLEX_MIN = 150;
+// An action button's box (IconButton "medium").
+const ACTION_SIZE = 40;
+
+const columnSize = (column: ColumnDefinition) =>
+  column.width === undefined
+    ? { width: column.minWidth ?? FLEX_MIN, flex: true }
+    : { width: column.width, minWidth: column.minWidth };
+
+const percent = (width: CellWidth | undefined) =>
+  typeof width === "string" ? parseFloat(width) / 100 : 0;
+
+/**
+ * The narrowest the grid can be with every column at its minimum. A
+ * percentage column grows with the grid, so the rest must fit in what it
+ * leaves: W - Σ p·W >= the others. A percentage column held at its
+ * `minWidth` counts as fixed, which may hold another, hence the loop.
+ */
+export const gridMinWidth = (
+  columns: ColumnDefinition[],
+  extra = 0,
+): number => {
+  const fixed = columns.reduce(
+    (sum, column) =>
+      typeof column.width === "string"
+        ? sum
+        : sum + (column.width ?? column.minWidth ?? FLEX_MIN),
+    extra,
+  );
+  let shares = columns.filter((column) => percent(column.width) > 0);
+  let held = 0;
+  for (;;) {
+    const share = shares.reduce(
+      (sum, column) => sum + percent(column.width),
+      0,
+    );
+    if (share >= 1) return fixed + held;
+    const width = (fixed + held) / (1 - share);
+    const floored = shares.filter(
+      (column) => percent(column.width) * width < (column.minWidth ?? 0),
+    );
+    if (floored.length === 0) return Math.ceil(width);
+    held += floored.reduce((sum, column) => sum + (column.minWidth ?? 0), 0);
+    shares = shares.filter((column) => !floored.includes(column));
+  }
+};
+
+/** A section's header row: its title and `trailing`, pressed to fold or unfold its rows. */
+const SectionHeader = React.memo(function SectionHeader({
+  section,
+  collapsed,
+  onToggle,
+}: {
+  section: DataGridSection;
+  collapsed: boolean;
+  onToggle: (key: string) => void;
+}) {
+  const { theme } = useTheme();
+  return (
+    <View
+      role="row"
+      style={[
+        styles.sectionRow,
+        { borderBottomColor: theme.colors.outlineVariant },
+      ]}
+    >
+      <Pressable
+        role="button"
+        onPress={() => onToggle(section.key)}
+        {...a11yState("button", { expanded: !collapsed })}
+        style={({ hovered, pressed, focused }: PressableState) => [
+          styles.sectionButton,
+          (hovered || pressed) && {
+            backgroundColor: theme.colors.surfaceContainerHigh,
+          },
+          focused && getFocusRing(theme),
+        ]}
+      >
+        <Icons
+          name={collapsed ? "chevron-right" : "chevron-down"}
+          size={18}
+          color={theme.colors.onSurfaceVariant}
+        />
+        {typeof section.title === "string" ? (
+          <Text
+            style={[
+              theme.typography.labelLarge,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+            numberOfLines={1}
+          >
+            {section.title}
+          </Text>
+        ) : (
+          section.title
+        )}
+        {typeof section.trailing === "string" ||
+        typeof section.trailing === "number" ? (
+          <Text
+            style={[
+              theme.typography.bodySmall,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            {section.trailing}
+          </Text>
+        ) : (
+          section.trailing
+        )}
+      </Pressable>
+    </View>
+  );
+});
 
 interface DataGridRowProps {
   item: any;
@@ -369,6 +621,10 @@ interface DataGridRowProps {
   hover?: boolean;
   onClick?: DataGridProps["onClick"];
   rowStyle?: DataGridProps["rowStyle"];
+  rowActions?: DataGridProps["rowActions"];
+  actionsWidth: number;
+  revealOnHover: boolean;
+  renderWholeRow?: DataGridProps["renderRow"];
 }
 
 /**
@@ -389,12 +645,23 @@ const DataGridRow = React.memo(function DataGridRow({
   hover,
   onClick,
   rowStyle,
+  rowActions,
+  actionsWidth,
+  revealOnHover,
+  renderWholeRow,
 }: DataGridRowProps) {
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const whole = renderWholeRow?.(item, index);
+  if (whole !== null && whole !== undefined) return <>{whole}</>;
+  const actions = rowActions?.(item, index) ?? [];
+  const shown = !revealOnHover || hovered || focused;
   return (
     <TableRow
       hover={hover}
       selected={selected}
       onClick={onClick ? () => onClick(item, index) : undefined}
+      onHoverChange={revealOnHover ? setHovered : undefined}
       style={[
         typeof rowStyle === "function" ? rowStyle(item, index) : rowStyle,
         // A minimum: a cell of two lines (a name and a chip) grows its row instead of spilling out.
@@ -404,11 +671,12 @@ const DataGridRow = React.memo(function DataGridRow({
       {columns.map((column, colIndex) => (
         <TableCell
           key={`${item.id ?? index}-${column.id}`}
-          width={column.width ?? FLEX_MIN}
-          flex={column.width === undefined}
+          {...columnSize(column)}
           align={column.align ?? column.alignment}
           style={[
-            colIndex === columns.length - 1 ? { borderRightWidth: 0 } : {},
+            colIndex === columns.length - 1 && !actionsWidth
+              ? { borderRightWidth: 0 }
+              : {},
             { paddingVertical: dense ? 4 : 12 },
             // The stripe is drawn on the cells, not the row: a row's own
             // background (selected, hovered, `rowStyle`) would otherwise be
@@ -433,6 +701,35 @@ const DataGridRow = React.memo(function DataGridRow({
           )}
         </TableCell>
       ))}
+      {!!actionsWidth && (
+        <TableCell
+          width={actionsWidth}
+          align="right"
+          style={[
+            styles.lastCell,
+            { paddingVertical: 0, paddingHorizontal: 8 },
+            striped && { backgroundColor: stripeColor },
+          ]}
+        >
+          <View
+            style={[styles.actions, { opacity: shown ? 1 : 0 }]}
+            onFocus={revealOnHover ? () => setFocused(true) : undefined}
+            onBlur={revealOnHover ? () => setFocused(false) : undefined}
+          >
+            {actions.map((action) => (
+              <IconButton
+                key={action.label}
+                icon={action.icon}
+                accessibilityLabel={action.label}
+                title={action.label}
+                disabled={action.disabled}
+                onClick={action.onPress}
+                testID={action.testID}
+              />
+            ))}
+          </View>
+        </TableCell>
+      )}
     </TableRow>
   );
 });
@@ -489,6 +786,22 @@ const styles = StyleSheet.create({
   },
   listContent: {
     flexGrow: 1,
+  },
+  lastCell: { borderRightWidth: 0 },
+  actions: { flexDirection: "row", justifyContent: "flex-end" },
+  sectionRow: {
+    borderBottomWidth: 1,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    flexDirection: "row",
+  },
+  sectionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
 });
 

@@ -5,6 +5,7 @@ import {
   curveMonotoneX,
   curveNatural,
   curveStep,
+  curveStepAfter,
   line,
   pie,
   stack,
@@ -18,6 +19,7 @@ const curves = {
   monotone: curveMonotoneX,
   natural: curveNatural,
   step: curveStep,
+  stepAfter: curveStepAfter,
 };
 
 const defined = (p: Point) => p.y != null && Number.isFinite(p.y);

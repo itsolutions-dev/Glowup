@@ -104,4 +104,17 @@ describe("the charts page", () => {
     expect(screen.queryAllByTestId(/^demo-columns-marker-/).length).toBe(7);
     expect(screen.getByTestId("demo-columns-target-0")).toBeTruthy();
   });
+
+  it("draws the points and the timeline", async () => {
+    await open();
+    for (const id of ["demo-progress", "demo-scatter", "demo-timeline"])
+      await fireEvent(screen.getByTestId(id), "layout", {
+        nativeEvent: { layout: { width: 400, height: 240, x: 0, y: 0 } },
+      });
+    expect(screen.getAllByTestId(/^demo-progress-point-/)).toHaveLength(4);
+    expect(screen.getByTestId("demo-progress-line-g0")).toBeTruthy();
+    expect(screen.getAllByTestId(/^demo-scatter-point-/)).toHaveLength(8);
+    expect(screen.getAllByTestId(/^demo-timeline-bar-/)).toHaveLength(3);
+    expect(screen.getByTestId("demo-timeline-moment-4")).toBeTruthy();
+  });
 });

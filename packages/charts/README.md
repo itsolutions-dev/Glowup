@@ -25,6 +25,9 @@ Pure JavaScript on top of `react-native-svg`: it runs in Expo Go, a development 
   a dot per point, a guide and a tooltip on tap or hover, a target line.
 - **`DonutChart`, `PieChart`, `StackedBar` and `Sparkline`**: parts of a whole, and a trend with no axes. A gauge is a
   `DonutChart` with a `total`.
+- **`ScatterChart` and `TimelineChart`**: points on two value axes (or on time, when x is a `Date`), optionally joined per
+  group (a level held until the next event with `line="stepAfter"`); and intervals of time on lanes, with moments as dots and a
+  marker line.
 - **`ChartLegend`, the `legend` prop and `Chart`**: a key under the chart whose items switch a series (or a part) off, and one
   entry point that picks the component by `type`.
 - **Dense mode** for thousands of points: from 400 bars (200 points for lines) a chart draws one path per series and one touch
@@ -142,6 +145,47 @@ the shape of a series.
 
 There is no separate gauge component: the library's `CircularProgress` has no centre text and no share, and a donut with a `total` does what a
 gauge needs. Colour it by threshold in the app (`colors`, or a part's `color`).
+
+## Points and intervals
+
+```tsx
+import { ScatterChart, TimelineChart } from "@its/glowup-charts";
+
+<ScatterChart
+  data={[
+    { x: new Date(2026, 4, 1), y: 20, label: "Called" },
+    { x: new Date(2026, 4, 6), y: 60, label: "Appointment" },
+  ]}
+  yDomain={[0, 100]}
+  line="stepAfter"
+  formatValue={(v) => `${v}%`}
+  locale="it-IT"
+/>;
+
+<TimelineChart
+  items={[
+    {
+      id: "1",
+      lane: "Import",
+      start: new Date(2026, 4, 1),
+      end: new Date(2026, 4, 3),
+    },
+    { id: "2", lane: "Simulation", start: new Date(2026, 4, 4) },
+  ]}
+  marker={new Date(2026, 4, 2)}
+/>;
+```
+
+`ScatterChart` takes `data` (`{ x, y, label?, series?, color?, r? }`, `x` a number or a `Date`), `series` (the groups, for colours and
+the legend; a point names its group by key), `line` (a `CurveName`: join each group's points in the order of x), `yDomain`, `zero` (false),
+`radius` (5), `formatValue` (y), `formatX`, `locale`, `numberFormat`, `legend`, `title`, `height` (240), `loading`, `emptyLabel` and
+`onSelect` (the point's index). With dates on x the axis is a time scale whose ticks are hours, days or months by the span. Each point is
+a button with a 24 px target; there is no dense mode, so keep it to a few hundred points.
+
+`TimelineChart` takes `items` (`{ id, lane, start, end?, label?, series?, color? }`: an item without `end` is a moment, drawn as a dot),
+`lanes` (their order; default as the items name them), `series`, `laneHeight` (32; the chart is as tall as its lanes), `domain`,
+`marker`, `formatTime`, `locale`, `legend`, `title`, `loading`, `emptyLabel` and `onSelect` (the item's id). A tap or a hover shows the
+item's start and end. Dates are read and written in the device's time zone.
 
 ## Legend and `Chart`
 

@@ -2419,7 +2419,9 @@
         {
           "name": "data",
           "type": "any[]",
-          "required": true,
+          "required": false,
+          "default": "NO_DATA",
+          "description": "The rows. Ignored when `sections` is given.",
           "deprecated": false
         },
         {
@@ -2504,6 +2506,32 @@
           "deprecated": false
         },
         {
+          "name": "renderRow",
+          "type": "(row: any, index: number) => ReactNode",
+          "required": false,
+          "description": "Draws a whole row instead of its cells, for the rows it returns a node\nfor: a note spanning the grid, a divider. `null` or `undefined` draws the\nrow as usual. Keep the function stable (`useCallback`).",
+          "deprecated": false
+        },
+        {
+          "name": "revealRowActions",
+          "type": "\"always\" | \"hover\"",
+          "required": false,
+          "default": "\"always\"",
+          "description": "When the row actions show: `\"always\"`, or `\"hover\"`, only while the\npointer is over the row or one of them has the focus (web; on a touch\nscreen they always show).",
+          "values": [
+            "always",
+            "hover"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "rowActions",
+          "type": "(row: any, index: number) => DataGridRowAction[]",
+          "required": false,
+          "description": "The actions on a row, drawn as icon buttons in a last column as wide as\nthe row with the most. Keep the function stable (`useCallback`).",
+          "deprecated": false
+        },
+        {
           "name": "rowsPerPage",
           "type": "number",
           "required": false,
@@ -2515,6 +2543,13 @@
           "type": "ViewStyle | ((row: any, index: number) => ViewStyle | undefined)",
           "required": false,
           "description": "One style for every row, or a function of the row (to dim or highlight one).",
+          "deprecated": false
+        },
+        {
+          "name": "sections",
+          "type": "DataGridSection[]",
+          "required": false,
+          "description": "The rows in groups, each under a header row that folds and unfolds it;\nevery section starts unfolded. A row's index is its position in all the\nsections' rows, folded ones included. Not combined with `rowsPerPage`.",
           "deprecated": false
         },
         {
@@ -2551,6 +2586,12 @@
           "type": "string",
           "required": false,
           "description": "A heading drawn above the header row.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         },
         {
@@ -10912,6 +10953,13 @@
           "deprecated": false
         },
         {
+          "name": "onHoverChange",
+          "type": "(hovered: boolean) => void",
+          "required": false,
+          "description": "Called with `true` when the pointer enters the row and `false` when it leaves (web).",
+          "deprecated": false
+        },
+        {
           "name": "selected",
           "type": "boolean",
           "required": false,
@@ -10960,6 +11008,13 @@
           "deprecated": false
         },
         {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "description": "The narrowest a `flex` cell, or one with a percentage `width`, gets, in px.",
+          "deprecated": false
+        },
+        {
           "name": "onClick",
           "type": "() => void",
           "required": false,
@@ -10998,9 +11053,9 @@
         },
         {
           "name": "width",
-          "type": "number",
+          "type": "CellWidth",
           "required": false,
-          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
+          "description": "Width in px, or a percentage of the row (`\"30%\"`). Defaults to 150. With\n`flex`, the narrowest the cell gets (unless `minWidth` says).",
           "deprecated": false
         }
       ]
@@ -11032,6 +11087,13 @@
           "deprecated": false
         },
         {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "description": "The narrowest a `flex` cell, or one with a percentage `width`, gets, in px.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
@@ -11045,9 +11107,9 @@
         },
         {
           "name": "width",
-          "type": "number",
+          "type": "CellWidth",
           "required": false,
-          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
+          "description": "Width in px, or a percentage of the row (`\"30%\"`). Defaults to 150. With\n`flex`, the narrowest the cell gets (unless `minWidth` says).",
           "deprecated": false
         }
       ]

@@ -17,6 +17,7 @@ const props: Partial<DataGridProps> = {
   hover: true,
   density: "normal",
   emptyMessage: "No invoices with this status.",
+  revealRowActions: "hover",
 };
 
 const STATUS_TYPE = {
@@ -87,6 +88,7 @@ export default function DataGridExample() {
   const [status, setStatus] = useState<string | null>(null);
   // The open invoice, by id: `selected` counts rows, and a sort moves them.
   const [open, setOpen] = useState<string | null>(null);
+  const [reminded, setReminded] = useState<string[]>([]);
   const [sort, setSort] = useState({
     column: "issued",
     direction: "desc" as "asc" | "desc",
@@ -110,9 +112,10 @@ export default function DataGridExample() {
         {open
           ? `${open} is open.`
           : `${rows.length} of ${INVOICES.length} invoices, sorted by ${sort.column}. Press a row to open it.`}
+        {reminded.length > 0 && ` Reminded: ${reminded.join(", ")}.`}
       </Typography>
-      {/* The columns add up to 660: a wider grid would leave an empty strip. */}
-      <Box style={{ maxWidth: 662 }}>
+      {/* The columns and the actions add up to 756: a wider grid would leave an empty strip. */}
+      <Box style={{ maxWidth: 758 }}>
         <DataGrid
           {...props}
           data={rows}
@@ -122,6 +125,20 @@ export default function DataGridExample() {
           sortColumn={sort.column}
           sortDirection={sort.direction}
           onSort={(column, direction) => setSort({ column, direction })}
+          rowActions={(invoice: Invoice) => [
+            {
+              icon: "bell-outline",
+              label: `Remind ${invoice.client}`,
+              disabled: invoice.status === "Paid",
+              onPress: () =>
+                setReminded((held) => [...new Set([...held, invoice.id])]),
+            },
+            {
+              icon: "download-outline",
+              label: `Download ${invoice.id}`,
+              onPress: () => setOpen(invoice.id),
+            },
+          ]}
         />
       </Box>
     </VStack>

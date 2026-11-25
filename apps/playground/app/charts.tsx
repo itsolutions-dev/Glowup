@@ -15,8 +15,10 @@ import {
   DonutChart,
   LineChart,
   PieChart,
+  ScatterChart,
   Sparkline,
   StackedBar,
+  TimelineChart,
   type ChartDatum,
 } from "@its/glowup-charts";
 
@@ -293,6 +295,81 @@ const PartsDemo = () => {
   );
 };
 
+// Fixed dates (the page is prerendered): a customer's progress, and the steps of two imports.
+const PROGRESS = [
+  { x: new Date(2026, 4, 2), y: 10, label: "First call" },
+  { x: new Date(2026, 4, 5), y: 35, label: "Call back" },
+  { x: new Date(2026, 4, 9), y: 60, label: "Appointment" },
+  { x: new Date(2026, 4, 14), y: 90, label: "Contract" },
+];
+const HEIGHTS = [
+  [172, 68],
+  [181, 77],
+  [165, 59],
+  [190, 88],
+  [158, 52],
+  [176, 70],
+  [169, 64],
+  [185, 81],
+].map(([x, y], i) => ({ x, y, series: i % 2 ? "b" : "a" }));
+const at = (day: number, hour = 0) => new Date(2026, 4, day, hour);
+const STEPS = [
+  { id: "1", lane: "North import", start: at(1, 9), end: at(1, 17) },
+  {
+    id: "2",
+    lane: "North import",
+    start: at(2, 9),
+    end: at(3, 12),
+    series: "sim",
+  },
+  { id: "3", lane: "South import", start: at(1, 14), end: at(2, 10) },
+  {
+    id: "4",
+    lane: "South import",
+    start: at(3, 15),
+    label: "Committed",
+    series: "sim",
+  },
+];
+
+/** Points on time and on two values, and intervals on lanes. */
+const PointsDemo = () => (
+  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
+    <Tile title="A customer's progress, held until the next step">
+      <ScatterChart
+        testID="demo-progress"
+        data={PROGRESS}
+        yDomain={[0, 100]}
+        line="stepAfter"
+        formatValue={(v) => `${v}%`}
+      />
+    </Tile>
+    <Tile title="Height and weight">
+      <ScatterChart
+        testID="demo-scatter"
+        data={HEIGHTS}
+        series={[
+          { key: "a", label: "Team A" },
+          { key: "b", label: "Team B" },
+        ]}
+        legend
+      />
+    </Tile>
+    <Tile wide title="Imports and simulations">
+      <TimelineChart
+        testID="demo-timeline"
+        items={STEPS}
+        series={[
+          { key: "import", label: "Import" },
+          { key: "sim", label: "Simulation" },
+        ]}
+        marker={at(2, 12)}
+        legend
+      />
+    </Tile>
+  </View>
+);
+
 // A sprint per team: points planned and committed (one column, overlapping), and how the committed ones ended (stacked).
 const SPRINT: ChartDatum[] = [
   ["Design", 8, 6, 6, 0, 0],
@@ -463,7 +540,7 @@ export default function ChartsPage() {
     <Page
       eyebrow="Companion package"
       title="Charts"
-      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Bars, lines, areas, donuts, a stacked bar and sparklines exist so far. This page is not published yet."
+      description="@its/glowup-charts draws charts with react-native-svg and a copy of d3's scales and shapes, with no dependency of its own. Bars, lines, areas, donuts, a stacked bar, sparklines, scatter plots and timelines exist so far. This page is not published yet."
       banner={
         <Banner
           visible
@@ -484,6 +561,12 @@ export default function ChartsPage() {
         description="A donut or a pie, a gauge (a donut with a total bigger than its part), a single stacked bar and sparklines. Tap or point at a slice to read it."
       >
         <PartsDemo />
+      </Section>
+      <Section
+        title="Points and intervals"
+        description="Points on two values, or on time when x is a date, joined per group when asked (a level held until the next event); and intervals of time on lanes, with moments as dots and a marker. Tap or point at one to read it."
+      >
+        <PointsDemo />
       </Section>
       <Section
         title="Columns, targets and outcomes"

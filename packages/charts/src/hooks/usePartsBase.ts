@@ -23,6 +23,8 @@ export type PartsCommonProps = {
   legend?: boolean;
   /** The parts as a table under the chart: exact values and shares by eye or by screen reader, and a row is a way to pick a part. */
   table?: boolean;
+  /** The headers of the table's two columns, in the app's language. Default "Value" and "Share". */
+  tableLabels?: { value: string; share: string };
   title?: string;
   /** BCP 47 tag for the numbers. Default "en-US". */
   locale?: string;
@@ -48,6 +50,7 @@ export const usePartsBase = ({
   colors,
   legend,
   table,
+  tableLabels,
   loading,
   title,
   locale,
@@ -116,7 +119,11 @@ export const usePartsBase = ({
   const tableNode: ReactElement | null =
     table && !loading && visible.length > 0
       ? createElement(ChartTable, {
-          header: ["", "Value", "Share"],
+          header: [
+            "",
+            tableLabels?.value ?? "Value",
+            tableLabels?.share ?? "Share",
+          ],
           rows: visible.map((d) => [
             nameOf(d),
             format(d.value),

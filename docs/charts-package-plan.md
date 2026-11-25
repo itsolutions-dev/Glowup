@@ -61,7 +61,7 @@ nascondere una serie) e la facciata `Chart` con `type`.
 - **`Gauge`/indicatore:** nessun componente nuovo. **Verificato il 2026-10-20**: `CircularProgress` di `ui` ha solo `progress`, `size`,
   `strokeWidth` e `color`, senza testo al centro né quota; un `DonutChart` con `total` (30 su 100) fa già un indicatore, con testo al
   centro e traccia. Le soglie di colore le sceglie l'app (`colors`). Nessuna modifica a `ui`.
-- **Seconda ondata** (`ScatterChart`, `AreaRange`): solo se il CRM li chiede. **`TimelineChart`:** rinviato (un solo uso).
+- **Seconda ondata:** `ScatterChart` (punti su due assi di valore, o sul tempo quando x è una `Date`, uniti per gruppo con `line`) e `TimelineChart` (intervalli di tempo su corsie, momenti come punti) **fatti il 2026-11-25** perché il CRM li chiede (G6: popup avanzamento attività, riepiloghi delle simulazioni wave). `AreaRange` resta rinviato.
 - **Non si fa:** zoom e pan, brush, 3D, mappe.
 
 ## 4. Comportamento comune

@@ -108,6 +108,19 @@ describe("chart table", () => {
     expect(onSelect).toHaveBeenLastCalledWith("y");
   });
 
+  it("names its columns in the app's language", async () => {
+    await mount(
+      <StackedBar
+        data={parts}
+        table
+        tableLabels={{ value: "Valore", share: "Quota" }}
+        testID="c"
+        locale="it-IT"
+      />,
+    );
+    expect(screen.getByLabelText("Missed, Valore 1, Quota 25%")).toBeTruthy();
+  });
+
   it("is on a stacked bar too, and not while loading or with no data", async () => {
     await mount(<StackedBar data={parts} table testID="c" locale="en-US" />);
     expect(screen.getByLabelText("Missed, Value 1, Share 25%")).toBeTruthy();

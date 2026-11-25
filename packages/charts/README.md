@@ -201,7 +201,7 @@ import { Chart, ChartLegend } from "@its/glowup-charts";
 rest and the other series **keep their colours**. With everything off the chart shows its `emptyLabel` and the legend stays, so a series can
 be brought back. To a screen reader each item is a checkbox, checked while the series is shown.
 
-`table` puts the data under any chart as a table (`ChartTable`, also exported on its own: `header`, `rows`, `activeRow`, `onRowPress`, `rowColors`, `limit`). A category chart has a column per series still shown, a donut or stacked bar has "Value" and "Share" and a dot in the part's colour. A row presses like a tap on the chart (`onSelect`) and the active category's row is highlighted. A table past 50 rows ends with how many it left out. Not shown while loading or with no data.
+`table` puts the data under any chart as a table (`ChartTable`, also exported on its own: `header`, `rows`, `activeRow`, `onRowPress`, `rowColors`, `limit`). A category chart has a column per series still shown, a donut or stacked bar has "Value" and "Share" (named in the app's language with `tableLabels`) and a dot in the part's colour. A row presses like a tap on the chart (`onSelect`) and the active category's row is highlighted. A table past 50 rows ends with how many it left out. Not shown while loading or with no data.
 
 `ChartLegend` on its own takes `items` (`{ key, label, color }`), `hidden` (keys switched off) and `onToggle`; without `onToggle` it is only a
 key.

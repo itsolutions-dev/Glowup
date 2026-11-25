@@ -322,9 +322,14 @@ const Column = ({
   const zone = `day-${index}`;
 
   // The slot under the pointer: the step it falls in, not the nearest one.
+  // A click on the web reports the browser's MouseEvent, which has `offsetY` (inside the empty
+  // layer, which holds nothing) where a touch has `locationY`.
   const slot = (e: GestureResponderEvent) => {
+    const { locationY, offsetY } = e.nativeEvent as typeof e.nativeEvent & {
+      offsetY?: number;
+    };
     const into = Math.floor(
-      (e.nativeEvent.locationY / hourHeight) * (60 / Math.max(1, step)),
+      ((locationY ?? offsetY ?? 0) / hourHeight) * (60 / Math.max(1, step)),
     );
     const minutes = Math.min(
       startHour * 60 + into * Math.max(1, step),

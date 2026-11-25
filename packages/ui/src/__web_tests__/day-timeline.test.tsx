@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { DayTimeline, ThemeProvider } from "..";
 
 // The grid in the browser: events are buttons a mouse can grab, and the foot
@@ -25,5 +25,25 @@ describe("DayTimeline grid on the web", () => {
     expect(getComputedStyle(card).cursor).toBe("grab");
     const foot = screen.getByLabelText("Cambia la fine, Mario Rossi");
     expect(getComputedStyle(foot).cursor).toBe("ns-resize");
+  });
+
+  it("reports a click on an empty slot with a real time", () => {
+    const onSlotPress = jest.fn();
+    render(
+      <ThemeProvider>
+        <DayTimeline
+          layout="grid"
+          days={[at(0)]}
+          events={[]}
+          onSlotPress={onSlotPress}
+          testID="tl"
+        />
+      </ThemeProvider>,
+    );
+    // A browser click carries no locationY: the time comes from offsetY.
+    fireEvent.click(screen.getByTestId("tl-empty-0"), { offsetY: 100 });
+    const start: Date = onSlotPress.mock.calls[0][0];
+    expect(Number.isNaN(start.getTime())).toBe(false);
+    expect(start.getHours()).toBeGreaterThanOrEqual(8);
   });
 });

@@ -1,5 +1,11 @@
 import React from "react";
-import { Pressable, StyleProp, View, ViewStyle } from "react-native";
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from "react-native";
 import type { Theme } from "../providers/ThemeProvider";
 import { Draggable } from "./DragDrop";
 import { toneFromColor } from "../providers/toneFrom";
@@ -75,6 +81,8 @@ export const EventSurface = ({
         onPress={press}
         accessibilityLabel={name}
         style={style}
+        // The preview is drawn at the card's size: it needs the card's own surface.
+        preview={<View style={[style, styles.fill]}>{children}</View>}
         testID={testID}
       >
         {children}
@@ -115,3 +123,5 @@ export type LayoutProps = Omit<DayTimelineProps, "layout"> &
       | "emptyState"
     >
   >;
+
+const styles = StyleSheet.create({ fill: { flex: 1 } });

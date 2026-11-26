@@ -6530,7 +6530,7 @@
           "name": "onDismiss",
           "type": "() => void",
           "required": true,
-          "description": "Called on a press outside the popover and on Android back.",
+          "description": "Called on a press outside the popover, on Android back and on Escape (web).",
           "deprecated": false
         },
         {

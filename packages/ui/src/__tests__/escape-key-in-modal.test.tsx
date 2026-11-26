@@ -4,7 +4,7 @@
 import React from "react";
 import { Platform } from "react-native";
 import { act, fireEvent, render } from "@testing-library/react-native";
-import { Autocomplete, ThemeProvider } from "..";
+import { Autocomplete, Select, ThemeProvider } from "..";
 import { useEscapeKey } from "../components/internal/useEscapeKey";
 
 // react-native-web's Modal closes on the Escape *keyup*, from a document
@@ -58,6 +58,27 @@ describe("Autocomplete inside a Modal", () => {
     expect(view.getByText("Milano")).toBeTruthy();
     await act(async () => press("Escape"));
     expect(view.queryByText("Milano")).toBeNull();
+    expect(modalKeyUp).not.toHaveBeenCalled();
+  });
+});
+
+describe("Select inside a Modal", () => {
+  it("Escape closes the open list, not the dialog under it", async () => {
+    const view = await render(
+      <ThemeProvider>
+        <Select
+          label="Job"
+          options={["Clerk", "Retired"]}
+          value={[]}
+          multiple
+          defaultOpen
+          onChange={() => {}}
+        />
+      </ThemeProvider>,
+    );
+    expect(view.getByText("Retired")).toBeTruthy();
+    await act(async () => press("Escape"));
+    expect(view.queryByText("Retired")).toBeNull();
     expect(modalKeyUp).not.toHaveBeenCalled();
   });
 });

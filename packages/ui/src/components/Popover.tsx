@@ -16,6 +16,7 @@ import {
 import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { placeAnchored, type AnchorPosition } from "./internal/anchorPlacement";
+import { useEscapeKey } from "./internal/useEscapeKey";
 
 export type { AnchorPosition } from "./internal/anchorPlacement";
 
@@ -25,7 +26,7 @@ export interface PopoverProps {
   children: React.ReactNode;
   /** Whether the popover is open. */
   visible: boolean;
-  /** Called on a press outside the popover and on Android back. */
+  /** Called on a press outside the popover, on Android back and on Escape (web). */
   onDismiss: () => void;
   /** Gives the popover the anchor's width instead of sizing it to its content. */
   matchAnchorWidth?: boolean;
@@ -59,6 +60,11 @@ const Popover = ({
   const window = useWindowDimensions();
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  // Escape on the keydown, its keyup swallowed: react-native-web makes a Modal
+  // the one listening for Escape only once its show animation has ended, so a
+  // press inside the fade would close the dialog or drawer under the popover.
+  useEscapeKey(visible, onDismiss);
 
   const updatePosition = useCallback(() => {
     if (anchorRef.current) {

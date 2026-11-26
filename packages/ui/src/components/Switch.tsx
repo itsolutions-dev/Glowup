@@ -51,6 +51,8 @@ export interface SwitchProps {
    * Defaults to true.
    */
   feedback?: boolean;
+  /** Finds the switch in tests: on the pressable that toggles it (and carries its role). */
+  testID?: string;
 }
 
 // Fixed parts of the switch geometry: the track's outline and how much of the
@@ -125,6 +127,7 @@ const Switch = ({
   width = SIZES[size].width,
   height = SIZES[size].height,
   feedback = true,
+  testID,
 }: SwitchProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
@@ -180,6 +183,7 @@ const Switch = ({
 
   return (
     <Pressable
+      testID={testID}
       disabled={disabled}
       onPress={() => {
         emitFeedback("toggle");

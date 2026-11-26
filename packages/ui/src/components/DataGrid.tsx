@@ -451,8 +451,10 @@ const DataGrid = ({
         >
           {renderHeader()}
           <FlatList
-            // A new page starts at the top.
-            key={current}
+            // A new page starts at the top. Rows arriving in a grid mounted empty start a new list too: the
+            // virtualized list kept the window of its empty first render, drew about ten rows and never
+            // called onEndReached.
+            key={`${current}:${data.length > 0 ? "rows" : "empty"}`}
             // No scrollbar, as in Table: on the web it takes width from the rows and not from the header above
             // them, and the columns would not line up.
             showsVerticalScrollIndicator={false}

@@ -21,6 +21,8 @@ export interface SpeedDialAction {
   label: string;
   icon: MaterialCommunityIconsGlyphs;
   onPress: () => void;
+  /** Finds this action's button in tests. */
+  testID?: string;
 }
 
 export interface SpeedDialProps {
@@ -39,6 +41,8 @@ export interface SpeedDialProps {
   openLabel?: string;
   /** Accessible name of the open trigger. Defaults to `"Close actions"`. */
   closeLabel?: string;
+  /** Finds the trigger in tests (the button that opens and closes the actions). */
+  testID?: string;
 }
 
 type PointerHandler = (event: {
@@ -53,6 +57,7 @@ const SpeedDial = ({
   openOnHover = false,
   openLabel = "Open actions",
   closeLabel = "Close actions",
+  testID,
 }: SpeedDialProps) => {
   const [open, setOpen] = useState(defaultOpen);
   // True once the close spring has settled: the invisible actions are then
@@ -150,6 +155,7 @@ const SpeedDial = ({
                 </View>
 
                 <FAB
+                  testID={action.testID}
                   icon={action.icon}
                   label={action.label}
                   disabled={settledClosed}
@@ -172,6 +178,7 @@ const SpeedDial = ({
             layout box above it, invisible. */}
         <View {...(onHover && { onPointerEnter: onHover(true) })}>
           <FAB
+            testID={testID}
             icon={open ? "close" : mainIcon}
             label={open ? closeLabel : openLabel}
             onClick={toggle}

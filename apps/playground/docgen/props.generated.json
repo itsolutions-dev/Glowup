@@ -1460,6 +1460,13 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the card in tests: on its pressable area (the whole card when it has no `Card.Actions`).",
+          "deprecated": false
+        },
+        {
           "name": "variant",
           "type": "\"elevated\" | \"filled\" | \"outlined\" | \"glow\"",
           "required": false,
@@ -2045,6 +2052,13 @@
           "type": "object",
           "required": false,
           "default": "{}",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the chip in tests: on its pressable body, which carries its label and\nrole. The close button, when there is one, is `` `${testID}-close` ``.",
           "deprecated": false
         },
         {
@@ -6117,6 +6131,13 @@
           "type": "StyleProp<ViewStyle>",
           "required": false,
           "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the surface in tests (its root view).",
+          "deprecated": false
         }
       ]
     },
@@ -7476,6 +7497,13 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the select in tests: on the field you press to open it. Each option\nof the open list is `` `${testID}-option-${value}` ``.",
+          "deprecated": false
+        },
+        {
           "name": "value",
           "type": "any",
           "required": false,
@@ -7850,6 +7878,13 @@
           "type": "SpeedDialPosition",
           "required": false,
           "default": "\"bottom-right\"",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the trigger in tests (the button that opens and closes the actions).",
           "deprecated": false
         }
       ]
@@ -9325,6 +9360,13 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the switch in tests: on the pressable that toggles it (and carries its role).",
+          "deprecated": false
+        },
+        {
           "name": "width",
           "type": "number",
           "required": false,
@@ -10201,6 +10243,14 @@
           "deprecated": false
         },
         {
+          "name": "initialMode",
+          "type": "ThemeMode",
+          "required": false,
+          "default": "\"system\"",
+          "description": "The scheme to start on: `\"light\"`, `\"dark\"`, or `\"system\"` to follow the\ndevice. Read once, on mount: an app that stores the reader's choice passes\nit here and starts on it, with no flash of the other scheme. Defaults to\n`\"system\"`.",
+          "deprecated": false
+        },
+        {
           "name": "initialPalette",
           "type": "ThemePalette",
           "required": false,
@@ -10209,10 +10259,24 @@
           "deprecated": false
         },
         {
+          "name": "mode",
+          "type": "ThemeMode",
+          "required": false,
+          "description": "Controls the scheme: the provider shows this one, and `toggleTheme` and\n`setMode` only call `onModeChange`. Leave it out to let the provider keep\nthe choice itself (starting from `initialMode`).",
+          "deprecated": false
+        },
+        {
           "name": "onInteractionFeedback",
           "type": "InteractionFeedbackHandler",
           "required": false,
           "description": "Called when the user presses, toggles or selects through one of the\nlibrary's controls: wire it to haptics (`@its/glowup-device/haptics`'s\n`hapticFeedback`) or anything else. A control opts out with\n`feedback={false}`. Without it a nested provider inherits the outer one's.",
+          "deprecated": false
+        },
+        {
+          "name": "onModeChange",
+          "type": "(mode: ThemeMode) => void",
+          "required": false,
+          "description": "Called with the scheme chosen through `toggleTheme` or `setMode`, in either\nmode: store it to start on it next time.",
           "deprecated": false
         },
         {

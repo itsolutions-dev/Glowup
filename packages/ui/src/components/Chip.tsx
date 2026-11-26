@@ -50,6 +50,11 @@ export interface ChipProps {
    * Defaults to true.
    */
   feedback?: boolean;
+  /**
+   * Finds the chip in tests: on its pressable body, which carries its label and
+   * role. The close button, when there is one, is `` `${testID}-close` ``.
+   */
+  testID?: string;
 }
 
 const Chip = ({
@@ -67,6 +72,7 @@ const Chip = ({
   accessibilityRole,
   style = {},
   feedback = true,
+  testID,
 }: ChipProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
@@ -175,6 +181,7 @@ const Chip = ({
       ]}
     >
       <Pressable
+        testID={testID}
         onPress={() => {
           if (disabled || !onClick) return;
           emitFeedback(
@@ -234,6 +241,7 @@ const Chip = ({
       </Pressable>
       {onClose && (
         <Pressable
+          testID={testID && `${testID}-close`}
           onPress={() => {
             if (disabled || !onClose) return;
             emitFeedback("press");

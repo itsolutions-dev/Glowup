@@ -88,7 +88,8 @@ The status roles (`success`, `warning`, `info`, `neutral`, four tokens each) liv
 fixed hues kept off the seed, identical in every palette, which `createPalette` and the brand sets
 take from there rather than author.
 
-`useTheme()` exposes `{ theme, toggleTheme }`; `getStateColor()` and `getGlowStyles()` are
+`useTheme()` exposes `{ theme, toggleTheme, mode, setMode, palette, setPalette }` (`ThemeProvider` takes
+`initialMode`, or a controlled `mode` + `onModeChange`); `getStateColor()` and `getGlowStyles()` are
 exported for building theme-reactive components. The theme follows the OS color scheme and
 supports a manual toggle.
 

@@ -226,7 +226,17 @@ Exported from the library alongside the components:
 
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
-- **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
+- **`useTheme()`** → `{ theme, toggleTheme, mode, setMode, palette, setPalette }`; the scheme showing is
+  `theme.isDark`, `mode` is the one chosen (`"light"`, `"dark"` or `"system"`).
+- **`initialMode`, `mode` / `onModeChange`** (`ThemeProvider` props) — `initialMode` starts on a stored choice
+  (`"light"`, `"dark"`, `"system"`; default `"system"`) from the first render, with no frame of the other scheme.
+  `mode` makes the provider controlled: it shows that scheme, and `toggleTheme` / `setMode` only call
+  `onModeChange`, which is also called in the uncontrolled case so the app can store the choice.
+
+  ```tsx
+  <ThemeProvider initialMode={stored ?? "system"} onModeChange={saveMode}>
+  ```
+
 - **`themeScrollbars`** (a `ThemeProvider` prop, default `true`) — on the web the browser's own scrollbars
   (a textarea's, a menu's list) are drawn from the theme: a thin `outline`-coloured thumb, no arrows, and
   `color-scheme` follows light and dark, so they are not a white box in a dark page. `ScrollArea` is unchanged.

@@ -48,7 +48,9 @@ against the original layers it is about 75%; calculated fields, renaming, date f
 `GridResizeHandles` public and the playground using them (G5); `DataGrid` `sections`, `rowActions`, `renderRow`, `%`
 widths and `minWidth` with flex (G2); the pivot's field panel and filter bar (G4); `ScatterChart`, `TimelineChart`
 and `tableLabels` in `packages/charts` (G6). The CRM's open proposals for the library are in
-[`crm-proposals.md`](crm-proposals.md).
+[`crm-proposals.md`](crm-proposals.md); on 26/11 P2 (`ThemeProvider` `initialMode` / controlled `mode`), P8 (`DataGrid`
+filled after an empty mount) and P12 (`testID` on six more components) were built and taken off it, P5 rejected and
+P28 parked.
 
 **Fixed for the CRM's first checklist run on 26/11** (on `fix-g`): every `Modal` window of the library (`Dialog`,
 `BottomSheet`, side sheets) is a `PortalHost`, and the web date picker's popover is a `Modal`, so overlays opened inside

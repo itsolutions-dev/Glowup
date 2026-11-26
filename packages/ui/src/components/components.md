@@ -70,7 +70,7 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 
 ### 1.5 Theme utilities
 
-- `useTheme()` → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`. Syncs with OS scheme + manual toggle.
+- `useTheme()` → `{ theme, toggleTheme, mode, setMode, palette, setPalette }`; the scheme showing is `theme.isDark`, `mode` the one chosen (`"light"`, `"dark"`, `"system"`). `ThemeProvider` takes `initialMode` (start on a stored choice) or a controlled `mode` + `onModeChange`.
 - `getStateColor(bg, on, state)` → composites a hover/press state-layer color over a base.
 - `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus ring for a control that always has a 1px border (a field): same border width idle and active, variant `"error"` for error state.
 - `getFocusRing(theme, error?)` → a hover/press/focus ring that never changes layout (shadow on web and iOS, elevation on Android), for controls with no border of their own (buttons, chips, tabs).

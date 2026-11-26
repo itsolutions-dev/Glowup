@@ -106,6 +106,11 @@ export interface SelectProps {
    * does not push the next field down. Default false.
    */
   reserveHelperText?: boolean;
+  /**
+   * Finds the select in tests: on the field you press to open it. Each option
+   * of the open list is `` `${testID}-option-${value}` ``.
+   */
+  testID?: string;
 }
 
 const Select = ({
@@ -129,6 +134,7 @@ const Select = ({
   defaultOpen = false,
   density,
   reserveHelperText = false,
+  testID,
 }: SelectProps) => {
   const options = useMemo(() => rawOptions.map(toOption), [rawOptions]);
   const dense = useDensity(density) === "dense";
@@ -257,6 +263,7 @@ const Select = ({
 
   const Anchor = (
     <Pressable
+      testID={testID}
       // Named by its label and then its value, as a labelled field is read
       // ("Contact type, Email"): found by its label, and by what it holds.
       accessibilityLabel={
@@ -388,6 +395,7 @@ const Select = ({
                   return (
                     <Pressable
                       key={optionKey(option)}
+                      testID={testID && `${testID}-option-${option.value}`}
                       // Not `disabled`: a disabled Pressable lets the touch through to
                       // the popover's backdrop, which would close the list.
                       onPress={() => {

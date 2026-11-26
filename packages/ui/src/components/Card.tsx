@@ -91,6 +91,19 @@ const CardBase = ({
         : { "aria-selected": selected }) as object),
   };
 
+  // A card nothing opens is a plain frame: a disabled Pressable put
+  // aria-disabled on it, which the buttons inside inherited.
+  if (!onClick)
+    return (
+      <View
+        testID={testID}
+        accessibilityLabel={accessibilityLabel}
+        style={frame({ hovered: false, pressed: false })}
+      >
+        <View style={styles.content}>{children}</View>
+      </View>
+    );
+
   if (actions.length === 0) {
     return (
       <Pressable {...buttonProps} style={frame}>

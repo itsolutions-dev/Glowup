@@ -58,3 +58,17 @@ describe("no control inside a control", () => {
     }
   });
 });
+
+// A card nothing opens is not a disabled control: aria-disabled on it was
+// inherited by the buttons inside, read as disabled and refused by Playwright.
+describe("a Card without onClick", () => {
+  it("marks nothing disabled and takes no focus", () => {
+    const { container } = draw(
+      <Card accessibilityLabel="image.png">
+        <Button onClick={() => {}}>Remove</Button>
+      </Card>,
+    );
+    expect(container.querySelector("[aria-disabled]")).toBeNull();
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+  });
+});

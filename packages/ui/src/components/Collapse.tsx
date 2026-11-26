@@ -9,6 +9,7 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
+import { useReduceMotion } from "./internal/useReduceMotion";
 
 export interface CollapseProps {
   children: React.ReactNode;
@@ -41,6 +42,7 @@ const Collapse = ({
   style,
   testID,
 }: CollapseProps) => {
+  const reduceMotion = useReduceMotion();
   const [contentHeight, setContentHeight] = useState<number | null>(null);
   // Held in state rather than a ref: the value is read during render to build
   // the interpolation, which refs are not meant for.
@@ -63,14 +65,14 @@ const Collapse = ({
     }
     Animated.timing(progress, {
       toValue: open ? 1 : 0,
-      duration,
+      duration: reduceMotion ? 0 : duration,
       easing: Easing.out(Easing.cubic),
       // Height is not a transform, so it cannot run on the UI thread.
       useNativeDriver: false,
     }).start(({ finished }) => {
       if (finished && !open) setMounted(false);
     });
-  }, [open, duration, progress]);
+  }, [open, duration, reduceMotion, progress]);
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const measured = event.nativeEvent.layout.height;

@@ -210,6 +210,7 @@ export { default as NavigationRail } from "./components/NavigationRail";
 export * from "./components/NavigationRail";
 export { default as Pagination } from "./components/Pagination";
 export type {
+  PaginationLabels,
   PaginationProps,
   PaginationSize,
   PaginationVariant,

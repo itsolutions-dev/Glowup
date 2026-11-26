@@ -1,5 +1,12 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, Pressable, StyleSheet, Animated } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  Animated,
+  Platform,
+} from "react-native";
 import { useInsets } from "./internal/useInsets";
 import FAB from "./FAB";
 import { useTheme, Theme } from "../providers/ThemeProvider";
@@ -22,13 +29,30 @@ export interface SpeedDialProps {
   position?: SpeedDialPosition;
   /** Mount with the action stack already expanded. Uncontrolled after that. */
   defaultOpen?: boolean;
+  /**
+   * Web: a mouse over the trigger opens the actions, and leaving them closes
+   * them, as a desktop speed dial does. A touch or a click still toggles.
+   * Defaults to `false`.
+   */
+  openOnHover?: boolean;
+  /** Accessible name of the closed trigger. Defaults to `"Open actions"`. */
+  openLabel?: string;
+  /** Accessible name of the open trigger. Defaults to `"Close actions"`. */
+  closeLabel?: string;
 }
+
+type PointerHandler = (event: {
+  nativeEvent: { pointerType?: string };
+}) => void;
 
 const SpeedDial = ({
   actions,
   mainIcon,
   position = "bottom-right",
   defaultOpen = false,
+  openOnHover = false,
+  openLabel = "Open actions",
+  closeLabel = "Close actions",
 }: SpeedDialProps) => {
   const [open, setOpen] = useState(defaultOpen);
   // True once the close spring has settled: the invisible actions are then
@@ -59,11 +83,23 @@ const SpeedDial = ({
     setOpen(!open);
   };
 
+  // Only a mouse hovers: a touch on the web also sends pointer events, and
+  // must keep toggling on press.
+  const onHover =
+    openOnHover && Platform.OS === "web"
+      ? (to: boolean): PointerHandler =>
+          ({ nativeEvent }) => {
+            if (nativeEvent.pointerType === "mouse" && open !== to) toggle();
+          }
+      : undefined;
+
   return (
     <View style={styles.container}>
       {open && <Pressable style={StyleSheet.absoluteFill} onPress={toggle} />}
 
       <View
+        // Leaving the trigger for the actions above it keeps them open.
+        {...(onHover && { onPointerLeave: onHover(false) })}
         style={[
           { alignItems: isLeft ? "flex-start" : "flex-end" },
           cornerStyle(position, insets),
@@ -132,13 +168,17 @@ const SpeedDial = ({
 
         {/* Open, the trigger becomes the close button (the M3 FAB menu), and
             says so to a screen reader. */}
-        <FAB
-          icon={open ? "close" : mainIcon}
-          label={open ? "Close actions" : "Open actions"}
-          onClick={toggle}
-          size="medium"
-          placement="inline"
-        />
+        {/* Opened from the trigger only: the collapsed actions keep their
+            layout box above it, invisible. */}
+        <View {...(onHover && { onPointerEnter: onHover(true) })}>
+          <FAB
+            icon={open ? "close" : mainIcon}
+            label={open ? closeLabel : openLabel}
+            onClick={toggle}
+            size="medium"
+            placement="inline"
+          />
+        </View>
       </View>
     </View>
   );

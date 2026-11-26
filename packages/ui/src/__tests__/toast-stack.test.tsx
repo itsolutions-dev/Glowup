@@ -9,6 +9,7 @@ type Api = ReturnType<typeof useToast>;
 const draw = async (
   maxVisible?: number,
   position?: React.ComponentProps<typeof ToastProvider>["position"],
+  duration?: number,
 ) => {
   const seen: Api[] = [];
   const Probe = () => {
@@ -17,7 +18,11 @@ const draw = async (
   };
   const view = await render(
     <ThemeProvider>
-      <ToastProvider maxVisible={maxVisible} position={position}>
+      <ToastProvider
+        maxVisible={maxVisible}
+        position={position}
+        duration={duration}
+      >
         <Probe />
       </ToastProvider>
     </ThemeProvider>,
@@ -46,6 +51,21 @@ describe("ToastProvider maxVisible", () => {
     });
     expect(queryByText("one")).toBeNull();
     expect(queryByText("two")).toBeTruthy();
+  });
+
+  it("gives a toast without a duration the provider's, 4 s unless set", async () => {
+    const { seen, queryByText } = await draw(1, undefined, 6000);
+    await act(async () => {
+      seen[0].show({ message: "saved" });
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(4000);
+    });
+    expect(queryByText("saved")).toBeTruthy();
+    await act(async () => {
+      jest.advanceTimersByTime(2000);
+    });
+    expect(queryByText("saved")).toBeNull();
   });
 
   it("shows maxVisible together and brings the next in as a slot frees", async () => {

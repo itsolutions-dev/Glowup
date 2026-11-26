@@ -2,7 +2,9 @@ import React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import {
   Breadcrumbs,
+  Button,
   Checkbox,
+  Menu,
   Pagination,
   RadioButton,
   Select,
@@ -100,6 +102,65 @@ describe("Select", () => {
     expect(aria(box, "expanded")).toBe("false");
     fireEvent.click(box);
     expect(aria(screen.getByRole("combobox"), "expanded")).toBe("true");
+  });
+
+  it("a disabled option says so, and keeps the list open when pressed", () => {
+    const onChange = jest.fn();
+    draw(
+      <Select
+        label="Role"
+        options={[
+          { label: "Admin", value: "a" },
+          { label: "Operator", value: "o" },
+        ]}
+        disabledOptions={["o"]}
+        value={null}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.click(screen.getByRole("combobox"));
+    const [admin, operator] = screen.getAllByRole("option");
+    expect(aria(admin, "disabled")).toBe("false");
+    expect(aria(operator, "disabled")).toBe("true");
+    fireEvent.click(operator);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+  });
+
+  it("draws every option of a list up to 100 without scrolling", () => {
+    const options = Array.from({ length: 60 }, (_, i) => ({
+      label: `Option ${i}`,
+      value: i,
+    }));
+    draw(
+      <Select
+        label="Many"
+        options={options}
+        value={null}
+        onChange={() => {}}
+      />,
+    );
+    fireEvent.click(screen.getByRole("combobox"));
+    expect(screen.getAllByRole("option")).toHaveLength(60);
+  });
+});
+
+describe("Menu", () => {
+  it("a disabled item says so", () => {
+    draw(
+      <Menu
+        visible
+        onClose={() => {}}
+        anchor={<Button>Actions</Button>}
+        items={[
+          { id: "edit", label: "Edit" },
+          { id: "off", label: "Disable user", disabled: true },
+        ]}
+      />,
+    );
+    const [edit, off] = screen.getAllByRole("menuitem");
+    expect(aria(edit, "disabled")).toBe("false");
+    expect(aria(off, "disabled")).toBe("true");
   });
 });
 

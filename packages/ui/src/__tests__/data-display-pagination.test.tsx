@@ -194,6 +194,37 @@ describe("Pagination", () => {
     expect(getByRole("button", { name: "Page 12" })).toBeTruthy();
     expect(getAllByText("…")).toHaveLength(2);
   });
+
+  it("takes its accessible names from labels", async () => {
+    const { getByRole, getByLabelText } = await draw(
+      <Pagination
+        activePage={2}
+        totalPages={5}
+        onChange={() => {}}
+        showFirstLast
+        pageSelect
+        labels={{
+          pagination: "Paginazione",
+          previous: "Pagina precedente",
+          next: "Pagina successiva",
+          first: "Prima pagina",
+          last: "Ultima pagina",
+          page: "Pagina {{page}}",
+          selectPage: "Scegli la pagina",
+        }}
+      />,
+    );
+    expect(getByLabelText("Paginazione")).toBeTruthy();
+    for (const name of [
+      "Pagina precedente",
+      "Pagina successiva",
+      "Prima pagina",
+      "Ultima pagina",
+      "Pagina 3",
+      "Scegli la pagina",
+    ])
+      expect(getByRole("button", { name })).toBeTruthy();
+  });
 });
 
 describe("Pagination pageSelect", () => {

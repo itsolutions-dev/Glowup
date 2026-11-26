@@ -19,6 +19,40 @@ import { a11yState } from "./internal/a11yState";
 export type PaginationSize = "sm" | "md" | "lg";
 export type PaginationVariant = "rounded" | "circular";
 
+/** Accessible names of the pager's parts. Defaults are English: pass translations. */
+export interface PaginationLabels {
+  /** The navigation landmark. Defaults to `"Pagination"`. */
+  pagination?: string;
+  /** Defaults to `"Previous page"`. */
+  previous?: string;
+  /** Defaults to `"Next page"`. */
+  next?: string;
+  /** Defaults to `"First page"`. */
+  first?: string;
+  /** Defaults to `"Last page"`. */
+  last?: string;
+  /** A page's button; `{{page}}` is replaced by its number. Defaults to `"Page {{page}}"`. */
+  page?: string;
+  /** The `pageSelect` trigger. Defaults to `"Select page"`. */
+  selectPage?: string;
+  /** The `pageSelect` search field. Defaults to `"Search page"`. */
+  searchPage?: string;
+}
+
+const DEFAULT_LABELS: Required<PaginationLabels> = {
+  pagination: "Pagination",
+  previous: "Previous page",
+  next: "Next page",
+  first: "First page",
+  last: "Last page",
+  page: "Page {{page}}",
+  selectPage: "Select page",
+  searchPage: "Search page",
+};
+
+const pageLabel = (labels: Required<PaginationLabels>, page: number) =>
+  labels.page.replace("{{page}}", String(page));
+
 export interface PaginationProps {
   /** Current page, 1-based. */
   activePage: number;
@@ -43,6 +77,8 @@ export interface PaginationProps {
   /** Size of the buttons and their type: 32, 40 or 48 px. Defaults to `"md"`. */
   size?: PaginationSize;
   disabled?: boolean;
+  /** Accessible names, for an interface not in English. */
+  labels?: PaginationLabels;
 }
 
 const ELLIPSIS = "…";
@@ -54,10 +90,10 @@ const SIZES = {
 } as const;
 
 const ARROW_LABELS = {
-  "chevron-left": "Previous page",
-  "chevron-right": "Next page",
-  "page-first": "First page",
-  "page-last": "Last page",
+  "chevron-left": "previous",
+  "chevron-right": "next",
+  "page-first": "first",
+  "page-last": "last",
 } as const;
 
 const getPageRange = (
@@ -95,7 +131,9 @@ const Pagination = ({
   variant = "rounded",
   size = "md",
   disabled,
+  labels: labelsProp,
 }: PaginationProps) => {
+  const labels = { ...DEFAULT_LABELS, ...labelsProp };
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const metrics = SIZES[size];
@@ -121,7 +159,7 @@ const Pagination = ({
       onPress={() => onChange(target)}
       disabled={disabled || arrowDisabled}
       accessibilityRole="button"
-      accessibilityLabel={ARROW_LABELS[icon]}
+      accessibilityLabel={labels[ARROW_LABELS[icon]]}
       style={[styles.item, (disabled || arrowDisabled) && { opacity: 0.38 }]}
     >
       {({ hovered, pressed }: PressableState) => (
@@ -149,7 +187,7 @@ const Pagination = ({
     <View
       style={[styles.container, disabled && { opacity: 0.38 }]}
       role="navigation"
-      accessibilityLabel="Pagination"
+      accessibilityLabel={labels.pagination}
     >
       {showFirstLast && renderArrow("page-first", 1, activePage <= 1)}
       {renderArrow("chevron-left", activePage - 1, activePage <= 1)}
@@ -181,7 +219,7 @@ const Pagination = ({
             onPress={active ? undefined : () => onChange(entry)}
             disabled={disabled}
             accessibilityRole="button"
-            accessibilityLabel={`Page ${entry}`}
+            accessibilityLabel={pageLabel(labels, entry)}
             accessibilityState={{ selected: active }}
             {...((active && Platform.OS === "web"
               ? { "aria-current": "page" }
@@ -228,6 +266,7 @@ const Pagination = ({
           borderRadius={shape.borderRadius}
           type={metrics.type}
           iconSize={metrics.icon}
+          labels={labels}
         />
       )}
     </View>
@@ -249,6 +288,7 @@ interface PageSelectProps {
   borderRadius: number;
   type: (typeof SIZES)[PaginationSize]["type"];
   iconSize: number;
+  labels: Required<PaginationLabels>;
 }
 
 /**
@@ -265,6 +305,7 @@ const PageSelect = ({
   borderRadius,
   type,
   iconSize,
+  labels,
 }: PageSelectProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -316,7 +357,7 @@ const PageSelect = ({
         onPress={show}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel="Select page"
+        accessibilityLabel={labels.selectPage}
         {...a11yState("button", { expanded: open, disabled: !!disabled })}
         style={({ hovered, pressed }: PressableState) => [
           styles.select,
@@ -369,9 +410,9 @@ const PageSelect = ({
               onSubmitEditing={() => listed[0] !== undefined && pick(listed[0])}
               keyboardType="number-pad"
               returnKeyType="go"
-              placeholder="Search page"
+              placeholder={labels.searchPage}
               placeholderTextColor={theme.colors.onSurfaceVariant}
-              accessibilityLabel="Search page"
+              accessibilityLabel={labels.searchPage}
               style={[
                 styles.search,
                 theme.typography.bodyMedium,
@@ -390,7 +431,7 @@ const PageSelect = ({
                 <Pressable
                   key={page}
                   accessibilityRole="menuitem"
-                  accessibilityLabel={`Page ${page}`}
+                  accessibilityLabel={pageLabel(labels, page)}
                   {...a11yState("menuitem", { selected: page === activePage })}
                   onPress={() => pick(page)}
                   style={({ hovered, pressed }: PressableState) => [

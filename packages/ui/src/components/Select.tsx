@@ -19,7 +19,7 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
-import { a11yState } from "./internal/a11yState";
+import { a11yState, ariaDisabledRef } from "./internal/a11yState";
 import OwnScroller from "./internal/OwnScroller";
 
 export interface Option {
@@ -364,7 +364,9 @@ const Select = ({
               {emptyMessage}
             </Text>
           ) : (
-            // Virtualized: a list of hundreds draws about a screen of rows.
+            // Virtualized past 100 options, where a list of hundreds draws about a
+            // screen of rows. Up to 100 every option is drawn at once, so each
+            // can be found by its role without scrolling it into view.
             <OwnScroller>
               <FlatList
                 data={options}
@@ -373,7 +375,7 @@ const Select = ({
                 style={{ maxHeight: 250 }}
                 nestedScrollEnabled
                 keyboardShouldPersistTaps="handled"
-                initialNumToRender={12}
+                initialNumToRender={options.length > 100 ? 12 : 100}
                 renderItem={({ item: option }) => {
                   const optionDisabled = disabled || isOptionDisabled(option);
                   const isSelected = multiple
@@ -396,7 +398,7 @@ const Select = ({
                           setVisible(false);
                         }
                       }}
-                      aria-disabled={optionDisabled}
+                      ref={ariaDisabledRef(optionDisabled)}
                       accessibilityLabel={option.label}
                       accessibilityRole={
                         (Platform.OS === "web" ? "option" : "none") as any

@@ -171,11 +171,25 @@ const Calendar = ({
   const selectedDates = useMemo(() => dates ?? [], [dates]);
   const today = useMemo(() => startOfDay(new Date()), []);
 
-  /** The day the calendar opens on: the selection when there is one, else today. */
+  const { minimumDate, maximumDate } = useMemo(
+    () => resolveBounds(validRange),
+    [validRange],
+  );
+
+  /**
+   * The day the calendar opens on: the selection when there is one, else today,
+   * brought inside validRange (the month list holds no month outside it).
+   */
   const anchorDay = useMemo(() => {
-    if (selectionMode === "range") return range.startDate ?? today;
-    if (selectionMode === "multiple") return selectedDates[0] ?? today;
-    return value ?? today;
+    const day =
+      selectionMode === "range"
+        ? (range.startDate ?? today)
+        : selectionMode === "multiple"
+          ? (selectedDates[0] ?? today)
+          : (value ?? today);
+    if (minimumDate && day < minimumDate) return startOfDay(minimumDate);
+    if (maximumDate && day > maximumDate) return startOfDay(maximumDate);
+    return day;
     // Only the initial anchor matters; later moves are user-driven.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectionMode, today]);
@@ -197,10 +211,6 @@ const Calendar = ({
   const isDisabled = useMemo(
     () => makeDayPredicate(validRange, isDateDisabled),
     [validRange, isDateDisabled],
-  );
-  const { minimumDate, maximumDate } = useMemo(
-    () => resolveBounds(validRange),
-    [validRange],
   );
 
   /**

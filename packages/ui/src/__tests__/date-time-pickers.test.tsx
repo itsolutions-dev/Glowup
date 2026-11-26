@@ -407,6 +407,21 @@ describe("Today in the calendar controls", () => {
     expect(spy).toHaveBeenCalledWith(startOfDay(new Date()));
   });
 
+  it("opens on validRange's first month when the value is before it, header and grid alike", async () => {
+    const screen = await draw(
+      <Live
+        mode="date"
+        variant="static"
+        initial={MARCH_15}
+        spy={jest.fn()}
+        validRange={{ startDate: new Date(2024, 3, 2) }}
+      />,
+    );
+    // The month list starts at April: the header said March over April's days.
+    expect(screen.getByText("April 2024")).toBeTruthy();
+    expect(screen.queryByText("March 2024")).toBeNull();
+  });
+
   it("is disabled while today is outside validRange", async () => {
     const spy = jest.fn();
     const screen = await draw(

@@ -20,6 +20,7 @@ import { rgba } from "polished";
 import { useTheme, Theme } from "../providers/ThemeProvider";
 import { ToastLayer } from "./internal/ToastLayer";
 import KeyboardFrame from "./internal/KeyboardFrame";
+import { useReduceMotion } from "./internal/useReduceMotion";
 import Typography from "./Typography";
 import IconButton from "./IconButton";
 import Divider from "./Divider";
@@ -68,6 +69,8 @@ const BottomSheet = ({
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const window = useWindowDimensions();
+  const reduceMotion = useReduceMotion();
+  const duration = reduceMotion ? 0 : 250;
 
   const [shouldRender, setShouldRender] = useState(visible);
   // useState lazy init: stable Animated.Value, works on react-native-web
@@ -91,15 +94,22 @@ const BottomSheet = ({
     if (visible) {
       translateY.setValue(windowHeight.current);
       Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 60,
-          friction: 12,
-        }),
+        // Reduced motion: in place at once, as the side panels.
+        reduceMotion
+          ? Animated.timing(translateY, {
+              toValue: 0,
+              duration: 0,
+              useNativeDriver: true,
+            })
+          : Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              tension: 60,
+              friction: 12,
+            }),
         Animated.timing(scrimOpacity, {
           toValue: 1,
-          duration: 250,
+          duration,
           useNativeDriver: true,
         }),
       ]).start();
@@ -107,12 +117,12 @@ const BottomSheet = ({
       Animated.parallel([
         Animated.timing(translateY, {
           toValue: windowHeight.current,
-          duration: 250,
+          duration,
           useNativeDriver: true,
         }),
         Animated.timing(scrimOpacity, {
           toValue: 0,
-          duration: 250,
+          duration,
           useNativeDriver: true,
         }),
       ]).start(({ finished }) => {
@@ -120,6 +130,8 @@ const BottomSheet = ({
         if (finished) setShouldRender(false);
       });
     }
+    // `reduceMotion` is read, not a trigger: the run starts when `visible` changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, translateY, scrimOpacity]);
 
   const handleDragStart = useCallback((event: GestureResponderEvent) => {

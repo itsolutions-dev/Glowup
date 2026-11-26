@@ -187,6 +187,36 @@ describe("DayTimeline grid", () => {
     });
   });
 
+  it("keeps an event with editable false in place: no handle, no dragging, still pressable", async () => {
+    const onEventPress = jest.fn();
+    const view = await draw({
+      events: [{ ...VISIT, editable: false }, OVERLAP],
+      onEventChange: jest.fn(),
+      onEventPress,
+      resizable: true,
+    });
+    expect(view.queryByTestId("tl-resize-1")).toBeNull();
+    expect(
+      view.getByTestId("tl-event-1").props.onStartShouldSetResponderCapture,
+    ).toBeUndefined();
+    expect(view.getByTestId("tl-resize-2")).toBeTruthy();
+    await fireEvent.press(view.getByTestId("tl-event-1"));
+    expect(onEventPress).toHaveBeenCalledWith({ ...VISIT, editable: false });
+  });
+
+  it("marks a completed event with a dot and says so", async () => {
+    const view = await draw({
+      events: [{ ...VISIT, completed: true }],
+      labels: { completed: "completato" },
+    });
+    expect(view.getByText("\u25CF Mario Rossi")).toBeTruthy();
+    expect(
+      view.getByLabelText(
+        "Appuntamento, Mario Rossi, 09:00 – 09:30, completato",
+      ),
+    ).toBeTruthy();
+  });
+
   it("has no handles and no dragging without onEventChange", async () => {
     const view = await draw({ resizable: true });
     expect(view.queryByTestId("tl-resize-1")).toBeNull();

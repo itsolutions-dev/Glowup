@@ -9,7 +9,11 @@ import {
 import type { Theme } from "../providers/ThemeProvider";
 import { Draggable } from "./DragDrop";
 import { toneFromColor } from "../providers/toneFrom";
-import type { DayTimelineEvent, DayTimelineProps } from "./DayTimeline";
+import type {
+  DayTimelineEvent,
+  DayTimelineLabels,
+  DayTimelineProps,
+} from "./DayTimeline";
 
 // The tint is computed from the hex digits; anything else (a colour name,
 // "#f00") would give no colour at all, so it falls back to the theme's.
@@ -39,21 +43,38 @@ export const eventLook = (event: DayTimelineEvent, theme: Theme) => {
   };
 };
 
+/** The words a screen reader hears after an event's state. */
+export interface EventWords {
+  canceled: string;
+  completed: string;
+}
+
+export const eventWords = (labels?: DayTimelineLabels): EventWords => ({
+  canceled: labels?.canceled ?? "canceled",
+  completed: labels?.completed ?? "completed",
+});
+
 /** What a screen reader hears for an event. */
-export const eventName = (event: DayTimelineEvent, canceledWord: string) =>
+export const eventName = (event: DayTimelineEvent, words: EventWords) =>
   [
     event.overline,
     event.title,
     timesOf(event),
     event.note,
-    event.canceled ? canceledWord : undefined,
+    event.completed ? words.completed : undefined,
+    event.canceled ? words.canceled : undefined,
   ]
     .filter(Boolean)
     .join(", ");
 
+/** Drawn before a completed event's title. */
+export const titleOf = (event: DayTimelineEvent) =>
+  event.completed ? `\u25CF ${event.title}` : event.title;
+
 /**
  * An event's card in the grid and the month: draggable when the events can be
- * moved (its tap still opens it), else a button with `onPress`, else a label.
+ * moved and this one is not `editable: false` (its tap still opens it), else a
+ * button with `onPress`, else a label.
  */
 export const EventSurface = ({
   event,
@@ -73,7 +94,7 @@ export const EventSurface = ({
   children: React.ReactNode;
 }) => {
   const press = onPress && (() => onPress(event));
-  if (editable)
+  if (editable && event.editable !== false)
     return (
       <Draggable
         id={String(event.id)}

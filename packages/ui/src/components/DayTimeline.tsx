@@ -14,6 +14,8 @@ import {
   LayoutProps,
   eventLook,
   eventName,
+  eventWords,
+  titleOf,
   hhmm,
   timesOf,
 } from "./DayTimeline.shared";
@@ -37,11 +39,21 @@ export interface DayTimelineEvent {
   color?: string;
   /** Greyed out and struck through. */
   canceled?: boolean;
+  /** Done: a dot before the title, and `labels.completed` for screen readers. */
+  completed?: boolean;
+  /**
+   * `false` keeps this event where it is when the events can be moved
+   * (`onEventChange`): it cannot be dragged or resized, and a tap still opens
+   * it. Defaults to `true`.
+   */
+  editable?: boolean;
 }
 
 export interface DayTimelineLabels {
   /** Appended to a canceled event's name for screen readers. Defaults to "canceled". */
   canceled?: string;
+  /** Appended to a completed event's name for screen readers. Defaults to "completed". */
+  completed?: string;
   /** The month layout's link to a day's hidden events. Defaults to `+3 more`. */
   more?: (count: number) => string;
   /** The name of the handle that resizes an event in the grid. Defaults to "Change the end". */
@@ -188,13 +200,13 @@ const DayList = ({
     );
   }
 
-  const canceledWord = labels?.canceled ?? "canceled";
+  const words = eventWords(labels);
 
   return (
     <View style={[styles.list, style]} testID={testID}>
       {sorted.map((event) => {
         const times = timesOf(event);
-        const name = eventName(event, canceledWord);
+        const name = eventName(event, words);
         const tone = eventLook(event, theme);
         const bar = tone.bar;
         const text = [
@@ -213,7 +225,7 @@ const DayList = ({
               </Text>
             )}
             <Text style={[styles.title, text]} numberOfLines={1}>
-              {event.title}
+              {titleOf(event)}
             </Text>
             <Text style={[styles.times, text]} numberOfLines={1}>
               {event.note ? `${times} · ${event.note}` : times}

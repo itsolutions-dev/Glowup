@@ -13,6 +13,9 @@ import {
   EventSurface,
   eventLook,
   eventName,
+  eventWords,
+  type EventWords,
+  titleOf,
   hhmm,
   LayoutProps,
 } from "./DayTimeline.shared";
@@ -99,7 +102,7 @@ const DayTimelineMonth = ({
     editable: !!onEventChange,
     onSlotPress,
     onDayPress,
-    canceledWord: labels?.canceled ?? "canceled",
+    words: eventWords(labels),
     more: labels?.more ?? defaultMore,
     styles,
     testID,
@@ -146,7 +149,7 @@ const MonthCell = ({
   editable,
   onSlotPress,
   onDayPress,
-  canceledWord,
+  words,
   more,
   styles,
   testID,
@@ -162,7 +165,7 @@ const MonthCell = ({
   editable: boolean;
   onSlotPress?: (start: Date) => void;
   onDayPress?: (day: Date) => void;
-  canceledWord: string;
+  words: EventWords;
   more: (count: number) => string;
   styles: Styles;
   testID?: string;
@@ -200,7 +203,7 @@ const MonthCell = ({
             onEventPress(e);
           })
         }
-        name={eventName(event, canceledWord)}
+        name={eventName(event, words)}
         style={[
           styles.chip,
           { backgroundColor: look.background, borderStartColor: look.bar },
@@ -215,7 +218,7 @@ const MonthCell = ({
             event.canceled && styles.struck,
           ]}
         >
-          {`${hhmm(event.start)} ${event.title}`}
+          {`${hhmm(event.start)} ${titleOf(event)}`}
         </Text>
       </EventSurface>
     );

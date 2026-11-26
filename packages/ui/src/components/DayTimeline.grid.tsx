@@ -28,6 +28,9 @@ import {
   EventSurface,
   eventLook,
   eventName,
+  eventWords,
+  type EventWords,
+  titleOf,
   timesOf,
   LayoutProps,
 } from "./DayTimeline.shared";
@@ -121,7 +124,7 @@ const DayTimelineGrid = ({
         resizable={resizable}
         onSlotPress={onSlotPress}
         onDayPress={onDayPress}
-        canceledWord={labels?.canceled ?? "canceled"}
+        words={eventWords(labels)}
         resizeWord={labels?.resize ?? "Change the end"}
         style={style}
         testID={testID}
@@ -142,7 +145,7 @@ const GridBody = ({
   resizable,
   onSlotPress,
   onDayPress,
-  canceledWord,
+  words,
   resizeWord,
   style,
   testID,
@@ -157,7 +160,7 @@ const GridBody = ({
   resizable: boolean;
   onSlotPress?: (start: Date) => void;
   onDayPress?: (day: Date) => void;
-  canceledWord: string;
+  words: EventWords;
   resizeWord: string;
   style: DayTimelineProps["style"];
   testID?: string;
@@ -267,7 +270,7 @@ const GridBody = ({
             onEventChange={onEventChange}
             resizable={resizable}
             onSlotPress={onSlotPress}
-            canceledWord={canceledWord}
+            words={words}
             resizeWord={resizeWord}
             styles={styles}
             testID={testID}
@@ -290,7 +293,7 @@ const Column = ({
   onEventChange,
   resizable,
   onSlotPress,
-  canceledWord,
+  words,
   resizeWord,
   styles,
   testID,
@@ -304,7 +307,7 @@ const Column = ({
   onEventChange?: Change;
   resizable: boolean;
   onSlotPress?: (start: Date) => void;
-  canceledWord: string;
+  words: EventWords;
   resizeWord: string;
   styles: Styles;
   testID?: string;
@@ -382,7 +385,7 @@ const Column = ({
             onPress={onEventPress}
             onChange={onEventChange}
             resizable={resizable}
-            canceledWord={canceledWord}
+            words={words}
             resizeWord={resizeWord}
             styles={styles}
             testID={testID}
@@ -434,7 +437,7 @@ const GridEvent = ({
   onPress,
   onChange,
   resizable,
-  canceledWord,
+  words,
   resizeWord,
   styles,
   testID,
@@ -445,7 +448,7 @@ const GridEvent = ({
   onPress?: (event: DayTimelineEvent) => void;
   onChange?: Change;
   resizable: boolean;
-  canceledWord: string;
+  words: EventWords;
   resizeWord: string;
   styles: Styles;
   testID?: string;
@@ -490,7 +493,7 @@ const GridEvent = ({
       : Math.max((length / 60) * grid.hourHeight, MIN_HEIGHT);
   const look = eventLook(event, theme);
   const text = [{ color: look.foreground }, event.canceled && styles.struck];
-  const editable = !!onChange;
+  const editable = !!onChange && event.editable !== false;
 
   return (
     <View
@@ -501,7 +504,7 @@ const GridEvent = ({
         event={event}
         editable={editable}
         onPress={onPress}
-        name={eventName(shown, canceledWord)}
+        name={eventName(shown, words)}
         style={[
           styles.card,
           { backgroundColor: look.background, borderStartColor: look.bar },
@@ -509,7 +512,7 @@ const GridEvent = ({
         testID={testID && `${testID}-event-${event.id}`}
       >
         <Text style={[styles.title, text]} numberOfLines={1}>
-          {event.title}
+          {titleOf(event)}
         </Text>
         {height >= TWO_LINES && (
           <Text style={[styles.times, text]} numberOfLines={1}>

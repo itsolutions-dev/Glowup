@@ -41,8 +41,8 @@ describe("overlays inside a Dialog", () => {
               value="an"
               onChange={() => {}}
               options={[
-                { label: "Anna", value: 1 },
-                { label: "Andrea", value: 2 },
+                { id: "1", label: "Anna", value: 1 },
+                { id: "2", label: "Andrea", value: 2 },
               ]}
               testID="customer"
             />

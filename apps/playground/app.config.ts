@@ -31,7 +31,9 @@ const config: ExpoConfig = {
     ...(ciAppId ? { bundleIdentifier: ciAppId } : {}),
   },
   android: {
-    ...(ciAppId ? { package: ciAppId } : {}),
+    // Needed by `expo run:android` (a development build); Expo Go ignores it.
+    // CI builds override it with their own id.
+    package: ciAppId ?? "it.itsolutions.glowupplayground",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: ICON_BACKGROUND,
@@ -94,6 +96,10 @@ const config: ExpoConfig = {
           geofencing: true,
           alwaysPermission:
             "Records positions and watches a circle on the background location demo page, also with the app closed.",
+        },
+        bluetooth: {
+          permission:
+            "Finds and connects to Bluetooth devices on the Bluetooth demo page.",
         },
       },
     ],

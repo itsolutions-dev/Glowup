@@ -22,44 +22,72 @@ const DEVICE_CAPABILITIES = {
   "media-library": ["expo-media-library"],
   // Starts expo-location's updates, so it shares that module with /location.
   "background-location": ["expo-location", "expo-task-manager"],
+  bluetooth: ["react-native-ble-manager"],
+  // The contract and its engine: the vendors' native code is in @its/rfid-*.
+  rfid: [],
+  // Likewise: the vendors' native code is in @its/scanner-*.
+  scanner: [],
 };
 const DEVICE_SUBPATHS = [...Object.keys(DEVICE_CAPABILITIES), "testing"];
 
-// The high-level packages that sit on top of the library (plan D3). Each may
-// import `@its/glowup-ui` (by name) and nothing else of ours; the library,
-// `device` and `notifications` import none of them, and they do not import each
-// other. A name listed here before its folder exists changes nothing.
-const ADDON_PACKAGES = ["charts", "pdf", "pivot"];
-const addonImports = (names) =>
-  names.flatMap((n) => [
+// The import-boundary patterns every workspace rule below is built from.
+const noPlayground = (message) => ({
+  group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
+  message,
+});
+// Neither the package name, a deep import nor a path into the folder.
+const noPackages = (names, message) => ({
+  group: names.flatMap((n) => [
     `@its/glowup-${n}`,
     `@its/glowup-${n}/*`,
     `**/packages/${n}/**`,
-  ]);
-const ADDON_PATTERN = {
-  group: addonImports(ADDON_PACKAGES),
-  message:
-    "Charts, pivot and PDF sit on top of the library: nothing below them imports them. The app composes them.",
-};
+  ]),
+  message,
+});
+
+// The high-level packages that sit on top of the library (plan D3). Each may
+// import `@its/glowup-ui` (by name) and nothing else of ours; the library,
+// `device`, `notifications` and the vendor packages import none of them, and
+// they do not import each other. A name listed here before its folder exists
+// changes nothing.
+const ADDON_PACKAGES = ["charts", "pdf", "pivot"];
+const ADDON_PATTERN = noPackages(
+  ADDON_PACKAGES,
+  "Charts, pivot and PDF sit on top of the library: nothing below them imports them. The app composes them.",
+);
+
+// The app reaches a package only through its name and its public subpaths.
+const publicOnly = (name, subpaths = []) => [
+  {
+    group: [
+      `@its/glowup-${name}/*`,
+      ...subpaths.map((s) => `!@its/glowup-${name}/${s}`),
+    ],
+    message: `Import from the '@its/glowup-${name}' barrel${subpaths.length ? ` or one of its public subpaths (${subpaths.join(", ")})` : ""} — other deep imports are not part of the package's public API.`,
+  },
+  {
+    group: [`**/packages/${name}/**`, `packages/${name}/**`],
+    message: `Reach the package through the '@its/glowup-${name}' name, not through a path into packages/${name}.`,
+  },
+];
 
 // What no file of packages/device may import, whatever folder it is in.
 const DEVICE_BASE_PATTERNS = [
+  noPlayground("The device package cannot depend on the playground app."),
   {
-    group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-    message: "The device package cannot depend on the playground app.",
-  },
-  {
-    group: [
-      "@its/glowup-ui",
-      "@its/glowup-ui/*",
-      "**/packages/ui/**",
-      "@its/glowup-notifications",
-      "@its/glowup-notifications/*",
-      "**/packages/notifications/**",
-    ],
+    group: ["@its/rfid-*", "**/packages/rfid-*/**"],
     message:
-      "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
+      "The device package holds the RFID contract; vendor packages (@its/rfid-*) implement it and the app chooses one. The arrow never points back.",
   },
+  {
+    group: ["@its/scanner-*", "**/packages/scanner-*/**"],
+    message:
+      "The device package holds the barcode scanner contract; vendor packages (@its/scanner-*) implement it and the app chooses one. The arrow never points back.",
+  },
+  noPackages(
+    ["ui", "notifications"],
+    "The device package is headless and stands alone: compose it with @its/glowup-ui or @its/glowup-notifications in the app.",
+  ),
   {
     group: ["@react-navigation/*", "expo-router", "expo-router/*"],
     message: "The device package is navigation-agnostic.",
@@ -103,10 +131,10 @@ module.exports = defineConfig([
       // never runs those scripts, but anyone who does would otherwise turn
       // `npm run lint` into thousands of errors — the 3 MB pre-bundled entry
       // alone accounts for most of them.
-      ".design-sync/web-barrel.mjs",
       ".design-sync/docs/**",
       ".design-sync/guidelines/**",
       "**/.design-sync-entry.mjs",
+      ".design-sync/web-barrel.mjs",
     ],
   },
   {
@@ -130,7 +158,7 @@ module.exports = defineConfig([
     },
   },
   {
-    // The two design-sync lib forks import `ts-morph` and `../../.ds-sync/lib/*`.
+    // The design-sync lib overrides import `ts-morph` and `../../.ds-sync/lib/*`.
     // Both are supplied by the design-sync tooling at run time and neither is
     // resolvable from a clone: `.ds-sync/` and `.design-sync/node_modules` are
     // gitignored (the latter is a per-clone symlink, see .design-sync/NOTES.md)
@@ -152,56 +180,30 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
+            ...publicOnly("ui"),
+            // "/testing" is the one public subpath (the Jest mock).
+            ...publicOnly("notifications", ["testing"]),
+            ...publicOnly("device", DEVICE_SUBPATHS),
             {
-              group: ["@its/glowup-ui/*"],
-              message:
-                "Import from the '@its/glowup-ui' barrel — deep imports are not part of the package's public API.",
-            },
-            {
-              group: ["**/packages/ui/**", "packages/ui/**"],
-              message:
-                "Reach the library through the '@its/glowup-ui' package name, not through a path into packages/ui.",
-            },
-            {
-              // "/testing" is the one public subpath (the Jest mock).
               group: [
-                "@its/glowup-notifications/*",
-                "!@its/glowup-notifications/testing",
+                "@its/rfid-*/*",
+                "**/packages/rfid-*/**",
+                "packages/rfid-*/**",
               ],
               message:
-                "Import from the '@its/glowup-notifications' barrel (or its '/testing' subpath) — other deep imports are not part of the package's public API.",
+                "Import a vendor package through its name only (@its/rfid-honeywell).",
             },
             {
               group: [
-                "**/packages/notifications/**",
-                "packages/notifications/**",
+                "@its/scanner-*/*",
+                "**/packages/scanner-*/**",
+                "packages/scanner-*/**",
               ],
               message:
-                "Reach the package through the '@its/glowup-notifications' name, not through a path into packages/notifications.",
+                "Import a vendor package through its name only (@its/scanner-honeywell).",
             },
-            {
-              group: [
-                "@its/glowup-device/*",
-                ...DEVICE_SUBPATHS.map((s) => `!@its/glowup-device/${s}`),
-              ],
-              message: `Import from '@its/glowup-device' or one of its public subpaths (${DEVICE_SUBPATHS.join(", ")}) — other deep imports are not part of the package's public API.`,
-            },
-            {
-              group: ["**/packages/device/**", "packages/device/**"],
-              message:
-                "Reach the package through the '@its/glowup-device' name, not through a path into packages/device.",
-            },
-            ...ADDON_PACKAGES.flatMap((n) => [
-              {
-                // "/testing" is the one public subpath (the in-memory adapters).
-                group: [`@its/glowup-${n}/*`, `!@its/glowup-${n}/testing`],
-                message: `Import from the '@its/glowup-${n}' barrel (or its '/testing' subpath) — other deep imports are not part of the package's public API.`,
-              },
-              {
-                group: [`**/packages/${n}/**`, `packages/${n}/**`],
-                message: `Reach the package through the '@its/glowup-${n}' name, not through a path into packages/${n}.`,
-              },
-            ]),
+            // "/testing" is the one public subpath (the in-memory adapters).
+            ...ADDON_PACKAGES.flatMap((n) => publicOnly(n, ["testing"])),
           ],
         },
       ],
@@ -216,11 +218,9 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-              message:
-                "The library cannot depend on the playground app; move the shared code into packages/ui.",
-            },
+            noPlayground(
+              "The library cannot depend on the playground app; move the shared code into packages/ui.",
+            ),
             {
               // 0.5.0 removed DrawerNavigation/StackNavigation: the library ships
               // navigation widgets but no navigator, and has no @react-navigation
@@ -229,15 +229,10 @@ module.exports = defineConfig([
               message:
                 "The library is navigation-agnostic. Navigators live in the app (apps/playground/navigation).",
             },
-            {
-              group: [
-                "@its/glowup-device",
-                "@its/glowup-device/*",
-                "**/packages/device/**",
-              ],
-              message:
-                "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
-            },
+            noPackages(
+              ["device"],
+              "The library cannot depend on @its/glowup-device: compose hardware and UI in the app.",
+            ),
             ADDON_PATTERN,
           ],
         },
@@ -258,34 +253,22 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-              message:
-                "The notifications package cannot depend on the playground app.",
-            },
-            {
-              group: [
-                "@its/glowup-ui",
-                "@its/glowup-ui/*",
-                "**/packages/ui/**",
-              ],
-              message:
-                "The notifications package is headless. Render notifications with @its/glowup-ui in the app, not here.",
-            },
+            noPlayground(
+              "The notifications package cannot depend on the playground app.",
+            ),
+            noPackages(
+              ["ui"],
+              "The notifications package is headless. Render notifications with @its/glowup-ui in the app, not here.",
+            ),
             {
               group: ["@react-navigation/*", "expo-router", "expo-router/*"],
               message:
                 "The notifications package is navigation-agnostic: route from the app's onResponse callback.",
             },
-            {
-              group: [
-                "@its/glowup-device",
-                "@its/glowup-device/*",
-                "**/packages/device/**",
-              ],
-              message:
-                "The notifications package stands alone and cannot depend on @its/glowup-device.",
-            },
+            noPackages(
+              ["device"],
+              "The notifications package stands alone and cannot depend on @its/glowup-device.",
+            ),
             ADDON_PATTERN,
           ],
         },
@@ -362,9 +345,40 @@ module.exports = defineConfig([
       ],
     },
   },
+  // A vendor package implements one contract of `@its/glowup-device`
+  // (`/rfid`, `/scanner`) and knows nothing else of the repo: no UI kit, no
+  // other capability, no app.
+  ...[
+    ["rfid", "packages/rfid-*"],
+    ["scanner", "packages/scanner-*"],
+  ].map(([contract, folder]) => ({
+    files: [`${folder}/**/*.ts`, `${folder}/**/*.tsx`],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            noPlayground("A vendor package cannot depend on an app."),
+            noPackages(
+              ["ui", "notifications"],
+              `A vendor package is headless: it implements @its/glowup-device/${contract} only.`,
+            ),
+            ADDON_PATTERN,
+            ...publicOnly("device", [contract, "testing"]),
+          ],
+          paths: [
+            {
+              name: "@its/glowup-device",
+              message: `A vendor package imports @its/glowup-device/${contract} (and /testing in tests), not the root entry.`,
+            },
+          ],
+        },
+      ],
+    },
+  })),
   // A high-level package may import the library by name and nothing else of
-  // ours: not the app, not `device` or `notifications`, not another high-level
-  // package.
+  // ours: not the app, not `device`, `notifications` or a vendor package, not
+  // another high-level package.
   ...ADDON_PACKAGES.map((name) => ({
     files: [`packages/${name}/**/*.ts`, `packages/${name}/**/*.tsx`],
     rules: {
@@ -372,30 +386,31 @@ module.exports = defineConfig([
         "error",
         {
           patterns: [
-            {
-              group: ["**/apps/**", "apps/**", "@its/glowup-playground*"],
-              message: `The ${name} package cannot depend on the playground app.`,
-            },
+            noPlayground(
+              `The ${name} package cannot depend on the playground app.`,
+            ),
             {
               group: ["@its/glowup-ui/*", "**/packages/ui/**"],
               message:
                 "Import the library from '@its/glowup-ui' by name: a deep import or a path into packages/ui is not part of its public API.",
             },
+            noPackages(
+              ["device", "notifications"],
+              `The ${name} package cannot depend on @its/glowup-device or @its/glowup-notifications: the app wires them together.`,
+            ),
             {
               group: [
-                "@its/glowup-device",
-                "@its/glowup-device/*",
-                "**/packages/device/**",
-                "@its/glowup-notifications",
-                "@its/glowup-notifications/*",
-                "**/packages/notifications/**",
+                "@its/rfid-*",
+                "@its/scanner-*",
+                "**/packages/rfid-*/**",
+                "**/packages/scanner-*/**",
               ],
-              message: `The ${name} package cannot depend on @its/glowup-device or @its/glowup-notifications: the app wires them together.`,
+              message: `The ${name} package cannot depend on a vendor package: the app wires them together.`,
             },
-            {
-              group: addonImports(ADDON_PACKAGES.filter((n) => n !== name)),
-              message: `The ${name} package cannot import another high-level package: the app composes them.`,
-            },
+            noPackages(
+              ADDON_PACKAGES.filter((n) => n !== name),
+              `The ${name} package cannot import another high-level package: the app composes them.`,
+            ),
             {
               group: ["@react-navigation/*", "expo-router", "expo-router/*"],
               message: `The ${name} package is navigation-agnostic.`,
@@ -414,11 +429,6 @@ module.exports = defineConfig([
     rules: {
       "import/no-unresolved": "off",
       "no-restricted-imports": "off",
-    },
-  },
-  {
-    rules: {
-      "linebreak-style": ["error", "unix"],
     },
   },
 ]);

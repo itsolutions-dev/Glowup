@@ -7,37 +7,40 @@ import type {
   NotificationData,
 } from "./types";
 
-export type ParseResult<T> =
-  { ok: true; value: T } | { ok: false; error?: unknown };
+type ParseResult<T> = { ok: true; value: T } | { ok: false; error?: unknown };
 
 /**
- * Maps an `expo-notifications` notification to an `AppNotification`, running
- * the parser over its `data`. Without a parser `data` passes through as-is.
+ * Runs the parser over a notification's `data`: `null` or a throw rejects it.
+ * Without a parser `data` passes through as-is.
  */
+export function parsePayload<TData>(
+  data: unknown,
+  parseData?: DataParser<TData>,
+): ParseResult<TData> {
+  if (!parseData) return { ok: true, value: (data ?? {}) as TData };
+  try {
+    const parsed = parseData(data);
+    return parsed === null ? { ok: false } : { ok: true, value: parsed };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+/** Maps an `expo-notifications` notification to an `AppNotification`. */
 export function parseNotification<TData = NotificationData>(
   raw: Notifications.Notification,
   parseData?: DataParser<TData>,
 ): ParseResult<AppNotification<TData>> {
   const { content, identifier } = raw.request;
-  let data: TData;
-  if (parseData) {
-    try {
-      const parsed = parseData(content.data);
-      if (parsed === null) return { ok: false };
-      data = parsed;
-    } catch (error) {
-      return { ok: false, error };
-    }
-  } else {
-    data = (content.data ?? {}) as TData;
-  }
+  const data = parsePayload(content.data, parseData);
+  if (!data.ok) return data;
   return {
     ok: true,
     value: {
       id: identifier,
       title: content.title,
       body: content.body,
-      data,
+      data: data.value,
       date: raw.date,
       raw,
     },

@@ -28,6 +28,8 @@ const DEFAULT_MOTION_TEXT =
 const DEFAULT_SAVE_TEXT = "Allow $(PRODUCT_NAME) to save photos and videos.";
 const DEFAULT_ALWAYS_TEXT =
   "Allow $(PRODUCT_NAME) to use your location in the background.";
+const DEFAULT_BLUETOOTH_TEXT =
+  "Allow $(PRODUCT_NAME) to connect to Bluetooth devices.";
 
 function placeholder(option, text) {
   console.warn(
@@ -293,7 +295,38 @@ function withMediaLibrary(config, options) {
   ]);
 }
 
+/**
+ * Through react-native-ble-manager's plugin. iOS: the Bluetooth purpose
+ * string, which the prompt shows and without which ble-manager refuses to
+ * start. Android 12 and later: BLUETOOTH_SCAN and BLUETOOTH_CONNECT;
+ * Android 11 and earlier: the location permissions, which scans need there.
+ * `neverForLocation` (default true, where ble-manager's default is false)
+ * asserts that scans never locate the user: no location permission from
+ * Android 12, and scans may then leave out beacons. Set it to false for
+ * beacon-based presence, and create the adapter with the same option.
+ */
+function withBluetooth(config, options) {
+  const { neverForLocation = true } = options;
+  if (typeof neverForLocation !== "boolean") {
+    throw new Error(`${TAG} bluetooth.neverForLocation must be a boolean.`);
+  }
+  const text =
+    options.permission ??
+    placeholder("bluetooth.permission", DEFAULT_BLUETOOTH_TEXT);
+  return loadPlugin("react-native-ble-manager", "bluetooth")(config, {
+    bluetoothAlwaysPermission: text,
+    neverForLocation,
+    isBleRequired: false,
+    companionDeviceEnabled: false,
+  });
+}
+
+// Bluetooth before location: Android manifest mods run in reverse order, so
+// expo-location's permissions are written first and ble-manager, which skips
+// a permission already there, does not add a second ACCESS_FINE_LOCATION
+// capped at Android 11.
 const CAPABILITIES = {
+  bluetooth: withBluetooth,
   location: withLocation,
   camera: withCamera,
   biometrics: withBiometrics,

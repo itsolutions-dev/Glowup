@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import {
   Icon,
   ListItem,
@@ -11,21 +11,7 @@ import { CodeBlock } from "../../site/CodeBlock";
 import { Page, Section } from "../../site/Page";
 
 const CAPABILITIES: {
-  href:
-    | "/device/info"
-    | "/device/location"
-    | "/device/camera"
-    | "/device/network"
-    | "/device/battery"
-    | "/device/keep-awake"
-    | "/device/orientation"
-    | "/device/haptics"
-    | "/device/biometrics"
-    | "/device/secure-store"
-    | "/device/sensors"
-    | "/device/media-picker"
-    | "/device/media-library"
-    | "/device/background-location";
+  href: Href;
   icon: MaterialCommunityIconsGlyphs;
   title: string;
   summary: string;
@@ -128,6 +114,27 @@ const CAPABILITIES: {
     summary:
       "Positions with the app in the background, and geofencing, delivered to tasks — @its/glowup-device/background-location",
   },
+  {
+    href: "/device/bluetooth",
+    icon: "bluetooth",
+    title: "Bluetooth",
+    summary:
+      "Bluetooth Low Energy: scan, connect, read, write and notifications — @its/glowup-device/bluetooth",
+  },
+  {
+    href: "/device/rfid",
+    icon: "contactless-payment",
+    title: "RFID",
+    summary:
+      "UHF handheld readers behind one contract: scan, single read, tag search — @its/glowup-device/rfid",
+  },
+  {
+    href: "/device/scanner",
+    icon: "barcode-scan",
+    title: "Barcode scanner",
+    summary:
+      "A rugged device's imager: each read straight to onScan, the camera as fallback — @its/glowup-device/scanner",
+  },
 ];
 
 const INSTALL = `npm install @its/glowup-device
@@ -145,7 +152,10 @@ npx expo install expo-secure-store              # /secure-store
 npx expo install expo-sensors                   # /sensors
 npx expo install expo-image-picker              # /media-picker
 npx expo install expo-media-library             # /media-library
-npx expo install expo-location expo-task-manager # /background-location`;
+npx expo install expo-location expo-task-manager # /background-location
+npx expo install react-native-ble-manager       # /bluetooth
+npm install @its/rfid-honeywell                  # /rfid: one vendor package
+npm install @its/scanner-honeywell               # /scanner: one vendor package`;
 
 const PLUGIN = `// app.config.ts — configures only what you list
 plugins: [
@@ -167,6 +177,7 @@ plugins: [
         geofencing: true,
         alwaysPermission: "Records your trip while the app is closed.",
       },
+      bluetooth: { permission: "Reads your heart rate monitor." },
     },
   ],
 ],`;
@@ -194,7 +205,7 @@ export default function DeviceOverview() {
     <Page
       eyebrow="Companion package"
       title="Device"
-      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library and background location with geofencing, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
+      description="@its/glowup-device is the headless hardware layer beside the kit: device info, location, the camera, network, battery, keep-awake, orientation, haptics, biometrics, a secure store, the motion sensors, the photo library, background location with geofencing, Bluetooth Low Energy, UHF RFID readers and hardware barcode scanners, each behind an adapter your app can replace. It renders no UI of its own — every page here is built with Glowup components on top of it."
     >
       <Section
         title="Capabilities"
@@ -203,7 +214,7 @@ export default function DeviceOverview() {
         <ListSection>
           {CAPABILITIES.map((capability) => (
             <ListItem
-              key={capability.href}
+              key={capability.title}
               onClick={() => router.push(capability.href)}
               icon={
                 <Icon

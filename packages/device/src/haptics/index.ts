@@ -5,7 +5,6 @@
  */
 export { hapticFeedback, useHaptics, type UseHaptics } from "./hooks";
 export { expoHapticsAdapter } from "./expo";
-export { webHapticsAdapter } from "./web";
 export type {
   HapticsAdapter,
   ImpactStyle,

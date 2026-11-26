@@ -5,7 +5,7 @@ import {
 } from "expo-media-library";
 import { Platform } from "react-native";
 
-import { createExpoMediaLibraryAdapter } from "../media-library/expo";
+import { expoMediaLibraryAdapter } from "../media-library/expo";
 import * as WebSplit from "../media-library/expo.web";
 import { webMediaLibraryAdapter } from "../media-library/web";
 
@@ -41,10 +41,10 @@ const response = (status: "granted" | "denied" | "undetermined") =>
     expires: "never",
   }) as never;
 
-describe("createExpoMediaLibraryAdapter", () => {
+describe("expoMediaLibraryAdapter", () => {
   it("asks iOS for add-only access", async () => {
     onPlatform("ios", "18.0");
-    const adapter = createExpoMediaLibraryAdapter();
+    const adapter = expoMediaLibraryAdapter;
     expect(adapter.isSupported()).toBe(true);
     expect(adapter.requiresPermission()).toBe(true);
     getPermissions.mockResolvedValueOnce(response("undetermined"));
@@ -63,7 +63,7 @@ describe("createExpoMediaLibraryAdapter", () => {
 
   it("asks Android before 11 for storage, and Android 11+ for nothing", async () => {
     onPlatform("android", 29);
-    const adapter = createExpoMediaLibraryAdapter();
+    const adapter = expoMediaLibraryAdapter;
     expect(adapter.requiresPermission()).toBe(true);
     requestPermissions.mockResolvedValueOnce(response("granted"));
     await expect(adapter.requestPermission()).resolves.toMatchObject({
@@ -86,13 +86,13 @@ describe("createExpoMediaLibraryAdapter", () => {
   it("saves through Asset.create and returns the new id", async () => {
     create.mockResolvedValueOnce({ id: "ph://ABC/L0/001" } as never);
     await expect(
-      createExpoMediaLibraryAdapter().save("file:///cache/a.jpg"),
+      expoMediaLibraryAdapter.save("file:///cache/a.jpg"),
     ).resolves.toEqual({ status: "saved", assetId: "ph://ABC/L0/001" });
     expect(create).toHaveBeenCalledWith("file:///cache/a.jpg");
   });
 
   it("answers failed with expo's code and message", async () => {
-    const adapter = createExpoMediaLibraryAdapter();
+    const adapter = expoMediaLibraryAdapter;
     create.mockRejectedValueOnce(
       Object.assign(new Error("File does not exist"), {
         code: "ERR_FAILED_TO_CREATE_ASSET",
@@ -129,6 +129,6 @@ describe("the web", () => {
 
   it("bundles the web adapter in place of the Expo one", () => {
     expect(WebSplit.expoMediaLibraryAdapter).toBe(webMediaLibraryAdapter);
-    expect(WebSplit.createExpoMediaLibraryAdapter().isSupported()).toBe(false);
+    expect(WebSplit.expoMediaLibraryAdapter.isSupported()).toBe(false);
   });
 });

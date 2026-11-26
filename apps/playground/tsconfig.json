@@ -56,6 +56,13 @@
       "@its/glowup-device/background-location": [
         "../../packages/device/src/background-location/index.ts"
       ],
+      "@its/glowup-device/bluetooth": [
+        "../../packages/device/src/bluetooth/index.ts"
+      ],
+      "@its/glowup-device/rfid": ["../../packages/device/src/rfid/index.ts"],
+      "@its/glowup-device/scanner": [
+        "../../packages/device/src/scanner/index.ts"
+      ],
       "@its/glowup-device/testing": [
         "../../packages/device/src/testing/index.ts"
       ]

@@ -1,3 +1,5 @@
+import { CodedError, isCodedError } from "../core/shared";
+
 /**
  * - `unsupported`: this platform cannot lock here (a desktop browser, a
  *   mobile browser outside fullscreen, Safari).
@@ -6,14 +8,9 @@
  */
 export type OrientationErrorCode = "unsupported" | "failed";
 
-export class OrientationError extends Error {
-  readonly code: OrientationErrorCode;
-
+export class OrientationError extends CodedError<OrientationErrorCode> {
   constructor(code: OrientationErrorCode, message?: string, cause?: unknown) {
-    super(message ?? DEFAULT_MESSAGES[code]);
-    this.name = "OrientationError";
-    this.code = code;
-    if (cause !== undefined) (this as { cause?: unknown }).cause = cause;
+    super("OrientationError", code, message ?? DEFAULT_MESSAGES[code], cause);
   }
 }
 
@@ -24,11 +21,7 @@ const DEFAULT_MESSAGES: Record<OrientationErrorCode, string> = {
 
 /** Works across module copies, where `instanceof` would not. */
 export function isOrientationError(error: unknown): error is OrientationError {
-  return (
-    error instanceof Error &&
-    error.name === "OrientationError" &&
-    typeof (error as OrientationError).code === "string"
-  );
+  return isCodedError(error, "OrientationError");
 }
 
 export function toOrientationError(error: unknown): OrientationError {

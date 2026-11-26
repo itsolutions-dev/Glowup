@@ -115,10 +115,20 @@ const PopupPicker = (props: DateTimePickerProps) => {
       MARGIN,
     );
     // Until measured the surface is laid out in full, so it has a height to report.
-    setPlacement(
+    const value: Placement =
       openHeight === null
         ? { ...next, maxHeight: view.height - MARGIN * 2 }
-        : next,
+        : next;
+    // Scroll events arrive in bursts (the open calendar's own list included):
+    // keep the same object while the placement holds, so they do not re-render.
+    setPlacement((previous) =>
+      previous &&
+      (Object.keys(value) as (keyof Placement)[]).every(
+        (key) => previous[key] === value[key],
+      ) &&
+      Object.keys(previous).length === Object.keys(value).length
+        ? previous
+        : value,
     );
   }, [openHeight, props.mode]);
 

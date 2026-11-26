@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import { AppState, Platform } from "react-native";
+import { AppState } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
 import {
@@ -8,6 +8,7 @@ import {
   type LiveStore,
 } from "../core/liveStore";
 import { promptSession } from "../core/promptSession";
+import { getOrCreate, useClientValue } from "../core/shared";
 import { expoBiometricsAdapter } from "./expo";
 import { UNAVAILABLE_BIOMETRICS } from "./status";
 import type {
@@ -16,10 +17,10 @@ import type {
   BiometricStatus,
   BiometricsAdapter,
 } from "./types";
-import { webBiometricsAdapter } from "./web";
 
-const defaultBiometricsAdapter =
-  Platform.OS === "web" ? webBiometricsAdapter : expoBiometricsAdapter;
+// Unsupported on web: a WebAuthn gate needs a credential per user, which is
+// the app's own authentication, not a device capability.
+const defaultBiometricsAdapter = expoBiometricsAdapter;
 
 /** The provided adapter, or the platform's default. */
 export function useBiometricsAdapter(): BiometricsAdapter {
@@ -36,8 +37,7 @@ const stores = new WeakMap<BiometricsAdapter, LiveStore<BiometricStatus>>();
  * foreground: the user may have enrolled a finger in the settings meanwhile.
  */
 function getStore(adapter: BiometricsAdapter): LiveStore<BiometricStatus> {
-  let store = stores.get(adapter);
-  if (!store) {
+  return getOrCreate(stores, adapter, () => {
     // The store compares shallowly: keep the last `types` array while its
     // contents are equal, or every foreground would re-render the listeners.
     let lastTypes: BiometricStatus["types"] = [];
@@ -50,7 +50,7 @@ function getStore(adapter: BiometricsAdapter): LiveStore<BiometricStatus> {
       return status;
     };
     const read = () => adapter.getStatus().then(stable);
-    store = createLiveStore({
+    return createLiveStore({
       isSupported: () => adapter.isSupported(),
       read,
       subscribe(listener) {
@@ -65,9 +65,7 @@ function getStore(adapter: BiometricsAdapter): LiveStore<BiometricStatus> {
       },
       unsupported: UNAVAILABLE_BIOMETRICS,
     });
-    stores.set(adapter, store);
-  }
-  return store;
+  });
 }
 
 function assertLabel(name: string, value: unknown): void {
@@ -97,7 +95,6 @@ export interface UseBiometrics extends BiometricStatus {
 }
 
 const getServerFalse = () => false;
-const subscribeNothing = () => () => {};
 
 /**
  * Local authentication: the device owner proves they are present with a
@@ -109,12 +106,7 @@ export function useBiometrics(): UseBiometrics {
   const adapter = useBiometricsAdapter();
   const store = getStore(adapter);
   const status = useLiveValue(store);
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerFalse,
-  );
+  const isSupported = useClientValue(() => adapter.isSupported(), false);
   const isAuthenticating = useSyncExternalStore(
     promptSession.subscribe,
     promptSession.isRunning,

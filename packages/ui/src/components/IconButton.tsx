@@ -7,12 +7,9 @@ import {
   ViewStyle,
 } from "react-native";
 import Icons from "./Glyph";
-import {
-  useTheme,
-  getStateColor,
-  getFocusRing,
-} from "../providers/ThemeProvider";
+import { useTheme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { useStateLayer } from "./TouchableRipple";
 import CircularProgress from "./Progress/CircularProgress";
 import Badge from "./Badge";
 import Tooltip from "./Tooltip";
@@ -168,6 +165,7 @@ const IconButton = ({
   }, [variant, color, selected, theme]);
 
   const isInteractive = !disabled && !loading;
+  const stateLayer = useStateLayer(background, foreground);
 
   const button = (
     <Pressable
@@ -194,11 +192,7 @@ const IconButton = ({
           width: box,
           height: box,
           borderRadius: box / 2,
-          backgroundColor: pressed
-            ? getStateColor(background, foreground, "press")
-            : hovered
-              ? getStateColor(background, foreground, "hover")
-              : background,
+          backgroundColor: stateLayer({ pressed, hovered }),
         },
         borderColor && { borderWidth: 1, borderColor },
         focused && getFocusRing(theme),

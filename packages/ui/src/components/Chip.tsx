@@ -2,15 +2,11 @@ import { useMemo, useState } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
 import Icons from "./Glyph";
 
-import {
-  useTheme,
-  Theme,
-  getStateColor,
-  getFocusRing,
-} from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { toneFrom as resolveTone } from "../providers/toneFrom";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { a11yState } from "./internal/a11yState";
 
@@ -128,20 +124,14 @@ const Chip = ({
   const [bodyHovered, setBodyHovered] = useState(false);
   const [bodyPressed, setBodyPressed] = useState(false);
 
-  let currentBg = bg;
-  if (bodyPressed) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "press",
-    );
-  } else if (bodyHovered) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "hover",
-    );
-  }
+  const stateLayer = useStateLayer(
+    bg === "transparent" ? theme.colors.surface : bg,
+    on,
+  );
+  const currentBg =
+    bodyPressed || bodyHovered
+      ? stateLayer({ pressed: bodyPressed, hovered: bodyHovered })
+      : bg;
 
   // The border is the same idle and hovered; only the ring is added.
   const glow = {

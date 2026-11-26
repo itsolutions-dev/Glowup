@@ -1,5 +1,5 @@
 import { hasDOM } from "../core/support";
-import { LocationError } from "./errors";
+import { LocationError } from "../core/geo";
 import type {
   GeoPosition,
   LocationAccuracy,

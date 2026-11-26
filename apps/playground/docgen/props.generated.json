@@ -1,6 +1,6 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.11.1",
+  "libraryVersion": "0.12.0",
   "generatedFrom": "packages/ui/src/index.ts",
   "componentCount": 126,
   "components": {
@@ -9708,13 +9708,6 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "activeStyle",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "description": "Extra style applied only while hovered (web) or pressed.",
           "deprecated": false
         },
         {

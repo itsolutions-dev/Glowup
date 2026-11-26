@@ -20,7 +20,7 @@ export {
   isLocationError,
   LocationError,
   type LocationErrorCode,
-} from "./errors";
+} from "../core/geo";
 export { expoGeocoderAdapter, expoLocationAdapter } from "./expo";
 export { webLocationAdapter } from "./web";
 export type {

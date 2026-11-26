@@ -1,5 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 
+import { errorDetail } from "../core/shared";
+
 import type {
   MediaKind,
   MediaPickerAdapter,
@@ -64,15 +66,7 @@ function toResult(result: ImagePicker.ImagePickerResult): PickResult {
 }
 
 function toFailure(error: unknown): PickResult {
-  const { code, message } = (error ?? {}) as {
-    code?: unknown;
-    message?: unknown;
-  };
-  const text = typeof message === "string" ? message : String(error);
-  return {
-    status: "failed",
-    detail: typeof code === "string" ? `${code}: ${text}` : text,
-  };
+  return { status: "failed", detail: errorDetail(error) };
 }
 
 /**

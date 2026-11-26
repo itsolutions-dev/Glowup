@@ -3,12 +3,14 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useSyncExternalStore,
+  useState,
   type ReactNode,
   type Ref,
 } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 
+import { createScanGate } from "../core/barcodes";
+import { useClientValue } from "../core/shared";
 import { useCameraAdapter } from "./adapter";
 import { CameraError, toCameraError } from "./errors";
 import type {
@@ -38,8 +40,12 @@ export interface CameraViewProps {
   videoQuality?: VideoQuality;
   /** False pauses the preview without unmounting it. Default true. */
   active?: boolean;
-  /** Scanning is on while this is set. */
-  onBarcodeScanned?: (barcode: ScannedBarcode) => void;
+  /**
+   * Scanning is on while this is set. When it returns a promise (a
+   * confirmation that submits the code), reads are dropped until it settles,
+   * so the confirmation cannot run twice.
+   */
+  onBarcodeScanned?: (barcode: ScannedBarcode) => unknown;
   /** What to scan for. Default `["qr"]`: each extra symbology costs time and false reads. */
   barcodeTypes?: readonly BarcodeType[];
   /**
@@ -59,9 +65,6 @@ export interface CameraViewProps {
 
 const DEFAULT_BARCODE_TYPES: readonly BarcodeType[] = ["qr"];
 const DEFAULT_MAX_DURATION = 60;
-
-const subscribeNothing = () => () => {};
-const getServerSupport = () => false;
 
 /**
  * The camera preview, with no controls of its own. Capture through its ref:
@@ -95,14 +98,9 @@ export function CameraView({
   const adapter = useCameraAdapter();
   // The static web export prerenders in Node, where there is no camera: the
   // page hydrates without one, then mounts the preview.
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const supported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerSupport,
-  );
+  const supported = useClientValue(() => adapter.isSupported(), false);
   const preview = useRef<CameraHandle>(null);
-  const lastScan = useRef<{ key: string; at: number } | null>(null);
+  const [gate] = useState(createScanGate);
 
   // An inline `barcodeTypes={["qr", "ean13"]}` is a new array every render;
   // the scanner should be reconfigured only when the list changes.
@@ -114,14 +112,14 @@ export function CameraView({
 
   const handleScanned = useCallback(
     (barcode: ScannedBarcode) => {
-      const key = `${barcode.rawType}:${barcode.data}`;
-      const now = Date.now();
-      const last = lastScan.current;
-      if (last && last.key === key && now - last.at < scanInterval) return;
-      lastScan.current = { key, at: now };
-      onBarcodeScanned?.(barcode);
+      if (!onBarcodeScanned) return;
+      gate.offer(
+        barcode,
+        { repeatInterval: scanInterval, dropWhileBusy: true },
+        onBarcodeScanned,
+      );
     },
-    [onBarcodeScanned, scanInterval],
+    [gate, onBarcodeScanned, scanInterval],
   );
 
   useImperativeHandle(

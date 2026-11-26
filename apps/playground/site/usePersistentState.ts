@@ -51,5 +51,3 @@ export const usePersistentState = <T>(
 
   return [value, write, hydrated];
 };
-
-export default usePersistentState;

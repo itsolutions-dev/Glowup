@@ -788,6 +788,8 @@ Picking photos and videos (`expo-image-picker` 57.0.20) and saving them to the d
 - **G6 checked in a real web bundle:** the static export has no `ExpoMediaLibraryNext` anywhere,
   and neither does the consumer's `expo export -p web` on the packed tarball (the tarball ships
   `expo.web` in `src` and `lib`; Metro reads `src` through the subpath's `react-native` field).
+  That field was a defect, found after phase 37: the root resolved to `lib/commonjs`, so `core/`
+  was bundled twice (see "After phase 37").
 - Chromium at 1440 and 390 px, without errors: a real file chooser opens synchronously from the
   press with the right `accept` and `multiple`; one PNG, then two PNGs and a `.txt` (skipped),
   come back with their sizes; no input is left in the page. The library page reads unsupported
@@ -1102,12 +1104,117 @@ read before the contract was written:
 | B9  | Web          | Unsupported in the first release.                                                                                                                                                                                        |
 | B10 | Background   | Not in the first release (connections kept alive, iOS state restoration, background scanning).                                                                                                                           |
 
-| Phase | Content                                                                                                                                                                                      | Release | Status  |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------- |
-| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | planned |
-| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | planned |
-| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | planned |
-| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | planned |
+| Phase | Content                                                                                                                                                                                      | Release | Status |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| 30    | `/bluetooth` core: types, errors, the lazy ble-manager adapter, `useBluetoothState`, `useBluetoothPermission`, plugin key, mock                                                              | `0.9.0` | done   |
+| 31    | Scanning: `useBluetoothScan`, service filter, dedupe, advertising data, timeout, background pause, throttling guard                                                                          | `0.9.0` | done   |
+| 32    | Connections and GATT: connection store, discovery, read, write with and without response, shared notifications, unexpected disconnects, MTU, bonding; Device Information and Battery parsers | `0.9.0` | done   |
+| 33    | Playground (the mock in Expo Go and on the web, the real module in a development build), `examples/consumer`, changeset, release                                                             | `0.9.0` | done   |
+
+### Phase 30 — what landed
+
+- **`@its/glowup-device/bluetooth`** on `react-native-ble-manager` 12.5 (an optional peer, the
+  first that is not an Expo module): `useBluetoothState`, `useBluetoothPermission`,
+  `BluetoothError` / `isBluetoothError`, `toBluetoothUuid` / `shortBluetoothUuid`,
+  `bleManagerAdapter` and `createBleManagerAdapter({ neverForLocation })`.
+- **Lazy module.** The adapter requires ble-manager on first use, inside a `try`, and never on
+  the web: Expo Go, the web and jest read `unsupported` instead of crashing at import.
+- **One `start()` per process**, after `isStarted()`: ble-manager builds a new central manager
+  on every iOS `start()`. iOS starts only from `requestPermission()` (building the manager is
+  the prompt), so before a request in the launch it reads `undetermined` and the radio
+  `unknown`; the request waits for the first settled state (`unauthorized` → `denied`, anything
+  else known → `granted`), at most a minute. Android starts on the first state subscription,
+  which prompts nothing and is what makes its state events flow. The iOS power alert is off.
+- **Android permissions** through `PermissionsAndroid`: "Nearby devices" from API 31 (plus the
+  precise location with `neverForLocation: false`), the precise location up to API 30. A check
+  cannot tell "never ask again", so a request's refusal is kept for the launch. Requests and
+  `enable()` (Android's "turn on Bluetooth?" dialog, which needs the permission) run inside
+  `systemSheet`, so `useAppLock` does not count the trip.
+- **Read from the source, not on a device:** Android's `scan()` returns without calling back
+  while the radio is off (phase 31 checks the state first); Android's `checkState()` answers
+  before `start()`, iOS's never does; `enableBluetooth()` rejects with "User refused to enable".
+- **Plugin key `bluetooth: { permission, neverForLocation }`** through ble-manager's plugin,
+  `neverForLocation` defaulting to `true`. It is registered before `location`: manifest mods
+  run in reverse order, and the other way round ble-manager would add a second
+  `ACCESS_FINE_LOCATION` capped at API 30 next to expo-location's (a test pins it).
+- **`/testing`:** `createMockBluetoothAdapter()`.
+- **Not verified on a device:** whether iOS's first state after the prompt arrives as described;
+  whether Android's `getState()` needs `BLUETOOTH_CONNECT` (the docs say no).
+
+### Phase 31 — what landed
+
+- **`useBluetoothScan()`**: `start({ services, timeout })`, `stop()`, `clear()`, `devices`,
+  `isScanning`, `error`. One scan per adapter (the platform has one): a start replaces it, every
+  component shares the list, the last one leaving stops it.
+- **Checks first, never prompts:** `start()` validates its options (`TypeError` / `RangeError`)
+  and runs `ensureBluetoothReady` (support, permission, radio `on`) before the adapter.
+- **Dedupe and rendering:** one entry per `id` with the latest RSSI and advertisement,
+  `firstSeen` / `lastSeen`, a repeat without a name keeping the known one; the list renders at
+  most every 250 ms. The adapter scans with `allowDuplicates` (otherwise iOS reports a device
+  once and its RSSI never updates) and Android's low-latency mode.
+- **Advertising data** (`BluetoothAdvertisement`): local name, service UUIDs (normalised),
+  service data, manufacturer data as `{ companyId, data }`, transmit power, connectable. From
+  the source: ble-manager keeps one manufacturer entry on both platforms, keyed by the company
+  id in hex, and passes Android's missing transmit power as `Integer.MIN_VALUE`.
+- **Lifecycle:** the timeout is the store's own timer, so a scan pauses on `background` and
+  resumes on `active` for the time it had left; the radio going `off` (or iOS's
+  `unauthorized`) ends it with an error.
+- **Android's throttling:** starts are counted and a sixth within 30 s waits until it is
+  allowed (`throttle.ts`, 0.5 s margin). `scan()` without a callback in 5 s (Android's, with the
+  radio off) rejects with `timeout`. Android's `ScanCallback` failures arrive as `onStopScan`
+  statuses and map to `failed` (4, no LE scanning, to `unsupported`).
+- **`/testing`:** `discover()`, `failScan()`, `failNextScan()`, `scanning`, `scanCount`, and
+  `buildBluetoothDevice()`.
+- **Not verified on a device:** the throttling limit and its margin, iOS's duplicate reports in
+  the foreground, Android 11's silence with the location services off.
+
+### Phase 32 — what landed
+
+- **`useBluetoothDevice(id, { disconnectOnUnmount })`**: `connect({ timeout })`, `disconnect()`,
+  `status`, `error`, `services`, `read`, `write`, `requestMtu`, `mtu`, `readRssi`, `bond` /
+  `canBond`. One connection per device id, shared by every component; it closes when the last
+  one unmounts unless that one set `disconnectOnUnmount: false`.
+- **`useBluetoothNotifications(id, service, characteristic, onValue, { enabled })`**: counted per
+  characteristic, on once connected and again after each reconnection, off with the last reader;
+  the latest callback is called; one reader throwing does not keep the others from the value.
+- **Timeouts**: connecting 10 s by default (iOS never gives up; a timeout disconnects to cancel
+  the attempt), every GATT call 10 s (the platform's request is not cancelled).
+- **Unexpected disconnects** read `disconnected` with that error; no automatic reconnection.
+- **Writes** default to with-response when the characteristic allows it, without otherwise. A
+  value longer than one write is split by ble-manager into writes of MTU − 3 bytes: the adapter
+  passes Android's negotiated MTU (20 bytes until `requestMtu`) or iOS's
+  `maximumWriteValueLength`. A characteristic that needs one long value must fit in one write.
+- **Read from the source:** ble-manager rejects GATT calls with strings (mapped by wording to
+  `disconnected` / `not-connected` / `failed`) and iOS's failed connections with
+  `{ code, domain, message }`; it serialises Android's GATT commands per peripheral; its Android
+  `startNotification` also turns indications on. SIG UUIDs go to it short, since iOS builds
+  `CBUUID`s from the strings.
+- **Profiles (B7):** `readDeviceInformation`, `readBatteryLevel` / `parseBatteryLevel`, the SIG
+  and Nordic UART UUIDs (`BLUETOOTH_SERVICES`, `BLUETOOTH_CHARACTERISTICS`), `encodeUtf8` /
+  `decodeUtf8`.
+- **`/testing`:** GATT on the mock (`gatt`, `setGatt`, `notify`, `disconnectBySystem`,
+  `holdNextConnect`, `failNextConnect`, `failNextGatt`, `connected`, `notifying`, `writes`,
+  `bonded`).
+- **Not verified on a device:** everything GATT. In particular iOS's `CBUUID` matching with short
+  UUIDs, Android's behaviour on a connection that times out natively (status 133), and bonding.
+
+### Phase 33 — what landed
+
+- **Playground `/device/bluetooth`**: permission and radio, a scan (all, or heart rate only), the
+  device list, a connection with its services, battery and Device Information reads, live heart
+  rate notifications and a Nordic UART exchange. Where `bleManagerAdapter.isSupported()` is
+  false (the web, Expo Go) the page wraps itself in a provider with `site/bluetoothDemo.ts`: the
+  package's mock driven by a timer, with three simulated devices. The same answer while
+  prerendering and in the browser, so it hydrates.
+- **`examples/consumer`** imports `/bluetooth` (state, permission, scan, device, notifications)
+  and lists the plugin's `bluetooth` key. On the `npm pack` tarballs: `tsc`, the web export and
+  `expo config --type introspect` pass; with `location` beside it the manifest declares the
+  location permissions once, uncapped, and `BLUETOOTH_SCAN` with `neverForLocation`.
+- **Changeset** `0.9.0` (minor).
+- ble-manager's plugin also adds the legacy `BLUETOOTH` and `BLUETOOTH_ADMIN` without
+  `maxSdkVersion`: harmless normal permissions, left as they are.
+- **To verify on a device:** everything in phases 30–32 marked so, on an iPhone and on Android
+  12+ and 11, with a real peripheral (a heart rate strap, a Nordic UART board).
 
 **Before choosing hardware:** a "Bluetooth" time clock can work three ways. The phone connects to
 it over GATT (covered), or the clock broadcasts a beacon the phone detects (covered, with
@@ -1115,66 +1222,1120 @@ it over GATT (covered), or the clock broadcasts a beacon the phone detects (cove
 clock detects it (the peripheral role, not covered: another library). Ask the vendor which, and
 for the GATT UUIDs.
 
-## v0.10 — RFID (partly decided)
+## v0.10 — RFID
 
-UHF RFID through a handheld reader, starting with Honeywell's **IH40**: two ways to read, a
-**single read** and a **multiple scan** that collects every tag in range with how near each one
-is. What was found before the contract (Honeywell's datasheet, product pages, the IH40 / IH45 SDK
-quick start guides and support articles, through search; the PDFs themselves could not be opened
-from the build environment):
+UHF RFID through handheld readers, **vendor-neutral by contract**. Three things to do:
 
-- **The reader.** UHF, EPC Class 1 Gen 2 / ISO 18000-63, read range about 6 m and write range
-  about 3 m (tag-dependent), Bluetooth 5.0 to a host, USB when a mobile computer is mounted on it.
-  Its datasheet advertises a **Tag Finder** mode to pinpoint one tag. The host is an Android
-  device: Honeywell lists the CT40, CT60 and EDA51.
-- **The SDK.** Android only: an AAR (`RfidManager`, then `RfidReader`, with a tag-read listener,
-  `read` and `stopRead`), Android 10 or later, for the Bluetooth link; the **Mobility SDK** when
-  the reader is reached over USB. It is downloaded from Honeywell's Technical Support Downloads
-  Portal, behind a login. **No iOS SDK was found** for the IH40.
-- **Not verified:** how the SDK reports RSSI, whether Tag Finder is part of its API or only of
-  the HonRFID demo app, the hardware trigger's events, and the AAR's licence (whether it may be
-  redistributed, for example inside a package on npm).
-- **Distance.** UHF RFID gives no distance: a reader measures the signal strength (RSSI, in dBm)
-  and some report the phase. RSSI follows distance only roughly (tag orientation, materials and
-  reflections move it by several dB), so "how near" can be a smoothed proximity, not metres.
-- **No module exists** to reuse: unlike every capability so far, this one needs native code of
-  ours (a Kotlin Expo module around the AAR).
+- **Multiple scan:** every tag in range, each with how near it is.
+- **Single search:** find a given tag by its proximity.
+- **Single read:** read the one tag in front of the reader for its id.
 
-Proposed decisions (to confirm, see the open questions below):
+The first vendor is Honeywell (IH40 paired over Bluetooth with a CT40, RFID SDK **v1.1.0**). Zebra
+or others may follow without the app's code changing. The library has no UI.
 
-| #   | Question    | Proposal                                                                                                                                                                                                                         |
-| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Scope       | UHF EPC Gen2 readers attached to the device (handhelds, sleds) through their vendor's SDK. Not NFC (the phone's own HF reader, another capability).                                                                              |
-| R2  | Split       | `@its/glowup-device/rfid`: the vendor-neutral contract, hooks and mock, no native module and no default adapter. Each vendor in its own package with the native code: `@its/glowup-rfid-honeywell` first, Zebra or others later. |
-| R3  | Data        | Gen2 terms: `epc` (hex), `tid` when read, `rssi` (dBm), `antenna`, `readCount`, first and last seen; plus `proximity` (0–1) derived from a smoothed RSSI.                                                                        |
-| R4  | Modes       | `inventory` (continuous, deduplicated, sorted by proximity), `readSingle` (one tag: the strongest in a short window), `locate(epc)` (a proximity stream for one tag, through Tag Finder when the SDK has it).                    |
-| R5  | Distance    | A relative proximity, never metres; the raw RSSI stays available.                                                                                                                                                                |
-| R6  | Trigger     | The reader's trigger starts and stops the mode on screen; its presses are exposed.                                                                                                                                               |
-| R7  | Settings    | Transmit power and Gen2 session (they decide how many tags a scan sees); region read-only.                                                                                                                                       |
-| R8  | Platforms   | Android only; iOS and the web read `unsupported`.                                                                                                                                                                                |
-| R9  | Out for now | Writing, locking and killing tags; GS1 decoding of the EPC (SGTIN and the others) as a later helper.                                                                                                                             |
+### The architecture (ADR-R1)
 
-| Phase | Content                                                                                                                  | Release  | Status   |
-| ----- | ------------------------------------------------------------------------------------------------------------------------ | -------- | -------- |
-| 34    | Spike on the real SDK: its API (RSSI, Tag Finder, trigger, discovery), its licence, a build with the AAR                 | —        | proposed |
-| 35    | `/rfid`: types, `RfidError`, the reader connection, `useRfidInventory`, `useRfidSingleRead`, `useRfidLocate`, mock       | `0.10.0` | proposed |
-| 36    | `@its/glowup-rfid-honeywell`: Kotlin Expo module around the AAR, its adapter, config plugin (AAR, Bluetooth permissions) | `0.10.0` | proposed |
-| 37    | Playground (on the mock), `examples/consumer`, changesets, release; a check on the real IH40                             | `0.10.0` | proposed |
+The contract and the vendors live in separate packages: the app depends on the contract, and each
+vendor implements it.
+
+- **`@its/glowup-device/rfid`** is the contract and the engine. It has:
+  - the `RfidAdapter` interface;
+  - the types, with units fixed by the contract;
+  - `RfidError`;
+  - the hooks;
+  - the shared engine: one mode at a time, deduplication, RSSI smoothing and proximity, the
+    single read and the locate emulated where a vendor lacks them, timeouts.
+
+  It has no native code and no default adapter. Without one, everything reads `unsupported`.
+
+- **`@its/rfid-honeywell`** (later `@its/rfid-zebra`, …) is a vendor package: an Android-only Expo
+  module (Kotlin) around the vendor's SDK, a JS adapter that implements `RfidAdapter`, and its
+  config plugin. It takes the contract's types through `import type` and `RfidError` at run
+  time, with `@its/glowup-device` as a peer.
+- **The app** picks the vendor in one place,
+  `<DeviceAdaptersProvider adapters={{ rfid: getHoneywellRfidAdapter() }}>` (one build per vendor,
+  R13). Screens use only `/rfid`'s hooks, so changing vendor changes that line and the installed
+  package, nothing else.
+
+Rejected alternatives:
+
+- **One package with every vendor:** every app would bundle every SDK, with their licences.
+- **Vendor packages with their own hooks:** no common API, so switching vendor rewrites the
+  screens.
+- **A separate `@its/rfid` contract package:** another package to version for no gain. The
+  device package already has the adapter and provider model, and its testing kit.
+
+How it stays honest:
+
+- **Thin adapter.** The adapter implements only primitives: connect, inventory start / stop, and
+  the settings. The rest are optional methods (native locate, native single read, trigger,
+  discovery, battery, reader info) plus `supportsTid`, and `capabilities` are read from which
+  methods exist rather than declared, so an adapter cannot claim what it lacks. The engine emulates what a vendor lacks (locate = inventory
+  filtered by EPC plus the engine's proximity; single read = a short inventory window keeping the
+  strongest tag), so a new vendor costs only its primitives.
+- **Units are the contract's.** RSSI is dBm, transmit power is dBm, times are ms epoch, EPC and
+  TID are uppercase hex. Each adapter converts (Honeywell's power 500–3000 is centi-dBm). The
+  engine computes proximity (0–1) from smoothed RSSI, between near / far bounds. The adapter
+  supplies default bounds and the app may calibrate them. Metres are never promised: RSSI follows
+  distance only roughly.
+- **Contract version.** `/rfid` exports `RFID_CONTRACT_VERSION`; each adapter declares the version
+  it implements, as a number literal (importing the constant would always match). The hooks reject a mismatch with `RfidError("incompatible-adapter")`, and the
+  vendor package's peer range follows the device package's minor version (0.x): it is written as
+  `>=0.x.0 <0.y.0`, whose bounds changesets moves whenever the device package passes them.
+- **Conformance kit.** `@its/glowup-device/testing` exports `describeRfidAdapterContract()`: a Jest
+  suite that every vendor package runs against its adapter with its native module faked. It checks
+  units, event order, stop semantics, errors and capabilities. A vendor that does not pass cannot
+  ship.
+
+### Honeywell SDK v1.1.0 (read from the AAR with `javap` and from its Javadoc)
+
+- **Transport: BLE GATT.** `connect(mac)` goes through `getRemoteDevice(mac).connectGatt()` on a
+  proprietary service (`e093f3b5-00a3-a9e5-9eca-40016e0edc24`).
+  - No scan is needed to connect, so `BLUETOOTH_CONNECT` is enough from Android 12.
+  - The SDK exposes no reader search. Discovery is therefore the Honeywell module's own BLE scan
+    (a contract capability), not `/bluetooth`.
+  - The protocol inside is proprietary (Silion / ThingMagic, native `libModuleAPIJni.so`).
+- **AAR facts:**
+  - `minSdkVersion` 26.
+  - An embedded bound `RfidService`: no Honeywell app needs to be installed.
+  - The manifest declares only the legacy `BLUETOOTH` / `BLUETOOTH_ADMIN`.
+  - Native code for `arm64-v8a` (64 KB-aligned: Android 15's 16 KB pages are fine) and 32-bit ARM.
+    There is no x86, so no emulator: JS tests run on the mock and the faked module.
+  - No code checks the device's brand.
+- **How the three modes map:**
+  - **Multiple scan:** `read()` + `OnTagReadListener.onTagRead(TagReadData[])`, in batches on an
+    SDK thread. `TagReadData` gives the EPC, RSSI, antenna, read count, frequency and time.
+  - **Single read:** `syncRead(windowMs)`, then the strongest tag. With a TID, a `read()` window
+    instead: `syncRead` takes no `TagReadOption`, so it cannot ask for the TID's data (phase 35).
+  - **Single search:** native Tag Finder. `setLocateEPC(epc)` + `read()`; the SDK then passes on
+    only that tag, `EventListener.onReceivedFindingTag(rssi / readCount)` gives the value, and the
+    reader beeps faster as the tag nears. The EPC is matched with `String.equals`, so case matters.
+    `setLocateEPC("")` stops it.
+- **Trigger:** `onRfidTriggered(pressed)` only in `TriggerMode.RFID`. In `BARCODE` mode the trigger
+  drives the host's own scanner.
+- **Reader:**
+  - `setAutoReconnect`, `readerAvailable()` (false while reconnecting);
+  - `getBatteryLevel()` (a `String`: polled, no event);
+  - beeper volume, LED;
+  - antenna power, Gen2 session S0–S3, Q, target, region, versions and serial number.
+- **Read in phase 35 (`javap -c`):**
+  - `RfidManager.create()` binds `new Intent(context, RfidService.class)`: the service embedded in
+    the AAR, inside the app. **No Honeywell app is needed.**
+  - `SecurityGuard` is a challenge-response that authenticates the **reader** (SHA-1 over a salt);
+    it does not check the host's brand.
+  - EPCs come out of `bytes_Hexstr()` with `toUpperCase()`: uppercase.
+  - RSSI: the Bluetooth path's tag info stores it as a signed `byte`, so -128…127, which reads as
+    dBm. The hardware confirms the range.
+  - Some of `TagReadData`'s constructors build the time from `0`. The module keeps a guard (a
+    time before 2001 becomes the arrival time), but the IH40's reads carry real times (measured).
+  - While locating, `onTagRead` receives only the searched tag (or an empty array), with its full
+    RSSI; `onReceivedFindingTag` gets `rssi / readCount` (integer division). The module sends the
+    RSSI and keeps the SDK's value for the diagnostics.
+  - `getBatteryLevel()` is `String.valueOf(byte)` of a characteristic, `""` on failure.
+  - Antenna power passes through to the reader's `AntPower` unchanged (centi-dBm).
+  - The SDK uses `androidx.localbroadcastmanager` without declaring it.
+  - It also needs Honeywell's Data Collection SDK (`com.honeywell.aidc`), which it neither bundles
+    nor declares. `RfidService.init` builds `com.usb.UsbCommunication` → `UsbPortManager`, which
+    calls `AidcManager`, on every bind. Without `DataCollection.aar` the app dies with
+    `NoClassDefFoundError` even over Bluetooth (seen on the CT40, phase 35). Honeywell's sample
+    app ships it in `app/libs` beside the RFID AAR (1.97.00.0060); the CT40 has no shared library
+    for it.
+  - Its internal search (`Comm_Bluetooth.StartSearch`) has no name or service filter, and is not
+    public.
+- **Measured on a CT40 (Android 11) + IH40, phase 35 spike (first report, 16 October):**
+  - The development build works once the app also supplies `DataCollection.aar` (above).
+  - Connection: `onDeviceConnected` 135 ms after `connect()`, then `onReaderCreated(true)` about
+    **2 s** later (what the old MES app's fixed 2 s delay stood in for). The module waits for the
+    event.
+  - RSSI in dBm: −25 / −23 with the tag against the reader, −45 / −52 at a short distance, −71 the
+    weakest heard. The adapter's default bounds moved from −35 / −75 to **−30 / −70**.
+  - EPCs uppercase; tag times real; `readCount` always 1 (the SDK reports every read on its own,
+    so the module's 100 ms batches matter: up to 8 reads each).
+  - Locate: about one read every 120–300 ms; `onReceivedFindingTag` equals the read's RSSI (117
+    samples), as `readCount` is 1.
+  - A new SDK thread for every read session (`Thread-10`, `-14`, …); the module's lock covers it.
+  - `syncRead`: 500 ms found 0, 5 and 7 tags; 2 s found 6.
+  - Battery `"46"`; the trigger reached the app (six presses and releases).
+  - The IH40 answers `getSN()` with `"Not Support!"`: the adapter reads it as no serial number.
+- **Second report (16 October):**
+  - **The search works with the reader disconnected.** The IH40 advertises the name `IH40` and
+    manufacturer data under company id 1318 (0x0526), no service UUID; connected, it does not
+    advertise at all. The filter matched it by name; it now also matches the company id.
+  - The trigger drove the multiple scan (about 30 presses, reads after each).
+  - Reconnecting by hand after a disconnect: `onReaderCreated` again 2.2 s after
+    `onDeviceConnected`.
+  - Every inventory starts a new SDK thread; reads may carry the time of a previous session's
+    last read (an SDK buffer), harmless to the merge.
+- **Third report (16 October):**
+  - **The SDK's auto-reconnect does not work:** after the IH40 was switched off and on, nothing
+    happened for 61 s, while a connection by hand worked in 2 s. Its daemon (a 3 s retry, created
+    in `onReaderCreated` when auto-reconnect is on) made no attempt. The module now turns it off
+    and reconnects itself (1, 3, 5, then every 10 s; an attempt without a reader in 15 s is
+    closed and retried).
+  - **TIDs did not arrive:** `additionData` stayed empty. The SDK's own `read()` sets `data` and
+    `protocol` in its `TagReadOption`; the module's did not. It does now.
+  - The reader beeps faster during a locate started through the module.
+  - Handed back, the trigger drives the CT40's own scanner again.
+- **Fourth report (16 October):**
+  - **The module's reconnection works:** the IH40 switched off and on while connected, the first
+    `reconnectAttempt` 1 s after the drop, `onDeviceConnected` 4.3 s and `onReaderCreated(true)`
+    6.5 s after it.
+  - **TIDs arrive in the multiple scan:** every read's `additionData` holds 12 bytes (for
+    example `E28068942000401007656433`).
+  - **No TID in the single read:** the diagnostics' single read never asked for one. Asking would
+    not have been enough either: `syncRead(TID_BANK, ms)` builds the TID read plan but takes no
+    `TagReadOption`, so the `data` flag the multiple scan needed is never set. With a TID the
+    module now reads for the window with `read(TID_BANK, option)` and collects the reads itself;
+    without one it keeps `syncRead`. The diagnostics' single read has a "Read the TID" toggle.
+- **Fifth report (16 October):** the build carried the read window (each single read's
+  diagnostic names its path), but all five single reads reached the module without a TID asked
+  (`path: "syncRead"`): the "Read the TID" toggle was off. The JavaScript passes the option
+  through (a test now covers it). The buttons now name the TID when it is on, the measurements
+  show each single read's path and TID count, and the module reports a revision
+  (`getRevision`, `HONEYWELL_NATIVE_REVISION`) so the diagnostics flag an app built before the
+  latest native change, which a Metro reload does not update.
+- **Sixth report (16 October): the single read returns the TID.** With "Read the TID" on, six
+  single reads took the read window (`path: "read"`): 2 s gave 50 reads, 45 with a TID; 500 ms gave
+  11–15, 10–13 with a TID. About one read in ten arrives with an empty `additionData`, in the
+  multiple scan too; the engine merges a tag's reads, so its TID comes from the others. Six tags,
+  each with one stable TID (two TID families: `E2806894…` and `E2801130…`). A `syncRead` without
+  the TID, for comparison: 8 reads. The locate gave 36 values between −60 and −49 dBm.
+- **Not verifiable here:** whether Honeywell's Maven repository (`repo.honeywellaidc.com`) serves
+  the SDK; the build environment's proxy refuses that host, so `aarPath` stays required.
+
+### The licence
+
+Honeywell's Software Developer License Agreement, as received (an extract, not the full text
+accepted at download; worth keeping that one too):
+
+- **Grant (§1):** limited, personal, non-exclusive, non-transferable and royalty-free, for internal
+  business purposes: designing, developing, testing and validating proprietary applications.
+- **Hardware binding (§2):** applications that embed or link `honeywell_rfid_sdk` must run only on
+  Honeywell hardware (IH40 / IH45 readers and compatible mobile computers).
+- **Restrictions (§3):** no sublicensing, sale, rental or commercial distribution of the SDK as a
+  standalone component; no modifying, decompiling or disassembling the AAR beyond what the law
+  allows.
+- **No runtime licence (§4):** no per-seat or per-transaction fees, no activation ids; accepting
+  the terms covers including the binary in the distributed application.
+
+What follows from it:
+
+- **The AAR travels only inside the app's build** (§1, §3, §4). It never goes into a published
+  package, public or not.
+  - The `@its/rfid-honeywell` config plugin takes the app's own copy (`aarPath`), copies it into
+    the Android project and declares Android 12's Bluetooth permissions.
+  - The module compiles against it with `compileOnly`.
+  - If Honeywell's Maven repository serves it, Gradle downloads it instead.
+- **One build per vendor** (§2). An app that embedded both Honeywell's SDK and another vendor's
+  would carry Honeywell's SDK onto other brands' devices. Each fleet gets its own build with its
+  own vendor package; the screens, written against `/rfid`, are the same in every build.
+  `firstSupportedRfidAdapter()` stays for a build that ships several adapters on one brand's
+  devices.
+- **The Honeywell adapter reads `unsupported` off Honeywell hosts:** `isSupported()` checks
+  `Build.MANUFACTURER`, so the SDK is never initialised on another brand's device.
+- **Decompiling** (§3): part of the section above was read from the AAR's bytecode (`javap -c`),
+  which §3 forbids beyond what the law allows. The details are kept in this plan by decision.
+
+### Decisions
+
+| #   | Question     | Decision                                                                                                                                                                                                                                                 |
+| --- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Architecture | Contract and engine in `@its/glowup-device/rfid`; one package per vendor (`@its/rfid-honeywell` first) implementing `RfidAdapter`; the app chooses through the provider (ADR-R1 above).                                                                  |
+| R2  | Modes        | One at a time per reader. `inventory` (deduplicated by EPC, sorted by proximity), `readSingle` (native or emulated window, the strongest tag or `null`), `locate(epc)` (native Tag Finder or emulated).                                                  |
+| R3  | Data         | `RfidTag`: `epc`, `tid` when asked, `rssi` (dBm), `proximity` (0–1), `antenna`, `readCount`, `firstSeen` / `lastSeen`.                                                                                                                                   |
+| R4  | Distance     | Relative proximity from smoothed RSSI, calibratable bounds, never metres; the raw RSSI stays available.                                                                                                                                                  |
+| R5  | Connection   | One reader at a time: `connect(address)` resolves when the reader is ready (Honeywell: `createReader()` on every `onDeviceConnected`, `onReaderCreated(true)`, no fixed delay); auto-reconnect; `reconnecting` while it runs; open until `disconnect()`. |
+| R6  | Discovery    | In scope (each CT40 picks from a pool of readers): `startDiscovery()` as a capability; Honeywell's through its own native scan, filtered to what looks like a reader.                                                                                    |
+| R7  | Trigger      | A capability: a hook puts the reader in RFID trigger mode while mounted, restores it after, and exposes the presses.                                                                                                                                     |
+| R8  | Settings     | Transmit power (dBm), Gen2 session, beeper volume; the region read-only (setting it wrongly is unlawful).                                                                                                                                                |
+| R9  | Platforms    | Android only for Honeywell; the contract has no platform, and iOS and the web read `unsupported` until a vendor supports them.                                                                                                                           |
+| R10 | Events       | The vendor module batches tag reads (at most every 100 ms) before they reach JavaScript, and runs the SDK's blocking calls off the main thread.                                                                                                          |
+| R11 | Distribution | The AAR travels only inside the app's build (the plugin's `aarPath`), never in a published package (the licence, §1 and §3).                                                                                                                             |
+| R12 | Out for now  | Writing, locking and killing tags; USB / serial sleds; firmware updates; GS1 decoding of the EPC (a later helper).                                                                                                                                       |
+| R13 | Builds       | One build per vendor (the licence, §2); the Honeywell adapter reads `unsupported` off Honeywell hosts (`Build.MANUFACTURER`).                                                                                                                            |
+
+| Phase | Content                                                                                                                                                                                                                                                               | Release  | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ |
+| 34    | The contract in `@its/glowup-device/rfid`: `RfidAdapter` and capabilities, units, `RfidError`, `RFID_CONTRACT_VERSION`, the engine (modes, dedupe, proximity, emulated single read and locate), the hooks, `createMockRfidAdapter()`, `describeRfidAdapterContract()` | `0.11.0` | done   |
+| 35    | `packages/rfid-honeywell` skeleton and spike: Expo module (Android), the plugin wiring the app's AAR, connect / inventory / locate / trigger, a diagnostics screen in a development build; the team runs it on a CT40 + IH40 and the readings fill the list above     | —        | done   |
+| 36    | `@its/rfid-honeywell` complete: the adapter passing the conformance kit, unit conversion, batching, threading, reconnection, discovery, errors; the new package's publishing (changesets, trusted publisher)                                                          | `0.1.0`  | done   |
+| 37    | Playground page (a simulated reader everywhere; Honeywell stays in `apps/rfid-diagnostics`), `examples/consumer`, changesets, release; the team's check on the real IH40                                                                                              | `0.11.0` | done   |
 
 **Answered:**
 
-- **Both single modes.** "Single search" means reading the one tag in front of the reader
-  (`readSingle`) and finding a given tag by its proximity (`locate`): R4 keeps both, next to
-  the multiple scan.
-- **Host:** a Honeywell CT40 first, but nothing in `/rfid` may assume it: the contract names no
-  vendor or device, and the CT40 is only where the Honeywell adapter is checked.
-- **Android only** (R8).
-- **Writing, locking and killing tags** stay out of the first release (R9).
-- **GS1 decoding** of the EPC comes later, as a helper (R9).
+- **The three modes:** multiple scan with proximity, single search, single read for the id. The
+  Honeywell SDK supports all three natively.
+- **Architecture:** the contract in `@its/glowup-device/rfid`, vendors in `@its/rfid-*`.
+- **SDK:** Honeywell RFID SDK v1.1.0 only. The host is a CT40 and the link is BLE.
+- **No UI** in the library: hooks and the adapter API only.
+- **The licence:** use is royalty-free with no runtime licence; the AAR stays inside the app's
+  build (R11) and each vendor gets its own build (R13).
 
-**Still open:** the link to the reader (Bluetooth or the CT40 mounted over USB, which would also
-need Honeywell's Mobility SDK); the AAR's licence and where it may live; whether RFID comes
-before Bluetooth (v0.9); the SDK and its Javadoc for the spike (phase 34).
+- **Choosing a reader:** each CT40 picks from a pool of IH40s, so the search (R6) is in scope.
+- **The CT40 runs Android 11:** connecting needs no runtime permission there, but a search needs
+  the precise location (and location switched on); the plugin declares it capped at Android 11.
+- **Release:** `@its/glowup-device` shipped Bluetooth as `0.10.0`, so `/rfid` ships as `0.11.0`.
+  `@its/rfid-honeywell`'s peer range is `>=0.10.0 <0.12.0` in the workspace (whose device
+  package is still `0.10.0`); the "Version Packages" PR rewrites it to `>=0.11.0 <0.12.0` (phase
+  37).
+
+**Still open:** whether Honeywell's Maven repository serves the SDK (above); the spike's other
+questions are answered.
+
+### Phase 34 — what landed
+
+- **`@its/glowup-device/rfid`**, no native code and no default adapter (`unsupportedRfidAdapter`
+  rejects everything with `unsupported`). Lint lists it in `DEVICE_CAPABILITIES` with no module.
+- **The contract** (`types.ts`): `RfidAdapter` with its required primitives (permission,
+  connection, inventory, settings) and its optional methods (`readOnce`, `startLocate` /
+  `stopLocate`, `subscribeTrigger`, `startDiscovery` / `stopDiscovery`, `getBatteryLevel`,
+  `getReaderInfo`); `RFID_CONTRACT_VERSION = 1`; `RfidTagRead` as the adapter reports a read and
+  `RfidTag` as the hooks expose it; `RfidSettings` (power in dBm, session 0–3, beeper volume, the
+  region read-only). `getRfidCapabilities()` reads `native` / `emulated` from the methods;
+  `firstSupportedRfidAdapter()` picks among vendors at run time.
+- **`RfidError`** with eight codes: `unsupported`, `incompatible-adapter`, `permission-denied`,
+  `not-connected`, `disconnected`, `timeout`, `cancelled`, `failed`.
+- **The engine** (`engine.ts`), one per adapter:
+  - readiness: supported → contract version → permission → connected; never prompts;
+  - the connection outlives the components; `connect()` times out after 20 s and closes the
+    attempt; the latest failure stays in `useRfidReader().error`;
+  - one mode at a time: the last start wins, a new mode starts only after the previous one
+    stopped on the reader, and the running one ends in the background and when the link leaves
+    `connected` (`disconnected`);
+  - settings checked before they reach the reader (`RangeError` outside `powerRange`).
+- **The hooks:**
+  - `useRfidPermission`, `useRfidReader`;
+  - `useRfidInventory`: merged by EPC, RSSI smoothed (EMA 0.3), proximity between the bounds,
+    nearest first or first seen, rendered at most every 250 ms, `forgetAfter`, `duration`;
+  - `useRfidSingleRead`: native `readOnce` or a 500 ms inventory, the strongest tag or `null`;
+  - `useRfidLocate`: native tag finder or a filtered inventory, out of range after 2 s of silence;
+  - `useRfidTrigger` (press / release handlers; pairs with any mode);
+  - `useRfidReaderDiscovery`.
+- **Testing:** `createMockRfidAdapter()` (every optional part switchable) and
+  `describeRfidAdapterContract({ describe, it }, setup)`: 13 checks on units, connection states,
+  stop semantics, errors and the optional parts. It runs on the mock with every part and with
+  none, and its own tests prove it fails adapters that keep vendor units, report after a stop,
+  or resolve `connect()` early.
+- **Decided on the way:**
+  - The trigger is a hook of its own rather than an option of each mode: one way to pair it with
+    any mode, and nothing to keep in sync.
+  - A mode ends (rather than pauses) in the background: a handheld returning to the app expects
+    to press the trigger again.
+  - `read()` hands back its promise before the reader starts, so a read replaced during a
+    native window rejects at once, not when the window ends.
+- **Not yet:** no vendor and no playground page; the units the Honeywell module must convert from
+  (RSSI, the locate value) wait for the spike in phase 35.
+
+### Phase 35 — what landed
+
+- **`packages/rfid-honeywell`** (`@its/rfid-honeywell`, private): an Android-only Expo module, its
+  adapter and its config plugin.
+  - **Kotlin** (`HoneywellRfidModule.kt`): binds the SDK's service, connects (and reconnects by
+    itself) and is `connected` after `onReaderCreated(true)`; inventory (`read`, with `TID_BANK` on
+    request), single read (`syncRead`, or a `read` window for a TID), locate (`setLocateEPC` +
+    `read`, the value from the filtered reads), trigger hand-over (`TriggerMode.RFID`, then
+    `BARCODE` again: revision 3, below), settings, battery, reader info; reads batched to JavaScript every 100 ms; raw diagnostic events.
+    `ReaderScanner.kt` is the search: a low-latency BLE scan that refuses to start with location
+    off up to Android 11 and reports each device at most every 500 ms.
+  - **Adapter** (`createHoneywellRfidAdapter`, `getHoneywellRfidAdapter`): every optional part of
+    the contract; centi-dBm and volume names converted; the module's error codes mapped to
+    `RfidError`; `unsupported` off Honeywell hosts (R13); Android permissions: nearby devices from
+    Android 12, the precise location up to 11.
+  - **Plugin** (`aarPath`): copies the app's AAR into a Maven repository in `android/`, declares it
+    for the SDK's group only, raises `minSdkVersion` to 26 and declares the permissions. A real
+    `expo prebuild` of the diagnostics app produced the expected `build.gradle`,
+    `gradle.properties`, manifest and repository, and autolinking found the module.
+  - **Checked:** the Kotlin compiles against the AAR's `classes.jar` (stubs for Android and
+    Expo's DSL; no Android SDK can be downloaded here). The adapter passes the conformance kit
+    against a JavaScript copy of the module (`fakeNative.ts`).
+- **`apps/rfid-diagnostics`** (private): one screen over `/rfid`'s hooks (permission, search,
+  connection, settings, multiple scan with the trigger, single read, search) and the measurements
+  the spike needs, shared as a JSON report. `README.md` is the team's checklist.
+- **Repository:** lint keeps the device package from importing a vendor and a vendor to `/rfid`;
+  `.gitignore` blocks the SDK anywhere in the tree.
+- **What the six reports changed** (the measurements above):
+  - `DataCollection.aar` became a second SDK the app supplies (`dataCollectionAarPath`);
+  - the default proximity bounds moved to −30 / −70 dBm;
+  - the search also matches the IH40's company id (1318);
+  - the module reconnects by itself, the SDK's auto-reconnect being off;
+  - the read option sets `data` and `protocol`, and a single read with a TID is a `read()` window;
+  - the module reports a revision, so the diagnostics flag a stale native build.
+- **Decided on the way:**
+  - The module computes the locate value from the reads the SDK filters for it, not from
+    `onReceivedFindingTag`, whose integer division by the read count is not a signal strength.
+  - The search filters to the SDK's service or an `IH4x` name; the diagnostics turn the filter
+    off to learn what the IH40 really advertises.
+  - Plain React Native components in the diagnostics app: a short-lived tool, built without the
+    UI kit's fonts and native modules.
+
+### Phase 36 — what landed
+
+- **`@its/rfid-honeywell` is publishable** (no longer `private`), built like the device package:
+  bob into `lib/` (CommonJS, ES modules, types), an `exports` map (`.`, `./app.plugin.js`,
+  `./package.json`), `validate-package` (publint, attw) in CI and the root `build`, `release.yml`
+  naming it. The tarball holds `lib/`, `src/`, the Android module (`build.gradle`, sources),
+  `expo-module.config.json` and `app.plugin.js`: no SDK. A changeset makes it `0.1.0`.
+- **The adapter's work** listed for this phase (the conformance kit, units, batching, threading,
+  reconnection, discovery, errors) landed during the spike and was measured there (phase 35).
+- **Found on the way:** the package's type-check and tests resolved `@its/glowup-device/rfid`
+  through the device package's `exports`, so its built `lib/`; CI type-checks and tests before it
+  builds, so on a clean checkout both failed. `tsconfig.json` (`paths`) and Jest
+  (`moduleNameMapper`) now map `/rfid` and `/testing` to the device package's `src`;
+  `tsconfig.build.json` clears the mapping, so the published types import the package by name.
+- **`PermissionState` is exported from `/rfid`:** the adapter imported it from the root entry,
+  which a vendor package should not need. ESLint now refuses the root entry in `packages/rfid-*`.
+- **The peer range** on `@its/glowup-device` had to exclude `0.10.0`, which has no `/rfid` (phase
+  37 settles it). The package is no longer private, so `changeset publish` publishes it with the
+  first release from `master`: this branch merges only with phase 37.
+- **The trusted publisher** is set up on npmjs.com by a maintainer. npm may not offer the setting
+  before the package's first version exists; if it does not, the first version needs a one-off
+  publish by hand (to check on npmjs.com). The Release runs after phase 37 answered it: every
+  package npm did not know yet failed with `E404` on `PUT` (see "After phase 37").
+
+### Phase 37 — what landed
+
+- **Playground `/device/rfid`** on a simulated reader (`site/rfidDemo.ts`: the package's mock
+  driven by a timer). The reader section searches, connects and shows the reader's identity and
+  battery; the multiple scan lists tags with their proximity (with TIDs on request) and runs on
+  the trigger (a button pulls the simulated one); the single read shows the nearest tag and its
+  TID; a tag picked in either is the search's target, whose gauge follows the sweep. The page
+  provides the demo only without an adapter above it, so its tests drive a mock: connection,
+  scan, trigger, single read, search and the simulated reader.
+- **Decided:** the playground depends on no RFID vendor, against the earlier "Honeywell in a
+  development build". A vendor package is autolinked into every Android build of the app that
+  depends on it, so every playground build would need Honeywell's two AARs, and would carry the
+  SDK onto other brands' devices (R13). `apps/rfid-diagnostics` is the Honeywell build.
+- **`examples/consumer`** installs `@its/rfid-honeywell` from the registry beside the other two:
+  it renders `/rfid` on the Honeywell adapter (unsupported on the web), types it as
+  `RfidAdapter` and lists the config plugin with SDK paths that do not exist (the plugin reads
+  them only at prebuild). The smoke workflow waits for, installs and checks the three versions.
+  Checked here with the three packages packed locally: `tsc`, the web export, and
+  `expo config` resolving and running the plugin.
+- **Changesets:** `@its/glowup-device` minor (`/rfid`, `0.11.0`) and `@its/rfid-honeywell` minor
+  (`0.1.0`). The peer range is `>=0.10.0 <0.12.0`: a caret on `0.11.0` would fail `npm ci` until
+  the device package is bumped. A dry run of `changeset version` gave device `0.11.0`,
+  rfid-honeywell `0.1.0` and the peer range `>=0.11.0 <0.12.0`.
+- **After the merge:** the trusted publisher of `@its/rfid-honeywell` on npmjs.com (above), then
+  the team's check on the IH40 with the published packages.
+
+### After phase 37
+
+- **Publishing is blocked.** The Release after the "Version Packages" merge failed as on 15
+  October: `@its/glowup-device@0.11.0` and `@its/glowup-notifications@0.3.1` with `E404` on
+  `PUT`, and nothing was published (npm knows only `@its/glowup-ui`). Trusted publishing cannot
+  create a package, and the workflow has no token: the first version of each needs a publish
+  by hand or a temporary token, then a trusted publisher. A maintainer's choice; the versions on
+  `master` stay, and `changeset publish` publishes whatever the registry lacks.
+- **The check on the IH40 no longer waits for it.** `npm run packed -w @its/rfid-diagnostics --
+  <dir>` builds the two packages, packs the tarballs npm would publish and makes a copy of the
+  diagnostics app outside the repository that installs them (inside it, Node would fall back to
+  the root `node_modules`, where both are links to their source). The same screen and checklist
+  then run on `lib/`, the `exports`, the config plugin and the Android module as the tarballs
+  ship them; only the provenance is left to the Release.
+- **Found by it: every subpath was bundled from another build than the root.** Metro resolves
+  `@its/glowup-device/rfid` through the nearest `package.json`, the node10 fallback folder,
+  which has no `exports`. Its `react-native` field led to `src` on iOS and Android, its `module`
+  field to `lib/module` on the web (Expo reads `browser`, `module`, `main` there); the root
+  resolved through `exports` to `lib/commonjs`. `core/` was in the bundle twice, so the
+  diagnostics app's `DeviceAdaptersProvider` (from the root) would not have reached
+  `useRfidReader` (from `/rfid`): the Honeywell adapter would never have been used. Neither the
+  playground (`paths` to `src` for every entry) nor the consumer smoke (it bundles, but renders
+  nothing that depends on the provider) could see it. `@its/glowup-notifications`' `/testing`
+  had the same shape.
+- **Fixed** in both packages: the fallback folders and the roots point only at `lib/commonjs`
+  (`main`, `types`, `source`; no `react-native`, no `module`), so every resolver, with or
+  without `exports`, native, web or server, lands on one build. Each package's
+  `package-exports.test.ts` pins it. Patch changesets: device `0.11.1`, notifications `0.3.2`.
+  Checked on the packed tarballs: the Android bundle of the diagnostics copy and the consumer's
+  web bundle each hold one `core/adapters.js`, from `lib/commonjs` (before: `src` beside
+  `lib/commonjs` on Android, `lib/module` beside it on the web); `tsc`, the config plugin at
+  prebuild (with placeholder files where the SDKs go) and autolinking of the Honeywell module
+  pass on the copy. The tests, type-check and lint pass with no `lib/` in the tree.
+- **Still open:** whether Honeywell's Maven repository serves the SDK (phase 35); the team's
+  check on the IH40 with the packed tarballs.
+
+### Zebra (RFD40) — the second vendor
+
+The request: a vendor package for Zebra's RFD40 that implements the same contract, so an app
+switches vendor by the provider's line and the installed package (ADR-R1). The contract needed
+no change: `vendor: "zebra"` and `firstSupportedRfidAdapter([honeywell…, zebra…])` were written
+for it.
+
+**The hardware.** The RFD40 is a UHF sled in three models: _Standard_ (no Bluetooth: eConnex on
+a Zebra mobile computer, or USB-C), _Premium_ (Bluetooth 5.3, Wi-Fi, NFC tap-to-pair; also with
+other brands' devices) and _Premium Plus_ (the Premium with a barcode imager). Zebra also ships
+an RFID SDK for iOS (an XCFramework, Bluetooth MFi or LE) that supports the Premium models.
+
+**Zebra RFID SDK for Android 2.0.5.297** (the requester's download from Zebra's portal,
+`Zebra_RFIDAPI3_SDK_2.0.5.297.zip`; its public API read with `javap` without `-c`, its manifests,
+and its handheld sample `HHSampleApp/RFIDHandler.java`):
+
+- **Packaging:** one AAR for the handhelds, `rfidapi3lib-2.0.5.297.aar` (it bundles
+  `rfidserviceapi.jar`; 2.0.5.224 was fifteen AARs). `rfidapi3ziotcllrplib` holds the same
+  classes plus LLRP for fixed readers: one or the other. No native code (no ABI constraint). Not
+  on a public Maven repository. **The zip holds no licence text.**
+- **Manifest:** `minSdkVersion` 29; `BLUETOOTH`, `BLUETOOTH_ADMIN`, `BLUETOOTH_CONNECT`,
+  `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` and `READ_EXTERNAL_STORAGE`, all uncapped.
+- **Undeclared dependencies:** `androidx.localbroadcastmanager` (`RFIDManagerAPI`); Qualcomm's
+  `com.qti.qrs` (the `QC_SERIAL` transport of readers built into hosts), which Zebra's sample
+  declares as an optional `uses-library`; bouncycastle inside the scanner library only.
+- **API3:** `Readers(context, ENUM_TRANSPORT)` + `GetAvailableRFIDReaderList()` →
+  `ReaderDevice` (`getName`, `getAddress`) → `getRFIDReader().connect()`, blocking (the sample
+  runs both off the main thread). Transports `BLUETOOTH`, `SERVICE_SERIAL`, `SERVICE_USB`,
+  `RE_SERIAL`, `RE_USB`, `QC_SERIAL`, `ZIOTC`, `ALL`; the sample tries them in turn. Paired
+  names look like `RFD40+_211545201D0011` (Bluetooth) and `RFD4031-G10B700-US` (serial).
+  `Readers.attach()` reports `RFIDReaderAppeared` / `Disappeared`.
+- **Events:** one `RfidEventsListener`: `eventReadNotify` (then `Actions.getReadTags(n)`) and
+  `eventStatusNotify` with `HANDHELD_TRIGGER_EVENT` (pressed / released), `DISCONNECTION_EVENT`
+  (`CONNECTION_LOST`, `READER_INITIATED_DISCONNECTION`, `READER_EXCEPTION`) and `BATTERY_EVENT`
+  (`getLevel()`), each switched on through `Events.set…Event(true)`.
+- **Tags:** `TagData`: `getTagID()`, `getPeakRSSI()` (a `short`), `getAntennaID()`,
+  `getTagSeenCount()`, `getMemoryBankData()`, and `LocationInfo.getRelativeDistance()` (a
+  `short`) with `isContainsLocationInfo()`.
+- **How the three modes map:**
+  - **Multiple scan:** `Actions.Inventory.perform()` / `stop()` with immediate start and stop
+    triggers. With TIDs: `Actions.TagAccess.readEvent()` on `MEMORY_BANK_TID` (count 0, the
+    whole bank), which reads each tag's TID as it inventories, stopped by `stopAccess()`.
+  - **Single read:** none in the SDK.
+  - **Single search:** `Actions.TagLocationing.Perform(epc, null, null)` / `Stop()`; the SDK's
+    value is a **relative distance from 0 to 100**, not a signal.
+- **Reader:** power as an index into `ReaderCapabilities.getTransmitPowerLevelValues()`
+  (`Antennas.AntennaRfConfig.setTransmitPowerIndex`); session through
+  `Antennas.SingulationControl`; beeper `HIGH`, `MEDIUM`, `LOW`, `QUIET`; region from
+  `getRegulatoryConfig()`; `setTriggerMode(RFID_MODE | BARCODE_MODE, boolean)`;
+  `getDeviceStatus(battery, …)` (answered by `BATTERY_EVENT`) and `getBatteryStats()`; model and
+  serial from `ReaderCapabilities`, firmware from `versionInfo()`, every component's version from
+  `getDeviceVersionInfo(map)`.
+- **No brand check** in the RFID classes (`isZebraDevice` exists only in the barcode scanner
+  library, which the module does not use).
+
+**Decisions (taken with the requester):**
+
+| #   | Question    | Decision                                                                                                                                                                                                                                                 |
+| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Z1  | Hardware    | The **RFD40 Premium over Bluetooth, on any Android device**. eConnex, USB, the Standard model and the Premium Plus's imager are out.                                                                                                                     |
+| Z2  | SDK         | 2.0.5.297, `rfidapi3lib` only, supplied by the app (`aarPath`) as for Honeywell (R11): never in the repository or a published package. The licence's terms are still to read (below).                                                                    |
+| Z3  | Search      | The reader's own `TagLocationing`, its value the searched tag's **peak RSSI** in dBm; the relative distance goes to the diagnostics only. If the spike finds no RSSI in those reads, the adapter drops `startLocate` and the engine emulates the search. |
+| Z4  | Single read | Emulated by the engine (no `readOnce`): the SDK has none.                                                                                                                                                                                                |
+| Z5  | TID         | A TID-bank access during the scan (`TagAccess.readEvent`).                                                                                                                                                                                               |
+| Z6  | Discovery   | The SDK's list of **paired** readers, polled every 3 s, with no RSSI; pairing is Android's (settings or NFC tap). No Bluetooth scan of the module's own.                                                                                                 |
+| Z7  | Host        | No host check: the Premium pairs with any Android device and the SDK checks no brand (unlike R13's Honeywell).                                                                                                                                           |
+| Z8  | Platforms   | Android only. iOS (Zebra's iOS SDK) is for later; the contract allows it (R9).                                                                                                                                                                           |
+| Z9  | Diagnostics | One app, `apps/rfid-diagnostics`, one build per vendor: `RFID_VENDOR` picks the plugin and excludes the other vendor from autolinking.                                                                                                                   |
+| Z10 | Power       | Through the reader's table: read as tenths of a dBm, a setting picks the nearest level, `powerRange` 0–30 dBm with the reported power kept inside it.                                                                                                    |
+| Z11 | Release     | `@its/rfid-zebra` stays private through the spike, as Honeywell did through phase 35.                                                                                                                                                                    |
+
+Rejected: turning the relative distance into a made-up dBm (the contract's units would lie), and
+a contract change for a native proximity (it would touch every vendor for one SDK's value);
+DataWedge's RFID input (intents, no search or settings: it cannot implement the contract).
+
+| Phase | Content                                                                                                                                                                                                     | Release | Status      |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
+| Z1    | `packages/rfid-zebra` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics app per vendor; the team runs it on an RFD40 Premium and the readings fill the list below | —       | in progress |
+| Z2    | `@its/rfid-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                                                                              | `0.1.0` | —           |
+| Z3    | The playground's install snippet per vendor, `examples/consumer` (a Zebra build of its own, R13 / Z9)                                                                                                       | —       | —           |
+
+### Phase Z1 — what landed
+
+- **`packages/rfid-zebra`** (`@its/rfid-zebra`, private), the Honeywell package's shape:
+  - **Kotlin** (`ZebraRfidModule.kt`): `Readers` over Bluetooth; `connect(id)` finds the paired
+    reader by address or name and connects on the module's `link` thread; configures the events
+    and immediate triggers; reconnects by itself after `DISCONNECTION_EVENT` (1, 3, 5, then
+    every 10 s; at once on `RFIDReaderAppeared`); a `generation` counter lets a late attempt
+    close what it opened. Inventory (with TIDs through the TID-bank access), native locate (the
+    peak RSSI; the relative distance as a diagnostic), trigger hand-over (`RFID_MODE`), settings,
+    battery (`BATTERY_EVENT`, `getBatteryStats()` as a fallback), reader info and versions, the
+    paired readers' list; reads batched every 100 ms; raw diagnostic events.
+  - **Adapter** (`createZebraRfidAdapter`, `getZebraRfidAdapter`): every optional part but
+    `readOnce`; `nativeLocate` (default on) and `setNativeLocate()` for the comparison; power
+    through the table; `off` ↔ `QUIET`; nearby devices permissions from Android 12, nothing
+    before.
+  - **Plugin** (`aarPath`): the SDK in a Maven repository in `android/` for `com.zebra.rfid`
+    only, `minSdkVersion` 29, `BLUETOOTH_SCAN` / `BLUETOOTH_CONNECT`, the SDK's location capped at
+    Android 11 (`tools:node="replace"`), `com.qti.qrs.qc_sdk` optional.
+- **Checked:** the Kotlin compiles against the 2.0.5.297 `classes.jar` (stubs for Android and
+  Expo's DSL), without a warning; the adapter passes the conformance kit twice (native and
+  emulated search) over `fakeNative.ts`; the package builds and passes `validate-package`; a real
+  `expo prebuild` of the diagnostics app with `RFID_VENDOR=zebra` and the AAR produced the
+  repository, `minSdkVersion=29`, the permissions, the optional library and
+  `expoAutolinking.exclude = ["@its/rfid-honeywell"]` (and the Honeywell build the reverse);
+  autolinking then resolves only `@its/rfid-zebra`.
+- **`apps/rfid-diagnostics`** runs either vendor: `vendors.ts` picks the linked one, the
+  measurements read both vendors' events (Zebra: the locate's RSSI beside its relative
+  distance, the paired readers, the battery level), the search can switch between the reader's
+  and the engine's, and `README.md` has the RFD40 checklist.
+
+**Not verified until the spike** (the RFD40 checklist measures each):
+
+- the power table's unit (tenths of a dBm?) and range, the region's name;
+- the peak RSSI's range and the proximity bounds (−30 / −70 dBm until measured), the EPC's case;
+- whether the TID-bank access gives every tag its TID, and how much it slows the scan;
+- whether the locate's reads carry a peak RSSI (Z3), and the beeper during it;
+- whether `QUIET` mutes the beeper; what `setTriggerMode`'s boolean does; whether the
+  trigger needs `RFID_MODE` at all on a Premium;
+- the battery through `BATTERY_EVENT` or `getBatteryStats()`;
+- what the paired readers' list holds, the connection time, and the reconnection after the
+  reader is switched off or walks out of range;
+- whether anything needs a permission the module does not ask (Android 10 and 11: location;
+  12 and later: `BLUETOOTH_SCAN`), and whether the missing Qualcomm library is ever loaded.
+
+**Still open:** the SDK's licence. The zip has no EULA: the text accepted at download (or
+Zebra's terms for the RFID SDK) decides whether Z2's "the app supplies the SDK" is a choice or
+an obligation, and whether it binds the SDK to Zebra hardware (here the reader is Zebra's, the
+host may not be).
+
+## v0.12 — barcode scanner
+
+The request: the CT40's built-in barcode / QR imager behind a vendor-neutral interface, with the
+same split as RFID: a contract in `@its/glowup-device`, a package per vendor (Honeywell first,
+Zebra later). A read confirms by itself: the app gets the code and acts on it (submits the
+form, calls its API) without a keypress.
+
+### The SDK received, and why it is not the one
+
+`Honeywell_Scanner_SDK_for_Android-v6.00.06.00.zip` (read from its manifests, class names,
+release notes, sample and EULA; not its bytecode, which its licence forbids reverse compiling)
+is the **Android Gen7 BT SDK** for the **Seychelles 8680i / 8680iB / 8690i** wearable scanners:
+
+- Bluetooth only (`com.honeywell.scanner.sdk.bt.classicbt`, `bt.ble`; BLE "in a future
+  release"): connect to the ring scanner, read its barcodes (and the 8690i's RFID), flash its
+  firmware (`libFlashFirmwareLib.so`). The CT40 and CT60 appear only as the host it pairs with.
+- Android 7.1 to 10 in its release notes; `minSdkVersion` 24, `targetSdkVersion` 28, last
+  release 6 October 2021. It declares `BLUETOOTH` / `BLUETOOTH_ADMIN` only, none of Android 12's
+  nearby devices permissions. Nothing in it requires Android 13; newer Android is where it is
+  least likely to work.
+- Its EULA ("Honeywell Productivity Products Developer License", §4) forbids copying,
+  distributing, modifying and reverse compiling the DevTools.
+
+It does not drive the CT40's own imager. That is Honeywell's **Data Collection SDK** (Mobility
+SDK, `com.honeywell.aidc`, `DataCollection.aar`), the same AAR `@its/rfid-honeywell` already
+requires (1.97.00.0060, phase 35). The ring scanners are out unless someone uses them (below).
+
+### The architecture (ADR-C1)
+
+- **`@its/glowup-device/scanner`**: the contract and the engine, like `/rfid`.
+  - `BarcodeScannerAdapter`: `vendor`, `symbologies` (what it can turn on), `isSupported()`,
+    `open(request, handlers)` / `close()` (Honeywell's claim / release; the request's
+    symbologies applied on each `open()`), reads, trigger presses and a scanner taken away as
+    events, `softwareTrigger?(pressed)`, `getScannerInfo?()`.
+  - A read: `data` (text), `type` (`BarcodeType` or `"unknown"`), `rawType` (the vendor's
+    code id), `aimId` when the SDK gives one, `timestamp`.
+  - `useBarcodeScanner({ onScan, enabled, symbologies })`: the scanner is open while the screen
+    is mounted, `enabled` and the app in the foreground, and released otherwise (another app, or
+    the device's own keyboard wedge, gets it back).
+  - **Automatic confirmation** is the app's `onScan`: the library never submits anything. To
+    keep a confirmation from running twice, the hook drops a read while the previous
+    `onScan`'s promise is pending, and the same code within a short window (both configurable).
+  - `createMockBarcodeScannerAdapter()` and `describeBarcodeScannerAdapterContract()` in
+    `/testing`.
+  - `BarcodeType` moves from `/camera` to `core/` (a capability imports no other, D2), as the
+    location types did in phase 27; `/camera` re-exports it.
+- **`@its/scanner-honeywell`**: Android Expo module over the Data Collection SDK, adapter,
+  config plugin; the AAR supplied by the app (`dataCollectionAarPath`), never in the repository
+  or a package (R11). It supports what the SDK supports: no Android floor of its own, and the
+  same host check as R13.
+- **`@its/scanner-zebra`** later, on the same contract (DataWedge's intents on Zebra mobile
+  computers, or Zebra's scanner library for a Bluetooth imager): decided when a Zebra device is
+  there to try (done: "Zebra (TC22)" below, DataWedge).
+
+**Data Collection SDK 1.97.00.0060** (the requester's `DataCollection.aar`, its public API read
+with `javap` without `-c`; the AAR holds no licence text):
+
+- **Packaging:** `com.honeywell.aidc`, one `classes.jar`, no native code; `minSdkVersion` 16; it
+  declares `com.honeywell.decode.permission.DECODE` (the scanner service's own permission).
+- **Session:** `AidcManager.create(context, CreatedCallback)` (asynchronous, `onCreated(manager)`)
+  → `createBarcodeReader()` (or by name, from `listBarcodeDevices()`; `BarcodeDeviceListener`
+  reports a device connected or disconnected) → `claim()` / `release()` / `close()`, then
+  `manager.close()`.
+- **Reads:** `BarcodeListener.onBarcodeEvent(BarcodeReadEvent)`: `getBarcodeData()` (a
+  `String`), `getCharset()`, `getCodeId()` (Honeywell's own id), `getAimId()` (ISO/IEC 15424:
+  `]Q` QR, `]C` Code 128, `]E0` EAN-13, `]d` Data Matrix), `getTimestamp()` (a `String`),
+  `getBarcodeBounds()`; `onFailureEvent` (a decode that found nothing).
+- **Trigger:** `TriggerListener.onTriggerEvent(TriggerStateChangeEvent.getState())`;
+  `PROPERTY_TRIGGER_CONTROL_MODE`: `autoControl` (the service decodes on the trigger),
+  `clientControl` (the app calls `softwareTrigger` / `decode` on each press) or `disable`;
+  `PROPERTY_TRIGGER_SCAN_MODE`: `oneShot`, `continuous`, `readOnRelease`,
+  `readOnSecondTriggerPress`; `PROPERTY_TRIGGER_SCAN_SAME_SYMBOL_TIMEOUT` (the service's own
+  repeat filter); `softwareTrigger(boolean)` (needs a claim).
+- **Settings:** `setProperty` / `setProperties(map)` / `getAllProperties()` over about 200
+  `PROPERTY_*` keys: one `…_ENABLED` per symbology (`DEC_QR_ENABLED`, `DEC_CODE128_ENABLED`,
+  `DEC_EAN13_ENABLED`, `DEC_DATAMATRIX_ENABLED`, `DEC_GS1_128_ENABLED`, …), good-read and
+  vibrate notifications, the data processor (prefix, suffix, charset, scan-to-intent, launch
+  browser); `loadProfile(name)`.
+- **Reader info:** `BarcodeReaderInfo` (name, friendly name, scanner id, firmware, serial).
+
+The **IH40 has no imager of its own**: its SDK has no barcode API, and in `TriggerMode.BARCODE`
+its trigger drives the host's scanner (measured in phase 35: "handed back, the trigger drives the
+CT40's own scanner again"). Reading barcodes with the IH40 is pulling its trigger while
+`/scanner` holds the CT40's imager and no RFID screen is mounted (C6).
+
+**To confirm on the CT40:** whether a claim stops the keyboard wedge for the app; whether the
+IH40's trigger reaches `onTriggerEvent` and decodes under `autoControl`; the code ids and AIM ids
+of the four symbologies; what the service does to the claim when the app goes to the
+background; the charset of a QR holding non-ASCII text. And, from phase C2's code: that the
+properties a claim sets apply to this app only (the wedge keeps the device's after a release);
+that `softwareTrigger` decodes under `autoControl`; whether the service applies `DPR_PREFIX` /
+`DPR_SUFFIX` to the listener's data or only to the wedge's (the adapter clears them either way);
+the format of `getTimestamp()` (measured: unpadded offset, below); that UPC-A and UPC-E come as `]E0` with code ids `c` and `E`;
+which `DEC_*` keys the CT40 lacks (the module skips and reports them); and that the RFID SDK's
+own `AidcManager` (its USB transport) and the scanner's live in one process with an RFID screen
+and a scanner screen used in turn.
+
+### Decisions
+
+| #   | Question      | Decision                                                                                                                                                                                                                            | Status  |
+| --- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| C1  | Honeywell     | The Data Collection SDK (`com.honeywell.aidc`), not the scanner service's intents.                                                                                                                                                  | decided |
+| C2  | Confirmation  | A read reaches the app as `onScan`, which confirms by itself; no keyboard wedge, no Enter key.                                                                                                                                      | decided |
+| C3  | Support       | Whatever the Data Collection SDK supports, checked on the team's CT40 (Android 11).                                                                                                                                                 | decided |
+| C4  | Ring scanner  | The Gen7 BT SDK (8680i / 8690i) is out: the team uses no ring scanner.                                                                                                                                                              | decided |
+| C5  | One build     | The scanner and RFID packages share `DataCollection.aar`: the same Maven coordinate in each plugin's repository, so Gradle resolves it once; the versions must agree.                                                               | decided |
+| C6  | Trigger       | No screen reads RFID and barcodes together: an RFID screen owns the trigger (`useRfidTrigger`, `TriggerMode.RFID`); everywhere else it stays in `BARCODE` mode and drives the imager `/scanner` holds, the IH40's trigger included. | decided |
+| C7  | First scope   | Hardware and software trigger; QR, Code 128, EAN-13, EAN-8 and Data Matrix (the others off; EAN-8 added in phase ZB2); no GS1 parsing.                                                                                              | decided |
+| C8  | Camera        | Phones without an imager read through the camera, with the same `onScan` (how: C10).                                                                                                                                                | decided |
+| C9  | Names         | `/scanner`, `@its/scanner-honeywell`, `@its/scanner-zebra`; a scanner section in `apps/rfid-diagnostics`, later renamed for both.                                                                                                   | decided |
+| C10 | Camera wiring | The camera needs a preview on screen, so it stays in `/camera`; the read's shape, the AIM mapping and the busy and repeat guards live in `core/`, used by both.                                                                     | decided |
+
+| Phase | Content                                                                                                                                                                                                                     | Release      | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------ |
+| C1    | `/scanner` contract, engine (open while focused, busy and repeat guards), hooks, mock, conformance kit; `BarcodeType`, the read, the AIM mapping and the guards in `core/`; `/camera`'s reads through the same guards (C10) | device minor | done   |
+| C2    | `packages/scanner-honeywell` (private): Kotlin module, adapter, plugin, the conformance kit over a fake; the diagnostics screen; the team runs it on a CT40                                                                 | —            | done   |
+| C3    | `@its/scanner-honeywell` publishable: changeset, trusted publisher, `validate-package`, `release.yml`, the root `build`                                                                                                     | `0.1.0`      | done   |
+| C4    | Playground page on a simulated scanner, `examples/consumer`, changesets                                                                                                                                                     | —            | done   |
+
+### Phase C1 — what landed
+
+- **`@its/glowup-device/scanner`** (`src/scanner`):
+  - **Contract** (`types.ts`, `BARCODE_SCANNER_CONTRACT_VERSION` 1): `BarcodeScannerAdapter`
+    as above; a read (`BarcodeScannerRead`: `data`, `aimId`, `rawType`, optional `type` and
+    `timestamp`); `BarcodeScannerError` (`unsupported`, `incompatible-adapter`, `unavailable`,
+    `not-open`, `failed`); `unsupportedBarcodeScannerAdapter`,
+    `firstSupportedBarcodeScannerAdapter`, capabilities read from the optional methods.
+  - **Engine** (`engine.ts`, one per adapter): a stack of holders, one per mounted and enabled
+    `useBarcodeScanner`. The scanner is open while the stack is not empty and the app is in the
+    foreground; the reads go to the top holder; its symbologies are the request, reapplied
+    with `open()` while open (no release between screens). One open or close at a time, on a
+    promise chain; a session counter drops what an earlier claim reports after it closed. An
+    adapter's `onClose` (another app took the scanner) reads `closed` with `unavailable`, and
+    `retry()` opens again; the next foreground or holder change does too.
+  - **Hook** (`useBarcodeScanner`): `onScan` (the latest one, without reopening), `enabled`,
+    `symbologies` (`null`: the device's own configuration), `repeatInterval` (1000 ms),
+    `dropWhileBusy` (true); it reports `state`, `isActive`, `error`, `isTriggerPressed`,
+    `isBusy`, and gives `softwareTrigger`, `getScannerInfo` and `retry`. A symbology the
+    scanner cannot decode is a `RangeError`, only where the adapter is supported (elsewhere the
+    same list goes to the camera). Unsupported and closed while a static page prerenders.
+- **Shared with `/camera`** (`core/barcodes.ts`, C10): `BarcodeType` (moved from `/camera`,
+  which re-exports it), `BarcodeScan` (`data`, `type`, `rawType`: what a camera read and a
+  hardware read share, so one handler serves both), `aimToBarcodeType` (ISO/IEC 15424: `]Q`,
+  `]C`, `]E0` / `]E4`, `]d`, `]A`, `]G`, `]F`, `]I`, `]L`, `]z`) and `createScanGate` (the
+  repeat window and the busy guard). `CameraView` now uses the gate: a handler that returns a
+  promise makes it drop codes until the promise settles.
+- **Wiring:** `DeviceAdapters.barcodeScanner`, the `./scanner` export, its node10 folder (`main`,
+  `types`, `source` only) and `files`; `DEVICE_CAPABILITIES.scanner` with no module; ESLint
+  keeps `@its/scanner-*` out of the device package and gives `packages/scanner-*` the vendor
+  rules RFID's have (one rule built for both contracts); the playground maps the subpath.
+- **Testing:** `createMockBarcodeScannerAdapter()` (decodes only while open and only the
+  symbologies turned on; trigger, take-away, failed and held opens) and
+  `describeBarcodeScannerAdapterContract()` (declaration, one delivery per decode with the text
+  intact, non-ASCII included, a request reapplied while open, close semantics, reopening, the
+  software trigger needing a claim, the hardware trigger, a scanner taken away, the identity).
+  `scanner-contract.test.ts` runs it on the mock with every part and with none, and checks it
+  catches five broken adapters (a version imported, a suffix and a missing AIM id, a listener
+  added on each open, reads after close, a software trigger that works while closed).
+- **Changeset:** `@its/glowup-device` minor.
+
+### Phase C2 — what landed
+
+- **`packages/scanner-honeywell`** (`@its/scanner-honeywell`, private, `0.0.0`): the RFID
+  packages' shape (bob build, `validate-package`, `/scanner` and `/testing` only, mapped to the
+  device package's `src`).
+  - **Kotlin module** (`HoneywellScannerModule`, revision 1): binds the service once
+    (`AidcManager.create`, 10 s timeout), creates the internal imager's reader once with its
+    barcode and trigger listeners, then on `open(properties, triggerControl)` sets the
+    properties, sets `TRIG_CONTROL_MODE` (`autoControl`, or `clientControl` where the module
+    aims, lights and decodes on each trigger event) and claims; again while claimed it applies
+    only. It keeps each key's value from before its first change and puts back the keys a later
+    request leaves out, so `symbologies: null` returns to the device's settings; a key the
+    scanner lacks is skipped and reported. `close()` releases, the reader stays. Reads,
+    triggers and a claim lost (`ScannerNotClaimedException` / `ScannerUnavailableException` on
+    a software trigger, the reader's device disconnected) go to JavaScript only while claimed;
+    the last one once, as `onClose(ERR_UNAVAILABLE)`. Diagnostics: raw reads (code id, AIM id,
+    charset, timestamp string, thread), failed decodes, triggers claimed or not, the claim's
+    life, `listDevices()`, `getAllProperties()`. Compiled with `kotlinc` against the AAR's
+    `classes.jar` and stubs (no Android SDK in the session).
+  - **Adapter** (`createHoneywellBarcodeScannerAdapter`): every `BarcodeType` (`symbologies`),
+    `softwareTrigger`, `getScannerInfo` (the friendly name, serial, firmware, and the engine's
+    model from `scannerId`, since the CT40 run); one set of subscriptions per claim, removed before `close()`
+    resolves. `toOpenProperties()` maps the request to the SDK's keys: one switch per type
+    (Code 128 with GS1-128, ITF-14 as Interleaved 2 of 5), the SDK's 24 other symbologies off,
+    postal `none`, OCR `off`; and on every claim no prefix, suffix or symbology id, no data or
+    scan intents, browser or EZConfig. The type is the AIM id's, except UPC-A / UPC-E (code id
+    `c` / `E` under `]E0`); `rawType` is the code id; the timestamp is the SDK's when it parses
+    to a real time, the arrival's otherwise. Host check as R13. (Since the CT40 run, every claim
+    also transmits EAN's and UPC's check digit and number system: "measured on the CT40" below.)
+  - **Config plugin** (`dataCollectionAarPath`): the AAR into `honeywell-scanner-repository/`
+    as `com.honeywell.aidc:datacollection:1.97.00.0060`, the coordinate `@its/rfid-honeywell`
+    uses (C5); no manifest or `minSdkVersion` change (the SDK's manifest carries its
+    permission, its minimum is 16).
+  - **Tests:** the conformance kit over `fakeNative.ts` (the Kotlin module and the service: a
+    read arrives only for an enabled symbology), the adapter, the mapping, the plugin.
+- **`apps/rfid-diagnostics`:** a "Barcode scanner" screen beside the RFID one (one at a time,
+  C6): the hook's state, holding on and off, the first scope (C7) or the device's settings, a
+  slow confirmation (the busy guard), the repeat window, a held software trigger, client
+  control, the reads `onScan` received, a keyboard wedge field, the SDK's raw events and a
+  shared report (`scannerMeasurements.ts`). The Honeywell build applies both Honeywell plugins
+  on one `DataCollection.aar`, the Zebra build leaves both modules out; `packed.mjs` packs the
+  scanner package too; a test fails if the two plugins' coordinates differ.
+
+### Phase C2 — measured on the CT40
+
+The team's CT40 (Android 11, API 30), the reports of 21 October, native module revision 1:
+
+- **The four symbologies** (`code id` / AIM id): QR `s` / `]Q1`, Code 128 `j` / `]C0`,
+  EAN-13 `d` / `]E0`, Data Matrix `w` / `]d1`, as Honeywell's chart says; each read typed right.
+- **Every key the adapter sets exists** (48 set, none skipped), and the restore works: the first
+  scope turned off put back 40 keys, on again set them.
+- **EAN-13 lost its check digit:** `978274340080` for `9782743400804`, `806802075320` for
+  `8068020753209`. The CT40's `DEC_EAN13_CHECK_DIGIT_TRANSMIT` is off and the adapter did not
+  set it, so a read differed from the camera's (13 digits) and from another CT40 configured
+  otherwise. Fixed: every claim transmits the check digit of EAN-13, EAN-8, UPC-A and UPC-E,
+  and UPC-A's and UPC-E's number system (`DATA_PROPERTIES`, the device's values back on a
+  release as the other keys).
+- **The timestamp** is local time with an unpadded offset, `2026-10-21T09:27:47.246+2:00`:
+  Hermes parsed it right, V8 does not. Fixed: the offset is padded before the parse.
+- **The trigger:** under `autoControl` the side buttons decode, and `onTriggerEvent` never
+  comes (5 reads and 5 failed decodes, no trigger event), so `isTriggerPressed` stays `false`;
+  under `clientControl` every press and release came, the read 50–500 ms after the press.
+- **Charset:** a QR holding `Città perché € ñ ß 日本語` in UTF-8 arrived as
+  `CittÃ  perchÃ© â‚¬ Ã± ÃŸ æ—¥æœ¬èªž`, the same with and without an ECI declaring UTF-8: the
+  service decodes every symbol's bytes with `DPR_CHARSET` (`ISO-8859-1` on the CT40, in fact
+  Windows-1252: `0x97` became `—`) and ignores the ECI. Repairing it in JavaScript would lose the
+  five bytes Windows-1252 lacks (`Á` is `C3 81`), so every claim sets `DPR_CHARSET` to `UTF-8`
+  (`DATA_PROPERTIES`; the device's back on a release). A symbol holding Latin-1 text beyond
+  ASCII now reads with replacement characters: none in this scope.
+- **The guards:** six reads of one EAN-13 in 3 s reached `onScan` three times (the window counts
+  from the last delivered read: one 948 ms later was dropped); with the repeat window off, all
+  of them. With a 1.5 s confirmation, a different code within it was dropped each time (3 of 3).
+- **The background:** six releases and claims (the home screen, the screen off), the reads back
+  each time, and Notes got the scanner meanwhile. The software trigger read under both trigger
+  controls. Closed, the app left the device as it was: Notes read the EAN-13 in 12 digits.
+- **Info and properties:** `scannerId` `N6803FR` (the N6803 engine, now the info's `model`),
+  firmware `3.23`; 359 properties, the claim's as set. While claimed `DPR_WEDGE` is `false`,
+  which the adapter does not set: the service turns the wedge off for the claiming app.
+- **Callbacks** on the service's Binder threads; the claim's life on the module's thread.
+- **The IH40's trigger did not scan** with the imager held, in either trigger control: no read,
+  no failed decode, so the service never fired. The RFID report showed why: with the trigger not
+  handed over, `onRfidTriggered` came on every press, so the IH40 was in `TriggerMode.RFID` at
+  connection (left so by an earlier session), and the hand-over neither changed nor restored it
+  (no mode event). The module put back the mode it found, never `BARCODE`, against C6. Fixed in
+  `@its/rfid-honeywell`'s native revision 3 (4, below): `BARCODE` at connection, after the hand-over and at
+  disconnection, `RFID` only while handed over; a `triggerModeApplied` diagnostic says what it
+  found and set. With it, **the IH40's trigger fires the imager this app holds** (auto
+  control: reads and failed decodes, no trigger event, as the side buttons).
+- **`getTriggerMode()` cannot be trusted:** the next RFID report had it answer `RFID` at a
+  disconnection, at the connection after it and when the hand-over began, while
+  `onTriggerModeSwitched(BARCODE)` had come after each switch to `BARCODE`. Revision 3 compared
+  with it and so skipped the switch to `RFID`: the hand-over gave no trigger events. Revision 4
+  sets the mode without asking (`triggerModeApplied` keeps the answer as `reported`).
+- **No keyboard wedge in this app,** held or released: neither the side buttons nor the IH40's
+  trigger typed into the diagnostics' text field with "Hold the scanner" off, while Notes got
+  the text. So a release does give the scanner back to other apps; the likeliest reason for this
+  app is that the service sends no wedge text to an app with an open Data Collection connection
+  (the module keeps its `AidcManager` and reader between claims, and `@its/rfid-honeywell`'s SDK
+  opens one of its own), not confirmed. Not fixed, by decision: an app on these packages reads
+  through `useBarcodeScanner` only (C2), on every screen that scans, a text field included.
+  Closing the reader and the service on each release would cost every claim its setup and might
+  not be enough with the RFID SDK's connection open.
+- **The UTF-8 charset works:** both QRs, with and without ECI, read `Città perché € ñ ß 日本語`,
+  the service reporting `UTF-8` (55 keys set).
+- **Not read on purpose:** a symbology outside the request (EAN-8, PDF417 and UPC are off in the
+  properties).
+- **Revision 4 works:** `BARCODE` at the disconnection and at the connection, `RFID` for the
+  hand-over (trigger events, 40 tag reads), `BARCODE` after it, each confirmed by
+  `onTriggerModeSwitched` while `getTriggerMode()` kept answering `RFID`; then the IH40's
+  trigger read a QR on the scanner screen. The CT40 run is through.
+
+### Phase C3 — what landed
+
+- **`@its/scanner-honeywell` is publishable** (no longer `private`), as `@its/rfid-honeywell`
+  became in phase 36: bob into `lib/`, the `exports` map (`.`, `./app.plugin.js`,
+  `./package.json`), `validate-package` (publint, attw) in CI and the root `build`,
+  `release.yml` and the changesets' README naming it, `publishConfig` (`access: public`,
+  `provenance: true`). The tarball holds `lib/`, `src/`, the Android module (`build.gradle`,
+  sources), `expo-module.config.json` and `app.plugin.js`: no SDK. A changeset makes it `0.1.0`.
+- **`@its/rfid-honeywell` has its `publishConfig` back,** removed with the temporary token's
+  revert: every published package now asks for provenance, as `SECURITY.md` promises.
+- **`examples/consumer` waits for phase C4** (with the playground page, as the RFID page and the
+  consumer went together in phase 37): it installs from the registry, and the package is not
+  there yet.
+- **Not published yet:** as after phase 37, npm knows only `@its/glowup-ui` (checked 21
+  October). Trusted publishing cannot create a package, so the first version of each, this one
+  included, needs a publish by hand or a temporary token before its trusted publisher is set up:
+  a maintainer's choice. Until then the Release fails with `E404`, as it does for the others.
+
+### Phase C4 — what landed
+
+- **Playground `/device/scanner`** on a simulated scanner (`site/scannerDemo.ts`: the package's
+  mock with five warehouse labels to aim at). The page holds the scanner with the first scope's
+  symbologies (C7) and shows its state, the trigger and the busy guard; switches turn the
+  symbologies off (the device's settings), make the confirmation slow (1.5 s, reads meanwhile
+  dropped), let the same code through every time, and give the scanner back to read through
+  `CameraView` into the same `onScan` (C8, C10). The simulated trigger, the software trigger and
+  another app taking the scanner (with `retry()`) are buttons; an EAN-8, outside the scope, is
+  not decoded until the first switch is off. The page provides the demo only without an adapter
+  above it; its tests drive a mock: the symbologies, the repeat window, a slow confirmation, the
+  scanner taken away, the camera fallback, the simulated scanner. Checked in Chromium on the
+  static export at 1440 and 390 px: no console error (hydration included), no horizontal scroll,
+  the trigger, the ignored EAN-8 and the software trigger as in the tests.
+- **No vendor in the playground,** as decided for RFID in phase 37: `@its/scanner-honeywell`'s
+  module would be autolinked into every Android build of the playground, which would then need
+  Honeywell's `DataCollection.aar`.
+- **`examples/consumer`** installs `@its/scanner-honeywell` from the registry beside the other
+  three: it renders `/scanner` on the Honeywell adapter (unsupported on the web), types it as
+  `BarcodeScannerAdapter` and lists the config plugin with a `DataCollection.aar` path that does
+  not exist. The smoke workflow waits for, installs and checks the four versions. Checked here on
+  the four packages packed locally: `tsc`, the web export (the page reads `Scanner honeywell
+false · closed`) and `expo config` resolving both Honeywell plugins.
+- **No release:** the playground is private and the consumer is no package, so no changeset;
+  the table's "device minor" for this phase did not hold, nothing in `/scanner` changed. The
+  smoke stays red until the packages are on npm (see "Phase C3 — what landed").
+
+### Zebra (TC22) — the barcode scanner's second vendor
+
+The request: the TC22's built-in imager behind the same contract, so an app switches vendor by
+the provider's line and the installed package. The contract needed no change (`vendor: "zebra"`,
+`aimId: null` with an explicit `type`, `onTrigger` optional). The team's TC22: Android 15,
+DataWedge 15.0.96, scanning framework 43.63.50.0.
+
+**The SDK received, and why it is not the one.** `Android_ScannerSDK_v2.7.4.0.zip`
+(`com.zebra.scannercontrol`, `barcode_scanner_library_v2.7.4.0-release.aar`, its javadoc and
+demo; and the two public sample repositories, `ZebraDevs/Scanner-SDK-for-Android` and
+`…-Code-Snippets`) drives **external** scanners: its operational modes and connection types are
+Bluetooth classic, Bluetooth LE, USB SNAPI and USB CDC; its scanner list is "paired via
+bluetooth"; its manifest asks for Bluetooth permissions only; its samples name the CS4070,
+RFD8500, DS3678, RS5100, LI4278, DS2278. Zebra's documentation says it is not approved for Zebra's
+own mobile computers, which use EMDK. It would serve a Zebra Bluetooth or USB scanner on another
+brand's host (an RS5100 on a CT40): a package of its own if that is ever wanted. Its AAR is in
+`.gitignore`.
+
+**Two ways to the TC22's imager:**
+
+- **DataWedge** (chosen): the scanning service on every Zebra mobile computer, driven by
+  broadcast intents (`com.symbol.datawedge.api.ACTION`), no SDK at all. A profile per app
+  (associated with its activities) picks the input (barcode), the decoders and the output
+  (keystroke, intent, …); the app's own profile with the intent output on and the keystroke
+  output off sends its reads to the app and leaves every other app's wedge alone. Zebra
+  recommends it for scanning apps.
+- **EMDK's Barcode API** (`com.symbol.emdk.barcode`): `compileOnly` from Zebra's Maven repository
+  plus the library on the device; a `BarcodeManager` disables DataWedge for the **whole device**
+  until the app releases it (the CT40's measured behaviour, again); its lifecycle (asynchronous
+  manager, release on every pause, `INVALID_OBJECT` after a reconnection) is the app's to get
+  right. Still supported (EMDK 13 lists the TC22), not recommended.
+
+Neither reports trigger presses (DataWedge's `SCANNER_STATUS`: `WAITING`, `SCANNING`, `IDLE`,
+`DISABLED`; EMDK's `onStatus` likewise), and neither sends an AIM id.
+
+**DataWedge's intent API, as used** (Zebra's TechDocs and the public samples by Zebra's
+developer relations, `darryncampbell/DataWedgeKotlin` and `…/Appforum_2019_DataWedge_API`;
+TechDocs itself was not reachable from the session that wrote this, so the names below are to
+confirm on the TC22):
+
+- **Commands** (extras of `…api.ACTION`): `SET_CONFIG` (a profile bundle: `PROFILE_NAME`,
+  `CONFIG_MODE` `CREATE_IF_NOT_EXIST` / `UPDATE`, `APP_LIST` of `PACKAGE_NAME` +
+  `ACTIVITY_LIST`, `PLUGIN_CONFIG` as a list of `PLUGIN_NAME` `BARCODE` / `INTENT` /
+  `KEYSTROKE` / `BDF` with `RESET_CONFIG` and a `PARAM_LIST` of strings), `GET_CONFIG`,
+  `GET_ACTIVE_PROFILE`, `SWITCH_TO_PROFILE` (refused for a profile associated with an app:
+  `PROFILE_HAS_APP_ASSOCIATION`), `SWITCH_SCANNER_PARAMS` (the active profile's barcode
+  parameters, until the next profile switch), `SCANNER_INPUT_PLUGIN` (`ENABLE_PLUGIN` /
+  `DISABLE_PLUGIN`, the active profile's), `SOFT_SCAN_TRIGGER` (`START_SCANNING` /
+  `STOP_SCANNING`), `GET_DATAWEDGE_STATUS`, `GET_VERSION_INFO` (`DATAWEDGE`, `BARCODE_SCANNING`,
+  `DECODER_LIBRARY`, `SCANNER_FIRMWARE`), `ENUMERATE_SCANNERS` (`SCANNER_NAME`, `SCANNER_INDEX`,
+  `SCANNER_IDENTIFIER`: `INTERNAL_IMAGER`, `INTERNAL_CAMERA`, `BLUETOOTH_ZEBRA`, …),
+  `REGISTER_FOR_NOTIFICATION` (`SCANNER_STATUS`, `PROFILE_SWITCH`).
+- **Results** on `…api.RESULT_ACTION` (`SEND_RESULT`, `COMMAND_IDENTIFIER`, `RESULT`,
+  `RESULT_INFO`), notifications on `…api.NOTIFICATION_ACTION`; DataWedge's intents carry the
+  `DEFAULT` category, which a receiver's filter must name.
+- **A read** (the intent output): `com.symbol.datawedge.data_string`, `…label_type`
+  (`LABEL-TYPE-QRCODE`, `-CODE128`, `-EAN128`, `-EAN13`, `-EAN8`, `-UPCA`, `-UPCE0`,
+  `-DATAMATRIX`, `-I2OF5`, …), `…source`, `…decode_data` (the raw bytes), `…decoded_mode`. No
+  decode time.
+- **Barcode parameters:** a `decoder_*` switch per symbology (`decoder_qrcode`,
+  `decoder_code128` with its GS1-128 subtype `decoder_code128_enable_ean128`, `decoder_ean13`,
+  `decoder_datamatrix`, `decoder_i2of5`, `decoder_upce0`, …); `decoder_upca_report_check_digit`
+  and `decoder_upca_preamble` (`0` none, `1` the number system, `2` with the country code), the
+  same for UPC-E0; `charset_name` (`UTF-8`, the default in DataWedge 14's guide, `AUTO`,
+  `ISO-8859-1`, `Shift_JIS`, `GB18030`).
+
+**Decisions (taken with the requester):**
+
+| #   | Question | Decision                                                                                                                                                                                                                                                                                                                                  |
+| --- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ZD1 | Way      | DataWedge's intents, not EMDK and not the Scanner SDK: no SDK in the package or the app's build, nothing to supply, and the wedge of other apps untouched.                                                                                                                                                                                |
+| ZD2 | Hardware | The TC22's internal imager. Zebra Bluetooth scanners (on the TC22 DataWedge reaches them too) and Zebra scanners on other brands' hosts are out.                                                                                                                                                                                          |
+| ZD3 | Profile  | The package creates the app's own DataWedge profile, named after the app's package (`profileName` changes it), associated with every activity; it stays on the device. An MDM-managed profile is the app's call.                                                                                                                          |
+| ZD4 | Claim    | The claim's decoders written in the app's stored profile (`SET_CONFIG`); `null` puts back the profile's own, kept on the device from before the first write. Not `SWITCH_SCANNER_PARAMS`: on the TC22 it changed no decoder (ZB2). The barcode input enabled on `open()`, disabled on `close()` while the app is in front on its profile. |
+| ZD5 | Release  | `@its/scanner-zebra` stays private through the TC22 run (ZB2), as `@its/scanner-honeywell` did through C2; publishable from ZB3.                                                                                                                                                                                                          |
+| ZD6 | Plugin   | None: the only manifest entry (`<queries>` for DataWedge) is in the module's own manifest.                                                                                                                                                                                                                                                |
+
+| Phase | Content                                                                                                                                                         | Release | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------ |
+| ZB1   | `packages/scanner-zebra` (private): Kotlin module over DataWedge, adapter, the conformance kit over a fake; the Zebra build of the diagnostics gets the scanner | —       | done   |
+| ZB2   | The team runs it on the TC22; fixes from the readings                                                                                                           | —       | done   |
+| ZB3   | `@its/scanner-zebra` publishable: changeset `0.1.0`, trusted publisher, `validate-package` in CI, `release.yml`, the root `build`                               | `0.1.0` | done   |
+| ZB4   | The playground's install line, `examples/consumer` and its smoke                                                                                                | —       | —      |
+
+### Phase ZB1 — what landed
+
+- **`packages/scanner-zebra`** (`@its/scanner-zebra`, private), `@its/scanner-honeywell`'s shape:
+  - **Kotlin** (`ZebraScannerModule.kt`): no dependency. `open()` checks DataWedge answers and
+    is enabled, sets the app's profile up (created if missing, then barcode input, intent
+    output as a broadcast to `<package>.GLOWUP_SCAN`, keystroke output and data formatting
+    off), registers for `SCANNER_STATUS` and `PROFILE_SWITCH`, checks the active profile is the
+    app's (`SWITCH_TO_PROFILE` once, then `unavailable`), switches the claim's symbologies and
+    enables the barcode input. Commands wait for their result (5 s) on the module's thread;
+    the exported receiver runs on its own. `close()` disables the input only while the profile
+    is active (in the background it is another app's). A switch to another profile while the
+    app is in front closes with `unavailable`; back to the app's, the claim's switches are sent
+    again. Raw diagnostics: every command with its result, the notifications, each read with
+    its label type, source and bytes.
+  - **Adapter** (`createZebraBarcodeScannerAdapter`, `getZebraBarcodeScannerAdapter`): every
+    `BarcodeType`; the software trigger and the scanner info (DataWedge's scanners and
+    versions); no trigger events; the type from the label type, the time the arrival; a Zebra
+    host with DataWedge installed (`requireZebraHost: false` for a lab test).
+  - **Profile parameters:** UTF-8, UPC-A and UPC-E with their check digit and number system,
+    UPC-E not converted to UPC-A; with a list, every other decoder off (the GS1 variants of Data
+    Matrix and QR left alone).
+- **Checked:** the Kotlin compiles with Gradle's `kotlinc` against stubs of the Android classes
+  it uses and Expo's DSL, without a warning; the adapter passes the conformance kit (no
+  `pressTrigger`: none to report) and its own tests over `fakeNative.ts`, a copy of the module
+  and of DataWedge (a stored profile, the claim's switches, reads only for an enabled decoder,
+  UPC digits by the profile).
+- **`apps/rfid-diagnostics`:** the Zebra build links `@its/scanner-zebra` beside
+  `@its/rfid-zebra` (each vendor's `packages` are what the other build leaves out of
+  autolinking); the scanner screen runs either vendor (Zebra: the label type for the code id,
+  the profile's parameters and the active profile for the properties, DataWedge's commands and
+  notifications in the timeline), and `README.md` has the TC22 checklist. The Zebra build still
+  needs the RFID SDK's AAR (its RFID module is in it).
+
+**Not verified until the TC22 run** (the checklist measures each):
+
+- that `SET_CONFIG` with `CREATE_IF_NOT_EXIST` and a list of plugins sets the profile up as
+  written, and which parameter names DataWedge 15 refuses (each command's result is in the
+  report);
+- whether DataWedge switches to the new profile at once on the first run, or the app has to come
+  to the front again (and what `SWITCH_TO_PROFILE` answers for an associated profile);
+- that `SWITCH_SCANNER_PARAMS` turns decoders on and off, and that a profile switch drops it;
+- that `charset_name` UTF-8 gives a non-ASCII QR's text right, with and without ECI;
+- the digits of an EAN-13, a UPC-A and a UPC-E with the parameters above;
+- the label types of the four symbologies and of a GS1-128;
+- whether `DISABLE_PLUGIN` lasts past a profile switch, and the wedge in other apps after the
+  app has used the scanner;
+- what `ENUMERATE_SCANNERS` and `GET_VERSION_INFO` return on the TC22 (names, identifiers,
+  firmware order);
+- the scanner statuses and profile switches around the background and the software trigger.
+
+### Phase ZB2 — measured on the TC22
+
+The first run (TC22, Android 15, DataWedge 15.0.96, scanning framework 43.63.50.0, decoder library
+`IMGKIT_10.04T02.20`; native revision 1), from the report, the screenshots and the requester's
+notes:
+
+- **The profile:** created on the first `open()` and associated with the app (`*`), barcode
+  input on, intent output to `it.itsolutions.rfiddiagnostics.GLOWUP_SCAN` as a broadcast with the
+  `DEFAULT` category, keystroke output off. DataWedge was on it at once: "opening" for about 3 s,
+  then open, no error and no `SWITCH_TO_PROFILE`. Profile0 untouched; Notes kept its wedge.
+- **The parameters:** `GET_CONFIG` lists 229, among them every name the adapter sends but
+  `decoder_us_postnet` and `decoder_us_planet` (no longer sent); `charset_name="UTF-8"`, the UPC
+  check digits and preambles and `decoder_upce0_convert_to_upca="false"` as set;
+  `decoder_code128_enable_ean128="true"` exists (GS1-128 read as Code 128).
+- **Reads** (label type → type, all with `source` `scanner` and `decoded_mode`
+  `single_decode`): QR `LABEL-TYPE-QRCODE`, Code 128 `LABEL-TYPE-CODE128`, EAN-13
+  `LABEL-TYPE-EAN13` (13 digits), Data Matrix `LABEL-TYPE-DATAMATRIX`, EAN-8 `LABEL-TYPE-EAN8`,
+  UPC-A `LABEL-TYPE-UPCA` (12 digits), UPC-E `LABEL-TYPE-UPCE0` (8 digits), GS1-128
+  `LABEL-TYPE-EAN128` (`010800123456789710LOT42`, no FNC1 character). A QR with
+  `Città perché € ñ ß 日本語` read right with and without the UTF-8 ECI.
+- **The wedge:** nothing typed into the app, held or released. With the input disabled
+  (`DISABLE_PLUGIN`, "Hold the scanner" off) the trigger does nothing: no beam, no beep.
+- **Info:** ten scanners, the camera first (index 0), the imager `INTERNAL_IMAGER` (index 1,
+  `IS_DEFAULT_SCANNER`), then Bluetooth and USB ones, not connected; one `SCANNER_FIRMWARE`
+  entry, `"2D Barcode Imager: PAAFNS00-002-R06"`: not one per scanner. Fixed: the firmware is
+  the entry named after the scanner.
+- **Not right:**
+  - **An EAN-8 read with the first scope on** (it beeped and reached `onScan`):
+    `SWITCH_SCANNER_PARAMS` sent before `ENABLE_PLUGIN` did not hold, and one sent while the
+    input was disabled had no answer in 5 s. Its result carried no `RESULT`: with `SEND_RESULT`
+    `COMPLETE_RESULT`, the commands but `SET_CONFIG` answered with `COMMAND` and
+    `COMMAND_IDENTIFIER` only.
+  - **"Unavailable" on the Home button** (three times): DataWedge names the launcher's profile
+    before Expo reports the app in the background. The engine reopened by itself on return.
+  - **Each command takes about 0.5 s to answer,** so `open()` (four in a row) took about 2 s,
+    during which a trigger decoded and the read was dropped.
+- **Fixed in native revision 2:** the input enabled before the symbologies; `SEND_RESULT` `true`
+  but for `SET_CONFIG`; a switch away from the profile reported only if the app is still in front
+  a second later; DataWedge's status checked once per process and the active profile taken from
+  its notifications; the input's answer not awaited when a command follows. And a second way to
+  set the symbologies, `symbologyMethod: "config"` (`SET_CONFIG` in the stored profile, put back
+  on `null`), with a switch in the diagnostics, to keep whichever holds (revision 3 keeps the
+  second, below).
+- **The first scope** takes EAN-8 (C7, at the requester's ask): the diagnostics, the playground
+  page (its out-of-scope label is now a UPC-A) and the consumer. The TC22's checks use UPC-A and
+  UPC-E as the codes outside it.
+- **The second run (revision 2)** still read UPC-A and UPC-E with the first scope on, with both
+  ways. DataWedge's log (`adb logcat -s DWAPI DataWedge`) told why for `SET_CONFIG`: "Key
+  PLUGIN_CONFIG expected ArrayList but value was a android.os.Bundle", so the single plugin
+  bundle the module sent was ignored (the profile's set-up, sent as a list, applied).
+  `SWITCH_SCANNER_PARAMS` answered SUCCESS and DataWedge's log shows it setting the scanner's
+  parameters, yet the decoders stayed on. UPC-A unchecked by hand in the app's profile
+  (DataWedge → Barcode input → Decoders) stopped the reads: the stored profile's decoders hold.
+  The run also showed the module believing the app in the background while it was in front
+  (every `close()` read no active profile, and `ENABLE_PLUGIN` answered
+  `SCANNER_ALREADY_ENABLED` each time): Expo's activity events are not reliable here.
+- **Fixed in native revision 3:** the decoders go in the stored profile only (`SET_CONFIG`, its
+  `PLUGIN_CONFIG` a list), `SWITCH_SCANNER_PARAMS` and `symbologyMethod` gone; the profile's own
+  values from before the first write kept in `SharedPreferences`, so `null` restores them after a
+  restart or a crash too; a value already written not written again (each `SET_CONFIG` reloads
+  the profile); the app's place in front read from Android (`ActivityManager.getMyMemoryState`).
+- **The third run (revision 3)** still read UPC-A and UPC-E with the first scope on, though the
+  decoders' `SET_CONFIG` (now a list) answered SUCCESS for the barcode module and DataWedge
+  reloaded the profile. Zebra's `SET_CONFIG` reference: "It is required to specify which scanner
+  the configurations apply to either by using `scanner_selection` set to auto,
+  `scanner_selection_by_identifier` or `configure_all_scanners`". The profile's set-up named
+  it (`scanner_selection: "auto"` among the data parameters, which applied); the decoders' write
+  did not, so nothing changed. The same holds for `SWITCH_SCANNER_PARAMS` on a device with more
+  than one scanner (`scanner_selection_by_identifier`), which explains the first two runs.
+- **Fixed in native revision 4:** every decoder write names `scanner_selection: "auto"` (the
+  default scanner's configuration, the one DataWedge's own decoder screen edits).
+- **The fourth run (revision 4) holds:** with the first scope on, the decoders' write (37 keys,
+  `scanner_selection: "auto"`) answered SUCCESS and two trigger pulls on a UPC-A and a UPC-E
+  went `SCANNING` → `WAITING` with no read and no beep; with the scope off the module wrote back
+  the 9 decoders whose own value differed (UPC-A, UPC-E, Aztec, Codabar, Code 39, PDF417,
+  MaxiCode, GS1 DataBar and its expanded form) and both codes read, 12 and 8 digits. Opening
+  took about 2.3 s the first time (the profile's set-up) and 0.5 s for a new request.
+- **The last checks (revision 4), the requester's:** "Hold the scanner" off leaves the trigger
+  dead (no beam, no beep) and on reads again; Home, a read in Notes through its wedge and back
+  with no red error; the RFID screen and back reopens and reads. A new open with the same scope
+  writes nothing (`written: 0`), so the profile is not reloaded. Phase ZB2 is done.
+- **The diagnostics' settings applied on `open()`** (Honeywell's trigger control, and Zebra's
+  symbology method while it existed) remounted the scanner section, which kept the same request: the engine did
+  not reopen and the setting waited for the next claim. The screen now lets go of the scanner for
+  a moment, and its tests check the new `open()`.
+
+### Phase ZB3 — what landed
+
+- **`@its/scanner-zebra` is publishable** (no longer `private`), as `@its/scanner-honeywell`
+  became in phase C3: bob into `lib/`, the `exports` map (`.`, `./package.json`: no
+  `./app.plugin.js`, there is no plugin), `validate-package` (publint, attw) in CI and the root
+  `build`, `release.yml` and the changesets' README naming it, `publishConfig` (`access: public`,
+  `provenance: true`). The tarball holds `lib/`, `src/`, the Android module (`build.gradle`,
+  sources, its manifest with the `<queries>` entry) and `expo-module.config.json`: no SDK. A
+  changeset makes it `0.1.0`.
+- **`examples/consumer` waits for phase ZB4** (with the playground's install line), as it waited
+  for C4: it installs from the registry, and the package is not there yet.
+- **Not published yet:** npm still knows only `@its/glowup-ui`. Trusted publishing cannot create
+  a package, so the first version of this one, like the device package's (its peer, which goes
+  first) and the Honeywell ones', needs a publish by hand or a temporary token before its trusted
+  publisher is set up: a maintainer's choice. Until then the Release fails with `E404`, as it does
+  for the others.
 
 ## Open for later
 

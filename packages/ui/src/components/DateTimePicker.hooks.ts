@@ -28,7 +28,7 @@ import type {
  * the static variant, each live change) back into the caller's own `onChange`
  * shape.
  */
-export const usePickerController = (props: DateTimePickerProps) => {
+const usePickerController = (props: DateTimePickerProps) => {
   const {
     mode = "date",
     locale: localeProp,

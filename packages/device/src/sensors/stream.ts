@@ -5,6 +5,7 @@ import {
   type PermissionStore,
 } from "../core/permissionStore";
 import { UNKNOWN, UNSUPPORTED } from "../core/permissions";
+import { createEmitter, getOrCreate } from "../core/shared";
 import type { PermissionState, Unsubscribe } from "../core/types";
 import type { SensorName, SensorReadings, SensorsAdapter } from "./types";
 
@@ -23,7 +24,7 @@ function createAvailability(
 ): Availability {
   let value: boolean | null = null;
   let pending: Promise<boolean> | null = null;
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
 
   const check = () => {
     pending ??= (
@@ -32,7 +33,7 @@ function createAvailability(
         : Promise.resolve(false)
     ).then((available) => {
       value = available;
-      listeners.forEach((listener) => listener());
+      emitter.emit();
       return available;
     });
     return pending;
@@ -41,11 +42,8 @@ function createAvailability(
   return {
     getSnapshot: () => value,
     subscribe(listener) {
-      listeners.add(listener);
       check();
-      return () => {
-        listeners.delete(listener);
-      };
+      return emitter.subscribe(listener);
     },
     check,
   };
@@ -210,36 +208,27 @@ interface AdapterSensors {
 const registries = new WeakMap<SensorsAdapter, AdapterSensors>();
 
 function registryFor(adapter: SensorsAdapter): AdapterSensors {
-  let registry = registries.get(adapter);
-  if (!registry) {
-    registry = {
-      availability: new Map(),
-      streams: new Map(),
-      permission: createPermissionStore({
-        isSupported: () => adapter.isSupported(),
-        read: () => adapter.getPermission(),
-        // Synchronous down to the adapter: the web grants only in a gesture.
-        request: () => adapter.requestPermission(),
-        unsupported: UNSUPPORTED,
-        unknown: UNKNOWN,
-      }),
-    };
-    registries.set(adapter, registry);
-  }
-  return registry;
+  return getOrCreate(registries, adapter, () => ({
+    availability: new Map(),
+    streams: new Map(),
+    permission: createPermissionStore({
+      isSupported: () => adapter.isSupported(),
+      read: () => adapter.getPermission(),
+      // Synchronous down to the adapter: the web grants only in a gesture.
+      request: () => adapter.requestPermission(),
+      unsupported: UNSUPPORTED,
+      unknown: UNKNOWN,
+    }),
+  }));
 }
 
 export function getAvailability(
   adapter: SensorsAdapter,
   sensor: SensorName,
 ): Availability {
-  const { availability } = registryFor(adapter);
-  let store = availability.get(sensor);
-  if (!store) {
-    store = createAvailability(adapter, sensor);
-    availability.set(sensor, store);
-  }
-  return store;
+  return getOrCreate(registryFor(adapter).availability, sensor, () =>
+    createAvailability(adapter, sensor),
+  );
 }
 
 /** The motion permission, one store per adapter. */
@@ -254,15 +243,15 @@ export function getSensorStream<S extends SensorName>(
   sensor: S,
 ): SensorStream<SensorReadings[S]> {
   const { streams, permission } = registryFor(adapter);
-  let stream = streams.get(sensor);
-  if (!stream) {
-    stream = createSensorStream(
-      adapter,
-      sensor,
-      getAvailability(adapter, sensor),
-      permission,
-    ) as SensorStream<never>;
-    streams.set(sensor, stream);
-  }
-  return stream as SensorStream<SensorReadings[S]>;
+  return getOrCreate(
+    streams,
+    sensor,
+    () =>
+      createSensorStream(
+        adapter,
+        sensor,
+        getAvailability(adapter, sensor),
+        permission,
+      ) as SensorStream<never>,
+  ) as SensorStream<SensorReadings[S]>;
 }

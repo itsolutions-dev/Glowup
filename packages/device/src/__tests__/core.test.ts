@@ -3,7 +3,7 @@ import {
   toPermissionState,
   UNKNOWN,
   UNSUPPORTED,
-} from "../core";
+} from "../core/permissions";
 import { createSystemSheet } from "../core/systemSheet";
 
 describe("toPermissionState", () => {

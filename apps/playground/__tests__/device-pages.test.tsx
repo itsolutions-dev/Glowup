@@ -14,6 +14,7 @@ import {
   buildPosition,
   createMockBackgroundLocationAdapter,
   createMockBatteryAdapter,
+  createMockBluetoothAdapter,
   createMockGeocoderAdapter,
   createMockBiometricsAdapter,
   createMockCameraAdapter,
@@ -27,10 +28,13 @@ import {
   createMockSensorsAdapter,
   createMockMediaPickerAdapter,
   createMockMediaLibraryAdapter,
+  createMockBarcodeScannerAdapter,
+  createMockRfidAdapter,
   buildPickedMedia,
   OFFLINE_NETWORK,
   type MockBackgroundLocationAdapter,
   type MockBatteryAdapter,
+  type MockBluetoothAdapter,
   type MockGeocoderAdapter,
   type MockBiometricsAdapter,
   type MockCameraAdapter,
@@ -43,7 +47,10 @@ import {
   type MockSensorsAdapter,
   type MockMediaPickerAdapter,
   type MockMediaLibraryAdapter,
+  type MockBarcodeScannerAdapter,
+  type MockRfidAdapter,
 } from "@its/glowup-device/testing";
+import { bleManagerAdapter } from "@its/glowup-device/bluetooth";
 import * as ExpoHaptics from "expo-haptics";
 
 import DeviceOverview from "../app/device";
@@ -61,6 +68,9 @@ import SensorsPage from "../app/device/sensors";
 import MediaPickerPage from "../app/device/media-picker";
 import MediaLibraryPage from "../app/device/media-library";
 import BackgroundLocationPage from "../app/device/background-location";
+import BluetoothPage from "../app/device/bluetooth";
+import RfidPage from "../app/device/rfid";
+import ScannerPage from "../app/device/scanner";
 import { clearTaskLog } from "../site/backgroundLog";
 import { SITES_TASK, TRIP_TASK } from "../site/backgroundTasks";
 import { HapticThemeProvider } from "../site/HapticsPreference";
@@ -131,6 +141,10 @@ let sensors: MockSensorsAdapter;
 let mediaPicker: MockMediaPickerAdapter;
 let mediaLibrary: MockMediaLibraryAdapter;
 let backgroundLocation: MockBackgroundLocationAdapter;
+let bluetooth: MockBluetoothAdapter;
+// Undefined: no vendor, as on the site.
+let rfid: MockRfidAdapter | undefined;
+let barcodeScanner: MockBarcodeScannerAdapter | undefined;
 
 beforeEach(() => {
   location = createMockLocationAdapter();
@@ -147,6 +161,18 @@ beforeEach(() => {
   mediaPicker = createMockMediaPickerAdapter();
   mediaLibrary = createMockMediaLibraryAdapter();
   backgroundLocation = createMockBackgroundLocationAdapter();
+  bluetooth = createMockBluetoothAdapter({
+    gatt: {
+      "AA:01": [
+        {
+          uuid: "180F",
+          characteristics: [{ uuid: "2A19", value: [87] }],
+        },
+      ],
+    },
+  });
+  rfid = createMockRfidAdapter();
+  barcodeScanner = createMockBarcodeScannerAdapter();
   clearTaskLog();
   mockFocused = true;
   jest.mocked(ExpoHaptics.impactAsync).mockClear();
@@ -179,6 +205,9 @@ const Providers = ({ children }: { children: ReactNode }) => (
               mediaPicker,
               mediaLibrary,
               backgroundLocation,
+              bluetooth,
+              rfid,
+              barcodeScanner,
             }}
           >
             {children}
@@ -206,6 +235,9 @@ it("links the overview to every capability", async () => {
     ["Media picker", "/device/media-picker"],
     ["Media library", "/device/media-library"],
     ["Background location", "/device/background-location"],
+    ["Bluetooth", "/device/bluetooth"],
+    ["RFID", "/device/rfid"],
+    ["Barcode scanner", "/device/scanner"],
   ]) {
     await fireEvent.press(screen.getByText(title));
     expect(mockPush).toHaveBeenLastCalledWith(href);
@@ -296,6 +328,134 @@ describe("location", () => {
         "No geocoder here. An app supplies its own provider through the geocoder adapter.",
       ),
     ).toBeTruthy();
+  });
+});
+
+describe("barcode scanner", () => {
+  const [FIRST_SCOPE, SLOW, REPEAT, CAMERA] = [0, 1, 2, 3];
+  const switches = () => screen.getAllByRole("switch");
+
+  it("holds the scanner with the screen's symbologies and lists what reaches onScan", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    expect(
+      screen.getByText("A real scanner, through the app's adapter."),
+    ).toBeTruthy();
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    expect(scanner.request).toEqual({
+      symbologies: ["qr", "code128", "ean13", "ean8", "datamatrix"],
+    });
+    expect(screen.getByLabelText("Held by this page")).toBeTruthy();
+
+    await act(async () => {
+      scanner.scan({ data: "8001234567897", type: "ean13" });
+    });
+    expect(screen.getByText("8001234567897")).toBeTruthy();
+    expect(
+      screen.getByText(/^ean13 · AIM \]E0 · id ean13 · scanner/),
+    ).toBeTruthy();
+    // Outside the screen's symbologies: the scanner does not decode it.
+    expect(scanner.scan({ data: "036000291452", type: "upc_a" })).toBe(false);
+    await fireEvent.press(switches()[FIRST_SCOPE]!);
+    await waitFor(() => expect(scanner.request).toEqual({ symbologies: null }));
+    await act(async () => {
+      scanner.scan({ data: "036000291452", type: "upc_a" });
+    });
+    expect(screen.getByText("036000291452")).toBeTruthy();
+
+    // The same code within a second once, then every time.
+    await act(async () => {
+      scanner.scan({ data: "LOC:A-03-12" });
+      scanner.scan({ data: "LOC:A-03-12" });
+    });
+    expect(screen.getAllByText("LOC:A-03-12")).toHaveLength(1);
+    await fireEvent.press(switches()[REPEAT]!);
+    await act(async () => {
+      scanner.scan({ data: "LOC:A-03-12" });
+    });
+    expect(screen.getAllByText("LOC:A-03-12")).toHaveLength(2);
+    expect(screen.getByText("4 reads")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scanner info"));
+    await waitFor(() =>
+      expect(
+        screen.getByText("Mock imager · MOCK-1 · firmware 1.0"),
+      ).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Scan button"));
+    await waitFor(() =>
+      expect(scanner.softwareTriggerCalls).toEqual([true, false]),
+    );
+  });
+
+  it("drops the reads that arrive while a slow confirmation runs", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await fireEvent.press(switches()[SLOW]!);
+    await act(async () => {
+      scanner.scan({ data: "PAL-1", type: "code128" });
+      scanner.scan({ data: "PAL-2", type: "code128" });
+    });
+    expect(screen.getByText("PAL-1")).toBeTruthy();
+    expect(screen.queryByText("PAL-2")).toBeNull();
+    expect(screen.getByLabelText("Confirming…")).toBeTruthy();
+  });
+
+  it("says when another app takes the scanner, and holds it again on retry", async () => {
+    const scanner = barcodeScanner!;
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await act(async () => scanner.takeAway());
+    expect(screen.getByText("Another app holds the scanner.")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Retry"));
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    expect(screen.queryByText("Another app holds the scanner.")).toBeNull();
+  });
+
+  it("gives the scanner back and reads through the camera with the same handler", async () => {
+    const scanner = barcodeScanner!;
+    camera.setPermission("camera", "granted");
+    await render(<ScannerPage />, { wrapper: Providers });
+    await waitFor(() => expect(scanner.isOpen).toBe(true));
+    await fireEvent.press(switches()[CAMERA]!);
+    await waitFor(() => expect(scanner.isOpen).toBe(false));
+    await waitFor(() =>
+      expect(screen.getByTestId("mock-camera-preview")).toBeTruthy(),
+    );
+    expect(camera.preview?.barcodeTypes).toEqual([
+      "qr",
+      "code128",
+      "ean13",
+      "ean8",
+      "datamatrix",
+    ]);
+    await act(async () => camera.scan({ data: "TICKET-42" }));
+    expect(screen.getByText("TICKET-42")).toBeTruthy();
+    expect(screen.getByText(/^qr · id .* · camera/)).toBeTruthy();
+  });
+
+  it("runs on a simulated scanner without a vendor", async () => {
+    barcodeScanner = undefined;
+    await render(<ScannerPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated scanner/)).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByLabelText("Held by this page")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() => expect(screen.getByText("LOC:A-03-12")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Small pack (EAN-8)"));
+    await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() => expect(screen.getByText("96385074")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Imported product (UPC-A)"));
+    await fireEvent.press(screen.getByText("Pull the trigger"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "The scanner did not decode Imported product (UPC-A): its symbology is off for this screen.",
+        ),
+      ).toBeTruthy(),
+    );
   });
 });
 
@@ -820,6 +980,189 @@ describe("background location", () => {
           "Not here: the web has no background location, and a native build needs backgroundLocation in the config plugin.",
         ),
       ).toBeTruthy(),
+    );
+  });
+});
+
+describe("bluetooth", () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it("asks, scans, connects and reads on the app's adapter in a development build", async () => {
+    // Where the native module exists, the page uses the provided adapter.
+    jest.spyOn(bleManagerAdapter, "isSupported").mockReturnValue(true);
+    await render(<BluetoothPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
+    expect(screen.getByLabelText("Radio: On")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scan all"));
+    await waitFor(() => expect(bluetooth.scanning).not.toBeNull());
+    await act(async () => {
+      bluetooth.discover({ id: "AA:01", name: "Scale", rssi: -70 });
+    });
+    await waitFor(() => expect(screen.getByText("Scale")).toBeTruthy());
+    expect(screen.getByText("AA:01 · -70 dBm")).toBeTruthy();
+
+    await fireEvent.press(screen.getByText("Scale"));
+    await fireEvent.press(screen.getByText("Connect"));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Connected")).toBeTruthy(),
+    );
+    expect(screen.getByText("Services: 180f")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Read battery"));
+    await waitFor(() => expect(screen.getByText("Battery: 87%")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(bluetooth.connected.size).toBe(0));
+  });
+
+  it("says why it cannot scan without the permission", async () => {
+    jest.spyOn(bleManagerAdapter, "isSupported").mockReturnValue(true);
+    await render(<BluetoothPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Scan all"));
+    await waitFor(() =>
+      expect(
+        screen.getByText("Not allowed yet: grant the permission above."),
+      ).toBeTruthy(),
+    );
+    expect(bluetooth.scanCount).toBe(0);
+  });
+
+  it("runs on simulated devices without the native module", async () => {
+    await render(<BluetoothPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated devices/)).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Heart rate only"));
+    await waitFor(() => expect(screen.getByText("Glowup HRM")).toBeTruthy());
+    expect(screen.queryByText("Scale")).toBeNull();
+    await fireEvent.press(screen.getByText("Glowup HRM"));
+    await fireEvent.press(screen.getByText("Connect"));
+    await waitFor(() =>
+      expect(screen.getByText(/^Heart rate: \d+ bpm$/)).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Device information"));
+    await waitFor(() =>
+      expect(screen.getByText("Glowup Labs · HRM-1 · 1.4.2")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(screen.getByText("Connect")).toBeTruthy());
+  });
+});
+
+describe("rfid", () => {
+  it("connects, scans, reads one tag and searches for it on the app's adapter", async () => {
+    const reader = rfid!;
+    await render(<RfidPage />, { wrapper: Providers });
+    expect(
+      screen.getByText("A real reader, through the app's adapter."),
+    ).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
+
+    await fireEvent.press(screen.getByText("Search readers"));
+    await waitFor(() => expect(reader.isDiscovering).toBe(true));
+    await act(async () => reader.discover());
+    await waitFor(() =>
+      expect(screen.getByText("Mock RFID reader")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Mock RFID reader"));
+    await waitFor(() =>
+      expect(
+        screen.getByText(
+          "Mock RFID reader · Mock · firmware 1.0.0 · battery 80%",
+        ),
+      ).toBeTruthy(),
+    );
+
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() => expect(reader.inventory).toEqual({ tid: false }));
+    await act(async () =>
+      reader.emitTags([{ epc: "3034257bf7194e4000001a85", rssi: -40 }]),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("3034257BF7194E4000001A85")).toBeTruthy(),
+    );
+    expect(screen.getByText("1 tags")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop"));
+    await waitFor(() => expect(reader.inventory).toBeNull());
+
+    // A read reported before the single read is what it hears.
+    reader.emitTags([
+      {
+        epc: "E28011700000020A4C7B12F0",
+        rssi: -30,
+        tid: "e2801170200030ecc48408f9",
+      },
+    ]);
+    await fireEvent.press(screen.getByText("Read"));
+    await waitFor(() =>
+      expect(screen.getByText("E28011700000020A4C7B12F0")).toBeTruthy(),
+    );
+    expect(screen.getByText(/TID E2801170200030ECC48408F9/)).toBeTruthy();
+    expect(reader.readOnceCount).toBe(1);
+
+    await fireEvent.press(screen.getByText("E28011700000020A4C7B12F0"));
+    expect(screen.getByText("Tag E28011700000020A4C7B12F0")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Start the search"));
+    await waitFor(() =>
+      expect(reader.locating).toBe("E28011700000020A4C7B12F0"),
+    );
+    await act(async () => {
+      reader.emitLocate(-30);
+    });
+    await waitFor(() => expect(screen.getByLabelText("In range")).toBeTruthy());
+    expect(screen.getByText("100% · -30 dBm")).toBeTruthy();
+    await fireEvent.press(screen.getByText("Stop"));
+    await waitFor(() => expect(reader.locating).toBeNull());
+
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() => expect(reader.connection.state).toBe("disconnected"));
+  });
+
+  it("scans on the trigger", async () => {
+    const reader = rfid!;
+    reader.setPermission("granted");
+    await reader.connect("00:11:22:33:44:55");
+    await render(<RfidPage />, { wrapper: Providers });
+    await waitFor(() => expect(reader.triggerSubscriberCount).toBe(1));
+    await act(async () => reader.pressTrigger(true));
+    await waitFor(() => expect(reader.inventory).not.toBeNull());
+    expect(screen.getByLabelText("Trigger held")).toBeTruthy();
+    await act(async () => reader.pressTrigger(false));
+    await waitFor(() => expect(reader.inventory).toBeNull());
+  });
+
+  it("says why it cannot scan before a reader is connected", async () => {
+    rfid!.setPermission("granted");
+    await render(<RfidPage />, { wrapper: Providers });
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() =>
+      expect(screen.getByText("Connect to a reader first.")).toBeTruthy(),
+    );
+  });
+
+  it("runs on a simulated reader without a vendor", async () => {
+    rfid = undefined;
+    await render(<RfidPage />, { wrapper: Providers });
+    expect(screen.getByText(/^Simulated reader/)).toBeTruthy();
+    await fireEvent.press(screen.getByText("Allow"));
+    await waitFor(() => expect(screen.getByLabelText("Granted")).toBeTruthy());
+    await fireEvent.press(screen.getByText("Search readers"));
+    await waitFor(() =>
+      expect(screen.getByText("IH40 · aisle 3")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("IH40 · aisle 3"));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Connected")).toBeTruthy(),
+    );
+    await fireEvent.press(screen.getByText("Stop searching"));
+
+    await fireEvent.press(screen.getByText("Scan"));
+    await waitFor(() => expect(screen.getByText(/^\d+ tags$/)).toBeTruthy());
+    await fireEvent.press(screen.getByText("Stop"));
+    await fireEvent.press(screen.getByText("Disconnect"));
+    await waitFor(() =>
+      expect(screen.getByLabelText("Disconnected")).toBeTruthy(),
     );
   });
 });

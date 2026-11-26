@@ -10,6 +10,7 @@ import {
   Typography,
   VStack,
   useTheme,
+  HelperText,
 } from "@its/glowup-ui";
 import {
   isLocationError,
@@ -87,15 +88,6 @@ function errorText(error: unknown): string {
   if (isLocationError(error)) return ERROR_COPY[error.code];
   return error instanceof Error ? error.message : String(error);
 }
-
-const ErrorLine = ({ text }: { text: string }) => {
-  const { theme } = useTheme();
-  return (
-    <Typography variant="bodyMedium" style={{ color: theme.colors.error }}>
-      {text}
-    </Typography>
-  );
-};
 
 const PermissionRow = ({
   title,
@@ -262,7 +254,11 @@ const TripSection = () => {
           </Button>
         )}
       </HStack>
-      {error ? <ErrorLine text={error} /> : null}
+      {error ? (
+        <HelperText type="error" padding="none">
+          {error}
+        </HelperText>
+      ) : null}
     </Section>
   );
 };
@@ -342,8 +338,16 @@ const SitesSection = () => {
           {`Centre: ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`}
         </Typography>
       ) : null}
-      {here.error ? <ErrorLine text={errorText(here.error)} /> : null}
-      {error ? <ErrorLine text={error} /> : null}
+      {here.error ? (
+        <HelperText type="error" padding="none">
+          {errorText(here.error)}
+        </HelperText>
+      ) : null}
+      {error ? (
+        <HelperText type="error" padding="none">
+          {error}
+        </HelperText>
+      ) : null}
     </Section>
   );
 };

@@ -4,6 +4,6 @@
  * unsupported on the web, which never loads that module.
  */
 export { useMediaLibrary, type UseMediaLibrary } from "./hooks";
-export { createExpoMediaLibraryAdapter, expoMediaLibraryAdapter } from "./expo";
-export { createWebMediaLibraryAdapter, webMediaLibraryAdapter } from "./web";
+export { expoMediaLibraryAdapter } from "./expo";
+export { webMediaLibraryAdapter } from "./web";
 export type { MediaLibraryAdapter, SaveResult } from "./types";

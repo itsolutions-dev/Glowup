@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode, Ref } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 
+import type { BarcodeScan, BarcodeType } from "../core/barcodes";
 import type { PermissionState } from "../core/types";
 import type { CameraError } from "./errors";
 
@@ -11,27 +12,11 @@ export type CameraMode = "picture" | "video";
 export type VideoQuality = "480p" | "720p" | "1080p" | "2160p";
 export type CameraPermissionKind = "camera" | "microphone";
 
-export type BarcodeType =
-  | "aztec"
-  | "codabar"
-  | "code39"
-  | "code93"
-  | "code128"
-  | "datamatrix"
-  | "ean8"
-  | "ean13"
-  | "itf14"
-  | "pdf417"
-  | "qr"
-  | "upc_a"
-  | "upc_e";
+// Shared with `/scanner`, so one handler serves the camera and a hardware
+// scanner (a capability may not import another).
+export type { BarcodeType } from "../core/barcodes";
 
-export interface ScannedBarcode {
-  /** `"unknown"` for a symbology outside `BarcodeType`; see `rawType`. */
-  type: BarcodeType | "unknown";
-  /** The type as the platform reported it. */
-  rawType: string;
-  data: string;
+export interface ScannedBarcode extends BarcodeScan {
   /** Where it is in the preview, in preview points. Not every platform reports it. */
   bounds: { x: number; y: number; width: number; height: number } | null;
 }

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useId, useSyncExternalStore } from "react";
+import { useEffect, useId } from "react";
 import { Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { useClientValue } from "../core/shared";
 import { expoKeepAwakeAdapter } from "./expo";
 import type { KeepAwakeAdapter } from "./types";
 import { webKeepAwakeAdapter } from "./web";
@@ -36,15 +37,11 @@ export function useKeepAwake({ enabled = true }: UseKeepAwakeOptions = {}) {
   }, [adapter, enabled, tag]);
 }
 
-const subscribeNothing = () => () => {};
-const getServerSupport = () => false;
-
 /**
  * Whether the screen can be kept on here (false in browsers without the Wake
  * Lock API). False while a statically exported page hydrates.
  */
 export function useKeepAwakeSupport(): boolean {
   const adapter = useKeepAwakeAdapter();
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  return useSyncExternalStore(subscribeNothing, getSupport, getServerSupport);
+  return useClientValue(() => adapter.isSupported(), false);
 }

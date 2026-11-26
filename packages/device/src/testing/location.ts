@@ -1,5 +1,5 @@
 import type { PermissionStatus } from "../core/types";
-import { LocationError, type LocationErrorCode } from "../location/errors";
+import { LocationError, type LocationErrorCode } from "../core/geo";
 import type {
   GeoCoordinates,
   GeoPosition,

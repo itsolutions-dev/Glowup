@@ -114,7 +114,12 @@
           });
           return client.focus ? client.focus() : undefined;
         }
-        const url = new URL(notification.url || "/", self.location.origin);
+        let url = new URL(notification.url || "/", self.location.origin);
+        // The hash carries the notification and its data: never hand it to
+        // another origin, whatever the payload's url says.
+        if (url.origin !== self.location.origin) {
+          url = new URL("/", self.location.origin);
+        }
         url.hash =
           HASH_KEY +
           encodeURIComponent(

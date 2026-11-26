@@ -1,0 +1,25 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.rfidzebra'
+version = '0.0.0'
+
+android {
+  namespace "expo.modules.rfidzebra"
+  defaultConfig {
+    versionCode 1
+    versionName '0.0.0'
+  }
+}
+
+dependencies {
+  // Zebra's RFID SDK (API3) is not on a public repository: the config plugin
+  // copies the app's own copy (aarPath) into a Maven repository inside
+  // android/ and declares it.
+  implementation 'com.zebra.rfid:rfidapi3lib:2.0.5.297'
+  // The SDK uses LocalBroadcastManager without declaring it (a local AAR has
+  // no POM to carry its dependencies).
+  implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+}

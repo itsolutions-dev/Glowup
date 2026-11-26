@@ -2,7 +2,9 @@
 
 As of **2026-11-26**, at the commit that carries this file (the `claude/appshell` branch adds to `dev` of 5/11 the
 navigation links and the CRM's gaps G2–G6, see the handoff of 25/11; `fix-g` adds the fixes from the CRM's first
-checklist run, see the handoff of 26/11). Built from the handoffs of 19 October–4 November and
+checklist run, see the handoff of 26/11; `claude/appshell-sync-master` adds `master` on top — the scanner and RFID
+vendor packages, the Bluetooth/RFID/scanner pages and `@its/glowup-ui` 0.12.0 — so it can go into `dev` whole, see the same
+handoff). Built from the handoffs of 19 October–4 November and
 `solaris-native.md`. Since 5/11 it also holds the decisions (once `decisions.md`, now "Decisions taken" below) and the
 library's backlog (once `library-roadmap.md`, now "Library hardening" and "Library: what is left to build"). **Update it
 at the end of every session, in the same change as the handoff**, so the next session starts from here and not from

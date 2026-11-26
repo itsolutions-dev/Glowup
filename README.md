@@ -36,7 +36,6 @@ npm start          # start the playground (Expo dev server) — no need to cd an
 `/components` is the reference. Platform shortcuts, all runnable from the root:
 
 ```bash
-npm run playground   # same as npm start
 npm run android      # open on Android
 npm run ios          # open on iOS
 npm run web          # open in the browser
@@ -102,6 +101,7 @@ subpath and you install only its modules — an app that reads device info never
 | `/media-picker`        | The system photo and video picker, with no permission on any platform; the web uses a file dialog.                                                                                                 |
 | `/media-library`       | Saving photos and videos to the device's library with the least permission (add-only on iOS, none on Android 11+).                                                                                 |
 | `/background-location` | Location updates that continue in the background, and geofencing (entering and leaving regions), delivered to tasks; Android's foreground service or background permission, chosen at every start. |
+| `/bluetooth`           | Bluetooth Low Energy as the central (GATT client): radio state, permission, scanning, connections, reads, writes and notifications, on `react-native-ble-manager`.                                 |
 | `/testing`             | In-memory adapters for every capability, so tests never mock Expo modules.                                                                                                                         |
 
 The package also ships a **config plugin** (`"@its/glowup-device"` in `app.config.ts`) that
@@ -150,7 +150,7 @@ screen needs something reusable, it belongs in one of the packages.
 ## Root scripts
 
 ```bash
-npm start / npm run playground   # run the playground app
+npm start                        # run the playground app
 npm run android | ios | web      # run the playground on a platform
 npm run lint                     # ESLint across the repo
 npm run type-check               # tsc --noEmit across all workspaces
@@ -205,7 +205,7 @@ through trusted publishing (no npm token). See `.changeset/README.md` for detail
   `packages/*`) are a lint error, as is any import of the app from a package or of one package
   from another.
 - **Line endings are LF**, enforced by `.gitattributes` (`* text=auto eol=lf`), Prettier
-  (`endOfLine: "lf"`) and ESLint (`linebreak-style: unix`).
+  (`endOfLine: "lf"`, reported by ESLint through `eslint-plugin-prettier`).
 - Prettier `trailingComma: "all"`.
 - Icons: `@expo/vector-icons/MaterialCommunityIcons`, kebab-case names, `-outline` suffix for
   outline variants.

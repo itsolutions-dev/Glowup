@@ -6,10 +6,7 @@
  * so the "Expo" adapter there is the web one.
  */
 import type * as Native from "./expo";
-import { createWebMediaLibraryAdapter, webMediaLibraryAdapter } from "./web";
-
-export const createExpoMediaLibraryAdapter: typeof Native.createExpoMediaLibraryAdapter =
-  createWebMediaLibraryAdapter;
+import { webMediaLibraryAdapter } from "./web";
 
 export const expoMediaLibraryAdapter: typeof Native.expoMediaLibraryAdapter =
   webMediaLibraryAdapter;

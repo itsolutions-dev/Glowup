@@ -1,7 +1,7 @@
 # Glowup consumer smoke test
 
-A minimal Expo app that consumes **`@its/glowup-ui` and `@its/glowup-device` installed from
-the npm registry**.
+A minimal Expo app that consumes **`@its/glowup-ui`, `@its/glowup-device`,
+`@its/rfid-honeywell` and `@its/scanner-honeywell` installed from the npm registry**.
 
 ## Why this exists
 
@@ -18,11 +18,18 @@ tarball's manifest and types statically; this app is the runtime half:
 - the **declared peer dependencies** are sufficient to render.
 
 `Device.tsx` does the same for `@its/glowup-device`: every subpath (`/info`, `/location`,
-`/camera`, `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/testing`)
+`/camera`, `/network`, `/battery`, `/keep-awake`, `/orientation`, `/haptics`, `/biometrics`, `/secure-store`, `/sensors`, `/media-picker`, `/media-library`, `/background-location`, `/bluetooth`, `/rfid`, `/scanner`, `/testing`)
 resolves with its published types, `App.tsx` hands `hapticFeedback` to `ThemeProvider`'s
 `onInteractionFeedback` (both packages' published types have to agree), the root entry loads without any
 Expo module, and the config plugin listed in `app.json` resolves from the published package
 (`expo export` reads the app config, so a broken `./app.plugin.js` export fails the job).
+
+It also renders `/rfid` on `@its/rfid-honeywell`'s adapter, which reads unsupported on the web,
+so the vendor package's published types must implement the published contract. Its config
+plugin is listed with SDK paths that do not exist: the plugin reads the SDKs only at prebuild,
+which the smoke test never runs, and their licence keeps them out of the repository. `/scanner`
+runs the same way on `@its/scanner-honeywell`'s adapter, whose plugin points at a
+`DataCollection.aar` that does not exist either.
 
 ## Why it is NOT in the workspaces
 
@@ -46,10 +53,12 @@ npm run web          # or open it in a browser
 
 ## Which version it tests
 
-CI does not trust a range: it reads the versions `packages/ui/package.json` and
-`packages/device/package.json` declare at the commit being tested and installs exactly those
-(`npm install --no-save @its/glowup-ui@<version> @its/glowup-device@<version>`), waiting for
-them to appear on the registry first. On `master`
+CI does not trust a range: it reads the versions `packages/ui/package.json`,
+`packages/device/package.json`, `packages/rfid-honeywell/package.json` and
+`packages/scanner-honeywell/package.json` declare at the commit being tested and installs exactly
+those (`npm install --no-save @its/glowup-ui@<version> @its/glowup-device@<version>
+@its/rfid-honeywell@<version> @its/scanner-honeywell@<version>`), waiting for them to appear on the
+registry first. On `master`
 that is the version Release just published, so a publish that failed shows up here as a
 failure instead of a green run against an older release.
 

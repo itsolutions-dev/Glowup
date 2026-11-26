@@ -104,8 +104,8 @@ describe("buildGridModel", () => {
       "t — Sum Total of Count",
       "t — Sum Total of Value",
     ]);
-    // Measures on the columns: the grand-total row says plainly "Total".
-    expect(model.rows[0].label).toBe("Total");
+    // Measures on the columns: the grand-total row is "Grand Total" ("Totale complessivo").
+    expect(model.rows[0].label).toBe("Grand Total");
   });
 
   test("measures on rows repeat a node per measure but only the first owns the arrow", () => {

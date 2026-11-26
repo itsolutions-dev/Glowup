@@ -80,6 +80,16 @@ Tutto il resto è identico all'originale, salvo lo stile (Prettier: doppi apici,
     drill-through. `FilterBar.tsx` riscrive `FilterBar/FilterBar.tsx` (stesse modalità per tipo; l'elenco dei valori è
     `shared/MemberChecklist.tsx` rifatto con `SearchBar` e `Checkbox`; le date con il `DatePicker`). Le voci dei dizionari sono quelle
     dell'originale (`fieldsList`, `filterBar`, `filterEditor`). Test: `fields/sliceEdits.test.ts`, `__tests__/pivotFields.test.tsx`.
+12. **Le didascalie date dai metadati alle parti di una data restano** (26/11, `core/data/DateHierarchyExpander.ts`): l'originale
+    scriveva sempre `«campo» («parte»)` per `campo.Year`, `campo.Month` e le altre parti, anche quando i metadati ne davano una
+    (`"callDate.Year": { caption: "Anno" }`), sicché un report italiano mostrava «Data chiamata (Year)». Ora una didascalia dei metadati
+    per la parte vince; le altre restano `«campo» («parte»)`, con le parole di `hierarchyParts`. Le otto parti sono in un elenco
+    (`DATE_SUBPARTS`) invece di otto blocchi uguali. Test: `core/data/DateHierarchyExpander.test.ts`.
+13. **«Formato» nella barra** (26/11, `src/fields/FormatPanel.tsx`, non dal core): la parte «Formato numero» del dialogo di formato
+    dell'originale (decimali, separatori, valuta e suo allineamento, valore nullo, percentuale), scritta con `setFormat({ values })`.
+    Lasciati fuori: carattere, colori, regole condizionali, posizione dei totali, densità, titolo e nota. La riga del totale
+    complessivo con i valori in colonna si chiama `grid.grandTotal` («Totale complessivo»), non `grid.total` (`grid/model.ts`).
+    Test: `__tests__/pivotToolbar.test.tsx`, `grid/model.test.ts`.
 
 Una prova (`src/__tests__/no-web-apis.test.ts`) fallisce se `exceljs`, `document.` o `navigator` rientrano nel core.
 

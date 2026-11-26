@@ -106,7 +106,7 @@ export const buildGridModel = ({
   const rowLeaves = matrix.rowLeaves.filter(visible);
 
   const totalCaption = (() => {
-    if (matrix.measuresOnColumns) return grid.total || "Total";
+    if (matrix.measuresOnColumns) return grid.grandTotal || "Grand Total";
     const measures = matrix.measures || [];
     if (measures.length === 0) return grid.grandTotal || "Grand Total";
     return measures

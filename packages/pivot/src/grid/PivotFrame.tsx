@@ -1,10 +1,10 @@
-// The toolbar of a pivot (`toolbar` on PivotGrid), the same on web and phone: Fields at the left, Export to
-// Excel, Fullscreen and Reset at the right, as in the CRM's AuraPivot table; under it the filter bar when
+// The toolbar of a pivot (`toolbar` on PivotGrid), the same on web and phone: Fields and Format at the left,
+// Export to Excel, Fullscreen and Reset at the right, as in the CRM's AuraPivot table; under it the filter bar when
 // the report has filters. The export reads the grid's model at the
 // tap, so the file holds what is on screen (the groups the person left open). Fullscreen shows the same
 // engine in the library's full-screen dialog; Reset puts back the layout the engine had when the grid
 // first appeared (groups and sorting), not its data, unless the app gives its own `onReset` (an app that
-// applies a saved configuration resets to that). Fields opens the field panel (fields/FieldPanel.tsx).
+// applies a saved configuration resets to that). Fields opens the field panel (fields/FieldPanel.tsx), Format the number format (fields/FormatPanel.tsx).
 import React, { useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -23,6 +23,7 @@ import { gridToXlsx, xlsxName } from "../export/xlsx";
 import type { LocalizationDictionary } from "../localization/types";
 import { caption } from "./caption";
 import FieldPanel from "../fields/FieldPanel";
+import FormatPanel from "../fields/FormatPanel";
 import FilterBar, { FILTER_BAR_HEIGHT } from "../fields/FilterBar";
 import { useEngineVersion } from "../hooks/useEngineVersion";
 import { DEFAULT_HEIGHT } from "./layout";
@@ -114,6 +115,7 @@ const PivotFrame = ({
   const window = useWindowDimensions();
   const [open, setOpen] = useState(false);
   const [fields, setFields] = useState(false);
+  const [format, setFormat] = useState(false);
   // The filter bar takes its row only while the report has filters.
   useEngineVersion(engine);
   const filterBar = engine.getSlice().filters?.length ? FILTER_BAR_HEIGHT : 0;
@@ -184,13 +186,22 @@ const PivotFrame = ({
   );
 
   const fieldsLabel = caption(localization, "toolbar", "fields", "Fields");
-  const fieldsButton = (
-    <IconButton
-      icon="table-pivot"
-      accessibilityLabel={fieldsLabel}
-      title={fieldsLabel}
-      onClick={() => setFields(true)}
-    />
+  const formatLabel = caption(localization, "toolbar", "format", "Format");
+  const leading = (
+    <View style={styles.buttons}>
+      <IconButton
+        icon="table-pivot"
+        accessibilityLabel={fieldsLabel}
+        title={fieldsLabel}
+        onClick={() => setFields(true)}
+      />
+      <IconButton
+        icon="format-paint"
+        accessibilityLabel={formatLabel}
+        title={formatLabel}
+        onClick={() => setFormat(true)}
+      />
+    </View>
   );
 
   // The message takes the room beside the buttons, two lines at most, so the grid keeps its height.
@@ -214,7 +225,7 @@ const PivotFrame = ({
     <>
       <View>
         <View style={styles.bar}>
-          {fieldsButton}
+          {leading}
           <View style={styles.slot}>{errorText}</View>
           {buttons(false)}
         </View>
@@ -230,8 +241,13 @@ const PivotFrame = ({
         visible={open}
         onClose={() => setOpen(false)}
         closeIcon={false}
-        actions={buttons(true)}
-        leadingActions={fieldsButton}
+        // A full-screen dialog has one row of actions, in its header.
+        actions={
+          <>
+            {leading}
+            {buttons(true)}
+          </>
+        }
         testID="pivot-fullscreen"
       >
         {errorText}
@@ -254,6 +270,12 @@ const PivotFrame = ({
         localization={localization}
         visible={fields}
         onClose={() => setFields(false)}
+      />
+      <FormatPanel
+        engine={engine}
+        localization={localization}
+        visible={format}
+        onClose={() => setFormat(false)}
       />
     </>
   );

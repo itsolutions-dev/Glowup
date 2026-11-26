@@ -269,7 +269,8 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     inputValue: controller.fieldText,
     onInputChange: controller.handleInputChange,
     onInputBlur: controller.handleInputBlur,
-    inputPlaceholder: controller.inputHint,
+    // The app's own placeholder wins over the typing hint.
+    inputPlaceholder: placeholder ?? controller.inputHint,
     openAccessibilityLabel: controller.labels.openPicker,
     style,
     testID,

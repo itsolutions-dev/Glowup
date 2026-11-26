@@ -169,7 +169,10 @@ export interface DateTimePickerCommonProps {
    */
   fieldVariant?: "outlined" | "filled";
   label?: string;
-  /** Shown while the field has no value. */
+  /**
+   * Shown while the field has no value. Left out, a field you can type a date
+   * in shows the locale's typing hint ("GG/MM/AAAA" in Italian).
+   */
   placeholder?: string;
   mode?: DateTimePickerMode;
   disabled?: boolean;
@@ -578,16 +581,41 @@ export const getDateFieldSeparator = memoize((locale: string) => {
   return literal?.value.trim() ?? "/";
 });
 
-const FIELD_HINTS: Record<DateField, string> = {
-  day: "DD",
-  month: "MM",
-  year: "YYYY",
+const FIELD_LETTERS: Record<DateField, string> = {
+  day: "D",
+  month: "M",
+  year: "Y",
+};
+const FIELD_WIDTHS: Record<DateField, number> = { day: 2, month: 2, year: 4 };
+
+/**
+ * The letter a field's hint repeats: the initial of the field's name in the
+ * locale ("giorno" gives G, "Jahr" J), from `Intl.DisplayNames`. English's
+ * letter where the runtime has no such names (Hermes) or the script has no
+ * letter case to make a hint of (日, 年).
+ */
+const fieldLetter = (locale: string, field: DateField) => {
+  try {
+    const initial = new Intl.DisplayNames([locale], {
+      type: "dateTimeField",
+    })
+      .of(field)
+      ?.charAt(0);
+    const upper = initial?.toLocaleUpperCase(locale);
+    if (upper && upper !== initial?.toLocaleLowerCase(locale)) return upper;
+  } catch {
+    // No Intl.DisplayNames, or no names for this locale.
+  }
+  return FIELD_LETTERS[field];
 };
 
-/** A typing hint in the locale's own order, e.g. "DD/MM/YYYY". */
+/**
+ * A typing hint in the locale's own order and letters: "DD/MM/YYYY" in
+ * English, "GG/MM/AAAA" in Italian, "TT.MM.JJJJ" in German.
+ */
 export const getDateInputHint = memoize((locale: string) =>
   getDateFieldOrder(locale)
-    .map((field) => FIELD_HINTS[field])
+    .map((field) => fieldLetter(locale, field).repeat(FIELD_WIDTHS[field]))
     .join(getDateFieldSeparator(locale)),
 );
 

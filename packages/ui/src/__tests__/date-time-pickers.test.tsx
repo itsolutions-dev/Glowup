@@ -345,12 +345,30 @@ describe("the popup surface", () => {
     );
     expectNoRemovedChrome(screen);
     await fireEvent.changeText(
-      screen.getByPlaceholderText("DD/MM/YYYY"),
+      screen.getByPlaceholderText("GG/MM/AAAA"),
       "15/03/2024",
     );
     expect(spy).not.toHaveBeenCalled();
     await fireEvent.press(screen.getByText("OK"));
     expect(spy).toHaveBeenCalledWith(MARCH_15);
+  });
+});
+
+describe("the typed field's placeholder", () => {
+  it("is the locale's typing hint, and the app's placeholder when given", async () => {
+    const hint = await draw(
+      <DatePicker locale="it-IT" value={null} onChange={() => {}} />,
+    );
+    expect(hint.getByPlaceholderText("GG/MM/AAAA")).toBeTruthy();
+    const own = await draw(
+      <DatePicker
+        locale="it-IT"
+        placeholder="Scegli una data"
+        value={null}
+        onChange={() => {}}
+      />,
+    );
+    expect(own.getByPlaceholderText("Scegli una data")).toBeTruthy();
   });
 });
 

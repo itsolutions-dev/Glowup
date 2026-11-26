@@ -425,17 +425,33 @@ function Dialog({
           dismiss from firing through it. Hidden from assistive tech, which
           should reach the dialog, not a full-screen button.
         */}
-          <Pressable
-            testID={`${testID}-scrim`}
-            style={[
-              StyleSheet.absoluteFill,
-              styles.scrim,
-              slotStyles?.backdrop,
-            ]}
-            onPress={disableBackdropClick ? undefined : onClose}
-            importantForAccessibility="no"
-            accessibilityElementsHidden
-          />
+          {disableBackdropClick || !onClose ? (
+            // A scrim that does nothing is not a control: as a Pressable it
+            // took focus on a click (and was the focus trap's first stop),
+            // which left Escape and the keyboard on an inert full-screen layer.
+            <View
+              testID={`${testID}-scrim`}
+              style={[
+                StyleSheet.absoluteFill,
+                styles.scrim,
+                slotStyles?.backdrop,
+              ]}
+              importantForAccessibility="no"
+              accessibilityElementsHidden
+            />
+          ) : (
+            <Pressable
+              testID={`${testID}-scrim`}
+              style={[
+                StyleSheet.absoluteFill,
+                styles.scrim,
+                slotStyles?.backdrop,
+              ]}
+              onPress={onClose}
+              importantForAccessibility="no"
+              accessibilityElementsHidden
+            />
+          )}
 
           <View
             accessibilityViewIsModal

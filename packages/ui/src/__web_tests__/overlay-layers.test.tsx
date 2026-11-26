@@ -94,3 +94,42 @@ describe("overlays inside a Dialog", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 });
+
+describe("a Dialog's scrim", () => {
+  const scrimOf = (onClose?: () => void, disableBackdropClick?: boolean) => {
+    render(
+      <ThemeProvider>
+        <Dialog
+          visible
+          animationType="none"
+          title="Avviso"
+          onClose={onClose}
+          disableBackdropClick={disableBackdropClick}
+        >
+          Crediti in esaurimento
+        </Dialog>
+      </ThemeProvider>,
+    );
+    return screen.getByTestId("dialog-scrim");
+  };
+
+  it("is not focusable when a click on it does nothing, so Escape never lands on it", () => {
+    const onClose = jest.fn();
+    const scrim = scrimOf(onClose, true);
+    expect(scrim.getAttribute("tabindex")).toBeNull();
+    fireEvent.click(scrim);
+    expect(onClose).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.keyUp(document.activeElement ?? document.body, {
+        key: "Escape",
+      });
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the dialog on a click when the backdrop may close it", () => {
+    const onClose = jest.fn();
+    fireEvent.click(scrimOf(onClose));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

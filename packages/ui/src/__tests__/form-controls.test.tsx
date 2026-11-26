@@ -54,6 +54,13 @@ describe("Select", () => {
     error.mockRestore();
   });
 
+  it("is named by its label and then its value", async () => {
+    const empty = await draw();
+    expect(empty.getByLabelText("Numero")).toBeTruthy();
+    const filled = await draw({ options: ["Uno", "Due"], value: "Due" });
+    expect(filled.getByLabelText("Numero, Due")).toBeTruthy();
+  });
+
   it("takes plain strings as options, each its own label and value", async () => {
     const onChange = jest.fn();
     const error = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -64,7 +71,8 @@ describe("Select", () => {
       value: "Milan",
     });
     // The field shows the selected string, and the open list has it too.
-    expect(getAllByLabelText("Milan")).toHaveLength(2);
+    expect(getByLabelText("Numero, Milan")).toBeTruthy();
+    expect(getAllByLabelText("Milan")).toHaveLength(1);
     expect(getByText("Turin (TO)")).toBeTruthy();
     await fireEvent.press(getByLabelText("Rome"));
     expect(onChange).toHaveBeenCalledWith("Rome");

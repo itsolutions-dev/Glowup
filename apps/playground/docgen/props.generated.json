@@ -901,6 +901,13 @@
           "deprecated": false
         },
         {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of the close button and of the scrim. Defaults to\n`\"Close\"` (the scrim's to `\"Close bottom sheet\"`).",
+          "deprecated": false
+        },
+        {
           "name": "dismissOnScrimTap",
           "type": "boolean",
           "required": false,
@@ -1091,6 +1098,14 @@
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
           "default": "\"chevron-right\"",
+          "description": "The glyph between two items. Defaults to `\"chevron-right\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "separatorText",
+          "type": "string",
+          "required": false,
+          "description": "Text between two items instead of the `separator` glyph (`\"›\"`, `\"/\"`),\npart of the line's text as a path reads.",
           "deprecated": false
         }
       ]
@@ -5371,7 +5386,7 @@
           "name": "href",
           "type": "string",
           "required": false,
-          "description": "Opened with `Linking.openURL`. Ignored when `onPress` is given, and when\nits scheme is not in `allowedSchemes` — then the link does nothing.",
+          "description": "Opened with `Linking.openURL` on iOS and Android. On the web the link is an\n`<a href>` the browser follows (a web address in a new tab), so a middle\nclick, a modified click and a screen reader treat it as a link. With\n`onPress` a plain click calls it instead. Ignored when its scheme is not in\n`allowedSchemes` — then the link does nothing and has no `href`.",
           "deprecated": false
         },
         {
@@ -5756,6 +5771,21 @@
           "type": "React.ReactNode",
           "required": false,
           "description": "A row of buttons at the bottom, below a divider.",
+          "deprecated": false
+        },
+        {
+          "name": "backText",
+          "type": "string",
+          "required": false,
+          "default": "\"Back\"",
+          "description": "Accessible name of the back button. Defaults to `\"Back\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of the close button, and of the scrim of a swipeable\ndrawer. Defaults to `\"Close\"` (the scrim's to `\"Close drawer\"`).",
           "deprecated": false
         },
         {

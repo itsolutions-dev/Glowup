@@ -55,7 +55,8 @@ them are drawn above them; `Pagination` `labels`, `SpeedDial` `openLabel` / `clo
 both draw up to 100 entries at once; `DayTimeline` `completed` and per-event `editable`; the date fields' typing hint in
 the locale's letters, the app's `placeholder` winning over it; a portalled `Tooltip` flips at the window's edge; the
 pivot's Format panel, Fields and Format in full screen, "Grand Total" for the grand-total row and date-part captions from
-the metadata.
+the metadata. Then, for the CRM's F1 track: `Link` an `<a href>` on the web, a `Dialog` scrim that does nothing never
+takes focus, `BottomSheet` / `Drawer` `closeText`, `Breadcrumbs` `separatorText`, a `Select` named by its label and value.
 
 ## Per workstream
 

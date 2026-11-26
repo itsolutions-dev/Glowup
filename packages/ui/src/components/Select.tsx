@@ -257,7 +257,11 @@ const Select = ({
 
   const Anchor = (
     <Pressable
-      accessibilityLabel={selectedOption?.label || label || placeholder}
+      // Named by its label and then its value, as a labelled field is read
+      // ("Contact type, Email"): found by its label, and by what it holds.
+      accessibilityLabel={
+        [label, selectedOption?.label].filter(Boolean).join(", ") || placeholder
+      }
       // A combobox that opens a listbox: the trigger is not the list itself.
       accessibilityRole={(Platform.OS === "web" ? "combobox" : "none") as any}
       {...a11yState("combobox", { expanded: visible, disabled })}

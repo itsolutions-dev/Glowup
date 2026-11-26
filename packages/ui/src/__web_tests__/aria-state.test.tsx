@@ -99,6 +99,8 @@ describe("Select", () => {
       />,
     );
     const box = screen.getByRole("combobox");
+    // Found by its label, as a labelled field is.
+    expect(screen.getByLabelText("Colour")).toBe(box);
     expect(aria(box, "expanded")).toBe("false");
     fireEvent.click(box);
     expect(aria(screen.getByRole("combobox"), "expanded")).toBe("true");

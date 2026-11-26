@@ -247,8 +247,9 @@ describe("PivotGrid toolbar", () => {
     );
     await fireEvent.press(await screen.findByLabelText("Formato"));
     const dialog = await screen.findByTestId("pivot-format");
-    // A list is named by its choice: the currency's is "Nessuno".
-    await fireEvent.press(within(dialog).getByLabelText("Nessuno"));
+    await fireEvent.press(
+      within(dialog).getByLabelText("Simbolo valuta, Nessuno"),
+    );
     await fireEvent.press(await screen.findByLabelText("€"));
     await fireEvent.press(screen.getByTestId("pivot-format-apply"));
     expect(screen.queryByTestId("pivot-format")).toBeNull();

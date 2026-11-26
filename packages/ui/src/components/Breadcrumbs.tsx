@@ -14,7 +14,13 @@ export interface BreadcrumbItem {
 
 export interface BreadcrumbsProps {
   items: BreadcrumbItem[];
+  /** The glyph between two items. Defaults to `"chevron-right"`. */
   separator?: MaterialCommunityIconsGlyphs;
+  /**
+   * Text between two items instead of the `separator` glyph (`"›"`, `"/"`),
+   * part of the line's text as a path reads.
+   */
+  separatorText?: string;
   /** Collapse middle items behind an ellipsis when exceeding this count. */
   maxItems?: number;
 }
@@ -24,6 +30,7 @@ const ELLIPSIS_ID = "__ellipsis__";
 const Breadcrumbs = ({
   items,
   separator = "chevron-right",
+  separatorText,
   maxItems,
 }: BreadcrumbsProps) => {
   const { theme } = useTheme();
@@ -102,13 +109,26 @@ const Breadcrumbs = ({
               )}
             </Pressable>
 
-            {!isLast && (
-              <Icons
-                name={separator}
-                size={16}
-                color={theme.colors.onSurfaceVariant}
-                style={styles.separator}
-              />
+            {!isLast && separatorText != null ? (
+              <Text
+                aria-hidden
+                style={[
+                  theme.typography.bodyMedium,
+                  styles.separator,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                {separatorText}
+              </Text>
+            ) : (
+              !isLast && (
+                <Icons
+                  name={separator}
+                  size={16}
+                  color={theme.colors.onSurfaceVariant}
+                  style={styles.separator}
+                />
+              )
             )}
           </React.Fragment>
         );

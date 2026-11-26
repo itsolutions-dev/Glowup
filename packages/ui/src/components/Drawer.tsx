@@ -306,8 +306,15 @@ export interface DrawerProps {
   actions?: React.ReactNode;
   /** Adds a close button to the header row, which calls `onClose`. Defaults to `false`. */
   showCloseButton?: boolean;
+  /**
+   * Accessible name of the close button, and of the scrim of a swipeable
+   * drawer. Defaults to `"Close"` (the scrim's to `"Close drawer"`).
+   */
+  closeText?: string;
   /** Shows a back button before the title, for a drawer with sub-pages. */
   onBack?: () => void;
+  /** Accessible name of the back button. Defaults to `"Back"`. */
+  backText?: string;
   /** Left and right: defaults to 360 (M3), capped at the window width when swipeable. */
   width?: number;
   /** Top and bottom: the largest height, defaults to 360. */
@@ -336,7 +343,9 @@ const Drawer = ({
   footer,
   actions,
   showCloseButton = false,
+  closeText,
   onBack,
+  backText = "Back",
   width: widthProp = DRAWER_WIDTH,
   height = DRAWER_HEIGHT,
   style,
@@ -363,7 +372,7 @@ const Drawer = ({
           {onBack && (
             <IconButton
               icon="arrow-left"
-              accessibilityLabel="Back"
+              accessibilityLabel={backText}
               onClick={onBack}
             />
           )}
@@ -378,7 +387,7 @@ const Drawer = ({
           {showCloseButton && (
             <IconButton
               icon="close"
-              accessibilityLabel="Close"
+              accessibilityLabel={closeText ?? "Close"}
               onClick={onClose}
               testID={testID ? `${testID}-close` : undefined}
             />
@@ -428,7 +437,7 @@ const Drawer = ({
         position={position}
         width={width}
         height={height}
-        scrimLabel="Close drawer"
+        scrimLabel={closeText ?? "Close drawer"}
         panelStyle={[surface, style]}
         testID={testID}
       >

@@ -87,3 +87,38 @@ export {
   type MockBackgroundLocationAdapter,
   type MockBackgroundLocationOptions,
 } from "./backgroundLocation";
+export {
+  buildBluetoothDevice,
+  createMockBluetoothAdapter,
+  type BluetoothDeviceOverrides,
+  type MockBluetoothAdapter,
+  type MockBluetoothOptions,
+  type MockCharacteristic,
+  type MockService,
+  type MockWrite,
+} from "./bluetooth";
+export {
+  createMockRfidAdapter,
+  type MockRfidAdapter,
+  type MockRfidCapabilities,
+  type MockRfidOptions,
+  type MockTagRead,
+} from "./rfid";
+export {
+  describeRfidAdapterContract,
+  type RfidContractHarness,
+  type RfidContractOptions,
+  type RfidContractTestApi,
+} from "./rfidContract";
+export {
+  createMockBarcodeScannerAdapter,
+  type MockBarcodeRead,
+  type MockBarcodeScannerAdapter,
+  type MockBarcodeScannerOptions,
+} from "./barcodeScanner";
+export {
+  describeBarcodeScannerAdapterContract,
+  type BarcodeScannerContractHarness,
+  type BarcodeScannerContractOptions,
+  type BarcodeScannerContractTestApi,
+} from "./barcodeScannerContract";

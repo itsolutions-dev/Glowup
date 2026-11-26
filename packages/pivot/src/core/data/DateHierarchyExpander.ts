@@ -109,6 +109,18 @@ const formatTime = (
   return str;
 };
 
+/** The parts a date field is expanded into: the suffix, the part's type, and its name. */
+const DATE_SUBPARTS = [
+  ["Year", "string", "year"],
+  ["Quarter", "number", "quarter"],
+  ["Month", "number", "month"],
+  ["Week", "number", "week"],
+  ["Day", "string", "day"],
+  ["Weekday", "number", "weekday"],
+  ["Hour", "string", "hour"],
+  ["Minute", "string", "minute"],
+] as const;
+
 export const expandHierarchies = (
   metadata: MetadataRow,
   rows: DataRow[],
@@ -139,46 +151,16 @@ export const expandHierarchies = (
     if (!meta) return;
     if (meta.type === "date") {
       dateFields.push(name);
-      expandedMeta[`${name}.Year`] = {
-        type: "string",
-        subpart: "year",
-        caption: `${meta.caption} (${parts.year})`,
-      };
-      expandedMeta[`${name}.Quarter`] = {
-        type: "number",
-        subpart: "quarter",
-        caption: `${meta.caption} (${parts.quarter})`,
-      };
-      expandedMeta[`${name}.Month`] = {
-        type: "number",
-        subpart: "month",
-        caption: `${meta.caption} (${parts.month})`,
-      };
-      expandedMeta[`${name}.Week`] = {
-        type: "number",
-        subpart: "week",
-        caption: `${meta.caption} (${parts.week})`,
-      };
-      expandedMeta[`${name}.Day`] = {
-        type: "string",
-        subpart: "day",
-        caption: `${meta.caption} (${parts.day})`,
-      };
-      expandedMeta[`${name}.Weekday`] = {
-        type: "number",
-        subpart: "weekday",
-        caption: `${meta.caption} (${parts.weekday})`,
-      };
-      expandedMeta[`${name}.Hour`] = {
-        type: "string",
-        subpart: "hour",
-        caption: `${meta.caption} (${parts.hour})`,
-      };
-      expandedMeta[`${name}.Minute`] = {
-        type: "string",
-        subpart: "minute",
-        caption: `${meta.caption} (${parts.minute})`,
-      };
+      // A caption the metadata gives for a part (`callDate.Year: { caption:
+      // "Anno" }`) is kept; the others are "<field> (<part>)".
+      DATE_SUBPARTS.forEach(([suffix, type, part]) => {
+        const key = `${name}.${suffix}`;
+        expandedMeta[key] = {
+          type,
+          subpart: part,
+          caption: metadata[key]?.caption || `${meta.caption} (${parts[part]})`,
+        };
+      });
     } else if (meta.type === "time") {
       timeFields.push(name);
     } else if (meta.type === "month") {

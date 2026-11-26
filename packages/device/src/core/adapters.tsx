@@ -3,6 +3,7 @@ import { createContext, type ReactNode, useContext, useMemo } from "react";
 import type { BackgroundLocationAdapter } from "../background-location/types";
 import type { BatteryAdapter } from "../battery/types";
 import type { BiometricsAdapter } from "../biometrics/types";
+import type { BluetoothAdapter } from "../bluetooth/types";
 import type { CameraAdapter } from "../camera/types";
 import type { HapticsAdapter } from "../haptics/types";
 import type { DeviceInfoAdapter } from "../info/types";
@@ -12,6 +13,8 @@ import type { MediaLibraryAdapter } from "../media-library/types";
 import type { MediaPickerAdapter } from "../media-picker/types";
 import type { NetworkAdapter } from "../network/types";
 import type { OrientationAdapter } from "../orientation/types";
+import type { RfidAdapter } from "../rfid/types";
+import type { BarcodeScannerAdapter } from "../scanner/types";
 import type { SecureStoreAdapter } from "../secure-store/types";
 import type { SensorsAdapter } from "../sensors/types";
 
@@ -35,6 +38,11 @@ export interface DeviceAdapters {
   mediaPicker: MediaPickerAdapter;
   mediaLibrary: MediaLibraryAdapter;
   backgroundLocation: BackgroundLocationAdapter;
+  bluetooth: BluetoothAdapter;
+  /** No default: a vendor package (`@its/rfid-honeywell`) provides it. */
+  rfid: RfidAdapter;
+  /** No default: a vendor package (`@its/scanner-honeywell`) provides it. */
+  barcodeScanner: BarcodeScannerAdapter;
 }
 
 const DeviceAdaptersContext = createContext<Partial<DeviceAdapters>>({});
@@ -74,6 +82,9 @@ export function DeviceAdaptersProvider({
     mediaPicker,
     mediaLibrary,
     backgroundLocation,
+    bluetooth,
+    rfid,
+    barcodeScanner,
   } = adapters;
   const value = useMemo(
     () => ({
@@ -93,6 +104,9 @@ export function DeviceAdaptersProvider({
       ...(mediaPicker && { mediaPicker }),
       ...(mediaLibrary && { mediaLibrary }),
       ...(backgroundLocation && { backgroundLocation }),
+      ...(bluetooth && { bluetooth }),
+      ...(rfid && { rfid }),
+      ...(barcodeScanner && { barcodeScanner }),
     }),
     [
       parent,
@@ -111,6 +125,9 @@ export function DeviceAdaptersProvider({
       mediaPicker,
       mediaLibrary,
       backgroundLocation,
+      bluetooth,
+      rfid,
+      barcodeScanner,
     ],
   );
   return (

@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "types": ["jest", "node"],
+    // The device package's source, not its build: type-check and the tests
+    // run before `npm run build` in CI, and a live edit to the contract shows.
+    "paths": {
+      "@its/glowup-device/rfid": ["../device/src/rfid/index.ts"],
+      "@its/glowup-device/testing": ["../device/src/testing/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

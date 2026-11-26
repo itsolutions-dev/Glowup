@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- From Android 11 an app sees another package only when it declares it:
+       isSupported() asks whether DataWedge is installed. The manifest merger
+       carries this into the app's manifest, so no config plugin is needed. -->
+  <queries>
+    <package android:name="com.symbol.datawedge" />
+  </queries>
+</manifest>

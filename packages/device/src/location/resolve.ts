@@ -1,14 +1,5 @@
-import { isLocationError, LocationError } from "./errors";
+import { LocationError } from "../core/geo";
 import type { GeoPosition, LocationAdapter, PositionOptions } from "./types";
-
-export function toError(error: unknown): LocationError {
-  if (isLocationError(error)) return error;
-  return new LocationError(
-    "unavailable",
-    error instanceof Error ? error.message : undefined,
-    error,
-  );
-}
 
 /**
  * The checks every read goes through, in the order a user can fix them. They

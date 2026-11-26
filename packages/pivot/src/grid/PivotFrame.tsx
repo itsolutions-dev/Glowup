@@ -1,8 +1,10 @@
-// The toolbar of a pivot (`toolbar` on PivotGrid), the same on web and phone: Export to Excel, Fullscreen
-// and Reset, at the right as in the CRM's AuraPivot table. The export reads the grid's model at the
+// The toolbar of a pivot (`toolbar` on PivotGrid), the same on web and phone: Fields and Format at the left,
+// Export to Excel, Fullscreen and Reset at the right, as in the CRM's AuraPivot table; under it the filter bar when
+// the report has filters. The export reads the grid's model at the
 // tap, so the file holds what is on screen (the groups the person left open). Fullscreen shows the same
 // engine in the library's full-screen dialog; Reset puts back the layout the engine had when the grid
-// first appeared (groups and sorting), not its data.
+// first appeared (groups and sorting), not its data, unless the app gives its own `onReset` (an app that
+// applies a saved configuration resets to that). Fields opens the field panel (fields/FieldPanel.tsx), Format the number format (fields/FormatPanel.tsx).
 import React, { useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -19,6 +21,11 @@ import { saveXlsx } from "../export/save";
 import usePivotMatrix from "../hooks/usePivotMatrix";
 import { gridToXlsx, xlsxName } from "../export/xlsx";
 import type { LocalizationDictionary } from "../localization/types";
+import { caption } from "./caption";
+import FieldPanel from "../fields/FieldPanel";
+import FormatPanel from "../fields/FormatPanel";
+import FilterBar, { FILTER_BAR_HEIGHT } from "../fields/FilterBar";
+import { useEngineVersion } from "../hooks/useEngineVersion";
 import { DEFAULT_HEIGHT } from "./layout";
 import { buildGridModel } from "./model";
 import type { PivotGridProps } from "./props";
@@ -40,18 +47,6 @@ const EXPORT_ERRORS = {
   unsupported: ["exportNoSharing", "This device cannot share files."],
   other: ["exportFailed", "The export did not work. Try again."],
 } as const;
-
-const caption = (
-  localization: LocalizationDictionary | undefined,
-  section: string,
-  key: string,
-  fallback: string,
-) => {
-  const value = (
-    localization?.[section] as Record<string, unknown> | undefined
-  )?.[key];
-  return typeof value === "string" && value ? value : fallback;
-};
 
 // The three buttons; each one's name is also its tooltip (hover on the web, a long press on a phone).
 const Buttons = ({
@@ -114,10 +109,16 @@ const PivotFrame = ({
   localization,
   height = DEFAULT_HEIGHT,
   fileName,
+  onReset,
 }: PivotFrameProps) => {
   const { theme } = useTheme();
   const window = useWindowDimensions();
   const [open, setOpen] = useState(false);
+  const [fields, setFields] = useState(false);
+  const [format, setFormat] = useState(false);
+  // The filter bar takes its row only while the report has filters.
+  useEngineVersion(engine);
+  const filterBar = engine.getSlice().filters?.length ? FILTER_BAR_HEIGHT : 0;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The layout to reset to is taken the first time this engine has rows to show, not at mount: an app
@@ -169,7 +170,8 @@ const PivotFrame = ({
 
   const reset = () => {
     setError(null);
-    if (initial?.engine === engine) engine.setReport(initial.report);
+    if (onReset) onReset();
+    else if (initial?.engine === engine) engine.setReport(initial.report);
   };
 
   const buttons = (inDialog: boolean) => (
@@ -181,6 +183,25 @@ const PivotFrame = ({
       onFullscreen={() => setOpen(!inDialog)}
       onReset={reset}
     />
+  );
+
+  const fieldsLabel = caption(localization, "toolbar", "fields", "Fields");
+  const formatLabel = caption(localization, "toolbar", "format", "Format");
+  const leading = (
+    <View style={styles.buttons}>
+      <IconButton
+        icon="table-pivot"
+        accessibilityLabel={fieldsLabel}
+        title={fieldsLabel}
+        onClick={() => setFields(true)}
+      />
+      <IconButton
+        icon="format-paint"
+        accessibilityLabel={formatLabel}
+        title={formatLabel}
+        onClick={() => setFormat(true)}
+      />
+    </View>
   );
 
   // The message takes the room beside the buttons, two lines at most, so the grid keeps its height.
@@ -204,13 +225,15 @@ const PivotFrame = ({
     <>
       <View>
         <View style={styles.bar}>
-          {errorText}
+          {leading}
+          <View style={styles.slot}>{errorText}</View>
           {buttons(false)}
         </View>
+        <FilterBar engine={engine} localization={localization} />
         <Grid
           engine={engine}
           localization={localization}
-          height={height - TOOLBAR_HEIGHT}
+          height={height - TOOLBAR_HEIGHT - filterBar}
         />
       </View>
       <Dialog
@@ -218,19 +241,42 @@ const PivotFrame = ({
         visible={open}
         onClose={() => setOpen(false)}
         closeIcon={false}
-        actions={buttons(true)}
+        // A full-screen dialog has one row of actions, in its header.
+        actions={
+          <>
+            {leading}
+            {buttons(true)}
+          </>
+        }
         testID="pivot-fullscreen"
       >
         {errorText}
+        <FilterBar engine={engine} localization={localization} />
         <Grid
           engine={engine}
           localization={localization}
           height={Math.max(
             320,
-            window.height - DIALOG_HEADER - theme.spacing.l - SYSTEM_BARS,
+            window.height -
+              DIALOG_HEADER -
+              theme.spacing.l -
+              SYSTEM_BARS -
+              filterBar,
           )}
         />
       </Dialog>
+      <FieldPanel
+        engine={engine}
+        localization={localization}
+        visible={fields}
+        onClose={() => setFields(false)}
+      />
+      <FormatPanel
+        engine={engine}
+        localization={localization}
+        visible={format}
+        onClose={() => setFormat(false)}
+      />
     </>
   );
 };
@@ -240,11 +286,11 @@ const styles = StyleSheet.create({
     height: TOOLBAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
     gap: 4,
   },
+  slot: { flex: 1, justifyContent: "center" },
   buttons: { flexDirection: "row", alignItems: "center", gap: 4 },
-  error: { flex: 1, paddingHorizontal: 8 },
+  error: { paddingHorizontal: 8 },
 });
 
 export default PivotFrame;

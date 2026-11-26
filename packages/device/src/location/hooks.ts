@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Linking } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
-import { usePermissionSnapshot } from "../core/permissionStore";
+import {
+  toPermissionHook,
+  usePermissionSnapshot,
+} from "../core/permissionStore";
+import { toError, type LocationError } from "../core/geo";
 import type { Unsubscribe } from "../core/types";
 import { defaultLocationAdapter } from "./defaultAdapter";
-import type { LocationError } from "./errors";
 import { getPermissionStore, UNKNOWN_LOCATION } from "./permissionStore";
-import { ensureReady, resolvePosition, toError } from "./resolve";
+import { ensureReady, resolvePosition } from "./resolve";
 import type {
   GeoPosition,
   LocationAdapter,
@@ -41,15 +43,11 @@ export interface UseLocationPermission extends LocationPermissionState {
  */
 export function useLocationPermission(): UseLocationPermission {
   const store = getPermissionStore(useLocationAdapter());
-  const state = usePermissionSnapshot(store);
-
-  return {
-    ...(state ?? UNKNOWN_LOCATION),
-    isLoading: state === null,
-    request: store.request,
-    refresh: store.refresh,
-    openSettings: () => Linking.openSettings(),
-  };
+  return toPermissionHook(
+    store,
+    usePermissionSnapshot(store),
+    UNKNOWN_LOCATION,
+  );
 }
 
 export interface UseCurrentPositionOptions extends PositionOptions {

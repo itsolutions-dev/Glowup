@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 
+import { parsePayload } from "./payload";
 import { assertSupported } from "./support";
 import type {
   DataParser,
@@ -89,21 +90,13 @@ export async function getScheduledNotifications<TData = NotificationData>(
   const requests = await Notifications.getAllScheduledNotificationsAsync();
   const result: ScheduledNotification<TData>[] = [];
   for (const request of requests) {
-    let data: TData;
-    try {
-      const parsed = parseData
-        ? parseData(request.content.data)
-        : ((request.content.data ?? {}) as TData);
-      if (parsed === null) continue;
-      data = parsed;
-    } catch {
-      continue;
-    }
+    const data = parsePayload(request.content.data, parseData);
+    if (!data.ok) continue;
     result.push({
       id: request.identifier,
       title: request.content.title,
       body: request.content.body,
-      data,
+      data: data.value,
       trigger: request.trigger,
     });
   }

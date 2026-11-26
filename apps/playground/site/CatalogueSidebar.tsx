@@ -196,5 +196,3 @@ const makeStyles = (theme: Theme) =>
       marginBottom: 2,
     },
   });
-
-export default CatalogueSidebar;

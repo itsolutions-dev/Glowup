@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ThemeProvider } from "@its/glowup-ui";
+import { GridResizeHandles, ThemeProvider } from "@its/glowup-ui";
 
 import fixture from "./__fixtures__/editor-document.json";
 import {
@@ -16,7 +16,6 @@ import * as operations from "../editor/operations";
 import { removeNode, removeTab, setProps } from "../editor/operations";
 import { Canvas } from "../editor/canvas/Canvas";
 import { Palette } from "../editor/canvas/Palette";
-import { ResizeHandles } from "../editor/canvas/ResizeHandles";
 import type { StageWidth } from "../site/stage";
 import { useEditor, type Editor } from "../editor/canvas/useEditor";
 
@@ -282,9 +281,9 @@ describe("moving", () => {
     placeBoxes();
     await draw();
     await drag("box-n5", [20, 270], [420, 270]);
-    expect(screen.getByTestId("landing")).toBeTruthy();
-    expect(screen.queryByTestId("cell-0-0")).toBeNull();
-    expect(screen.getByTestId("cell-0-10")).toBeTruthy();
+    expect(screen.getByTestId("grid-landing")).toBeTruthy();
+    expect(screen.queryByTestId("grid-cell-0-0")).toBeNull();
+    expect(screen.getByTestId("grid-cell-0-10")).toBeTruthy();
     expect(
       StyleSheet.flatten(screen.getByTestId("frame-n5").props.style).opacity,
     ).toBe(0.5);
@@ -372,7 +371,7 @@ describe("moving", () => {
     const box = await drag("box-n5", [20, 270], [420, 270]);
     await fireEvent(box, "responderTerminate");
     expect(editor.doc).toBe(before);
-    expect(screen.queryByTestId("landing")).toBeNull();
+    expect(screen.queryByTestId("grid-landing")).toBeNull();
   });
 });
 
@@ -438,8 +437,8 @@ describe("resizing", () => {
     await sizePage();
     await tap("box-n5");
     await pull("e", 210, 0, true);
-    expect(screen.queryByTestId("cell-0-4")).toBeNull();
-    expect(screen.getByTestId("cell-8-4")).toBeTruthy();
+    expect(screen.queryByTestId("grid-cell-0-4")).toBeNull();
+    expect(screen.getByTestId("grid-cell-8-4")).toBeTruthy();
   });
 
   it("shows the size live and lets go on cancel", async () => {
@@ -448,10 +447,10 @@ describe("resizing", () => {
     await tap("box-n5");
     const before = editor.doc;
     const handle = await pull("e", 210, 0, true);
-    expect(screen.getByTestId("landing")).toBeTruthy();
+    expect(screen.getByTestId("grid-landing")).toBeTruthy();
     expect(editor.doc).toBe(before);
     await fireEvent(handle, "responderTerminate");
-    expect(screen.queryByTestId("landing")).toBeNull();
+    expect(screen.queryByTestId("grid-landing")).toBeNull();
     expect(editor.doc).toBe(before);
     expect(editor.canUndo).toBe(false);
   });
@@ -899,7 +898,7 @@ describe("resize cursors", () => {
     jest.replaceProperty(Platform, "OS", "web");
     await render(
       <ThemeProvider>
-        <ResizeHandles onResize={() => {}} onCancel={() => {}} />
+        <GridResizeHandles onResize={() => {}} onCancel={() => {}} />
       </ThemeProvider>,
     );
     const cursor = (handle: string) =>

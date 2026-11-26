@@ -37,3 +37,12 @@ font loaded after the first render, and after the playground loads it first (`an
 for a filled field before and after `accessibilityLabelledBy` (`android-talkback-*`, TalkBack's "Display speech
 output" at the bottom); a toast drawn above an open dialog (`android-toast-over-dialog.png`); a pressable `Card`
 with actions next to a plain one (`web-card-actions.png`).
+
+## 2026-11-24
+
+**`nav-links/`** — gap G1 part 1, navigation items that are links, on the exported site's Drawer and NavigationRail
+pages (headless Chromium, 1440, 1024 and 390 px, scale 1). `drawer-*.png`: the swipeable drawer open, a nested group
+("Appearance") with two link items, the pointer on "Density". `rail-*.png`: the rail after a plain click on
+"Recent" (selected, focus ring from the click). Driven at each width: every item is an `<a href>`, a plain click
+changes the page without changing the URL, a Ctrl-click opens the link in a new tab and leaves the page alone, no
+page errors.

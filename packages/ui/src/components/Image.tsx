@@ -13,7 +13,7 @@ import Icons from "./Glyph";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import Skeleton from "./Skeleton";
 import { MaterialCommunityIconsGlyphs } from "./types";
-import { RadiusValue } from "./Layout/tokens";
+import { RadiusValue, resolveRadius } from "./Layout/tokens";
 
 export interface ImageProps {
   source: ImageSourcePropType;
@@ -90,8 +90,7 @@ const Image = ({
     setLoadedRatio(null);
   }
 
-  const borderRadius =
-    typeof radius === "number" ? radius : radius ? theme.shape[radius] : 0;
+  const borderRadius = resolveRadius(theme, radius) ?? 0;
 
   const activeSource = failed && fallbackSource ? fallbackSource : source;
   const showBrokenState = failed && !fallbackSource;

@@ -66,7 +66,23 @@ async function prebuild(
     podfileProperties,
     manifestApplication,
     removedPermissions,
+    manifest: results.android.manifest.manifest as Record<
+      string,
+      { $: Record<string, string> }[] | undefined
+    >,
   };
+}
+
+/** Every `<tag>` entry for a permission, with its attributes. */
+function declarations(
+  manifest: Record<string, { $: Record<string, string> }[] | undefined>,
+  name: string,
+) {
+  return ["uses-permission", "uses-permission-sdk-23"].flatMap((tag) =>
+    (manifest[tag] ?? [])
+      .filter((p) => p.$["android:name"] === `android.permission.${name}`)
+      .map((p) => ({ tag, ...p.$ })),
+  );
 }
 
 let warn: jest.SpyInstance;
@@ -552,6 +568,84 @@ it("rejects an unknown capability", () => {
   );
 });
 
+describe("bluetooth", () => {
+  it("writes the purpose string, and Android 12's permissions never for location", async () => {
+    const { infoPlist, manifest } = await prebuild({
+      bluetooth: { permission: "To read your heart rate monitor." },
+    });
+    expect(infoPlist.NSBluetoothAlwaysUsageDescription).toBe(
+      "To read your heart rate monitor.",
+    );
+    expect(declarations(manifest, "BLUETOOTH_SCAN")).toEqual([
+      expect.objectContaining({
+        "android:usesPermissionFlags": "neverForLocation",
+      }),
+    ]);
+    expect(declarations(manifest, "BLUETOOTH_CONNECT")).toHaveLength(1);
+    // Android 11 and earlier scan only with location: capped at 30.
+    expect(declarations(manifest, "ACCESS_FINE_LOCATION")).toEqual([
+      expect.objectContaining({
+        tag: "uses-permission-sdk-23",
+        "android:maxSdkVersion": "30",
+      }),
+    ]);
+    expect(manifest["uses-feature"] ?? []).toEqual([]);
+  });
+
+  it("keeps the location permissions for scans that locate the user", async () => {
+    const { manifest } = await prebuild({
+      bluetooth: {
+        permission: "To find the beacons.",
+        neverForLocation: false,
+      },
+    });
+    expect(declarations(manifest, "BLUETOOTH_SCAN")).toEqual([
+      expect.not.objectContaining({
+        "android:usesPermissionFlags": expect.anything(),
+      }),
+    ]);
+    expect(declarations(manifest, "ACCESS_FINE_LOCATION")).toEqual([
+      expect.not.objectContaining({
+        "android:maxSdkVersion": expect.anything(),
+      }),
+    ]);
+  });
+
+  it("declares location once, uncapped, beside the location capability", async () => {
+    const { manifest } = await prebuild({
+      location: { whenInUsePermission: "To show the shops near you." },
+      bluetooth: { permission: "To read your heart rate monitor." },
+    });
+    for (const name of ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]) {
+      expect(declarations(manifest, name)).toEqual([
+        expect.not.objectContaining({
+          "android:maxSdkVersion": expect.anything(),
+        }),
+      ]);
+    }
+  });
+
+  it("warns when the purpose string is left to the default", async () => {
+    const { infoPlist } = await prebuild({ bluetooth: true });
+    expect(infoPlist.NSBluetoothAlwaysUsageDescription).toBe(
+      "Allow $(PRODUCT_NAME) to connect to Bluetooth devices.",
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("bluetooth.permission is not set"),
+    );
+  });
+
+  it("refuses a neverForLocation that is not a boolean", () => {
+    expect(() =>
+      loadPlugin()(
+        { name: "Example", slug: "example" },
+        { bluetooth: { neverForLocation: "yes" } },
+      ),
+    ).toThrow("bluetooth.neverForLocation must be a boolean.");
+  });
+});
+
+// Last: its doMock outlives isolateModules.
 it("names the Expo module to install when it is missing", () => {
   jest.isolateModules(() => {
     jest.doMock("expo-location/app.plugin", () => {

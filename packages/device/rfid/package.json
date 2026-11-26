@@ -1,0 +1,5 @@
+{
+  "main": "../lib/commonjs/rfid/index.js",
+  "types": "../lib/typescript/rfid/index.d.ts",
+  "source": "../src/rfid/index.ts"
+}

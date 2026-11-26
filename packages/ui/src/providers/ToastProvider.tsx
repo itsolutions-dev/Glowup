@@ -23,7 +23,7 @@ export interface ToastOptions {
   variant?: SnackbarVariant;
   /** Where it appears. Defaults to the provider's `position`. */
   position?: SnackbarPosition;
-  /** Auto-hide delay in ms. Defaults to 4000. Not used when `onClose` is set. */
+  /** Auto-hide delay in ms. Defaults to the provider's `duration`. Not used when `onClose` is set. */
   duration?: number;
   /** Overrides the icon implied by `severity`. */
   icon?: MaterialCommunityIconsGlyphs;
@@ -99,9 +99,13 @@ export const useToast = () => {
 const ToastViewport = ({
   stacks,
   hide,
+  duration,
+  closeLabel,
 }: {
   stacks: [SnackbarPosition, QueuedToast[]][];
   hide: (key: string) => void;
+  duration?: number;
+  closeLabel?: string;
 }) =>
   stacks.map(([at, toasts]) => (
     <SnackbarStack key={at} position={at}>
@@ -116,7 +120,8 @@ const ToastViewport = ({
           variant={toast.variant}
           position={at}
           icon={toast.icon}
-          duration={toast.duration}
+          duration={toast.duration ?? duration}
+          closeLabel={closeLabel}
           action={toast.action}
           onDismiss={() => hide(toast.key)}
           onClose={
@@ -145,6 +150,10 @@ export interface ToastProviderProps {
    * given position they stack with a gap, the newest nearest the edge.
    */
   maxVisible?: number;
+  /** Auto-hide delay in ms of a toast that sets none. Defaults to 4000. */
+  duration?: number;
+  /** Accessible name of a toast's close button. Defaults to `"Close"`. */
+  closeLabel?: string;
 }
 
 /**
@@ -155,6 +164,8 @@ export const ToastProvider = ({
   children,
   position = "bottom-center",
   maxVisible = 1,
+  duration,
+  closeLabel,
 }: ToastProviderProps) => {
   const [queue, setQueue] = useState<QueuedToast[]>([]);
   // The queue also lives in a ref, so the API below can stay one object for
@@ -212,7 +223,14 @@ export const ToastProvider = ({
     stacks.set(at, [...(stacks.get(at) ?? []), toast]);
   }
 
-  const viewport = <ToastViewport stacks={[...stacks]} hide={api.hide} />;
+  const viewport = (
+    <ToastViewport
+      stacks={[...stacks]}
+      hide={api.hide}
+      duration={duration}
+      closeLabel={closeLabel}
+    />
+  );
 
   // The open overlays, oldest first: the last one is on top and draws the
   // toasts; with none open the root does.

@@ -33,6 +33,21 @@ describe("SpeedDial accessibility", () => {
     ).toHaveLength(1);
   });
 
+  it("takes the trigger's names from openLabel and closeLabel", async () => {
+    const { getByRole } = await draw(
+      <SpeedDial
+        mainIcon="plus"
+        actions={actions}
+        openLabel="Apri azioni"
+        closeLabel="Chiudi azioni"
+      />,
+    );
+    await act(async () => {
+      fireEvent.press(getByRole("button", { name: "Apri azioni" }));
+    });
+    expect(getByRole("button", { name: "Chiudi azioni" })).toBeTruthy();
+  });
+
   it("keeps closed actions out of screen readers and the tab order", async () => {
     jest.useFakeTimers();
     const { getByRole, queryByRole } = await draw(

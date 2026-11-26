@@ -34,6 +34,11 @@ export interface BottomSheetProps {
   /** Adds a close button at the end of the title row. Defaults to `false`. */
   showCloseButton?: boolean;
   /**
+   * Accessible name of the close button and of the scrim. Defaults to
+   * `"Close"` (the scrim's to `"Close bottom sheet"`).
+   */
+  closeText?: string;
+  /**
    * A row of buttons fixed at the bottom, below a divider, while the content
    * above it scrolls (named like `Dialog`'s `actions`).
    */
@@ -53,6 +58,7 @@ const BottomSheet = ({
   children,
   title,
   showCloseButton = false,
+  closeText,
   actions,
   showHandle = true,
   dismissOnScrimTap = true,
@@ -109,8 +115,9 @@ const BottomSheet = ({
           duration: 250,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        setShouldRender(false);
+      ]).start(({ finished }) => {
+        // Reopened while closing: the show animation interrupted this one.
+        if (finished) setShouldRender(false);
       });
     }
   }, [visible, translateY, scrimOpacity]);
@@ -159,7 +166,7 @@ const BottomSheet = ({
             <Pressable
               style={StyleSheet.absoluteFill}
               onPress={dismissOnScrimTap ? onClose : undefined}
-              accessibilityLabel="Close bottom sheet"
+              accessibilityLabel={closeText ?? "Close bottom sheet"}
             />
           </Animated.View>
 
@@ -200,7 +207,7 @@ const BottomSheet = ({
                 {showCloseButton && (
                   <IconButton
                     icon="close"
-                    accessibilityLabel="Close"
+                    accessibilityLabel={closeText ?? "Close"}
                     onClick={onClose}
                   />
                 )}

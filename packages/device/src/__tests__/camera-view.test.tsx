@@ -15,6 +15,7 @@ import {
   useCameraPermission,
   type CameraAdapter,
   type CameraHandle,
+  type ScannedBarcode,
 } from "../camera";
 import {
   createMockCameraAdapter,
@@ -125,6 +126,27 @@ describe("scanning", () => {
       "B",
     ]);
     now.mockRestore();
+  });
+
+  it("drops codes while the handler's confirmation runs", async () => {
+    let confirm!: () => void;
+    const onBarcodeScanned = jest.fn(
+      (_barcode: ScannedBarcode) =>
+        new Promise<void>((resolve) => (confirm = resolve)),
+    );
+    await renderCamera(<CameraView onBarcodeScanned={onBarcodeScanned} />);
+    await act(async () => {
+      adapter.scan({ data: "A" });
+      adapter.scan({ data: "B" }); // dropped: "A" is being confirmed
+    });
+    await act(async () => confirm());
+    await act(async () => {
+      adapter.scan({ data: "B" });
+    });
+    expect(onBarcodeScanned.mock.calls.map(([b]) => b.data)).toEqual([
+      "A",
+      "B",
+    ]);
   });
 
   it("reports every frame with scanInterval 0", async () => {

@@ -70,7 +70,7 @@ Full M3 role set. Each `xxx` pairs with `onXxx` for content color.
 
 ### 1.5 Theme utilities
 
-- `useTheme()` → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`. Syncs with OS scheme + manual toggle.
+- `useTheme()` → `{ theme, toggleTheme, mode, setMode, palette, setPalette }`; the scheme showing is `theme.isDark`, `mode` the one chosen (`"light"`, `"dark"`, `"system"`). `ThemeProvider` takes `initialMode` (start on a stored choice) or a controlled `mode` + `onModeChange`.
 - `getStateColor(bg, on, state)` → composites a hover/press state-layer color over a base.
 - `getGlowStyles(theme, active, variant?)` → the M3 "glow" focus ring for a control that always has a 1px border (a field): same border width idle and active, variant `"error"` for error state.
 - `getFocusRing(theme, error?)` → a hover/press/focus ring that never changes layout (shadow on web and iOS, elevation on Android), for controls with no border of their own (buttons, chips, tabs).
@@ -2270,12 +2270,12 @@ The library itself never imports react-navigation. Pads the top safe-area inset.
 Bottom navigation bar: the destinations of a compact window, three to five per M3. It reports
 presses; the app's router decides what they mean.
 
-| Prop       | Type                     | Default  | Req | Description                                     |
-| ---------- | ------------------------ | -------- | --- | ----------------------------------------------- |
-| items      | `NavBarItem[]`           | —        | ✓   | `{ id, label, icon, badgeCount?, disabled? }`   |
-| activeId   | string                   | —        | ✓   | `id` of the current destination                 |
-| onClick    | (id) => void             | —        | ✓   | Called with the `id` of the pressed destination |
-| showLabels | `"always" \| "selected"` | `always` |     |                                                 |
+| Prop       | Type                     | Default  | Req | Description                                                                                                 |
+| ---------- | ------------------------ | -------- | --- | ----------------------------------------------------------------------------------------------------------- |
+| items      | `NavBarItem[]`           | —        | ✓   | `{ id, label, icon, badgeCount?, disabled?, href? }`                                                        |
+| activeId   | string                   | —        | ✓   | `id` of the current destination                                                                             |
+| onClick    | (id) => void             | —        |     | Called with the `id` of the pressed destination; optional when every item has `href` under a `LinkProvider` |
+| showLabels | `"always" \| "selected"` | `always` |     |                                                                                                             |
 
 ### NavigationRail
 
@@ -2309,10 +2309,18 @@ its edge, the scrim, Android back and Escape close it. A right-hand side sheet i
 | height          | number                                   | `360`                     |     | Top and bottom: the largest height                                                                                                                                                                 |
 | style / testID  |                                          |                           |     |                                                                                                                                                                                                    |
 
-`DrawerItem`: `label` (required), `icon`, `selected`, trailing `badge`, `onClick`, `disabled`, and
+`DrawerItem`: `label` (required), `icon`, `selected`, trailing `badge`, `onClick`, `href`, `disabled`, and
 `children` (sub-items, which make it a group that the press opens and closes; `defaultExpanded`,
-`onToggle`). `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
+`onToggle`; they nest to any depth). `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
 `defaultExpanded` (`true`) and `onToggle`.
+
+**Links.** A `DrawerItem`, `NavBar` or `NavigationRail` item with `href` is a real anchor on the web (its
+URL on hover, Ctrl, Cmd, Shift or middle click for a new tab or window): a plain click runs the item's
+handler and then the `LinkProvider`'s `navigate`, so the route changes without a page load; with
+neither, the browser follows the link. On iOS and Android a press does both. A bar with links is a
+`navigation` landmark of links instead of a tab list. The library imports no router:
+`<LinkProvider navigate={(href) => router.push(href)}>` plugs in expo-router (react-navigation:
+`linkTo`). A group item (with `children`) still opens and closes, unless the drawer is `collapsed`.
 
 ```tsx
 <Drawer

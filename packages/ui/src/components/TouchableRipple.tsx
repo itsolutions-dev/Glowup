@@ -27,8 +27,6 @@ export interface TouchableRippleProps extends Omit<
   /** Matches the parent's corner radius so the layer doesn't bleed out. */
   borderRadius?: number;
   style?: StyleProp<ViewStyle>;
-  /** Extra style applied only while hovered (web) or pressed. */
-  activeStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -46,7 +44,6 @@ const TouchableRipple = ({
   borderless = false,
   borderRadius,
   style,
-  activeStyle,
   disabled,
   ...rest
 }: TouchableRippleProps) => {
@@ -54,30 +51,21 @@ const TouchableRipple = ({
 
   const base = underlayColor ?? theme.colors.surface;
   const on = rippleColor ?? theme.colors.onSurface;
+  const layer = useStateLayer(base, on);
 
-  const layers = useMemo(
-    () => ({
-      hover: getStateColor(base, on, "hover"),
-      focus: getStateColor(base, on, "focus"),
-      press: getStateColor(base, on, "press"),
-    }),
-    [base, on],
-  );
-
-  const resolveBackground = ({ hovered, pressed, focused }: PressableState) => {
-    if (disabled) return borderless ? "transparent" : base;
-    if (pressed) return layers.press;
-    if (hovered) return layers.hover;
-    if (focused) return layers.focus;
-    return borderless ? "transparent" : base;
-  };
+  const resolveBackground = (state: PressableState) =>
+    disabled || !(state.pressed || state.hovered || state.focused)
+      ? borderless
+        ? "transparent"
+        : base
+      : layer(state);
 
   return (
     <Pressable
       disabled={disabled}
       android_ripple={
         Platform.OS === "android" && !disabled
-          ? { color: layers.press, borderless }
+          ? { color: layer({ pressed: true }), borderless }
           : undefined
       }
       style={(state: PressableState) => [
@@ -89,7 +77,6 @@ const TouchableRipple = ({
         },
         { backgroundColor: resolveBackground(state) },
         !disabled && styles.interactive,
-        (state.hovered || state.pressed) && !disabled && activeStyle,
         style,
       ]}
       {...rest}

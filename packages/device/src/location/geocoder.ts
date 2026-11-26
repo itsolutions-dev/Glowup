@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useDeviceAdapter } from "../core/adapters";
-import { LocationError } from "./errors";
+import { LocationError, toError } from "../core/geo";
+import { useClientValue } from "../core/shared";
 import { expoGeocoderAdapter } from "./expo";
-import { toError, withTimeout } from "./resolve";
+import { withTimeout } from "./resolve";
 import type {
   GeocodedAddress,
   GeocodedLocation,
@@ -58,9 +59,6 @@ async function run<T>(
   }
 }
 
-const subscribeNothing = () => () => {};
-const getServerValue = () => null;
-
 export interface UseGeocoder {
   /** `null` while a static page hydrates; `false` on the web by default. */
   isSupported: boolean | null;
@@ -95,12 +93,7 @@ export interface UseGeocoder {
 export function useGeocoder(): UseGeocoder {
   const adapter = useDeviceAdapter("geocoder") ?? expoGeocoderAdapter;
 
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerValue,
-  );
+  const isSupported = useClientValue(() => adapter.isSupported(), null);
 
   const geocode = useCallback(
     async (address: string, { timeout = DEFAULT_TIMEOUT } = {}) => {

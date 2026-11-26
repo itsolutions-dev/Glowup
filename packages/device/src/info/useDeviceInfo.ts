@@ -2,6 +2,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import { Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
+import { getOrCreate } from "../core/shared";
 import { expoDeviceInfoAdapter } from "./expo";
 import type { DeviceInfo, DeviceInfoAdapter } from "./types";
 
@@ -36,12 +37,7 @@ const getServerSnapshot = () => SERVER_DEVICE_INFO;
 export function useDeviceInfo(): DeviceInfo {
   const adapter = useDeviceAdapter("info") ?? expoDeviceInfoAdapter;
   const getSnapshot = useCallback(() => {
-    let info = snapshots.get(adapter);
-    if (!info) {
-      info = adapter.getDeviceInfo();
-      snapshots.set(adapter, info);
-    }
-    return info;
+    return getOrCreate(snapshots, adapter, () => adapter.getDeviceInfo());
   }, [adapter]);
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

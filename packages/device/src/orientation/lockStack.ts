@@ -1,3 +1,4 @@
+import { createEmitter } from "../core/shared";
 import type { Unsubscribe } from "../core/types";
 import { toOrientationError, type OrientationError } from "./errors";
 import type { OrientationAdapter, OrientationLock } from "./types";
@@ -29,7 +30,7 @@ export interface LockStack {
 export function createLockStack(adapter: OrientationAdapter): LockStack {
   const entries: { id: string; lock: OrientationLock }[] = [];
   const states = new Map<string, OrientationLockState>();
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
   // What the platform holds: null for the app's own orientation, undefined
   // when unknown (a lock failed halfway).
   let applied: OrientationLock | null | undefined = null;
@@ -41,7 +42,7 @@ export function createLockStack(adapter: OrientationAdapter): LockStack {
       return;
     }
     states.set(id, next);
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   }
 
   async function apply() {
@@ -91,11 +92,6 @@ export function createLockStack(adapter: OrientationAdapter): LockStack {
       schedule();
     },
     getState: (id) => states.get(id) ?? IDLE_LOCK,
-    subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe: emitter.subscribe,
   };
 }

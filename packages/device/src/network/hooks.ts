@@ -4,6 +4,7 @@ import {
   useLiveValue,
   type LiveStore,
 } from "../core/liveStore";
+import { getOrCreate } from "../core/shared";
 import { defaultNetworkAdapter } from "./defaultAdapter";
 import type { NetworkAdapter, NetworkState } from "./types";
 
@@ -19,18 +20,15 @@ export const UNKNOWN_NETWORK: NetworkState = {
 const stores = new WeakMap<NetworkAdapter, LiveStore<NetworkState>>();
 
 function getStore(adapter: NetworkAdapter): LiveStore<NetworkState> {
-  let store = stores.get(adapter);
-  if (!store) {
-    store = createLiveStore({
+  return getOrCreate(stores, adapter, () =>
+    createLiveStore({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getState(),
       refresh: () => adapter.refresh(),
       subscribe: (listener) => adapter.subscribe(listener),
       unsupported: UNKNOWN_NETWORK,
-    });
-    stores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }
 
 function useNetworkStore(): LiveStore<NetworkState> {

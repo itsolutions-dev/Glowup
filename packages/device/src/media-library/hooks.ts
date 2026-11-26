@@ -1,13 +1,15 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback } from "react";
 import { Linking, Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
 import {
   createPermissionStore,
+  toPermissionHook,
   usePermissionSnapshot,
   type PermissionStore,
 } from "../core/permissionStore";
 import { UNKNOWN, UNSUPPORTED } from "../core/permissions";
+import { getOrCreate, useClientValue } from "../core/shared";
 import type { PermissionState } from "../core/types";
 import { expoMediaLibraryAdapter } from "./expo";
 import type { MediaLibraryAdapter, SaveResult } from "./types";
@@ -28,26 +30,21 @@ const stores = new WeakMap<
 function getPermissionStore(
   adapter: MediaLibraryAdapter,
 ): PermissionStore<PermissionState> {
-  let store = stores.get(adapter);
-  if (!store) {
-    store = createPermissionStore({
+  return getOrCreate(stores, adapter, () =>
+    createPermissionStore({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getPermission(),
       request: () => adapter.requestPermission(),
       unsupported: UNSUPPORTED,
       unknown: UNKNOWN,
-    });
-    stores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }
 
 function toFailure(error: unknown): SaveResult {
   return { status: "failed", detail: String(error) };
 }
 
-const subscribeNothing = () => () => {};
-const getServerValue = () => null;
 const openSettings = () => Linking.openSettings();
 
 export interface UseMediaLibrary extends PermissionState {
@@ -83,20 +80,10 @@ export function useMediaLibrary(): UseMediaLibrary {
     useDeviceAdapter("mediaLibrary") ?? defaultMediaLibraryAdapter;
   const store = getPermissionStore(adapter);
 
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerValue,
-  );
-  const getRequired = useCallback(
+  const isSupported = useClientValue(() => adapter.isSupported(), null);
+  const isRequired = useClientValue(
     () => adapter.isSupported() && adapter.requiresPermission(),
-    [adapter],
-  );
-  const isRequired = useSyncExternalStore(
-    subscribeNothing,
-    getRequired,
-    getServerValue,
+    null,
   );
   const state = usePermissionSnapshot(isRequired ? store : null);
 
@@ -143,11 +130,5 @@ export function useMediaLibrary(): UseMediaLibrary {
       refresh: async () => GRANTED,
     };
   }
-  return {
-    ...(state ?? UNKNOWN),
-    ...shared,
-    isLoading: state === null,
-    request: store.request,
-    refresh: store.refresh,
-  };
+  return { ...toPermissionHook(store, state, UNKNOWN), ...shared };
 }

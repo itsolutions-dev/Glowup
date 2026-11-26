@@ -173,9 +173,20 @@ type _ThemeTokensInSync = AllTrue<
   ]
 >;
 
+/**
+ * The scheme a `ThemeProvider` is set to: `"light"`, `"dark"`, or `"system"` to
+ * follow the device's setting.
+ */
+export type ThemeMode = "light" | "dark" | "system";
+
 interface ThemeContextType {
   theme: Theme;
+  /** Switches to the scheme opposite the one showing, as an explicit `"light"` or `"dark"`. */
   toggleTheme: () => void;
+  /** The scheme chosen: `"system"` while it follows the device. */
+  mode: ThemeMode;
+  /** Chooses a scheme, `"system"` included. In a controlled provider it only calls `onModeChange`. */
+  setMode: (mode: ThemeMode) => void;
   /** The colour set the theme is currently resolved from. */
   palette: ThemePalette;
   /** Swap the colour set at runtime — every `useTheme()` re-renders. */
@@ -195,6 +206,8 @@ const ThemeContext = createContext<ThemeContextType>({
     isDark: false,
   },
   toggleTheme: () => {},
+  mode: "system",
+  setMode: () => {},
   palette: palettes.baseline,
   setPalette: () => {},
 });
@@ -231,8 +244,29 @@ export const ThemeProvider = ({
   onInteractionFeedback,
   density,
   themeScrollbars = true,
+  initialMode = "system",
+  mode: controlledMode,
+  onModeChange,
 }: {
   children: React.ReactNode;
+  /**
+   * The scheme to start on: `"light"`, `"dark"`, or `"system"` to follow the
+   * device. Read once, on mount: an app that stores the reader's choice passes
+   * it here and starts on it, with no flash of the other scheme. Defaults to
+   * `"system"`.
+   */
+  initialMode?: ThemeMode;
+  /**
+   * Controls the scheme: the provider shows this one, and `toggleTheme` and
+   * `setMode` only call `onModeChange`. Leave it out to let the provider keep
+   * the choice itself (starting from `initialMode`).
+   */
+  mode?: ThemeMode;
+  /**
+   * Called with the scheme chosen through `toggleTheme` or `setMode`, in either
+   * mode: store it to start on it next time.
+   */
+  onModeChange?: (mode: ThemeMode) => void;
   /**
    * The colour set to start on — one of `palettes`, or anything
    * `createPalette` returns. Read once, on mount: call `setPalette` from
@@ -268,13 +302,29 @@ export const ThemeProvider = ({
     getServerScheme,
   );
   const [palette, setPalette] = useState<ThemePalette>(initialPalette);
-  // null = follow the OS color scheme; "light"/"dark" = manual override
-  const [override, setOverride] = useState<"light" | "dark" | null>(null);
-  const mode = override ?? systemScheme ?? "light";
+  const [ownMode, setOwnMode] = useState<ThemeMode>(initialMode);
+  const controlled = controlledMode !== undefined;
+  const chosen = controlled ? controlledMode : ownMode;
+  // The scheme showing: the chosen one, or the device's while it is "system".
+  const mode = chosen === "system" ? (systemScheme ?? "light") : chosen;
+
+  // Read from a ref, so an inline `onModeChange` does not change `setMode`
+  // (and with it the context every themed component reads).
+  const onModeChangeRef = useRef(onModeChange);
+  useEffect(() => {
+    onModeChangeRef.current = onModeChange;
+  }, [onModeChange]);
+  const setMode = useCallback(
+    (next: ThemeMode) => {
+      if (!controlled) setOwnMode(next);
+      onModeChangeRef.current?.(next);
+    },
+    [controlled],
+  );
 
   const toggleTheme = useCallback(() => {
-    setOverride(mode === "light" ? "dark" : "light");
-  }, [mode]);
+    setMode(mode === "light" ? "dark" : "light");
+  }, [mode, setMode]);
 
   // Stable across unrelated re-renders of whatever mounts the provider: some
   // seventy components memoise their styles on `theme`, so a fresh object on
@@ -301,8 +351,15 @@ export const ThemeProvider = ({
   }, [themeScrollbars, theme]);
 
   const value = useMemo(
-    () => ({ theme, toggleTheme, palette, setPalette }),
-    [theme, toggleTheme, palette],
+    () => ({
+      theme,
+      toggleTheme,
+      mode: chosen,
+      setMode,
+      palette,
+      setPalette,
+    }),
+    [theme, toggleTheme, chosen, setMode, palette],
   );
 
   // Its own context, and a stable function reading the latest handler: an

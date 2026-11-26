@@ -1,5 +1,106 @@
 # @its/glowup-device
 
+## 0.12.0
+
+### Minor Changes
+
+- 49f39dc: `/scanner`: a hardware barcode scanner (a rugged device's imager) behind one contract.
+  `useBarcodeScanner({ onScan, symbologies, enabled })` holds the scanner while the screen
+  wants it and the app is in the foreground, hands each read to `onScan` (which confirms by
+  itself) and drops reads while its promise is pending. No vendor ships here: a vendor package
+  (`@its/scanner-honeywell`, to come) implements `BarcodeScannerAdapter` and is provided as
+  `barcodeScanner`. `/testing` adds `createMockBarcodeScannerAdapter()` and the vendors'
+  conformance kit, `describeBarcodeScannerAdapterContract()`.
+
+  `/camera`: `BarcodeScan`, the shape a camera read and a hardware read share, so one handler
+  serves both; `CameraView` drops codes while a handler's promise is pending.
+
+## 0.11.1
+
+### Patch Changes
+
+- f35102b: Every subpath now resolves to the same build as the root entry. Metro reads a subpath
+  through its node10 fallback folder, whose `react-native` field led to `src` on iOS and Android
+  and whose `module` field led to `lib/module` on the web, while the root resolved through
+  `exports` to `lib/commonjs`: the app bundled `core/` twice, so adapters given to
+  `DeviceAdaptersProvider` (imported from the root) never reached the subpaths' hooks. The
+  fallback folders and the root now point only at `lib/commonjs`.
+
+## 0.11.0
+
+### Minor Changes
+
+- 0104cf9: Add `@its/glowup-device/rfid`: UHF RFID handheld readers behind one vendor-neutral contract. No
+  native code and no default adapter: a vendor package implements `RfidAdapter` (the first is
+  `@its/rfid-honeywell`) and the app passes it to `DeviceAdaptersProvider` as `rfid`; without one,
+  everything reads `unsupported`.
+
+  - The contract's units are fixed: RSSI and power in dBm, times in ms, EPC and TID in uppercase
+    hex. `RFID_CONTRACT_VERSION` guards against a vendor built for another version
+    (`incompatible-adapter`); the capabilities are read from the methods the adapter implements.
+  - `useRfidReader`: connection (resolves once the reader is ready, outlives the components,
+    `reconnecting` while the vendor restores it), settings, battery, reader info.
+    `useRfidPermission` reads and asks the vendor's permission; nothing prompts by itself.
+  - `useRfidInventory`: the multiple scan, one entry per EPC, RSSI smoothed and turned into a
+    proximity (0–1) between the adapter's near and far bounds, nearest first, optional TIDs,
+    `forgetAfter` and `duration`.
+  - `useRfidSingleRead`: the strongest tag in a short window (500 ms by default), with its TID on
+    request; the reader's own single read where the vendor has one.
+  - `useRfidLocate`: the search for one tag, its proximity and signal, out of range after 2 s of
+    silence; the reader's own tag finder where the vendor has one.
+  - `useRfidTrigger` (the reader's trigger, with any mode) and `useRfidReaderDiscovery` (readers
+    nearby, for a picker).
+  - One mode at a time per reader: a new one stops the previous one first; the app going to the
+    background or the link dropping ends it.
+  - `/testing`: `createMockRfidAdapter()` and `describeRfidAdapterContract()`, the suite every
+    vendor package runs against its adapter.
+
+## 0.10.0
+
+### Minor Changes
+
+- 37d8100: Add `@its/glowup-device/bluetooth`: Bluetooth Low Energy as the central (GATT client), on
+  `react-native-ble-manager` (a new optional peer, loaded on first use: the web and Expo Go read
+  `unsupported` instead of crashing).
+
+  - `useBluetoothState` (the radio, and Android's "turn on Bluetooth?" dialog) and
+    `useBluetoothPermission` (Android's nearby devices permissions; on iOS it reads
+    `undetermined` until a request in the launch, which shows no UI after the first answer).
+  - `useBluetoothScan`: one shared scan, service filter, devices listed once with their latest
+    signal and advertisement, paused in the background, guarded against Android's five-starts-in-30-
+    seconds throttling.
+  - `useBluetoothDevice`: one shared connection per device with a timeout, service discovery,
+    reads, writes (chunked at MTU − 3), MTU, RSSI and bonding (Android); closed when the last
+    component using it unmounts unless `disconnectOnUnmount: false`.
+  - `useBluetoothNotifications`: shared per characteristic, turned on again after every
+    reconnection.
+  - Device Information and Battery helpers, the Nordic UART UUIDs, UTF-8 helpers,
+    `toBluetoothUuid`, `BluetoothError`.
+  - Config plugin key `bluetooth: { permission, neverForLocation }` (through ble-manager's plugin,
+    `neverForLocation` defaulting to `true`).
+  - `/testing`: `createMockBluetoothAdapter()` and `buildBluetoothDevice()`.
+
+## 0.9.0
+
+### Minor Changes
+
+- 010fcf4: Removes exports that duplicated what the package already does by itself. Hooks and default
+  behaviour are unchanged.
+
+  Removed exports:
+
+  - `webHapticsAdapter` (`/haptics`), `webBiometricsAdapter` (`/biometrics`) and
+    `webSecureStoreAdapter` (`/secure-store`). The Expo adapters answer `isSupported()` false on
+    the web and every hook checks it first, so nothing plays, authenticates or stores there, as
+    before. An app that passed one of them to `DeviceAdaptersProvider` can drop it.
+  - `createExpoMediaLibraryAdapter` and `createWebMediaLibraryAdapter` (`/media-library`): the
+    adapters hold no state. Use `expoMediaLibraryAdapter` / `webMediaLibraryAdapter`.
+  - `createExpoMediaPickerAdapter` and `createWebMediaPickerAdapter` (`/media-picker`): use
+    `expoMediaPickerAdapter` / `webMediaPickerAdapter`.
+
+  Internally, the stores, listener sets, client-only reads and error classes share one
+  implementation in `core`.
+
 ## 0.8.0
 
 ### Minor Changes

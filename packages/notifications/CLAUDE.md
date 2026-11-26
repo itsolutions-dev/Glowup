@@ -25,6 +25,10 @@
   Jest. When the package starts calling a new `expo-notifications` function, add it to the
   mock's `module` too, or every consumer test breaks. `testing/package.json` is the node10
   fallback for the subpath (attw checks it); keep it beside the `exports` entry.
+- **One build for every resolver.** The root and `testing/package.json` point only at
+  `lib/commonjs` (`main`, `types`, `source`): no `react-native` or `module` field. Metro reads a
+  subpath through its fallback folder, the root through `exports`; a field in either that leads
+  elsewhere bundles the package twice. `src/__tests__/package-exports.test.ts` pins it.
 - Tests (`src/__tests__`) run on that same mock. RTL 14 is async: `await renderHook(...)`,
   `await act(...)`.
 - Build, `files`, source maps and `validate-package` work as in `packages/ui` (see its

@@ -21,63 +21,61 @@ import { Buffer } from "node:buffer";
 import {
   createCipheriv,
   createECDH,
-  createHmac,
   createPrivateKey,
+  hkdfSync,
   randomBytes,
   sign,
 } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const ENV_FILE = fileURLToPath(new URL("../.env.vapid.local", import.meta.url));
 const RECORD_SIZE = 4096;
 
 const b64url = (buffer) => Buffer.from(buffer).toString("base64url");
 const fromB64url = (value) => Buffer.from(value, "base64url");
-const hmac = (key, data) => createHmac("sha256", key).update(data).digest();
+const hkdf = (ikm, salt, info, length) =>
+  Buffer.from(hkdfSync("sha256", ikm, salt, info, length));
 const fail = (message) => {
   console.error(`send-test-push: ${message}`);
   process.exit(1);
 };
 
-function parseArgs(argv) {
-  const options = { actions: [] };
-  const positional = [];
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i];
-    if (!arg.startsWith("--")) {
-      positional.push(arg);
-      continue;
-    }
-    const value = argv[++i];
-    if (value === undefined) fail(`${arg} needs a value`);
-    const name = arg.slice(2);
-    if (name === "action") {
-      const [id, ...title] = value.split(":");
-      options.actions.push({ action: id, title: title.join(":") || id });
-    } else if (["title", "body", "url", "data", "id", "ttl"].includes(name)) {
-      options[name] = value;
-    } else {
-      fail(`unknown option ${arg}`);
-    }
+function readArgs() {
+  const string = { type: "string" };
+  let parsed;
+  try {
+    parsed = parseArgs({
+      allowPositionals: true,
+      options: {
+        title: string,
+        body: string,
+        url: string,
+        data: string,
+        id: string,
+        ttl: string,
+        action: { type: "string", multiple: true },
+      },
+    });
+  } catch (error) {
+    fail(error.message);
   }
-  return { subscriptionArg: positional[0], options };
+  const { values, positionals } = parsed;
+  const actions = (values.action ?? []).map((value) => {
+    const [id, ...title] = value.split(":");
+    return { action: id, title: title.join(":") || id };
+  });
+  return { subscriptionArg: positionals[0], options: { ...values, actions } };
 }
 
 function readVapid() {
-  const fromFile = {};
-  if (existsSync(ENV_FILE)) {
-    for (const line of readFileSync(ENV_FILE, "utf8").split(/\r?\n/)) {
-      const match = /^\s*(VAPID_[A-Z_]+)\s*=\s*(.*?)\s*$/.exec(line);
-      if (match) fromFile[match[1]] = match[2];
-    }
-  }
-  const read = (name) => process.env[name] || fromFile[name];
+  // Variables already set in the environment win over the file.
+  if (existsSync(ENV_FILE)) process.loadEnvFile(ENV_FILE);
   const vapid = {
-    publicKey: read("VAPID_PUBLIC_KEY"),
-    privateKey: read("VAPID_PRIVATE_KEY"),
-    subject: read("VAPID_SUBJECT"),
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY,
+    subject: process.env.VAPID_SUBJECT,
   };
   if (!vapid.publicKey || !vapid.privateKey) {
     fail(
@@ -141,36 +139,23 @@ function vapidAuthorization(endpoint, vapid) {
 }
 
 /** RFC 8291: encrypts the payload for the subscription's keys, in one aes128gcm record. */
-export function encrypt(
-  payload,
-  subscription,
-  { salt = randomBytes(16), ecdh } = {},
-) {
+function encrypt(payload, subscription) {
+  const salt = randomBytes(16);
   const clientPublic = fromB64url(subscription.keys.p256dh);
   const authSecret = fromB64url(subscription.keys.auth);
-  const server = ecdh ?? createECDH("prime256v1");
-  if (!ecdh) server.generateKeys();
+  const server = createECDH("prime256v1");
+  server.generateKeys();
   const serverPublic = server.getPublicKey();
   const shared = server.computeSecret(clientPublic);
 
-  const ikm = hmac(
-    hmac(authSecret, shared),
-    Buffer.concat([
-      Buffer.from("WebPush: info\0"),
-      clientPublic,
-      serverPublic,
-      Buffer.from([1]),
-    ]),
+  const ikm = hkdf(
+    shared,
+    authSecret,
+    Buffer.concat([Buffer.from("WebPush: info\0"), clientPublic, serverPublic]),
+    32,
   );
-  const prk = hmac(salt, ikm);
-  const cek = hmac(
-    prk,
-    Buffer.from("Content-Encoding: aes128gcm\0\x01"),
-  ).subarray(0, 16);
-  const nonce = hmac(
-    prk,
-    Buffer.from("Content-Encoding: nonce\0\x01"),
-  ).subarray(0, 12);
+  const cek = hkdf(ikm, salt, "Content-Encoding: aes128gcm\0", 16);
+  const nonce = hkdf(ikm, salt, "Content-Encoding: nonce\0", 12);
 
   // 0x02 marks the last (and only) record; no extra padding.
   const plaintext = Buffer.concat([Buffer.from(payload), Buffer.from([2])]);
@@ -212,7 +197,7 @@ function buildPayload(options) {
 }
 
 async function main() {
-  const { subscriptionArg, options } = parseArgs(process.argv.slice(2));
+  const { subscriptionArg, options } = readArgs();
   const subscription = readSubscription(subscriptionArg);
   const vapid = readVapid();
   const payload = buildPayload(options);
@@ -242,17 +227,11 @@ async function main() {
   );
 }
 
-// Run as a script, not when imported (the encryption is reused by a check).
-const invokedPath = process.argv[1]
-  ? resolve(process.argv[1]).toLowerCase()
-  : "";
-if (invokedPath === fileURLToPath(import.meta.url).toLowerCase()) {
-  // fetch reports every network problem as "fetch failed"; the cause says which.
-  main().catch((error) =>
-    fail(
-      error.cause
-        ? `${error.message} (${error.cause.code ?? error.cause.message})`
-        : error.message,
-    ),
-  );
-}
+// fetch reports every network problem as "fetch failed"; the cause says which.
+main().catch((error) =>
+  fail(
+    error.cause
+      ? `${error.message} (${error.cause.code ?? error.cause.message})`
+      : error.message,
+  ),
+);

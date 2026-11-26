@@ -2,10 +2,10 @@ import type {
   GeoCoordinates,
   GeoPosition,
   LocationAccuracy,
+  LocationError,
   LocationPermissionState,
 } from "../core/geo";
 import type { Unsubscribe } from "../core/types";
-import type { LocationError } from "./errors";
 
 // Shared with `/background-location`, so they live in core.
 export type {

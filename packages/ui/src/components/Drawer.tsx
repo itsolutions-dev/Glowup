@@ -18,6 +18,7 @@ import { elevationStyle } from "./internal/elevation";
 import type { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 import { a11yState } from "./internal/a11yState";
+import { linkPressProps, useNavigateHandler } from "../providers/LinkProvider";
 
 // M3 navigation drawer: up to 360dp wide, 56dp items with a full-width pill
 // indicator inset 12dp from the container edges.
@@ -45,6 +46,14 @@ export interface DrawerItemProps {
   /** Optional for an item with `children`, whose press opens and closes them. */
   onClick?: () => void;
   /**
+   * Where the item goes: a real anchor on the web (its URL on hover, Ctrl or
+   * middle click for a new tab). A plain click runs `onClick` and then the
+   * `LinkProvider`'s `navigate`; with neither, the browser follows the link.
+   * On iOS and Android a press runs both. A group (an item with `children`)
+   * opens and closes instead, unless the drawer is `collapsed`.
+   */
+  href?: string;
+  /**
    * Sub-items (`DrawerItem`s): makes this a group. Pressing it toggles them,
    * and they are indented one level. Hidden while the drawer is `collapsed`.
    */
@@ -64,6 +73,7 @@ export const DrawerItem = ({
   selected = false,
   badge,
   onClick,
+  href,
   children,
   defaultExpanded = false,
   onToggle,
@@ -83,18 +93,20 @@ export const DrawerItem = ({
     : theme.colors.onSurfaceVariant;
   const glyph = icon && activeGlyph(icon, selected);
 
-  const press = () => {
-    if (isGroup) {
-      const next = !expanded;
-      setExpanded(next);
-      onToggle?.(next);
-    }
+  const navigate = useNavigateHandler();
+  const toggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    onToggle?.(next);
     onClick?.();
   };
+  const press = isGroup
+    ? { onPress: toggle }
+    : linkPressProps(href, onClick, navigate);
 
   const row = (
     <Pressable
-      onPress={press}
+      {...press}
       disabled={disabled}
       accessibilityRole={isGroup ? "button" : "link"}
       accessibilityLabel={label}
@@ -294,8 +306,15 @@ export interface DrawerProps {
   actions?: React.ReactNode;
   /** Adds a close button to the header row, which calls `onClose`. Defaults to `false`. */
   showCloseButton?: boolean;
+  /**
+   * Accessible name of the close button, and of the scrim of a swipeable
+   * drawer. Defaults to `"Close"` (the scrim's to `"Close drawer"`).
+   */
+  closeText?: string;
   /** Shows a back button before the title, for a drawer with sub-pages. */
   onBack?: () => void;
+  /** Accessible name of the back button. Defaults to `"Back"`. */
+  backText?: string;
   /** Left and right: defaults to 360 (M3), capped at the window width when swipeable. */
   width?: number;
   /** Top and bottom: the largest height, defaults to 360. */
@@ -324,7 +343,9 @@ const Drawer = ({
   footer,
   actions,
   showCloseButton = false,
+  closeText,
   onBack,
+  backText = "Back",
   width: widthProp = DRAWER_WIDTH,
   height = DRAWER_HEIGHT,
   style,
@@ -351,7 +372,7 @@ const Drawer = ({
           {onBack && (
             <IconButton
               icon="arrow-left"
-              accessibilityLabel="Back"
+              accessibilityLabel={backText}
               onClick={onBack}
             />
           )}
@@ -366,7 +387,7 @@ const Drawer = ({
           {showCloseButton && (
             <IconButton
               icon="close"
-              accessibilityLabel="Close"
+              accessibilityLabel={closeText ?? "Close"}
               onClick={onClose}
               testID={testID ? `${testID}-close` : undefined}
             />
@@ -416,7 +437,7 @@ const Drawer = ({
         position={position}
         width={width}
         height={height}
-        scrimLabel="Close drawer"
+        scrimLabel={closeText ?? "Close drawer"}
         panelStyle={[surface, style]}
         testID={testID}
       >

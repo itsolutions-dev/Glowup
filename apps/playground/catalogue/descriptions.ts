@@ -108,7 +108,7 @@ export const DESCRIPTIONS: Record<string, string> = {
   CaptionValue:
     "A caption and its value as a pair, with a fallback, copying and truncation.",
   DayTimeline:
-    "A day's appointments as a list: the time, a coloured card, press to open one.",
+    "Appointments as a day's list, on a grid of hours across days, or in a month: press to open one, drag to move or resize it.",
   Image: "An image with a fixed ratio, a fit mode and a fallback.",
   Link: "Text that opens an address or runs an action, styled and announced as a link.",
   CodeBlock:

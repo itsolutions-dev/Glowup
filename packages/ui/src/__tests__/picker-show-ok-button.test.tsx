@@ -234,7 +234,7 @@ describe("showOkButton on DatePicker", () => {
       />,
     );
     await fireEvent.changeText(
-      screen.getByPlaceholderText("DD/MM/YYYY"),
+      screen.getByPlaceholderText("GG/MM/AAAA"),
       "15/03/2024",
     );
     await fireEvent.press(screen.getByText("OK"));

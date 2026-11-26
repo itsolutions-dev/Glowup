@@ -15,7 +15,7 @@ import Divider from "./Divider";
 import OwnScroller from "./internal/OwnScroller";
 import type { AnchorPosition } from "./internal/anchorPlacement";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
-import { a11yState } from "./internal/a11yState";
+import { a11yState, ariaDisabledRef } from "./internal/a11yState";
 
 export interface MenuItem {
   id: string;
@@ -89,7 +89,8 @@ const Menu = ({
       anchorPosition={anchorPosition}
     >
       <View style={styles.menuContent}>
-        {/* Virtualized: a menu of hundreds draws about a screen of items. */}
+        {/* Virtualized past 100 items, where a menu of hundreds draws about a
+            screen of them; up to 100 every item is drawn at once. */}
         <OwnScroller>
           <FlatList
             data={items}
@@ -97,7 +98,7 @@ const Menu = ({
             bounces={false}
             style={{ maxHeight: 320 }}
             nestedScrollEnabled
-            initialNumToRender={12}
+            initialNumToRender={items.length > 100 ? 12 : 100}
             renderItem={({ item, index }) => {
               const isSelected = !!selected?.includes(item.id);
               const contentColor = item.destructive
@@ -120,6 +121,7 @@ const Menu = ({
                     // Not `disabled`: a disabled Pressable lets the touch through
                     // to the popover's backdrop, which would close the menu.
                     onPress={() => !item.disabled && handleItemPress(item)}
+                    ref={ariaDisabledRef(item.disabled)}
                     accessibilityLabel={item.label}
                     // A menu with a selection is a group of radio items on the web.
                     accessibilityRole={

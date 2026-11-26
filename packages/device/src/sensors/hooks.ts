@@ -1,14 +1,13 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Linking, Platform } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
-import { usePermissionSnapshot } from "../core/permissionStore";
+import {
+  toPermissionHook,
+  usePermissionSnapshot,
+} from "../core/permissionStore";
+import { UNKNOWN } from "../core/permissions";
+import { useClientValue } from "../core/shared";
 import type { PermissionState } from "../core/types";
 import {
   classifyOrientation,
@@ -79,9 +78,6 @@ export function useSensorAvailability(sensor: SensorName): boolean | null {
   );
 }
 
-const subscribeNothing = () => () => {};
-const getServerRequired = () => null;
-
 const GRANTED: PermissionState = { status: "granted", canAskAgain: false };
 const resolveGranted = async () => GRANTED;
 
@@ -118,14 +114,9 @@ const openSettings = () => Linking.openSettings();
  */
 export function useSensorPermission(sensor: SensorName): UseSensorPermission {
   const adapter = useSensorsAdapter();
-  const getRequired = useCallback(
+  const isRequired = useClientValue(
     () => adapter.requiresPermission(sensor),
-    [adapter, sensor],
-  );
-  const isRequired = useSyncExternalStore(
-    subscribeNothing,
-    getRequired,
-    getServerRequired,
+    null,
   );
   const store = getPermissionStore(adapter);
   const state = usePermissionSnapshot(isRequired ? store : null);
@@ -140,14 +131,7 @@ export function useSensorPermission(sensor: SensorName): UseSensorPermission {
       openSettings,
     };
   }
-  return {
-    ...(state ?? { status: "undetermined", canAskAgain: true }),
-    isRequired,
-    isLoading: state === null,
-    request: store.request,
-    refresh: store.refresh,
-    openSettings,
-  };
+  return { ...toPermissionHook(store, state, UNKNOWN), isRequired };
 }
 
 /**

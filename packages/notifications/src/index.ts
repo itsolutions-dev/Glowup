@@ -1,8 +1,8 @@
 export {
   NotificationsProvider,
-  isNotificationsSupported,
   type NotificationsProviderProps,
 } from "./NotificationsProvider";
+export { isNotificationsSupported } from "./support";
 export {
   useNotificationPermission,
   usePushToken,

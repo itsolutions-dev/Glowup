@@ -19,11 +19,10 @@ import {
   getDeviceLocale,
   isLocale12Hour,
   isSameDay,
+  pad2,
   useLabels,
 } from "./DateTimePicker.shared";
 import { a11yState } from "./internal/a11yState";
-
-const pad2 = (value: number) => String(value).padStart(2, "0");
 
 export interface ClockPickerProps {
   value: Date;

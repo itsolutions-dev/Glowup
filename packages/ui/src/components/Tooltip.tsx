@@ -70,6 +70,12 @@ export interface TooltipProps {
 }
 
 const GAP = 8;
+const OPPOSITE = {
+  top: "bottom",
+  bottom: "top",
+  left: "right",
+  right: "left",
+} as const;
 
 const Tooltip = ({
   content,
@@ -186,35 +192,34 @@ const Tooltip = ({
   const tipStyle = useMemo(() => {
     const centeredLeft = (anchorSize.width - tipSize.width) / 2;
     const centeredTop = (anchorSize.height - tipSize.height) / 2;
+    const offsets = {
+      top: { left: centeredLeft, top: -(tipSize.height + GAP) },
+      bottom: { left: centeredLeft, top: anchorSize.height + GAP },
+      left: { left: -(tipSize.width + GAP), top: centeredTop },
+      right: { left: anchorSize.width + GAP, top: centeredTop },
+    };
 
-    let left: number;
-    let top: number;
-    switch (position) {
-      case "bottom":
-        left = centeredLeft;
-        top = anchorSize.height + GAP;
-        break;
-      case "left":
-        left = -(tipSize.width + GAP);
-        top = centeredTop;
-        break;
-      case "right":
-        left = anchorSize.width + GAP;
-        top = centeredTop;
-        break;
-      case "top":
-      default:
-        left = centeredLeft;
-        top = -(tipSize.height + GAP);
-        break;
-    }
-
-    if (!portalled) return { left, top };
+    if (!portalled) return offsets[position];
 
     // In the portal the offsets are absolute on the screen, so they also have
-    // to be kept inside it — a tip on a screen-edge anchor would otherwise
-    // hang off, which the anchor-relative path never had to handle.
+    // to be kept inside it. A tip that does not fit on its side goes to the
+    // opposite one (a toolbar at the top of the window shows its tips below
+    // it), then slides along the edge — a tip on a screen-edge anchor would
+    // otherwise hang off, which the anchor-relative path never had to handle.
     const margin = 8;
+    const fits = (side: keyof typeof offsets) => {
+      const { left, top } = offsets[side];
+      const x = anchorOrigin.x + left;
+      const y = anchorOrigin.y + top;
+      return side === "top" || side === "bottom"
+        ? y >= margin && y + tipSize.height <= window.height - margin
+        : x >= margin && x + tipSize.width <= window.width - margin;
+    };
+    const side =
+      fits(position) || !fits(OPPOSITE[position])
+        ? position
+        : OPPOSITE[position];
+    const { left, top } = offsets[side];
     const maxLeft = Math.max(margin, window.width - tipSize.width - margin);
     const maxTop = Math.max(margin, window.height - tipSize.height - margin);
 

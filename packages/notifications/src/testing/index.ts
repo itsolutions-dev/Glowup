@@ -19,6 +19,7 @@
  */
 import type * as Notifications from "expo-notifications";
 
+import { toNotification } from "../rawNotification";
 import { resetSeenResponses } from "../responses";
 
 type AnyFunction = (...args: any[]) => any;
@@ -50,21 +51,12 @@ const nextId = () => `mock-notification-${++sequence}`;
 export function buildNotification(
   input: MockNotificationInput = {},
 ): Notifications.Notification {
-  return {
+  return toNotification({
+    ...input,
+    id: input.id ?? nextId(),
     date: input.date ?? Date.now(),
-    request: {
-      identifier: input.id ?? nextId(),
-      content: {
-        title: input.title ?? null,
-        subtitle: null,
-        body: input.body ?? null,
-        data: input.data ?? {},
-        categoryIdentifier: input.categoryId ?? null,
-        sound: null,
-      },
-      trigger: null,
-    },
-  } as unknown as Notifications.Notification;
+    trigger: null,
+  });
 }
 
 /** An `expo-notifications` `NotificationResponse`: a tap, or an action. */

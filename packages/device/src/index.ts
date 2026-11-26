@@ -5,7 +5,11 @@
  * costs nothing until an app imports a capability subpath (`/info`,
  * `/location`, `/camera`), each of which brings its own Expo peer.
  */
-export type { PermissionState, PermissionStatus, Unsubscribe } from "./core";
+export type {
+  PermissionState,
+  PermissionStatus,
+  Unsubscribe,
+} from "./core/types";
 export {
   DeviceAdaptersProvider,
   type DeviceAdapters,

@@ -12,7 +12,6 @@ import {
 import { notificationsMock } from "../testing";
 import {
   MESSAGE_SOURCE,
-  base64UrlToBytes,
   getWebPermission,
   getWebPushToken,
   isWebPushSupported,
@@ -176,11 +175,6 @@ describe("webPush helpers", () => {
     });
   });
 
-  it("decodes URL-safe base64 VAPID keys", () => {
-    expect(Array.from(base64UrlToBytes("BAQ"))).toEqual([4, 4]);
-    expect(Array.from(base64UrlToBytes("-_8"))).toEqual([251, 255]);
-  });
-
   it("needs a VAPID key to subscribe", async () => {
     await expect(getWebPushToken({})).rejects.toThrow(/vapidPublicKey/);
   });
@@ -196,7 +190,7 @@ describe("webPush helpers", () => {
     );
     expect(browser.subscribe).toHaveBeenCalledWith({
       userVisibleOnly: true,
-      applicationServerKey: new Uint8Array([4, 4]),
+      applicationServerKey: VAPID,
     });
     expect(token).toEqual({
       type: "web",

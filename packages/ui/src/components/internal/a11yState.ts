@@ -75,3 +75,20 @@ export const a11yState = (
   }
   return { ...native, ...aria };
 };
+
+/**
+ * A ref that writes `aria-disabled` on the web. react-native-web's `Pressable`
+ * sets `aria-disabled` from its own `disabled` prop, over any passed in, and a
+ * `disabled` Pressable lets a click through to its parent. An item that must
+ * keep the click (an option or a menu item, inside a popover whose backdrop
+ * closes it) stays enabled and is marked disabled through this instead.
+ * `undefined` off the web, where `accessibilityState` already says so.
+ */
+export const ariaDisabledRef = (disabled: boolean | undefined) =>
+  Platform.OS === "web"
+    ? (element: unknown) =>
+        (element as HTMLElement | null)?.setAttribute?.(
+          "aria-disabled",
+          String(!!disabled),
+        )
+    : undefined;

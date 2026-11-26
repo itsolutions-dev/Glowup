@@ -1,7 +1,5 @@
 {
   "main": "../lib/commonjs/media-library/index.js",
-  "module": "../lib/module/media-library/index.js",
   "types": "../lib/typescript/media-library/index.d.ts",
-  "react-native": "../src/media-library/index.ts",
   "source": "../src/media-library/index.ts"
 }

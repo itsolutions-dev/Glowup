@@ -18,6 +18,7 @@ import {
 import Icons from "./Glyph";
 import CircularProgress from "./Progress/CircularProgress";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import Badge from "./Badge";
@@ -195,6 +196,7 @@ const Button = ({
     () => getButtonColors(theme, variant, color),
     [theme, variant, color],
   );
+  const stateLayer = useStateLayer(stateBase, on);
 
   const isInteractive = !isDisabled && !isLoading && !busy;
 
@@ -237,13 +239,10 @@ const Button = ({
       // stops answering presses.
       disabled={isDisabled || isLoading}
       style={({ hovered, pressed }: PressableState) => {
-        let currentBg = bg;
-
-        if (isInteractive && pressed) {
-          currentBg = getStateColor(stateBase, on, "press");
-        } else if (isInteractive && hovered) {
-          currentBg = getStateColor(stateBase, on, "hover");
-        }
+        const currentBg =
+          isInteractive && (pressed || hovered)
+            ? stateLayer({ pressed, hovered })
+            : bg;
 
         // Feedback never changes the box: the border is the same idle and
         // hovered, and the ring is a shadow.

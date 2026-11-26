@@ -596,6 +596,26 @@ describe("Playground catalogue", () => {
       on: { selectionMode: "multiple" },
       props: ["checkboxes"],
     },
+    // A skeleton stands in for a list; resizing and the step belong to the
+    // grid, the events per day to the month.
+    {
+      component: "DayTimeline",
+      off: { layout: "grid" },
+      on: { layout: "list" },
+      props: ["loading"],
+    },
+    {
+      component: "DayTimeline",
+      off: { layout: "list" },
+      on: { layout: "grid" },
+      props: ["resizable", "step"],
+    },
+    {
+      component: "DayTimeline",
+      off: { layout: "grid" },
+      on: { layout: "month" },
+      props: ["maxPerDay"],
+    },
   ];
 
   it.each(EXCLUSIONS)(
@@ -648,6 +668,9 @@ describe("Playground catalogue", () => {
       "ScrollArea.scrollHideDelay", // Type → Scroll / Hover
       "Editable.precision", // Type → Number
       "Tree.checkboxes", // Selection Mode → Multiple
+      "DayTimeline.resizable", // Layout → Grid
+      "DayTimeline.step", // Layout → Grid
+      "DayTimeline.maxPerDay", // Layout → Month
     ];
 
     const hidden = Object.entries(ComponentRegistry).flatMap(([name, meta]) =>

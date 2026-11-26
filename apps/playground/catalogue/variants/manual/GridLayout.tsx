@@ -1,4 +1,14 @@
-import { GridLayout, Paper, Typography } from "@its/glowup-ui";
+import { useState } from "react";
+import {
+  DragDropProvider,
+  Draggable,
+  GridLayout,
+  HStack,
+  Paper,
+  Typography,
+  VStack,
+  type GridLayoutItem,
+} from "@its/glowup-ui";
 import type { Variant } from "../types";
 
 // Hand-written: GridLayout has no authored preview, and its states are
@@ -45,6 +55,49 @@ const Nested = () => (
   </GridLayout>
 );
 
+// The app holds the layout: the grid reports each move, resize and drop.
+const Editable = () => {
+  const [layout, setLayout] = useState<GridLayoutItem[]>([
+    { id: "Details", x: 0, y: 0, w: 6, h: 3 },
+    { id: "Contact", x: 6, y: 0, w: 6, h: 2 },
+  ]);
+  const [selected, setSelected] = useState<string | null>(null);
+  return (
+    <DragDropProvider>
+      <VStack spacing="m">
+        <HStack spacing="s">
+          {["Notes", "Calls"].map((name) => (
+            <Draggable key={name} id={`new-${name}`} data={{ name }}>
+              <Paper outline>
+                <Typography variant="labelLarge">{`+ ${name}`}</Typography>
+              </Paper>
+            </Draggable>
+          ))}
+        </HStack>
+        <GridLayout
+          editable
+          layout={layout}
+          rowHeight={40}
+          selected={selected}
+          onSelect={setSelected}
+          onLayoutChange={setLayout}
+          dropSize={() => ({ w: 4, h: 2 })}
+          onDrop={(item, placement) => {
+            const { name } = item.data as { name: string };
+            const id = `${name} ${layout.length + 1}`;
+            setLayout([...layout, { id, ...placement }]);
+            setSelected(id);
+          }}
+        >
+          {layout.map((item) => (
+            <Card key={item.id} title={item.id} />
+          ))}
+        </GridLayout>
+      </VStack>
+    </DragDropProvider>
+  );
+};
+
 export const variants: Variant[] = [
   {
     name: "Gaps",
@@ -59,5 +112,12 @@ export const variants: Variant[] = [
     description:
       "A grid inside a card, with as many columns as the card spans: its cells are about as wide as the page's, a little narrower for the card's padding.",
     render: Nested,
+  },
+  {
+    name: "Editable",
+    title: "Editable",
+    description:
+      "Drag a panel to move it, select it and pull its handles to resize it, drop a new one from the row above. Nothing is pushed or compacted: a move onto another panel is refused, and a drop lands on the first free row.",
+    render: Editable,
   },
 ];

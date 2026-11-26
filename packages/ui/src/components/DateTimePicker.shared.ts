@@ -169,7 +169,10 @@ export interface DateTimePickerCommonProps {
    */
   fieldVariant?: "outlined" | "filled";
   label?: string;
-  /** Shown while the field has no value. */
+  /**
+   * Shown while the field has no value. Left out, a field you can type a date
+   * in shows the locale's typing hint ("GG/MM/AAAA" in Italian).
+   */
   placeholder?: string;
   mode?: DateTimePickerMode;
   disabled?: boolean;
@@ -428,7 +431,7 @@ export const clampDate = (date: Date, minimum?: Date, maximum?: Date) => {
 };
 
 /** Whole-day comparison, so a `minimumDate` at 14:00 still allows that day. */
-export const isDayOutOfRange = (day: Date, minimum?: Date, maximum?: Date) => {
+const isDayOutOfRange = (day: Date, minimum?: Date, maximum?: Date) => {
   const start = startOfDay(day).getTime();
   if (minimum && start < startOfDay(minimum).getTime()) return true;
   if (maximum && start > startOfDay(maximum).getTime()) return true;
@@ -559,7 +562,7 @@ const getDateParts = memoize((locale: string) =>
 );
 
 /** The order the locale writes day, month and year in. */
-export const getDateFieldOrder = memoize((locale: string) => {
+const getDateFieldOrder = memoize((locale: string) => {
   const order = getDateParts(locale)
     .filter((part): part is Intl.DateTimeFormatPart & { type: DateField } =>
       ["day", "month", "year"].includes(part.type),
@@ -571,27 +574,52 @@ export const getDateFieldOrder = memoize((locale: string) => {
 });
 
 /** The literal the locale puts between the fields, e.g. "/" or ".". */
-export const getDateFieldSeparator = memoize((locale: string) => {
+const getDateFieldSeparator = memoize((locale: string) => {
   const literal = getDateParts(locale).find(
     (part) => part.type === "literal" && part.value.trim().length > 0,
   );
   return literal?.value.trim() ?? "/";
 });
 
-const FIELD_HINTS: Record<DateField, string> = {
-  day: "DD",
-  month: "MM",
-  year: "YYYY",
+const FIELD_LETTERS: Record<DateField, string> = {
+  day: "D",
+  month: "M",
+  year: "Y",
+};
+const FIELD_WIDTHS: Record<DateField, number> = { day: 2, month: 2, year: 4 };
+
+/**
+ * The letter a field's hint repeats: the initial of the field's name in the
+ * locale ("giorno" gives G, "Jahr" J), from `Intl.DisplayNames`. English's
+ * letter where the runtime has no such names (Hermes) or the script has no
+ * letter case to make a hint of (日, 年).
+ */
+const fieldLetter = (locale: string, field: DateField) => {
+  try {
+    const initial = new Intl.DisplayNames([locale], {
+      type: "dateTimeField",
+    })
+      .of(field)
+      ?.charAt(0);
+    const upper = initial?.toLocaleUpperCase(locale);
+    if (upper && upper !== initial?.toLocaleLowerCase(locale)) return upper;
+  } catch {
+    // No Intl.DisplayNames, or no names for this locale.
+  }
+  return FIELD_LETTERS[field];
 };
 
-/** A typing hint in the locale's own order, e.g. "DD/MM/YYYY". */
+/**
+ * A typing hint in the locale's own order and letters: "DD/MM/YYYY" in
+ * English, "GG/MM/AAAA" in Italian, "TT.MM.JJJJ" in German.
+ */
 export const getDateInputHint = memoize((locale: string) =>
   getDateFieldOrder(locale)
-    .map((field) => FIELD_HINTS[field])
+    .map((field) => fieldLetter(locale, field).repeat(FIELD_WIDTHS[field]))
     .join(getDateFieldSeparator(locale)),
 );
 
-const pad2 = (value: number) => String(value).padStart(2, "0");
+export const pad2 = (value: number) => String(value).padStart(2, "0");
 
 /** Renders a date in the same shape `parseDateInput` accepts. */
 export const formatDateInput = (date: Date, locale: string) => {
@@ -723,19 +751,6 @@ export const formatHeadline = (
     hour: mode === "date" ? undefined : "numeric",
     minute: mode === "date" ? undefined : "2-digit",
   }).format(value);
-
-export const useDateTimeDisplay = (
-  value: Date | null,
-  mode: DateTimePickerMode,
-  locale: string,
-  labels?: DateTimePickerRelativeLabels,
-) => {
-  const { today, yesterday, tomorrow } = labels ?? {};
-  return useMemo(() => {
-    if (!value) return "";
-    return formatDateTime(value, mode, locale, { today, yesterday, tomorrow });
-  }, [value, mode, locale, today, yesterday, tomorrow]);
-};
 
 /** Merges caller labels over the English defaults. */
 export const useLabels = (labels?: DateTimePickerLabels) =>

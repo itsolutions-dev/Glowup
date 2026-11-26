@@ -6,6 +6,7 @@ import {
   useLiveValue,
   type LiveStore,
 } from "../core/liveStore";
+import { getOrCreate } from "../core/shared";
 import { expoBatteryAdapter, UNAVAILABLE_BATTERY } from "./expo";
 import type { BatteryAdapter, BatteryStatus } from "./types";
 import { webBatteryAdapter } from "./web";
@@ -16,17 +17,14 @@ const defaultBatteryAdapter =
 const stores = new WeakMap<BatteryAdapter, LiveStore<BatteryStatus>>();
 
 function getStore(adapter: BatteryAdapter): LiveStore<BatteryStatus> {
-  let store = stores.get(adapter);
-  if (!store) {
-    store = createLiveStore({
+  return getOrCreate(stores, adapter, () =>
+    createLiveStore({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getStatus(),
       subscribe: (listener) => adapter.subscribe(listener),
       unsupported: UNAVAILABLE_BATTERY,
-    });
-    stores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }
 
 export interface UseBattery extends BatteryStatus {

@@ -5,6 +5,7 @@ import {
   Drawer,
   DrawerItem,
   DrawerSection,
+  LinkProvider,
   Typography,
   useTheme,
   type DrawerProps,
@@ -32,10 +33,15 @@ const PAGES = {
     icon: "bell-outline",
     text: "What we email you, and when.",
   },
-  appearance: {
-    label: "Appearance",
+  theme: {
+    label: "Theme",
     icon: "palette-outline",
-    text: "Theme, colours and density.",
+    text: "Light, dark or the system's.",
+  },
+  density: {
+    label: "Density",
+    icon: "view-compact-outline",
+    text: "How much fits on a screen.",
   },
   language: {
     label: "Language",
@@ -62,17 +68,21 @@ export default function DrawerExample() {
       ? "row-reverse"
       : "row";
 
+  // Each item is a link: an anchor on the web (Ctrl-click opens a new tab),
+  // and a plain click goes through `navigate`, the app's router.
+  const navigate = (href: string) => {
+    setPage(href.slice(1) as PageId);
+    setOpen(false);
+  };
+
   const items = (ids: PageId[]) =>
     ids.map((id) => (
       <DrawerItem
         key={id}
         label={PAGES[id].label}
         icon={PAGES[id].icon}
+        href={`#${id}`}
         selected={page === id}
-        onClick={() => {
-          setPage(id);
-          setOpen(false);
-        }}
       />
     ));
 
@@ -84,14 +94,19 @@ export default function DrawerExample() {
       height={420}
       style={{ flexDirection: direction, overflow: "hidden" }}
     >
-      <Drawer {...props} visible={open} onClose={() => setOpen(false)}>
-        <DrawerSection>
-          {items(["profile", "security", "notifications"])}
-        </DrawerSection>
-        <DrawerSection title="Preferences" showDivider>
-          {items(["appearance", "language"])}
-        </DrawerSection>
-      </Drawer>
+      <LinkProvider navigate={navigate}>
+        <Drawer {...props} visible={open} onClose={() => setOpen(false)}>
+          <DrawerSection>
+            {items(["profile", "security", "notifications"])}
+          </DrawerSection>
+          <DrawerSection title="Preferences" showDivider>
+            <DrawerItem label="Appearance" icon="eye-outline" defaultExpanded>
+              {items(["theme", "density"])}
+            </DrawerItem>
+            {items(["language"])}
+          </DrawerSection>
+        </Drawer>
+      </LinkProvider>
       <Box padding={theme.spacing.m} gap={theme.spacing.s} style={{ flex: 1 }}>
         {props.variant === "swipeable" && (
           <Button variant="tonal" iconName="menu" onClick={() => setOpen(true)}>

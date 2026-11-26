@@ -3,6 +3,7 @@ import {
   applyRangeSelection,
   EMPTY_RANGE,
   formatDateInput,
+  getDateInputHint,
   getDeviceLocale,
   parseDateInput,
   toggleMultipleSelection,
@@ -102,5 +103,18 @@ describe("getDeviceLocale", () => {
     const locale = getDeviceLocale();
     expect(typeof locale).toBe("string");
     expect(locale.length).toBeGreaterThan(0);
+  });
+});
+
+describe("getDateInputHint", () => {
+  it("spells the typing hint in the locale's order and letters", () => {
+    expect(getDateInputHint("en-US")).toBe("MM/DD/YYYY");
+    expect(getDateInputHint("en-GB")).toBe("DD/MM/YYYY");
+    expect(getDateInputHint("it-IT")).toBe("GG/MM/AAAA");
+    expect(getDateInputHint("de-DE")).toBe("TT.MM.JJJJ");
+  });
+
+  it("keeps English's letters for a script without letter case", () => {
+    expect(getDateInputHint("ja-JP")).toMatch(/^Y{4}.M{2}.D{2}$/);
   });
 });

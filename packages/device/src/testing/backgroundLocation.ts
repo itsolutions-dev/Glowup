@@ -17,6 +17,7 @@ import type {
   GeofenceRegion,
 } from "../background-location/types";
 import { buildPosition } from "./location";
+import { mockPermission } from "./permission";
 
 export interface MockBackgroundLocationOptions {
   /** `false` behaves like the web. Default true. */
@@ -86,14 +87,6 @@ function toError(error: LocationError | LocationErrorCode): LocationError {
   return typeof error === "string" ? new LocationError(error) : error;
 }
 
-// As the location mock: only an undetermined permission can be asked by default.
-function toState(
-  status: PermissionStatus,
-  canAskAgain?: boolean,
-): PermissionState {
-  return { status, canAskAgain: canAskAgain ?? status === "undetermined" };
-}
-
 /**
  * An in-memory `BackgroundLocationAdapter`. Inject it with
  * `<DeviceAdaptersProvider adapters={{ backgroundLocation: adapter }}>`, then
@@ -105,11 +98,11 @@ export function createMockBackgroundLocationAdapter(
   options: MockBackgroundLocationOptions = {},
 ): MockBackgroundLocationAdapter {
   const requestResult = options.requestResult ?? "granted";
-  let permission: PermissionState = toState(
+  let permission: PermissionState = mockPermission(
     options.permission ?? "undetermined",
   );
   let foreground: LocationPermissionState = {
-    ...toState(options.foregroundPermission ?? "granted"),
+    ...mockPermission(options.foregroundPermission ?? "granted"),
     precision: null,
   };
   let servicesEnabled = options.servicesEnabled ?? true;
@@ -140,7 +133,7 @@ export function createMockBackgroundLocationAdapter(
     async requestPermission() {
       requestCount++;
       if (permission.status !== "granted" && permission.canAskAgain) {
-        permission = toState(requestResult, false);
+        permission = mockPermission(requestResult, false);
       }
       return { ...permission };
     },
@@ -176,10 +169,10 @@ export function createMockBackgroundLocationAdapter(
     hasStartedGeofencing: async (name) => geofences.has(name),
 
     setPermission(status, extra = {}) {
-      permission = toState(status, extra.canAskAgain);
+      permission = mockPermission(status, extra.canAskAgain);
     },
     setForegroundPermission(status) {
-      foreground = { ...toState(status), precision: null };
+      foreground = { ...mockPermission(status), precision: null };
     },
     setServicesEnabled(enabled) {
       servicesEnabled = enabled;

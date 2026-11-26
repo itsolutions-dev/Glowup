@@ -81,6 +81,8 @@ export interface SnackbarProps {
   position?: SnackbarPosition;
   /** Overrides the icon implied by `severity`. */
   icon?: MaterialCommunityIconsGlyphs;
+  /** Accessible name of the close button `onClose` adds. Defaults to `"Close"`. */
+  closeLabel?: string;
 }
 
 interface SnackbarColors {
@@ -144,6 +146,7 @@ const Snackbar = ({
   variant = "contained",
   position = "bottom-center",
   icon,
+  closeLabel = "Close",
 }: SnackbarProps) => {
   const { theme } = useTheme();
   const insets = useContext(SafeAreaInsetsContext) ?? NO_INSETS;
@@ -200,8 +203,9 @@ const Snackbar = ({
           duration: 250,
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        setShouldRender(false);
+      ]).start(({ finished }) => {
+        // Reopened while closing: the show animation interrupted this one.
+        if (finished) setShouldRender(false);
       });
     }
   }, [visible, hiddenOffset, fadeAnim, translateYAnim]);
@@ -296,7 +300,7 @@ const Snackbar = ({
         {close && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close"
+            accessibilityLabel={closeLabel}
             onPress={close}
             style={({ hovered, pressed }: PressableState) => [
               styles.closeButton,

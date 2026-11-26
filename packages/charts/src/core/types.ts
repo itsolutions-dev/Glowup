@@ -16,7 +16,9 @@ export type ChartSeries = {
   column?: string;
 };
 
-export type CurveName = "linear" | "monotone" | "natural" | "step";
+/** `step` changes value halfway between two points; `stepAfter` holds each value until the next point. */
+export type CurveName =
+  "linear" | "monotone" | "natural" | "step" | "stepAfter";
 
 export type Point = { x: number; y: number | null };
 

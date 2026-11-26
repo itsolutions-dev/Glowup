@@ -8,6 +8,8 @@ export interface PaperProps {
   style?: StyleProp<ViewStyle>;
   outline?: boolean;
   glow?: boolean;
+  /** Finds the surface in tests (its root view). */
+  testID?: string;
 }
 
 const Paper = ({
@@ -16,6 +18,7 @@ const Paper = ({
   style,
   outline = false,
   glow = false,
+  testID,
 }: PaperProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -36,6 +39,7 @@ const Paper = ({
 
   return (
     <View
+      testID={testID}
       style={[
         styles.paper,
         { backgroundColor: backgroundColor },

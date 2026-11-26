@@ -90,6 +90,17 @@ describe("DayTimeline", () => {
     );
   });
 
+  it("marks a completed event with a dot and says so", async () => {
+    const view = await draw({
+      events: [{ ...VISIT, completed: true }],
+      labels: { completed: "completato" },
+    });
+    expect(view.getByText("\u25CF Mario Rossi")).toBeTruthy();
+    expect(view.getByRole("button").props.accessibilityLabel).toBe(
+      "Appuntamento, Mario Rossi, 09:00 – 09:30, Studio, completato",
+    );
+  });
+
   it("shows the skeleton while loading", async () => {
     const view = await draw({ loading: true });
     expect(view.getByLabelText("Loading")).toBeTruthy();

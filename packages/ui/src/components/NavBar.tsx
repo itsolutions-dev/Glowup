@@ -7,6 +7,7 @@ import Badge from "./Badge";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { activeGlyph } from "./internal/activeGlyph";
 import { a11yState } from "./internal/a11yState";
+import { linkPressProps, useNavigateHandler } from "../providers/LinkProvider";
 
 export interface NavBarItem {
   id: string;
@@ -15,6 +16,14 @@ export interface NavBarItem {
   icon: MaterialCommunityIconsGlyphs;
   badgeCount?: number;
   disabled?: boolean;
+  /**
+   * Where the destination is: a real anchor on the web (its URL on hover, Ctrl
+   * or middle click for a new tab), and the bar becomes a `navigation` landmark
+   * of links instead of a tab list. A plain click reports the `id` and then
+   * calls the `LinkProvider`'s `navigate`; with neither, the browser follows
+   * the link. On iOS and Android a press does both.
+   */
+  href?: string;
 }
 
 export interface NavBarProps {
@@ -22,8 +31,11 @@ export interface NavBarProps {
   items: NavBarItem[];
   /** `id` of the current destination. */
   activeId: string;
-  /** Called with the `id` of the pressed destination. */
-  onClick: (id: string) => void;
+  /**
+   * Called with the `id` of the pressed destination. Optional when every
+   * item has an `href` under a `LinkProvider`.
+   */
+  onClick?: (id: string) => void;
   /** "always" shows every label, "selected" only the active one. */
   showLabels?: "always" | "selected";
   /**
@@ -49,6 +61,9 @@ const NavBar = ({
   const { theme } = useTheme();
   const insets = useInsets();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const navigate = useNavigateHandler();
+  // Links make it a navigation landmark: a tab list holds tabs only.
+  const links = items.some((item) => item.href);
 
   return (
     <View
@@ -56,21 +71,27 @@ const NavBar = ({
         styles.container,
         safeArea && { paddingBottom: 12 + insets.bottom },
       ]}
-      accessibilityRole="tablist"
+      role={links ? "navigation" : undefined}
+      accessibilityRole={links ? undefined : "tablist"}
     >
       {items.map((item) => {
         const active = item.id === activeId;
         const iconName = activeGlyph(item.icon, active);
         const showLabel = showLabels === "always" || active;
+        const role = item.href ? "link" : links ? "button" : "tab";
 
         return (
           <Pressable
             key={item.id}
-            onPress={() => onClick(item.id)}
+            {...linkPressProps(
+              item.href,
+              onClick && (() => onClick(item.id)),
+              navigate,
+            )}
             disabled={item.disabled}
-            accessibilityRole="tab"
+            accessibilityRole={role}
             accessibilityLabel={item.label}
-            {...a11yState("tab", { selected: active, disabled: item.disabled })}
+            {...a11yState(role, { selected: active, disabled: item.disabled })}
             style={[styles.item, item.disabled && { opacity: 0.38 }]}
           >
             {({ hovered, pressed }: PressableState) => (

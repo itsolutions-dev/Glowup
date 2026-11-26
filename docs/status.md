@@ -1,6 +1,10 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-05**, `dev` at the commit that carries this file. Built from the handoffs of 19 October–4 November and
+As of **2026-11-26**, at the commit that carries this file (the `claude/appshell` branch adds to `dev` of 5/11 the
+navigation links and the CRM's gaps G2–G6, see the handoff of 25/11; `fix-g` adds the fixes from the CRM's first
+checklist run, see the handoff of 26/11; `claude/appshell-sync-master` adds `master` on top — the scanner and RFID
+vendor packages, the Bluetooth/RFID/scanner pages and `@its/glowup-ui` 0.12.0 — so it can go into `dev` whole, see the same
+handoff). Built from the handoffs of 19 October–4 November and
 `solaris-native.md`. Since 5/11 it also holds the decisions (once `decisions.md`, now "Decisions taken" below) and the
 library's backlog (once `library-roadmap.md`, now "Library hardening" and "Library: what is left to build"). **Update it
 at the end of every session, in the same change as the handoff**, so the next session starts from here and not from
@@ -36,6 +40,27 @@ re-reading seven handoffs.
 
 Phase 7 is 95% of the scope decided on 27/10 (a table that shows data and exports it). Against the original four
 layers of the plan (grid, field panel, calculated fields and drill-through, export) it is about 50%.
+Since 25/11 the field panel is built too (G4: zones, aggregations, totals, per-field filters, drag or menu), so
+against the original layers it is about 75%; calculated fields, renaming, date formats and drill-through are left.
+
+**Built for the CRM on 25/11** (on `claude/appshell`, with tests, docs and changesets): `DayTimeline`
+`layout="grid" | "month"` with drag to move and resize (G3); `GridLayout` edit mode, with `GridCells` and
+`GridResizeHandles` public and the playground using them (G5); `DataGrid` `sections`, `rowActions`, `renderRow`, `%`
+widths and `minWidth` with flex (G2); the pivot's field panel and filter bar (G4); `ScatterChart`, `TimelineChart`
+and `tableLabels` in `packages/charts` (G6). The CRM's open proposals for the library are in
+[`crm-proposals.md`](crm-proposals.md); on 26/11 P2 (`ThemeProvider` `initialMode` / controlled `mode`), P8 (`DataGrid`
+filled after an empty mount) and P12 (`testID` on six more components) were built and taken off it, P5 rejected and
+P28 parked.
+
+**Fixed for the CRM's first checklist run on 26/11** (on `fix-g`): every `Modal` window of the library (`Dialog`,
+`BottomSheet`, side sheets) is a `PortalHost`, and the web date picker's popover is a `Modal`, so overlays opened inside
+them are drawn above them; `Pagination` `labels`, `SpeedDial` `openLabel` / `closeLabel` / `openOnHover`, `Snackbar` and
+`ToastProvider` `closeLabel`, `ToastProvider` `duration`; `aria-disabled` on disabled `Select` options and `Menu` items, and
+both draw up to 100 entries at once; `DayTimeline` `completed` and per-event `editable`; the date fields' typing hint in
+the locale's letters, the app's `placeholder` winning over it; a portalled `Tooltip` flips at the window's edge; the
+pivot's Format panel, Fields and Format in full screen, "Grand Total" for the grand-total row and date-part captions from
+the metadata. Then, for the CRM's F1 track: `Link` an `<a href>` on the web, a `Dialog` scrim that does nothing never
+takes focus, `BottomSheet` / `Drawer` `closeText`, `Breadcrumbs` `separatorText`, a `Select` named by its label and value.
 
 ## Per workstream
 
@@ -310,11 +335,14 @@ day, **M** a few days, **L** a week or more.
   | **`useConfirm()` / `Alert.confirm()`** returning a promise, on top of the single `AlertDialog`                                                                                        | The most common dialog; today every call site keeps `visible` state                     | S      |
   | **Theme mode**: `mode` / `setMode` / `defaultMode`, system option, nested provider inherits                                                                                           | A settings screen cannot be built; `toggleTheme` has no "system"                        | M      |
   | The shared `Column` type and ids for `Table` and `DataGrid`                                                                                                                           | Next in the roadmap's suggested order (23/10)                                           | M      |
-  | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh), and nav items that take an `href` or link slot                                                             | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L    |
+  | **`AppShell`, `Container`, `Screen`** (safe-area scroll, pull to refresh): **on hold**, see below; nav items with `href` done 24/11                                                   | Every app, and the playground itself, hand-builds its shell and cannot use router links | M-L    |
   | **Toast v2**: `toast.promise` / `update`, exit animation (`maxVisible` and drawing above native modals are done)                                                                      | Promises (saving…, saved) and a soft exit                                               | M      |
   | **Motion layer**: `Fade` / `Grow` / `Slide` + one reduced-motion rule; `Backdrop`, `LoadingOverlay`                                                                                   | Four copies of mount-until-exit; only 9 files honour reduced motion                     | M      |
   | **Input family**: `type` (email, tel, url), `clearable`, `showCount`, masks (`PhoneInput`, `CurrencyInput`), slider range, `Tabs` scroll and keyboard model, `Stepper` per-step state | The basics of a business form and of a wizard                                           | M each |
 
+- **`AppShell` on hold (24/11).** The user wants the CRM to compose its frame from the existing components first, and
+  is deciding whether Glowup needs a shell component at all. Do not build it until they say so. Its first half, the
+  navigation items that take an `href` (`LinkProvider`), is built.
 - **Docs gaps:** the `Input` tables in `packages/ui/README.md` and `components.md` lack `density`, `decimalSeparator`,
   `allUpperCase` and `reserveHelperText`; `Upload.maxFiles` has no "needs `multiple`" rule in the playground.
 - **Playground limit, by design:** the Properties panel covers props the library declares or inherits from its own
@@ -326,6 +354,12 @@ day, **M** a few days, **L** a week or more.
   `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
   propose renaming them again.
 
+- **Overlays inside a `Modal` window** (26/11): the window's root (`internal/KeyboardFrame`) is a `PortalHost`, so a
+  portalled overlay opened in a `Dialog` or a sheet is drawn in that window. A web popover that is not portalled must be a
+  `Modal` of its own (as `Popover` and the date picker's), never `createPortal` to `document.body` with a z-index:
+  react-native-web's modals sit at z-index 9999 in the order they open, and only the topmost takes Escape and focus.
+- **`aria-disabled` on a `Pressable` that must stay enabled** (26/11): react-native-web overwrites it with `disabled`, and a
+  `disabled` Pressable lets the click through to its parent; use `ariaDisabledRef` (`internal/a11yState.ts`).
 - **Checked 4/11, not defects:** a `Dialog` without `testID` names its parts `dialog-…` (the default is `"dialog"`),
   never `undefined-…`; the `Tooltip` wrapper around a `ToggleButton` segment not stretching in height shows nothing
   (segments and group are 40 high).
@@ -358,6 +392,12 @@ Check here before starting something that feels familiar.
 
 **Library**
 
+- **Navigation links (24/11): the router comes in as a function, not as its `Link`.** `DrawerItem` and the
+  `NavBar` / `NavigationRail` items take `href`; `LinkProvider navigate={(href) => router.push(href)}` plugs the
+  router in. Not `Link asChild` around the item: expo-router's merges the child's style into a plain object (a
+  `Pressable`'s state style function is lost) and passes `onClick`, which react-native-web's `Pressable` overrides,
+  so the anchor would reload the page. A group `DrawerItem` opens and closes rather than navigating, unless the drawer
+  is `collapsed`. No base-URL mapping: the CRM serves from the root (add one to `LinkProvider` when an app does not).
 - **`Collapse` on native is fixed** (26/10, `0ede135`, changeset `collapse-opens-on-native.md`). The colleague
   still has to be told.
 - **The component and API decisions** (`Typography`, `Select multiple`, `ConfirmDialog`, `InputArea`, what was not

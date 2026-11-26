@@ -6,9 +6,8 @@ import {
   toGeocodedAddress,
   toGeocodedLocation,
   toHeading,
-  toLocationError,
-  toLocationPermissionState,
 } from "../location/expo";
+import { toLocationError, toLocationPermissionState } from "../core/geo";
 
 jest.mock("expo-location", () => ({
   LocationAccuracy: {

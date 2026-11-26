@@ -2,15 +2,11 @@ import { useMemo, useState } from "react";
 import { Pressable, Text, StyleSheet, View, Platform } from "react-native";
 import Icons from "./Glyph";
 
-import {
-  useTheme,
-  Theme,
-  getStateColor,
-  getFocusRing,
-} from "../providers/ThemeProvider";
+import { useTheme, Theme, getFocusRing } from "../providers/ThemeProvider";
 import { useInteractionFeedback } from "../providers/InteractionFeedback";
 import { toneFrom as resolveTone } from "../providers/toneFrom";
 import { colorRoleTokens, type ColorRole } from "./internal/colorRole";
+import { useStateLayer } from "./TouchableRipple";
 import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { a11yState } from "./internal/a11yState";
 
@@ -54,6 +50,11 @@ export interface ChipProps {
    * Defaults to true.
    */
   feedback?: boolean;
+  /**
+   * Finds the chip in tests: on its pressable body, which carries its label and
+   * role. The close button, when there is one, is `` `${testID}-close` ``.
+   */
+  testID?: string;
 }
 
 const Chip = ({
@@ -71,6 +72,7 @@ const Chip = ({
   accessibilityRole,
   style = {},
   feedback = true,
+  testID,
 }: ChipProps) => {
   const { theme } = useTheme();
   const emitFeedback = useInteractionFeedback(feedback);
@@ -128,20 +130,14 @@ const Chip = ({
   const [bodyHovered, setBodyHovered] = useState(false);
   const [bodyPressed, setBodyPressed] = useState(false);
 
-  let currentBg = bg;
-  if (bodyPressed) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "press",
-    );
-  } else if (bodyHovered) {
-    currentBg = getStateColor(
-      bg === "transparent" ? theme.colors.surface : bg,
-      on,
-      "hover",
-    );
-  }
+  const stateLayer = useStateLayer(
+    bg === "transparent" ? theme.colors.surface : bg,
+    on,
+  );
+  const currentBg =
+    bodyPressed || bodyHovered
+      ? stateLayer({ pressed: bodyPressed, hovered: bodyHovered })
+      : bg;
 
   // The border is the same idle and hovered; only the ring is added.
   const glow = {
@@ -185,6 +181,7 @@ const Chip = ({
       ]}
     >
       <Pressable
+        testID={testID}
         onPress={() => {
           if (disabled || !onClick) return;
           emitFeedback(
@@ -244,6 +241,7 @@ const Chip = ({
       </Pressable>
       {onClose && (
         <Pressable
+          testID={testID && `${testID}-close`}
           onPress={() => {
             if (disabled || !onClose) return;
             emitFeedback("press");

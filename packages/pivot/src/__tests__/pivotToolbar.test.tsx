@@ -59,13 +59,15 @@ describe("PivotGrid toolbar", () => {
     expect(screen.queryByLabelText("Export to Excel")).toBeNull();
   });
 
-  test("three buttons, in English and in Italian", async () => {
+  test("the buttons, in English and in Italian", async () => {
     await show({ toolbar: true });
     expect(await screen.findByLabelText("Export to Excel")).toBeTruthy();
+    expect(screen.getByLabelText("Format")).toBeTruthy();
     expect(screen.getByLabelText("Fullscreen")).toBeTruthy();
     expect(screen.getByLabelText("Reset")).toBeTruthy();
     await show({ toolbar: true, localization: localizationIt });
     expect(await screen.findByLabelText("Esporta in Excel")).toBeTruthy();
+    expect(screen.getByLabelText("Formato")).toBeTruthy();
     expect(screen.getByLabelText("Schermo intero")).toBeTruthy();
     expect(screen.getByLabelText("Ripristina")).toBeTruthy();
   });
@@ -231,5 +233,27 @@ describe("PivotGrid toolbar", () => {
       false,
     );
     expect(inBody(within(dialog).getByTestId("pivot-grid"))).toBe(true);
+    // Fields and Format are there too.
+    expect(within(dialog).getByLabelText("Fields")).toBeTruthy();
+    expect(within(dialog).getByLabelText("Format")).toBeTruthy();
+  });
+
+  test("Format sets the values' number format", async () => {
+    const engine = engineFor();
+    await render(
+      <ThemeProvider>
+        <PivotGrid engine={engine} toolbar localization={localizationIt} />
+      </ThemeProvider>,
+    );
+    await fireEvent.press(await screen.findByLabelText("Formato"));
+    const dialog = await screen.findByTestId("pivot-format");
+    await fireEvent.press(
+      within(dialog).getByLabelText("Simbolo valuta, Nessuno"),
+    );
+    await fireEvent.press(await screen.findByLabelText("€"));
+    await fireEvent.press(screen.getByTestId("pivot-format-apply"));
+    expect(screen.queryByTestId("pivot-format")).toBeNull();
+    expect(engine.getFormat().values.currencySymbol).toBe("€");
+    expect(await screen.findByText("€ 23")).toBeTruthy();
   });
 });

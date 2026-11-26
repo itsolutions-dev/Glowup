@@ -6,6 +6,7 @@ import {
 import { Platform } from "react-native";
 
 import { toPermissionState } from "../core/permissions";
+import { errorDetail } from "../core/shared";
 import type { PermissionState } from "../core/types";
 import type { MediaLibraryAdapter, SaveResult } from "./types";
 
@@ -33,39 +34,26 @@ function requiresPermission(): boolean {
 }
 
 function toFailure(error: unknown): SaveResult {
-  const { code, message } = (error ?? {}) as {
-    code?: unknown;
-    message?: unknown;
-  };
-  const text = typeof message === "string" ? message : String(error);
-  return {
-    status: "failed",
-    detail: typeof code === "string" ? `${code}: ${text}` : text,
-  };
+  return { status: "failed", detail: errorDetail(error) };
 }
 
-export function createExpoMediaLibraryAdapter(): MediaLibraryAdapter {
-  return {
-    isSupported: () => true,
-    requiresPermission,
-    async getPermission() {
-      if (!requiresPermission()) return GRANTED;
-      return toPermissionState(await getPermissionsAsync(true));
-    },
-    async requestPermission() {
-      if (!requiresPermission()) return GRANTED;
-      return toPermissionState(await requestPermissionsAsync(true));
-    },
-    async save(uri) {
-      try {
-        const asset = await Asset.create(uri);
-        return { status: "saved", assetId: asset.id };
-      } catch (error) {
-        return toFailure(error);
-      }
-    },
-  };
-}
-
-export const expoMediaLibraryAdapter: MediaLibraryAdapter =
-  createExpoMediaLibraryAdapter();
+export const expoMediaLibraryAdapter: MediaLibraryAdapter = {
+  isSupported: () => true,
+  requiresPermission,
+  async getPermission() {
+    if (!requiresPermission()) return GRANTED;
+    return toPermissionState(await getPermissionsAsync(true));
+  },
+  async requestPermission() {
+    if (!requiresPermission()) return GRANTED;
+    return toPermissionState(await requestPermissionsAsync(true));
+  },
+  async save(uri) {
+    try {
+      const asset = await Asset.create(uri);
+      return { status: "saved", assetId: asset.id };
+    } catch (error) {
+      return toFailure(error);
+    }
+  },
+};

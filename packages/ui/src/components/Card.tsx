@@ -27,6 +27,8 @@ export interface CardProps {
   /** Draws the card as the chosen one of a set (a primary border) and says so to screen readers. */
   selected?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Finds the card in tests: on its pressable area (the whole card when it has no `Card.Actions`). */
+  testID?: string;
 }
 
 const CardBase = ({
@@ -36,6 +38,7 @@ const CardBase = ({
   style,
   accessibilityLabel,
   selected,
+  testID,
 }: CardProps) => {
   const { theme } = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -74,6 +77,7 @@ const CardBase = ({
     style,
   ];
   const buttonProps = {
+    testID,
     onPress: onClick,
     disabled: !onClick,
     accessibilityRole: onClick ? ("button" as const) : undefined,

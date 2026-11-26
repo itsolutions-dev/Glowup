@@ -18,7 +18,6 @@ export {
   type SecureStoreErrorCode,
 } from "./errors";
 export { expoSecureStoreAdapter } from "./expo";
-export { webSecureStoreAdapter } from "./web";
 export type {
   AdapterProtectedOptions,
   ProtectedErrorStatus,

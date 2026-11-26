@@ -7,6 +7,7 @@ import {
   useLiveValue,
   type LiveStore,
 } from "../core/liveStore";
+import { getOrCreate, useClientValue } from "../core/shared";
 import { expoOrientationAdapter } from "./expo";
 import {
   createLockStack,
@@ -28,26 +29,18 @@ const stores = new WeakMap<OrientationAdapter, LiveStore<Orientation>>();
 const stacks = new WeakMap<OrientationAdapter, LockStack>();
 
 function getStore(adapter: OrientationAdapter): LiveStore<Orientation> {
-  let store = stores.get(adapter);
-  if (!store) {
-    store = createLiveStore<Orientation>({
+  return getOrCreate(stores, adapter, () =>
+    createLiveStore<Orientation>({
       isSupported: () => adapter.isSupported(),
       read: () => adapter.getOrientation(),
       subscribe: (listener) => adapter.subscribe(listener),
       unsupported: "unknown",
-    });
-    stores.set(adapter, store);
-  }
-  return store;
+    }),
+  );
 }
 
 function getStack(adapter: OrientationAdapter): LockStack {
-  let stack = stacks.get(adapter);
-  if (!stack) {
-    stack = createLockStack(adapter);
-    stacks.set(adapter, stack);
-  }
-  return stack;
+  return getOrCreate(stacks, adapter, () => createLockStack(adapter));
 }
 
 export interface UseOrientation {
@@ -107,8 +100,6 @@ export function useOrientationLock(
 }
 
 const getIdleLock = () => IDLE_LOCK;
-const subscribeNothing = () => () => {};
-const getServerSupport = () => false;
 
 /**
  * Whether this platform has a lock API at all: true on iOS and Android, false
@@ -118,6 +109,5 @@ const getServerSupport = () => false;
  */
 export function useOrientationLockSupport(): boolean {
   const adapter = useOrientationAdapter();
-  const getSupport = useCallback(() => adapter.supportsLock(), [adapter]);
-  return useSyncExternalStore(subscribeNothing, getSupport, getServerSupport);
+  return useClientValue(() => adapter.supportsLock(), false);
 }

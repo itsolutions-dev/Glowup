@@ -19,7 +19,7 @@ import { MaterialCommunityIconsGlyphs, PressableState } from "./types";
 import { useDensity, type Density } from "../providers/Density";
 import { fieldWidth } from "./internal/fieldWidth";
 import { filledField } from "./internal/fieldVariant";
-import { a11yState } from "./internal/a11yState";
+import { a11yState, ariaDisabledRef } from "./internal/a11yState";
 import OwnScroller from "./internal/OwnScroller";
 
 export interface Option {
@@ -106,6 +106,11 @@ export interface SelectProps {
    * does not push the next field down. Default false.
    */
   reserveHelperText?: boolean;
+  /**
+   * Finds the select in tests: on the field you press to open it. Each option
+   * of the open list is `` `${testID}-option-${value}` ``.
+   */
+  testID?: string;
 }
 
 const Select = ({
@@ -129,6 +134,7 @@ const Select = ({
   defaultOpen = false,
   density,
   reserveHelperText = false,
+  testID,
 }: SelectProps) => {
   const options = useMemo(() => rawOptions.map(toOption), [rawOptions]);
   const dense = useDensity(density) === "dense";
@@ -257,7 +263,12 @@ const Select = ({
 
   const Anchor = (
     <Pressable
-      accessibilityLabel={selectedOption?.label || label || placeholder}
+      testID={testID}
+      // Named by its label and then its value, as a labelled field is read
+      // ("Contact type, Email"): found by its label, and by what it holds.
+      accessibilityLabel={
+        [label, selectedOption?.label].filter(Boolean).join(", ") || placeholder
+      }
       // A combobox that opens a listbox: the trigger is not the list itself.
       accessibilityRole={(Platform.OS === "web" ? "combobox" : "none") as any}
       {...a11yState("combobox", { expanded: visible, disabled })}
@@ -364,7 +375,9 @@ const Select = ({
               {emptyMessage}
             </Text>
           ) : (
-            // Virtualized: a list of hundreds draws about a screen of rows.
+            // Virtualized past 100 options, where a list of hundreds draws about a
+            // screen of rows. Up to 100 every option is drawn at once, so each
+            // can be found by its role without scrolling it into view.
             <OwnScroller>
               <FlatList
                 data={options}
@@ -373,7 +386,7 @@ const Select = ({
                 style={{ maxHeight: 250 }}
                 nestedScrollEnabled
                 keyboardShouldPersistTaps="handled"
-                initialNumToRender={12}
+                initialNumToRender={options.length > 100 ? 12 : 100}
                 renderItem={({ item: option }) => {
                   const optionDisabled = disabled || isOptionDisabled(option);
                   const isSelected = multiple
@@ -382,6 +395,7 @@ const Select = ({
                   return (
                     <Pressable
                       key={optionKey(option)}
+                      testID={testID && `${testID}-option-${option.value}`}
                       // Not `disabled`: a disabled Pressable lets the touch through to
                       // the popover's backdrop, which would close the list.
                       onPress={() => {
@@ -396,7 +410,7 @@ const Select = ({
                           setVisible(false);
                         }
                       }}
-                      aria-disabled={optionDisabled}
+                      ref={ariaDisabledRef(optionDisabled)}
                       accessibilityLabel={option.label}
                       accessibilityRole={
                         (Platform.OS === "web" ? "option" : "none") as any

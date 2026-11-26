@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import { AppState, Platform } from "react-native";
+import { AppState } from "react-native";
 
 import { useDeviceAdapter } from "../core/adapters";
 import { promptSession } from "../core/promptSession";
+import { createEmitter, getOrCreate, useClientValue } from "../core/shared";
 import type { Unsubscribe } from "../core/types";
 import {
   assertValidKey,
@@ -20,10 +21,10 @@ import type {
   SecureStoreAdapter,
   SecureStoreOptions,
 } from "./types";
-import { webSecureStoreAdapter } from "./web";
 
-const defaultSecureStoreAdapter =
-  Platform.OS === "web" ? webSecureStoreAdapter : expoSecureStoreAdapter;
+// Unsupported on web, with no `localStorage` stand-in: any script on the
+// origin reads it. An app that accepts that can provide its own adapter.
+const defaultSecureStoreAdapter = expoSecureStoreAdapter;
 
 /** What a `useSecureValue` reads. */
 export type SecureValueState =
@@ -59,10 +60,10 @@ function createValueStore(
   let state = LOADING;
   // Last call wins: a slow read must not overwrite a newer write.
   let sequence = 0;
-  const listeners = new Set<() => void>();
+  const emitter = createEmitter();
   const emit = (next: SecureValueState) => {
     state = next;
-    listeners.forEach((listener) => listener());
+    emitter.emit();
   };
 
   const refresh = async () => {
@@ -92,13 +93,11 @@ function createValueStore(
   return {
     getSnapshot: () => state,
     subscribe(listener) {
-      listeners.add(listener);
-      if (listeners.size === 1 && state.status !== "ready") {
+      const unsubscribe = emitter.subscribe(listener);
+      if (emitter.size() === 1 && state.status !== "ready") {
         refresh().catch(() => {});
       }
-      return () => {
-        listeners.delete(listener);
-      };
+      return unsubscribe;
     },
     refresh,
     set(value) {
@@ -113,18 +112,11 @@ function getValueStore(
   key: string,
   service: string | undefined,
 ): ValueStore {
-  let registry = registries.get(adapter);
-  if (!registry) {
-    registry = new Map();
-    registries.set(adapter, registry);
-  }
+  const registry = getOrCreate(registries, adapter, () => new Map());
   const id = storeId(key, service);
-  let store = registry.get(id);
-  if (!store) {
-    store = createValueStore(adapter, key, service);
-    registry.set(id, store);
-  }
-  return store;
+  return getOrCreate(registry, id, () =>
+    createValueStore(adapter, key, service),
+  );
 }
 
 /** Tells the readers of an item, if any, what was just written. */
@@ -175,9 +167,6 @@ export interface UseSecureStore {
     options?: Omit<ProtectedOptions, "prompt">,
   ): Promise<void>;
 }
-
-const getServerFalse = () => false;
-const subscribeNothing = () => () => {};
 
 function useSecureStoreAdapter(): SecureStoreAdapter {
   return useDeviceAdapter("secureStore") ?? defaultSecureStoreAdapter;
@@ -236,12 +225,7 @@ async function run<T>(call: () => Promise<T>): Promise<T> {
  */
 export function useSecureStore(): UseSecureStore {
   const adapter = useSecureStoreAdapter();
-  const getSupport = useCallback(() => adapter.isSupported(), [adapter]);
-  const isSupported = useSyncExternalStore(
-    subscribeNothing,
-    getSupport,
-    getServerFalse,
-  );
+  const isSupported = useClientValue(() => adapter.isSupported(), false);
 
   return useMemo(() => {
     const ensureSupported = () => {

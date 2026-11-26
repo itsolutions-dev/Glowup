@@ -1,7 +1,5 @@
 {
   "main": "../lib/commonjs/sensors/index.js",
-  "module": "../lib/module/sensors/index.js",
   "types": "../lib/typescript/sensors/index.d.ts",
-  "react-native": "../src/sensors/index.ts",
   "source": "../src/sensors/index.ts"
 }

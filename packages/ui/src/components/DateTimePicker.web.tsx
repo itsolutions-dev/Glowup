@@ -6,8 +6,7 @@ import React, {
   useState,
   useSyncExternalStore,
 } from "react";
-import { createPortal } from "react-dom";
-import { View, Pressable, StyleSheet, ViewStyle } from "react-native";
+import { Modal, View, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { Theme, useTheme } from "../providers/ThemeProvider";
 import PickerField from "./DateTimePicker.field";
 import PickerDialog from "./DateTimePicker.dialog";
@@ -116,15 +115,25 @@ const PopupPicker = (props: DateTimePickerProps) => {
       MARGIN,
     );
     // Until measured the surface is laid out in full, so it has a height to report.
-    setPlacement(
+    const value: Placement =
       openHeight === null
         ? { ...next, maxHeight: view.height - MARGIN * 2 }
-        : next,
+        : next;
+    // Scroll events arrive in bursts (the open calendar's own list included):
+    // keep the same object while the placement holds, so they do not re-render.
+    setPlacement((previous) =>
+      previous &&
+      (Object.keys(value) as (keyof Placement)[]).every(
+        (key) => previous[key] === value[key],
+      ) &&
+      Object.keys(previous).length === Object.keys(value).length
+        ? previous
+        : value,
     );
   }, [openHeight, props.mode]);
 
   // A static export prerenders in Node: no `document`, and react-dom's server
-  // renderer has no portals. A picker seeded open (`defaultOpen`) portals its
+  // renderer has no portals. A picker seeded open (`defaultOpen`) opens its
   // popover only in the browser; the server snapshot also holds while the page
   // hydrates, so the first client render matches the prerendered html.
   const inBrowser = useSyncExternalStore(NO_SUBSCRIPTION, ON_CLIENT, ON_SERVER);
@@ -157,8 +166,11 @@ const PopupPicker = (props: DateTimePickerProps) => {
   }, [popoverOpen, reposition]);
 
   // Escape lives here rather than in Calendar so a single owner closes the
-  // surface in every mode, `time` included (which renders no Calendar).
-  useEscapeKey(open, close);
+  // surface in every mode, `time` included (which renders no Calendar). The
+  // popover's Modal handles its own Escape (topmost modal only, so a picker in
+  // a Dialog closes without the Dialog); this covers the field before it opens
+  // as a popover and the dialog presentation.
+  useEscapeKey(open && !popoverOpen, close);
 
   const openSurface = () => {
     if (props.disabled) return;
@@ -212,7 +224,16 @@ const PopupPicker = (props: DateTimePickerProps) => {
   return (
     <>
       <PickerField {...fieldProps} ref={triggerRef} onClick={openSurface} />
-      {popoverOpen && createPortal(popover, document.body)}
+      {/*
+        A Modal, as the kit's other popovers: react-native-web stacks modals in
+        the order they open, so the surface is drawn above a Dialog or a side
+        sheet the field sits in, and only it takes Escape.
+      */}
+      {popoverOpen && (
+        <Modal visible transparent animationType="none" onRequestClose={close}>
+          {popover}
+        </Modal>
+      )}
       <PickerDialog
         visible={open && asDialog}
         onClose={close}

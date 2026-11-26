@@ -28,7 +28,7 @@ import type {
  * the static variant, each live change) back into the caller's own `onChange`
  * shape.
  */
-export const usePickerController = (props: DateTimePickerProps) => {
+const usePickerController = (props: DateTimePickerProps) => {
   const {
     mode = "date",
     locale: localeProp,
@@ -269,7 +269,8 @@ export const usePickerParts = (props: DateTimePickerProps) => {
     inputValue: controller.fieldText,
     onInputChange: controller.handleInputChange,
     onInputBlur: controller.handleInputBlur,
-    inputPlaceholder: controller.inputHint,
+    // The app's own placeholder wins over the typing hint.
+    inputPlaceholder: placeholder ?? controller.inputHint,
     openAccessibilityLabel: controller.labels.openPicker,
     style,
     testID,

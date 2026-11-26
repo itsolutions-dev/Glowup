@@ -226,7 +226,17 @@ Exported from the library alongside the components:
 
 - **`ThemeProvider`** — wraps the app; derives a Material You theme from `theme.json`, syncs
   with the OS color scheme, and supports manual toggle.
-- **`useTheme()`** → `{ theme, toggleTheme, palette, setPalette }`; the scheme is `theme.isDark`.
+- **`useTheme()`** → `{ theme, toggleTheme, mode, setMode, palette, setPalette }`; the scheme showing is
+  `theme.isDark`, `mode` is the one chosen (`"light"`, `"dark"` or `"system"`).
+- **`initialMode`, `mode` / `onModeChange`** (`ThemeProvider` props) — `initialMode` starts on a stored choice
+  (`"light"`, `"dark"`, `"system"`; default `"system"`) from the first render, with no frame of the other scheme.
+  `mode` makes the provider controlled: it shows that scheme, and `toggleTheme` / `setMode` only call
+  `onModeChange`, which is also called in the uncontrolled case so the app can store the choice.
+
+  ```tsx
+  <ThemeProvider initialMode={stored ?? "system"} onModeChange={saveMode}>
+  ```
+
 - **`themeScrollbars`** (a `ThemeProvider` prop, default `true`) — on the web the browser's own scrollbars
   (a textarea's, a menu's list) are drawn from the theme: a thin `outline`-coloured thumb, no arrows, and
   `color-scheme` follows light and dark, so they are not a white box in a dark page. `ScrollArea` is unchanged.
@@ -2289,12 +2299,12 @@ shows a back button or a drawer menu button, and renders `options.headerRight`.
 
 Bottom navigation bar: the destinations of a compact window, three to five per M3.
 
-| Prop       | Type                                                                      | Default  |
-| ---------- | ------------------------------------------------------------------------- | -------- |
-| items      | `NavBarItem[]` = `{ id, label, icon, badgeCount?, disabled? }` (required) | —        |
-| activeId   | string (required)                                                         | —        |
-| onClick    | (id) => void (the pressed destination; required)                          | —        |
-| showLabels | `"always" \| "selected"`                                                  | `always` |
+| Prop       | Type                                                                                               | Default  |
+| ---------- | -------------------------------------------------------------------------------------------------- | -------- |
+| items      | `NavBarItem[]` = `{ id, label, icon, badgeCount?, disabled?, href? }` (required)                   | —        |
+| activeId   | string (required)                                                                                  | —        |
+| onClick    | (id) => void (the pressed destination; optional when every item has `href` under a `LinkProvider`) | —        |
+| showLabels | `"always" \| "selected"`                                                                           | `always` |
 
 #### `Tabs` / `TabContent`
 
@@ -2378,10 +2388,19 @@ and a close button it holds filters, details or a form on any edge of the window
 | collapsed       | boolean (icons only, 72 wide)                                                                                                     | `false`                   |
 | width / height  | number (left and right / top and bottom: the largest height)                                                                      | `360` / `360`             |
 
-`DrawerItem`: `label` (required), `icon`, `selected`, `badge`, `onClick`, `disabled`, and `children`
-(sub-items, which make it a group the press opens and closes: `defaultExpanded`, `onToggle`).
+`DrawerItem`: `label` (required), `icon`, `selected`, `badge`, `onClick`, `href`, `disabled`, and `children`
+(sub-items, which make it a group the press opens and closes: `defaultExpanded`, `onToggle`; they nest to
+any depth).
 `DrawerSection`: `title`, `children` (required), `showDivider`, and `collapsible` with
 `defaultExpanded` (`true`) and `onToggle`.
+
+**Links.** A `DrawerItem`, `NavBar` or `NavigationRail` item with `href` is a real anchor on the web (its
+URL on hover, Ctrl, Cmd, Shift or middle click for a new tab or window): a plain click runs the item's
+handler and then the `LinkProvider`'s `navigate`, so the route changes without a page load; with
+neither, the browser follows the link. On iOS and Android a press does both. A bar with links is a
+`navigation` landmark of links instead of a tab list. The library imports no router:
+`<LinkProvider navigate={(href) => router.push(href)}>` plugs in expo-router (react-navigation:
+`linkTo`). A group item (with `children`) still opens and closes, unless the drawer is `collapsed`.
 
 #### `Toolbar`
 

@@ -2,7 +2,7 @@
 // resize handle reaches, how many rows the page shows. Pure, like the rest of
 // the model; the library types are imported as types only.
 
-import type { DragItem, DropTarget } from "@its/glowup-ui";
+import type { DragItem, DropTarget, GridHandle } from "@its/glowup-ui";
 import {
   findNode,
   type GridPlacement,
@@ -22,9 +22,6 @@ import {
   slotKey,
   type Destination,
 } from "./operations";
-
-/** A resize handle: an edge, or the corner of two. */
-export type Handle = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
 
 /** What an edit box carries as it is dragged. */
 export interface NodeDragData {
@@ -176,7 +173,7 @@ export const cellPitch = (
  */
 export const resizePlacement = (
   start: GridPlacement,
-  handle: Handle,
+  handle: GridHandle,
   dx: number,
   dy: number,
   pitch: { x: number; y: number },

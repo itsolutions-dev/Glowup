@@ -1,8 +1,8 @@
 {
   "libraryName": "@its/glowup-ui",
-  "libraryVersion": "0.11.1",
+  "libraryVersion": "0.12.0",
   "generatedFrom": "packages/ui/src/index.ts",
-  "componentCount": 123,
+  "componentCount": 126,
   "components": {
     "ViewportProvider": {
       "name": "ViewportProvider",
@@ -21,6 +21,27 @@
           "type": "number",
           "required": false,
           "description": "The width, in dp, to report instead of the window's. Leave it out (or\n`undefined`) and the real window width is reported, so the provider can sit\nin place permanently and be switched on by a value.",
+          "deprecated": false
+        }
+      ]
+    },
+    "LinkProvider": {
+      "name": "LinkProvider",
+      "source": "packages/ui/src/providers/LinkProvider.tsx",
+      "propsTypeName": "LinkProviderProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "navigate",
+          "type": "NavigateHandler",
+          "required": true,
+          "description": "Called with an item's `href` when the user follows it inside the app: a\nplain click on the web, a press on iOS and Android. Pass the router's\npush: expo-router's `router.push`, react-navigation's `linkTo`.",
           "deprecated": false
         }
       ]
@@ -880,6 +901,13 @@
           "deprecated": false
         },
         {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of the close button and of the scrim. Defaults to\n`\"Close\"` (the scrim's to `\"Close bottom sheet\"`).",
+          "deprecated": false
+        },
+        {
           "name": "dismissOnScrimTap",
           "type": "boolean",
           "required": false,
@@ -1070,6 +1098,14 @@
           "type": "MaterialCommunityIconsGlyphs",
           "required": false,
           "default": "\"chevron-right\"",
+          "description": "The glyph between two items. Defaults to `\"chevron-right\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "separatorText",
+          "type": "string",
+          "required": false,
+          "description": "Text between two items instead of the `separator` glyph (`\"›\"`, `\"/\"`),\npart of the line's text as a path reads.",
           "deprecated": false
         }
       ]
@@ -1421,6 +1457,13 @@
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the card in tests: on its pressable area (the whole card when it has no `Card.Actions`).",
           "deprecated": false
         },
         {
@@ -2012,6 +2055,13 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the chip in tests: on its pressable body, which carries its label and\nrole. The close button, when there is one, is `` `${testID}-close` ``.",
+          "deprecated": false
+        },
+        {
           "name": "toneFrom",
           "type": "string",
           "required": false,
@@ -2398,7 +2448,9 @@
         {
           "name": "data",
           "type": "any[]",
-          "required": true,
+          "required": false,
+          "default": "NO_DATA",
+          "description": "The rows. Ignored when `sections` is given.",
           "deprecated": false
         },
         {
@@ -2483,6 +2535,32 @@
           "deprecated": false
         },
         {
+          "name": "renderRow",
+          "type": "(row: any, index: number) => ReactNode",
+          "required": false,
+          "description": "Draws a whole row instead of its cells, for the rows it returns a node\nfor: a note spanning the grid, a divider. `null` or `undefined` draws the\nrow as usual. Keep the function stable (`useCallback`).",
+          "deprecated": false
+        },
+        {
+          "name": "revealRowActions",
+          "type": "\"always\" | \"hover\"",
+          "required": false,
+          "default": "\"always\"",
+          "description": "When the row actions show: `\"always\"`, or `\"hover\"`, only while the\npointer is over the row or one of them has the focus (web; on a touch\nscreen they always show).",
+          "values": [
+            "always",
+            "hover"
+          ],
+          "deprecated": false
+        },
+        {
+          "name": "rowActions",
+          "type": "(row: any, index: number) => DataGridRowAction[]",
+          "required": false,
+          "description": "The actions on a row, drawn as icon buttons in a last column as wide as\nthe row with the most. Keep the function stable (`useCallback`).",
+          "deprecated": false
+        },
+        {
           "name": "rowsPerPage",
           "type": "number",
           "required": false,
@@ -2494,6 +2572,13 @@
           "type": "ViewStyle | ((row: any, index: number) => ViewStyle | undefined)",
           "required": false,
           "description": "One style for every row, or a function of the row (to dim or highlight one).",
+          "deprecated": false
+        },
+        {
+          "name": "sections",
+          "type": "DataGridSection[]",
+          "required": false,
+          "description": "The rows in groups, each under a header row that folds and unfolds it;\nevery section starts unfolded. A row's index is its position in all the\nsections' rows, folded ones included. Not combined with `rowsPerPage`.",
           "deprecated": false
         },
         {
@@ -2530,6 +2615,12 @@
           "type": "string",
           "required": false,
           "description": "A heading drawn above the header row.",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
           "deprecated": false
         },
         {
@@ -2679,7 +2770,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -2917,7 +3008,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -4213,6 +4304,21 @@
           "deprecated": false
         },
         {
+          "name": "dropSize",
+          "type": "(item: DragItem) => { w: number; h: number } | null",
+          "required": false,
+          "description": "How big a dragged item from outside the grid lands, or null to refuse it.\nWithout it the grid takes no drops but its own items'.",
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Arrange the items: drag one to move it, pull the handles of the selected\none to resize it, drop a `Draggable` from elsewhere (a palette) to add\none. Nothing is compacted and nothing is pushed: an item stays where it\nis put, and a move or a resize onto another item is refused. The items\ntake no taps of their own while editable, and the grid never stacks.",
+          "deprecated": false
+        },
+        {
           "name": "gap",
           "type": "number",
           "required": false,
@@ -4221,11 +4327,46 @@
           "deprecated": false
         },
         {
+          "name": "onDrop",
+          "type": "(item: DragItem, placement: GridPlacement) => void",
+          "required": false,
+          "description": "An outside item was dropped: the cells it takes, on the first free row at\nor below where it was let go. Add the child and its entry to `layout`.",
+          "deprecated": false
+        },
+        {
+          "name": "onLayoutChange",
+          "type": "(layout: GridLayoutItem[]) => void",
+          "required": false,
+          "description": "The layout after a move or a resize. Keep it in state and pass it back.",
+          "deprecated": false
+        },
+        {
+          "name": "onSelect",
+          "type": "(id: string | null) => void",
+          "required": false,
+          "description": "An item was tapped, or the grid's empty space (`null`).",
+          "deprecated": false
+        },
+        {
           "name": "rowHeight",
           "type": "number",
           "required": false,
           "default": "48",
           "description": "Height of one row, in dp. Defaults to 48.",
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string | null",
+          "required": false,
+          "description": "The item drawn selected, with its handles. Uncontrolled when left out.",
+          "deprecated": false
+        },
+        {
+          "name": "spareRows",
+          "type": "number",
+          "required": false,
+          "description": "Empty rows kept below the lowest item while editable, to move items down into. Defaults to 4.",
           "deprecated": false
         },
         {
@@ -5259,7 +5400,7 @@
           "name": "href",
           "type": "string",
           "required": false,
-          "description": "Opened with `Linking.openURL`. Ignored when `onPress` is given, and when\nits scheme is not in `allowedSchemes` — then the link does nothing.",
+          "description": "Opened with `Linking.openURL` on iOS and Android. On the web the link is an\n`<a href>` the browser follows (a web address in a new tab), so a middle\nclick, a modified click and a screen reader treat it as a link. With\n`onPress` a plain click calls it instead. Ignored when its scheme is not in\n`allowedSchemes` — then the link does nothing and has no `href`.",
           "deprecated": false
         },
         {
@@ -5600,8 +5741,8 @@
         {
           "name": "onClick",
           "type": "(id: string) => void",
-          "required": true,
-          "description": "Called with the `id` of the pressed destination.",
+          "required": false,
+          "description": "Called with the `id` of the pressed destination. Optional when every\nitem has an `href` under a `LinkProvider`.",
           "deprecated": false
         },
         {
@@ -5644,6 +5785,21 @@
           "type": "React.ReactNode",
           "required": false,
           "description": "A row of buttons at the bottom, below a divider.",
+          "deprecated": false
+        },
+        {
+          "name": "backText",
+          "type": "string",
+          "required": false,
+          "default": "\"Back\"",
+          "description": "Accessible name of the back button. Defaults to `\"Back\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "closeText",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of the close button, and of the scrim of a swipeable\ndrawer. Defaults to `\"Close\"` (the scrim's to `\"Close drawer\"`).",
           "deprecated": false
         },
         {
@@ -5789,12 +5945,6 @@
           "deprecated": false
         },
         {
-          "name": "onItemPress",
-          "type": "(id: string) => void",
-          "required": true,
-          "deprecated": false
-        },
-        {
           "name": "alignment",
           "type": "\"top\" | \"center\"",
           "required": false,
@@ -5818,6 +5968,13 @@
           "type": "React.ReactNode",
           "required": false,
           "description": "Above the destinations: typically a menu `IconButton` and/or a `FAB`.",
+          "deprecated": false
+        },
+        {
+          "name": "onItemPress",
+          "type": "(id: string) => void",
+          "required": false,
+          "description": "Called with the `id` of the pressed destination. Optional when every\nitem has an `href` under a `LinkProvider`.",
           "deprecated": false
         },
         {
@@ -5885,6 +6042,13 @@
           "name": "disabled",
           "type": "boolean",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PaginationLabels",
+          "required": false,
+          "description": "Accessible names, for an interface not in English.",
           "deprecated": false
         },
         {
@@ -5966,6 +6130,13 @@
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the surface in tests (its root view).",
           "deprecated": false
         }
       ]
@@ -7326,6 +7497,13 @@
           "deprecated": false
         },
         {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the select in tests: on the field you press to open it. Each option\nof the open list is `` `${testID}-option-${value}` ``.",
+          "deprecated": false
+        },
+        {
           "name": "value",
           "type": "any",
           "required": false,
@@ -7557,6 +7735,14 @@
           "deprecated": false
         },
         {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Close\"",
+          "description": "Accessible name of the close button `onClose` adds. Defaults to `\"Close\"`.",
+          "deprecated": false
+        },
+        {
           "name": "duration",
           "type": "number",
           "required": false,
@@ -7656,6 +7842,14 @@
           "deprecated": false
         },
         {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Close actions\"",
+          "description": "Accessible name of the open trigger. Defaults to `\"Close actions\"`.",
+          "deprecated": false
+        },
+        {
           "name": "defaultOpen",
           "type": "boolean",
           "required": false,
@@ -7664,10 +7858,33 @@
           "deprecated": false
         },
         {
+          "name": "openLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Open actions\"",
+          "description": "Accessible name of the closed trigger. Defaults to `\"Open actions\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "openOnHover",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Web: a mouse over the trigger opens the actions, and leaving them closes\nthem, as a desktop speed dial does. A touch or a click still toggles.\nDefaults to `false`.",
+          "deprecated": false
+        },
+        {
           "name": "position",
           "type": "SpeedDialPosition",
           "required": false,
           "default": "\"bottom-right\"",
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the trigger in tests (the button that opens and closes the actions).",
           "deprecated": false
         }
       ]
@@ -8112,7 +8329,14 @@
           "name": "events",
           "type": "DayTimelineEvent[]",
           "required": true,
-          "description": "The day's events, in any order: they are shown by start time.",
+          "description": "The events, in any order: they are shown by start time. The grid and the\nmonth place each one on the day it starts and leave out the others.",
+          "deprecated": false
+        },
+        {
+          "name": "days",
+          "type": "Date[]",
+          "required": false,
+          "description": "The grid's columns, one per day, in the order given. Defaults to today.",
           "deprecated": false
         },
         {
@@ -8124,10 +8348,41 @@
           "deprecated": false
         },
         {
+          "name": "endHour",
+          "type": "number",
+          "required": false,
+          "default": "20",
+          "description": "The hour the grid ends at, 1–24. Defaults to 20.",
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "number",
+          "required": false,
+          "description": "The first day of the week, 0 = Sunday … 6 = Saturday. Defaults to the locale's.",
+          "deprecated": false
+        },
+        {
+          "name": "hourHeight",
+          "type": "number",
+          "required": false,
+          "default": "48",
+          "description": "The height of an hour in the grid, in dp. Defaults to 48.",
+          "deprecated": false
+        },
+        {
           "name": "labels",
           "type": "DayTimelineLabels",
           "required": false,
           "description": "Words read by screen readers, for another language.",
+          "deprecated": false
+        },
+        {
+          "name": "layout",
+          "type": "DayTimelineLayout",
+          "required": false,
+          "default": "\"list\"",
+          "description": "How the events are laid out. Defaults to `\"list\"`.",
           "deprecated": false
         },
         {
@@ -8139,10 +8394,77 @@
           "deprecated": false
         },
         {
+          "name": "locale",
+          "type": "string",
+          "required": false,
+          "description": "The weekday names and the first day of the week. Defaults to the device's.",
+          "deprecated": false
+        },
+        {
+          "name": "maxPerDay",
+          "type": "number",
+          "required": false,
+          "default": "3",
+          "description": "The month layout's events per day before \"+N\". Defaults to 3.",
+          "deprecated": false
+        },
+        {
+          "name": "month",
+          "type": "Date",
+          "required": false,
+          "description": "Any day of the month the month layout shows. Defaults to today.",
+          "deprecated": false
+        },
+        {
+          "name": "onDayPress",
+          "type": "(day: Date) => void",
+          "required": false,
+          "description": "A press on a day's heading in the grid or its number in the month.",
+          "deprecated": false
+        },
+        {
+          "name": "onEventChange",
+          "type": "(event: DayTimelineEvent, change: DayTimelineChange) => void",
+          "required": false,
+          "description": "Makes the grid's and the month's events draggable: drop one on another\ntime or day (in the month, another day at the same time) to move it,\nkeeping its length. Called with the event and where it now is; update\n`events` here.",
+          "deprecated": false
+        },
+        {
           "name": "onEventPress",
           "type": "(event: DayTimelineEvent) => void",
           "required": false,
           "description": "Called with the pressed event. Makes each card a button.",
+          "deprecated": false
+        },
+        {
+          "name": "onSlotPress",
+          "type": "(start: Date) => void",
+          "required": false,
+          "description": "A press on an empty part of the grid, with its time snapped to `step`, or\non an empty part of a month's day, with that day at `startHour`.",
+          "deprecated": false
+        },
+        {
+          "name": "resizable",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "With `onEventChange`, a handle at the foot of each grid event drags its end.",
+          "deprecated": false
+        },
+        {
+          "name": "startHour",
+          "type": "number",
+          "required": false,
+          "default": "8",
+          "description": "The grid's first hour, 0–23. Defaults to 8.",
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "required": false,
+          "default": "30",
+          "description": "The minutes a press, a move or a resize in the grid snaps to. Defaults to 30.",
           "deprecated": false
         },
         {
@@ -8155,6 +8477,14 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        },
+        {
+          "name": "weekDays",
+          "type": "number[]",
+          "required": false,
+          "default": "ALL_DAYS",
+          "description": "The month layout's weekdays, as `Date#getDay()` numbers (0 = Sunday … 6 =\nSaturday), shown from the first day of the week. Defaults to all seven.",
           "deprecated": false
         }
       ]
@@ -8850,7 +9180,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -9027,6 +9357,13 @@
             "medium",
             "large"
           ],
+          "deprecated": false
+        },
+        {
+          "name": "testID",
+          "type": "string",
+          "required": false,
+          "description": "Finds the switch in tests: on the pressable that toggles it (and carries its role).",
           "deprecated": false
         },
         {
@@ -9413,13 +9750,6 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
-          "deprecated": false
-        },
-        {
-          "name": "activeStyle",
-          "type": "StyleProp<ViewStyle>",
-          "required": false,
-          "description": "Extra style applied only while hovered (web) or pressed.",
           "deprecated": false
         },
         {
@@ -9913,6 +10243,14 @@
           "deprecated": false
         },
         {
+          "name": "initialMode",
+          "type": "ThemeMode",
+          "required": false,
+          "default": "\"system\"",
+          "description": "The scheme to start on: `\"light\"`, `\"dark\"`, or `\"system\"` to follow the\ndevice. Read once, on mount: an app that stores the reader's choice passes\nit here and starts on it, with no flash of the other scheme. Defaults to\n`\"system\"`.",
+          "deprecated": false
+        },
+        {
           "name": "initialPalette",
           "type": "ThemePalette",
           "required": false,
@@ -9921,10 +10259,24 @@
           "deprecated": false
         },
         {
+          "name": "mode",
+          "type": "ThemeMode",
+          "required": false,
+          "description": "Controls the scheme: the provider shows this one, and `toggleTheme` and\n`setMode` only call `onModeChange`. Leave it out to let the provider keep\nthe choice itself (starting from `initialMode`).",
+          "deprecated": false
+        },
+        {
           "name": "onInteractionFeedback",
           "type": "InteractionFeedbackHandler",
           "required": false,
           "description": "Called when the user presses, toggles or selects through one of the\nlibrary's controls: wire it to haptics (`@its/glowup-device/haptics`'s\n`hapticFeedback`) or anything else. A control opts out with\n`feedback={false}`. Without it a nested provider inherits the outer one's.",
+          "deprecated": false
+        },
+        {
+          "name": "onModeChange",
+          "type": "(mode: ThemeMode) => void",
+          "required": false,
+          "description": "Called with the scheme chosen through `toggleTheme` or `setMode`, in either\nmode: store it to start on it next time.",
           "deprecated": false
         },
         {
@@ -9973,6 +10325,20 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of a toast's close button. Defaults to `\"Close\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "description": "Auto-hide delay in ms of a toast that sets none. Defaults to 4000.",
           "deprecated": false
         },
         {
@@ -10056,13 +10422,6 @@
           "deprecated": false
         },
         {
-          "name": "onDragEnd",
-          "type": "(event: DragEndEvent) => void",
-          "required": true,
-          "description": "An item was let go. Apply the move here; `over` is null outside every zone.",
-          "deprecated": false
-        },
-        {
           "name": "feedback",
           "type": "boolean",
           "required": false,
@@ -10075,6 +10434,13 @@
           "type": "(event: DragStartEvent) => void",
           "required": false,
           "description": "The drag was called off: Escape on the web, or the system took the touch.",
+          "deprecated": false
+        },
+        {
+          "name": "onDragEnd",
+          "type": "(event: DragEndEvent) => void",
+          "required": false,
+          "description": "An item was let go. Apply the move here, or in the zone's own `onDrop`;\n`over` is null outside every zone.",
           "deprecated": false
         },
         {
@@ -10205,6 +10571,13 @@
           "deprecated": false
         },
         {
+          "name": "onDrop",
+          "type": "(event: DragEndEvent) => void",
+          "required": false,
+          "description": "An item was let go over this zone: called before the provider's\n`onDragEnd`, so a zone can apply its own drops.",
+          "deprecated": false
+        },
+        {
           "name": "orientation",
           "type": "DropOrientation",
           "required": false,
@@ -10222,6 +10595,82 @@
           "name": "testID",
           "type": "string",
           "required": false,
+          "deprecated": false
+        }
+      ]
+    },
+    "GridCells": {
+      "name": "GridCells",
+      "source": "packages/ui/src/components/Layout/GridLayout.tsx",
+      "propsTypeName": "GridCellsProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "columns",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "gap",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "landing",
+          "type": "Cells | null",
+          "required": true,
+          "description": "Where the dragged item will land, drawn over the empty cells.",
+          "deprecated": false
+        },
+        {
+          "name": "rowHeight",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "taken",
+          "type": "Cells[]",
+          "required": true,
+          "description": "What the grid's other items cover: no cell is drawn there.",
+          "deprecated": false
+        },
+        {
+          "name": "refused",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The landing place is taken: drawn in the error colour.",
+          "deprecated": false
+        }
+      ]
+    },
+    "GridResizeHandles": {
+      "name": "GridResizeHandles",
+      "source": "packages/ui/src/components/Layout/GridLayout.tsx",
+      "propsTypeName": "ResizeHandlesProps",
+      "extends": [],
+      "props": [
+        {
+          "name": "onCancel",
+          "type": "() => void",
+          "required": true,
+          "description": "The system took the touch: the resize is called off.",
+          "deprecated": false
+        },
+        {
+          "name": "onResize",
+          "type": "(handle: Handle, dx: number, dy: number, done: boolean) => void",
+          "required": true,
+          "description": "Called as the pan moves, and once more with `done` when it is let go.",
           "deprecated": false
         }
       ]
@@ -10265,6 +10714,13 @@
           "type": "boolean",
           "required": false,
           "default": "false",
+          "deprecated": false
+        },
+        {
+          "name": "href",
+          "type": "string",
+          "required": false,
+          "description": "Where the item goes: a real anchor on the web (its URL on hover, Ctrl or\nmiddle click for a new tab). A plain click runs `onClick` and then the\n`LinkProvider`'s `navigate`; with neither, the browser follows the link.\nOn iOS and Android a press runs both. A group (an item with `children`)\nopens and closes instead, unless the drawer is `collapsed`.",
           "deprecated": false
         },
         {
@@ -10713,6 +11169,13 @@
           "deprecated": false
         },
         {
+          "name": "onHoverChange",
+          "type": "(hovered: boolean) => void",
+          "required": false,
+          "description": "Called with `true` when the pointer enters the row and `false` when it leaves (web).",
+          "deprecated": false
+        },
+        {
           "name": "selected",
           "type": "boolean",
           "required": false,
@@ -10761,6 +11224,13 @@
           "deprecated": false
         },
         {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "description": "The narrowest a `flex` cell, or one with a percentage `width`, gets, in px.",
+          "deprecated": false
+        },
+        {
           "name": "onClick",
           "type": "() => void",
           "required": false,
@@ -10799,9 +11269,9 @@
         },
         {
           "name": "width",
-          "type": "number",
+          "type": "CellWidth",
           "required": false,
-          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
+          "description": "Width in px, or a percentage of the row (`\"30%\"`). Defaults to 150. With\n`flex`, the narrowest the cell gets (unless `minWidth` says).",
           "deprecated": false
         }
       ]
@@ -10833,6 +11303,13 @@
           "deprecated": false
         },
         {
+          "name": "minWidth",
+          "type": "number",
+          "required": false,
+          "description": "The narrowest a `flex` cell, or one with a percentage `width`, gets, in px.",
+          "deprecated": false
+        },
+        {
           "name": "style",
           "type": "StyleProp<ViewStyle>",
           "required": false,
@@ -10846,9 +11323,9 @@
         },
         {
           "name": "width",
-          "type": "number",
+          "type": "CellWidth",
           "required": false,
-          "description": "Width in px. Defaults to 150. With `flex`, the narrowest the cell gets.",
+          "description": "Width in px, or a percentage of the row (`\"30%\"`). Defaults to 150. With\n`flex`, the narrowest the cell gets (unless `minWidth` says).",
           "deprecated": false
         }
       ]

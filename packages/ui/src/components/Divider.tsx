@@ -46,16 +46,22 @@ const Divider = ({
       : { width: thickness, marginVertical: inset }),
   };
 
+  // A separator to a screen reader, as an <hr> is.
+  const a11y = {
+    role: "separator",
+    "aria-orientation": orientation,
+  } as const;
+
   if (!hasLabel) {
     // A bare rule sizes itself along the line and stretches across it. It must
     // not `flex: 1`: in the row a vertical divider lives in, growing is along
     // the *width*, and the hairline ate the whole row instead of separating
     // it. `alignSelf` is what makes it as tall as its neighbours.
-    return <View style={[line, styles.bareRule, style]} />;
+    return <View {...a11y} style={[line, styles.bareRule, style]} />;
   }
 
   return (
-    <View style={[styles.labelledRule, style]}>
+    <View {...a11y} style={[styles.labelledRule, style]}>
       <View style={[line, styles.segment]} />
       {typeof label === "string" ? (
         <Text

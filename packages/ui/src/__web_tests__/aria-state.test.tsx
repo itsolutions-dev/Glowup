@@ -164,6 +164,21 @@ describe("Menu", () => {
     expect(aria(edit, "disabled")).toBe("false");
     expect(aria(off, "disabled")).toBe("true");
   });
+
+  it("a divider above an item is a separator", () => {
+    draw(
+      <Menu
+        visible
+        onClose={() => {}}
+        anchor={<Button>Actions</Button>}
+        items={[
+          { id: "edit", label: "Edit" },
+          { id: "search", label: "Search", dividerAbove: true },
+        ]}
+      />,
+    );
+    expect(screen.getAllByRole("separator")).toHaveLength(1);
+  });
 });
 
 describe("Slider", () => {

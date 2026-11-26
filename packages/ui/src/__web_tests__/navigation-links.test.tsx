@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import {
   Drawer,
   DrawerItem,
+  Link,
   LinkProvider,
   NavBar,
   NavigationRail,
@@ -136,5 +137,44 @@ describe.each([
     expect(navigate).not.toHaveBeenCalled();
     expect(click(home)).toBe(true);
     expect(navigate).toHaveBeenCalledWith("/");
+  });
+});
+
+describe("Link with href on the web", () => {
+  it("is an anchor the browser follows: tel: in place, a web address in a new tab", () => {
+    draw(
+      <>
+        <Link href="tel:+390212345">02 12345</Link>
+        <Link href="https://example.com">Site</Link>
+      </>,
+    );
+    const tel = screen.getByRole("link", { name: "02 12345" });
+    expect(tel.tagName).toBe("A");
+    expect(tel.getAttribute("href")).toBe("tel:+390212345");
+    expect(tel.getAttribute("target")).toBeNull();
+    expect(click(tel)).toBe(false);
+    const site = screen.getByRole("link", { name: "Site" });
+    expect(site.getAttribute("target")).toBe("_blank");
+  });
+
+  it("calls onPress for a plain click instead, and leaves a modified click to the browser", () => {
+    const onPress = jest.fn();
+    draw(
+      <Link href="tel:+390212345" onPress={onPress}>
+        Call
+      </Link>,
+    );
+    const link = screen.getByRole("link", { name: "Call" });
+    expect(click(link, { ctrlKey: true })).toBe(false);
+    expect(onPress).not.toHaveBeenCalled();
+    expect(click(link)).toBe(true);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("has no href for a scheme it does not allow", () => {
+    draw(<Link href="javascript:alert(1)">Bad</Link>);
+    expect(
+      screen.getByRole("link", { name: "Bad" }).getAttribute("href"),
+    ).toBeNull();
   });
 });

@@ -3,6 +3,7 @@ import {
   Text,
   Pressable,
   Linking,
+  Platform,
   StyleSheet,
   StyleProp,
   ViewStyle,
@@ -16,8 +17,11 @@ import { a11yState } from "./internal/a11yState";
 export interface LinkProps {
   children: string;
   /**
-   * Opened with `Linking.openURL`. Ignored when `onPress` is given, and when
-   * its scheme is not in `allowedSchemes` — then the link does nothing.
+   * Opened with `Linking.openURL` on iOS and Android. On the web the link is an
+   * `<a href>` the browser follows (a web address in a new tab), so a middle
+   * click, a modified click and a screen reader treat it as a link. With
+   * `onPress` a plain click calls it instead. Ignored when its scheme is not in
+   * `allowedSchemes` — then the link does nothing and has no `href`.
    */
   href?: string;
   /**
@@ -72,6 +76,23 @@ const isAllowed = (href: string, allowed: string[]) => {
   );
 };
 
+// A browser click that is the browser's own: a new tab, a new window.
+type Click = {
+  button?: number;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  preventDefault?: () => void;
+};
+const browsersOwn = (click?: Click) =>
+  !!click &&
+  (click.metaKey ||
+    click.ctrlKey ||
+    click.shiftKey ||
+    click.altKey ||
+    (click.button ?? 0) !== 0);
+
 /** Inline navigational text. Falls back to `Linking.openURL` for `href`. */
 const Link = ({
   children,
@@ -93,14 +114,37 @@ const Link = ({
   const labelColor = color ?? theme.colors.primary;
   const withIcon = showExternalIcon ?? isRemote(href);
 
+  const allowedHref =
+    href && isAllowed(href, allowedSchemes) ? href : undefined;
+  const web = Platform.OS === "web";
+
   const handlePress = useMemo(() => {
+    if (web && allowedHref)
+      // The anchor follows its href; an onPress replaces a plain click only.
+      return (e?: unknown) => {
+        const click = e as Click | undefined;
+        if (!onPress || browsersOwn(click)) return;
+        click?.preventDefault?.();
+        onPress();
+      };
     if (onPress) return onPress;
-    if (!href || !isAllowed(href, allowedSchemes)) return undefined;
+    if (!allowedHref) return undefined;
     // Swallow the rejection: an unsupported scheme should not crash the screen.
     return () => {
-      Linking.openURL(href).catch(() => {});
+      Linking.openURL(allowedHref).catch(() => {});
     };
-  }, [onPress, href, allowedSchemes]);
+  }, [web, onPress, allowedHref]);
+
+  // react-native-web draws a View with `href` as an anchor.
+  const anchor =
+    web && allowedHref && !disabled
+      ? {
+          href: allowedHref,
+          ...(isRemote(allowedHref) && {
+            hrefAttrs: { target: "_blank", rel: "noopener noreferrer" },
+          }),
+        }
+      : null;
 
   return (
     <Pressable
@@ -109,6 +153,7 @@ const Link = ({
       {...a11yState("link", { disabled: !!disabled })}
       disabled={disabled || !handlePress}
       onPress={handlePress}
+      {...(anchor as object)}
       testID={testID}
       style={({ hovered }: PressableState) => [
         styles.container,

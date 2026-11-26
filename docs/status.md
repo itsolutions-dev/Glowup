@@ -1,7 +1,8 @@
 # Project status: done, left, and what not to redo
 
-As of **2026-11-25**, at the commit that carries this file (the `claude/appshell` branch adds to `dev` of 5/11 the
-navigation links and the CRM's gaps G2–G6: see the handoff of 25/11). Built from the handoffs of 19 October–4 November and
+As of **2026-11-26**, at the commit that carries this file (the `claude/appshell` branch adds to `dev` of 5/11 the
+navigation links and the CRM's gaps G2–G6, see the handoff of 25/11; `fix-g` adds the fixes from the CRM's first
+checklist run, see the handoff of 26/11). Built from the handoffs of 19 October–4 November and
 `solaris-native.md`. Since 5/11 it also holds the decisions (once `decisions.md`, now "Decisions taken" below) and the
 library's backlog (once `library-roadmap.md`, now "Library hardening" and "Library: what is left to build"). **Update it
 at the end of every session, in the same change as the handoff**, so the next session starts from here and not from
@@ -46,6 +47,15 @@ against the original layers it is about 75%; calculated fields, renaming, date f
 widths and `minWidth` with flex (G2); the pivot's field panel and filter bar (G4); `ScatterChart`, `TimelineChart`
 and `tableLabels` in `packages/charts` (G6). The CRM's open proposals for the library are in
 [`crm-proposals.md`](crm-proposals.md).
+
+**Fixed for the CRM's first checklist run on 26/11** (on `fix-g`): every `Modal` window of the library (`Dialog`,
+`BottomSheet`, side sheets) is a `PortalHost`, and the web date picker's popover is a `Modal`, so overlays opened inside
+them are drawn above them; `Pagination` `labels`, `SpeedDial` `openLabel` / `closeLabel` / `openOnHover`, `Snackbar` and
+`ToastProvider` `closeLabel`, `ToastProvider` `duration`; `aria-disabled` on disabled `Select` options and `Menu` items, and
+both draw up to 100 entries at once; `DayTimeline` `completed` and per-event `editable`; the date fields' typing hint in
+the locale's letters, the app's `placeholder` winning over it; a portalled `Tooltip` flips at the window's edge; the
+pivot's Format panel, Fields and Format in full screen, "Grand Total" for the grand-total row and date-part captions from
+the metadata.
 
 ## Per workstream
 
@@ -339,6 +349,12 @@ day, **M** a few days, **L** a week or more.
   `onValueChange`, `multiSelect`, `Banner.type` and the rest: they were named that way on purpose. Do not
   propose renaming them again.
 
+- **Overlays inside a `Modal` window** (26/11): the window's root (`internal/KeyboardFrame`) is a `PortalHost`, so a
+  portalled overlay opened in a `Dialog` or a sheet is drawn in that window. A web popover that is not portalled must be a
+  `Modal` of its own (as `Popover` and the date picker's), never `createPortal` to `document.body` with a z-index:
+  react-native-web's modals sit at z-index 9999 in the order they open, and only the topmost takes Escape and focus.
+- **`aria-disabled` on a `Pressable` that must stay enabled** (26/11): react-native-web overwrites it with `disabled`, and a
+  `disabled` Pressable lets the click through to its parent; use `ariaDisabledRef` (`internal/a11yState.ts`).
 - **Checked 4/11, not defects:** a `Dialog` without `testID` names its parts `dialog-…` (the default is `"dialog"`),
   never `undefined-…`; the `Tooltip` wrapper around a `ToggleButton` segment not stretching in height shows nothing
   (segments and group are 40 high).

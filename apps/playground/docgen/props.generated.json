@@ -2741,7 +2741,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -2979,7 +2979,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -6001,6 +6001,13 @@
           "deprecated": false
         },
         {
+          "name": "labels",
+          "type": "PaginationLabels",
+          "required": false,
+          "description": "Accessible names, for an interface not in English.",
+          "deprecated": false
+        },
+        {
           "name": "pageSelect",
           "type": "boolean",
           "required": false,
@@ -7670,6 +7677,14 @@
           "deprecated": false
         },
         {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Close\"",
+          "description": "Accessible name of the close button `onClose` adds. Defaults to `\"Close\"`.",
+          "deprecated": false
+        },
+        {
           "name": "duration",
           "type": "number",
           "required": false,
@@ -7769,11 +7784,35 @@
           "deprecated": false
         },
         {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Close actions\"",
+          "description": "Accessible name of the open trigger. Defaults to `\"Close actions\"`.",
+          "deprecated": false
+        },
+        {
           "name": "defaultOpen",
           "type": "boolean",
           "required": false,
           "default": "false",
           "description": "Mount with the action stack already expanded. Uncontrolled after that.",
+          "deprecated": false
+        },
+        {
+          "name": "openLabel",
+          "type": "string",
+          "required": false,
+          "default": "\"Open actions\"",
+          "description": "Accessible name of the closed trigger. Defaults to `\"Open actions\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "openOnHover",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Web: a mouse over the trigger opens the actions, and leaving them closes\nthem, as a desktop speed dial does. A touch or a click still toggles.\nDefaults to `false`.",
           "deprecated": false
         },
         {
@@ -9076,7 +9115,7 @@
           "name": "placeholder",
           "type": "string",
           "required": false,
-          "description": "Shown while the field has no value.",
+          "description": "Shown while the field has no value. Left out, a field you can type a date\nin shows the locale's typing hint (\"GG/MM/AAAA\" in Italian).",
           "deprecated": false
         },
         {
@@ -10199,6 +10238,20 @@
           "name": "children",
           "type": "React.ReactNode",
           "required": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeLabel",
+          "type": "string",
+          "required": false,
+          "description": "Accessible name of a toast's close button. Defaults to `\"Close\"`.",
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "required": false,
+          "description": "Auto-hide delay in ms of a toast that sets none. Defaults to 4000.",
           "deprecated": false
         },
         {

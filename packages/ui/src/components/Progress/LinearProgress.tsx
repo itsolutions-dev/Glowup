@@ -118,6 +118,9 @@ const LinearProgress = ({
           // react-native-web's loop takes the native path, then falls back to
           // a JS timing that ignores the iteration count.
           useNativeDriver: Platform.OS !== "web",
+          // An endless loop holds no interaction handle, or runAfterInteractions (a FlatList's
+          // render batches) waits for it forever.
+          isInteraction: false,
         }),
       );
       animation.start();

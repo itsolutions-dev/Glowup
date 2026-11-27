@@ -113,11 +113,15 @@ const Bone = ({
           toValue: 1,
           duration: duration / 2,
           useNativeDriver: true,
+          // An endless loop holds no interaction handle, or runAfterInteractions (a FlatList's
+          // render batches) waits for it forever.
+          isInteraction: false,
         }),
         Animated.timing(opacity, {
           toValue: 0.4,
           duration: duration / 2,
           useNativeDriver: true,
+          isInteraction: false,
         }),
       ]),
     );

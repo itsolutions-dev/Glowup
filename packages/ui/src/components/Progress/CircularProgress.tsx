@@ -236,6 +236,9 @@ const Spinner = ({
         // A looped timing on the native driver plays once on the web (see
         // LinearProgress), so the spinner would stop after one turn.
         useNativeDriver: Platform.OS !== "web",
+        // An endless loop holds no interaction handle, or runAfterInteractions (a FlatList's
+        // render batches) waits for it forever.
+        isInteraction: false,
       }),
     );
     animation.start();

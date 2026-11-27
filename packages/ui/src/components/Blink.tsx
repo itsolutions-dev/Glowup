@@ -46,6 +46,9 @@ const Blink = ({
         duration: Math.max(1, interval),
         easing: Easing.inOut(Easing.quad),
         useNativeDriver: true,
+        // An endless loop holds no interaction handle, or runAfterInteractions (a FlatList's
+        // render batches) waits for it forever.
+        isInteraction: false,
       });
     const loop = Animated.loop(
       Animated.sequence([fade(Math.min(1, Math.max(0, minOpacity))), fade(1)]),
